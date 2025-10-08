@@ -37,6 +37,7 @@ import {
 } from '../core/firestore_client';
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
+import { Bytes } from '../lite-api/bytes';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
@@ -58,9 +59,11 @@ import {
   parseUpdateData,
   parseUpdateVarargs
 } from '../lite-api/user_data_reader';
+import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
@@ -71,7 +74,6 @@ import {
   QuerySnapshot,
   SnapshotMetadata
 } from './snapshot';
-import { ExpUserDataWriter } from './user_data_writer';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -126,6 +128,21 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
     client,
     reference._key
   ).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
+}
+
+export class ExpUserDataWriter extends AbstractUserDataWriter {
+  constructor(protected firestore: Firestore) {
+    super();
+  }
+
+  protected convertBytes(bytes: ByteString): Bytes {
+    return new Bytes(bytes);
+  }
+
+  protected convertReference(name: string): DocumentReference {
+    const key = this.convertDocumentKey(name, this.firestore._databaseId);
+    return new DocumentReference(this.firestore, /* converter= */ null, key);
+  }
 }
 
 /**

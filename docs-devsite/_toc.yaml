@@ -12,8 +12,12 @@ toc:
     path: /docs/reference/js/ai.aimodel.md
   - title: AIOptions
     path: /docs/reference/js/ai.aioptions.md
+  - title: AnyOfSchema
+    path: /docs/reference/js/ai.anyofschema.md
   - title: ArraySchema
     path: /docs/reference/js/ai.arrayschema.md
+  - title: AudioConversationController
+    path: /docs/reference/js/ai.audioconversationcontroller.md
   - title: Backend
     path: /docs/reference/js/ai.backend.md
   - title: BaseParams
@@ -22,10 +26,18 @@ toc:
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
     path: /docs/reference/js/ai.chatsession.md
+  - title: ChromeAdapter
+    path: /docs/reference/js/ai.chromeadapter.md
   - title: Citation
     path: /docs/reference/js/ai.citation.md
   - title: CitationMetadata
     path: /docs/reference/js/ai.citationmetadata.md
+  - title: CodeExecutionResult
+    path: /docs/reference/js/ai.codeexecutionresult.md
+  - title: CodeExecutionResultPart
+    path: /docs/reference/js/ai.codeexecutionresultpart.md
+  - title: CodeExecutionTool
+    path: /docs/reference/js/ai.codeexecutiontool.md
   - title: Content
     path: /docs/reference/js/ai.content.md
   - title: CountTokensRequest
@@ -40,6 +52,10 @@ toc:
     path: /docs/reference/js/ai.enhancedgeneratecontentresponse.md
   - title: ErrorDetails
     path: /docs/reference/js/ai.errordetails.md
+  - title: ExecutableCode
+    path: /docs/reference/js/ai.executablecode.md
+  - title: ExecutableCodePart
+    path: /docs/reference/js/ai.executablecodepart.md
   - title: FileData
     path: /docs/reference/js/ai.filedata.md
   - title: FileDataPart
@@ -76,10 +92,18 @@ toc:
     path: /docs/reference/js/ai.generativemodel.md
   - title: GoogleAIBackend
     path: /docs/reference/js/ai.googleaibackend.md
-  - title: GroundingAttribution
-    path: /docs/reference/js/ai.groundingattribution.md
+  - title: GoogleSearch
+    path: /docs/reference/js/ai.googlesearch.md
+  - title: GoogleSearchTool
+    path: /docs/reference/js/ai.googlesearchtool.md
+  - title: GroundingChunk
+    path: /docs/reference/js/ai.groundingchunk.md
   - title: GroundingMetadata
     path: /docs/reference/js/ai.groundingmetadata.md
+  - title: GroundingSupport
+    path: /docs/reference/js/ai.groundingsupport.md
+  - title: HybridParams
+    path: /docs/reference/js/ai.hybridparams.md
   - title: ImagenGCSImage
     path: /docs/reference/js/ai.imagengcsimage.md
   - title: ImagenGenerationConfig
@@ -100,6 +124,32 @@ toc:
     path: /docs/reference/js/ai.inlinedatapart.md
   - title: IntegerSchema
     path: /docs/reference/js/ai.integerschema.md
+  - title: LanguageModelCreateCoreOptions
+    path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
+  - title: LanguageModelCreateOptions
+    path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelExpected
+    path: /docs/reference/js/ai.languagemodelexpected.md
+  - title: LanguageModelMessage
+    path: /docs/reference/js/ai.languagemodelmessage.md
+  - title: LanguageModelMessageContent
+    path: /docs/reference/js/ai.languagemodelmessagecontent.md
+  - title: LanguageModelPromptOptions
+    path: /docs/reference/js/ai.languagemodelpromptoptions.md
+  - title: LiveGenerationConfig
+    path: /docs/reference/js/ai.livegenerationconfig.md
+  - title: LiveGenerativeModel
+    path: /docs/reference/js/ai.livegenerativemodel.md
+  - title: LiveModelParams
+    path: /docs/reference/js/ai.livemodelparams.md
+  - title: LiveServerContent
+    path: /docs/reference/js/ai.liveservercontent.md
+  - title: LiveServerToolCall
+    path: /docs/reference/js/ai.liveservertoolcall.md
+  - title: LiveServerToolCallCancellation
+    path: /docs/reference/js/ai.liveservertoolcallcancellation.md
+  - title: LiveSession
+    path: /docs/reference/js/ai.livesession.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
@@ -108,8 +158,12 @@ toc:
     path: /docs/reference/js/ai.numberschema.md
   - title: ObjectSchema
     path: /docs/reference/js/ai.objectschema.md
-  - title: ObjectSchemaInterface
-    path: /docs/reference/js/ai.objectschemainterface.md
+  - title: ObjectSchemaRequest
+    path: /docs/reference/js/ai.objectschemarequest.md
+  - title: OnDeviceParams
+    path: /docs/reference/js/ai.ondeviceparams.md
+  - title: PrebuiltVoiceConfig
+    path: /docs/reference/js/ai.prebuiltvoiceconfig.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions
@@ -130,26 +184,44 @@ toc:
     path: /docs/reference/js/ai.schemarequest.md
   - title: SchemaShared
     path: /docs/reference/js/ai.schemashared.md
+  - title: SearchEntrypoint
+    path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SpeechConfig
+    path: /docs/reference/js/ai.speechconfig.md
+  - title: StartAudioConversationOptions
+    path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams
     path: /docs/reference/js/ai.startchatparams.md
   - title: StringSchema
     path: /docs/reference/js/ai.stringschema.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
+  - title: ThinkingConfig
+    path: /docs/reference/js/ai.thinkingconfig.md
   - title: ToolConfig
     path: /docs/reference/js/ai.toolconfig.md
+  - title: URLContext
+    path: /docs/reference/js/ai.urlcontext.md
+  - title: URLContextMetadata
+    path: /docs/reference/js/ai.urlcontextmetadata.md
+  - title: URLContextTool
+    path: /docs/reference/js/ai.urlcontexttool.md
+  - title: URLMetadata
+    path: /docs/reference/js/ai.urlmetadata.md
   - title: UsageMetadata
     path: /docs/reference/js/ai.usagemetadata.md
   - title: VertexAIBackend
     path: /docs/reference/js/ai.vertexaibackend.md
-  - title: VertexAIOptions
-    path: /docs/reference/js/ai.vertexaioptions.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
+  - title: VoiceConfig
+    path: /docs/reference/js/ai.voiceconfig.md
   - title: WebAttribution
     path: /docs/reference/js/ai.webattribution.md
+  - title: WebGroundingChunk
+    path: /docs/reference/js/ai.webgroundingchunk.md
 - title: analytics
   path: /docs/reference/js/analytics.md
   section:
@@ -577,6 +649,10 @@ toc:
 - title: remote-config
   path: /docs/reference/js/remote-config.md
   section:
+  - title: ConfigUpdate
+    path: /docs/reference/js/remote-config.configupdate.md
+  - title: ConfigUpdateObserver
+    path: /docs/reference/js/remote-config.configupdateobserver.md
   - title: CustomSignals
     path: /docs/reference/js/remote-config.customsignals.md
   - title: FetchResponse

@@ -20,12 +20,10 @@ import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
 import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
-import { Pipeline } from '../lite-api/pipeline';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { ResourcePath } from '../model/path';
-import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import {
   ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
@@ -34,8 +32,6 @@ import {
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
   RunQueryResponse as ProtoRunQueryResponse,
-  ExecutePipelineRequest as ProtoExecutePipelineRequest,
-  ExecutePipelineResponse as ProtoExecutePipelineResponse,
   Value
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
@@ -58,8 +54,7 @@ import {
   toName,
   toQueryTarget,
   toResourcePath,
-  toRunAggregationQueryRequest,
-  fromPipelineResponse
+  toRunAggregationQueryRequest
 } from './serializer';
 
 /**
@@ -239,36 +234,6 @@ export async function invokeBatchGetDocumentsRpc(
     result.push(doc);
   });
   return result;
-}
-
-export async function invokeExecutePipeline(
-  datastore: Datastore,
-  pipeline: Pipeline<unknown>
-): Promise<PipelineStreamElement[]> {
-  const datastoreImpl = debugCast(datastore, DatastoreImpl);
-  const executePipelineRequest = pipeline._toProto(datastoreImpl.serializer);
-
-  const response = await datastoreImpl.invokeStreamingRPC<
-    ProtoExecutePipelineRequest,
-    ProtoExecutePipelineResponse
-  >(
-    'ExecutePipeline',
-    datastoreImpl.serializer.databaseId,
-    ResourcePath.emptyPath(),
-    executePipelineRequest
-  );
-
-  return response
-    .filter(proto => !!proto.results)
-    .flatMap(proto => {
-      if (proto.results!.length === 0) {
-        return fromPipelineResponse(datastoreImpl.serializer, proto);
-      } else {
-        return proto.results!.map(result =>
-          fromPipelineResponse(datastoreImpl.serializer, proto, result)
-        );
-      }
-    });
 }
 
 export async function invokeRunQueryRpc(

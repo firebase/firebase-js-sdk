@@ -62,43 +62,53 @@ export interface CustomErrorData {
  *
  * @public
  */
-export const enum AIErrorCode {
+export const AIErrorCode = {
   /** A generic error occurred. */
-  ERROR = 'error',
+  ERROR: 'error',
 
   /** An error occurred in a request. */
-  REQUEST_ERROR = 'request-error',
+  REQUEST_ERROR: 'request-error',
 
   /** An error occurred in a response. */
-  RESPONSE_ERROR = 'response-error',
+  RESPONSE_ERROR: 'response-error',
 
   /** An error occurred while performing a fetch. */
-  FETCH_ERROR = 'fetch-error',
+  FETCH_ERROR: 'fetch-error',
+
+  /** An error occurred because an operation was attempted on a closed session. */
+  SESSION_CLOSED: 'session-closed',
 
   /** An error associated with a Content object.  */
-  INVALID_CONTENT = 'invalid-content',
+  INVALID_CONTENT: 'invalid-content',
 
   /** An error due to the Firebase API not being enabled in the Console. */
-  API_NOT_ENABLED = 'api-not-enabled',
+  API_NOT_ENABLED: 'api-not-enabled',
 
   /** An error due to invalid Schema input.  */
-  INVALID_SCHEMA = 'invalid-schema',
+  INVALID_SCHEMA: 'invalid-schema',
 
   /** An error occurred due to a missing Firebase API key. */
-  NO_API_KEY = 'no-api-key',
+  NO_API_KEY: 'no-api-key',
 
   /** An error occurred due to a missing Firebase app ID. */
-  NO_APP_ID = 'no-app-id',
+  NO_APP_ID: 'no-app-id',
 
   /** An error occurred due to a model name not being specified during initialization. */
-  NO_MODEL = 'no-model',
+  NO_MODEL: 'no-model',
 
   /** An error occurred due to a missing project ID. */
-  NO_PROJECT_ID = 'no-project-id',
+  NO_PROJECT_ID: 'no-project-id',
 
   /** An error occurred while parsing. */
-  PARSE_FAILED = 'parse-failed',
+  PARSE_FAILED: 'parse-failed',
 
   /** An error occurred due an attempt to use an unsupported feature. */
-  UNSUPPORTED = 'unsupported'
-}
+  UNSUPPORTED: 'unsupported'
+} as const;
+
+/**
+ * Standardized error codes that {@link AIError} can have.
+ *
+ * @public
+ */
+export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];

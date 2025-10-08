@@ -15,7 +15,7 @@ A `FunctionDeclarationsTool` is a piece of code that enables the system to inter
 <b>Signature:</b>
 
 ```typescript
-export declare interface FunctionDeclarationsTool 
+export interface FunctionDeclarationsTool 
 ```
 
 ## Properties

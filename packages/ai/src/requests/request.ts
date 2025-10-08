@@ -20,13 +20,14 @@ import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_API_VERSION,
-  DEFAULT_BASE_URL,
+  DEFAULT_DOMAIN,
   DEFAULT_FETCH_TIMEOUT_MS,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
+import { BackendType } from '../public-types';
 
 export enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -51,7 +52,7 @@ export class RequestUrl {
   }
 
   private get baseUrl(): string {
-    return this.requestOptions?.baseUrl || DEFAULT_BASE_URL;
+    return this.requestOptions?.baseUrl || `https://${DEFAULT_DOMAIN}`;
   }
 
   private get apiVersion(): string {
@@ -78,6 +79,28 @@ export class RequestUrl {
     }
 
     return params;
+  }
+}
+
+export class WebSocketUrl {
+  constructor(public apiSettings: ApiSettings) {}
+  toString(): string {
+    const url = new URL(`wss://${DEFAULT_DOMAIN}`);
+    url.pathname = this.pathname;
+
+    const queryParams = new URLSearchParams();
+    queryParams.set('key', this.apiSettings.apiKey);
+    url.search = queryParams.toString();
+
+    return url.toString();
+  }
+
+  private get pathname(): string {
+    if (this.apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
+      return 'ws/google.firebase.vertexai.v1beta.GenerativeService/BidiGenerateContent';
+    } else {
+      return `ws/google.firebase.vertexai.v1beta.LlmBidiService/BidiGenerateContent/locations/${this.apiSettings.location}`;
+    }
   }
 }
 
@@ -185,6 +208,7 @@ export async function makeRequest(
       }
       if (
         response.status === 403 &&
+        errorDetails &&
         errorDetails.some(
           (detail: ErrorDetails) => detail.reason === 'SERVICE_DISABLED'
         ) &&

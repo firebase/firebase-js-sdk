@@ -118,10 +118,11 @@ export async function getToken(
    */
   if (isDebugMode()) {
     try {
+      const debugToken = await getDebugToken();
       // Avoid making another call to the exchange endpoint if one is in flight.
       if (!state.exchangeTokenPromise) {
         state.exchangeTokenPromise = exchangeToken(
-          getExchangeDebugTokenRequest(app, await getDebugToken()),
+          getExchangeDebugTokenRequest(app, debugToken),
           appCheck.heartbeatServiceProvider
         ).finally(() => {
           // Clear promise when settled - either resolved or rejected.

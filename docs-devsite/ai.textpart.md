@@ -22,10 +22,29 @@ export interface TextPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [codeExecutionResult](./ai.textpart.md#textpartcodeexecutionresult) | never |  |
+|  [executableCode](./ai.textpart.md#textpartexecutablecode) | never |  |
 |  [functionCall](./ai.textpart.md#textpartfunctioncall) | never |  |
 |  [functionResponse](./ai.textpart.md#textpartfunctionresponse) | never |  |
 |  [inlineData](./ai.textpart.md#textpartinlinedata) | never |  |
 |  [text](./ai.textpart.md#textparttext) | string |  |
+|  [thought](./ai.textpart.md#textpartthought) | boolean |  |
+
+## TextPart.codeExecutionResult
+
+<b>Signature:</b>
+
+```typescript
+codeExecutionResult?: never;
+```
+
+## TextPart.executableCode
+
+<b>Signature:</b>
+
+```typescript
+executableCode?: never;
+```
 
 ## TextPart.functionCall
 
@@ -57,4 +76,12 @@ inlineData?: never;
 
 ```typescript
 text: string;
+```
+
+## TextPart.thought
+
+<b>Signature:</b>
+
+```typescript
+thought?: boolean;
 ```

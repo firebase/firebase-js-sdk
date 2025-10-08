@@ -32,7 +32,7 @@ export function objectSize(obj: object): number {
 }
 
 export function forEach<V>(
-  obj: Record<string, V> | undefined,
+  obj: Dict<V> | undefined,
   fn: (key: string, val: V) => void
 ): void {
   for (const key in obj) {

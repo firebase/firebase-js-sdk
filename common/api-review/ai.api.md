@@ -15,6 +15,7 @@ export interface AI {
     backend: Backend;
     // @deprecated (undocumented)
     location: string;
+    options?: AIOptions;
 }
 
 // @public
@@ -27,25 +28,25 @@ export class AIError extends FirebaseError {
 }
 
 // @public
-const enum AIErrorCode {
-    API_NOT_ENABLED = "api-not-enabled",
-    ERROR = "error",
-    FETCH_ERROR = "fetch-error",
-    INVALID_CONTENT = "invalid-content",
-    INVALID_SCHEMA = "invalid-schema",
-    NO_API_KEY = "no-api-key",
-    NO_APP_ID = "no-app-id",
-    NO_MODEL = "no-model",
-    NO_PROJECT_ID = "no-project-id",
-    PARSE_FAILED = "parse-failed",
-    REQUEST_ERROR = "request-error",
-    RESPONSE_ERROR = "response-error",
-    UNSUPPORTED = "unsupported"
-}
+export const AIErrorCode: {
+    readonly ERROR: "error";
+    readonly REQUEST_ERROR: "request-error";
+    readonly RESPONSE_ERROR: "response-error";
+    readonly FETCH_ERROR: "fetch-error";
+    readonly SESSION_CLOSED: "session-closed";
+    readonly INVALID_CONTENT: "invalid-content";
+    readonly API_NOT_ENABLED: "api-not-enabled";
+    readonly INVALID_SCHEMA: "invalid-schema";
+    readonly NO_API_KEY: "no-api-key";
+    readonly NO_APP_ID: "no-app-id";
+    readonly NO_MODEL: "no-model";
+    readonly NO_PROJECT_ID: "no-project-id";
+    readonly PARSE_FAILED: "parse-failed";
+    readonly UNSUPPORTED: "unsupported";
+};
 
-export { AIErrorCode }
-
-export { AIErrorCode as VertexAIErrorCode }
+// @public
+export type AIErrorCode = (typeof AIErrorCode)[keyof typeof AIErrorCode];
 
 // @public
 export abstract class AIModel {
@@ -54,7 +55,7 @@ export abstract class AIModel {
     // Warning: (ae-forgotten-export) The symbol "ApiSettings" needs to be exported by the entry point index.d.ts
     //
     // @internal (undocumented)
-    protected _apiSettings: ApiSettings;
+    _apiSettings: ApiSettings;
     readonly model: string;
     // @internal
     static normalizeModelName(modelName: string, backendType: BackendType): string;
@@ -62,7 +63,19 @@ export abstract class AIModel {
 
 // @public
 export interface AIOptions {
-    backend: Backend;
+    backend?: Backend;
+    useLimitedUseAppCheckTokens?: boolean;
+}
+
+// @public
+export class AnyOfSchema extends Schema {
+    constructor(schemaParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    });
+    // (undocumented)
+    anyOf: TypedSchema[];
+    // @internal (undocumented)
+    toJSON(): SchemaRequest;
 }
 
 // @public
@@ -72,6 +85,11 @@ export class ArraySchema extends Schema {
     items: TypedSchema;
     // @internal (undocumented)
     toJSON(): SchemaRequest;
+}
+
+// @beta
+export interface AudioConversationController {
+    stop: () => Promise<void>;
 }
 
 // @public
@@ -98,12 +116,15 @@ export interface BaseParams {
 }
 
 // @public
-export enum BlockReason {
-    BLOCKLIST = "BLOCKLIST",
-    OTHER = "OTHER",
-    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-    SAFETY = "SAFETY"
-}
+export const BlockReason: {
+    readonly SAFETY: "SAFETY";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+};
+
+// @public
+export type BlockReason = (typeof BlockReason)[keyof typeof BlockReason];
 
 // @public
 export class BooleanSchema extends Schema {
@@ -112,7 +133,8 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession {
-    constructor(apiSettings: ApiSettings, model: string, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
+    constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -123,6 +145,15 @@ export class ChatSession {
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
+
+// @beta
+export interface ChromeAdapter {
+    // @internal (undocumented)
+    countTokens(request: CountTokensRequest): Promise<Response>;
+    generateContent(request: GenerateContentRequest): Promise<Response>;
+    generateContentStream(request: GenerateContentRequest): Promise<Response>;
+    isAvailable(request: GenerateContentRequest): Promise<boolean>;
+}
 
 // @public
 export interface Citation {
@@ -142,6 +173,39 @@ export interface Citation {
 export interface CitationMetadata {
     // (undocumented)
     citations: Citation[];
+}
+
+// @beta
+export interface CodeExecutionResult {
+    outcome?: Outcome;
+    output?: string;
+}
+
+// @beta
+export interface CodeExecutionResultPart {
+    // (undocumented)
+    codeExecutionResult?: CodeExecutionResult;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
+}
+
+// @beta
+export interface CodeExecutionTool {
+    codeExecution: {};
 }
 
 // @public
@@ -191,10 +255,10 @@ export { Date_2 as Date }
 
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
-    // (undocumented)
     functionCalls: () => FunctionCall[] | undefined;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
+    thoughtSummary: () => string | undefined;
 }
 
 // @public
@@ -205,6 +269,34 @@ export interface ErrorDetails {
     domain?: string;
     metadata?: Record<string, unknown>;
     reason?: string;
+}
+
+// @beta
+export interface ExecutableCode {
+    code?: string;
+    language?: Language;
+}
+
+// @beta
+export interface ExecutableCodePart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: ExecutableCode;
+    // (undocumented)
+    fileData: never;
+    // (undocumented)
+    functionCall?: never;
+    // (undocumented)
+    functionResponse?: never;
+    // (undocumented)
+    inlineData?: never;
+    // (undocumented)
+    text?: never;
+    // (undocumented)
+    thought?: never;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -218,6 +310,10 @@ export interface FileData {
 // @public
 export interface FileDataPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     fileData: FileData;
     // (undocumented)
     functionCall?: never;
@@ -227,25 +323,33 @@ export interface FileDataPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
-export enum FinishReason {
-    BLOCKLIST = "BLOCKLIST",
-    MALFORMED_FUNCTION_CALL = "MALFORMED_FUNCTION_CALL",
-    MAX_TOKENS = "MAX_TOKENS",
-    OTHER = "OTHER",
-    PROHIBITED_CONTENT = "PROHIBITED_CONTENT",
-    RECITATION = "RECITATION",
-    SAFETY = "SAFETY",
-    SPII = "SPII",
-    STOP = "STOP"
-}
+export const FinishReason: {
+    readonly STOP: "STOP";
+    readonly MAX_TOKENS: "MAX_TOKENS";
+    readonly SAFETY: "SAFETY";
+    readonly RECITATION: "RECITATION";
+    readonly OTHER: "OTHER";
+    readonly BLOCKLIST: "BLOCKLIST";
+    readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
+    readonly SPII: "SPII";
+    readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
+};
+
+// @public
+export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 
 // @public
 export interface FunctionCall {
     // (undocumented)
     args: object;
+    id?: string;
     // (undocumented)
     name: string;
 }
@@ -259,14 +363,21 @@ export interface FunctionCallingConfig {
 }
 
 // @public (undocumented)
-export enum FunctionCallingMode {
-    ANY = "ANY",
-    AUTO = "AUTO",
-    NONE = "NONE"
-}
+export const FunctionCallingMode: {
+    readonly AUTO: "AUTO";
+    readonly ANY: "ANY";
+    readonly NONE: "NONE";
+};
+
+// @public (undocumented)
+export type FunctionCallingMode = (typeof FunctionCallingMode)[keyof typeof FunctionCallingMode];
 
 // @public
 export interface FunctionCallPart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     functionCall: FunctionCall;
     // (undocumented)
@@ -275,13 +386,17 @@ export interface FunctionCallPart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
 export interface FunctionDeclaration {
     description: string;
     name: string;
-    parameters?: ObjectSchemaInterface;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
 // @public
@@ -291,6 +406,7 @@ export interface FunctionDeclarationsTool {
 
 // @public
 export interface FunctionResponse {
+    id?: string;
     // (undocumented)
     name: string;
     // (undocumented)
@@ -300,6 +416,10 @@ export interface FunctionResponse {
 // @public
 export interface FunctionResponsePart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse: FunctionResponse;
@@ -307,6 +427,10 @@ export interface FunctionResponsePart {
     inlineData?: never;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
 }
 
 // @public
@@ -325,6 +449,10 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
+    //
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // @public
@@ -381,6 +509,7 @@ export interface GenerationConfig {
     stopSequences?: string[];
     // (undocumented)
     temperature?: number;
+    thinkingConfig?: ThinkingConfig;
     // (undocumented)
     topK?: number;
     // (undocumented)
@@ -396,7 +525,8 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions);
+    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
+    constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
@@ -418,14 +548,16 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
+// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
+//
 // @public
-export function getGenerativeModel(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions): GenerativeModel;
+export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @beta
+// @public
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
-// @public @deprecated (undocumented)
-export function getVertexAI(app?: FirebaseApp, options?: VertexAIOptions): VertexAI;
+// @beta
+export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
 // @public
 export class GoogleAIBackend extends Backend {
@@ -472,6 +604,8 @@ export interface GoogleAIGenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
+    // (undocumented)
+    urlContextMetadata?: URLContextMetadata;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAIGenerateContentResponse" should be prefixed with an underscore because the declaration is marked as @internal
@@ -486,80 +620,109 @@ export interface GoogleAIGenerateContentResponse {
     usageMetadata?: UsageMetadata;
 }
 
-// @public @deprecated (undocumented)
-export interface GroundingAttribution {
-    // (undocumented)
-    confidenceScore?: number;
-    // (undocumented)
-    retrievedContext?: RetrievedContextAttribution;
-    // (undocumented)
-    segment: Segment;
-    // (undocumented)
-    web?: WebAttribution;
+// @public
+export interface GoogleSearch {
+}
+
+// @public
+export interface GoogleSearchTool {
+    googleSearch: GoogleSearch;
+}
+
+// @public
+export interface GroundingChunk {
+    web?: WebGroundingChunk;
 }
 
 // @public
 export interface GroundingMetadata {
+    groundingChunks?: GroundingChunk[];
+    groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)
-    groundingAttributions: GroundingAttribution[];
-    // (undocumented)
     retrievalQueries?: string[];
-    // (undocumented)
+    searchEntryPoint?: SearchEntrypoint;
     webSearchQueries?: string[];
 }
 
 // @public
-export enum HarmBlockMethod {
-    PROBABILITY = "PROBABILITY",
-    SEVERITY = "SEVERITY"
+export interface GroundingSupport {
+    groundingChunkIndices?: number[];
+    segment?: Segment;
 }
 
 // @public
-export enum HarmBlockThreshold {
-    BLOCK_LOW_AND_ABOVE = "BLOCK_LOW_AND_ABOVE",
-    BLOCK_MEDIUM_AND_ABOVE = "BLOCK_MEDIUM_AND_ABOVE",
-    BLOCK_NONE = "BLOCK_NONE",
-    BLOCK_ONLY_HIGH = "BLOCK_ONLY_HIGH",
-    OFF = "OFF"
-}
+export const HarmBlockMethod: {
+    readonly SEVERITY: "SEVERITY";
+    readonly PROBABILITY: "PROBABILITY";
+};
 
 // @public
-export enum HarmCategory {
-    // (undocumented)
-    HARM_CATEGORY_DANGEROUS_CONTENT = "HARM_CATEGORY_DANGEROUS_CONTENT",
-    // (undocumented)
-    HARM_CATEGORY_HARASSMENT = "HARM_CATEGORY_HARASSMENT",
-    // (undocumented)
-    HARM_CATEGORY_HATE_SPEECH = "HARM_CATEGORY_HATE_SPEECH",
-    // (undocumented)
-    HARM_CATEGORY_SEXUALLY_EXPLICIT = "HARM_CATEGORY_SEXUALLY_EXPLICIT"
-}
+export type HarmBlockMethod = (typeof HarmBlockMethod)[keyof typeof HarmBlockMethod];
 
 // @public
-export enum HarmProbability {
-    HIGH = "HIGH",
-    LOW = "LOW",
-    MEDIUM = "MEDIUM",
-    NEGLIGIBLE = "NEGLIGIBLE"
-}
+export const HarmBlockThreshold: {
+    readonly BLOCK_LOW_AND_ABOVE: "BLOCK_LOW_AND_ABOVE";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "BLOCK_MEDIUM_AND_ABOVE";
+    readonly BLOCK_ONLY_HIGH: "BLOCK_ONLY_HIGH";
+    readonly BLOCK_NONE: "BLOCK_NONE";
+    readonly OFF: "OFF";
+};
 
 // @public
-export enum HarmSeverity {
-    HARM_SEVERITY_HIGH = "HARM_SEVERITY_HIGH",
-    HARM_SEVERITY_LOW = "HARM_SEVERITY_LOW",
-    HARM_SEVERITY_MEDIUM = "HARM_SEVERITY_MEDIUM",
-    HARM_SEVERITY_NEGLIGIBLE = "HARM_SEVERITY_NEGLIGIBLE",
-    HARM_SEVERITY_UNSUPPORTED = "HARM_SEVERITY_UNSUPPORTED"
-}
+export type HarmBlockThreshold = (typeof HarmBlockThreshold)[keyof typeof HarmBlockThreshold];
+
+// @public
+export const HarmCategory: {
+    readonly HARM_CATEGORY_HATE_SPEECH: "HARM_CATEGORY_HATE_SPEECH";
+    readonly HARM_CATEGORY_SEXUALLY_EXPLICIT: "HARM_CATEGORY_SEXUALLY_EXPLICIT";
+    readonly HARM_CATEGORY_HARASSMENT: "HARM_CATEGORY_HARASSMENT";
+    readonly HARM_CATEGORY_DANGEROUS_CONTENT: "HARM_CATEGORY_DANGEROUS_CONTENT";
+};
+
+// @public
+export type HarmCategory = (typeof HarmCategory)[keyof typeof HarmCategory];
+
+// @public
+export const HarmProbability: {
+    readonly NEGLIGIBLE: "NEGLIGIBLE";
+    readonly LOW: "LOW";
+    readonly MEDIUM: "MEDIUM";
+    readonly HIGH: "HIGH";
+};
+
+// @public
+export type HarmProbability = (typeof HarmProbability)[keyof typeof HarmProbability];
+
+// @public
+export const HarmSeverity: {
+    readonly HARM_SEVERITY_NEGLIGIBLE: "HARM_SEVERITY_NEGLIGIBLE";
+    readonly HARM_SEVERITY_LOW: "HARM_SEVERITY_LOW";
+    readonly HARM_SEVERITY_MEDIUM: "HARM_SEVERITY_MEDIUM";
+    readonly HARM_SEVERITY_HIGH: "HARM_SEVERITY_HIGH";
+    readonly HARM_SEVERITY_UNSUPPORTED: "HARM_SEVERITY_UNSUPPORTED";
+};
+
+// @public
+export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 // @beta
-export enum ImagenAspectRatio {
-    LANDSCAPE_16x9 = "16:9",
-    LANDSCAPE_3x4 = "3:4",
-    PORTRAIT_4x3 = "4:3",
-    PORTRAIT_9x16 = "9:16",
-    SQUARE = "1:1"
+export interface HybridParams {
+    inCloudParams?: ModelParams;
+    mode: InferenceMode;
+    onDeviceParams?: OnDeviceParams;
 }
+
+// @public
+export const ImagenAspectRatio: {
+    readonly SQUARE: "1:1";
+    readonly LANDSCAPE_3x4: "3:4";
+    readonly PORTRAIT_4x3: "4:3";
+    readonly LANDSCAPE_16x9: "16:9";
+    readonly PORTRAIT_9x16: "9:16";
+};
+
+// @public
+export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
 // @public
 export interface ImagenGCSImage {
@@ -567,7 +730,7 @@ export interface ImagenGCSImage {
     mimeType: string;
 }
 
-// @beta
+// @public
 export interface ImagenGenerationConfig {
     addWatermark?: boolean;
     aspectRatio?: ImagenAspectRatio;
@@ -576,13 +739,13 @@ export interface ImagenGenerationConfig {
     numberOfImages?: number;
 }
 
-// @beta
+// @public
 export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
     filteredReason?: string;
     images: T[];
 }
 
-// @beta
+// @public
 export class ImagenImageFormat {
     compressionQuality?: number;
     static jpeg(compressionQuality?: number): ImagenImageFormat;
@@ -590,13 +753,13 @@ export class ImagenImageFormat {
     static png(): ImagenImageFormat;
 }
 
-// @beta
+// @public
 export interface ImagenInlineImage {
     bytesBase64Encoded: string;
     mimeType: string;
 }
 
-// @beta
+// @public
 export class ImagenModel extends AIModel {
     constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
@@ -608,36 +771,57 @@ export class ImagenModel extends AIModel {
     safetySettings?: ImagenSafetySettings;
 }
 
-// @beta
+// @public
 export interface ImagenModelParams {
     generationConfig?: ImagenGenerationConfig;
     model: string;
     safetySettings?: ImagenSafetySettings;
 }
 
-// @beta
-export enum ImagenPersonFilterLevel {
-    ALLOW_ADULT = "allow_adult",
-    ALLOW_ALL = "allow_all",
-    BLOCK_ALL = "dont_allow"
-}
+// @public
+export const ImagenPersonFilterLevel: {
+    readonly BLOCK_ALL: "dont_allow";
+    readonly ALLOW_ADULT: "allow_adult";
+    readonly ALLOW_ALL: "allow_all";
+};
 
-// @beta
-export enum ImagenSafetyFilterLevel {
-    BLOCK_LOW_AND_ABOVE = "block_low_and_above",
-    BLOCK_MEDIUM_AND_ABOVE = "block_medium_and_above",
-    BLOCK_NONE = "block_none",
-    BLOCK_ONLY_HIGH = "block_only_high"
-}
+// @public
+export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
-// @beta
+// @public
+export const ImagenSafetyFilterLevel: {
+    readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
+    readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
+    readonly BLOCK_ONLY_HIGH: "block_only_high";
+    readonly BLOCK_NONE: "block_none";
+};
+
+// @public
+export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
+
+// @public
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
+// @beta
+export const InferenceMode: {
+    readonly PREFER_ON_DEVICE: "prefer_on_device";
+    readonly ONLY_ON_DEVICE: "only_on_device";
+    readonly ONLY_IN_CLOUD: "only_in_cloud";
+    readonly PREFER_IN_CLOUD: "prefer_in_cloud";
+};
+
+// @beta
+export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
 // @public
 export interface InlineDataPart {
+    // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
     // (undocumented)
     functionCall?: never;
     // (undocumented)
@@ -646,6 +830,10 @@ export interface InlineDataPart {
     inlineData: GenerativeContentBlob;
     // (undocumented)
     text?: never;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: never;
     videoMetadata?: VideoMetadata;
 }
 
@@ -654,15 +842,175 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @public
-export enum Modality {
-    AUDIO = "AUDIO",
-    DOCUMENT = "DOCUMENT",
-    IMAGE = "IMAGE",
-    MODALITY_UNSPECIFIED = "MODALITY_UNSPECIFIED",
-    TEXT = "TEXT",
-    VIDEO = "VIDEO"
+// @beta
+export const Language: {
+    UNSPECIFIED: string;
+    PYTHON: string;
+};
+
+// @beta
+export type Language = (typeof Language)[keyof typeof Language];
+
+// @beta
+export interface LanguageModelCreateCoreOptions {
+    // (undocumented)
+    expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    temperature?: number;
+    // (undocumented)
+    topK?: number;
 }
+
+// @beta
+export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
+    // (undocumented)
+    initialPrompts?: LanguageModelMessage[];
+    // (undocumented)
+    signal?: AbortSignal;
+}
+
+// @beta
+export interface LanguageModelExpected {
+    // (undocumented)
+    languages?: string[];
+    // (undocumented)
+    type: LanguageModelMessageType;
+}
+
+// @beta
+export interface LanguageModelMessage {
+    // (undocumented)
+    content: LanguageModelMessageContent[];
+    // (undocumented)
+    role: LanguageModelMessageRole;
+}
+
+// @beta
+export interface LanguageModelMessageContent {
+    // (undocumented)
+    type: LanguageModelMessageType;
+    // (undocumented)
+    value: LanguageModelMessageContentValue;
+}
+
+// @beta
+export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
+
+// @beta
+export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
+
+// @beta
+export type LanguageModelMessageType = 'text' | 'image' | 'audio';
+
+// @beta
+export interface LanguageModelPromptOptions {
+    // (undocumented)
+    responseConstraint?: object;
+}
+
+// @beta
+export interface LiveGenerationConfig {
+    frequencyPenalty?: number;
+    maxOutputTokens?: number;
+    presencePenalty?: number;
+    responseModalities?: ResponseModality[];
+    speechConfig?: SpeechConfig;
+    temperature?: number;
+    topK?: number;
+    topP?: number;
+}
+
+// @beta
+export class LiveGenerativeModel extends AIModel {
+    // Warning: (ae-forgotten-export) The symbol "WebSocketHandler" needs to be exported by the entry point index.d.ts
+    //
+    // @internal
+    constructor(ai: AI, modelParams: LiveModelParams,
+    _webSocketHandler: WebSocketHandler);
+    connect(): Promise<LiveSession>;
+    // (undocumented)
+    generationConfig: LiveGenerationConfig;
+    // (undocumented)
+    systemInstruction?: Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+    }
+
+// @beta
+export interface LiveModelParams {
+    // (undocumented)
+    generationConfig?: LiveGenerationConfig;
+    // (undocumented)
+    model: string;
+    // (undocumented)
+    systemInstruction?: string | Part | Content;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: Tool[];
+}
+
+// @beta
+export const LiveResponseType: {
+    SERVER_CONTENT: string;
+    TOOL_CALL: string;
+    TOOL_CALL_CANCELLATION: string;
+};
+
+// @beta
+export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveResponseType];
+
+// @beta
+export interface LiveServerContent {
+    interrupted?: boolean;
+    modelTurn?: Content;
+    turnComplete?: boolean;
+    // (undocumented)
+    type: 'serverContent';
+}
+
+// @beta
+export interface LiveServerToolCall {
+    functionCalls: FunctionCall[];
+    // (undocumented)
+    type: 'toolCall';
+}
+
+// @beta
+export interface LiveServerToolCallCancellation {
+    functionIds: string[];
+    // (undocumented)
+    type: 'toolCallCancellation';
+}
+
+// @beta
+export class LiveSession {
+    // @internal
+    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    close(): Promise<void>;
+    inConversation: boolean;
+    isClosed: boolean;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+    sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    }
+
+// @public
+export const Modality: {
+    readonly MODALITY_UNSPECIFIED: "MODALITY_UNSPECIFIED";
+    readonly TEXT: "TEXT";
+    readonly IMAGE: "IMAGE";
+    readonly VIDEO: "VIDEO";
+    readonly AUDIO: "AUDIO";
+    readonly DOCUMENT: "DOCUMENT";
+};
+
+// @public
+export type Modality = (typeof Modality)[keyof typeof Modality];
 
 // @public
 export interface ModalityTokenCount {
@@ -703,18 +1051,44 @@ export class ObjectSchema extends Schema {
 }
 
 // @public
-export interface ObjectSchemaInterface extends SchemaInterface {
+export interface ObjectSchemaRequest extends SchemaRequest {
+    optionalProperties?: never;
     // (undocumented)
-    optionalProperties?: string[];
-    // (undocumented)
-    type: SchemaType.OBJECT;
+    type: 'object';
 }
 
+// @beta
+export interface OnDeviceParams {
+    // (undocumented)
+    createOptions?: LanguageModelCreateOptions;
+    // (undocumented)
+    promptOptions?: LanguageModelPromptOptions;
+}
+
+// @beta
+export const Outcome: {
+    UNSPECIFIED: string;
+    OK: string;
+    FAILED: string;
+    DEADLINE_EXCEEDED: string;
+};
+
+// @beta
+export type Outcome = (typeof Outcome)[keyof typeof Outcome];
+
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
+//
 // @public
-export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart;
+export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
 // @public
 export const POSSIBLE_ROLES: readonly ["user", "model", "function", "system"];
+
+// @beta
+export interface PrebuiltVoiceConfig {
+    voiceName?: string;
+}
 
 // @public
 export interface PromptFeedback {
@@ -735,6 +1109,7 @@ export interface RequestOptions {
 export const ResponseModality: {
     readonly TEXT: "TEXT";
     readonly IMAGE: "IMAGE";
+    readonly AUDIO: "AUDIO";
 };
 
 // @beta
@@ -778,6 +1153,10 @@ export abstract class Schema implements SchemaInterface {
     constructor(schemaParams: SchemaInterface);
     [key: string]: unknown;
     // (undocumented)
+    static anyOf(anyOfParams: SchemaParams & {
+        anyOf: TypedSchema[];
+    }): AnyOfSchema;
+    // (undocumented)
     static array(arrayParams: SchemaParams & {
         items: Schema;
     }): ArraySchema;
@@ -809,12 +1188,12 @@ export abstract class Schema implements SchemaInterface {
     static string(stringParams?: SchemaParams): StringSchema;
     // @internal
     toJSON(): SchemaRequest;
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
 export interface SchemaInterface extends SchemaShared<SchemaInterface> {
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
@@ -824,13 +1203,14 @@ export interface SchemaParams extends SchemaShared<SchemaInterface> {
 // @public
 export interface SchemaRequest extends SchemaShared<SchemaRequest> {
     required?: string[];
-    type: SchemaType;
+    type?: SchemaType;
 }
 
 // @public
 export interface SchemaShared<T> {
     // (undocumented)
     [key: string]: unknown;
+    anyOf?: T[];
     description?: string;
     enum?: string[];
     example?: unknown;
@@ -849,23 +1229,42 @@ export interface SchemaShared<T> {
 }
 
 // @public
-export enum SchemaType {
-    ARRAY = "array",
-    BOOLEAN = "boolean",
-    INTEGER = "integer",
-    NUMBER = "number",
-    OBJECT = "object",
-    STRING = "string"
+export const SchemaType: {
+    readonly STRING: "string";
+    readonly NUMBER: "number";
+    readonly INTEGER: "integer";
+    readonly BOOLEAN: "boolean";
+    readonly ARRAY: "array";
+    readonly OBJECT: "object";
+};
+
+// @public
+export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
+
+// @public
+export interface SearchEntrypoint {
+    renderedContent?: string;
 }
 
-// @public (undocumented)
+// @public
 export interface Segment {
-    // (undocumented)
     endIndex: number;
-    // (undocumented)
     partIndex: number;
-    // (undocumented)
     startIndex: number;
+    text: string;
+}
+
+// @beta
+export interface SpeechConfig {
+    voiceConfig?: VoiceConfig;
+}
+
+// @beta
+export function startAudioConversation(liveSession: LiveSession, options?: StartAudioConversationOptions): Promise<AudioConversationController>;
+
+// @beta
+export interface StartAudioConversationOptions {
+    functionCallingHandler?: (functionCalls: FunctionCall[]) => Promise<FunctionResponse>;
 }
 
 // @public
@@ -892,6 +1291,10 @@ export class StringSchema extends Schema {
 // @public
 export interface TextPart {
     // (undocumented)
+    codeExecutionResult?: never;
+    // (undocumented)
+    executableCode?: never;
+    // (undocumented)
     functionCall?: never;
     // (undocumented)
     functionResponse?: never;
@@ -899,10 +1302,23 @@ export interface TextPart {
     inlineData?: never;
     // (undocumented)
     text: string;
+    // (undocumented)
+    thought?: boolean;
+    // @internal (undocumented)
+    thoughtSignature?: string;
 }
 
 // @public
-export type Tool = FunctionDeclarationsTool;
+export interface ThinkingConfig {
+    includeThoughts?: boolean;
+    thinkingBudget?: number;
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
+//
+// @public
+export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
@@ -911,7 +1327,39 @@ export interface ToolConfig {
 }
 
 // @public
-export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema;
+export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
+
+// @beta
+export interface URLContext {
+}
+
+// @beta
+export interface URLContextMetadata {
+    urlMetadata: URLMetadata[];
+}
+
+// @beta
+export interface URLContextTool {
+    urlContext: URLContext;
+}
+
+// @beta
+export interface URLMetadata {
+    retrievedUrl?: string;
+    urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+// @beta
+export const URLRetrievalStatus: {
+    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
+    URL_RETRIEVAL_STATUS_SUCCESS: string;
+    URL_RETRIEVAL_STATUS_ERROR: string;
+    URL_RETRIEVAL_STATUS_PAYWALL: string;
+    URL_RETRIEVAL_STATUS_UNSAFE: string;
+};
+
+// @beta
+export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
@@ -923,29 +1371,17 @@ export interface UsageMetadata {
     promptTokenCount: number;
     // (undocumented)
     promptTokensDetails?: ModalityTokenCount[];
+    thoughtsTokenCount?: number;
+    toolUsePromptTokenCount?: number;
+    toolUsePromptTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     totalTokenCount: number;
 }
-
-// @public @deprecated (undocumented)
-export type VertexAI = AI;
 
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
     readonly location: string;
-}
-
-// @public @deprecated (undocumented)
-export const VertexAIError: typeof AIError;
-
-// @public @deprecated (undocumented)
-export const VertexAIModel: typeof AIModel;
-
-// @public
-export interface VertexAIOptions {
-    // (undocumented)
-    location?: string;
 }
 
 // @public
@@ -954,12 +1390,24 @@ export interface VideoMetadata {
     startOffset: string;
 }
 
+// @beta
+export interface VoiceConfig {
+    prebuiltVoiceConfig?: PrebuiltVoiceConfig;
+}
+
 // @public (undocumented)
 export interface WebAttribution {
     // (undocumented)
     title: string;
     // (undocumented)
     uri: string;
+}
+
+// @public
+export interface WebGroundingChunk {
+    domain?: string;
+    title?: string;
+    uri?: string;
 }
 
 

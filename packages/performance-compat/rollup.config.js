@@ -30,7 +30,7 @@ const buildPlugins = [
     typescript,
     tsconfigOverride: {
       compilerOptions: {
-        target: 'es2017'
+        target: 'es2020'
       }
     }
   }),
