@@ -150,7 +150,18 @@
           {
             "path": "firestore",
             "imports": [
-              "getFirestore",
+              "getFirestore"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore/pipelines",
+            "imports": [
               "lessThan",
               "Field",
               "execute"
@@ -180,12 +191,22 @@
         "versionOrTag": "latest",
         "imports": [
           {
-            "path": "firestore",
+            "path": "firestore/pipelines",
             "imports": [
-              "getFirestore",
+              "getFirestore"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore/pipelines",
+            "imports": [
               "lessThan",
-              "Field",
-              "useFirestorePipelines"
+              "Field"
             ]
           }
         ]
