@@ -83,7 +83,7 @@ export function connectAuthEmulator(
     // once Auth has started to make network requests.
     _assert(
       deepEqual(emulator, authInternal.config.emulator) &&
-      deepEqual(emulatorConfig, authInternal.emulatorConfig),
+        deepEqual(emulatorConfig, authInternal.emulatorConfig),
       authInternal,
       AuthErrorCode.EMULATOR_CONFIG_FAILED
     );
@@ -164,8 +164,8 @@ function emitEmulatorWarning(): void {
   if (typeof console !== 'undefined' && typeof console.info === 'function') {
     console.info(
       'WARNING: You are using the Auth Emulator,' +
-      ' which is intended for local testing only.  Do not use with' +
-      ' production credentials.'
+        ' which is intended for local testing only.  Do not use with' +
+        ' production credentials.'
     );
   }
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
