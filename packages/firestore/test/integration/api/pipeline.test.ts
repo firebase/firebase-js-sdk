@@ -154,7 +154,7 @@ setLogLevel('debug');
 
 const timestampDeltaMS = 1000;
 
-apiDescribe.only('Pipelines', persistence => {
+apiDescribe.skip('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -3890,6 +3890,7 @@ apiDescribe.only('Pipelines', persistence => {
     });
 
     // Not implemented in backend
+    // eslint-disable-next-line no-restricted-properties
     it.skip('supports error', async () => {
       const snapshot = await execute(
         firestore

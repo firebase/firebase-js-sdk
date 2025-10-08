@@ -151,7 +151,7 @@
             "path": "firestore",
             "imports": [
               "getFirestore",
-              "lt",
+              "lessThan",
               "Field",
               "execute"
             ]
@@ -183,7 +183,7 @@
             "path": "firestore",
             "imports": [
               "getFirestore",
-              "lt",
+              "lessThan",
               "Field",
               "useFirestorePipelines"
             ]
@@ -215,7 +215,7 @@
             "path": "firestore",
             "imports": [
               "getFirestore",
-              "lt",
+              "lessThan",
               "Field",
               "useFirestorePipelines",
               "andFunction"
