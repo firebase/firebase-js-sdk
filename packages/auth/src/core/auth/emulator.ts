@@ -83,7 +83,7 @@ export function connectAuthEmulator(
     // once Auth has started to make network requests.
     _assert(
       deepEqual(emulator, authInternal.config.emulator) &&
-        deepEqual(emulatorConfig, authInternal.emulatorConfig),
+      deepEqual(emulatorConfig, authInternal.emulatorConfig),
       authInternal,
       AuthErrorCode.EMULATOR_CONFIG_FAILED
     );
@@ -100,6 +100,8 @@ export function connectAuthEmulator(
   if (isCloudWorkstation(host)) {
     // Workaround to get cookies in Firebase Studio
     void pingServer(`${protocol}//${host}${portStr}`);
+  } else if (!disableWarnings) {
+    emitEmulatorWarning();
   }
 }
 
@@ -137,4 +139,40 @@ function parsePort(portStr: string): number | null {
     return null;
   }
   return port;
+}
+
+function emitEmulatorWarning(): void {
+  function attachBanner(): void {
+    const el = document.createElement('p');
+    const sty = el.style;
+    el.innerText =
+      'Running in emulator mode. Do not use with production credentials.';
+    sty.position = 'fixed';
+    sty.width = '100%';
+    sty.backgroundColor = '#ffffff';
+    sty.border = '.1em solid #000000';
+    sty.color = '#b50000';
+    sty.bottom = '0px';
+    sty.left = '0px';
+    sty.margin = '0px';
+    sty.zIndex = '10000';
+    sty.textAlign = 'center';
+    el.classList.add('firebase-emulator-warning');
+    document.body.appendChild(el);
+  }
+
+  if (typeof console !== 'undefined' && typeof console.info === 'function') {
+    console.info(
+      'WARNING: You are using the Auth Emulator,' +
+      ' which is intended for local testing only.  Do not use with' +
+      ' production credentials.'
+    );
+  }
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', attachBanner);
+    } else {
+      attachBanner();
+    }
+  }
 }
