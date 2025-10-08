@@ -37,7 +37,6 @@ import {
 } from '../core/firestore_client';
 import { newQueryForPath, Query as InternalQuery } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
-import { Bytes } from '../lite-api/bytes';
 import { FieldPath } from '../lite-api/field_path';
 import { validateHasExplicitOrderByForLimitToLast } from '../lite-api/query';
 import {
@@ -128,21 +127,6 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
     client,
     reference._key
   ).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
-}
-
-export class ExpUserDataWriter extends AbstractUserDataWriter {
-  constructor(protected firestore: Firestore) {
-    super();
-  }
-
-  protected convertBytes(bytes: ByteString): Bytes {
-    return new Bytes(bytes);
-  }
-
-  protected convertReference(name: string): DocumentReference {
-    const key = this.convertDocumentKey(name, this.firestore._databaseId);
-    return new DocumentReference(this.firestore, /* converter= */ null, key);
-  }
 }
 
 /**

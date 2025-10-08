@@ -16,7 +16,7 @@
  */
 
 import { IndexConfiguration } from '../../../src/api/index_configuration';
-import { ExpUserDataWriter } from '../../../src/api/reference_impl';
+import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
 import {
   ListenOptions,
   ListenerDataSource as Source
