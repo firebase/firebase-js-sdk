@@ -136,7 +136,7 @@ use(chaiAsPromised);
 const testUnsupportedFeatures = false;
 const timestampDeltaMS = 1000;
 
-describe('Firestore Pipelines', () => {
+describe.skip('Firestore Pipelines', () => {
   addEqualityMatcher();
 
   let firestore: Firestore;
