@@ -109,7 +109,7 @@
         "require": "./dist/pipelines.node.cjs.js",
         "import": "./dist/pipelines.node.mjs"
       },
-      "react-native": "./dist/index.rn.esm.js",
+      "react-native": "./dist/index.rn.js",
       "browser": {
         "require": "./dist/pipelines.cjs.js",
         "import": "./dist/pipelines.esm.js"
