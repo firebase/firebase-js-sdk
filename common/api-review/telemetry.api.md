@@ -13,6 +13,11 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 export function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
 
 // @public
+export interface DynamicHeaderProvider {
+    getHeader(): Promise<Record<string, string> | null>;
+}
+
+// @public
 export function flush(telemetry: Telemetry): Promise<void>;
 
 // @public

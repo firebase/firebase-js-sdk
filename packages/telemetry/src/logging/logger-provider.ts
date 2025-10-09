@@ -23,7 +23,6 @@ import {
 } from '@opentelemetry/sdk-logs';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
 import { JsonLogsSerializer } from '@opentelemetry/otlp-transformer';
 import type { OTLPExporterConfigBase } from '@opentelemetry/otlp-exporter-base';
 import {
@@ -31,13 +30,17 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransportEdge } from './fetch-transport.edge';
+import { DynamicHeaderProvider } from '../public-types';
 
 /**
  * Create a logger provider for the current execution environment.
  *
  * @internal
  */
-export function createLoggerProvider(endpointUrl: string): LoggerProvider {
+export function createLoggerProvider(
+  endpointUrl: string,
+  dynamicHeaders: DynamicHeaderProvider[] = []
+): LoggerProvider {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
   });
@@ -45,32 +48,27 @@ export function createLoggerProvider(endpointUrl: string): LoggerProvider {
     endpointUrl = endpointUrl.slice(0, -1);
   }
   const otlpEndpoint = `${endpointUrl}/api/v1/logs`;
+  const logExporter = new OTLPLogExporter(
+    { url: otlpEndpoint },
+    dynamicHeaders
+  );
 
-  if (typeof process !== 'undefined' && process?.env?.NEXT_RUNTIME === 'edge') {
-    // We need a slightly custom implementation for the Edge Runtime, because it doesn't have access
-    // to many features available in Node.
-    const logExporter = new OTLPLogExporterEdge({ url: otlpEndpoint });
-    const provider = new LoggerProvider({
-      resource,
-      processors: [new BatchLogRecordProcessor(logExporter)],
-      logRecordLimits: {}
-    });
-    return provider;
-  } else {
-    const logExporter = new OTLPLogExporter({ url: otlpEndpoint });
-    return new LoggerProvider({
-      resource,
-      processors: [new BatchLogRecordProcessor(logExporter)]
-    });
-  }
+  return new LoggerProvider({
+    resource,
+    processors: [new BatchLogRecordProcessor(logExporter)],
+    logRecordLimits: {}
+  });
 }
 
-/** OTLP exporter that uses custom FetchTransport for use in the Edge Runtime. */
-class OTLPLogExporterEdge
+/** OTLP exporter that uses custom FetchTransportEdge. */
+class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
 {
-  constructor(config: OTLPExporterConfigBase = {}) {
+  constructor(
+    config: OTLPExporterConfigBase = {},
+    dynamicHeaders: DynamicHeaderProvider[] = []
+  ) {
     super(
       createOtlpNetworkExportDelegate(
         {
@@ -83,7 +81,8 @@ class OTLPLogExporterEdge
           url: config.url!,
           headers: () => ({
             'Content-Type': 'application/json'
-          })
+          }),
+          dynamicHeaders
         })
       )
     );

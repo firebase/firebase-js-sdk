@@ -23,6 +23,7 @@ import {
   ExportResponse
 } from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
+import { DynamicHeaderProvider } from '../public-types';
 
 function isExportRetryable(statusCode: number): boolean {
   const retryCodes = [429, 502, 503, 504];
@@ -53,6 +54,7 @@ function parseRetryAfterToMills(
 export interface FetchTransportParameters {
   url: string;
   headers: () => Record<string, string>;
+  dynamicHeaders?: DynamicHeaderProvider[];
 }
 
 /**
@@ -68,9 +70,27 @@ export class FetchTransportEdge implements IExporterTransport {
     const timeout = setTimeout(() => abortController.abort(), timeoutMillis);
     try {
       const url = new URL(this.parameters.url);
+      const headers = this.parameters.headers();
+
+      if (
+        this.parameters.dynamicHeaders &&
+        this.parameters.dynamicHeaders.length > 0
+      ) {
+        const dynamicHeaderPromises = this.parameters.dynamicHeaders.map(
+          provider => provider.getHeader()
+        );
+        const resolvedHeaders = await Promise.all(dynamicHeaderPromises);
+
+        for (const header of resolvedHeaders) {
+          if (header) {
+            Object.assign(headers, header);
+          }
+        }
+      }
+
       const body = {
         method: 'POST',
-        headers: this.parameters.headers(),
+        headers,
         signal: abortController.signal,
         keepalive: false,
         mode: 'cors',

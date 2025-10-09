@@ -27,6 +27,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Interface | Description |
 |  --- | --- |
+|  [DynamicHeaderProvider](./telemetry_.dynamicheaderprovider.md#dynamicheaderprovider_interface) | An interface for classes that provide dynamic headers.<!-- -->Classes that implement this interface can be used to supply custom headers for logging. |
 |  [Telemetry](./telemetry_.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
 |  [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) | Options for initialized the Telemetry service using [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
 

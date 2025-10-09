@@ -18,23 +18,9 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Telemetry } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Provider } from '@firebase/component';
-import {
-  AppCheckInternalComponentName,
-  FirebaseAppCheckInternal
-} from '@firebase/app-check-interop-types';
 
 export class TelemetryService implements Telemetry, _FirebaseService {
-  appCheck: FirebaseAppCheckInternal | null;
-
-  constructor(
-    public app: FirebaseApp,
-    public loggerProvider: LoggerProvider,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>
-  ) {
-    const appCheck = appCheckProvider?.getImmediate({ optional: true });
-    this.appCheck = appCheck || null;
-  }
+  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
 
   _delete(): Promise<void> {
     return Promise.resolve();

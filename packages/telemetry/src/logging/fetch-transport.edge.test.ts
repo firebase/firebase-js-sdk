@@ -20,6 +20,7 @@
 
 import * as sinon from 'sinon';
 import * as assert from 'assert';
+import { DynamicHeaderProvider } from '../public-types';
 import { FetchTransportEdge } from './fetch-transport.edge';
 import {
   ExportResponseRetryable,
@@ -172,6 +173,83 @@ describe('FetchTransportEdge', () => {
         }
       }, done /* catch any rejections */);
       clock.tick(requestTimeout + 100);
+    });
+
+    it('attaches static and dynamic headers to the request', done => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+
+      const dynamicProvider: DynamicHeaderProvider = {
+        getHeader: sinon.stub().resolves({ 'dynamic-header': 'dynamic-value' })
+      };
+
+      const transport = new FetchTransportEdge({
+        ...testTransportParameters,
+        dynamicHeaders: [dynamicProvider]
+      });
+
+      //act
+      transport.send(testPayload, requestTimeout).then(response => {
+        // assert
+        try {
+          assert.strictEqual(response.status, 'success');
+          sinon.assert.calledOnceWithMatch(
+            fetchStub,
+            testTransportParameters.url,
+            {
+              method: 'POST',
+              headers: {
+                foo: 'foo-value',
+                bar: 'bar-value',
+                'Content-Type': 'application/json',
+                'dynamic-header': 'dynamic-value'
+              },
+              body: testPayload
+            }
+          );
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, done /* catch any rejections */);
+    });
+
+    it('handles dynamic header providers that return null', done => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+
+      const dynamicProvider: DynamicHeaderProvider = {
+        getHeader: sinon.stub().resolves(null)
+      };
+
+      const transport = new FetchTransportEdge({
+        ...testTransportParameters,
+        dynamicHeaders: [dynamicProvider]
+      });
+
+      //act
+      transport.send(testPayload, requestTimeout).then(response => {
+        // assert
+        try {
+          assert.strictEqual(response.status, 'success');
+          sinon.assert.calledOnceWithMatch(
+            fetchStub,
+            testTransportParameters.url,
+            {
+              method: 'POST',
+              headers: testTransportParameters.headers(),
+              body: testPayload
+            }
+          );
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, done /* catch any rejections */);
     });
   });
 });
