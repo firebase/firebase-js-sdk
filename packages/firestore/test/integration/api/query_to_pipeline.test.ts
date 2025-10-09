@@ -18,7 +18,6 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { PipelineSnapshot } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   doc,
@@ -49,7 +48,10 @@ import {
   withTestCollection,
   itIf
 } from '../util/helpers';
-import { execute } from '../util/pipeline_export';
+import {
+  execute,
+  PipelineSnapshot
+} from '../util/pipeline_export';
 
 use(chaiAsPromised);
 

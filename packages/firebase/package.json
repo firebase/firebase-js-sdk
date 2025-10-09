@@ -132,16 +132,16 @@
       "default": "./firestore/dist/esm/index.esm.js"
     },
     "./firestore/pipelines": {
-      "types": "./firestore/dist/firestore/pipelines.d.ts",
+      "types": "./firestore/pipelines/dist/firestore/pipelines/index.d.ts",
       "node": {
-        "require": "./firestore/dist/pipelines.cjs.js",
-        "import": "./firestore/dist/pipelines.mjs"
+        "require": "./firestore/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/pipelines/dist/pipelines.mjs"
       },
       "browser": {
-        "require": "./firestore/dist/pipelines.cjs.js",
-        "import": "./firestore/dist/esm/pipelines.esm.js"
+        "require": "./firestore/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/pipelines/dist/esm/pipelines.esm.js"
       },
-      "default": "./firestore/dist/esm/pipelines.esm.js"
+      "default": "./firestore/pipelines/dist/esm/pipelines.esm.js"
     },
     "./firestore/lite": {
       "types": "./firestore/lite/dist/firestore/lite/index.d.ts",
@@ -154,6 +154,18 @@
         "import": "./firestore/lite/dist/esm/index.esm.js"
       },
       "default": "./firestore/lite/dist/esm/index.esm.js"
+    },
+    "./firestore/lite/pipelines": {
+      "types": "./firestore/lite/pipelines/dist/firestore/lite/pipelines/index.d.ts",
+      "node": {
+        "require": "./firestore/lite/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/lite/pipelines/dist/pipelines.mjs"
+      },
+      "browser": {
+        "require": "./firestore/lite/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/lite/pipelines/dist/esm/pipelines.esm.js"
+      },
+      "default": "./firestore/lite/pipelines/dist/esm/pipelines.esm.js"
     },
     "./functions": {
       "types": "./functions/dist/functions/index.d.ts",
@@ -464,7 +476,9 @@
     "auth/web-extension",
     "functions",
     "firestore",
+    "firestore/pipelines",
     "firestore/lite",
+    "firestore/lite/pipelines",
     "installations",
     "storage",
     "performance",
