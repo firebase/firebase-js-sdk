@@ -487,6 +487,9 @@ export interface Subscribe<T> {
 // @public (undocumented)
 export type Unsubscribe = () => void;
 
+// @public
+export function updateEmulatorBanner(name: string, isRunningEmulator: boolean): void;
+
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
