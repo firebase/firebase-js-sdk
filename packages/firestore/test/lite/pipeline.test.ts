@@ -136,6 +136,7 @@ use(chaiAsPromised);
 const testUnsupportedFeatures = false;
 const timestampDeltaMS = 1000;
 
+// eslint-disable-next-line no-restricted-properties
 describe.skip('Firestore Pipelines', () => {
   addEqualityMatcher();
 

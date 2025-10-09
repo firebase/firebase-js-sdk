@@ -3,12 +3,12 @@
   "description": "Pipelines for the lite Firestore SDK",
   "main": "../../dist/lite/pipelines.node.cjs.js",
   "main-esm": "../../dist/lite/pipelines.node.mjs",
-  "module": "../../dist/lite/pipelines.browser.esm2017.js",
-  "browser": "../../dist/lite/pipelines.browser.esm2017.js",
-  "react-native": "../../dist/lite/pipelines.rn.esm2017.js",
+  "module": "../../dist/lite/pipelines.browser.esm.js",
+  "browser": "../../dist/lite/pipelines.browser.esm.js",
+  "react-native": "../../dist/lite/pipelines.rn.esm.js",
   "typings": "./pipelines.d.ts",
   "private": true,
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

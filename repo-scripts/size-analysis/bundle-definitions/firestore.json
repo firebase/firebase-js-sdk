@@ -191,7 +191,7 @@
         "versionOrTag": "latest",
         "imports": [
           {
-            "path": "firestore/pipelines",
+            "path": "firestore",
             "imports": [
               "getFirestore"
             ]
@@ -235,11 +235,21 @@
           {
             "path": "firestore",
             "imports": [
-              "getFirestore",
+              "getFirestore"
+            ]
+          }
+        ]
+      },
+      {
+        "packageName": "firebase",
+        "versionOrTag": "latest",
+        "imports": [
+          {
+            "path": "firestore/pipelines",
+            "imports": [
               "lessThan",
               "Field",
-              "useFirestorePipelines",
-              "andFunction"
+              "and"
             ]
           }
         ]
