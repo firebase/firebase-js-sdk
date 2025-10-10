@@ -697,8 +697,6 @@ toc:
 - title: telemetry
   path: /docs/reference/js/telemetry_.md
   section:
-  - title: DynamicHeaderProvider
-    path: /docs/reference/js/telemetry_.dynamicheaderprovider.md
   - title: Telemetry
     path: /docs/reference/js/telemetry_.telemetry.md
   - title: TelemetryOptions
@@ -706,8 +704,6 @@ toc:
 - title: telemetry/react
   path: /docs/reference/js/telemetry_react.md
   section:
-  - title: DynamicHeaderProvider
-    path: /docs/reference/js/telemetry_react.dynamicheaderprovider.md
   - title: Telemetry
     path: /docs/reference/js/telemetry_react.telemetry.md
   - title: TelemetryOptions

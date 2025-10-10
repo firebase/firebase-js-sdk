@@ -29,8 +29,8 @@ import {
   OTLPExporterBase,
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
-import { FetchTransportEdge } from './fetch-transport.edge';
-import { DynamicHeaderProvider } from '../public-types';
+import { FetchTransport } from './fetch-transport';
+import { DynamicHeaderProvider } from '../types';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -60,7 +60,7 @@ export function createLoggerProvider(
   });
 }
 
-/** OTLP exporter that uses custom FetchTransportEdge. */
+/** OTLP exporter that uses custom FetchTransport. */
 class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
@@ -77,7 +77,7 @@ class OTLPLogExporter
           compression: 'none'
         },
         JsonLogsSerializer,
-        new FetchTransportEdge({
+        new FetchTransport({
           url: config.url!,
           headers: () => ({
             'Content-Type': 'application/json'

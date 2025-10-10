@@ -23,7 +23,7 @@ import {
   ExportResponse
 } from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
-import { DynamicHeaderProvider } from '../public-types';
+import { DynamicHeaderProvider } from '../types';
 
 function isExportRetryable(statusCode: number): boolean {
   const retryCodes = [429, 502, 503, 504];
@@ -58,11 +58,11 @@ export interface FetchTransportParameters {
 }
 
 /**
- * An implementation of IExporterTransport that can be used in the Edge Runtime.
+ * An implementation of IExporterTransport.
  *
  * @internal
  */
-export class FetchTransportEdge implements IExporterTransport {
+export class FetchTransport implements IExporterTransport {
   constructor(private parameters: FetchTransportParameters) {}
 
   async send(data: Uint8Array, timeoutMillis: number): Promise<ExportResponse> {

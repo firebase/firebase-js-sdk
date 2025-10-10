@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 
-import { DynamicHeaderProvider } from '../public-types';
+import { DynamicHeaderProvider } from '../types';
 import { Provider } from '@firebase/component';
 import {
   FirebaseAppCheckInternal,
   AppCheckInternalComponentName
 } from '@firebase/app-check-interop-types';
 
+/**
+ * An implementation of DynamicHeaderProvider that can be used to provide App Check token headers.
+ *
+ * @internal
+ */
 export class AppCheckProvider implements DynamicHeaderProvider {
   appCheck: FirebaseAppCheckInternal | null;
 
@@ -41,11 +46,12 @@ export class AppCheckProvider implements DynamicHeaderProvider {
     }
 
     const appCheckToken = await this.appCheck.getToken();
-    // If the error field is defined, the token field will be populated with a dummy token
+    // The error field must be checked as when there is an error, the token field is populated with
+    // a dummy error.
     if (!appCheckToken || !!appCheckToken.error) {
       return null;
     }
 
-    return {'X-Firebase-AppCheck': appCheckToken.token};
+    return { 'X-Firebase-AppCheck': appCheckToken.token };
   }
 }

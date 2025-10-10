@@ -9,11 +9,6 @@ import { FirebaseOptions } from '@firebase/app';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
-export interface DynamicHeaderProvider {
-    getHeader(): Promise<Record<string, string> | null>;
-}
-
-// @public
 export function FirebaseTelemetry({ firebaseOptions, telemetryOptions }: {
     firebaseOptions?: FirebaseOptions;
     telemetryOptions?: TelemetryOptions;
