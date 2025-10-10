@@ -91,11 +91,9 @@ export class Experiment {
       if (analytics) {
         analytics.setUserProperties({ properties: customProperty });
       } else {
-        // TODO: Update warning message
-        this.logger.warn(`Analytics is not imported correctly`);
+        this.logger.warn(`Analytics import failed`);
       }
     } catch (error) {
-      // TODO: Update error message
       throw ERROR_FACTORY.create(ErrorCode.ANALYTICS_UNAVAILABLE, {
         originalErrorMessage: (error as Error)?.message
       });
