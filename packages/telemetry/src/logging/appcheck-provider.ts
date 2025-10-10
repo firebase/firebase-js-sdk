@@ -47,7 +47,7 @@ export class AppCheckProvider implements DynamicHeaderProvider {
 
     const appCheckToken = await this.appCheck.getToken();
     // The error field must be checked as when there is an error, the token field is populated with
-    // a dummy error.
+    // a dummy token.
     if (!appCheckToken || !!appCheckToken.error) {
       return null;
     }
