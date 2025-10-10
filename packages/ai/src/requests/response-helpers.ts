@@ -25,7 +25,8 @@ import {
   ImagenInlineImage,
   AIErrorCode,
   InlineDataPart,
-  Part
+  Part,
+  InferenceSource
 } from '../types';
 import { AIError } from '../errors';
 import { logger } from '../logger';
@@ -66,7 +67,8 @@ function hasValidCandidates(response: GenerateContentResponse): boolean {
  * other modifications that improve usability.
  */
 export function createEnhancedContentResponse(
-  response: GenerateContentResponse
+  response: GenerateContentResponse,
+  inferenceSource: InferenceSource = InferenceSource.IN_CLOUD
 ): EnhancedGenerateContentResponse {
   /**
    * The Vertex AI backend omits default values.
@@ -79,6 +81,7 @@ export function createEnhancedContentResponse(
   }
 
   const responseWithHelpers = addHelpers(response);
+  responseWithHelpers.inferenceSource = inferenceSource;
   return responseWithHelpers;
 }
 

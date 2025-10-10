@@ -256,6 +256,8 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
+    // Warning: (ae-incompatible-release-tags) The symbol "inferenceSource" is marked as @public, but its signature references "InferenceSource" which is marked as @beta
+    inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
@@ -815,6 +817,15 @@ export const InferenceMode: {
 
 // @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
+// @beta
+export const InferenceSource: {
+    readonly ON_DEVICE: "on_device";
+    readonly IN_CLOUD: "in_cloud";
+};
+
+// @beta
+export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
 
 // @public
 export interface InlineDataPart {

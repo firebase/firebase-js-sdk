@@ -22,6 +22,7 @@ import {
   HarmCategory,
   HarmProbability,
   HarmSeverity,
+  InferenceSource,
   Modality
 } from './enums';
 
@@ -88,6 +89,10 @@ export interface EnhancedGenerateContentResponse
    * set to `true`.
    */
   thoughtSummary: () => string | undefined;
+  /**
+   * Indicates whether inference happened on-device or in-cloud.
+   */
+  inferenceSource?: InferenceSource;
 }
 
 /**
