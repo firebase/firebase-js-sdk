@@ -37,6 +37,10 @@ export function isNegativeZero(value: number): boolean {
   return value === 0 && 1 / value === 1 / -0;
 }
 
+export function isNumber(value: unknown): value is number {
+  return typeof value === 'number';
+}
+
 /**
  * Returns whether a value is an integer and in the safe integer range
  * @param value - The value to test for being an integer and in the safe range
@@ -49,6 +53,10 @@ export function isSafeInteger(value: unknown): boolean {
     value <= Number.MAX_SAFE_INTEGER &&
     value >= Number.MIN_SAFE_INTEGER
   );
+}
+
+export function isString(value: unknown): value is string {
+  return typeof value === 'string';
 }
 
 /** The subset of the browser's Window interface used by the SDK. */
@@ -65,3 +73,18 @@ export interface DocumentLike {
   addEventListener(type: string, listener: EventListener): void;
   removeEventListener(type: string, listener: EventListener): void;
 }
+
+/**
+ * Utility type to create an type that only allows one
+ * property of the Type param T to be set.
+ *
+ * type XorY = OneOf<{ x: unknown, y: unknown}>
+ * let a = { x: "foo" }           // OK
+ * let b = { y: "foo" }           // OK
+ * let c = { a: "foo", y: "foo" } // Not OK
+ */
+export type OneOf<T> = {
+  [K in keyof T]: Pick<T, K> & {
+    [P in Exclude<keyof T, K>]?: undefined;
+  };
+}[keyof T];

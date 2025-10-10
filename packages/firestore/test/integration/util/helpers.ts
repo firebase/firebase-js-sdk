@@ -580,3 +580,10 @@ export async function checkOnlineAndOfflineResultsMatch(
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
 }
+
+export function itIf(
+  condition: boolean | 'only'
+): Mocha.TestFunction | Mocha.PendingTestFunction {
+  // eslint-disable-next-line no-restricted-properties
+  return condition === 'only' ? it.only : condition ? it : it.skip;
+}
