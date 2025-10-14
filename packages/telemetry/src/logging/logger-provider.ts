@@ -79,7 +79,7 @@ class OTLPLogExporter
         JsonLogsSerializer,
         new FetchTransport({
           url: config.url!,
-          headers: () => ({
+          headers: new Headers({
             'Content-Type': 'application/json'
           }),
           dynamicHeaders

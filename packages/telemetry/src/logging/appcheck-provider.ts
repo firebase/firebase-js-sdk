@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider, HttpHeader } from '../types';
 import { Provider } from '@firebase/component';
 import {
   FirebaseAppCheckInternal,
@@ -40,7 +40,7 @@ export class AppCheckProvider implements DynamicHeaderProvider {
     }
   }
 
-  async getHeader(): Promise<Record<string, string> | null> {
+  async getHeader(): Promise<HttpHeader | null> {
     if (!this.appCheck) {
       return null;
     }
@@ -52,6 +52,6 @@ export class AppCheckProvider implements DynamicHeaderProvider {
       return null;
     }
 
-    return { 'X-Firebase-AppCheck': appCheckToken.token };
+    return ['X-Firebase-AppCheck', appCheckToken.token];
   }
 }

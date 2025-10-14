@@ -30,7 +30,7 @@ import {
 
 const testTransportParameters = {
   url: 'http://example.test',
-  headers: () => ({
+  headers: new Headers({
     foo: 'foo-value',
     bar: 'bar-value',
     'Content-Type': 'application/json'
@@ -68,11 +68,11 @@ describe('FetchTransport', () => {
             testTransportParameters.url,
             {
               method: 'POST',
-              headers: {
+              headers: new Headers({
                 foo: 'foo-value',
                 bar: 'bar-value',
                 'Content-Type': 'application/json'
-              },
+              }),
               body: testPayload
             }
           );
@@ -182,7 +182,7 @@ describe('FetchTransport', () => {
         .resolves(new Response('test response', { status: 200 }));
 
       const dynamicProvider: DynamicHeaderProvider = {
-        getHeader: sinon.stub().resolves({ 'dynamic-header': 'dynamic-value' })
+        getHeader: sinon.stub().resolves(['dynamic-header', 'dynamic-value'])
       };
 
       const transport = new FetchTransport({
@@ -200,12 +200,12 @@ describe('FetchTransport', () => {
             testTransportParameters.url,
             {
               method: 'POST',
-              headers: {
+              headers: new Headers({
                 foo: 'foo-value',
                 bar: 'bar-value',
                 'Content-Type': 'application/json',
                 'dynamic-header': 'dynamic-value'
-              },
+              }),
               body: testPayload
             }
           );
@@ -241,7 +241,7 @@ describe('FetchTransport', () => {
             testTransportParameters.url,
             {
               method: 'POST',
-              headers: testTransportParameters.headers(),
+              headers: testTransportParameters.headers,
               body: testPayload
             }
           );

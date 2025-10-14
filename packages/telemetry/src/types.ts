@@ -16,6 +16,13 @@
  */
 
 /**
+ * A type for HTTP Headers
+ *
+ * @internal
+ */
+export type HttpHeader = [key: string, value: string];
+
+/**
  * An interface for classes that provide dynamic headers.
  *
  * Classes that implement this interface can be used to supply custom headers for logging.
@@ -29,5 +36,5 @@ export interface DynamicHeaderProvider {
    * @returns A {@link Promise} that resolves to a {@link Record<string, string>} of header
    * key-value pairs, or null if no headers are to be added.
    */
-  getHeader(): Promise<Record<string, string> | null>;
+  getHeader(): Promise<HttpHeader | null>;
 }
