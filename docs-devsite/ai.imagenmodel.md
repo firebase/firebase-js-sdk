@@ -10,11 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModel class
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
-
 Class for Imagen model APIs.
 
 This class provides methods for generating images using the Imagen model.
@@ -44,7 +39,7 @@ export declare class ImagenModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt, singleRequestOptions)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
+|  [generateImages(prompt)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
 

@@ -305,11 +305,6 @@ export declare function getGenerativeModel(ai: AI, modelParams: ModelParams | Hy
 
 ### getImagenModel(ai, modelParams, requestOptions) {:#getimagenmodel_e1f6645}
 
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
-
 Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.
 
 Only Imagen 3 models (named `imagen-3.0-*`<!-- -->) are supported.
@@ -651,11 +646,6 @@ HarmSeverity: {
 
 ## ImagenAspectRatio
 
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
-
 Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
@@ -676,11 +666,6 @@ ImagenAspectRatio: {
 
 ## ImagenPersonFilterLevel
 
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
-
 A filter level controlling whether generation of images containing people or faces is allowed.
 
 See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
@@ -696,11 +681,6 @@ ImagenPersonFilterLevel: {
 ```
 
 ## ImagenSafetyFilterLevel
-
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
 
 A filter level controlling how aggressively to filter sensitive content.
 
@@ -989,11 +969,6 @@ export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 ## ImagenAspectRatio
 
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
-
 Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
@@ -1008,11 +983,6 @@ export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAs
 
 ## ImagenPersonFilterLevel
 
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
-
 A filter level controlling whether generation of images containing people or faces is allowed.
 
 See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
@@ -1024,11 +994,6 @@ export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typ
 ```
 
 ## ImagenSafetyFilterLevel
-
-> Warning: This API is now obsolete.
-> 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
-> 
 
 A filter level controlling how aggressively to filter sensitive content.
 
