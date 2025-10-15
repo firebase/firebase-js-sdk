@@ -20,7 +20,8 @@
 
 import * as sinon from 'sinon';
 import * as assert from 'assert';
-import { FetchTransportEdge } from './fetch-transport.edge';
+import { DynamicHeaderProvider } from '../types';
+import { FetchTransport } from './fetch-transport';
 import {
   ExportResponseRetryable,
   ExportResponseFailure,
@@ -29,7 +30,7 @@ import {
 
 const testTransportParameters = {
   url: 'http://example.test',
-  headers: () => ({
+  headers: new Headers({
     foo: 'foo-value',
     bar: 'bar-value',
     'Content-Type': 'application/json'
@@ -39,7 +40,7 @@ const testTransportParameters = {
 const requestTimeout = 1000;
 const testPayload = Uint8Array.from([1, 2, 3]);
 
-describe('FetchTransportEdge', () => {
+describe('FetchTransport', () => {
   afterEach(() => {
     sinon.restore();
   });
@@ -50,7 +51,7 @@ describe('FetchTransportEdge', () => {
       const fetchStub = sinon
         .stub(globalThis, 'fetch')
         .resolves(new Response('test response', { status: 200 }));
-      const transport = new FetchTransportEdge(testTransportParameters);
+      const transport = new FetchTransport(testTransportParameters);
 
       //act
       transport.send(testPayload, requestTimeout).then(response => {
@@ -67,11 +68,11 @@ describe('FetchTransportEdge', () => {
             testTransportParameters.url,
             {
               method: 'POST',
-              headers: {
+              headers: new Headers({
                 foo: 'foo-value',
                 bar: 'bar-value',
                 'Content-Type': 'application/json'
-              },
+              }),
               body: testPayload
             }
           );
@@ -87,7 +88,7 @@ describe('FetchTransportEdge', () => {
       sinon
         .stub(globalThis, 'fetch')
         .resolves(new Response('', { status: 404 }));
-      const transport = new FetchTransportEdge(testTransportParameters);
+      const transport = new FetchTransport(testTransportParameters);
 
       //act
       transport.send(testPayload, requestTimeout).then(response => {
@@ -108,7 +109,7 @@ describe('FetchTransportEdge', () => {
         .resolves(
           new Response('', { status: 503, headers: { 'Retry-After': '5' } })
         );
-      const transport = new FetchTransportEdge(testTransportParameters);
+      const transport = new FetchTransport(testTransportParameters);
 
       //act
       transport.send(testPayload, requestTimeout).then(response => {
@@ -132,7 +133,7 @@ describe('FetchTransportEdge', () => {
       abortError.name = 'AbortError';
       sinon.stub(globalThis, 'fetch').rejects(abortError);
       const clock = sinon.useFakeTimers();
-      const transport = new FetchTransportEdge(testTransportParameters);
+      const transport = new FetchTransport(testTransportParameters);
 
       //act
       transport.send(testPayload, requestTimeout).then(response => {
@@ -155,7 +156,7 @@ describe('FetchTransportEdge', () => {
       // arrange
       sinon.stub(globalThis, 'fetch').throws(new Error('fetch failed'));
       const clock = sinon.useFakeTimers();
-      const transport = new FetchTransportEdge(testTransportParameters);
+      const transport = new FetchTransport(testTransportParameters);
 
       //act
       transport.send(testPayload, requestTimeout).then(response => {
@@ -172,6 +173,83 @@ describe('FetchTransportEdge', () => {
         }
       }, done /* catch any rejections */);
       clock.tick(requestTimeout + 100);
+    });
+
+    it('attaches static and dynamic headers to the request', done => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+
+      const dynamicProvider: DynamicHeaderProvider = {
+        getHeader: sinon.stub().resolves(['dynamic-header', 'dynamic-value'])
+      };
+
+      const transport = new FetchTransport({
+        ...testTransportParameters,
+        dynamicHeaders: [dynamicProvider]
+      });
+
+      //act
+      transport.send(testPayload, requestTimeout).then(response => {
+        // assert
+        try {
+          assert.strictEqual(response.status, 'success');
+          sinon.assert.calledOnceWithMatch(
+            fetchStub,
+            testTransportParameters.url,
+            {
+              method: 'POST',
+              headers: new Headers({
+                foo: 'foo-value',
+                bar: 'bar-value',
+                'Content-Type': 'application/json',
+                'dynamic-header': 'dynamic-value'
+              }),
+              body: testPayload
+            }
+          );
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, done /* catch any rejections */);
+    });
+
+    it('handles dynamic header providers that return null', done => {
+      // arrange
+      const fetchStub = sinon
+        .stub(globalThis, 'fetch')
+        .resolves(new Response('test response', { status: 200 }));
+
+      const dynamicProvider: DynamicHeaderProvider = {
+        getHeader: sinon.stub().resolves(null)
+      };
+
+      const transport = new FetchTransport({
+        ...testTransportParameters,
+        dynamicHeaders: [dynamicProvider]
+      });
+
+      //act
+      transport.send(testPayload, requestTimeout).then(response => {
+        // assert
+        try {
+          assert.strictEqual(response.status, 'success');
+          sinon.assert.calledOnceWithMatch(
+            fetchStub,
+            testTransportParameters.url,
+            {
+              method: 'POST',
+              headers: testTransportParameters.headers,
+              body: testPayload
+            }
+          );
+          done();
+        } catch (e) {
+          done(e);
+        }
+      }, done /* catch any rejections */);
     });
   });
 });
