@@ -91,7 +91,7 @@ export interface EnhancedGenerateContentResponse
   thoughtSummary: () => string | undefined;
   /**
    * Indicates whether inference happened on-device or in-cloud.
-   * 
+   *
    * @beta
    */
   inferenceSource?: InferenceSource;
