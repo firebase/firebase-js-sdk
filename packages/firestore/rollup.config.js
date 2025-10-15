@@ -214,7 +214,7 @@ const allBuilds = [
     }
   },
   {
-    input: 'dist/firestore/src/index.d.ts',
+    input: 'dist/firestore/src/global.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
       format: 'es'
