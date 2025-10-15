@@ -18,6 +18,6 @@
 // This file supports a special internal build that includes the entire
 // Firestore classic and pipeline api surface in one bundle.
 
+import * as pipelines from './api_pipelines';
 export * from './api';
-import * as pipelines from '../pipelines/pipelines';
 export { pipelines };
