@@ -19,5 +19,5 @@
 // Firestore classic and pipeline api surface in one bundle.
 
 export * from './api';
-import * as pipelines from './api_pipelines';
+import * as pipelines from '../pipelines/pipelines';
 export { pipelines };
