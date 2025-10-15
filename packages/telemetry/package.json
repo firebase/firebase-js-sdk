@@ -39,6 +39,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build-only": "rollup -c",
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/telemetry --include-dependencies build",
     "dev": "rollup -c -w",
@@ -58,7 +59,9 @@
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
     "@types/react": "17.x || 18.x || 19.x",
-    "react": "17.x || 18.x || 19.x"
+    "react": "17.x || 18.x || 19.x",
+    "@angular/core": ">20.0.0",
+    "@angular/router": ">20.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -82,6 +85,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@angular/core": "20.3.4",
+    "@angular/router": "20.3.4",
     "@firebase/app": "0.14.4",
     "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",

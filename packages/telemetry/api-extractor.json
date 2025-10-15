@@ -16,5 +16,5 @@
     // apiReport is handled by npm script api-report:*
     "enabled": false
   },
-  "bundledPackages": ["next"]
+  "bundledPackages": ["next", "@angular/core", "@angular/router"]
 }
