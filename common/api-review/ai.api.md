@@ -256,7 +256,7 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
-    // Warning: (ae-incompatible-release-tags) The symbol "inferenceSource" is marked as @public, but its signature references "InferenceSource" which is marked as @beta
+    // @beta
     inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
