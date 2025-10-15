@@ -50,7 +50,7 @@ import { AIModel } from './ai-model';
  * }
  * ```
  *
- * @beta
+ * @public
  */
 export class ImagenModel extends AIModel {
   /**
@@ -99,7 +99,7 @@ export class ImagenModel extends AIModel {
    * returned object will have a `filteredReason` property.
    * If all images are filtered, the `images` array will be empty.
    *
-   * @beta
+   * @public
    */
   async generateImages(
     prompt: string
