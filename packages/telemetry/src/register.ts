@@ -21,6 +21,7 @@ import { TELEMETRY_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { TelemetryService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
+import { AppCheckProvider } from './logging/appcheck-provider';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -36,10 +37,14 @@ export function registerTelemetry(): void {
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider(endpointUrl);
         const appCheckProvider = container.getProvider('app-check-internal');
+        const dynamicHeaders = [new AppCheckProvider(appCheckProvider)];
+        const loggerProvider = createLoggerProvider(
+          endpointUrl,
+          dynamicHeaders
+        );
 
-        return new TelemetryService(app, loggerProvider, appCheckProvider);
+        return new TelemetryService(app, loggerProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

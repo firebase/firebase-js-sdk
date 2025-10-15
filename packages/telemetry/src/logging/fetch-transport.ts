@@ -23,6 +23,7 @@ import {
   ExportResponse
 } from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
+import { DynamicHeaderProvider } from '../types';
 
 function isExportRetryable(statusCode: number): boolean {
   const retryCodes = [429, 502, 503, 504];
@@ -52,15 +53,16 @@ function parseRetryAfterToMills(
 /** @internal */
 export interface FetchTransportParameters {
   url: string;
-  headers: () => Record<string, string>;
+  headers: Headers;
+  dynamicHeaders?: DynamicHeaderProvider[];
 }
 
 /**
- * An implementation of IExporterTransport that can be used in the Edge Runtime.
+ * An implementation of IExporterTransport.
  *
  * @internal
  */
-export class FetchTransportEdge implements IExporterTransport {
+export class FetchTransport implements IExporterTransport {
   constructor(private parameters: FetchTransportParameters) {}
 
   async send(data: Uint8Array, timeoutMillis: number): Promise<ExportResponse> {
@@ -68,9 +70,27 @@ export class FetchTransportEdge implements IExporterTransport {
     const timeout = setTimeout(() => abortController.abort(), timeoutMillis);
     try {
       const url = new URL(this.parameters.url);
+      const headers = this.parameters.headers;
+
+      if (
+        this.parameters.dynamicHeaders &&
+        this.parameters.dynamicHeaders.length > 0
+      ) {
+        const dynamicHeaderPromises = this.parameters.dynamicHeaders.map(
+          provider => provider.getHeader()
+        );
+        const resolvedHeaders = await Promise.all(dynamicHeaderPromises);
+
+        for (const header of resolvedHeaders) {
+          if (header) {
+            headers.append(...header);
+          }
+        }
+      }
+
       const body = {
         method: 'POST',
-        headers: this.parameters.headers(),
+        headers,
         signal: abortController.signal,
         keepalive: false,
         mode: 'cors',
