@@ -91,11 +91,8 @@ export class AuthInterop implements FirebaseAuthInternal {
     );
   }
 
-
   private assertRegionalAuthConfigured(): void {
-    _assert(
-      !this.auth.tenantConfig,
-      AuthErrorCode.OPERATION_NOT_ALLOWED);
+    _assert(!this.auth.tenantConfig, AuthErrorCode.OPERATION_NOT_ALLOWED);
   }
 
   private updateProactiveRefresh(): void {
