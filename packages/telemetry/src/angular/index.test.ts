@@ -70,7 +70,6 @@ describe('FirebaseErrorHandler', () => {
           { path: 'dynamic/:id/route', component: DummyComponent }
         ])
       ],
-      // providers: [provideZonelessChangeDetection()]
       providers: [provideZoneChangeDetection()]
     });
     const testInjector = TestBed.inject(Injector);
