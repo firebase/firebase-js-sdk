@@ -16,3 +16,6 @@
  */
 
 export * from '@firebase/firestore';
+
+import * as pipelines from '@firebase/firestore/pipelines';
+export { pipelines };
