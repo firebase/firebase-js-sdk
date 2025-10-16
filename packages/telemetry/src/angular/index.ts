@@ -19,33 +19,28 @@
 import { ErrorHandler, inject } from '@angular/core';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
-import { captureError, getTelemetry } from './api';
-import { TelemetryOptions } from './public-types';
+import { registerTelemetry } from '../register';
+import { captureError, getTelemetry } from '../api';
+import { TelemetryOptions } from '../public-types';
 import { getApp } from '@firebase/app';
 
-// export { ErrorHandler, inject, ActivatedRouteSnapshot, Router };
+registerTelemetry();
 
-export class FirebaseAngularErrorHandler implements ErrorHandler {
+export * from '../public-types';
+
+export class FirebaseErrorHandler implements ErrorHandler {
   private readonly router = inject(Router);
 
   constructor(private telemetryOptions?: TelemetryOptions) {}
 
-  handleError(error: any): void {
-    console.info(`[SDK] HI THIS IS AN UNCAUGHT EXCEPTION\n ${this.getSafeRoutePath(this.router)}`);
-
+  handleError(error: unknown): void {
     const telemetry = getTelemetry(getApp(), this.telemetryOptions);
 
     const attributes = {
       'angular_route_path': this.getSafeRoutePath(this.router)
     };
 
-    console.info('about to captureError');
-    try {
     captureError(telemetry, error, attributes);
-    } catch (e) {
-      console.error('failed to captureError: ', e);
-    } 
-    console.info('successfully captured error');
   }
 
   /**
@@ -53,8 +48,9 @@ export class FirebaseAngularErrorHandler implements ErrorHandler {
    * Example output: '/users/:id/posts'
    */
   private getSafeRoutePath(router: Router): string {
-    let currentRoute: ActivatedRouteSnapshot | null = router.routerState.snapshot.root;
-    
+    let currentRoute: ActivatedRouteSnapshot | null =
+      router.routerState.snapshot.root;
+
     // Find the deepest activated child route
     while (currentRoute.firstChild) {
       currentRoute = currentRoute.firstChild;

@@ -10,17 +10,38 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@angular/core@20.3.4":
-  version "20.3.4"
-  resolved "https://registry.npmjs.org/@angular/core/-/core-20.3.4.tgz#c6394dc007e0feec82573baee35ddac0daf2dba8"
-  integrity sha512-qLYVXcpSBmsA/9fITB1cT2y37V1Yo3ybWEwvafnbAh8izabrMV0hh+J9Ajh9bPk092T7LS8Xt9eTu0OquBXkbw==
+"@angular/common@20.3.5":
+  version "20.3.5"
+  resolved "https://registry.npmjs.org/@angular/common/-/common-20.3.5.tgz#3ca809da9f33ea679d1b4c9c720fb0bfa93524cb"
+  integrity sha512-Zc4G5UNyoeIhPIRFY+qApeoUwXnw3u1+UJlcKE8xLR+tkaMsJ4Lb0TvL/9KJG7PDeaa65osxsSgLL5L/1sWblw==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/router@20.3.4":
-  version "20.3.4"
-  resolved "https://registry.npmjs.org/@angular/router/-/router-20.3.4.tgz#f8e384f68004f652d8bf8c728996f2f093c99486"
-  integrity sha512-qMVurWXVplYeHBKOWtQFtD+MfwOc0i/VJaFPGdiM5mDlfhtsg3OHcZBbSTmQW02l/4YimF5Ee3+pac279p+g1A==
+"@angular/compiler@20.3.5":
+  version "20.3.5"
+  resolved "https://registry.npmjs.org/@angular/compiler/-/compiler-20.3.5.tgz#1d97d201dce01d65ce39f606423b6e65981c21b2"
+  integrity sha512-nnvvMf3MJEfWlBIHJs6+1Od1Ka49zw0WMPvS3e0KXUVnNnUl0ITroe7BZI/QrpyLEsqZkMZqwUI6r79WS2KBzQ==
+  dependencies:
+    tslib "^2.3.0"
+
+"@angular/core@20.3.5":
+  version "20.3.5"
+  resolved "https://registry.npmjs.org/@angular/core/-/core-20.3.5.tgz#90469a6447408624b76947aff8c138b4168f80ab"
+  integrity sha512-gZOMTqs91NbOKxZs3r7P7/A6SbTkcG7YHNPoRKe7peY0Baa44QsvjxbxGqw+mBmwamosspBreT/jA0irkf8XKw==
+  dependencies:
+    tslib "^2.3.0"
+
+"@angular/platform-browser@20.3.5":
+  version "20.3.5"
+  resolved "https://registry.npmjs.org/@angular/platform-browser/-/platform-browser-20.3.5.tgz#1ff53d9caf6e62c30ac4d0382581358eeaa8d61b"
+  integrity sha512-qoXZg4p1ux5Bv2eG5P+ySZqlZtfw0pwmufTUjPn6U8HNnmTknQjN10UANRE+9lBWOEWL4m8vcr1KIRbwXnGu4A==
+  dependencies:
+    tslib "^2.3.0"
+
+"@angular/router@20.3.5":
+  version "20.3.5"
+  resolved "https://registry.npmjs.org/@angular/router/-/router-20.3.5.tgz#341d54c83d004b8dd8b36b678bf3d6223357a100"
+  integrity sha512-xwOEj70N+CUXPUXljWoyNCmdKonlgS7HuUIPK6aAWw6DLUVkmzvrRNxE+qZnY4hxq9C+BQMd8KzbebUuyRBTKg==
   dependencies:
     tslib "^2.3.0"
 
@@ -14713,6 +14734,13 @@ run-parallel@^1.1.9:
   integrity sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==
   dependencies:
     queue-microtask "^1.2.2"
+
+rxjs@7.8.2:
+  version "7.8.2"
+  resolved "https://registry.npmjs.org/rxjs/-/rxjs-7.8.2.tgz#955bc473ed8af11a002a2be52071bf475638607b"
+  integrity sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==
+  dependencies:
+    tslib "^2.1.0"
 
 rxjs@^6.3.3, rxjs@^6.5.1, rxjs@^6.6.0:
   version "6.6.7"

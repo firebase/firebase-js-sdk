@@ -123,4 +123,56 @@ const reactBuilds = [
   }
 ];
 
-export default [...browserBuilds, ...nodeBuilds, ...reactBuilds];
+const angularBuilds = [
+  {
+    input: 'src/angular/index.ts',
+    output: {
+      file: pkg.exports['./angular'].browser.import,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.angular.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/angular/index.d.ts',
+            dest: 'dist/angular'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      })
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/angular/index.ts',
+    output: {
+      file: pkg.exports['./angular'].browser.require,
+      format: 'cjs',
+      sourcemap: true
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.angular.json'
+      }),
+      json()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [
+  ...browserBuilds,
+  ...nodeBuilds,
+  ...reactBuilds,
+  ...angularBuilds
+];
