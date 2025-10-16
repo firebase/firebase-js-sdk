@@ -36,6 +36,7 @@ export class AuthInterop implements FirebaseAuthInternal {
 
   getUid(): string | null {
     this.assertAuthConfigured();
+    this.assertRegionalAuthConfigured();
     return this.auth.currentUser?.uid || null;
   }
 
@@ -88,6 +89,13 @@ export class AuthInterop implements FirebaseAuthInternal {
       this.auth._initializationPromise,
       AuthErrorCode.DEPENDENT_SDK_INIT_BEFORE_AUTH
     );
+  }
+
+
+  private assertRegionalAuthConfigured(): void {
+    _assert(
+      !this.auth.tenantConfig,
+      AuthErrorCode.OPERATION_NOT_ALLOWED);
   }
 
   private updateProactiveRefresh(): void {
