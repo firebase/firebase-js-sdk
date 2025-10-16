@@ -14,5 +14,6 @@ https://github.com/firebase/firebase-js-sdk
 |  Entry Point | Description |
 |  --- | --- |
 |  [/](./telemetry_.md#@firebase/telemetry) |  |
+|  [/angular](./telemetry_angular.md#@firebase/telemetry/angular) |  |
 |  [/react](./telemetry_react.md#@firebase/telemetry/react) |  |
 

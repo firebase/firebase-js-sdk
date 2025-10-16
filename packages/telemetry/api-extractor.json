@@ -5,6 +5,10 @@
     {
       "modulePath": "react",
       "filePath": "<projectFolder>/dist/react/index.d.ts"
+    },
+    {
+      "modulePath": "angular",
+      "filePath": "<projectFolder>/dist/angular/index.d.ts"
     }
   ],
   "dtsRollup": {

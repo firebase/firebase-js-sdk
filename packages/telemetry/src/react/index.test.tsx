@@ -30,7 +30,7 @@ import { render } from '@testing-library/react';
 use(sinonChai);
 use(chaiAsPromised);
 
-describe.only('FirebaseTelemetry', () => {
+describe('FirebaseTelemetry', () => {
   let getTelemetryStub: sinon.SinonStub;
   let captureErrorStub: sinon.SinonStub;
   let initializeAppStub: sinon.SinonStub;
