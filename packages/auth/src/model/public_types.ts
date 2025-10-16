@@ -32,7 +32,6 @@ import {
   OperationType as OperationTypeMap,
   ActionCodeOperation as ActionCodeOperationMap
 } from './enum_maps';
-import { FirebaseToken } from './auth';
 
 export { CompleteFn, ErrorFn, NextFn, Unsubscribe };
 
@@ -359,11 +358,6 @@ export interface Auth {
    */
   onIdTokenChanged(
     nextOrObserver: NextOrObserver<User | null>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe;
-  onFirebaseTokenChanged(
-    nextOrObserver: NextOrObserver<FirebaseToken | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe;

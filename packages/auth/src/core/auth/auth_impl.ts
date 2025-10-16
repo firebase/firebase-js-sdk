@@ -549,7 +549,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       await this._setRedirectUser(null);
     }
     if (this.tenantConfig) {
-      return this._updateFirebaseToken(null);
+      await this._updateFirebaseToken(null);
     }
     // Prevent callbacks from being called again in _updateCurrentUser, as
     // they were already called in the first line.
