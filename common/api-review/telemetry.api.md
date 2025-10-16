@@ -5,20 +5,12 @@
 ```ts
 
 import { AnyValueMap } from '@opentelemetry/api-logs';
-import { ErrorHandler } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
 export function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
-
-// @public (undocumented)
-export class FirebaseAngularErrorHandler implements ErrorHandler {
-    constructor(telemetryOptions?: TelemetryOptions | undefined);
-    // (undocumented)
-    handleError(error: any): void;
-    }
 
 // @public
 export function flush(telemetry: Telemetry): Promise<void>;

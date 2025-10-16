@@ -701,6 +701,15 @@ toc:
     path: /docs/reference/js/telemetry_.telemetry.md
   - title: TelemetryOptions
     path: /docs/reference/js/telemetry_.telemetryoptions.md
+- title: telemetry/angular
+  path: /docs/reference/js/telemetry_angular.md
+  section:
+  - title: FirebaseErrorHandler
+    path: /docs/reference/js/telemetry_angular.firebaseerrorhandler.md
+  - title: Telemetry
+    path: /docs/reference/js/telemetry_angular.telemetry.md
+  - title: TelemetryOptions
+    path: /docs/reference/js/telemetry_angular.telemetryoptions.md
 - title: telemetry/react
   path: /docs/reference/js/telemetry_react.md
   section:
