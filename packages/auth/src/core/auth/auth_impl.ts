@@ -256,6 +256,8 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     const firebaseAccessToken =
       (await this.persistenceManager?.getFirebaseToken()) ?? null;
 
+    console.log("here2");
+    console.log(firebaseAccessToken);
     if (
       firebaseAccessToken &&
       this.isFirebaseAccessTokenValid(firebaseAccessToken) &&
@@ -647,6 +649,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.registerStateListener(
       this.authStateSubscription,
       nextOrObserver,
+      this.currentUser,
       error,
       completed
     );
@@ -666,6 +669,34 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   ): Unsubscribe {
     return this.registerStateListener(
       this.idTokenSubscription,
+      nextOrObserver,
+      this.currentUser,
+      error,
+      completed
+    );
+  }
+
+  onFirebaseTokenChanged(
+    nextOrObserver: NextOrObserver<FirebaseToken>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    return this.registerStateListener(
+      this.firebaseTokenSubscription,
+      nextOrObserver,
+      this.firebaseToken,
+      error,
+      completed
+    );
+  }
+
+  onFirebaseTokenChanged(
+    nextOrObserver: NextOrObserver<FirebaseToken>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe | undefined {
+    return this.registerStateListener(
+      this.firebaseTokenSubscription,
       nextOrObserver,
       error,
       completed
@@ -876,6 +907,51 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       };
     } else {
       const unsubscribe = subscription.addObserver(nextOrObserver);
+      return () => {
+        isUnsubscribed = true;
+        unsubscribe();
+      };
+    }
+  }
+
+  private registerFirebaseTokenStateListener(
+    nextOrObserver: NextOrObserver<FirebaseToken | null>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe {
+    const cb =
+      typeof nextOrObserver === 'function'
+        ? nextOrObserver
+        : nextOrObserver.next.bind(nextOrObserver);
+
+    let isUnsubscribed = false;
+
+    const promise = this._isInitialized
+      ? Promise.resolve()
+      : this._initializationPromise;
+    _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
+    // The callback needs to be called asynchronously per the spec.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    promise.then(() => {
+      if (isUnsubscribed) {
+        return;
+      }
+      cb(this.firebaseToken);
+    });
+
+    if (typeof nextOrObserver === 'function') {
+      const unsubscribe = this.firebaseTokenSubscription.addObserver(
+        nextOrObserver,
+        error,
+        completed
+      );
+      return () => {
+        isUnsubscribed = true;
+        unsubscribe();
+      };
+    } else {
+      const unsubscribe =
+        this.firebaseTokenSubscription.addObserver(nextOrObserver);
       return () => {
         isUnsubscribed = true;
         unsubscribe();

@@ -327,6 +327,26 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
     });
   });
 
+  context('addAuthTokenListener', () => {
+    it('gets called on subsequent updates', async () => {
+        let regionalCount = 0;
+        regionalAuthInternal.addAuthTokenListener(() => {
+          console.log("inside");
+          regionalCount++;
+        });
+
+        await regionalAuth.getFirebaseAccessToken();
+        await regionalAuth.getFirebaseAccessToken();
+        await regionalAuth.getFirebaseAccessToken();
+        await regionalAuth.getFirebaseAccessToken();
+
+        console.log("here");
+        console.log(regionalCount);
+        expect(regionalCount).to.eq(4);
+      });
+
+  });
+
   context('getUid', () => {
     it('throws an error if regionalAuth is initialized', () => {
       expect(() => regionalAuthInternal.getUid()).to.throw(

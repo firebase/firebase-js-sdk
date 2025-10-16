@@ -64,11 +64,25 @@ export class AuthInterop implements FirebaseAuthInternal {
       return;
     }
 
-    const unsubscribe = this.auth.onIdTokenChanged(user => {
-      listener(
-        (user as UserInternal | null)?.stsTokenManager.accessToken || null
-      );
-    });
+    let unsubscribe: Unsubscribe;
+    if (this.auth.tenantConfig) {
+      unsubscribe = this.auth.onFirebaseTokenChanged(async () => {
+        try {
+          const firebaseToken = await this.getTokenForRegionalAuth();
+          listener(firebaseToken || null);
+        } catch (error) {
+          console.error('Failed to retrieve firebase token:', error);
+          listener(null);
+        }
+      });
+    } else {
+      unsubscribe = this.auth.onIdTokenChanged(user => {
+        listener(
+          (user as UserInternal | null)?.stsTokenManager.accessToken || null
+        );
+      });
+    }
+
     this.internalListeners.set(listener, unsubscribe);
     this.updateProactiveRefresh();
   }
