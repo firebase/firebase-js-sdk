@@ -256,8 +256,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     const firebaseAccessToken =
       (await this.persistenceManager?.getFirebaseToken()) ?? null;
 
-    console.log("here2");
-    console.log(firebaseAccessToken);
     if (
       firebaseAccessToken &&
       this.isFirebaseAccessTokenValid(firebaseAccessToken) &&
@@ -551,7 +549,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       await this._setRedirectUser(null);
     }
     if (this.tenantConfig) {
-      await this._updateFirebaseToken(null);
+      return this._updateFirebaseToken(null);
     }
     // Prevent callbacks from being called again in _updateCurrentUser, as
     // they were already called in the first line.
@@ -907,51 +905,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       };
     } else {
       const unsubscribe = subscription.addObserver(nextOrObserver);
-      return () => {
-        isUnsubscribed = true;
-        unsubscribe();
-      };
-    }
-  }
-
-  private registerFirebaseTokenStateListener(
-    nextOrObserver: NextOrObserver<FirebaseToken | null>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
-    const cb =
-      typeof nextOrObserver === 'function'
-        ? nextOrObserver
-        : nextOrObserver.next.bind(nextOrObserver);
-
-    let isUnsubscribed = false;
-
-    const promise = this._isInitialized
-      ? Promise.resolve()
-      : this._initializationPromise;
-    _assert(promise, this, AuthErrorCode.INTERNAL_ERROR);
-    // The callback needs to be called asynchronously per the spec.
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    promise.then(() => {
-      if (isUnsubscribed) {
-        return;
-      }
-      cb(this.firebaseToken);
-    });
-
-    if (typeof nextOrObserver === 'function') {
-      const unsubscribe = this.firebaseTokenSubscription.addObserver(
-        nextOrObserver,
-        error,
-        completed
-      );
-      return () => {
-        isUnsubscribed = true;
-        unsubscribe();
-      };
-    } else {
-      const unsubscribe =
-        this.firebaseTokenSubscription.addObserver(nextOrObserver);
       return () => {
         isUnsubscribed = true;
         unsubscribe();

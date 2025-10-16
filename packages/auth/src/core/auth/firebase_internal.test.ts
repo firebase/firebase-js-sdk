@@ -328,23 +328,72 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
   });
 
   context('addAuthTokenListener', () => {
-    it('gets called on subsequent updates', async () => {
-        let regionalCount = 0;
-        regionalAuthInternal.addAuthTokenListener(() => {
-          console.log("inside");
-          regionalCount++;
+    let isProactiveRefresh = false;
+    const initialToken = 'initial-regional-token';
+    const updatedToken = 'updated-regional-token';
+    beforeEach(async() => {
+      isProactiveRefresh = false;
+
+      sinon
+        .stub(regionalAuth, '_startProactiveRefresh')
+        .callsFake(() => {
+          isProactiveRefresh = true;
         });
+      sinon
+        .stub(regionalAuth, '_stopProactiveRefresh')
+        .callsFake(() => {
+          isProactiveRefresh = false;
+        });
+      await regionalAuth._updateFirebaseToken({
+        token: initialToken,
+        expirationTime: now + 300_000
+      });
+    });
 
-        await regionalAuth.getFirebaseAccessToken();
-        await regionalAuth.getFirebaseAccessToken();
-        await regionalAuth.getFirebaseAccessToken();
-        await regionalAuth.getFirebaseAccessToken();
+    it('gets called with the current token (or null)', done => {
+      let firstCall = true;
 
-        console.log("here");
-        console.log(regionalCount);
-        expect(regionalCount).to.eq(4);
+      regionalAuthInternal.addAuthTokenListener(token => {
+          if (firstCall) {
+            firstCall = false;
+            expect(token).to.eq(initialToken);
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
+            regionalAuth._updateFirebaseToken({
+              token: updatedToken,
+              expirationTime: now + 300_000
+            });
+            return;
+          }
+
+          expect(token).to.eq(updatedToken);
+          expect(isProactiveRefresh).to.be.true;
+          done();
+        });
+    });
+
+    it('gets called on subsequent updates', async () => {
+      let regionalCount = 0;
+      regionalAuthInternal.addAuthTokenListener(() => {
+        regionalCount++;
       });
 
+      await regionalAuth.getFirebaseAccessToken();
+      await regionalAuth.getFirebaseAccessToken();
+      await regionalAuth.getFirebaseAccessToken();
+      await regionalAuth.getFirebaseAccessToken();
+
+      expect(regionalCount).to.eq(5);
+    });
+
+    it('errors if Regional Auth is not initialized', () => {
+        delete (regionalAuth as unknown as Record<string, unknown>)[
+          '_initializationPromise'
+        ];
+        expect(() => regionalAuthInternal.addAuthTokenListener(() => {})).to.throw(
+          FirebaseError,
+          'auth/dependent-sdk-initialized-before-auth'
+        );
+      });
   });
 
   context('getUid', () => {
