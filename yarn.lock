@@ -10,38 +10,38 @@
     "@jridgewell/gen-mapping" "^0.3.5"
     "@jridgewell/trace-mapping" "^0.3.24"
 
-"@angular/common@20.3.5":
-  version "20.3.5"
-  resolved "https://registry.npmjs.org/@angular/common/-/common-20.3.5.tgz#3ca809da9f33ea679d1b4c9c720fb0bfa93524cb"
-  integrity sha512-Zc4G5UNyoeIhPIRFY+qApeoUwXnw3u1+UJlcKE8xLR+tkaMsJ4Lb0TvL/9KJG7PDeaa65osxsSgLL5L/1sWblw==
+"@angular/common@19.2.15":
+  version "19.2.15"
+  resolved "https://registry.npmjs.org/@angular/common/-/common-19.2.15.tgz#934d7ead5c8a3c4660ab131ba129fce6096def1d"
+  integrity sha512-aVa/ctBYH/4qgA7r4sS7TV+/DzRYmcS+3d6l89pNKUXkI8gpmsd+r3FjccaemX4Wqru1QOrMvC+i+e7IBIVv0g==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/compiler@20.3.5":
-  version "20.3.5"
-  resolved "https://registry.npmjs.org/@angular/compiler/-/compiler-20.3.5.tgz#1d97d201dce01d65ce39f606423b6e65981c21b2"
-  integrity sha512-nnvvMf3MJEfWlBIHJs6+1Od1Ka49zw0WMPvS3e0KXUVnNnUl0ITroe7BZI/QrpyLEsqZkMZqwUI6r79WS2KBzQ==
+"@angular/compiler@19.2.15":
+  version "19.2.15"
+  resolved "https://registry.npmjs.org/@angular/compiler/-/compiler-19.2.15.tgz#20fb21e77d6c6ace9a0c427a3ca9bcb4415b6336"
+  integrity sha512-hMHZU6/03xG0tbPDIm1hbVSTFLnRkGYfh+xdBwUMnIFYYTS0QJ2hdPfEZKCJIXm+fz9IAI5MPdDTfeyp0sgaHQ==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/core@20.3.5":
-  version "20.3.5"
-  resolved "https://registry.npmjs.org/@angular/core/-/core-20.3.5.tgz#90469a6447408624b76947aff8c138b4168f80ab"
-  integrity sha512-gZOMTqs91NbOKxZs3r7P7/A6SbTkcG7YHNPoRKe7peY0Baa44QsvjxbxGqw+mBmwamosspBreT/jA0irkf8XKw==
+"@angular/core@19.2.15":
+  version "19.2.15"
+  resolved "https://registry.npmjs.org/@angular/core/-/core-19.2.15.tgz#0395b60a8ef9c715a97df7a59fe4973ee3d35a51"
+  integrity sha512-PxhzCwwm23N4Mq6oV7UPoYiJF4r6FzGhRSxOBBlEp322k7zEQbIxd/XO6F3eoG73qC1UsOXMYYv6GnQpx42y3A==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/platform-browser@20.3.5":
-  version "20.3.5"
-  resolved "https://registry.npmjs.org/@angular/platform-browser/-/platform-browser-20.3.5.tgz#1ff53d9caf6e62c30ac4d0382581358eeaa8d61b"
-  integrity sha512-qoXZg4p1ux5Bv2eG5P+ySZqlZtfw0pwmufTUjPn6U8HNnmTknQjN10UANRE+9lBWOEWL4m8vcr1KIRbwXnGu4A==
+"@angular/platform-browser@19.2.15":
+  version "19.2.15"
+  resolved "https://registry.npmjs.org/@angular/platform-browser/-/platform-browser-19.2.15.tgz#efc814efd98f6e2b958f2a2588de862dcea364a0"
+  integrity sha512-OelQ6weCjon8kZD8kcqNzwugvZJurjS3uMJCwsA2vXmP/3zJ31SWtNqE2zLT1R2csVuwnp0h+nRMgq+pINU7Rg==
   dependencies:
     tslib "^2.3.0"
 
-"@angular/router@20.3.5":
-  version "20.3.5"
-  resolved "https://registry.npmjs.org/@angular/router/-/router-20.3.5.tgz#341d54c83d004b8dd8b36b678bf3d6223357a100"
-  integrity sha512-xwOEj70N+CUXPUXljWoyNCmdKonlgS7HuUIPK6aAWw6DLUVkmzvrRNxE+qZnY4hxq9C+BQMd8KzbebUuyRBTKg==
+"@angular/router@19.2.15":
+  version "19.2.15"
+  resolved "https://registry.npmjs.org/@angular/router/-/router-19.2.15.tgz#1d2748a9168a524d5ec8490849df2796bda0ab53"
+  integrity sha512-0TM1D8S7RQ00drKy7hA/ZLBY14dUBqFBgm06djcNcOjNzVAtgkeV0i+0Smq9tCC7UsGKdpZu4RgfYjHATBNlTQ==
   dependencies:
     tslib "^2.3.0"
 
@@ -17912,3 +17912,8 @@ zip-stream@^6.0.1:
     archiver-utils "^5.0.0"
     compress-commons "^6.0.2"
     readable-stream "^4.0.0"
+
+zone.js@0.15.1:
+  version "0.15.1"
+  resolved "https://registry.npmjs.org/zone.js/-/zone.js-0.15.1.tgz#1e109adb75f80e9e004ee8e0d4a0a52e0a336481"
+  integrity sha512-XE96n56IQpJM7NAoXswY3XRLcWFW83xe0BiAOeMD7K5k5xecOeul3Qcpx6GqEeeHNkW5DWL5zOyTbEfB4eti8w==

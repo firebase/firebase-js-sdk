@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import 'zone.js';
+import 'zone.js/testing';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -24,7 +26,7 @@ import * as telemetry from '../api';
 import {
   Component,
   Injector,
-  provideZonelessChangeDetection,
+  provideZoneChangeDetection,
   runInInjectionContext
 } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -68,7 +70,8 @@ describe('FirebaseErrorHandler', () => {
           { path: 'dynamic/:id/route', component: DummyComponent }
         ])
       ],
-      providers: [provideZonelessChangeDetection()]
+      // providers: [provideZonelessChangeDetection()]
+      providers: [provideZoneChangeDetection()]
     });
     const testInjector = TestBed.inject(Injector);
     errorHandler = runInInjectionContext(
