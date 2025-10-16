@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { initializeApp } from "firebase/app";
 import { getRemoteConfig, fetchAndActivate, getAll, setCustomSignals, getString } from "firebase/remote-config";
 import { getInstallations } from "firebase/installations";
+import { getAnalytics, logEvent } from "firebase/analytics";
 
 function Screen({isLoading, welcomeMessage} = {isLoading: false, welcomeMessage: ""}) {
   if (isLoading) {
@@ -41,6 +42,7 @@ export default function Home() {
     console.log(process.env.API_KEY);
 
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const config = getRemoteConfig(app);
     config.settings.minimumFetchIntervalMillis = 0;
 
@@ -52,6 +54,7 @@ export default function Home() {
       console.log(success, getAll(config));
       setIsLoading(false);
       setWelcomeMessage(getString(config, 'welcome_message'));
+      logEvent(analytics, "test-event");
     });
   });
 
