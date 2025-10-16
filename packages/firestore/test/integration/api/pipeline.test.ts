@@ -346,18 +346,19 @@ const timestampDeltaMS = 1000;
 
   describe('console support', () => {
     it('supports internal serialization to proto', async () => {
+      // Perform the same test as the console
       const pipeline = firestore
         .pipeline()
-        .collection('books')
-        .where(equal('awards.hugo', true))
-        .select(
-          'title',
-          field('nestedField.level.1'),
-          mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
-        );
+        .collection('customers')
+        .where(field('country').equal('United Kingdom'));
 
       const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
-      expect(proto).not.to.be.null;
+
+      const expectedStructuredPipelineProto =
+        '{"pipeline":{"stages":[{"name":"collection","options":{},"args":[{"referenceValue":"/customers"}]},{"name":"where","options":{},"args":[{"functionValue":{"name":"equal","args":[{"fieldReferenceValue":"country"},{"stringValue":"United Kingdom"}]}}]}]}}';
+      expect(JSON.stringify(proto.structuredPipeline)).to.equal(
+        expectedStructuredPipelineProto
+      );
     });
   });
 
