@@ -6,7 +6,7 @@ import { getRemoteConfig, fetchAndActivate, getAll, setCustomSignals, getString 
 import { getInstallations } from "firebase/installations";
 import { getAnalytics, logEvent } from "firebase/analytics";
 
-function Screen({isLoading, welcomeMessage} = {isLoading: false, welcomeMessage: ""}) {
+function Screen({isLoading, summary} = {isLoading: false, summary: ""}) {
   if (isLoading) {
     return (<div>Loading...</div>) 
   }
@@ -17,9 +17,8 @@ function Screen({isLoading, welcomeMessage} = {isLoading: false, welcomeMessage:
       </div>
       <br></br>
       <div>
-        {welcomeMessage}
+        Blurred Summary: {summary}
         <br></br>
-        <button>Fetch Config</button>
       </div>
     </div>
   )
@@ -53,15 +52,15 @@ export default function Home() {
     fetchAndActivate(config).then(success => {
       console.log(success, getAll(config));
       setIsLoading(false);
-      setWelcomeMessage(getString(config, 'welcome_message'));
+      setBlurredSummary(getString(config, 'show_blurred_summary'));
       logEvent(analytics, "test-event");
     });
   });
 
   const [isLoading, setIsLoading] = useState(true);
-  const [welcomeMessage, setWelcomeMessage] = useState("welcome");
+  const [showBlurredSummary, setBlurredSummary] = useState("blurredSummary");
 
   return (
-    <Screen isLoading={isLoading} welcomeMessage={welcomeMessage}></Screen>
+    <Screen isLoading={isLoading} summary={showBlurredSummary}></Screen>
   );
 }
