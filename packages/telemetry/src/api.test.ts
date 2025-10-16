@@ -29,7 +29,8 @@ import {
   FirebaseApp,
   initializeApp,
   _registerComponent,
-  _addOrOverwriteComponent
+  _addOrOverwriteComponent,
+  deleteApp
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
@@ -70,9 +71,16 @@ const fakeTelemetry: Telemetry = {
 };
 
 describe('Top level API', () => {
+  let app: FirebaseApp;
+
   beforeEach(() => {
     // Clear the logs before each test.
     emittedLogs.length = 0;
+    app = getFakeApp();
+  });
+
+  afterEach(async () => {
+    await deleteApp(app);
   });
 
   describe('getTelemetry()', () => {

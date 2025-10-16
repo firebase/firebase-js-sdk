@@ -31,6 +31,18 @@
       },
       "default": "./dist/react/index.esm.js"
     },
+    "./angular": {
+      "types": "./dist/angular/index-public.d.ts",
+      "node": {
+        "import": "./dist/angular/index.esm.js",
+        "default": "./dist/angular/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/angular/index.cjs.js",
+        "import": "./dist/angular/index.esm.js"
+      },
+      "default": "./dist/angular/index.esm.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -39,6 +51,7 @@
   "scripts": {
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "build-only": "rollup -c",
     "build": "rollup -c && yarn api-report",
     "build:deps": "lerna run --scope @firebase/telemetry --include-dependencies build",
     "dev": "rollup -c -w",
@@ -46,11 +59,12 @@
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all",
     "test:all": "run-p --npm-path npm test:browser test:node",
     "test:browser": "karma start",
-    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --config ../../config/mocharc.node.js",
+    "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --exclude src/angular/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:api-json",
+    "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:angular && yarn api-report:api-json",
     "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
     "api-report:react": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry-react --packageRoot . --typescriptDts ./dist/react/index.d.ts --rollupDts ./dist/react/private.d.ts --untrimmedRollupDts ./dist/react/internal.d.ts --publicDts ./dist/react/index-public.d.ts",
+    "api-report:angular": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package telemetry-angular --packageRoot . --typescriptDts ./dist/angular/index.d.ts --rollupDts ./dist/angular/private.d.ts --untrimmedRollupDts ./dist/angular/internal.d.ts --publicDts ./dist/angular/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
   },
@@ -65,6 +79,12 @@
       "optional": true
     },
     "@types/react": {
+      "optional": true
+    },
+    "@angular/core": {
+      "optional": true
+    },
+    "@angular/router": {
       "optional": true
     }
   },
@@ -82,6 +102,11 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@angular/common": "19.2.15",
+    "@angular/compiler": "19.2.15",
+    "@angular/core": "19.2.15",
+    "@angular/platform-browser": "19.2.15",
+    "@angular/router": "19.2.15",
     "@firebase/app": "0.14.4",
     "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
@@ -95,7 +120,9 @@
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
-    "typescript": "5.5.4"
+    "rxjs": "7.8.2",
+    "typescript": "5.5.4",
+    "zone.js": "0.15.1"
   },
   "repository": {
     "directory": "packages/telemetry",
