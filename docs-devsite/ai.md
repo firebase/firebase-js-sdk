@@ -24,6 +24,7 @@ The Firebase AI Web SDK.
 |  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.<!-- -->The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22. |
 |  <b>function(liveSession, ...)</b> |
 |  [startAudioConversation(liveSession, options)](./ai.md#startaudioconversation_01c8e7f) | <b><i>(Public Preview)</i></b> Starts a real-time, bidirectional audio conversation with the model. This helper function manages the complexities of microphone access, audio recording, playback, and interruptions. |
+|  [startVideoRecording(liveSession, options)](./ai.md#startvideorecording_762a78a) | <b><i>(Public Preview)</i></b> Starts a real-time, unidirectional video stream to the model. This helper function manages the complexities of video source access, frame capture, and encoding. |
 
 ## Classes
 
@@ -131,6 +132,7 @@ The Firebase AI Web SDK.
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
+|  [StartVideoRecordingOptions](./ai.startvideorecordingoptions.md#startvideorecordingoptions_interface) | <b><i>(Public Preview)</i></b> Options for <code>startVideoRecording</code>. |
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
@@ -140,6 +142,7 @@ The Firebase AI Web SDK.
 |  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
+|  [VideoRecordingController](./ai.videorecordingcontroller.md#videorecordingcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active video recording session. |
 |  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to used in speech synthesis. |
 |  [WebAttribution](./ai.webattribution.md#webattribution_interface) |  |
 |  [WebGroundingChunk](./ai.webgroundingchunk.md#webgroundingchunk_interface) | A grounding chunk from the web.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search". |
@@ -406,6 +409,66 @@ async function startConversation() {
 // Later, to stop the conversation:
 // if (conversationController) {
 //   await conversationController.stop();
+// }
+
+```
+
+### startVideoRecording(liveSession, options) {:#startvideorecording_762a78a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Starts a real-time, unidirectional video stream to the model. This helper function manages the complexities of video source access, frame capture, and encoding.
+
+Important: This function must be called in response to a user gesture (e.g., a button click) to comply with browser security policies for accessing camera or screen content. The backend requires video frames to be sent at 1 FPS as individual JPEGs. This helper enforces that constraint.
+
+<b>Signature:</b>
+
+```typescript
+export declare function startVideoRecording(liveSession: LiveSession, options?: StartVideoRecordingOptions): Promise<VideoRecordingController>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  liveSession | [LiveSession](./ai.livesession.md#livesession_class) | An active [LiveSession](./ai.livesession.md#livesession_class) instance. |
+|  options | [StartVideoRecordingOptions](./ai.startvideorecordingoptions.md#startvideorecordingoptions_interface) | Configuration options for the video recording. |
+
+<b>Returns:</b>
+
+Promise&lt;[VideoRecordingController](./ai.videorecordingcontroller.md#videorecordingcontroller_interface)<!-- -->&gt;
+
+A `Promise` that resolves with a `VideoRecordingController`<!-- -->.
+
+#### Exceptions
+
+`AIError` if the environment is unsupported, a recording is active, or the session is closed.
+
+`DOMException` if issues occur with media access (e.g., permissions denied).
+
+### Example
+
+
+```javascript
+const liveSession = await model.connect();
+let videoController;
+
+// This function must be called from within a click handler.
+async function startRecording() {
+  try {
+    videoController = await startVideoRecording(liveSession, {
+      videoSource: 'screen' // or 'camera'
+    });
+  } catch (e) {
+    // Handle AI-specific errors, DOMExceptions for permissions, etc.
+    console.error("Failed to start video recording:", e);
+  }
+}
+
+// To stop the recording later:
+// if (videoController) {
+//   await videoController.stop();
 // }
 
 ```

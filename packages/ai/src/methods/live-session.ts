@@ -49,12 +49,20 @@ export class LiveSession {
    * @beta
    */
   isClosed = false;
+
   /**
-   * Indicates whether this Live session is being controlled by an `AudioConversationController`.
+   * Indicates whether this Live session is being controlled by a {@link AudioConversationController}.
    *
    * @beta
    */
   inConversation = false;
+
+  /**
+   * Indicates whether this Live session is being controlled by a {@link VideoRecordingController}.
+   *
+   * @beta
+   */
+  inVideoRecording = false;
 
   /**
    * @internal

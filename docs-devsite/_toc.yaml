@@ -194,6 +194,8 @@ toc:
     path: /docs/reference/js/ai.startaudioconversationoptions.md
   - title: StartChatParams
     path: /docs/reference/js/ai.startchatparams.md
+  - title: StartVideoRecordingOptions
+    path: /docs/reference/js/ai.startvideorecordingoptions.md
   - title: StringSchema
     path: /docs/reference/js/ai.stringschema.md
   - title: TextPart
@@ -216,6 +218,8 @@ toc:
     path: /docs/reference/js/ai.vertexaibackend.md
   - title: VideoMetadata
     path: /docs/reference/js/ai.videometadata.md
+  - title: VideoRecordingController
+    path: /docs/reference/js/ai.videorecordingcontroller.md
   - title: VoiceConfig
     path: /docs/reference/js/ai.voiceconfig.md
   - title: WebAttribution
