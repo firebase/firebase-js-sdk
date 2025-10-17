@@ -42,7 +42,7 @@ describe('Experiment', () => {
       storage.setActiveExperiments = sinon.stub();
       analyticsProvider.getImmediate = sinon.stub().returns({
         setUserProperties: sinon.stub(),
-        logEvent: sinon.stub(),
+        logEvent: sinon.stub()
       });
     });
 
