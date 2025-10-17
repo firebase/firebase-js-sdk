@@ -48,10 +48,7 @@ import {
   withTestCollection,
   itIf
 } from '../util/helpers';
-import {
-  execute,
-  PipelineSnapshot
-} from '../util/pipeline_export';
+import { execute, PipelineSnapshot } from '../util/pipeline_export';
 
 use(chaiAsPromised);
 

@@ -52,6 +52,8 @@ import {
   orderByEquals,
   stringifyOrderBy
 } from './order_by';
+import type { CorePipeline } from './pipeline';
+import { TargetOrPipeline } from './pipeline-util';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -215,8 +217,16 @@ export function targetEquals(left: Target, right: Target): boolean {
   return boundEquals(left.endAt, right.endAt);
 }
 
+export function targetIsPipelineTarget(
+  target: TargetOrPipeline
+): target is CorePipeline {
+  // Workaround for circular dependency
+  return !!(target as CorePipeline).isCorePipeline;
+}
+
 export function targetIsDocumentTarget(target: Target): boolean {
   return (
+    !!target.path &&
     DocumentKey.isDocumentKey(target.path) &&
     target.collectionGroup === null &&
     target.filters.length === 0
