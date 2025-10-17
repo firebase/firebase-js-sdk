@@ -86,13 +86,23 @@ export class LiveGenerativeModel extends AIModel {
       fullModelPath = `projects/${this._apiSettings.project}/locations/${this._apiSettings.location}/${this.model}`;
     }
 
+    // inputAudioTranscription and outputAudioTranscription are on the generation config in the public API,
+    // but the backend expects them to be in the `setup` message.
+    const {
+      inputAudioTranscription,
+      outputAudioTranscription,
+      ...generationConfig
+    } = this.generationConfig;
+
     const setupMessage: _LiveClientSetup = {
       setup: {
         model: fullModelPath,
-        generationConfig: this.generationConfig,
+        generationConfig,
         tools: this.tools,
         toolConfig: this.toolConfig,
-        systemInstruction: this.systemInstruction
+        systemInstruction: this.systemInstruction,
+        inputAudioTranscription,
+        outputAudioTranscription
       }
     };
 
