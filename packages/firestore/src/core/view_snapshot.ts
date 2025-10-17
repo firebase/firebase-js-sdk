@@ -22,7 +22,7 @@ import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
-import { Query, queryEquals } from './query';
+import { QueryOrPipeline, queryOrPipelineEqual } from './pipeline-util';
 
 export const enum ChangeType {
   Added,
@@ -141,7 +141,7 @@ export class DocumentChangeSet {
 
 export class ViewSnapshot {
   constructor(
-    readonly query: Query,
+    readonly query: QueryOrPipeline,
     readonly docs: DocumentSet,
     readonly oldDocs: DocumentSet,
     readonly docChanges: DocumentViewChange[],
@@ -154,7 +154,7 @@ export class ViewSnapshot {
 
   /** Returns a view snapshot as if all documents in the snapshot were added. */
   static fromInitialDocuments(
-    query: Query,
+    query: QueryOrPipeline,
     documents: DocumentSet,
     mutatedKeys: DocumentKeySet,
     fromCache: boolean,
@@ -188,7 +188,7 @@ export class ViewSnapshot {
       this.hasCachedResults !== other.hasCachedResults ||
       this.syncStateChanged !== other.syncStateChanged ||
       !this.mutatedKeys.isEqual(other.mutatedKeys) ||
-      !queryEquals(this.query, other.query) ||
+      !queryOrPipelineEqual(this.query, other.query) ||
       !this.docs.isEqual(other.docs) ||
       !this.oldDocs.isEqual(other.oldDocs)
     ) {
