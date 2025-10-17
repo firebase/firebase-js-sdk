@@ -996,7 +996,7 @@ export class LiveSession {
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
-    // @deprecated (undocumented)
+    // @deprecated
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
     // @deprecated (undocumented)
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;

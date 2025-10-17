@@ -166,9 +166,9 @@ export class LiveSession {
    *
    * @example
    * ```javascript
-   * // const videoFrame = ... JPEG data
+   * // const videoFrame = ... base64-encoded JPEG data
    * const blob = { mimeType: "image/jpeg", data: videoFrame };
-   * liveSession.sendAudioRealtime(blob);
+   * liveSession.sendVideoRealtime(blob);
    * ```
    * @param blob - The base64-encoded video data to send to the server in realtime.
    * @throws If this session has been closed.
@@ -292,9 +292,9 @@ export class LiveSession {
   }
 
   /**
-   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
-   *
    * Sends realtime input to the server.
+   *
+   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
    *
    * @param mediaChunks - The media chunks to send.
    * @throws If this session has been closed.

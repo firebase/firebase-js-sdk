@@ -41,7 +41,7 @@ export declare class LiveSession
 |  [send(request, turnComplete)](./ai.livesession.md#livesessionsend) |  | <b><i>(Public Preview)</i></b> Sends content to the server. |
 |  [sendAudioRealtime(blob)](./ai.livesession.md#livesessionsendaudiorealtime) |  | <b><i>(Public Preview)</i></b> Sends audio data to the server in realtime. |
 |  [sendFunctionResponses(functionResponses)](./ai.livesession.md#livesessionsendfunctionresponses) |  | <b><i>(Public Preview)</i></b> Sends function responses to the server. |
-|  [sendMediaChunks(mediaChunks)](./ai.livesession.md#livesessionsendmediachunks) |  | <b><i>(Public Preview)</i></b> |
+|  [sendMediaChunks(mediaChunks)](./ai.livesession.md#livesessionsendmediachunks) |  | <b><i>(Public Preview)</i></b> Sends realtime input to the server. |
 |  [sendMediaStream(mediaChunkStream)](./ai.livesession.md#livesessionsendmediastream) |  | <b><i>(Public Preview)</i></b> |
 |  [sendTextRealtime(text)](./ai.livesession.md#livesessionsendtextrealtime) |  | <b><i>(Public Preview)</i></b> Sends text to the server in realtime. |
 |  [sendVideoRealtime(blob)](./ai.livesession.md#livesessionsendvideorealtime) |  | <b><i>(Public Preview)</i></b> Sends video data to the server in realtime. |
@@ -213,8 +213,8 @@ If this session has been closed.
 > 
 > Use `sendTextRealtime()`<!-- -->, `sendAudioRealtime()`<!-- -->, and `sendVideoRealtime()` instead.
 > 
-> Sends realtime input to the server.
-> 
+
+Sends realtime input to the server.
 
 <b>Signature:</b>
 
@@ -336,9 +336,9 @@ If this session has been closed.
 
 
 ```javascript
-// const videoFrame = ... JPEG data
+// const videoFrame = ... base64-encoded JPEG data
 const blob = { mimeType: "image/jpeg", data: videoFrame };
-liveSession.sendAudioRealtime(blob);
+liveSession.sendVideoRealtime(blob);
 
 ```
 
