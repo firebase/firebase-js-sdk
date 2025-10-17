@@ -90,6 +90,7 @@ export class Experiment {
       const analytics = this.analyticsProvider.getImmediate({ optional: true });
       if (analytics) {
         analytics.setUserProperties({ properties: customProperty });
+        analytics.logEvent("experiment set");
       } else {
         // TODO: Update warning message
         this.logger.warn(`Analytics is not imported correctly`);
