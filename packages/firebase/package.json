@@ -478,6 +478,7 @@
     "firestore",
     "firestore/lite",
     "firestore/pipelines",
+    "firestore/lite/pipelines",
     "installations",
     "storage",
     "performance",
