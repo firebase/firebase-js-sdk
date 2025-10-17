@@ -3,4 +3,5 @@
 '@firebase/ai': minor
 ---
 
-Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class, and deprecate `sendMediaChunks()` and `sendMediaStream()`.
+Deprecate `sendMediaChunks()` and `sendMediaStream()`. Instead, use the new methods added to the `LiveSession` class.
+Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class.
