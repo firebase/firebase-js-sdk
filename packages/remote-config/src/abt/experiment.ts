@@ -87,7 +87,7 @@ export class Experiment {
       const analytics = this.analyticsProvider.getImmediate({ optional: true });
       if (analytics) {
         analytics.setUserProperties({ properties: customProperty });
-        analytics.logEvent(`Received ABT experiment update`);
+        analytics.logEvent(`set_firebase_experiment_state`);
       } else {
         this.logger.warn(`Analytics import failed`);
       }
