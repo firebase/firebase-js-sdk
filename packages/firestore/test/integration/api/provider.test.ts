@@ -29,7 +29,8 @@ import {
   enableIndexedDbPersistence,
   setDoc,
   memoryLocalCache,
-  getDocFromCache
+  getDocFromCache,
+  ensureFirestoreConfigured
 } from '../util/firebase_export';
 import { DEFAULT_SETTINGS } from '../util/settings';
 
@@ -199,5 +200,18 @@ describe('Firestore Provider', () => {
     });
 
     return terminate(firestore).then(() => terminate(firestore));
+  });
+
+  it('passes API key to database info', () => {
+    const app = initializeApp(
+      { apiKey: 'fake-api-key-x', projectId: 'test-project' },
+      'test-app-getFirestore-x'
+    );
+    const fs = getFirestore(app);
+    ensureFirestoreConfigured(fs);
+
+    expect(fs._firestoreClient?._databaseInfo.apiKey).to.equal(
+      'fake-api-key-x'
+    );
   });
 });

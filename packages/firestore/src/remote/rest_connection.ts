@@ -64,6 +64,7 @@ export abstract class RestConnection implements Connection {
   protected readonly baseUrl: string;
   private readonly databasePath: string;
   private readonly requestParams: string;
+  private readonly apiKey: string | undefined;
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
     // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
@@ -82,6 +83,7 @@ export abstract class RestConnection implements Connection {
       this.databaseId.database === DEFAULT_DATABASE_NAME
         ? `project_id=${projectId}`
         : `project_id=${projectId}&database_id=${databaseId}`;
+    this.apiKey = databaseInfo.apiKey;
   }
 
   invokeRPC<Req, Resp>(
@@ -194,13 +196,17 @@ export abstract class RestConnection implements Connection {
     _forwardCredentials: boolean
   ): Promise<Resp>;
 
-  private makeUrl(rpcName: string, path: string): string {
+  protected makeUrl(rpcName: string, path: string): string {
     const urlRpcName = RPC_NAME_URL_MAPPING[rpcName];
     debugAssert(
       urlRpcName !== undefined,
       'Unknown REST mapping for: ' + rpcName
     );
-    return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+    let url = `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+    if (this.apiKey) {
+      url = `${url}?key=${encodeURIComponent(this.apiKey)}`;
+    }
+    return url;
   }
 
   /**
