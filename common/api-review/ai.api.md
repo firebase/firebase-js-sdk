@@ -1005,9 +1005,14 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+    // @deprecated
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    // @deprecated (undocumented)
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    sendTextRealtime(text: string): Promise<void>;
+    sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
 
 // @public
