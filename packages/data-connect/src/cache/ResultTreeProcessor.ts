@@ -1,4 +1,5 @@
 import { CacheProvider } from "./CacheProvider";
+import { ImpactedQueryRefsAccumulator } from "./ImpactedQueryRefsAccumulator";
 import { StubDataObject } from "./StubDataObject";
 
 interface DehydratedResults {
@@ -11,8 +12,8 @@ export class ResultTreeProcessor {
         // TODO: convert SDO into JSON
         return JSON.stringify(rootStubObject.toJson());
     }
-    dehydrateResults(json: object, cacheProvider: CacheProvider): DehydratedResults {
-        const stubDataObject = new StubDataObject(json, cacheProvider);
+    dehydrateResults(json: object, cacheProvider: CacheProvider, acc: ImpactedQueryRefsAccumulator): DehydratedResults {
+        const stubDataObject = new StubDataObject(json, cacheProvider, acc);
         return {
             stubDataObject,
             data: JSON.stringify(stubDataObject.toJson())

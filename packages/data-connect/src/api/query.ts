@@ -120,10 +120,10 @@ export function queryRef<Data, Variables>(
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
   if(initialCache !== undefined) {
-    console.log('updating cache!');
-    dcInstance._queryManager.updateCache(queryName, variables, initialCache);
+    // TODO: Check the TTL etc. to see if cache needs to be updated.
+    const changes = dcInstance._queryManager.updateCache(queryName, variables, initialCache);
+    dcInstance._queryManager.publishCacheResultsToSubscribers(changes);
   }
-  // dcInstance._queryManager.track(queryName, variables, initialCache);
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,

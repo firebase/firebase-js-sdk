@@ -205,6 +205,25 @@ input String_Filter {
   `LIKE '%value'`
   """
   endsWith: String
+  """
+  Match based on the provided pattern.
+  """
+  pattern: String_Pattern
+}
+
+input String_Pattern {
+  """
+  Match using LIKE semantics (https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE)
+  """
+  like: String @fdc_oneOf
+  """
+  Match against a POSIX regular expression.
+  """
+  regex: String @fdc_oneOf
+  """
+  If true, match patterns case-insensitively.
+  """
+  ignoreCase: Boolean
 }
 
 "Query filter criteris for `[String!]` scalar fields."
@@ -513,6 +532,50 @@ input Any_ListFilter {
   includesAll: [Any!]
   "Match if list field does not contain any of the provided values as members."
   excludesAll: [Any!]
+}
+
+"""
+Mark a string field as searchable.
+When this directive is added, the field will be indexed for full-text search,
+and a <type>_search field will be generated at the query root.
+This directive accepts a `language` argument that defaults to `"english"` in
+case no value is specified.
+See:
+- go/fdc-full-text-search
+"""
+directive @searchable(
+  """
+   Language of the fields that you are searching over can be specified here
+   (e.g. "french", "spanish", etc.).
+   Defaults to "english" if not specified.
+  """
+  language: String = "english") on FIELD_DEFINITION
+
+extend type _Metadata {
+  # During full text search, the relevance of the query term to this row.
+  # In other cases, this field is not set.
+  relevance: Float
+}
+
+
+enum Search_QueryFormat @fdc_forbiddenAsFieldType {
+  """
+  Allows search engine style semantics (e.g. quoted strings, AND and OR).
+  """
+  QUERY,
+  """
+  Splits the query into words and does ANDs between them.
+  """
+  PLAIN,
+  """
+  Matches an exact phrase. Requires the words to be in the same order (i.e. "brown
+  dog" will not match "brown and red dog").
+  """
+  PHRASE,
+  """
+  Create complex queries using the full set of tsquery operators.
+  """
+  ADVANCED,
 }
 
 """
@@ -2128,70 +2191,4 @@ scalar Vector_Embed_Model
   @fdc_example(value: "text-embedding-004", description: "Another text embedding model")
 
 # Intentionally left blank.
-
-"""
-Mark a string field as searchable.
-When this directive is added, the field will be indexed for full-text search,
-and a <type>_search field will be generated at the query root.
-This directive accepts a `language` argument that defaults to `"english"` in
-case no value is specified.
-See:
-- go/fdc-full-text-search
-"""
-directive @searchable(
-  """
-   Language of the fields that you are searching over can be specified here
-   (e.g. "french", "spanish", etc.).
-   Defaults to "english" if not specified.
-  """
-  language: String = "english") on FIELD_DEFINITION
-
-extend type _Metadata {
-  # During full text search, the relevance of the query term to this row.
-  # In other cases, this field is not set.
-  relevance: Float
-}
-
-
-enum Search_QueryFormat @fdc_forbiddenAsFieldType {
-  """
-  Allows search engine style semantics (e.g. quoted strings, AND and OR).
-  """
-  QUERY,
-  """
-  Splits the query into words and does ANDs between them.
-  """
-  PLAIN,
-  """
-  Matches an exact phrase. Requires the words to be in the same order (i.e. "brown
-  dog" will not match "brown and red dog").
-  """
-  PHRASE,
-  """
-  Create complex queries using the full set of tsquery operators.
-  """
-  ADVANCED,
-}
-
-input String_Pattern {
-  """
-  Match using LIKE semantics (https://www.postgresql.org/docs/current/functions-matching.html#FUNCTIONS-LIKE)
-  """
-  like: String @fdc_oneOf
-  """
-  Match against a POSIX regular expression.
-  """
-  regex: String @fdc_oneOf
-  """
-  If true, match patterns case-insensitively.
-  """
-  ignoreCase: Boolean
-}
-
-extend input String_Filter {
-  """
-  Match based on the provided pattern.
-  """
-  pattern: String_Pattern
-}
 

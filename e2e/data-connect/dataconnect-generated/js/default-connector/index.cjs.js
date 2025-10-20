@@ -7,18 +7,6 @@ const connectorConfig = {
 };
 exports.connectorConfig = connectorConfig;
 
-const listMoviesRef = (dc) => {
-  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
-  dcInstance._useGeneratedSdk();
-  return queryRef(dcInstance, 'ListMovies');
-}
-listMoviesRef.operationName = 'ListMovies';
-exports.listMoviesRef = listMoviesRef;
-
-exports.listMovies = function listMovies(dc) {
-  return executeQuery(listMoviesRef(dc));
-};
-
 const createMovieRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
   dcInstance._useGeneratedSdk();
@@ -29,4 +17,16 @@ exports.createMovieRef = createMovieRef;
 
 exports.createMovie = function createMovie(dcOrVars, vars) {
   return executeMutation(createMovieRef(dcOrVars, vars));
+};
+
+const listMoviesRef = (dc) => {
+  const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListMovies');
+}
+listMoviesRef.operationName = 'ListMovies';
+exports.listMoviesRef = listMoviesRef;
+
+exports.listMovies = function listMovies(dc) {
+  return executeQuery(listMoviesRef(dc));
 };

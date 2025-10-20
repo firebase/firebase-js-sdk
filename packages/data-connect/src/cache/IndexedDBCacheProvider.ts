@@ -1,0 +1,136 @@
+import { BackingDataObject } from './BackingDataObject';
+import { BDO_OBJECT_STORE_NAME, SRT_OBJECT_STORE_NAME } from './Cache';
+import { CacheProvider } from './CacheProvider';
+import { ResultTree } from './ResultTree';
+
+export class IndexedDBCacheProvider implements CacheProvider {
+  private bdos = new Map<string, BackingDataObject>();
+  private resultTrees = new Map<string, ResultTree>();
+  private dbPromise: Promise<IDBDatabase>;
+  isIdbAvailable() {
+    console.log('indexedDB' in window);
+    return typeof window !== 'undefined' && 'indexedDB' in window;
+  }
+
+  constructor() {
+    // TODO: cache based on firebase app etc.
+    if (!this.isIdbAvailable()) {
+      return;
+    }
+    this.dbPromise = new Promise((dbResolve, dbReject) => {
+      const request = indexedDB.open('data-connect', 3);
+      request.onupgradeneeded = event => {
+        const db = (event.target as IDBOpenDBRequest).result;
+        db.createObjectStore(BDO_OBJECT_STORE_NAME);
+        db.createObjectStore(SRT_OBJECT_STORE_NAME);
+        console.log('upgrade!');
+        dbResolve(db);
+      };
+      request.onsuccess = async (event) => {
+        // TODO: Check version
+        const db = (event.target as IDBOpenDBRequest).result;
+        const tx = db.transaction(
+          [BDO_OBJECT_STORE_NAME, SRT_OBJECT_STORE_NAME],
+          'readonly'
+        );
+        const bdoStore = tx.objectStore(BDO_OBJECT_STORE_NAME);
+        const srtStore = tx.objectStore(SRT_OBJECT_STORE_NAME);
+        const bdoComplete = new Promise((resolve, reject) => {
+          const openCursor = bdoStore.openCursor();
+          openCursor.onsuccess = event => {
+            const cursor = (event.target as IDBRequest)
+              .result as IDBCursorWithValue;
+            if (cursor) {
+              console.log('updating result tree');
+              this.resultTrees.set(cursor.key as string, cursor.value);
+            } else {
+              console.log('resolving bdo cursor');
+              // No more entries
+              resolve(null);
+            }
+          };
+          openCursor.onerror = error => {
+            console.error(error);
+            reject(error);
+          };
+        });
+        const srtComplete = new Promise((resolve, reject) => {
+          const openCursor = srtStore.openCursor();
+          openCursor.onsuccess = event => {
+            const cursor = (event.target as IDBRequest)
+              .result as IDBCursorWithValue;
+            if (cursor) {
+              this.resultTrees.set(
+                cursor.key as string,
+                ResultTree.parse(cursor.value)
+              );
+            } else {
+              console.log('resolving srt cursor');
+              // No more entries
+              resolve(null);
+            }
+          };
+          openCursor.onerror = error => {
+            console.error(error);
+            reject(error);
+          };
+        });
+        await Promise.all([bdoComplete, srtComplete]);
+
+
+        // TODO: get data from store and put it into the map.
+        dbResolve(db);
+      };
+      request.onerror = error => {
+        // TODO(mtewani): Use proper error.
+        dbReject(error);
+      };
+    });
+  }
+  async commitBdoChanges(backingData: BackingDataObject) {
+    if (!this.isIdbAvailable()) {
+      return;
+    }
+    const db = await this.dbPromise;
+    db.transaction([BDO_OBJECT_STORE_NAME], 'readwrite')
+      .objectStore(BDO_OBJECT_STORE_NAME)
+      .put(backingData, backingData.globalID);
+  }
+  async commitResultTreeChanges(queryId: string, rt: ResultTree) {
+    if (!this.isIdbAvailable()) {
+      return;
+    }
+    const db = await this.dbPromise;
+    const objectStore = db
+      .transaction([SRT_OBJECT_STORE_NAME], 'readwrite')
+      .objectStore(SRT_OBJECT_STORE_NAME);
+    // TODO: What happens if you override an existing entry?
+    // TODO: We should first check whether the tree is hydrated or not.
+    // TODO: We should make sure that everything has been written.
+    objectStore.put(rt, queryId);
+  }
+  async setResultTree(queryId: string, rt: ResultTree): Promise<void> {
+    this.resultTrees.set(queryId, rt);
+    // maybe this needs to be async?
+    // TODO: replace array with valid data
+    await this.commitResultTreeChanges(queryId, rt);
+  }
+  getResultTree(queryId: string): ResultTree | undefined {
+    const ret = this.resultTrees.get(queryId);
+    return ret;
+  }
+  createGlobalId(): string {
+    return crypto.randomUUID();
+  }
+  getBdo(globalId: string): BackingDataObject {
+    if (!this.bdos.has(globalId)) {
+      this.bdos.set(globalId, new BackingDataObject(globalId));
+    }
+    // Because of the above, we can guarantee that there will be a BDO at the globalId.
+    return this.bdos.get(globalId)!;
+  }
+  updateBackingData(backingData: BackingDataObject): void {
+    this.bdos.set(backingData.globalID, backingData);
+    this.commitBdoChanges(backingData);
+  }
+}

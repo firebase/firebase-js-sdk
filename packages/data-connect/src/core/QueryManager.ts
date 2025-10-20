@@ -34,10 +34,11 @@ import {
 } from '../api/Reference';
 import { logDebug } from '../logger';
 import { DataConnectTransport } from '../network';
-import { encoderImpl } from '../util/encoder';
+import { decoderImpl, encoderImpl } from '../util/encoder';
 import { Cache as DataConnectCache, ServerValues } from '../cache/Cache';
 
 import { Code, DataConnectError } from './error';
+import { DataConnect } from '../api';
 
 function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -69,15 +70,16 @@ export class QueryManager {
   >();
   constructor(
     private transport: DataConnectTransport,
-    private cache: DataConnectCache
+    private cache: DataConnectCache,
+    private dc: DataConnect
   ) {}
 
   updateCache<Data, Variables>(
     queryName: string,
     variables: unknown,
     result: QueryResult<Data, Variables>
-  ) {
-    this.cache.update(
+  ): string[] {
+    return this.cache.update(
       encoderImpl({
         name: queryName,
         variables,
@@ -85,7 +87,6 @@ export class QueryManager {
       }),
       result.data as ServerValues
     );
-    console.log('updated cache!');
   }
 
   addSubscription<Data, Variables>(
@@ -175,7 +176,9 @@ export class QueryManager {
       refType: QUERY_STR
     });
     // TODO: Check if the cache is stale
-    if(this.cache.containsResultTree(key) && !this.cache.getResultTree(key).isStale()) {
+    // TODO: isStale doesn't exist when parsing the raw JSON. Fix the parsing.
+    if(this.cache.containsResultTree(key) && !this.cache.getResultTree(key)?.isStale()) {
+      console.log('Cache found! Resolving immediately.');
       const cacheResult: Data = JSON.parse(this.cache.getResultJSON(key));
       const result: QueryResult<Data, Variables> = {
           ...cacheResult,
@@ -189,7 +192,7 @@ export class QueryManager {
 
       return Promise.resolve(result);
     } else {
-      logDebug(
+      console.log(
         `No Cache found for query ${
           queryRef.name
         } with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery`
@@ -215,12 +218,16 @@ export class QueryManager {
             subscription.userCallback(result);
           });
         }
-        // TODO: Fix servervalues type
-        this.cache.getResultTree(key).updateAccessed();
-        this.cache.update(key, result.data as ServerValues);
+        if(this.cache.containsResultTree(key)) {
+          this.cache.getResultTree(key).updateAccessed();
+        }
+        console.log('updating cache');
+        const impactedQueries = this.cache.update(key, result.data as ServerValues);
+        this.publishCacheResultsToSubscribers(impactedQueries);
         return result;
       },
       err => {
+        console.error(err);
         // TODO: Update cache with query's last error
         // trackedQuery.lastError = err;
         this.callbacks.get(key)?.forEach(subscription => {
@@ -233,6 +240,31 @@ export class QueryManager {
     );
 
     return newR;
+  }
+  publishCacheResultsToSubscribers(impactedQueries: string[]) {
+    for(const query of impactedQueries) {
+      const callbacks = this.callbacks.get(query);
+      if(!callbacks) {
+        continue;
+      }
+      const newJson = this.cache.getResultTree(query).getRootStub().toJson();
+      const { name, variables } = decoderImpl(query) as QueryRef<unknown, unknown>;
+      const queryRef: QueryRef<unknown, unknown> = {
+    dataConnect: this.dc,
+    refType: QUERY_STR,
+    name: name,
+    variables
+  };
+
+      callbacks.forEach(callback => {
+        callback.userCallback({
+          data: newJson,
+          fetchTime: new Date().toISOString(),
+          source: SOURCE_CACHE,
+          ref: queryRef,
+        } as QueryResult<unknown, unknown>);
+      });
+    }
   }
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);

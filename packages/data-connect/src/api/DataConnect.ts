@@ -194,7 +194,7 @@ export class DataConnect {
         this._transportOptions.sslEnabled
       );
     }
-    this._queryManager = new QueryManager(this._transport, this.cache);
+    this._queryManager = new QueryManager(this._transport, this.cache, this);
     this._mutationManager = new MutationManager(this._transport);
   }
 

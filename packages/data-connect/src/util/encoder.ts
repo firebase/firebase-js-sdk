@@ -17,8 +17,14 @@
 
 export type HmacImpl = (obj: unknown) => string;
 export let encoderImpl: HmacImpl;
+export type DecodeHmacImpl = (s: string) => object;
+export let decoderImpl: DecodeHmacImpl;
 export function setEncoder(encoder: HmacImpl): void {
   encoderImpl = encoder;
 }
+export function setDecoder(decoder: DecodeHmacImpl): void {
+  decoderImpl = decoder;
+}
 // TODO(mtewani): Fix issue where if fields are out of order, caching breaks.
 setEncoder(o => JSON.stringify(o));
+setDecoder(s => JSON.parse(s));
