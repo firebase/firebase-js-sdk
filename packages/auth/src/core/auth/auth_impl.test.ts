@@ -553,17 +553,49 @@ describe('core/auth/auth_impl', () => {
       expect(callbackCalled).to.be.false;
     });
 
+    it('immediately calls firebaseTokenChange if initialization finished', done => {
+      const token: FirebaseToken = {
+        token: 'test-token',
+        expirationTime: 123456
+      };
+      (auth as any).firebaseToken = token;
+      auth._isInitialized = true;
+      auth.onFirebaseTokenChanged(t => {
+        expect(t).to.eq(token);
+        done();
+      });
+    });
+
+    it('waits for initialization for onFirebaseTokenChanged', done => {
+      const token: FirebaseToken = {
+        token: 'test-token',
+        expirationTime: 123456
+      };
+      (auth as any).firebaseToken = token;
+      auth._isInitialized = false;
+      auth.onFirebaseTokenChanged(t => {
+        expect(t).to.eq(token);
+        done();
+      });
+    });
+
     describe('user logs in/out, tokens refresh', () => {
       let user: UserInternal;
       let authStateCallback: sinon.SinonSpy;
       let idTokenCallback: sinon.SinonSpy;
       let beforeAuthCallback: sinon.SinonSpy;
+      let firebaseTokenCallback: sinon.SinonSpy;
+      const testFirebaseToken: FirebaseToken = {
+        token: 'test-fb-token',
+        expirationTime: 123456789
+      };
 
       beforeEach(() => {
         user = testUser(auth, 'uid');
         authStateCallback = sinon.spy();
         idTokenCallback = sinon.spy();
         beforeAuthCallback = sinon.spy();
+        firebaseTokenCallback = sinon.spy();
       });
 
       context('initially currentUser is null', () => {
@@ -571,10 +603,12 @@ describe('core/auth/auth_impl', () => {
           auth.onAuthStateChanged(authStateCallback);
           auth.onIdTokenChanged(idTokenCallback);
           auth.beforeAuthStateChanged(beforeAuthCallback);
+          auth.onFirebaseTokenChanged(firebaseTokenCallback);
           await auth._updateCurrentUser(null);
           authStateCallback.resetHistory();
           idTokenCallback.resetHistory();
           beforeAuthCallback.resetHistory();
+          firebaseTokenCallback.resetHistory();
         });
 
         it('onAuthStateChange triggers on log in', async () => {
@@ -591,6 +625,13 @@ describe('core/auth/auth_impl', () => {
           await auth._updateCurrentUser(user);
           expect(beforeAuthCallback).to.have.been.calledWith(user);
         });
+
+        it('onFirebaseTokenChanged triggers on token set', async () => {
+          await auth._updateFirebaseToken(testFirebaseToken);
+          expect(firebaseTokenCallback).to.have.been.calledWith(
+            testFirebaseToken
+          );
+        });
       });
 
       context('initially currentUser is user', () => {
@@ -598,10 +639,12 @@ describe('core/auth/auth_impl', () => {
           auth.onAuthStateChanged(authStateCallback);
           auth.onIdTokenChanged(idTokenCallback);
           auth.beforeAuthStateChanged(beforeAuthCallback);
+          auth.onFirebaseTokenChanged(firebaseTokenCallback);
           await auth._updateCurrentUser(user);
           authStateCallback.resetHistory();
           idTokenCallback.resetHistory();
           beforeAuthCallback.resetHistory();
+          firebaseTokenCallback.resetHistory();
         });
 
         it('onAuthStateChange triggers on log out', async () => {
@@ -635,6 +678,43 @@ describe('core/auth/auth_impl', () => {
           const newUser = testUser(auth, 'different-uid');
           await auth._updateCurrentUser(newUser);
           expect(authStateCallback).to.have.been.calledWith(newUser);
+        });
+      });
+
+      context('initially firebaseToken is null', () => {
+        beforeEach(async () => {
+          auth.onFirebaseTokenChanged(firebaseTokenCallback);
+          await auth._updateFirebaseToken(null);
+          firebaseTokenCallback.resetHistory();
+        });
+
+        it('onFirebaseTokenChanged triggers on token set', async () => {
+          await auth._updateFirebaseToken(testFirebaseToken);
+          expect(firebaseTokenCallback).to.have.been.calledWith(
+            testFirebaseToken
+          );
+        });
+      });
+
+      context('initially firebaseToken is token', () => {
+        beforeEach(async () => {
+          auth.onFirebaseTokenChanged(firebaseTokenCallback);
+          await auth._updateFirebaseToken(testFirebaseToken);
+          firebaseTokenCallback.resetHistory();
+        });
+
+        it('onFirebaseTokenChanged triggers on token set to null', async () => {
+          await auth._updateFirebaseToken(null);
+          expect(firebaseTokenCallback).to.have.been.calledWith(null);
+        });
+
+        it('onFirebaseTokenChanged triggers for token props change', async () => {
+          const newToken: FirebaseToken = {
+            ...testFirebaseToken,
+            token: 'new-fb-token'
+          };
+          await auth._updateFirebaseToken(newToken);
+          expect(firebaseTokenCallback).to.have.been.calledWith(newToken);
         });
       });
 
@@ -737,6 +817,20 @@ describe('core/auth/auth_impl', () => {
         await auth._updateCurrentUser(user);
         expect(cb1).to.have.been.calledWith(user);
         expect(cb2).to.have.been.calledWith(user);
+      });
+
+      it('onFirebaseTokenChanged works for multiple listeners', async () => {
+        const cb1 = sinon.spy();
+        const cb2 = sinon.spy();
+        auth.onFirebaseTokenChanged(cb1);
+        auth.onFirebaseTokenChanged(cb2);
+        await auth._updateFirebaseToken(null);
+        cb1.resetHistory();
+        cb2.resetHistory();
+
+        await auth._updateFirebaseToken(testFirebaseToken);
+        expect(cb1).to.have.been.calledWith(testFirebaseToken);
+        expect(cb2).to.have.been.calledWith(testFirebaseToken);
       });
 
       it('_updateCurrentUser throws if a beforeAuthStateChange callback throws', async () => {
