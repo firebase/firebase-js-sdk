@@ -334,10 +334,12 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
     beforeEach(async () => {
       isProactiveRefresh = false;
 
-      sinon.stub(regionalAuth, '_startProactiveRefresh').callsFake(() => {
-        isProactiveRefresh = true;
-      });
-      sinon.stub(regionalAuth, '_stopProactiveRefresh').callsFake(() => {
+      sinon
+        .stub(regionalAuth as any, '_startProactiveRefresh')
+        .callsFake(() => {
+          isProactiveRefresh = true;
+        });
+      sinon.stub(regionalAuth as any, '_stopProactiveRefresh').callsFake(() => {
         isProactiveRefresh = false;
       });
       await regionalAuth._updateFirebaseToken({
