@@ -675,7 +675,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
   }
 
   onFirebaseTokenChanged(
-    nextOrObserver: NextOrObserver<FirebaseToken>,
+    nextOrObserver: NextOrObserver<FirebaseToken | null>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
