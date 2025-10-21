@@ -82,7 +82,7 @@
     "@types/mz": "2.7.8",
     "@types/node": "18.19.83",
     "@types/request": "2.48.12",
-    "@types/sinon": "10.0.14",
+    "@types/sinon": "9.0.11",
     "@types/sinon-chai": "3.2.12",
     "@types/tmp": "0.2.6",
     "@types/trusted-types": "2.0.7",
