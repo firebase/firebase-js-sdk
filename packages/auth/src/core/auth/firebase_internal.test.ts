@@ -328,7 +328,7 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
   });
 
   context('getUid', () => {
-    it('returns null if currentUser is undefined', () => {
+    it('throws an error if regionalAuth is initialized', () => {
       expect(() => regionalAuthInternal.getUid()).to.throw(
         FirebaseError,
         'auth/operation-not-allowed'

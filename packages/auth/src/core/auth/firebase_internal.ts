@@ -36,6 +36,7 @@ export class AuthInterop implements FirebaseAuthInternal {
 
   getUid(): string | null {
     this.assertAuthConfigured();
+    // getUid() is not available for regional Auth. Returns `OPERATION_NOT_ALLOWED` exception for RegionalAuth.
     this.assertRegionalAuthConfigured();
     return this.auth.currentUser?.uid || null;
   }
