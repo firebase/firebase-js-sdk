@@ -41,7 +41,8 @@ describe('Experiment', () => {
       storage.getActiveExperiments = sinon.stub();
       storage.setActiveExperiments = sinon.stub();
       analyticsProvider.getImmediate = sinon.stub().returns({
-        setUserProperties: sinon.stub()
+        setUserProperties: sinon.stub(),
+        logEvent: sinon.stub()
       });
     });
 
@@ -81,7 +82,7 @@ describe('Experiment', () => {
         expectedStoredExperiments
       );
       expect(analytics.setUserProperties).to.have.been.calledWith({
-        properties: { '_exp_3': '1' }
+        properties: { '_exp_3': '1', '_exp_1': '2', '_exp_2': '1' }
       });
     });
 

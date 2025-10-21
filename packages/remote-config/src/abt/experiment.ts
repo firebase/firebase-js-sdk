@@ -39,7 +39,7 @@ export class Experiment {
     const currentActiveExperiments =
       (await this.storage.getActiveExperiments()) || new Set<string>();
     const experimentInfoMap = this.createExperimentInfoMap(latestExperiments);
-    this.addActiveExperiments(currentActiveExperiments, experimentInfoMap);
+    this.addActiveExperiments(experimentInfoMap);
     this.removeInactiveExperiments(currentActiveExperiments, experimentInfoMap);
     return this.storage.setActiveExperiments(new Set(experimentInfoMap.keys()));
   }
@@ -55,14 +55,11 @@ export class Experiment {
   }
 
   private addActiveExperiments(
-    currentActiveExperiments: Set<string>,
     experimentInfoMap: Map<string, FirebaseExperimentDescription>
   ): void {
     const customProperty: Record<string, string | null> = {};
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
-      if (!currentActiveExperiments.has(experimentId)) {
-        customProperty[experimentId] = experimentInfo.variantId;
-      }
+      customProperty[experimentId] = experimentInfo.variantId;
     }
     this.addExperimentToAnalytics(customProperty);
   }
@@ -90,13 +87,11 @@ export class Experiment {
       const analytics = this.analyticsProvider.getImmediate({ optional: true });
       if (analytics) {
         analytics.setUserProperties({ properties: customProperty });
-        analytics.logEvent("experiment set");
+        analytics.logEvent(`set_firebase_experiment_state`);
       } else {
-        // TODO: Update warning message
-        this.logger.warn(`Analytics is not imported correctly`);
+        this.logger.warn(`Analytics import failed`);
       }
     } catch (error) {
-      // TODO: Update error message
       throw ERROR_FACTORY.create(ErrorCode.ANALYTICS_UNAVAILABLE, {
         originalErrorMessage: (error as Error)?.message
       });

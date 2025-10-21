@@ -87,7 +87,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]:
     'Unable to fetch the latest config: {$originalErrorMessage}',
   [ErrorCode.ANALYTICS_UNAVAILABLE]:
-    'Connection to firebase analytics failed: {$originalErrorMessage}'
+    'Connection to Firebase Analytics failed: {$originalErrorMessage}'
 };
 
 // Note this is effectively a type system binding a code to params. This approach overlaps with the
