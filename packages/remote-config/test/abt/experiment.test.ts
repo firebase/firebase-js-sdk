@@ -82,7 +82,9 @@ describe('Experiment', () => {
         expectedStoredExperiments
       );
       expect(analytics.setUserProperties).to.have.been.calledWith({
-        properties: { '_exp_3': '1', '_exp_1': '2', '_exp_2': '1' }
+        '_exp_3': '1',
+        '_exp_1': '2',
+        '_exp_2': '1'
       });
     });
 
@@ -108,7 +110,7 @@ describe('Experiment', () => {
         expectedStoredExperiments
       );
       expect(analytics.setUserProperties).to.have.been.calledWith({
-        properties: { '_exp_2': null }
+        '_exp_2': null
       });
     });
   });
