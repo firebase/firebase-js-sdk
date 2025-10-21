@@ -326,4 +326,13 @@ describe('core/auth/firebase_internal - Regional Firebase Auth', () => {
       expect(await regionalAuthInternal.getToken()).to.eql(null);
     });
   });
+
+  context('getUid', () => {
+    it('throws an error if regionalAuth is initialized', () => {
+      expect(() => regionalAuthInternal.getUid()).to.throw(
+        FirebaseError,
+        'auth/operation-not-allowed'
+      );
+    });
+  });
 });
