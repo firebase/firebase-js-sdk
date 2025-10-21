@@ -86,7 +86,7 @@ export class Experiment {
     try {
       const analytics = this.analyticsProvider.getImmediate({ optional: true });
       if (analytics) {
-        analytics.setUserProperties({ properties: customProperty });
+        analytics.setUserProperties(customProperty);
         analytics.logEvent(`set_firebase_experiment_state`);
       } else {
         this.logger.warn(`Analytics import failed`);
