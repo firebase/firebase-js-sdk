@@ -41,7 +41,6 @@ const EXCLUDED_PACKAGES = [
   'app-compat',
   'util',
   'rules-unit-testing',
-  'data-connect'
 ];
 
 /**
