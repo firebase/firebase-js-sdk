@@ -18,14 +18,23 @@
 import { ensureFirestoreConfigured, Firestore } from '../api/database';
 import { AggregateImpl } from '../core/aggregate';
 import { queryToAggregateTarget, queryToTarget } from '../core/query';
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from '../core/structured_pipeline';
 import { AggregateSpec } from '../lite-api/aggregate_types';
 import { getDatastore } from '../lite-api/components';
 import { Pipeline } from '../lite-api/pipeline';
 import { Query } from '../lite-api/reference';
+import { ExecutePipelineRequest as ProtoExecutePipelineRequest } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
-import { toQueryTarget, toRunAggregationQueryRequest } from './serializer';
+import {
+  getEncodedDatabaseId,
+  toQueryTarget,
+  toRunAggregationQueryRequest
+} from './serializer';
 
 /**
  * @internal
@@ -112,5 +121,15 @@ export function _internalPipelineToExecutePipelineRequestProto(
   if (serializer === undefined) {
     return null;
   }
-  return pipeline._toProto(serializer);
+
+  const structuredPipeline = new StructuredPipeline(
+    pipeline,
+    new StructuredPipelineOptions()
+  );
+  const executePipelineRequest: ProtoExecutePipelineRequest = {
+    database: getEncodedDatabaseId(serializer),
+    structuredPipeline: structuredPipeline._toProto(serializer)
+  };
+
+  return executePipelineRequest;
 }
