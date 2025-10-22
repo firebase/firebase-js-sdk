@@ -59,7 +59,7 @@ export class Experiment {
   ): void {
     const customProperty: Record<string, string | null> = {};
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
-      customProperty[experimentId] = experimentInfo.variantId;
+      customProperty[`firebase${experimentId}`] = experimentInfo.variantId;
     }
     this.addExperimentToAnalytics(customProperty);
   }
@@ -71,7 +71,7 @@ export class Experiment {
     const customProperty: Record<string, string | null> = {};
     for (const experimentId of currentActiveExperiments) {
       if (!experimentInfoMap.has(experimentId)) {
-        customProperty[experimentId] = null;
+        customProperty[`firebase${experimentId}`] = null;
       }
     }
     this.addExperimentToAnalytics(customProperty);
