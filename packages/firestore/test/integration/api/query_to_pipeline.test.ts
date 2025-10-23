@@ -40,7 +40,8 @@ import {
   documentId,
   addDoc,
   getDoc,
-  or
+  or,
+  getDocs
 } from '../util/firebase_export';
 import {
   apiDescribe,

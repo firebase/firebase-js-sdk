@@ -24,7 +24,8 @@ import {
   Ordering,
   lessThan,
   greaterThan,
-  field
+  field,
+  constant
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
 import { doc } from '../lite-api/reference';

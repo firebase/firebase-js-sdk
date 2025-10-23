@@ -54,24 +54,6 @@ export {
 } from './lite-api/stage_options';
 
 export {
-  Stage,
-  AddFields,
-  Aggregate,
-  Distinct,
-  CollectionSource,
-  CollectionGroupSource,
-  DatabaseSource,
-  DocumentsSource,
-  Where,
-  FindNearest,
-  Limit,
-  Offset,
-  Select,
-  Sort,
-  RawStage
-} from './lite-api/stage';
-
-export {
   field,
   constant,
   add,
@@ -175,10 +157,7 @@ export {
   FunctionExpression,
   Ordering,
   BooleanExpression,
-  AggregateFunction
-} from './lite-api/expressions';
-
-export type {
+  AggregateFunction,
   ExpressionType,
   AliasedAggregate,
   Selectable
