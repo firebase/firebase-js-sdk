@@ -1218,7 +1218,6 @@ const timestampDeltaMS = 1000;
             .select('title', 'author')
             .sort(field('author').ascending())
             .removeFields(field('author'))
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -1259,7 +1258,6 @@ const timestampDeltaMS = 1000;
             .removeFields({
               fields: [field('author'), 'genre']
             })
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -1300,7 +1298,6 @@ const timestampDeltaMS = 1000;
             .select('title', 'author')
             .sort(field('author').ascending())
             .removeFields(field('author'))
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -1341,7 +1338,6 @@ const timestampDeltaMS = 1000;
             .removeFields({
               fields: [field('author'), 'genre']
             })
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
