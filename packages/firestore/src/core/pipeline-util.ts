@@ -56,15 +56,15 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpression {
     const fieldValue = field(f.field.toString());
     if (isNanValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return and(fieldValue.exists(), fieldValue.isNan());
+        return and(fieldValue.exists(), fieldValue.equal(constant(NaN)));
       } else {
-        return and(fieldValue.exists(), fieldValue.isNotNan());
+        return and(fieldValue.exists(), fieldValue.notEqual(constant(NaN)));
       }
     } else if (isNullValue(f.value)) {
       if (f.op === Operator.EQUAL) {
-        return and(fieldValue.exists(), fieldValue.isNull());
+        return and(fieldValue.exists(), fieldValue.equal(constant(null)));
       } else {
-        return and(fieldValue.exists(), fieldValue.isNotNull());
+        return and(fieldValue.exists(), fieldValue.notEqual(constant(null)));
       }
     } else {
       // Comparison filters
