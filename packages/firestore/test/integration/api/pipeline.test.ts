@@ -360,6 +360,17 @@ const timestampDeltaMS = 1000;
         expectedStructuredPipelineProto
       );
     });
+
+    it('performs validation', async () => {
+      expect(() => {
+        const pipeline = firestore
+          .pipeline()
+          .collection('customers')
+          .where(field('country').equal(new Map([])));
+
+        _internalPipelineToExecutePipelineRequestProto(pipeline);
+      }).to.throw();
+    });
   });
 
   describe('pipeline results', () => {
