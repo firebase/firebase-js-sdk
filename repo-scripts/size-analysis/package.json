@@ -27,7 +27,7 @@
     "gzip-size": "6.0.0",
     "memfs": "3.5.3",
     "terser": "5.37.0",
-    "@rollup/plugin-commonjs": "21.1.0",
+    "@rollup/plugin-commonjs": "28.0.9",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
     "@rollup/plugin-virtual": "2.1.0",
