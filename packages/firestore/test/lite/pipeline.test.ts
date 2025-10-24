@@ -67,10 +67,7 @@ import {
   isAbsent,
   isError,
   or,
-  isNotNan,
   map,
-  isNotNull,
-  isNull,
   mod,
   documentId,
   equal,
@@ -88,7 +85,6 @@ import {
   logicalMaximum,
   logicalMinimum,
   exists,
-  isNan,
   reverse,
   like,
   regexContains,
@@ -144,7 +140,6 @@ import {
   log10,
   concat,
   currentTimestamp,
-  error,
   ifAbsent,
   join,
   arraySum
@@ -2573,8 +2568,8 @@ describe.only('Firestore Pipelines', () => {
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            isNull('rating').as('ratingIsNull'),
-            isNan('rating').as('ratingIsNaN'),
+            equal('rating', null).as('ratingIsNull'),
+            equal('rating', NaN).as('ratingIsNaN'),
             isError(divide(constant(1), constant(0))).as('isError'),
             ifError(divide(constant(1), constant(0)), constant('was error')).as(
               'ifError'
@@ -2586,8 +2581,8 @@ describe.only('Firestore Pipelines', () => {
               .not()
               .as('ifErrorBooleanExpression'),
             isAbsent('foo').as('isAbsent'),
-            isNotNull('title').as('titleIsNotNull'),
-            isNotNan('cost').as('costIsNotNan'),
+            notEqual('title', null).as('titleIsNotNull'),
+            notEqual('cost', NaN).as('costIsNotNan'),
             exists('fooBarBaz').as('fooBarBazExists'),
             field('title').exists().as('titleExists')
           )
@@ -2612,8 +2607,8 @@ describe.only('Firestore Pipelines', () => {
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            field('rating').isNull().as('ratingIsNull'),
-            field('rating').isNan().as('ratingIsNaN'),
+            field('rating').equal(null).as('ratingIsNull'),
+            field('rating').equal(NaN).as('ratingIsNaN'),
             divide(constant(1), constant(0)).isError().as('isError'),
             divide(constant(1), constant(0))
               .ifError(constant('was error'))
@@ -2624,8 +2619,8 @@ describe.only('Firestore Pipelines', () => {
               .not()
               .as('ifErrorBooleanExpression'),
             field('foo').isAbsent().as('isAbsent'),
-            field('title').isNotNull().as('titleIsNotNull'),
-            field('cost').isNotNan().as('costIsNotNan')
+            field('title').notEqual(null).as('titleIsNotNull'),
+            field('cost').notEqual(NaN).as('costIsNotNan')
           )
       );
       expectResults(snapshot, {
@@ -3877,22 +3872,6 @@ describe.only('Firestore Pipelines', () => {
       expect(
         now.toDate().getUTCSeconds() - new Date().getUTCSeconds()
       ).lessThan(5000);
-    });
-
-    // Not implemented in backend
-    // eslint-disable-next-line no-restricted-properties
-    it.skip('supports error', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(isError(error('test error')).as('error'))
-      );
-
-      expectResults(snapshot, {
-        'error': true
-      });
     });
 
     it('supports ifAbsent', async () => {
