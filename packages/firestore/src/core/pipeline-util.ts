@@ -24,12 +24,10 @@ import {
   Ordering,
   lessThan,
   greaterThan,
-  field,
-  constant
+  field
 } from '../lite-api/expressions';
 import { Pipeline } from '../lite-api/pipeline';
 import { doc } from '../lite-api/reference';
-import { isNanValue, isNullValue } from '../model/values';
 import { fail } from '../util/assert';
 
 import { Bound } from './bound';
@@ -54,90 +52,76 @@ import {
 export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpression {
   if (f instanceof FieldFilterInternal) {
     const fieldValue = field(f.field.toString());
-    if (isNanValue(f.value)) {
-      if (f.op === Operator.EQUAL) {
-        return and(fieldValue.exists(), fieldValue.equal(constant(NaN)));
-      } else {
-        return and(fieldValue.exists(), fieldValue.notEqual(constant(NaN)));
-      }
-    } else if (isNullValue(f.value)) {
-      if (f.op === Operator.EQUAL) {
-        return and(fieldValue.exists(), fieldValue.equal(constant(null)));
-      } else {
-        return and(fieldValue.exists(), fieldValue.notEqual(constant(null)));
-      }
-    } else {
-      // Comparison filters
-      const value = f.value;
-      switch (f.op) {
-        case Operator.LESS_THAN:
-          return and(
-            fieldValue.exists(),
-            fieldValue.lessThan(Constant._fromProto(value))
-          );
-        case Operator.LESS_THAN_OR_EQUAL:
-          return and(
-            fieldValue.exists(),
-            fieldValue.lessThanOrEqual(Constant._fromProto(value))
-          );
-        case Operator.GREATER_THAN:
-          return and(
-            fieldValue.exists(),
-            fieldValue.greaterThan(Constant._fromProto(value))
-          );
-        case Operator.GREATER_THAN_OR_EQUAL:
-          return and(
-            fieldValue.exists(),
-            fieldValue.greaterThanOrEqual(Constant._fromProto(value))
-          );
-        case Operator.EQUAL:
-          return and(
-            fieldValue.exists(),
-            fieldValue.equal(Constant._fromProto(value))
-          );
-        case Operator.NOT_EQUAL:
-          return and(
-            fieldValue.exists(),
-            fieldValue.notEqual(Constant._fromProto(value))
-          );
-        case Operator.ARRAY_CONTAINS:
-          return and(
-            fieldValue.exists(),
-            fieldValue.arrayContains(Constant._fromProto(value))
-          );
-        case Operator.IN: {
-          const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant._fromProto(val)
-          );
-          if (!values) {
-            return and(fieldValue.exists(), fieldValue.equalAny([]));
-          } else if (values.length === 1) {
-            return and(fieldValue.exists(), fieldValue.equal(values[0]));
-          } else {
-            return and(fieldValue.exists(), fieldValue.equalAny(values));
-          }
+    // Comparison filters
+    const value = f.value;
+    switch (f.op) {
+      case Operator.LESS_THAN:
+        return and(
+          fieldValue.exists(),
+          fieldValue.lessThan(Constant._fromProto(value))
+        );
+      case Operator.LESS_THAN_OR_EQUAL:
+        return and(
+          fieldValue.exists(),
+          fieldValue.lessThanOrEqual(Constant._fromProto(value))
+        );
+      case Operator.GREATER_THAN:
+        return and(
+          fieldValue.exists(),
+          fieldValue.greaterThan(Constant._fromProto(value))
+        );
+      case Operator.GREATER_THAN_OR_EQUAL:
+        return and(
+          fieldValue.exists(),
+          fieldValue.greaterThanOrEqual(Constant._fromProto(value))
+        );
+      case Operator.EQUAL:
+        return and(
+          fieldValue.exists(),
+          fieldValue.equal(Constant._fromProto(value))
+        );
+      case Operator.NOT_EQUAL:
+        return and(
+          fieldValue.exists(),
+          fieldValue.notEqual(Constant._fromProto(value))
+        );
+      case Operator.ARRAY_CONTAINS:
+        return and(
+          fieldValue.exists(),
+          fieldValue.arrayContains(Constant._fromProto(value))
+        );
+      case Operator.IN: {
+        const values = value?.arrayValue?.values?.map((val: any) =>
+          Constant._fromProto(val)
+        );
+        if (!values) {
+          return and(fieldValue.exists(), fieldValue.equalAny([]));
+        } else if (values.length === 1) {
+          return and(fieldValue.exists(), fieldValue.equal(values[0]));
+        } else {
+          return and(fieldValue.exists(), fieldValue.equalAny(values));
         }
-        case Operator.ARRAY_CONTAINS_ANY: {
-          const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant._fromProto(val)
-          );
-          return and(fieldValue.exists(), fieldValue.arrayContainsAny(values!));
-        }
-        case Operator.NOT_IN: {
-          const values = value?.arrayValue?.values?.map((val: any) =>
-            Constant._fromProto(val)
-          );
-          if (!values) {
-            return and(fieldValue.exists(), fieldValue.notEqualAny([]));
-          } else if (values.length === 1) {
-            return and(fieldValue.exists(), fieldValue.notEqual(values[0]));
-          } else {
-            return and(fieldValue.exists(), fieldValue.notEqualAny(values));
-          }
-        }
-        default:
-          fail(0x9047, 'Unexpected operator');
       }
+      case Operator.ARRAY_CONTAINS_ANY: {
+        const values = value?.arrayValue?.values?.map((val: any) =>
+          Constant._fromProto(val)
+        );
+        return and(fieldValue.exists(), fieldValue.arrayContainsAny(values!));
+      }
+      case Operator.NOT_IN: {
+        const values = value?.arrayValue?.values?.map((val: any) =>
+          Constant._fromProto(val)
+        );
+        if (!values) {
+          return and(fieldValue.exists(), fieldValue.notEqualAny([]));
+        } else if (values.length === 1) {
+          return and(fieldValue.exists(), fieldValue.notEqual(values[0]));
+        } else {
+          return and(fieldValue.exists(), fieldValue.notEqualAny(values));
+        }
+      }
+      default:
+        fail(0x9047, 'Unexpected operator');
     }
   } else if (f instanceof CompositeFilterInternal) {
     switch (f.op) {
