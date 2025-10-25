@@ -39,7 +39,7 @@ export class Experiment {
     const currentActiveExperiments =
       (await this.storage.getActiveExperiments()) || new Set<string>();
     const experimentInfoMap = this.createExperimentInfoMap(latestExperiments);
-    this.addActiveExperiments(currentActiveExperiments, experimentInfoMap);
+    this.addActiveExperiments(experimentInfoMap);
     this.removeInactiveExperiments(currentActiveExperiments, experimentInfoMap);
     return this.storage.setActiveExperiments(new Set(experimentInfoMap.keys()));
   }
@@ -55,14 +55,11 @@ export class Experiment {
   }
 
   private addActiveExperiments(
-    currentActiveExperiments: Set<string>,
     experimentInfoMap: Map<string, FirebaseExperimentDescription>
   ): void {
     const customProperty: Record<string, string | null> = {};
     for (const [experimentId, experimentInfo] of experimentInfoMap.entries()) {
-      if (!currentActiveExperiments.has(experimentId)) {
-        customProperty[experimentId] = experimentInfo.variantId;
-      }
+      customProperty[`firebase${experimentId}`] = experimentInfo.variantId;
     }
     this.addExperimentToAnalytics(customProperty);
   }
@@ -74,7 +71,7 @@ export class Experiment {
     const customProperty: Record<string, string | null> = {};
     for (const experimentId of currentActiveExperiments) {
       if (!experimentInfoMap.has(experimentId)) {
-        customProperty[experimentId] = null;
+        customProperty[`firebase${experimentId}`] = null;
       }
     }
     this.addExperimentToAnalytics(customProperty);
@@ -89,7 +86,8 @@ export class Experiment {
     try {
       const analytics = this.analyticsProvider.getImmediate({ optional: true });
       if (analytics) {
-        analytics.setUserProperties({ properties: customProperty });
+        analytics.setUserProperties(customProperty);
+        analytics.logEvent(`set_firebase_experiment_state`);
       } else {
         this.logger.warn(`Analytics import failed`);
       }

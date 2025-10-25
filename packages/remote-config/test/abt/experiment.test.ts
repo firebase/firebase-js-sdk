@@ -41,7 +41,8 @@ describe('Experiment', () => {
       storage.getActiveExperiments = sinon.stub();
       storage.setActiveExperiments = sinon.stub();
       analyticsProvider.getImmediate = sinon.stub().returns({
-        setUserProperties: sinon.stub()
+        setUserProperties: sinon.stub(),
+        logEvent: sinon.stub()
       });
     });
 
@@ -81,7 +82,9 @@ describe('Experiment', () => {
         expectedStoredExperiments
       );
       expect(analytics.setUserProperties).to.have.been.calledWith({
-        properties: { '_exp_3': '1' }
+        'firebase_exp_3': '1',
+        'firebase_exp_1': '2',
+        'firebase_exp_2': '1'
       });
     });
 
@@ -107,7 +110,7 @@ describe('Experiment', () => {
         expectedStoredExperiments
       );
       expect(analytics.setUserProperties).to.have.been.calledWith({
-        properties: { '_exp_2': null }
+        'firebase_exp_2': null
       });
     });
   });
