@@ -816,10 +816,10 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
-  private registerStateListener<T>(
-    subscription: Subscription<T>,
-    nextOrObserver: NextOrObserver<T>,
-    currentValue: T | null,
+  private registerStateListener(
+    subscription: Subscription<User>,
+    nextOrObserver: NextOrObserver<User>,
+    currentValue: User | null,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
