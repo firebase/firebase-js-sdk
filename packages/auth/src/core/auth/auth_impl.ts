@@ -647,7 +647,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.registerStateListener(
       this.authStateSubscription,
       nextOrObserver,
-      this.currentUser,
       error,
       completed
     );
@@ -668,7 +667,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.registerStateListener(
       this.idTokenSubscription,
       nextOrObserver,
-      this.currentUser,
       error,
       completed
     );
@@ -816,10 +814,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
-  private registerStateListener(
-    subscription: Subscription<User>,
-    nextOrObserver: NextOrObserver<User>,
-    currentValue: User | null,
+  private registerStateListener<T>(
+    subscription: Subscription<T>,
+    nextOrObserver: NextOrObserver<T>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -844,7 +841,11 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       if (isUnsubscribed) {
         return;
       }
-      cb(currentValue);
+      if (subscription as unknown == this.idTokenSubscription) {
+        cb(this.currentUser as unknown as T);
+      } else if (subscription as unknown == this.firebaseTokenSubscription) {
+        cb(this.firebaseToken as unknown as T);
+      }
     });
 
     if (typeof nextOrObserver === 'function') {
