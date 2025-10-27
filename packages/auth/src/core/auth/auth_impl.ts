@@ -644,7 +644,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    return this.registerStateListener(
+    return this.registerStateListenerNew(
       this.authStateSubscription,
       nextOrObserver,
       error,
@@ -664,7 +664,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    return this.registerStateListener(
+    return this.registerStateListenerNew(
       this.idTokenSubscription,
       nextOrObserver,
       error,
@@ -814,7 +814,7 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
-  private registerStateListener(
+  private registerStateListenerNew(
     subscription: Subscription<User>,
     nextOrObserver: NextOrObserver<User>,
     error?: ErrorFn,
