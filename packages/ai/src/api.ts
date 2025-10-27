@@ -39,12 +39,23 @@ import {
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
 import { WebSocketHandlerImpl } from './websocket';
+import { TemplateGenerativeModel } from './models/template-generative-model';
+import { TemplateImagenModel } from './models/template-imagen-model';
 
 export { ChatSession } from './methods/chat-session';
+export { TemplateChatSession } from './methods/template-chat-session';
 export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { AIModel, GenerativeModel, LiveGenerativeModel, ImagenModel, AIError };
+export {
+  AIModel,
+  GenerativeModel,
+  LiveGenerativeModel,
+  ImagenModel,
+  TemplateGenerativeModel,
+  TemplateImagenModel,
+  AIError
+};
 export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
 export {
   startAudioConversation,
@@ -201,4 +212,36 @@ export function getLiveGenerativeModel(
   }
   const webSocketHandler = new WebSocketHandlerImpl();
   return new LiveGenerativeModel(ai, modelParams, webSocketHandler);
+}
+
+/**
+ * Returns a {@link TemplateGenerativeModel} class for executing server-side
+ * templates.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param requestOptions - Additional options to use when making requests.
+ *
+ * @beta
+ */
+export function getTemplateGenerativeModel(
+  ai: AI,
+  requestOptions?: RequestOptions
+): TemplateGenerativeModel {
+  return new TemplateGenerativeModel(ai, requestOptions);
+}
+
+/**
+ * Returns a {@link TemplateImagenModel} class for executing server-side
+ * Imagen templates.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param requestOptions - Additional options to use when making requests.
+ *
+ * @beta
+ */
+export function getTemplateImagenModel(
+  ai: AI,
+  requestOptions?: RequestOptions
+): TemplateImagenModel {
+  return new TemplateImagenModel(ai, requestOptions);
 }

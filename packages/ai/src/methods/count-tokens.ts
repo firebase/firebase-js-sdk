@@ -44,12 +44,14 @@ export async function countTokensOnCloud(
     body = JSON.stringify(params);
   }
   const response = await makeRequest(
-    model,
-    Task.COUNT_TOKENS,
-    apiSettings,
-    false,
-    body,
-    requestOptions
+    {
+      model,
+      task: Task.COUNT_TOKENS,
+      apiSettings,
+      stream: false,
+      requestOptions
+    },
+    body
   );
   return response.json();
 }

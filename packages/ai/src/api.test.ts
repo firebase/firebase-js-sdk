@@ -22,7 +22,11 @@ import {
   LiveGenerativeModel,
   getGenerativeModel,
   getImagenModel,
-  getLiveGenerativeModel
+  getLiveGenerativeModel,
+  getTemplateGenerativeModel,
+  TemplateGenerativeModel,
+  getTemplateImagenModel,
+  TemplateImagenModel
 } from './api';
 import { expect } from 'chai';
 import { AI } from './public-types';
@@ -279,6 +283,16 @@ describe('Top level API', () => {
     expect(liveGenerativeModel).to.be.an.instanceOf(LiveGenerativeModel);
     expect(liveGenerativeModel.model).to.equal(
       'publishers/google/models/my-model'
+    );
+  });
+  it('getTemplateGenerativeModel gets a TemplateGenerativeModel', () => {
+    expect(getTemplateGenerativeModel(fakeAI)).to.be.an.instanceOf(
+      TemplateGenerativeModel
+    );
+  });
+  it('getImagenModel gets a TemplateImagenModel', () => {
+    expect(getTemplateImagenModel(fakeAI)).to.be.an.instanceOf(
+      TemplateImagenModel
     );
   });
 });

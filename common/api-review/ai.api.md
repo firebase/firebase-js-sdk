@@ -96,6 +96,10 @@ export interface AudioConversationController {
 export abstract class Backend {
     protected constructor(type: BackendType);
     readonly backendType: BackendType;
+    // @internal (undocumented)
+    abstract _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    abstract _getTemplatePath(project: string, templateId: string): string;
 }
 
 // @public
@@ -561,9 +565,19 @@ export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOp
 // @beta
 export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
+// @beta
+export function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
+
+// @beta
+export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
+
 // @public
 export class GoogleAIBackend extends Backend {
     constructor();
+    // (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1304,6 +1318,38 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// @beta
+export class TemplateChatSession {
+    constructor(_apiSettings: ApiSettings, templateId: string, _history?: Content[], requestOptions?: RequestOptions | undefined);
+    getHistory(): Promise<Content[]>;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    sendMessage(request: string | Array<string | Part>, inputs?: object): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, inputs?: object): Promise<GenerateContentStreamResult>;
+    // (undocumented)
+    templateId: string;
+}
+
+// @beta
+export class TemplateGenerativeModel {
+    constructor(ai: AI, requestOptions?: RequestOptions);
+    // @internal (undocumented)
+    _apiSettings: ApiSettings;
+    generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
+    requestOptions?: RequestOptions;
+    startChat(templateId: string, history?: Content[]): TemplateChatSession;
+}
+
+// @beta
+export class TemplateImagenModel {
+    constructor(ai: AI, requestOptions?: RequestOptions);
+    // @internal (undocumented)
+    _apiSettings: ApiSettings;
+    generateImages(templateId: string, templateVariables: object): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    requestOptions?: RequestOptions;
+}
+
 // @public
 export interface TextPart {
     // (undocumented)
@@ -1397,6 +1443,10 @@ export interface UsageMetadata {
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
+    // (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
     readonly location: string;
 }
 

@@ -97,10 +97,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('myfunc') &&
@@ -109,8 +112,7 @@ describe('GenerativeModel', () => {
           value.includes(FunctionCallingMode.NONE) &&
           value.includes('be friendly')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -134,14 +136,16 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return value.includes('be friendly');
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -195,10 +199,13 @@ describe('GenerativeModel', () => {
       systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
     });
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
@@ -207,8 +214,7 @@ describe('GenerativeModel', () => {
           value.includes(FunctionCallingMode.AUTO) &&
           value.includes('be formal')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -286,10 +292,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('myfunc') &&
@@ -299,8 +308,7 @@ describe('GenerativeModel', () => {
           value.includes('be friendly') &&
           value.includes('topK')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -324,14 +332,16 @@ describe('GenerativeModel', () => {
     );
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return value.includes('be friendly');
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -387,10 +397,13 @@ describe('GenerativeModel', () => {
       })
       .sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
@@ -401,8 +414,7 @@ describe('GenerativeModel', () => {
           value.includes('image/png') &&
           !value.includes('image/jpeg')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -422,10 +434,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.countTokens('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.COUNT_TOKENS,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.COUNT_TOKENS,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('hello');
       })
