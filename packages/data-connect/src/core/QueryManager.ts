@@ -118,7 +118,6 @@ export class QueryManager {
     };
     const unsubscribe = (): void => {
       const trackedQuery = this._queries.get(key)!;
-      // TODO: Trigger onComplete
       trackedQuery.subscriptions = trackedQuery.subscriptions.filter(
         sub => sub !== subscription
       );
