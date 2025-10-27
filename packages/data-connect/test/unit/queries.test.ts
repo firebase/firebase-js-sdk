@@ -157,6 +157,7 @@ describe('Queries', () => {
     await expect(promise).to.have.eventually.been.rejected;
     expect(onErrStub).to.have.been.calledOnce;
     unsubscribeFn!();
+    initializeFetch(globalThis.fetch);
   });
   it('[QUERY] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);
