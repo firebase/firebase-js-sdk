@@ -132,7 +132,7 @@ import {
   log,
   sqrt,
   stringReverse,
-  len as length,
+  length,
   abs,
   concat,
   currentTimestamp,

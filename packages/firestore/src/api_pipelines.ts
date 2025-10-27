@@ -138,7 +138,7 @@ export {
   log,
   sqrt,
   stringReverse,
-  length as len,
+  length,
   abs,
   concat,
   currentTimestamp,

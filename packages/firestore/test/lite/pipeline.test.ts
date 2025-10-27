@@ -20,7 +20,6 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { len as length } from '../../src/api_pipelines';
 import { Bytes } from '../../src/lite-api/bytes';
 import {
   Firestore,
@@ -68,6 +67,7 @@ import {
   isError,
   or,
   map,
+  length,
   mod,
   documentId,
   equal,

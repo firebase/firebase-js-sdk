@@ -175,6 +175,7 @@ export {
   currentTimestamp,
   ifAbsent,
   join,
+  length,
   arraySum,
   AliasedExpression,
   Field,
