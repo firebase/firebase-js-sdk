@@ -17,6 +17,7 @@
 
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import sinonChai from 'sinon-chai';
 
 import {
   connectDataConnectEmulator,
@@ -38,6 +39,7 @@ import {
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
 use(chaiAsPromised);
+use(sinonChai);
 
 interface Post {
   id: string;
@@ -128,6 +130,7 @@ describe('DataConnect Tests', async () => {
     });
     expect(res.source).to.eq(SOURCE_SERVER);
   });
+
   it(`returns the result source as cache when data already exists`, async () => {
     const taskListQuery = getPostsRef();
     const queryResult = await executeQuery(taskListQuery);

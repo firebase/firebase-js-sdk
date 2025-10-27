@@ -102,6 +102,7 @@ export function subscribe<Data, Variables>(
   return ref.dataConnect._queryManager.addSubscription(
     ref,
     onResult,
+    onComplete,
     onError,
     initialCache
   );

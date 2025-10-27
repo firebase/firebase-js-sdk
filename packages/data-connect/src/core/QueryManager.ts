@@ -17,6 +17,7 @@
 
 import {
   DataConnectSubscription,
+  OnCompleteSubscription,
   OnErrorSubscription,
   OnResultSubscription,
   QueryPromise,
@@ -97,6 +98,7 @@ export class QueryManager {
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
+    onCompleteCallback: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
     initialCache?: OpResult<Data>
   ): () => void {
@@ -111,13 +113,16 @@ export class QueryManager {
     >;
     const subscription = {
       userCallback: onResultCallback,
+      onCompleteCallback,
       errCallback: onErrorCallback
     };
     const unsubscribe = (): void => {
       const trackedQuery = this._queries.get(key)!;
+      // TODO: Trigger onComplete
       trackedQuery.subscriptions = trackedQuery.subscriptions.filter(
         sub => sub !== subscription
       );
+      onCompleteCallback();
     };
     if (initialCache && trackedQuery.currentCache !== initialCache) {
       logDebug('Initial cache found. Comparing dates.');

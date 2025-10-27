@@ -45,6 +45,7 @@ export type QueryUnsubscribe = () => void;
 export interface DataConnectSubscription<Data, Variables> {
   userCallback: OnResultSubscription<Data, Variables>;
   errCallback?: (e?: DataConnectError) => void;
+  onCompleteCallback?: () => void;
   unsubscribe: () => void;
 }
 
