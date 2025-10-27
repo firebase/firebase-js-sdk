@@ -841,9 +841,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       if (isUnsubscribed) {
         return;
       }
-      if (subscription as unknown == this.idTokenSubscription) {
+      if ((subscription as unknown) == this.idTokenSubscription) {
         cb(this.currentUser as unknown as T);
-      } else if (subscription as unknown == this.firebaseTokenSubscription) {
+      } else if ((subscription as unknown) == this.firebaseTokenSubscription) {
         cb(this.firebaseToken as unknown as T);
       }
     });
