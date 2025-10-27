@@ -2639,7 +2639,7 @@ const timestampDeltaMS = 1000;
               .not()
               .as('ifErrorBooleanExpression'),
             field('foo').isAbsent().as('isAbsent'),
-            field('title').equal(null).as('titleIsNotNull'),
+            field('title').notEqual(null).as('titleIsNotNull'),
             field('cost').notEqual(NaN).as('costIsNotNan')
           )
       );
