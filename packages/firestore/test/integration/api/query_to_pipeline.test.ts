@@ -40,7 +40,8 @@ import {
   documentId,
   addDoc,
   getDoc,
-  or
+  or,
+  getDocs
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -647,7 +648,7 @@ const testUnsupportedFeatures: boolean | 'only' = false;
       async (collRef, db) => {
         const query1 = query(collRef, where('bar', '!=', NaN));
         const snapshot = await execute(db.pipeline().createFrom(query1));
-        verifyResults(snapshot, { foo: 2, bar: 1 });
+        verifyResults(snapshot, { foo: 2, bar: 1 }, { foo: 3, bar: 'bar' });
       }
     );
   });
@@ -661,8 +662,10 @@ const testUnsupportedFeatures: boolean | 'only' = false;
       },
       async (collRef, db) => {
         const query1 = query(collRef, where('bar', '==', null));
+        const classicSnapshot = await getDocs(query1);
+        const classicData = classicSnapshot.docs.map(d => d.data());
         const snapshot = await execute(db.pipeline().createFrom(query1));
-        verifyResults(snapshot, { foo: 1, bar: null });
+        verifyResults(snapshot, ...classicData);
       }
     );
   });
@@ -676,8 +679,10 @@ const testUnsupportedFeatures: boolean | 'only' = false;
       },
       async (collRef, db) => {
         const query1 = query(collRef, where('bar', '!=', null));
+        const classicSnapshot = await getDocs(query1);
+        const classicData = classicSnapshot.docs.map(d => d.data());
         const snapshot = await execute(db.pipeline().createFrom(query1));
-        verifyResults(snapshot, { foo: 2, bar: 1 });
+        verifyResults(snapshot, ...classicData);
       }
     );
   });
