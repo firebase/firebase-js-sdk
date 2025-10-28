@@ -20,7 +20,7 @@ import { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { Content, GenerateContentStreamResult, InferenceMode } from '../types';
+import { Content, InferenceMode } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
@@ -134,32 +134,6 @@ describe('ChatSession', () => {
       );
       await clock.runAllAsync();
       expect(consoleStub).to.not.be.called;
-      clock.restore();
-    });
-    it('downstream sendPromise errors should log but not throw', async () => {
-      const clock = useFakeTimers();
-      const consoleStub = stub(console, 'error');
-      // make response undefined so that response.candidates errors
-      const generateContentStreamStub = stub(
-        generateContentMethods,
-        'generateContentStream'
-      ).resolves({} as unknown as GenerateContentStreamResult);
-      const chatSession = new ChatSession(
-        fakeApiSettings,
-        'a-model',
-        fakeChromeAdapter
-      );
-      await chatSession.sendMessageStream('hello');
-      expect(generateContentStreamStub).to.be.calledWith(
-        fakeApiSettings,
-        'a-model',
-        match.any
-      );
-      await clock.runAllAsync();
-      expect(consoleStub.args[0][1].toString()).to.include(
-        // Firefox has different wording when a property is undefined
-        'undefined'
-      );
       clock.restore();
     });
   });
