@@ -14,10 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  getAI,
-  getGenerativeModel,
-} from './api';
+import { getAI, getGenerativeModel } from './api';
 import { expect } from 'chai';
 import { InferenceMode } from './public-types';
 import { getFullApp } from '../test-utils/get-fake-firebase-services';
@@ -31,16 +28,16 @@ import { factory } from './factory-browser';
 describe('Top level API', () => {
   describe('getAI()', () => {
     it('getGenerativeModel with HybridParams sets a default model', () => {
-      const ai = getAI(getFullApp({ apiKey: 'key', appId: 'id'}, factory));
+      const ai = getAI(getFullApp({ apiKey: 'key', appId: 'id' }, factory));
       const genModel = getGenerativeModel(ai, {
-        mode: InferenceMode.ONLY_ON_DEVICE,
+        mode: InferenceMode.ONLY_ON_DEVICE
       });
       expect(genModel.model).to.equal(
         `models/${DEFAULT_HYBRID_IN_CLOUD_MODEL}`
       );
     });
     it('getGenerativeModel with HybridParams honors a model override', () => {
-      const ai = getAI(getFullApp({ apiKey: 'key', appId: 'id'}, factory));
+      const ai = getAI(getFullApp({ apiKey: 'key', appId: 'id' }, factory));
       const genModel = getGenerativeModel(ai, {
         mode: InferenceMode.PREFER_ON_DEVICE,
         inCloudParams: { model: 'my-model' }

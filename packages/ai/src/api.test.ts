@@ -29,7 +29,7 @@ import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
 import { getFullApp } from '../test-utils/get-fake-firebase-services';
-import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
+import { AI_TYPE } from './constants';
 
 const fakeAI: AI = {
   app: {
