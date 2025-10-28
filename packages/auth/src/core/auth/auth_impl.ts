@@ -647,7 +647,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.registerStateListener(
       this.authStateSubscription,
       nextOrObserver,
-      this.currentUser,
       error,
       completed
     );

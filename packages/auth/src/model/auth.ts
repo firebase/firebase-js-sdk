@@ -82,7 +82,7 @@ export interface AuthInternal extends Auth {
   emulatorConfig: EmulatorConfig | null;
   getFirebaseAccessToken(forceRefresh?: boolean): Promise<string | null>;
   onFirebaseTokenChanged(
-    nextOrObserver: NextOrObserver<FirebaseToken | null>,
+    nextOrObserver: NextOrObserver<FirebaseToken>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe | undefined;
