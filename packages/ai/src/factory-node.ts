@@ -42,10 +42,5 @@ export function factory(
   const auth = container.getProvider('auth-internal');
   const appCheckProvider = container.getProvider('app-check-internal');
 
-  return new AIService(
-    app,
-    backend,
-    auth,
-    appCheckProvider
-  );
+  return new AIService(app, backend, auth, appCheckProvider);
 }
