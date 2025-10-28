@@ -40,14 +40,12 @@ export function getFullApp(
     appId?: string;
     apiKey?: string;
   },
-  factory?: InstanceFactory<'AI'>
+  factory: InstanceFactory<'AI'> = factoryNode
 ): FirebaseApp {
   _registerComponent(
-    new Component(
-      AI_TYPE,
-      factory ?? factoryNode,
-      ComponentType.PUBLIC
-    ).setMultipleInstances(true)
+    new Component(AI_TYPE, factory, ComponentType.PUBLIC).setMultipleInstances(
+      true
+    )
   );
   _registerComponent(
     new Component(
