@@ -18,12 +18,16 @@
 import {
   Auth,
   AuthSettings,
+  CompleteFn,
   Config,
   EmulatorConfig,
+  ErrorFn,
+  NextOrObserver,
   PasswordPolicy,
   PasswordValidationStatus,
   PopupRedirectResolver,
   TenantConfig,
+  Unsubscribe,
   User
 } from './public_types';
 import { ErrorFactory } from '@firebase/util';
@@ -77,6 +81,11 @@ export interface AuthInternal extends Auth {
   currentUser: User | null;
   emulatorConfig: EmulatorConfig | null;
   getFirebaseAccessToken(forceRefresh?: boolean): Promise<string | null>;
+  onFirebaseTokenChanged(
+    nextOrObserver: NextOrObserver<FirebaseToken>,
+    error?: ErrorFn,
+    completed?: CompleteFn
+  ): Unsubscribe | undefined;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _projectPasswordPolicy: PasswordPolicy | null;
