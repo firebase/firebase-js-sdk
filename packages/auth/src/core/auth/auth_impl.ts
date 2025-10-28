@@ -668,34 +668,6 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     return this.registerStateListener(
       this.idTokenSubscription,
       nextOrObserver,
-      this.currentUser,
-      error,
-      completed
-    );
-  }
-
-  onFirebaseTokenChanged(
-    nextOrObserver: NextOrObserver<FirebaseToken | null>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe {
-    return this.registerStateListener(
-      this.firebaseTokenSubscription,
-      nextOrObserver,
-      this.firebaseToken,
-      error,
-      completed
-    );
-  }
-
-  onFirebaseTokenChanged(
-    nextOrObserver: NextOrObserver<FirebaseToken>,
-    error?: ErrorFn,
-    completed?: CompleteFn
-  ): Unsubscribe | undefined {
-    return this.registerStateListener(
-      this.firebaseTokenSubscription,
-      nextOrObserver,
       error,
       completed
     );
