@@ -93,6 +93,10 @@ export interface AudioConversationController {
 }
 
 // @public
+export interface AudioTranscriptionConfig {
+}
+
+// @public
 export abstract class Backend {
     protected constructor(type: BackendType);
     readonly backendType: BackendType;
@@ -256,6 +260,8 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
+    // @beta
+    inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
@@ -816,6 +822,15 @@ export const InferenceMode: {
 // @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
+// @beta
+export const InferenceSource: {
+    readonly ON_DEVICE: "on_device";
+    readonly IN_CLOUD: "in_cloud";
+};
+
+// @beta
+export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
+
 // @public
 export interface InlineDataPart {
     // (undocumented)
@@ -911,7 +926,9 @@ export interface LanguageModelPromptOptions {
 // @beta
 export interface LiveGenerationConfig {
     frequencyPenalty?: number;
+    inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
+    outputAudioTranscription?: AudioTranscriptionConfig;
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
@@ -964,8 +981,10 @@ export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveRespon
 
 // @beta
 export interface LiveServerContent {
+    inputTranscription?: Transcription;
     interrupted?: boolean;
     modelTurn?: Content;
+    outputTranscription?: Transcription;
     turnComplete?: boolean;
     // (undocumented)
     type: 'serverContent';
@@ -994,9 +1013,14 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+    // @deprecated
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    // @deprecated (undocumented)
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    sendTextRealtime(text: string): Promise<void>;
+    sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
 
 // @public
@@ -1324,6 +1348,11 @@ export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTo
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+}
+
+// @beta
+export interface Transcription {
+    text?: string;
 }
 
 // @public
