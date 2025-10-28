@@ -814,9 +814,9 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
     }
   }
 
-  private registerStateListener(
-    subscription: Subscription<User>,
-    nextOrObserver: NextOrObserver<User>,
+  private registerStateListener<T>(
+    subscription: Subscription<T>,
+    nextOrObserver: NextOrObserver<T>,
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
@@ -841,7 +841,14 @@ export class AuthImpl implements AuthInternal, _FirebaseService {
       if (isUnsubscribed) {
         return;
       }
-      cb(this.currentUser);
+      if (
+        (subscription as unknown) === this.idTokenSubscription ||
+        (subscription as unknown) === this.authStateSubscription
+      ) {
+        cb(this.currentUser as unknown as T);
+      } else if ((subscription as unknown) === this.firebaseTokenSubscription) {
+        cb(this.firebaseToken as unknown as T);
+      }
     });
 
     if (typeof nextOrObserver === 'function') {
