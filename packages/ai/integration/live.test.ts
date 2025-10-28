@@ -270,6 +270,56 @@ describe('Live', function () {
         });
       });
 
+      describe('Transcripts', async () => {
+        it('should receive transcript of audio input', async () => {
+          const model = getLiveGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: {
+              responseModalities: [ResponseModality.AUDIO],
+              inputAudioTranscription: {},
+              outputAudioTranscription: {}
+            }
+          });
+          const session = await model.connect();
+          const stream = session.receive();
+
+          await session.sendAudioRealtime({
+            data: HELLO_AUDIO_PCM_BASE64,
+            mimeType: 'audio/pcm'
+          });
+
+          let aggregatedInputTranscription = '';
+          let aggregatedOutputTranscription = '';
+          let result = await stream.next();
+          while (!result.done) {
+            const chunk = result.value as
+              | LiveServerContent
+              | LiveServerToolCall
+              | LiveServerToolCallCancellation;
+            if (chunk.type === 'serverContent') {
+              if (chunk.turnComplete) {
+                break;
+              }
+
+              if (chunk.inputTranscription) {
+                aggregatedInputTranscription += chunk.inputTranscription?.text;
+              }
+              if (chunk.outputTranscription) {
+                aggregatedOutputTranscription +=
+                  chunk.outputTranscription?.text;
+              }
+            }
+
+            result = await stream.next();
+          }
+
+          expect(aggregatedInputTranscription).to.not.be.empty;
+          expect(aggregatedOutputTranscription).to.not.be.empty;
+
+          await session.close();
+        });
+      });
+
       /**
        * These tests are currently very unreliable. Their behavior seems to change frequently.
        * Skipping them for now.
