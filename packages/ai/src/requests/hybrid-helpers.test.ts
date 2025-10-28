@@ -22,7 +22,8 @@ import {
   GenerateContentRequest,
   InferenceMode,
   AIErrorCode,
-  ChromeAdapter
+  ChromeAdapter,
+  InferenceSource
 } from '../types';
 import { AIError } from '../errors';
 import sinonChai from 'sinon-chai';
@@ -62,7 +63,8 @@ describe('callCloudOrDevice', () => {
       onDeviceCall,
       inCloudCall
     );
-    expect(result).to.equal('in-cloud-response');
+    expect(result.response).to.equal('in-cloud-response');
+    expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
     expect(inCloudCall).to.have.been.calledOnce;
     expect(onDeviceCall).to.not.have.been.called;
   });
@@ -80,7 +82,8 @@ describe('callCloudOrDevice', () => {
         onDeviceCall,
         inCloudCall
       );
-      expect(result).to.equal('on-device-response');
+      expect(result.response).to.equal('on-device-response');
+      expect(result.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
       expect(onDeviceCall).to.have.been.calledOnce;
       expect(inCloudCall).to.not.have.been.called;
     });
@@ -93,7 +96,8 @@ describe('callCloudOrDevice', () => {
         onDeviceCall,
         inCloudCall
       );
-      expect(result).to.equal('in-cloud-response');
+      expect(result.response).to.equal('in-cloud-response');
+      expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
       expect(inCloudCall).to.have.been.calledOnce;
       expect(onDeviceCall).to.not.have.been.called;
     });
@@ -112,7 +116,8 @@ describe('callCloudOrDevice', () => {
         onDeviceCall,
         inCloudCall
       );
-      expect(result).to.equal('on-device-response');
+      expect(result.response).to.equal('on-device-response');
+      expect(result.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
       expect(onDeviceCall).to.have.been.calledOnce;
       expect(inCloudCall).to.not.have.been.called;
     });
@@ -140,7 +145,8 @@ describe('callCloudOrDevice', () => {
         onDeviceCall,
         inCloudCall
       );
-      expect(result).to.equal('in-cloud-response');
+      expect(result.response).to.equal('in-cloud-response');
+      expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
       expect(inCloudCall).to.have.been.calledOnce;
       expect(onDeviceCall).to.not.have.been.called;
     });
@@ -158,7 +164,8 @@ describe('callCloudOrDevice', () => {
         onDeviceCall,
         inCloudCall
       );
-      expect(result).to.equal('in-cloud-response');
+      expect(result.response).to.equal('in-cloud-response');
+      expect(result.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
       expect(inCloudCall).to.have.been.calledOnce;
       expect(onDeviceCall).to.not.have.been.called;
     });
@@ -173,7 +180,8 @@ describe('callCloudOrDevice', () => {
         onDeviceCall,
         inCloudCall
       );
-      expect(result).to.equal('on-device-response');
+      expect(result.response).to.equal('on-device-response');
+      expect(result.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
       expect(inCloudCall).to.have.been.calledOnce;
       expect(onDeviceCall).to.have.been.calledOnce;
     });

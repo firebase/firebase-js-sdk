@@ -162,6 +162,7 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
+|  [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
 |  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
 |  [Modality](./ai.md#modality) | Content part modality. |
@@ -189,6 +190,7 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
+|  [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
 |  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
@@ -643,6 +645,22 @@ InferenceMode: {
 }
 ```
 
+## InferenceSource
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether inference happened on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+InferenceSource: {
+    readonly ON_DEVICE: "on_device";
+    readonly IN_CLOUD: "in_cloud";
+}
+```
+
 ## Language
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -924,6 +942,19 @@ Determines whether inference happens on-device or in-cloud.
 
 ```typescript
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+```
+
+## InferenceSource
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether inference happened on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
 ```
 
 ## Language

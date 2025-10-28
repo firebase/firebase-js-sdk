@@ -256,6 +256,8 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
+    // @beta
+    inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
@@ -816,6 +818,15 @@ export const InferenceMode: {
 // @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
+// @beta
+export const InferenceSource: {
+    readonly ON_DEVICE: "on_device";
+    readonly IN_CLOUD: "in_cloud";
+};
+
+// @beta
+export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
+
 // @public
 export interface InlineDataPart {
     // (undocumented)
@@ -994,9 +1005,14 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+    // @deprecated
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    // @deprecated (undocumented)
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    sendTextRealtime(text: string): Promise<void>;
+    sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
 
 // @public
