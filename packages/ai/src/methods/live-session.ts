@@ -17,6 +17,7 @@
 
 import {
   AIErrorCode,
+  FunctionResponse,
   GenerativeContentBlob,
   LiveResponseType,
   LiveServerContent,
@@ -30,7 +31,8 @@ import { WebSocketHandler } from '../websocket';
 import { logger } from '../logger';
 import {
   _LiveClientContent,
-  _LiveClientRealtimeInput
+  _LiveClientRealtimeInput,
+  _LiveClientToolResponse
 } from '../types/live-responses';
 
 /**
@@ -94,14 +96,19 @@ export class LiveSession {
   }
 
   /**
-   * Sends realtime input to the server.
+   * Sends text to the server in realtime.
    *
-   * @param mediaChunks - The media chunks to send.
+   * @example
+   * ```javascript
+   * liveSession.sendTextRealtime("Hello, how are you?");
+   * ```
+   *
+   * @param text - The text data to send.
    * @throws If this session has been closed.
    *
    * @beta
    */
-  async sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void> {
+  async sendTextRealtime(text: string): Promise<void> {
     if (this.isClosed) {
       throw new AIError(
         AIErrorCode.REQUEST_ERROR,
@@ -109,26 +116,91 @@ export class LiveSession {
       );
     }
 
-    // The backend does not support sending more than one mediaChunk in one message.
-    // Work around this limitation by sending mediaChunks in separate messages.
-    mediaChunks.forEach(mediaChunk => {
-      const message: _LiveClientRealtimeInput = {
-        realtimeInput: { mediaChunks: [mediaChunk] }
-      };
-      this.webSocketHandler.send(JSON.stringify(message));
-    });
+    const message: _LiveClientRealtimeInput = {
+      realtimeInput: {
+        text
+      }
+    };
+    this.webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
-   * Sends a stream of {@link GenerativeContentBlob}.
+   * Sends audio data to the server in realtime.
    *
-   * @param mediaChunkStream - The stream of {@link GenerativeContentBlob} to send.
+   * @remarks The server requires that the audio data is base64-encoded 16-bit PCM at 16kHz
+   * little-endian.
+   *
+   * @example
+   * ```javascript
+   * // const pcmData = ... base64-encoded 16-bit PCM at 16kHz little-endian.
+   * const blob = { mimeType: "audio/pcm", data: pcmData };
+   * liveSession.sendAudioRealtime(blob);
+   * ```
+   *
+   * @param blob - The base64-encoded PCM data to send to the server in realtime.
    * @throws If this session has been closed.
    *
    * @beta
    */
-  async sendMediaStream(
-    mediaChunkStream: ReadableStream<GenerativeContentBlob>
+  async sendAudioRealtime(blob: GenerativeContentBlob): Promise<void> {
+    if (this.isClosed) {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        'This LiveSession has been closed and cannot be used.'
+      );
+    }
+
+    const message: _LiveClientRealtimeInput = {
+      realtimeInput: {
+        audio: blob
+      }
+    };
+    this.webSocketHandler.send(JSON.stringify(message));
+  }
+
+  /**
+   * Sends video data to the server in realtime.
+   *
+   * @remarks The server requires that the video is sent as individual video frames at 1 FPS. It
+   * is recommended to set `mimeType` to `image/jpeg`.
+   *
+   * @example
+   * ```javascript
+   * // const videoFrame = ... base64-encoded JPEG data
+   * const blob = { mimeType: "image/jpeg", data: videoFrame };
+   * liveSession.sendVideoRealtime(blob);
+   * ```
+   * @param blob - The base64-encoded video data to send to the server in realtime.
+   * @throws If this session has been closed.
+   *
+   * @beta
+   */
+  async sendVideoRealtime(blob: GenerativeContentBlob): Promise<void> {
+    if (this.isClosed) {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        'This LiveSession has been closed and cannot be used.'
+      );
+    }
+
+    const message: _LiveClientRealtimeInput = {
+      realtimeInput: {
+        video: blob
+      }
+    };
+    this.webSocketHandler.send(JSON.stringify(message));
+  }
+
+  /**
+   * Sends function responses to the server.
+   *
+   * @param functionResponses - The function responses to send.
+   * @throws If this session has been closed.
+   *
+   * @beta
+   */
+  async sendFunctionResponses(
+    functionResponses: FunctionResponse[]
   ): Promise<void> {
     if (this.isClosed) {
       throw new AIError(
@@ -137,25 +209,12 @@ export class LiveSession {
       );
     }
 
-    const reader = mediaChunkStream.getReader();
-    while (true) {
-      try {
-        const { done, value } = await reader.read();
-
-        if (done) {
-          break;
-        } else if (!value) {
-          throw new Error('Missing chunk in reader, but reader is not done.');
-        }
-
-        await this.sendMediaChunks([value]);
-      } catch (e) {
-        // Re-throw any errors that occur during stream consumption or sending.
-        const message =
-          e instanceof Error ? e.message : 'Error processing media stream.';
-        throw new AIError(AIErrorCode.REQUEST_ERROR, message);
+    const message: _LiveClientToolResponse = {
+      toolResponse: {
+        functionResponses
       }
-    }
+    };
+    this.webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
@@ -229,6 +288,75 @@ export class LiveSession {
     if (!this.isClosed) {
       this.isClosed = true;
       await this.webSocketHandler.close(1000, 'Client closed session.');
+    }
+  }
+
+  /**
+   * Sends realtime input to the server.
+   *
+   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
+   *
+   * @param mediaChunks - The media chunks to send.
+   * @throws If this session has been closed.
+   *
+   * @beta
+   */
+  async sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void> {
+    if (this.isClosed) {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        'This LiveSession has been closed and cannot be used.'
+      );
+    }
+
+    // The backend does not support sending more than one mediaChunk in one message.
+    // Work around this limitation by sending mediaChunks in separate messages.
+    mediaChunks.forEach(mediaChunk => {
+      const message: _LiveClientRealtimeInput = {
+        realtimeInput: { mediaChunks: [mediaChunk] }
+      };
+      this.webSocketHandler.send(JSON.stringify(message));
+    });
+  }
+
+  /**
+   * @deprecated Use `sendTextRealtime()`, `sendAudioRealtime()`, and `sendVideoRealtime()` instead.
+   *
+   * Sends a stream of {@link GenerativeContentBlob}.
+   *
+   * @param mediaChunkStream - The stream of {@link GenerativeContentBlob} to send.
+   * @throws If this session has been closed.
+   *
+   * @beta
+   */
+  async sendMediaStream(
+    mediaChunkStream: ReadableStream<GenerativeContentBlob>
+  ): Promise<void> {
+    if (this.isClosed) {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        'This LiveSession has been closed and cannot be used.'
+      );
+    }
+
+    const reader = mediaChunkStream.getReader();
+    while (true) {
+      try {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        } else if (!value) {
+          throw new Error('Missing chunk in reader, but reader is not done.');
+        }
+
+        await this.sendMediaChunks([value]);
+      } catch (e) {
+        // Re-throw any errors that occur during stream consumption or sending.
+        const message =
+          e instanceof Error ? e.message : 'Error processing media stream.';
+        throw new AIError(AIErrorCode.REQUEST_ERROR, message);
+      }
     }
   }
 }

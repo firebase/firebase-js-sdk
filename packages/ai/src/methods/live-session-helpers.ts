@@ -19,10 +19,10 @@ import { AIError } from '../errors';
 import { logger } from '../logger';
 import {
   AIErrorCode,
+  FunctionCall,
+  FunctionResponse,
   GenerativeContentBlob,
-  LiveServerContent,
-  LiveServerToolCall,
-  Part
+  LiveServerContent
 } from '../types';
 import { LiveSession } from './live-session';
 import { Deferred } from '@firebase/util';
@@ -115,8 +115,8 @@ export interface StartAudioConversationOptions {
    * which will then be sent back to the model.
    */
   functionCallingHandler?: (
-    functionCalls: LiveServerToolCall['functionCalls']
-  ) => Promise<Part>;
+    functionCalls: FunctionCall[]
+  ) => Promise<FunctionResponse>;
 }
 
 /**
@@ -184,7 +184,7 @@ export class AudioConversationRunner {
         mimeType: 'audio/pcm',
         data: base64
       };
-      void this.liveSession.sendMediaChunks([chunk]);
+      void this.liveSession.sendAudioRealtime(chunk);
     };
   }
 
@@ -338,11 +338,11 @@ export class AudioConversationRunner {
           );
         } else {
           try {
-            const resultPart = await this.options.functionCallingHandler(
+            const functionResponse = await this.options.functionCallingHandler(
               message.functionCalls
             );
             if (!this.isStopped) {
-              void this.liveSession.send([resultPart]);
+              void this.liveSession.sendFunctionResponses([functionResponse]);
             }
           } catch (e) {
             throw new AIError(

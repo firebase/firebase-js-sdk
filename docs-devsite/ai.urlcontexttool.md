@@ -9,33 +9,33 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# CodeExecutionTool interface
+# URLContextTool interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-A tool that enables the model to use code execution.
+A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response.
 
 <b>Signature:</b>
 
 ```typescript
-export interface CodeExecutionTool 
+export interface URLContextTool 
 ```
 
 ## Properties
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecution](./ai.codeexecutiontool.md#codeexecutiontoolcodeexecution) | {} | <b><i>(Public Preview)</i></b> Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. |
+|  [urlContext](./ai.urlcontexttool.md#urlcontexttoolurlcontext) | [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
 
-## CodeExecutionTool.codeExecution
+## URLContextTool.urlContext
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.
+Specifies the URL Context configuration.
 
 <b>Signature:</b>
 
 ```typescript
-codeExecution: {};
+urlContext: URLContext;
 ```

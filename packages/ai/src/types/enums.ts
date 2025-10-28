@@ -380,9 +380,27 @@ export const InferenceMode = {
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 /**
+ * Indicates whether inference happened on-device or in-cloud.
+ *
+ * @beta
+ */
+export const InferenceSource = {
+  'ON_DEVICE': 'on_device',
+  'IN_CLOUD': 'in_cloud'
+} as const;
+
+/**
+ * Indicates whether inference happened on-device or in-cloud.
+ *
+ * @beta
+ */
+export type InferenceSource =
+  (typeof InferenceSource)[keyof typeof InferenceSource];
+
+/**
  * Represents the result of the code execution.
  *
- * @public
+ * @beta
  */
 export const Outcome = {
   UNSPECIFIED: 'OUTCOME_UNSPECIFIED',
@@ -394,14 +412,14 @@ export const Outcome = {
 /**
  * Represents the result of the code execution.
  *
- * @public
+ * @beta
  */
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
 /**
  * The programming language of the code.
  *
- * @public
+ * @beta
  */
 export const Language = {
   UNSPECIFIED: 'LANGUAGE_UNSPECIFIED',
@@ -411,6 +429,6 @@ export const Language = {
 /**
  * The programming language of the code.
  *
- * @public
+ * @beta
  */
 export type Language = (typeof Language)[keyof typeof Language];

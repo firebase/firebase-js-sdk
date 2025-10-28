@@ -22,6 +22,7 @@ import {
   HarmCategory,
   HarmProbability,
   HarmSeverity,
+  InferenceSource,
   Modality
 } from './enums';
 
@@ -88,6 +89,12 @@ export interface EnhancedGenerateContentResponse
    * set to `true`.
    */
   thoughtSummary: () => string | undefined;
+  /**
+   * Indicates whether inference happened on-device or in-cloud.
+   *
+   * @beta
+   */
+  inferenceSource?: InferenceSource;
 }
 
 /**
@@ -116,8 +123,16 @@ export interface UsageMetadata {
    */
   thoughtsTokenCount?: number;
   totalTokenCount: number;
+  /**
+   * The number of tokens used by tools.
+   */
+  toolUsePromptTokenCount?: number;
   promptTokensDetails?: ModalityTokenCount[];
   candidatesTokensDetails?: ModalityTokenCount[];
+  /**
+   * A list of tokens used by tools, broken down by modality.
+   */
+  toolUsePromptTokensDetails?: ModalityTokenCount[];
 }
 
 /**
@@ -160,6 +175,7 @@ export interface GenerateContentCandidate {
   safetyRatings?: SafetyRating[];
   citationMetadata?: CitationMetadata;
   groundingMetadata?: GroundingMetadata;
+  urlContextMetadata?: URLContextMetadata;
 }
 
 /**
@@ -348,6 +364,94 @@ export interface Segment {
    */
   text: string;
 }
+
+/**
+ * Metadata related to {@link URLContextTool}.
+ *
+ * @beta
+ */
+export interface URLContextMetadata {
+  /**
+   * List of URL metadata used to provide context to the Gemini model.
+   */
+  urlMetadata: URLMetadata[];
+}
+
+/**
+ * Metadata for a single URL retrieved by the {@link URLContextTool} tool.
+ *
+ * @beta
+ */
+export interface URLMetadata {
+  /**
+   * The retrieved URL.
+   */
+  retrievedUrl?: string;
+  /**
+   * The status of the URL retrieval.
+   */
+  urlRetrievalStatus?: URLRetrievalStatus;
+}
+
+/**
+ * The status of a URL retrieval.
+ *
+ * @remarks
+ * <b>URL_RETRIEVAL_STATUS_UNSPECIFIED:</b> Unspecified retrieval status.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_SUCCESS:</b> The URL retrieval was successful.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
+ * <br/>
+ *
+ * @beta
+ */
+export const URLRetrievalStatus = {
+  /**
+   * Unspecified retrieval status.
+   */
+  URL_RETRIEVAL_STATUS_UNSPECIFIED: 'URL_RETRIEVAL_STATUS_UNSPECIFIED',
+  /**
+   * The URL retrieval was successful.
+   */
+  URL_RETRIEVAL_STATUS_SUCCESS: 'URL_RETRIEVAL_STATUS_SUCCESS',
+  /**
+   * The URL retrieval failed.
+   */
+  URL_RETRIEVAL_STATUS_ERROR: 'URL_RETRIEVAL_STATUS_ERROR',
+  /**
+   * The URL retrieval failed because the content is behind a paywall.
+   */
+  URL_RETRIEVAL_STATUS_PAYWALL: 'URL_RETRIEVAL_STATUS_PAYWALL',
+  /**
+   * The URL retrieval failed because the content is unsafe.
+   */
+  URL_RETRIEVAL_STATUS_UNSAFE: 'URL_RETRIEVAL_STATUS_UNSAFE'
+};
+
+/**
+ * The status of a URL retrieval.
+ *
+ * @remarks
+ * <b>URL_RETRIEVAL_STATUS_UNSPECIFIED:</b> Unspecified retrieval status.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_SUCCESS:</b> The URL retrieval was successful.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_ERROR:</b> The URL retrieval failed.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_PAYWALL:</b> The URL retrieval failed because the content is behind a paywall.
+ * <br/>
+ * <b>URL_RETRIEVAL_STATUS_UNSAFE:</b> The URL retrieval failed because the content is unsafe.
+ * <br/>
+ *
+ * @beta
+ */
+export type URLRetrievalStatus =
+  (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 /**
  * @public
