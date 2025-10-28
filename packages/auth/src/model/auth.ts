@@ -85,7 +85,7 @@ export interface AuthInternal extends Auth {
     nextOrObserver: NextOrObserver<FirebaseToken>,
     error?: ErrorFn,
     completed?: CompleteFn
-  ): Unsubscribe | undefined;
+  ): Unsubscribe;
   _agentRecaptchaConfig: RecaptchaConfig | null;
   _tenantRecaptchaConfigs: Record<string, RecaptchaConfig>;
   _projectPasswordPolicy: PasswordPolicy | null;
