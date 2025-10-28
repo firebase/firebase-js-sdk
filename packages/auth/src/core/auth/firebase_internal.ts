@@ -85,6 +85,7 @@ export class AuthInterop implements FirebaseAuthInternal {
     }
 
     this.internalListeners.set(listener, unsubscribe);
+    // TODO - b/455792813: Handle proactive refresh for R-GCIP Firebase Token.
     this.updateProactiveRefresh();
   }
 
