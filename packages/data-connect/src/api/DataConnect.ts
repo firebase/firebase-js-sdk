@@ -30,6 +30,7 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 
+import { Cache as DataConnectCache } from '../cache/Cache';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -47,7 +48,6 @@ import {
 import { RESTTransport } from '../network/transport/rest';
 
 import { MutationManager } from './Mutation';
-import { Cache as DataConnectCache } from '../cache/Cache';
 
 /**
  * Connector Config for calling Data Connect backend.

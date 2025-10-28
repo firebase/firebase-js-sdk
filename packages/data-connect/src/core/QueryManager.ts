@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DataConnect } from '../api';
 import {
   DataConnectSubscription,
   OnErrorSubscription,
@@ -32,13 +33,12 @@ import {
   DataSource,
   SOURCE_CACHE
 } from '../api/Reference';
+import { Cache as DataConnectCache, ServerValues } from '../cache/Cache';
 import { logDebug } from '../logger';
 import { DataConnectTransport } from '../network';
 import { decoderImpl, encoderImpl } from '../util/encoder';
-import { Cache as DataConnectCache, ServerValues } from '../cache/Cache';
 
 import { Code, DataConnectError } from './error';
-import { DataConnect } from '../api';
 
 function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -66,7 +66,7 @@ export class QueryManager {
   // _queries: Map<string, TrackedQuery<unknown, unknown>>;
   private callbacks = new Map<
     string,
-    DataConnectSubscription<unknown, unknown>[]
+    Array<DataConnectSubscription<unknown, unknown>>
   >();
   constructor(
     private transport: DataConnectTransport,
@@ -178,7 +178,6 @@ export class QueryManager {
     // TODO: Check if the cache is stale
     // TODO: isStale doesn't exist when parsing the raw JSON. Fix the parsing.
     if(this.cache.containsResultTree(key) && !this.cache.getResultTree(key)?.isStale()) {
-      console.log('Cache found! Resolving immediately.');
       const cacheResult: Data = JSON.parse(this.cache.getResultJSON(key));
       const result: QueryResult<Data, Variables> = {
           ...cacheResult,
@@ -192,7 +191,7 @@ export class QueryManager {
 
       return Promise.resolve(result);
     } else {
-      console.log(
+      logDebug(
         `No Cache found for query ${
           queryRef.name
         } with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery`
@@ -221,7 +220,6 @@ export class QueryManager {
         if(this.cache.containsResultTree(key)) {
           this.cache.getResultTree(key).updateAccessed();
         }
-        console.log('updating cache');
         const impactedQueries = this.cache.update(key, result.data as ServerValues);
         this.publishCacheResultsToSubscribers(impactedQueries);
         return result;
@@ -241,20 +239,20 @@ export class QueryManager {
 
     return newR;
   }
-  publishCacheResultsToSubscribers(impactedQueries: string[]) {
-    for(const query of impactedQueries) {
+  publishCacheResultsToSubscribers(impactedQueries: string[]): void {
+    for (const query of impactedQueries) {
       const callbacks = this.callbacks.get(query);
-      if(!callbacks) {
+      if (!callbacks) {
         continue;
       }
       const newJson = this.cache.getResultTree(query).getRootStub().toJson();
       const { name, variables } = decoderImpl(query) as QueryRef<unknown, unknown>;
       const queryRef: QueryRef<unknown, unknown> = {
-    dataConnect: this.dc,
-    refType: QUERY_STR,
-    name: name,
-    variables
-  };
+        dataConnect: this.dc,
+        refType: QUERY_STR,
+        name,
+        variables
+      };
 
       callbacks.forEach(callback => {
         callback.userCallback({
@@ -269,9 +267,4 @@ export class QueryManager {
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
   }
-}
-function compareDates(str1: string, str2: string): boolean {
-  const date1 = new Date(str1);
-  const date2 = new Date(str2);
-  return date1.getTime() < date2.getTime();
 }

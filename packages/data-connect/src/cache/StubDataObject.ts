@@ -1,5 +1,6 @@
-import { DataConnectError } from '../core/error';
-import { BackingDataObject, FDCScalarValue } from './BackingDataObject';
+import { DataConnectError } from '../api';
+
+import { BackingDataObject, BackingDataObjectJson, FDCScalarValue } from './BackingDataObject';
 import { CacheProvider } from './CacheProvider';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 
@@ -20,7 +21,6 @@ export class StubDataObject {
     if(typeof values === 'undefined' && typeof cacheProvider === 'undefined' && typeof acc === 'undefined') {
       return;
     }
-    // TODO: validate that all other fields have been passed in
     // TODO: validate that all other fields have been passed in.
     if (typeof values !== 'object' || Array.isArray(values)) {
       throw new DataConnectError(
@@ -46,11 +46,8 @@ export class StubDataObject {
         }
         if (typeof values[key] === 'object') {
           if (Array.isArray(values[key])) {
-            if (!this.objectLists[key]) {
-              this.objectLists[key] = [];
-            }
             const objArray: StubDataObject[] = [];
-            const scalarArray: NonNullable<FDCScalarValue>[] = [];
+            const scalarArray: Array<NonNullable<FDCScalarValue>> = [];
             for (const value of values[key]) {
               if (typeof value === 'object') {
                 if (Array.isArray(value)) {
@@ -117,6 +114,7 @@ export class StubDataObject {
         resultObject[key] = this.backingData[key];
       }
     }
+    // Scalars should never have stubdataobjects
     for (const key in this.scalars) {
       if (this.scalars.hasOwnProperty(key)) {
         resultObject[key] = this.scalars[key];
@@ -129,37 +127,41 @@ export class StubDataObject {
     }
     for (const key in this.objectLists) {
       if (this.objectLists.hasOwnProperty(key)) {
-        resultObject[key] = this.objectLists[key].map(obj => obj.toJson());
+        resultObject[key] = this.objectLists[key].map(obj => {
+          return obj.toJson();
+        });
       }
     }
     return resultObject;
   }
-  static parseMap(map: {[key: string]: any}): typeof map {
+  static parseMap(map: {[key: string]: StubDataObject | StubDataObject[] | FDCScalarValue}, isSdo = false): typeof map {
     const newMap: typeof map = {};
     for (const key in map) {
       if(map.hasOwnProperty(key)) {
         if(Array.isArray(map[key])) {
-          newMap[key] = map[key].map(value => StubDataObject.fromStorableJson(value));
+          newMap[key] = map[key].map(value => isSdo ? StubDataObject.fromStorableJson(value) : value);
         } else {
-          newMap[key] = StubDataObject.fromStorableJson(map[key]);
+          newMap[key] = isSdo ? StubDataObject.fromStorableJson(map[key] as StubDataObjectJson) : map[key];
         }
       }
     }
     return newMap;
   }
-  static fromStorableJson(obj: any): StubDataObject {
+  static fromStorableJson(obj: StubDataObjectJson): StubDataObject {
     const sdo = new StubDataObject();
-    // TODO: implement this.
-    sdo.backingData = BackingDataObject.fromStorableJson(obj.backingData);
+    if(obj.backingData) {
+      sdo.backingData = BackingDataObject.fromStorableJson(obj.backingData);
+    }
     sdo.acc = new ImpactedQueryRefsAccumulator();
     sdo.globalId = obj.globalID;
     sdo.impactedQueryRefs = new Set<string>();
     sdo.scalars = this.parseMap(obj.scalars);
-    sdo.references = this.parseMap(obj.references);
+    sdo.references = this.parseMap(obj.references) as typeof sdo.references;
+    sdo.objectLists = this.parseMap(obj.objectLists, true) as typeof sdo.objectLists;
     return sdo;
   }
-  getStorableMap(map: {[key: string]: any}) {
-    const newMap: typeof map = {};
+  getStorableMap(map: {[key: string]: StubDataObject | StubDataObject[]}): {[key: string]: StubDataObjectJson | StubDataObjectJson[]} {
+    const newMap: {[key: string]: StubDataObjectJson | StubDataObjectJson[]} = {};
     for (const key in map) {
       if(map.hasOwnProperty(key)) {
         if(Array.isArray(map[key])) {
@@ -171,14 +173,26 @@ export class StubDataObject {
     }
     return newMap;
   }
-  toStorableJson(): object {
-    // TODO: replace all `any` types.
-    const obj: any = {};
-    obj.backingData = this.backingData.toStorableJson();
-    obj.globalID = this.globalId;
-    obj.scalars = this.scalars;
-    obj.references = this.getStorableMap(this.references);
-    obj.objectLists = this.getStorableMap(this.objectLists);
+  toStorableJson(): StubDataObjectJson {
+    const obj: StubDataObjectJson = {
+      globalID: this.globalId,
+      scalars: this.scalars,
+      references: this.getStorableMap(this.references) as StubDataObjectJson['references'],
+      objectLists: this.getStorableMap(this.objectLists) as StubDataObjectJson['objectLists']
+    };
+    if(this.backingData) {
+      obj.backingData = this.backingData.toStorableJson();
+    }
     return obj;
   }
+}
+
+export interface StubDataObjectJson {
+  backingData?: BackingDataObjectJson;
+  globalID: string;
+  scalars: { [key: string]: FDCScalarValue };
+  references: { [key: string]: StubDataObjectJson };
+  objectLists: {
+    [key: string]: StubDataObjectJson[];
+  };
 }

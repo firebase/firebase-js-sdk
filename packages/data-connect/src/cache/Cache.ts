@@ -1,18 +1,19 @@
 import { isIndexedDBAvailable } from '@firebase/util';
+
 import { DataConnectError } from '../core/error';
+
 import { BackingDataObject } from './BackingDataObject';
 import { CacheProvider } from './CacheProvider';
-import { ResultTree } from './ResultTree';
-import { ResultTreeProcessor } from './ResultTreeProcessor';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 import { IndexedDBCacheProvider } from './IndexedDBCacheProvider';
+import { ResultTree } from './ResultTree';
+import { ResultTreeProcessor } from './ResultTreeProcessor';
 
-export interface ServerValues extends Object {
+export interface ServerValues {
   ttl: number;
 }
 
-export const BDO_OBJECT_STORE_NAME = 'data-connect-bdos';
-export const SRT_OBJECT_STORE_NAME = 'data-connect-srts';
+
 
 export class Cache {
   private cacheProvider: CacheProvider;
@@ -30,7 +31,7 @@ export class Cache {
     const resultTree = this.cacheProvider.getResultTree(queryId);
     return resultTree !== undefined;
   }
-  getResultTree(queryId: string) {
+  getResultTree(queryId: string): ResultTree {
     return this.cacheProvider.getResultTree(queryId);
   }
   getResultJSON(queryId: string): string {
@@ -66,7 +67,7 @@ class EphemeralCacheProvider implements CacheProvider {
   private bdos = new Map<string, BackingDataObject>();
   private resultTrees = new Map<string, ResultTree>();
 
-  setResultTree(queryId: string, rt: ResultTree) {
+  setResultTree(queryId: string, rt: ResultTree): void {
     this.resultTrees.set(queryId, rt);
   }
   // TODO: Should this be in the cache provider? This seems common along all CacheProviders.

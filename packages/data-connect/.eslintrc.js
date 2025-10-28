@@ -51,14 +51,6 @@ module.exports = {
     ],
     'no-restricted-globals': [
       'error',
-      {
-        'name': 'window',
-        'message': 'Use `PlatformSupport.getPlatform().window` instead.'
-      },
-      {
-        'name': 'document',
-        'message': 'Use `PlatformSupport.getPlatform().document` instead.'
-      }
     ]
   },
   overrides: [

@@ -1,14 +1,13 @@
 import { BackingDataObject } from './BackingDataObject';
-import { BDO_OBJECT_STORE_NAME, SRT_OBJECT_STORE_NAME } from './Cache';
 import { CacheProvider } from './CacheProvider';
 import { ResultTree } from './ResultTree';
-
+export const BDO_OBJECT_STORE_NAME = 'data-connect-bdos';
+export const SRT_OBJECT_STORE_NAME = 'data-connect-srts';
 export class IndexedDBCacheProvider implements CacheProvider {
   private bdos = new Map<string, BackingDataObject>();
   private resultTrees = new Map<string, ResultTree>();
   private dbPromise: Promise<IDBDatabase>;
-  isIdbAvailable() {
-    console.log('indexedDB' in window);
+  isIdbAvailable(): boolean {
     return typeof window !== 'undefined' && 'indexedDB' in window;
   }
 
@@ -23,7 +22,6 @@ export class IndexedDBCacheProvider implements CacheProvider {
         const db = (event.target as IDBOpenDBRequest).result;
         db.createObjectStore(BDO_OBJECT_STORE_NAME);
         db.createObjectStore(SRT_OBJECT_STORE_NAME);
-        console.log('upgrade!');
         dbResolve(db);
       };
       request.onsuccess = async (event) => {
@@ -41,10 +39,9 @@ export class IndexedDBCacheProvider implements CacheProvider {
             const cursor = (event.target as IDBRequest)
               .result as IDBCursorWithValue;
             if (cursor) {
-              console.log('updating result tree');
               this.resultTrees.set(cursor.key as string, cursor.value);
+              cursor.continue();
             } else {
-              console.log('resolving bdo cursor');
               // No more entries
               resolve(null);
             }
@@ -64,8 +61,8 @@ export class IndexedDBCacheProvider implements CacheProvider {
                 cursor.key as string,
                 ResultTree.parse(cursor.value)
               );
+              cursor.continue();
             } else {
-              console.log('resolving srt cursor');
               // No more entries
               resolve(null);
             }
@@ -87,7 +84,7 @@ export class IndexedDBCacheProvider implements CacheProvider {
       };
     });
   }
-  async commitBdoChanges(backingData: BackingDataObject) {
+  async commitBdoChanges(backingData: BackingDataObject): Promise<void> {
     if (!this.isIdbAvailable()) {
       return;
     }
@@ -96,7 +93,7 @@ export class IndexedDBCacheProvider implements CacheProvider {
       .objectStore(BDO_OBJECT_STORE_NAME)
       .put(backingData, backingData.globalID);
   }
-  async commitResultTreeChanges(queryId: string, rt: ResultTree) {
+  async commitResultTreeChanges(queryId: string, rt: ResultTree): Promise<void> {
     if (!this.isIdbAvailable()) {
       return;
     }
@@ -131,6 +128,6 @@ export class IndexedDBCacheProvider implements CacheProvider {
   }
   updateBackingData(backingData: BackingDataObject): void {
     this.bdos.set(backingData.globalID, backingData);
-    this.commitBdoChanges(backingData);
+    void this.commitBdoChanges(backingData);
   }
 }
