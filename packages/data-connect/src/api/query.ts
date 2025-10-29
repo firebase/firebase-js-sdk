@@ -39,15 +39,6 @@ export type OnErrorSubscription = (err?: DataConnectError) => void;
  * Signature for unsubscribe from `subscribe`
  */
 export type QueryUnsubscribe = () => void;
-/**
- * Representation of user provided subscription options.
- */
-export interface DataConnectSubscription<Data, Variables> {
-  userCallback: OnResultSubscription<Data, Variables>;
-  errCallback?: (e?: DataConnectError) => void;
-  onCompleteCallback?: () => void;
-  unsubscribe: () => void;
-}
 
 /**
  * QueryRef object

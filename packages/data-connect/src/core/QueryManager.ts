@@ -16,7 +16,6 @@
  */
 
 import {
-  DataConnectSubscription,
   OnCompleteSubscription,
   OnErrorSubscription,
   OnResultSubscription,
@@ -39,6 +38,16 @@ import { encoderImpl } from '../util/encoder';
 import { setIfNotExists } from '../util/map';
 
 import { Code, DataConnectError } from './error';
+
+/**
+ * Representation of user provided subscription options.
+ */
+interface DataConnectSubscription<Data, Variables> {
+  userCallback: OnResultSubscription<Data, Variables>;
+  errCallback?: (e?: DataConnectError) => void;
+  onCompleteCallback?: () => void;
+  unsubscribe: () => void;
+}
 
 interface TrackedQuery<Data, Variables> {
   ref: Omit<OperationRef<Data, Variables>, 'dataConnect'>;
