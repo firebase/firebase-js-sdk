@@ -64,7 +64,6 @@ export abstract class RestConnection implements Connection {
   protected readonly baseUrl: string;
   private readonly databasePath: string;
   private readonly requestParams: string;
-  private readonly apiKey: string | undefined;
 
   get shouldResourcePathBeIncludedInRequest(): boolean {
     // Both `invokeRPC()` and `invokeStreamingRPC()` use their `path` arguments to determine
@@ -72,7 +71,7 @@ export abstract class RestConnection implements Connection {
     return false;
   }
 
-  constructor(private readonly databaseInfo: DatabaseInfo) {
+  constructor(protected readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
     const proto = databaseInfo.ssl ? 'https' : 'http';
     const projectId = encodeURIComponent(this.databaseId.projectId);
@@ -83,7 +82,6 @@ export abstract class RestConnection implements Connection {
       this.databaseId.database === DEFAULT_DATABASE_NAME
         ? `project_id=${projectId}`
         : `project_id=${projectId}&database_id=${databaseId}`;
-    this.apiKey = databaseInfo.apiKey;
   }
 
   invokeRPC<Req, Resp>(
@@ -203,8 +201,8 @@ export abstract class RestConnection implements Connection {
       'Unknown REST mapping for: ' + rpcName
     );
     let url = `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
-    if (this.apiKey) {
-      url = `${url}?key=${encodeURIComponent(this.apiKey)}`;
+    if (this.databaseInfo.apiKey) {
+      url = `${url}?key=${encodeURIComponent(this.databaseInfo.apiKey)}`;
     }
     return url;
   }
