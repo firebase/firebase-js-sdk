@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import {
   WebChannelOptions,
   WebChannelTransport
 } from '@firebase/webchannel-wrapper';
+import { expect } from 'chai';
+
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 
 export class TestWebChannelConnection extends WebChannelConnection {
-  public transport: { lastOptions?: WebChannelOptions } & WebChannelTransport =
+  transport: { lastOptions?: WebChannelOptions } & WebChannelTransport =
     {
       lastOptions: undefined,
       createWebChannel(url: string, options: WebChannelOptions): never {
