@@ -24,6 +24,7 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [functionCalls](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsefunctioncalls) | () =&gt; [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->\[\] \| undefined | Aggregates and returns every [FunctionCall](./ai.functioncall.md#functioncall_interface) from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [inferenceSource](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponseinferencesource) | [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
 |  [inlineDataParts](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponseinlinedataparts) | () =&gt; [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface)<!-- -->\[\] \| undefined | Aggregates and returns every [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [text](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsetext) | () =&gt; string | Returns the text string from the response, if available. Throws if the prompt or candidate was blocked. |
 |  [thoughtSummary](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsethoughtsummary) | () =&gt; string \| undefined | Aggregates and returns every [TextPart](./ai.textpart.md#textpart_interface) with their <code>thought</code> property set to <code>true</code> from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
@@ -36,6 +37,19 @@ Aggregates and returns every [FunctionCall](./ai.functioncall.md#functioncall_in
 
 ```typescript
 functionCalls: () => FunctionCall[] | undefined;
+```
+
+## EnhancedGenerateContentResponse.inferenceSource
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether inference happened on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+inferenceSource?: InferenceSource;
 ```
 
 ## EnhancedGenerateContentResponse.inlineDataParts

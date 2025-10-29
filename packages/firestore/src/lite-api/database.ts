@@ -28,7 +28,8 @@ import {
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
   isCloudWorkstation,
-  pingServer
+  pingServer,
+  updateEmulatorBanner
 } from '@firebase/util';
 
 import {
@@ -336,6 +337,7 @@ export function connectFirestoreEmulator(
   const newHostSetting = `${host}:${port}`;
   if (useSsl) {
     void pingServer(`https://${newHostSetting}`);
+    updateEmulatorBanner('Firestore', true);
   }
   if (settings.host !== DEFAULT_HOST && settings.host !== newHostSetting) {
     logWarn(

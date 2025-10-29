@@ -29,7 +29,7 @@ import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
 import { getFullApp } from '../test-utils/get-fake-firebase-services';
-import { AI_TYPE, DEFAULT_HYBRID_IN_CLOUD_MODEL } from './constants';
+import { AI_TYPE } from './constants';
 
 const fakeAI: AI = {
   app: {
@@ -142,21 +142,6 @@ describe('Top level API', () => {
   it('getGenerativeModel gets a GenerativeModel', () => {
     const genModel = getGenerativeModel(fakeAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
-    expect(genModel.model).to.equal('publishers/google/models/my-model');
-  });
-  it('getGenerativeModel with HybridParams sets a default model', () => {
-    const genModel = getGenerativeModel(fakeAI, {
-      mode: 'only_on_device'
-    });
-    expect(genModel.model).to.equal(
-      `publishers/google/models/${DEFAULT_HYBRID_IN_CLOUD_MODEL}`
-    );
-  });
-  it('getGenerativeModel with HybridParams honors a model override', () => {
-    const genModel = getGenerativeModel(fakeAI, {
-      mode: 'prefer_on_device',
-      inCloudParams: { model: 'my-model' }
-    });
     expect(genModel.model).to.equal('publishers/google/models/my-model');
   });
   it('getImagenModel throws if no model is provided', () => {

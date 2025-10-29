@@ -564,6 +564,21 @@ function dropPrivateApiTransformer(
   return (sourceFile: ts.SourceFile) => {
     const imports: Record<string, Array<string>> = {};
 
+    // Get exported symbols
+    const directExportedSymbols = typeChecker.getExportsOfModule(
+      typeChecker.getSymbolAtLocation(sourceFile)!
+    );
+    // Map exported symbols to aliases.
+    // For the statement `export { X as Y };`, this list would contain a symbol
+    // for `X`.
+    const aliasedExportedSymbols = directExportedSymbols
+      .map(symbol =>
+        symbol.flags & ts.SymbolFlags.Alias
+          ? typeChecker.getAliasedSymbol(symbol)
+          : undefined
+      )
+      .filter(symbol => symbol !== undefined);
+
     function ensureImportsForFile(filename: string): Array<string> {
       let importsForFile = imports[filename];
       if (!importsForFile) {
@@ -584,12 +599,27 @@ function dropPrivateApiTransformer(
         ts.isEnumDeclaration(node)
       ) {
         // Remove any types that are not exported.
+        // First we check the modifiers for the symbol `export function X`. If
+        // the export keyword is found, the symbol is modified.
+        // Second we check if the symbol has an alias that is exported elsewhere,
+        // for example: `function X; export { X as Y }`. If the alias is
+        // exported elsewhere, then we also have to keep the symbol.
         if (
           !ts
             .getModifiers(node)
             ?.find(m => m.kind === ts.SyntaxKind.ExportKeyword)
         ) {
-          return ts.factory.createNotEmittedStatement(node);
+          // Try to get a symbol for this node.
+          const symbol =
+            'name' in node && node.name
+              ? typeChecker.getSymbolAtLocation(node.name)
+              : undefined;
+          // Check if that symbol is in the list of aliased exported symbols.
+          // If it is, we keep the symbol. Otherwise, we remove the symbol.
+          if (!symbol || !aliasedExportedSymbols.includes(symbol)) {
+            // NO-OP block to keep the condition readable
+            return ts.factory.createNotEmittedStatement(node);
+          }
         }
       }
 

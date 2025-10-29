@@ -16,6 +16,7 @@
  */
 
 // eslint-disable-next-line import/no-extraneous-dependencies
+import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -25,6 +26,29 @@ import {
   getFirestore,
   terminate
 } from '../../src/lite-api/database';
+import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
+import { vector } from '../../src/lite-api/field_value_impl';
+import { GeoPoint } from '../../src/lite-api/geo_point';
+import {
+  pipelineResultEqual,
+  PipelineSnapshot
+} from '../../src/lite-api/pipeline-result';
+import { execute } from '../../src/lite-api/pipeline_impl';
+import {
+  DocumentData,
+  CollectionReference,
+  collection,
+  doc,
+  DocumentReference
+} from '../../src/lite-api/reference';
+import { addDoc, setDoc, deleteDoc } from '../../src/lite-api/reference_impl';
+import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
+import { Timestamp } from '../../src/lite-api/timestamp';
+import { writeBatch } from '../../src/lite-api/write_batch';
+import { addEqualityMatcher } from '../util/equality_matcher';
+import { Deferred } from '../util/promise';
+
+import { withTestCollection } from './helpers';
 import {
   field,
   and,
@@ -42,10 +66,8 @@ import {
   isAbsent,
   isError,
   or,
-  isNotNan,
   map,
-  isNotNull,
-  isNull,
+  length,
   mod,
   documentId,
   equal,
@@ -54,7 +76,6 @@ import {
   countIf,
   lessThanOrEqual,
   greaterThan,
-  arrayConcat,
   arrayContains,
   arrayContainsAny,
   equalAny,
@@ -64,7 +85,6 @@ import {
   logicalMaximum,
   logicalMinimum,
   exists,
-  isNan,
   reverse,
   like,
   regexContains,
@@ -93,51 +113,44 @@ import {
   FunctionExpression,
   BooleanExpression,
   AggregateFunction,
-  sum,
   stringConcat,
   arrayContainsAll,
   arrayLength,
   charLength,
   divide,
-  abs,
   not,
   toLower,
   toUpper,
   trim,
+  byteLength,
   arrayGet,
-  byteLength
-} from '../../src/lite-api/expressions';
-import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
-import { vector } from '../../src/lite-api/field_value_impl';
-import { GeoPoint } from '../../src/lite-api/geo_point';
-import {
-  pipelineResultEqual,
-  PipelineSnapshot
-} from '../../src/lite-api/pipeline-result';
-import { execute } from '../../src/lite-api/pipeline_impl';
-import {
-  DocumentData,
-  CollectionReference,
-  collection,
-  doc
-} from '../../src/lite-api/reference';
-import { addDoc, setDoc } from '../../src/lite-api/reference_impl';
-import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
-import { Timestamp } from '../../src/lite-api/timestamp';
-import { writeBatch } from '../../src/lite-api/write_batch';
-import { itIf } from '../integration/util/helpers';
-import { addEqualityMatcher } from '../util/equality_matcher';
-import { Deferred } from '../util/promise';
-
-import { withTestCollection } from './helpers';
+  abs,
+  sum,
+  countDistinct,
+  ceil,
+  floor,
+  exp,
+  pow,
+  round,
+  collectionId,
+  ln,
+  log,
+  sqrt,
+  stringReverse,
+  log10,
+  concat,
+  currentTimestamp,
+  ifAbsent,
+  join,
+  arraySum
+} from './pipeline_export';
 
 use(chaiAsPromised);
 
-const testUnsupportedFeatures = false;
 const timestampDeltaMS = 1000;
 
 // eslint-disable-next-line no-restricted-properties
-describe.skip('Firestore Pipelines', () => {
+describe.only('Firestore Pipelines', () => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -329,8 +342,7 @@ describe.skip('Firestore Pipelines', () => {
       expect(snapshot.results.length).to.equal(0);
     });
 
-    // Skipping because __name__ is not currently working in DBE
-    itIf(testUnsupportedFeatures)('full snapshot as expected', async () => {
+    it('full snapshot as expected', async () => {
       const ppl = firestore
         .pipeline()
         .collection(randomCol.path)
@@ -512,31 +524,26 @@ describe.skip('Firestore Pipelines', () => {
       await terminate(db2);
     });
 
-    // Subcollections not currently supported in DBE
-    itIf(testUnsupportedFeatures)(
-      'supports collection group as source',
-      async () => {
-        const randomSubCollectionId = Math.random().toString(16).slice(2);
-        const doc1 = await addDoc(
-          collection(randomCol, 'book1', randomSubCollectionId),
-          { order: 1 }
-        );
-        const doc2 = await addDoc(
-          collection(randomCol, 'book2', randomSubCollectionId),
-          { order: 2 }
-        );
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collectionGroup(randomSubCollectionId)
-            .sort(ascending('order'))
-        );
-        expectResults(snapshot, doc1.id, doc2.id);
-      }
-    );
+    it('supports collection group as source', async () => {
+      const randomSubCollectionId = Math.random().toString(16).slice(2);
+      const doc1 = await addDoc(
+        collection(randomCol, 'book1', randomSubCollectionId),
+        { order: 1 }
+      );
+      const doc2 = await addDoc(
+        collection(randomCol, 'book2', randomSubCollectionId),
+        { order: 2 }
+      );
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collectionGroup(randomSubCollectionId)
+          .sort(ascending('order'))
+      );
+      expectResults(snapshot, doc1.id, doc2.id);
+    });
 
-    // subcollections not currently supported in dbe
-    itIf(testUnsupportedFeatures)('supports database as source', async () => {
+    it('supports database as source', async () => {
       const randomId = Math.random().toString(16).slice(2);
       const doc1 = await addDoc(collection(randomCol, 'book1', 'sub'), {
         order: 1,
@@ -554,6 +561,17 @@ describe.skip('Firestore Pipelines', () => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
+    });
+
+    it('can create pipeline from a query', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .createFrom(randomCol)
+          .sort(field('__name__').ascending())
+          .limit(1)
+      );
+      expectResults(snapshot, 'book1');
     });
   });
 
@@ -630,7 +648,6 @@ describe.skip('Firestore Pipelines', () => {
         'bytes': Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0])),
         'documentReference': doc(firestore, 'foo', 'bar'),
         'vectorValue': vector([1, 2, 3]),
-        'vectorValue2': vector([1, 2, 3]),
         'map': {
           'number': 1,
           'string': 'a string',
@@ -788,6 +805,30 @@ describe.skip('Firestore Pipelines', () => {
         }
       });
     });
+
+    it('supports boolean value constants as a BooleanExpression', async () => {
+      const snapshots = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            conditional(constant(true), constant('TRUE'), constant('FALSE')).as(
+              'true'
+            ),
+            conditional(
+              constant(false),
+              constant('TRUE'),
+              constant('FALSE')
+            ).as('false')
+          )
+      );
+
+      expectResults(snapshots, {
+        'true': 'TRUE',
+        'false': 'FALSE'
+      });
+    });
   });
 
   describe('stages', () => {
@@ -798,6 +839,37 @@ describe.skip('Firestore Pipelines', () => {
             .pipeline()
             .collection(randomCol.path)
             .aggregate(countAll().as('count'))
+        );
+        expectResults(snapshot, { count: 10 });
+
+        snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('genre', 'Science Fiction'))
+            .aggregate(
+              countAll().as('count'),
+              average('rating').as('avgRating'),
+              maximum('rating').as('maxRating'),
+              sum('rating').as('sumRating')
+            )
+        );
+        expectResults(snapshot, {
+          count: 2,
+          avgRating: 4.4,
+          maxRating: 4.6,
+          sumRating: 8.8
+        });
+      });
+
+      it('supports aggregate options', async () => {
+        let snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate({
+              accumulators: [countAll().as('count')]
+            })
         );
         expectResults(snapshot, { count: 10 });
 
@@ -897,6 +969,16 @@ describe.skip('Firestore Pipelines', () => {
         );
         expectResults(snapshot, expectedResults);
       });
+
+      it('returns countDistinct accumulation', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(countDistinct('genre').as('distinctGenres'))
+        );
+        expectResults(snapshot, { distinctGenres: 8 });
+      });
     });
 
     describe('distinct stage', () => {
@@ -907,6 +989,34 @@ describe.skip('Firestore Pipelines', () => {
             .collection(randomCol.path)
             .distinct('genre', 'author')
             .sort(field('genre').ascending(), field('author').ascending())
+        );
+        expectResults(
+          snapshot,
+          { genre: 'Dystopian', author: 'George Orwell' },
+          { genre: 'Dystopian', author: 'Margaret Atwood' },
+          { genre: 'Fantasy', author: 'J.R.R. Tolkien' },
+          { genre: 'Magical Realism', author: 'Gabriel García Márquez' },
+          { genre: 'Modernist', author: 'F. Scott Fitzgerald' },
+          { genre: 'Psychological Thriller', author: 'Fyodor Dostoevsky' },
+          { genre: 'Romance', author: 'Jane Austen' },
+          { genre: 'Science Fiction', author: 'Douglas Adams' },
+          { genre: 'Science Fiction', author: 'Frank Herbert' },
+          { genre: 'Southern Gothic', author: 'Harper Lee' }
+        );
+      });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .distinct('genre', 'author')
+            .sort({
+              orderings: [
+                field('genre').ascending(),
+                field('author').ascending()
+              ]
+            })
         );
         expectResults(
           snapshot,
@@ -951,6 +1061,25 @@ describe.skip('Firestore Pipelines', () => {
           { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien' },
           { title: 'Pride and Prejudice', author: 'Jane Austen' },
           { title: "The Handmaid's Tale", author: 'Margaret Atwood' }
+        );
+      });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select({ selections: ['title', field('author').as('auth0r')] })
+            .sort(field('auth0r').ascending())
+            .limit(2)
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            auth0r: 'Douglas Adams'
+          },
+          { title: 'The Great Gatsby', auth0r: 'F. Scott Fitzgerald' }
         );
       });
     });
@@ -1007,6 +1136,60 @@ describe.skip('Firestore Pipelines', () => {
           }
         );
       });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .addFields({
+              fields: [constant('bar').as('foo')]
+            })
+            .sort(field('author').ascending())
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            foo: 'bar'
+          },
+          {
+            title: 'The Great Gatsby',
+            author: 'F. Scott Fitzgerald',
+            foo: 'bar'
+          },
+          { title: 'Dune', author: 'Frank Herbert', foo: 'bar' },
+          {
+            title: 'Crime and Punishment',
+            author: 'Fyodor Dostoevsky',
+            foo: 'bar'
+          },
+          {
+            title: 'One Hundred Years of Solitude',
+            author: 'Gabriel García Márquez',
+            foo: 'bar'
+          },
+          { title: '1984', author: 'George Orwell', foo: 'bar' },
+          {
+            title: 'To Kill a Mockingbird',
+            author: 'Harper Lee',
+            foo: 'bar'
+          },
+          {
+            title: 'The Lord of the Rings',
+            author: 'J.R.R. Tolkien',
+            foo: 'bar'
+          },
+          { title: 'Pride and Prejudice', author: 'Jane Austen', foo: 'bar' },
+          {
+            title: "The Handmaid's Tale",
+            author: 'Margaret Atwood',
+            foo: 'bar'
+          }
+        );
+      });
     });
 
     describe('removeFields stage', () => {
@@ -1018,7 +1201,126 @@ describe.skip('Firestore Pipelines', () => {
             .select('title', 'author')
             .sort(field('author').ascending())
             .removeFields(field('author'))
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy"
+          },
+          {
+            title: 'The Great Gatsby'
+          },
+          { title: 'Dune' },
+          {
+            title: 'Crime and Punishment'
+          },
+          {
+            title: 'One Hundred Years of Solitude'
+          },
+          { title: '1984' },
+          {
+            title: 'To Kill a Mockingbird'
+          },
+          {
+            title: 'The Lord of the Rings'
+          },
+          { title: 'Pride and Prejudice' },
+          {
+            title: "The Handmaid's Tale"
+          }
+        );
+      });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author', 'genre')
             .sort(field('author').ascending())
+            .removeFields({
+              fields: [field('author'), 'genre']
+            })
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy"
+          },
+          {
+            title: 'The Great Gatsby'
+          },
+          { title: 'Dune' },
+          {
+            title: 'Crime and Punishment'
+          },
+          {
+            title: 'One Hundred Years of Solitude'
+          },
+          { title: '1984' },
+          {
+            title: 'To Kill a Mockingbird'
+          },
+          {
+            title: 'The Lord of the Rings'
+          },
+          { title: 'Pride and Prejudice' },
+          {
+            title: "The Handmaid's Tale"
+          }
+        );
+      });
+    });
+
+    describe('findNearest stage', () => {
+      it('can find nearest', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .sort(field('author').ascending())
+            .removeFields(field('author'))
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy"
+          },
+          {
+            title: 'The Great Gatsby'
+          },
+          { title: 'Dune' },
+          {
+            title: 'Crime and Punishment'
+          },
+          {
+            title: 'One Hundred Years of Solitude'
+          },
+          { title: '1984' },
+          {
+            title: 'To Kill a Mockingbird'
+          },
+          {
+            title: 'The Lord of the Rings'
+          },
+          { title: 'Pride and Prejudice' },
+          {
+            title: "The Handmaid's Tale"
+          }
+        );
+      });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author', 'genre')
+            .sort(field('author').ascending())
+            .removeFields({
+              fields: [field('author'), 'genre']
+            })
         );
         expectResults(
           snapshot,
@@ -1065,6 +1367,7 @@ describe.skip('Firestore Pipelines', () => {
         );
         expectResults(snapshot, 'book10', 'book4');
       });
+
       it('where with and (3 conditions)', async () => {
         const snapshot = await execute(
           firestore
@@ -1080,6 +1383,7 @@ describe.skip('Firestore Pipelines', () => {
         );
         expectResults(snapshot, 'book4');
       });
+
       it('where with or', async () => {
         const snapshot = await execute(
           firestore
@@ -1126,6 +1430,21 @@ describe.skip('Firestore Pipelines', () => {
           { title: "The Handmaid's Tale" }
         );
       });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where({
+              condition: and(
+                greaterThan('rating', 4.5),
+                equalAny('genre', ['Science Fiction', 'Romance', 'Fantasy'])
+              )
+            })
+        );
+        expectResults(snapshot, 'book10', 'book4');
+      });
     });
 
     describe('sort, offset, and limit stages', () => {
@@ -1137,6 +1456,26 @@ describe.skip('Firestore Pipelines', () => {
             .sort(field('author').ascending())
             .offset(5)
             .limit(3)
+            .select('title', 'author')
+        );
+        expectResults(
+          snapshot,
+          { title: '1984', author: 'George Orwell' },
+          { title: 'To Kill a Mockingbird', author: 'Harper Lee' },
+          { title: 'The Lord of the Rings', author: 'J.R.R. Tolkien' }
+        );
+      });
+
+      it('sort, offset, and limit stages support options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort({
+              orderings: [field('author').ascending()]
+            })
+            .offset({ offset: 5 })
+            .limit({ limit: 3 })
             .select('title', 'author')
         );
         expectResults(
@@ -1158,7 +1497,7 @@ describe.skip('Firestore Pipelines', () => {
               {
                 title: field('title'),
                 metadata: {
-                  'author': field('author')
+                  author: field('author')
                 }
               }
             ])
@@ -1279,6 +1618,38 @@ describe.skip('Firestore Pipelines', () => {
           }
         );
       });
+
+      it('can perform FindNearest query', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol)
+            .rawStage(
+              'find_nearest',
+              [
+                field('embedding'),
+                vector([10, 1, 2, 1, 1, 1, 1, 1, 1, 1]),
+                'euclidean'
+              ],
+              {
+                'distance_field': field('computedDistance'),
+                limit: 2
+              }
+            )
+            .select('title', 'computedDistance')
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            computedDistance: 1
+          },
+          {
+            title: 'One Hundred Years of Solitude',
+            computedDistance: 12.041594578792296
+          }
+        );
+      });
     });
 
     describe('replaceWith stage', () => {
@@ -1317,6 +1688,21 @@ describe.skip('Firestore Pipelines', () => {
           baz: { title: "The Hitchhiker's Guide to the Galaxy" }
         });
       });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            .replaceWith({ map: 'awards' })
+        );
+        expectResults(snapshot, {
+          hugo: true,
+          nebula: false,
+          others: { unknown: { year: 1980 } }
+        });
+      });
     });
 
     describe('sample stage', () => {
@@ -1339,7 +1725,7 @@ describe.skip('Firestore Pipelines', () => {
 
       it('run pipeline with sample limit of {percentage: 0.6}', async () => {
         let avgSize = 0;
-        const numIterations = 20;
+        const numIterations = 30;
         for (let i = 0; i < numIterations; i++) {
           const snapshot = await execute(
             firestore
@@ -1356,13 +1742,45 @@ describe.skip('Firestore Pipelines', () => {
     });
 
     describe('union stage', () => {
-      // __name__ not currently supported by dbe
-      itIf(testUnsupportedFeatures)('run pipeline with union', async () => {
+      it('run pipeline with union', async () => {
         const snapshot = await execute(
           firestore
             .pipeline()
             .collection(randomCol.path)
             .union(firestore.pipeline().collection(randomCol.path))
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book10',
+          'book2',
+          'book2',
+          'book3',
+          'book3',
+          'book4',
+          'book4',
+          'book5',
+          'book5',
+          'book6',
+          'book6',
+          'book7',
+          'book7',
+          'book8',
+          'book8',
+          'book9',
+          'book9'
+        );
+      });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union({ other: firestore.pipeline().collection(randomCol.path) })
             .sort(field(documentIdFieldPath()).ascending())
         );
         expectResults(
@@ -1460,6 +1878,80 @@ describe.skip('Firestore Pipelines', () => {
           }
         );
       });
+
+      it('unnest with index field', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            .unnest(field('tags').as('tag'), 'tagsIndex')
+            .select(
+              'title',
+              'author',
+              'genre',
+              'published',
+              'rating',
+              'tags',
+              'tag',
+              'awards',
+              'nestedField',
+              'tagsIndex'
+            )
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'comedy',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } },
+            tagsIndex: 0
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'space',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } },
+            tagsIndex: 1
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'adventure',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } },
+            tagsIndex: 2
+          }
+        );
+      });
+
       it('unnest an expr', async () => {
         const snapshot = await execute(
           firestore
@@ -1525,6 +2017,82 @@ describe.skip('Firestore Pipelines', () => {
               others: { unknown: { year: 1980 } }
             },
             nestedField: { 'level.1': { 'level.2': true } }
+          }
+        );
+      });
+
+      it('supports options', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            .unnest({
+              selectable: field('tags').as('tag'),
+              indexField: 'tagsIndex'
+            })
+            .select(
+              'title',
+              'author',
+              'genre',
+              'published',
+              'rating',
+              'tags',
+              'tag',
+              'awards',
+              'nestedField',
+              'tagsIndex'
+            )
+        );
+        expectResults(
+          snapshot,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'comedy',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } },
+            tagsIndex: 0
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'space',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } },
+            tagsIndex: 1
+          },
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            author: 'Douglas Adams',
+            genre: 'Science Fiction',
+            published: 1979,
+            rating: 4.2,
+            tags: ['comedy', 'space', 'adventure'],
+            tag: 'adventure',
+            awards: {
+              hugo: true,
+              nebula: false,
+              others: { unknown: { year: 1980 } }
+            },
+            nestedField: { 'level.1': { 'level.2': true } },
+            tagsIndex: 2
           }
         );
       });
@@ -1594,8 +2162,36 @@ describe.skip('Firestore Pipelines', () => {
     });
   });
 
+  describe('error handling', () => {
+    it('error properties are propagated from the firestore backend', async () => {
+      try {
+        const myPipeline = firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .rawStage('select', [
+            // incorrect parameter type
+            field('title')
+          ]);
+
+        await execute(myPipeline);
+
+        expect.fail('expected pipeline.execute() to throw');
+      } catch (e: unknown) {
+        expect(e instanceof FirebaseError).to.be.true;
+        const err = e as FirebaseError;
+        // Backend returns the code as `failed-precondition` when using the REST transport
+        expect(err['code']).to.equal('failed-precondition');
+        expect(typeof err['message']).to.equal('string');
+
+        expect(err['message']).to.match(
+          /Request failed with error: Expected value type of MAP_VALUE when parsing 'fields' but received FIELD_REFERENCE_VALUE instead/
+        );
+      }
+    });
+  });
+
   describe('function expressions', () => {
-    it('logical maximum works', async () => {
+    it('logical max works', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -1617,7 +2213,7 @@ describe.skip('Firestore Pipelines', () => {
       );
     });
 
-    it('logical minimum works', async () => {
+    it('logical min works', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -1639,7 +2235,7 @@ describe.skip('Firestore Pipelines', () => {
       );
     });
 
-    it('conditiona works', async () => {
+    it('conditional works', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -1650,20 +2246,28 @@ describe.skip('Firestore Pipelines', () => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe')
+            ).as('published-safe'),
+            field('rating')
+              .greaterThanOrEqual(4.5)
+              .conditional(constant('great'), constant('good'))
+              .as('rating')
           )
           .sort(field('title').ascending())
           .limit(3)
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960 },
-        { title: 'Crime and Punishment', 'published-safe': 1960 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        {
+          title: 'Crime and Punishment',
+          'published-safe': 1960,
+          rating: 'good'
+        },
+        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
       );
     });
 
-    it('eqAny works', async () => {
+    it('equalAny works', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -1679,7 +2283,7 @@ describe.skip('Firestore Pipelines', () => {
       );
     });
 
-    it('notEqAny works', async () => {
+    it('notEqualAny works', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -1888,8 +2492,8 @@ describe.skip('Firestore Pipelines', () => {
             subtract(field('published'), 1900).as('yearsSince1900'),
             field('rating').multiply(10).as('ratingTimesTen'),
             divide('rating', 2).as('ratingDividedByTwo'),
-            multiply('rating', 10).as('ratingTimes20'),
-            add('rating', 1).as('ratingPlus3'),
+            multiply('rating', 20).as('ratingTimes20'),
+            add('rating', 3).as('ratingPlus3'),
             mod('rating', 2).as('ratingMod2')
           )
           .limit(1)
@@ -1902,20 +2506,6 @@ describe.skip('Firestore Pipelines', () => {
         ratingTimes20: 84,
         ratingPlus3: 7.2,
         ratingMod2: 0.20000000000000018
-      });
-    });
-
-    it('testAbs', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .where(equal('title', 'To Kill a Mockingbird'))
-          .select(abs(field('rating')).as('absRating'))
-          .limit(1)
-      );
-      expectResults(snapshot, {
-        absRating: 4.2
       });
     });
 
@@ -1978,13 +2568,21 @@ describe.skip('Firestore Pipelines', () => {
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            isNull('rating').as('ratingIsNull'),
-            isNan('rating').as('ratingIsNaN'),
-            isError(arrayGet('title', 0)).as('isError'),
-            ifError(arrayGet('title', 0), constant('was error')).as('ifError'),
+            equal('rating', null).as('ratingIsNull'),
+            equal('rating', NaN).as('ratingIsNaN'),
+            isError(divide(constant(1), constant(0))).as('isError'),
+            ifError(divide(constant(1), constant(0)), constant('was error')).as(
+              'ifError'
+            ),
+            ifError(
+              divide(constant(1), constant(0)).greaterThan(1),
+              constant(true)
+            )
+              .not()
+              .as('ifErrorBooleanExpression'),
             isAbsent('foo').as('isAbsent'),
-            isNotNull('title').as('titleIsNotNull'),
-            isNotNan('cost').as('costIsNotNan'),
+            notEqual('title', null).as('titleIsNotNull'),
+            notEqual('cost', NaN).as('costIsNotNan'),
             exists('fooBarBaz').as('fooBarBazExists'),
             field('title').exists().as('titleExists')
           )
@@ -1994,6 +2592,7 @@ describe.skip('Firestore Pipelines', () => {
         ratingIsNaN: false,
         isError: true,
         ifError: 'was error',
+        ifErrorBooleanExpression: false,
         isAbsent: true,
         titleIsNotNull: true,
         costIsNotNan: false,
@@ -2008,13 +2607,20 @@ describe.skip('Firestore Pipelines', () => {
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            field('rating').isNull().as('ratingIsNull'),
-            field('rating').isNan().as('ratingIsNaN'),
-            arrayGet('title', 0).isError().as('isError'),
-            arrayGet('title', 0).ifError(constant('was error')).as('ifError'),
+            field('rating').equal(null).as('ratingIsNull'),
+            field('rating').equal(NaN).as('ratingIsNaN'),
+            divide(constant(1), constant(0)).isError().as('isError'),
+            divide(constant(1), constant(0))
+              .ifError(constant('was error'))
+              .as('ifError'),
+            divide(constant(1), constant(0))
+              .greaterThan(1)
+              .ifError(constant(true))
+              .not()
+              .as('ifErrorBooleanExpression'),
             field('foo').isAbsent().as('isAbsent'),
-            field('title').isNotNull().as('titleIsNotNull'),
-            field('cost').isNotNan().as('costIsNotNan')
+            field('title').notEqual(null).as('titleIsNotNull'),
+            field('cost').notEqual(NaN).as('costIsNotNan')
           )
       );
       expectResults(snapshot, {
@@ -2022,6 +2628,7 @@ describe.skip('Firestore Pipelines', () => {
         ratingIsNaN: false,
         isError: true,
         ifError: 'was error',
+        ifErrorBooleanExpression: false,
         isAbsent: true,
         titleIsNotNull: true,
         costIsNotNan: false
@@ -2048,7 +2655,7 @@ describe.skip('Firestore Pipelines', () => {
           title: "The Hitchhiker's Guide to the Galaxy",
           others: { unknown: { year: 1980 } }
         },
-        { hugoAward: true, title: 'Dune', others: null }
+        { hugoAward: true, title: 'Dune' }
       );
     });
 
@@ -2141,26 +2748,34 @@ describe.skip('Firestore Pipelines', () => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(equal('awards.hugo', true))
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              nested: {
+                level: {
+                  '1': 'bar'
+                },
+                'level.1': {
+                  'level.2': 'baz'
+                }
+              }
+            })
+          )
           .select(
             'title',
-            field('nestedField.level.1'),
-            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
+            field('nested.level.1'),
+            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
           )
-          .sort(descending('title'))
       );
-      expectResults(
-        snapshot,
-        {
-          title: "The Hitchhiker's Guide to the Galaxy",
-          'nestedField.level.`1`': null,
-          nested: true
-        },
-        { title: 'Dune', 'nestedField.level.`1`': null, nested: null }
-      );
+      expectResults(snapshot, {
+        title: 'foo',
+        'nested.level.`1`': 'bar',
+        nested: 'baz'
+      });
     });
 
-    describe('genericFunction', () => {
+    describe('rawFunction', () => {
       it('add selectable', async () => {
         const snapshot = await execute(
           firestore
@@ -2293,7 +2908,7 @@ describe.skip('Firestore Pipelines', () => {
       });
     });
 
-    it('supports arrayOffset', async () => {
+    it('supports arrayGet', async () => {
       let snapshot = await execute(
         firestore
           .pipeline()
@@ -2536,6 +3151,507 @@ describe.skip('Firestore Pipelines', () => {
       });
     });
 
+    it('can reverse an array', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('tags').arrayReverse().as('reversedTags'))
+      );
+      expectResults(snapshot, {
+        reversedTags: ['adventure', 'space', 'comedy']
+      });
+    });
+
+    it('can reverse an array with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(reverse('tags').as('reversedTags'))
+      );
+      expectResults(snapshot, {
+        reversedTags: ['adventure', 'space', 'comedy']
+      });
+    });
+
+    it('can compute the ceiling of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').ceil().as('ceilingRating'))
+      );
+      expectResults(snapshot, {
+        ceilingRating: 5
+      });
+    });
+
+    it('can compute the ceiling of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(ceil('rating').as('ceilingRating'))
+      );
+      expectResults(snapshot, {
+        ceilingRating: 5
+      });
+    });
+
+    it('can compute the floor of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').floor().as('floorRating'))
+      );
+      expectResults(snapshot, {
+        floorRating: 4
+      });
+    });
+
+    it('can compute the floor of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(floor('rating').as('floorRating'))
+      );
+      expectResults(snapshot, {
+        floorRating: 4
+      });
+    });
+
+    it('can compute e to the power of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .select(field('rating').exp().as('expRating'))
+      );
+      expectResults(snapshot, {
+        expRating: 109.94717245212352
+      });
+    });
+
+    it('can compute e to the power of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .select(exp('rating').as('expRating'))
+      );
+      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+        109.94717245212351,
+        0.000001
+      );
+    });
+
+    it('can compute the power of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').pow(2).as('powerRating'))
+      );
+      expect(snapshot.results[0].get('powerRating')).to.be.approximately(
+        17.64,
+        0.0001
+      );
+    });
+
+    it('can compute the power of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(pow('rating', 2).as('powerRating'))
+      );
+      expect(snapshot.results[0].get('powerRating')).to.be.approximately(
+        17.64,
+        0.0001
+      );
+    });
+
+    it('can round a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').round().as('roundedRating'))
+      );
+      expectResults(snapshot, {
+        roundedRating: 4
+      });
+    });
+
+    it('can round a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(round('rating').as('roundedRating'))
+      );
+      expectResults(snapshot, {
+        roundedRating: 4
+      });
+    });
+
+    it('can round a numeric value away from zero for positive half-way values', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .addFields(constant(1.5).as('positiveHalf'))
+          .select(field('positiveHalf').round().as('roundedRating'))
+      );
+      expectResults(snapshot, {
+        roundedRating: 2
+      });
+    });
+
+    it('can round a numeric value away from zero for negative half-way values', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .addFields(constant(-1.5).as('negativeHalf'))
+          .select(field('negativeHalf').round().as('roundedRating'))
+      );
+      expectResults(snapshot, {
+        roundedRating: -2
+      });
+    });
+
+    it('can round a numeric value to specified precision', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              foo: 4.123456
+            })
+          )
+          .select(
+            field('foo').round(0).as('0'),
+            round('foo', 1).as('1'),
+            round('foo', constant(2)).as('2'),
+            round(field('foo'), 4).as('4')
+          )
+      );
+      expectResults(snapshot, {
+        '0': 4,
+        '1': 4.1,
+        '2': 4.12,
+        '4': 4.1235
+      });
+    });
+
+    it('can get the collectionId from a path', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(field('__name__').collectionId().as('collectionId'))
+      );
+      expectResults(snapshot, {
+        collectionId: randomCol.id
+      });
+    });
+
+    it('can get the collectionId from a path with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(collectionId('__name__').as('collectionId'))
+      );
+      expectResults(snapshot, {
+        collectionId: randomCol.id
+      });
+    });
+
+    it('can compute the length of a string value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('title').length().as('titleLength'))
+      );
+      expectResults(snapshot, {
+        titleLength: 36
+      });
+    });
+
+    it('can compute the length of a string value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(length('title').as('titleLength'))
+      );
+      expectResults(snapshot, {
+        titleLength: 36
+      });
+    });
+
+    it('can compute the length of an array value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('tags').length().as('tagsLength'))
+      );
+      expectResults(snapshot, {
+        tagsLength: 3
+      });
+    });
+
+    it('can compute the length of an array value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(length('tags').as('tagsLength'))
+      );
+      expectResults(snapshot, {
+        tagsLength: 3
+      });
+    });
+
+    it('can compute the length of a map value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('awards').length().as('awardsLength'))
+      );
+      expectResults(snapshot, {
+        awardsLength: 3
+      });
+    });
+
+    it('can compute the length of a vector value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('embedding').length().as('embeddingLength'))
+      );
+      expectResults(snapshot, {
+        embeddingLength: 10
+      });
+    });
+
+    it('can compute the length of a bytes value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(constant('12é').as('value'))
+          .limit(1)
+          .select(field('value').byteLength().as('valueLength'))
+      );
+      expectResults(snapshot, {
+        valueLength: 4
+      });
+    });
+
+    it('can compute the natural logarithm of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').ln().as('lnRating'))
+      );
+      expect(snapshot.results[0]!.data().lnRating).to.be.closeTo(1.435, 0.001);
+    });
+
+    it('can compute the natural logarithm of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(ln('rating').as('lnRating'))
+      );
+      expect(snapshot.results[0]!.data().lnRating).to.be.closeTo(1.435, 0.001);
+    });
+
+    it('can compute the natural logarithm of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(ln('rating').as('lnRating'))
+      );
+      expectResults(snapshot, {
+        lnRating: 1.4350845252893227
+      });
+    });
+
+    it('can compute the logarithm of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(log(field('rating'), 10).as('logRating'))
+      );
+      expectResults(snapshot, {
+        logRating: 0.6232492903979004
+      });
+    });
+
+    it('can compute the logarithm of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(log('rating', 10).as('logRating'))
+      );
+      expectResults(snapshot, {
+        logRating: 0.6232492903979004
+      });
+    });
+
+    it('can round a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').round().as('roundedRating'))
+      );
+      expectResults(snapshot, {
+        roundedRating: 4
+      });
+    });
+
+    it('can round a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(round('rating').as('roundedRating'))
+      );
+      expectResults(snapshot, {
+        roundedRating: 4
+      });
+    });
+
+    it('can compute the square root of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('rating').sqrt().as('sqrtRating'))
+      );
+      expectResults(snapshot, {
+        sqrtRating: 2.04939015319192
+      });
+    });
+
+    it('can compute the square root of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(sqrt('rating').as('sqrtRating'))
+      );
+      expectResults(snapshot, {
+        sqrtRating: 2.04939015319192
+      });
+    });
+
+    it('can reverse a string', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(field('title').reverse().as('reversedTitle'))
+      );
+      expectResults(snapshot, {
+        reversedTitle: "yxalaG eht ot ediuG s'rekihhctiH ehT"
+      });
+    });
+
+    it('can reverse a string with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal("The Hitchhiker's Guide to the Galaxy"))
+          .limit(1)
+          .select(stringReverse('title').as('reversedTitle'))
+      );
+      expectResults(snapshot, {
+        reversedTitle: "yxalaG eht ot ediuG s'rekihhctiH ehT"
+      });
+    });
+
     it('supports Document_id', async () => {
       let snapshot = await execute(
         firestore
@@ -2543,10 +3659,14 @@ describe.skip('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
-          .select(documentId(field('__path__')).as('docId'))
+          .select(
+            documentId(field('__name__')).as('docId'),
+            documentId(field('__path__')).as('noDocId')
+          )
       );
       expectResults(snapshot, {
-        docId: 'book4'
+        docId: 'book4',
+        noDocId: null
       });
       snapshot = await execute(
         firestore
@@ -2554,14 +3674,14 @@ describe.skip('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
-          .select(field('__path__').documentId().as('docId'))
+          .select(field('__name__').documentId().as('docId'))
       );
       expectResults(snapshot, {
         docId: 'book4'
       });
     });
 
-    it('supports Substr', async () => {
+    it('supports substring', async () => {
       let snapshot = await execute(
         firestore
           .pipeline()
@@ -2586,7 +3706,7 @@ describe.skip('Firestore Pipelines', () => {
       });
     });
 
-    it('supports Substr without length', async () => {
+    it('supports substring without length', async () => {
       let snapshot = await execute(
         firestore
           .pipeline()
@@ -2611,55 +3731,30 @@ describe.skip('Firestore Pipelines', () => {
       });
     });
 
-    it('arrayConcat works', async () => {
+    it('test toLower', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .select(
-            arrayConcat('tags', ['newTag1', 'newTag2'], field('tags'), [
-              null
-            ]).as('modifiedTags')
-          )
+          .sort(ascending('title'))
+          .select(toLower('author').as('lowercaseAuthor'))
           .limit(1)
       );
       expectResults(snapshot, {
-        modifiedTags: [
-          'comedy',
-          'space',
-          'adventure',
-          'newTag1',
-          'newTag2',
-          'comedy',
-          'space',
-          'adventure',
-          null
-        ]
+        lowercaseAuthor: 'george orwell'
       });
     });
 
-    it('testToLowercase', async () => {
+    it('test toUpper', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .select(toLower('title').as('lowercaseTitle'))
-          .limit(1)
-      );
-      expectResults(snapshot, {
-        lowercaseTitle: "the hitchhiker's guide to the galaxy"
-      });
-    });
-
-    it('testToUppercase', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
+          .sort(ascending('title'))
           .select(toUpper('author').as('uppercaseAuthor'))
           .limit(1)
       );
-      expectResults(snapshot, { uppercaseAuthor: 'DOUGLAS ADAMS' });
+      expectResults(snapshot, { uppercaseAuthor: 'GEORGE ORWELL' });
     });
 
     it('testTrim', async () => {
@@ -2688,11 +3783,179 @@ describe.skip('Firestore Pipelines', () => {
           .limit(1)
           .select(reverse('title').as('reverseTitle'))
       );
-      expectResults(snapshot, { title: '4891' });
+      expectResults(snapshot, { reverseTitle: '4891' });
     });
+
+    it('testAbs', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            constant(-10).as('neg10'),
+            constant(-22.22).as('neg22'),
+            constant(1).as('pos1')
+          )
+          .select(
+            abs('neg10').as('10'),
+            abs(field('neg22')).as('22'),
+            field('pos1').as('1')
+          )
+      );
+      expectResults(snapshot, {
+        '10': 10,
+        '22': 22.22,
+        '1': 1
+      });
+    });
+
+    it('can compute the base-10 logarithm of a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .select(field('rating').log10().as('log10Rating'))
+      );
+      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
+        0.672,
+        0.001
+      );
+    });
+
+    it('can compute the base-10 logarithm of a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .select(log10('rating').as('log10Rating'))
+      );
+      expect(snapshot.results[0]!.data().log10Rating).to.be.closeTo(
+        0.672,
+        0.001
+      );
+    });
+
+    it('can concat fields', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .addFields(
+            concat('author', ' ', field('title')).as('display'),
+            field('author').concat(': ', field('title')).as('display2')
+          )
+          .where(equal('author', 'Douglas Adams'))
+          .select('display', 'display2')
+      );
+      expectResults(snapshot, {
+        display: "Douglas Adams The Hitchhiker's Guide to the Galaxy",
+        display2: "Douglas Adams: The Hitchhiker's Guide to the Galaxy"
+      });
+    });
+
+    it('supports currentTimestamp', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .addFields(currentTimestamp().as('now'))
+          .select('now')
+      );
+      const now = snapshot.results[0].get('now') as Timestamp;
+      expect(now).instanceof(Timestamp);
+      expect(
+        now.toDate().getUTCSeconds() - new Date().getUTCSeconds()
+      ).lessThan(5000);
+    });
+
+    it('supports ifAbsent', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo'
+            })
+          )
+          .select(
+            ifAbsent('title', 'default title').as('title'),
+            field('name').ifAbsent('default name').as('name'),
+            field('name').ifAbsent(field('title')).as('nameOrTitle')
+          )
+      );
+
+      expectResults(snapshot, {
+        title: 'foo',
+        name: 'default name',
+        nameOrTitle: 'foo'
+      });
+    });
+
+    it('supports join', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              tags: ['foo', 'bar', 'baz'],
+              delimeter: '|'
+            })
+          )
+          .select(join('tags', ',').as('csv'), field('tags').join('|').as('or'))
+      );
+
+      expectResults(snapshot, {
+        csv: 'foo,bar,baz',
+        or: 'foo|bar|baz'
+      });
+    });
+
+    it('can compute the sum of the elements in an array', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .addFields(array([150, 200]).as('sales'))
+          .select(field('sales').arraySum().as('totalSales'))
+      );
+      expectResults(snapshot, {
+        totalSales: 350
+      });
+    });
+
+    it('can compute the sum of the elements in an array with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('The Lord of the Rings'))
+          .limit(1)
+          .addFields(array([150, 200]).as('sales'))
+          .select(arraySum('sales').as('totalSales'))
+      );
+      expectResults(snapshot, {
+        totalSales: 350
+      });
+    });
+
+    // TODO(new-expression): Add new expression tests above this line
   });
 
   describe('pagination', () => {
+    let addedDocs: DocumentReference[] = [];
+
     /**
      * Adds several books to the test collection. These
      * additional books support pagination test scenarios
@@ -2703,7 +3966,9 @@ describe.skip('Firestore Pipelines', () => {
     async function addBooks(
       collectionReference: CollectionReference
     ): Promise<void> {
-      await setDoc(doc(collectionReference, 'book11'), {
+      let docRef = doc(collectionReference, 'book11');
+      addedDocs.push(docRef);
+      await setDoc(docRef, {
         title: 'Jonathan Strange & Mr Norrell',
         author: 'Susanna Clarke',
         genre: 'Fantasy',
@@ -2712,7 +3977,9 @@ describe.skip('Firestore Pipelines', () => {
         tags: ['historical fantasy', 'magic', 'alternate history', 'england'],
         awards: { hugo: false, nebula: false }
       });
-      await setDoc(doc(collectionReference, 'book12'), {
+      docRef = doc(collectionReference, 'book12');
+      addedDocs.push(docRef);
+      await setDoc(docRef, {
         title: 'The Master and Margarita',
         author: 'Mikhail Bulgakov',
         genre: 'Satire',
@@ -2726,7 +3993,9 @@ describe.skip('Firestore Pipelines', () => {
         ],
         awards: {}
       });
-      await setDoc(doc(collectionReference, 'book13'), {
+      docRef = doc(collectionReference, 'book13');
+      addedDocs.push(docRef);
+      await setDoc(docRef, {
         title: 'A Long Way to a Small, Angry Planet',
         author: 'Becky Chambers',
         genre: 'Science Fiction',
@@ -2737,108 +4006,135 @@ describe.skip('Firestore Pipelines', () => {
       });
     }
 
-    // sort on __name__ is not working
-    itIf(testUnsupportedFeatures)(
-      'supports pagination with filters',
-      async () => {
-        await addBooks(randomCol);
-        const pageSize = 2;
-        const pipeline = firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'rating', '__name__')
-          .sort(field('rating').descending(), field('__name__').ascending());
+    afterEach(async () => {
+      for (let i = 0; i < addedDocs.length; i++) {
+        await deleteDoc(addedDocs[i]);
+      }
+      addedDocs = [];
+    });
 
-        let snapshot = await execute(pipeline.limit(pageSize));
-        expectResults(
-          snapshot,
-          { title: 'The Lord of the Rings', rating: 4.7 },
-          { title: 'Jonathan Strange & Mr Norrell', rating: 4.6 }
-        );
+    it('supports pagination with filters', async () => {
+      await addBooks(randomCol);
+      const pageSize = 2;
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .select('title', 'rating', '__name__')
+        .sort(field('rating').descending(), field('__name__').ascending());
 
-        const lastDoc = snapshot.results[snapshot.results.length - 1];
+      let snapshot = await execute(pipeline.limit(pageSize));
+      expectResults(
+        snapshot,
+        { title: 'The Lord of the Rings', rating: 4.7 },
+        { title: 'Dune', rating: 4.6 }
+      );
 
-        snapshot = await execute(
-          pipeline
-            .where(
-              or(
-                and(
-                  field('rating').equal(lastDoc.get('rating')),
-                  field('__path__').greaterThan(lastDoc.ref?.id)
-                ),
-                field('rating').lessThan(lastDoc.get('rating'))
-              )
+      const lastDoc = snapshot.results[snapshot.results.length - 1];
+
+      snapshot = await execute(
+        pipeline
+          .where(
+            or(
+              and(
+                field('rating').equal(lastDoc.get('rating')),
+                field('__name__').greaterThan(lastDoc.ref)
+              ),
+              field('rating').lessThan(lastDoc.get('rating'))
             )
-            .limit(pageSize)
-        );
-        expectResults(
-          snapshot,
-          { title: 'Pride and Prejudice', rating: 4.5 },
-          { title: 'Crime and Punishment', rating: 4.3 }
-        );
-      }
-    );
+          )
+          .limit(pageSize)
+      );
+      expectResults(
+        snapshot,
+        { title: 'Jonathan Strange & Mr Norrell', rating: 4.6 },
+        { title: 'The Master and Margarita', rating: 4.6 }
+      );
+    });
 
-    // sort on __name__ is not working
-    itIf(testUnsupportedFeatures)(
-      'supports pagination with offsets',
-      async () => {
-        await addBooks(randomCol);
+    it('supports pagination with offsets', async () => {
+      await addBooks(randomCol);
 
-        const secondFilterField = '__path__';
+      const secondFilterField = '__name__';
 
-        const pipeline = firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .select('title', 'rating', secondFilterField)
-          .sort(
-            field('rating').descending(),
-            field(secondFilterField).ascending()
-          );
-
-        const pageSize = 2;
-        let currPage = 0;
-
-        let snapshot = await execute(
-          pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .select('title', 'rating', secondFilterField)
+        .sort(
+          field('rating').descending(),
+          field(secondFilterField).ascending()
         );
 
-        expectResults(
-          snapshot,
-          {
-            title: 'The Lord of the Rings',
-            rating: 4.7
-          },
-          { title: 'Dune', rating: 4.6 }
-        );
+      const pageSize = 2;
+      let currPage = 0;
 
-        snapshot = await execute(
-          pipeline.offset(currPage++ * pageSize).limit(pageSize)
-        );
-        expectResults(
-          snapshot,
-          {
-            title: 'Jonathan Strange & Mr Norrell',
-            rating: 4.6
-          },
-          { title: 'The Master and Margarita', rating: 4.6 }
-        );
+      let snapshot = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
 
-        snapshot = await execute(
-          pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      expectResults(
+        snapshot,
+        {
+          title: 'The Lord of the Rings',
+          rating: 4.7
+        },
+        { title: 'Dune', rating: 4.6 }
+      );
+
+      snapshot = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
+      expectResults(
+        snapshot,
+        {
+          title: 'Jonathan Strange & Mr Norrell',
+          rating: 4.6
+        },
+        { title: 'The Master and Margarita', rating: 4.6 }
+      );
+
+      snapshot = await execute(
+        pipeline.offset(currPage++ * pageSize).limit(pageSize)
+      );
+      expectResults(
+        snapshot,
+        {
+          title: 'A Long Way to a Small, Angry Planet',
+          rating: 4.6
+        },
+        {
+          title: 'Pride and Prejudice',
+          rating: 4.5
+        }
+      );
+    });
+  });
+
+  describe('stage options', () => {
+    describe('forceIndex', () => {
+      // SKIP: requires pre-existing index
+      // eslint-disable-next-line no-restricted-properties
+      it.skip('Collection Stage', async () => {
+        const snapshot = await execute(
+          firestore.pipeline().collection({
+            collection: randomCol,
+            forceIndex: 'unknown'
+          })
         );
-        expectResults(
-          snapshot,
-          {
-            title: 'A Long Way to a Small, Angry Planet',
-            rating: 4.6
-          },
-          {
-            title: 'Pride and Prejudice',
-            rating: 4.5
-          }
+        expect(snapshot.results.length).to.equal(10);
+      });
+
+      // SKIP: requires pre-existing index
+      // eslint-disable-next-line no-restricted-properties
+      it.skip('CollectionGroup Stage', async () => {
+        const snapshot = await execute(
+          firestore.pipeline().collectionGroup({
+            collectionId: randomCol.id,
+            forceIndex: 'unknown'
+          })
         );
-      }
-    );
+        expect(snapshot.results.length).to.equal(10);
+      });
+    });
   });
 });

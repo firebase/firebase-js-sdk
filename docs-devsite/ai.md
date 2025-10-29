@@ -56,6 +56,7 @@ The Firebase AI Web SDK.
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
 |  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
+|  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | The audio transcription configuration. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b><i>(Public Preview)</i></b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
@@ -134,6 +135,7 @@ The Firebase AI Web SDK.
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
+|  [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of audio. This can be returned from a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) if transcription is enabled with the <code>inputAudioTranscription</code> or <code>outputAudioTranscription</code> properties on the [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface)<!-- -->. |
 |  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
 |  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
 |  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
@@ -162,6 +164,7 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
+|  [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
 |  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
 |  [Modality](./ai.md#modality) | Content part modality. |
@@ -189,6 +192,7 @@ The Firebase AI Web SDK.
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
+|  [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
 |  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
@@ -643,6 +647,22 @@ InferenceMode: {
 }
 ```
 
+## InferenceSource
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether inference happened on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+InferenceSource: {
+    readonly ON_DEVICE: "on_device";
+    readonly IN_CLOUD: "in_cloud";
+}
+```
+
 ## Language
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -924,6 +944,19 @@ Determines whether inference happens on-device or in-cloud.
 
 ```typescript
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+```
+
+## InferenceSource
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether inference happened on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
 ```
 
 ## Language
