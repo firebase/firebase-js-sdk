@@ -8,7 +8,6 @@ export interface BackingDataObjectJson {
 
 export class BackingDataObject {
   toStorableJson(): BackingDataObjectJson {
-    // TODO: This might not be ok.
     return {
       globalID: this.globalID,
       map: this.map,

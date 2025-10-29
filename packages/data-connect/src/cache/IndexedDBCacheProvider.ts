@@ -25,7 +25,6 @@ export class IndexedDBCacheProvider implements CacheProvider {
         dbResolve(db);
       };
       request.onsuccess = async (event) => {
-        // TODO: Check version
         const db = (event.target as IDBOpenDBRequest).result;
         const tx = db.transaction(
           [BDO_OBJECT_STORE_NAME, SRT_OBJECT_STORE_NAME],

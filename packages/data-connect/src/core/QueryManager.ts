@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnect } from '../api';
+import { DataConnect, ExecuteQueryOptions, QueryFetchPolicy } from '../api';
 import {
   DataConnectSubscription,
   OnErrorSubscription,
@@ -162,12 +162,13 @@ export class QueryManager {
     return unsubscribe;
   }
   executeQuery<Data, Variables>(
-    queryRef: QueryRef<Data, Variables>
+    queryRef: QueryRef<Data, Variables>,
+    options?: ExecuteQueryOptions
   ): QueryPromise<Data, Variables> {
     if (queryRef.refType !== QUERY_STR) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,
-        `ExecuteQuery can only execute query operation`
+        `ExecuteQuery can only execute query operations`
       );
     }
     const key = encoderImpl({
@@ -175,9 +176,8 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    // TODO: Check if the cache is stale
-    // TODO: isStale doesn't exist when parsing the raw JSON. Fix the parsing.
-    if(this.cache.containsResultTree(key) && !this.cache.getResultTree(key)?.isStale()) {
+
+    if (options.fetchPolicy !== QueryFetchPolicy.serverOnly && this.cache.containsResultTree(key) && !this.cache.getResultTree(key).isStale()) {
       const cacheResult: Data = JSON.parse(this.cache.getResultJSON(key));
       const result: QueryResult<Data, Variables> = {
           ...cacheResult,
@@ -191,11 +191,15 @@ export class QueryManager {
 
       return Promise.resolve(result);
     } else {
-      logDebug(
-        `No Cache found for query ${
-          queryRef.name
-        } with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery`
-      );
+      if(options.fetchPolicy === QueryFetchPolicy.serverOnly) {
+        logDebug(`Skipping cache for fetch policy "serverOnly"`);
+      } else {
+        logDebug(
+          `No Cache found for query ${
+            queryRef.name
+          } with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery`
+        );
+      }
     }
     const result = this.transport.invokeQuery<Data, Variables>(
       queryRef.name,
@@ -219,8 +223,7 @@ export class QueryManager {
         }
         if(this.cache.containsResultTree(key)) {
           this.cache.getResultTree(key).updateAccessed();
-        }
-        const impactedQueries = this.cache.update(key, result.data as ServerValues);
+        }        const impactedQueries = this.cache.update(key, result.data as ServerValues);
         this.publishCacheResultsToSubscribers(impactedQueries);
         return result;
       },

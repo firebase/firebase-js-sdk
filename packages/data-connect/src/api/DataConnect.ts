@@ -31,6 +31,8 @@ import {
 } from '@firebase/util';
 
 import { Cache as DataConnectCache } from '../cache/Cache';
+import { CacheProvider } from '../cache/CacheProvider';
+import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -168,6 +170,7 @@ export class DataConnect {
         this.app.options,
         this._authProvider
       );
+      this.cache.setAuthProvider(this._authTokenProvider);
     }
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
@@ -254,6 +257,10 @@ export function connectDataConnectEmulator(
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
+export interface DataConnectConfigureOptions {
+  cacheProvider: CacheProvider
+}
+
 /**
  * Initialize DataConnect instance
  * @param options ConnectorConfig
@@ -266,20 +273,30 @@ export function getDataConnect(options: ConnectorConfig): DataConnect;
  */
 export function getDataConnect(
   app: FirebaseApp,
-  options: ConnectorConfig
+  options: ConnectorConfig,
+  additionalOptions?: DataConnectConfigureOptions
 ): DataConnect;
 export function getDataConnect(
   appOrOptions: FirebaseApp | ConnectorConfig,
-  optionalOptions?: ConnectorConfig
+  optionalOptionsOrCacheOptions?: ConnectorConfig | DataConnectConfigureOptions,
+  additionalOptionsOrCacheOptions?: DataConnectConfigureOptions
 ): DataConnect {
   let app: FirebaseApp;
   let dcOptions: ConnectorConfig;
+  let cacheOptions: DataConnectConfigureOptions;
   if ('location' in appOrOptions) {
     dcOptions = appOrOptions;
     app = getApp();
+    cacheOptions = optionalOptionsOrCacheOptions as DataConnectConfigureOptions;
   } else {
-    dcOptions = optionalOptions!;
+    dcOptions = optionalOptionsOrCacheOptions as ConnectorConfig;
+    cacheOptions = additionalOptionsOrCacheOptions as DataConnectConfigureOptions;
     app = appOrOptions;
+  }
+  // TODO: initialize data connect with this.
+  if(!cacheOptions) {
+    // TODO: Make this a class that gets passed in.
+    cacheOptions.cacheProvider = new IndexedDBCacheProvider();
   }
 
   if (!app || Object.keys(app).length === 0) {

@@ -71,15 +71,27 @@ export interface QueryPromise<Data, Variables>
   // reserved for special actions like cancellation
 }
 
+
+export enum QueryFetchPolicy {
+  preferCache,
+  cacheOnly,
+  serverOnly
+}
+
+export interface ExecuteQueryOptions {
+  fetchPolicy: QueryFetchPolicy;
+}
+
 /**
  * Execute Query
  * @param queryRef query to execute.
  * @returns `QueryPromise`
  */
 export function executeQuery<Data, Variables>(
-  queryRef: QueryRef<Data, Variables>
+  queryRef: QueryRef<Data, Variables>,
+  options?: ExecuteQueryOptions
 ): QueryPromise<Data, Variables> {
-  return queryRef.dataConnect._queryManager.executeQuery(queryRef);
+  return queryRef.dataConnect._queryManager.executeQuery(queryRef, options);
 }
 
 /**
@@ -102,10 +114,10 @@ export function queryRef<Data>(
 export function queryRef<Data, Variables>(
   dcInstance: DataConnect,
   queryName: string,
-  variables: Variables
+  variables: Variables,
 ): QueryRef<Data, Variables>;
 /**
- * Execute QueryG
+ * Execute Query
  * @param dcInstance Data Connect instance to use.
  * @param queryName Query to execute
  * @param variables Variables to execute with

@@ -21,7 +21,6 @@ export class StubDataObject {
     if(typeof values === 'undefined' && typeof cacheProvider === 'undefined' && typeof acc === 'undefined') {
       return;
     }
-    // TODO: validate that all other fields have been passed in.
     if (typeof values !== 'object' || Array.isArray(values)) {
       throw new DataConnectError(
         'invalid-argument',

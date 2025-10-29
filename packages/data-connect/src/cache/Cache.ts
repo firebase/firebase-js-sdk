@@ -1,6 +1,7 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 
 import { DataConnectError } from '../core/error';
+import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { BackingDataObject } from './BackingDataObject';
 import { CacheProvider } from './CacheProvider';
@@ -9,23 +10,33 @@ import { IndexedDBCacheProvider } from './IndexedDBCacheProvider';
 import { ResultTree } from './ResultTree';
 import { ResultTreeProcessor } from './ResultTreeProcessor';
 
+
 export interface ServerValues {
   ttl: number;
 }
 
-
-
+// TODO: Figure out how to deal with caching across browsers.
 export class Cache {
+  setAuthProvider(_authTokenProvider: AuthTokenProvider): void {
+    this.authProvider.addTokenChangeListener((newToken) => {
+      this.updateToken(newToken);
+    });
+  }
   private cacheProvider: CacheProvider;
-  constructor() {
-    // TODO: Include identifier for cacheprovider
+  private authProvider: AuthTokenProvider;
+  updateToken(_newToken: string): void {
+    // TODO: notify cacheproviders
+    this.initializeNewProviders();
+  }
+  initializeNewProviders(): void {
     if (!isIndexedDBAvailable()) {
       this.cacheProvider = new EphemeralCacheProvider();
     } else {
       this.cacheProvider = new IndexedDBCacheProvider();
     }
-    // TODO: Create one for Tanstack
-    // TODO: Deal with auth changes.
+  }
+  constructor() {
+    this.initializeNewProviders();
   }
   containsResultTree(queryId: string): boolean {
     const resultTree = this.cacheProvider.getResultTree(queryId);
@@ -43,7 +54,6 @@ export class Cache {
         `${queryId} not found in cache. Call "update() first."`
       );
     }
-    // TODO: Make sure that this serializes the references, not the objects themselves.
     return processor.hydrateResults(resultTree.getRootStub());
   }
   update(queryId: string, serverValues: ServerValues): string[] {
