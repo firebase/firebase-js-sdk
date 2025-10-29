@@ -108,15 +108,16 @@ describe('DataConnect Tests', async () => {
   });
   it(`instantly executes a query if one hasn't been subscribed to`, async () => {
     const taskListQuery = getPostsRef();
+    let unsubscribe: null | (() => void) = null;
     const promise = new Promise<QueryResult<PostListResponse, PostVariables>>(
       (resolve, reject) => {
-        const unsubscribe = subscribe(taskListQuery, {
+        unsubscribe = subscribe(taskListQuery, {
           onNext: res => {
-            unsubscribe();
+            unsubscribe?.();
             resolve(res);
           },
           onErr: () => {
-            unsubscribe();
+            unsubscribe?.();
             reject(res);
           }
         });
@@ -132,7 +133,7 @@ describe('DataConnect Tests', async () => {
     const taskListQuery = getPostsRef();
     const queryResult = await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
-    expect(result.data).to.eq(queryResult.data);
+    expect(result.data).to.deep.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {
