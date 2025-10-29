@@ -18,7 +18,7 @@
 import { Unsubscribe } from '@firebase/util';
 import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
-import { AuthInternal } from '../../model/auth';
+import { AuthInternal, FirebaseToken } from '../../model/auth';
 import { UserInternal } from '../../model/user';
 import { _assert } from '../util/assert';
 import { AuthErrorCode } from '../errors';
@@ -64,12 +64,28 @@ export class AuthInterop implements FirebaseAuthInternal {
       return;
     }
 
-    const unsubscribe = this.auth.onIdTokenChanged(user => {
-      listener(
-        (user as UserInternal | null)?.stsTokenManager.accessToken || null
+    let unsubscribe: Unsubscribe;
+    if (this.auth.tenantConfig) {
+      unsubscribe = this.auth.onFirebaseTokenChanged(
+        (firebaseToken: FirebaseToken | null) => {
+          try {
+            listener(firebaseToken?.token || null);
+          } catch (error) {
+            console.error('Failed to retrieve firebase token:', error);
+            listener(null);
+          }
+        }
       );
-    });
+    } else {
+      unsubscribe = this.auth.onIdTokenChanged(user => {
+        listener(
+          (user as UserInternal | null)?.stsTokenManager.accessToken || null
+        );
+      });
+    }
+
     this.internalListeners.set(listener, unsubscribe);
+    // TODO - b/455792813: Handle proactive refresh for R-GCIP Firebase Token.
     this.updateProactiveRefresh();
   }
 
