@@ -98,7 +98,7 @@ export class QueryManager {
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
-    onCompleteCallback: OnCompleteSubscription,
+    onCompleteCallback?: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
     initialCache?: OpResult<Data>
   ): () => void {
@@ -121,7 +121,7 @@ export class QueryManager {
       trackedQuery.subscriptions = trackedQuery.subscriptions.filter(
         sub => sub !== subscription
       );
-      onCompleteCallback();
+      onCompleteCallback?.();
     };
     if (initialCache && trackedQuery.currentCache !== initialCache) {
       logDebug('Initial cache found. Comparing dates.');

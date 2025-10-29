@@ -198,6 +198,7 @@ export class DataConnect {
   // @internal
   enableEmulator(transportOptions: TransportOptions): void {
     if (
+      this._transportOptions &&
       this._initialized &&
       !areTransportOptionsEqual(this._transportOptions, transportOptions)
     ) {
@@ -314,7 +315,7 @@ export function validateDCOptions(dcOptions: ConnectorConfig): boolean {
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'DC Option Required');
   }
   fields.forEach(field => {
-    if (dcOptions[field] === null || dcOptions[field] === undefined) {
+    if (dcOptions[field as keyof ConnectorConfig] === null || dcOptions[field as keyof ConnectorConfig] === undefined) {
       throw new DataConnectError(Code.INVALID_ARGUMENT, `${field} Required`);
     }
   });
