@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions, QueryRef, queryRef, subscribe } from '../../src';
 import {
@@ -30,6 +31,7 @@ import { initializeFetch } from '../../src/network/fetch';
 import { RESTTransport } from '../../src/network/transport/rest';
 import { initDatabase } from '../util';
 chai.use(chaiAsPromised);
+chai.use(sinonChai);
 const options: DataConnectOptions = {
   connector: 'c',
   location: 'l',
