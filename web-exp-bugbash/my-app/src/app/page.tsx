@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { initializeApp } from "@firebase/app";
 import { getRemoteConfig, fetchAndActivate, getString } from "@firebase/remote-config";
+import { getInstallations, getId } from "@firebase/installations";
 import { getAnalytics } from "@firebase/analytics";
 
 function Screen({ isLoading, rollout, abt } = { isLoading: false, rollout: "", abt: "" }) {
@@ -42,6 +43,11 @@ export default function Home() {
     const analytics = getAnalytics(app);
     const config = getRemoteConfig(app);
     config.settings.minimumFetchIntervalMillis = 0;
+
+    const installations = getInstallations(app);
+    const fid = getId(installations);
+    fid.then(val =>  console.log(`Your fid is ${val}`));
+   
 
     fetchAndActivate(config).then(success => {
       setIsLoading(false);
