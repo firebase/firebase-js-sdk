@@ -1,9 +1,9 @@
-import { BackingDataObject } from "./BackingDataObject";
+import { EntityDataObject } from "./EntityDataObject";
 import { ResultTree } from "./ResultTree";
 
 export interface CacheProvider {
-    getBdo(globalId: string): BackingDataObject;
-    updateBackingData(backingData: BackingDataObject): void;
+    getBdo(globalId: string): EntityDataObject;
+    updateBackingData(backingData: EntityDataObject): void;
     createGlobalId(): string;
     getResultTree(queryId: string): ResultTree | undefined;
     setResultTree(queryId: string, resultTree: ResultTree): void;

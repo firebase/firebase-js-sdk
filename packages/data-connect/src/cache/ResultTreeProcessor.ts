@@ -1,18 +1,18 @@
 import { CacheProvider } from "./CacheProvider";
 import { ImpactedQueryRefsAccumulator } from "./ImpactedQueryRefsAccumulator";
-import { StubDataObject } from "./StubDataObject";
+import { EntityNode } from "./EntityNode";
 
 interface DehydratedResults {
-    stubDataObject: StubDataObject;
+    stubDataObject: EntityNode;
     data: string;
 }
 
 export class ResultTreeProcessor {
-    hydrateResults(rootStubObject: StubDataObject): string {
+    hydrateResults(rootStubObject: EntityNode): string {
         return JSON.stringify(rootStubObject.toJson());
     }
     dehydrateResults(json: object, cacheProvider: CacheProvider, acc: ImpactedQueryRefsAccumulator): DehydratedResults {
-        const stubDataObject = new StubDataObject(json, cacheProvider, acc);
+        const stubDataObject = new EntityNode(json, cacheProvider, acc);
         return {
             stubDataObject,
             data: JSON.stringify(stubDataObject.toStorableJson())

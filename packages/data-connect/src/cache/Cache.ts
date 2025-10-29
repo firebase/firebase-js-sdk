@@ -1,15 +1,16 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 
+import { CacheSettings, Storage } from '../api';
 import { DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
+import { logDebug } from '../logger';
 
-import { BackingDataObject } from './BackingDataObject';
 import { CacheProvider } from './CacheProvider';
+import { EntityDataObject } from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 import { IndexedDBCacheProvider } from './IndexedDBCacheProvider';
 import { ResultTree } from './ResultTree';
 import { ResultTreeProcessor } from './ResultTreeProcessor';
-
 
 export interface ServerValues {
   ttl: number;
@@ -29,13 +30,17 @@ export class Cache {
     this.initializeNewProviders();
   }
   initializeNewProviders(): void {
-    if (!isIndexedDBAvailable()) {
+    if(this.cacheSettings) {
+      this.cacheProvider = this.cacheSettings.storage === Storage.persistent ? new IndexedDBCacheProvider() : new EphemeralCacheProvider();
+    } else if (!isIndexedDBAvailable()) {
+      logDebug('IndexedDB is not available. Using In-Memory Cache Provider instead.');
       this.cacheProvider = new EphemeralCacheProvider();
     } else {
+      logDebug('Initializing IndexedDB Cache Provider.');
       this.cacheProvider = new IndexedDBCacheProvider();
     }
   }
-  constructor() {
+  constructor(private cacheSettings?: CacheSettings) {
     this.initializeNewProviders();
   }
   containsResultTree(queryId: string): boolean {
@@ -74,7 +79,7 @@ export class Cache {
 }
 
 class EphemeralCacheProvider implements CacheProvider {
-  private bdos = new Map<string, BackingDataObject>();
+  private bdos = new Map<string, EntityDataObject>();
   private resultTrees = new Map<string, ResultTree>();
 
   setResultTree(queryId: string, rt: ResultTree): void {
@@ -87,12 +92,12 @@ class EphemeralCacheProvider implements CacheProvider {
   createGlobalId(): string {
     return crypto.randomUUID();
   }
-  updateBackingData(backingData: BackingDataObject): void {
+  updateBackingData(backingData: EntityDataObject): void {
     this.bdos.set(backingData.globalID, backingData);
   }
-  getBdo(globalId: string): BackingDataObject {
+  getBdo(globalId: string): EntityDataObject {
     if (!this.bdos.has(globalId)) {
-      this.bdos.set(globalId, new BackingDataObject(globalId));
+      this.bdos.set(globalId, new EntityDataObject(globalId));
     }
     // Because of the above, we can guarantee that there will be a BDO at the globalId.
     return this.bdos.get(globalId)!;

@@ -6,7 +6,7 @@ export interface BackingDataObjectJson {
   globalID: string;
 }
 
-export class BackingDataObject {
+export class EntityDataObject {
   toStorableJson(): BackingDataObjectJson {
     return {
       globalID: this.globalID,
@@ -14,8 +14,8 @@ export class BackingDataObject {
       queriesReferenced: this.queriesReferenced
     };
   }
-  static fromStorableJson(json: BackingDataObjectJson): BackingDataObject {
-    const bdo = new BackingDataObject(json.globalID);
+  static fromStorableJson(json: BackingDataObjectJson): EntityDataObject {
+    const bdo = new EntityDataObject(json.globalID);
     bdo.map = new Map<string, FDCScalarValue>(json.map);
     bdo.queriesReferenced = json.queriesReferenced;
     return bdo;

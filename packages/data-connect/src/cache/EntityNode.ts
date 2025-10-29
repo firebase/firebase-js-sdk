@@ -1,16 +1,16 @@
 import { DataConnectError } from '../api';
 
-import { BackingDataObject, BackingDataObjectJson, FDCScalarValue } from './BackingDataObject';
 import { CacheProvider } from './CacheProvider';
+import { EntityDataObject, BackingDataObjectJson, FDCScalarValue } from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 
 export const GLOBAL_ID_KEY = 'cacheId';
-export class StubDataObject {
-  backingData?: BackingDataObject;
+export class EntityNode {
+  entityData?: EntityDataObject;
   scalars: { [key: string]: FDCScalarValue } = {};
-  references: { [key: string]: StubDataObject } = {};
+  references: { [key: string]: EntityNode } = {};
   objectLists: {
-    [key: string]: StubDataObject[];
+    [key: string]: EntityNode[];
   } = {};
   globalId?: string;
   impactedQueryRefs = new Set<string>();
@@ -24,7 +24,7 @@ export class StubDataObject {
     if (typeof values !== 'object' || Array.isArray(values)) {
       throw new DataConnectError(
         'invalid-argument',
-        'StubDataObject initialized with non-object value'
+        'EntityNode initialized with non-object value'
       );
     }
     if (values === null) {
@@ -36,7 +36,7 @@ export class StubDataObject {
       typeof values[GLOBAL_ID_KEY] === 'string'
     ) {
       this.globalId = values[GLOBAL_ID_KEY];
-      this.backingData = cacheProvider.getBdo(this.globalId);
+      this.entityData = cacheProvider.getBdo(this.globalId);
     }
     for (const key in values) {
       if (values.hasOwnProperty(key)) {
@@ -45,14 +45,14 @@ export class StubDataObject {
         }
         if (typeof values[key] === 'object') {
           if (Array.isArray(values[key])) {
-            const objArray: StubDataObject[] = [];
+            const objArray: EntityNode[] = [];
             const scalarArray: Array<NonNullable<FDCScalarValue>> = [];
             for (const value of values[key]) {
               if (typeof value === 'object') {
                 if (Array.isArray(value)) {
                   // TODO: What if it's an array of arrays?
                 } else {
-                  objArray.push(new StubDataObject(value, cacheProvider, this.acc));
+                  objArray.push(new EntityNode(value, cacheProvider, this.acc));
                 }
               } else {
                 scalarArray.push(value);
@@ -65,8 +65,8 @@ export class StubDataObject {
               );
             }
             if (scalarArray.length > 0) {
-              if (this.backingData) {
-                const impactedRefs = this.backingData.updateServerValue(key, scalarArray);
+              if (this.entityData) {
+                const impactedRefs = this.entityData.updateServerValue(key, scalarArray);
                 this.acc.add(impactedRefs);
               } else {
                 this.scalars[key] = scalarArray;
@@ -81,7 +81,7 @@ export class StubDataObject {
               this.scalars[key] = null;
               continue;
             }
-            const stubDataObject = new StubDataObject(
+            const stubDataObject = new EntityNode(
               values[key],
               cacheProvider,
               this.acc
@@ -89,9 +89,9 @@ export class StubDataObject {
             this.references[key] = stubDataObject;
           }
         } else {
-          if (this.backingData) {
+          if (this.entityData) {
             // TODO: Track only the fields we need for the BDO
-            const impactedRefs = this.backingData.updateServerValue(
+            const impactedRefs = this.entityData.updateServerValue(
               key,
               values[key]
             );
@@ -102,15 +102,15 @@ export class StubDataObject {
         }
       }
     }
-    if (this.backingData) {
-      cacheProvider.updateBackingData(this.backingData);
+    if (this.entityData) {
+      cacheProvider.updateBackingData(this.entityData);
     }
   }
   toJson(): object {
     const resultObject: object = {};
-    for (const key in this.backingData) {
-      if (this.backingData.hasOwnProperty(key)) {
-        resultObject[key] = this.backingData[key];
+    for (const key in this.entityData) {
+      if (this.entityData.hasOwnProperty(key)) {
+        resultObject[key] = this.entityData[key];
       }
     }
     // Scalars should never have stubdataobjects
@@ -133,23 +133,23 @@ export class StubDataObject {
     }
     return resultObject;
   }
-  static parseMap(map: {[key: string]: StubDataObject | StubDataObject[] | FDCScalarValue}, isSdo = false): typeof map {
+  static parseMap(map: {[key: string]: EntityNode | EntityNode[] | FDCScalarValue}, isSdo = false): typeof map {
     const newMap: typeof map = {};
     for (const key in map) {
       if(map.hasOwnProperty(key)) {
         if(Array.isArray(map[key])) {
-          newMap[key] = map[key].map(value => isSdo ? StubDataObject.fromStorableJson(value) : value);
+          newMap[key] = map[key].map(value => isSdo ? EntityNode.fromStorableJson(value) : value);
         } else {
-          newMap[key] = isSdo ? StubDataObject.fromStorableJson(map[key] as StubDataObjectJson) : map[key];
+          newMap[key] = isSdo ? EntityNode.fromStorableJson(map[key] as StubDataObjectJson) : map[key];
         }
       }
     }
     return newMap;
   }
-  static fromStorableJson(obj: StubDataObjectJson): StubDataObject {
-    const sdo = new StubDataObject();
+  static fromStorableJson(obj: StubDataObjectJson): EntityNode {
+    const sdo = new EntityNode();
     if(obj.backingData) {
-      sdo.backingData = BackingDataObject.fromStorableJson(obj.backingData);
+      sdo.entityData = EntityDataObject.fromStorableJson(obj.backingData);
     }
     sdo.acc = new ImpactedQueryRefsAccumulator();
     sdo.globalId = obj.globalID;
@@ -159,7 +159,7 @@ export class StubDataObject {
     sdo.objectLists = this.parseMap(obj.objectLists, true) as typeof sdo.objectLists;
     return sdo;
   }
-  getStorableMap(map: {[key: string]: StubDataObject | StubDataObject[]}): {[key: string]: StubDataObjectJson | StubDataObjectJson[]} {
+  getStorableMap(map: {[key: string]: EntityNode | EntityNode[]}): {[key: string]: StubDataObjectJson | StubDataObjectJson[]} {
     const newMap: {[key: string]: StubDataObjectJson | StubDataObjectJson[]} = {};
     for (const key in map) {
       if(map.hasOwnProperty(key)) {
@@ -179,8 +179,8 @@ export class StubDataObject {
       references: this.getStorableMap(this.references) as StubDataObjectJson['references'],
       objectLists: this.getStorableMap(this.objectLists) as StubDataObjectJson['objectLists']
     };
-    if(this.backingData) {
-      obj.backingData = this.backingData.toStorableJson();
+    if(this.entityData) {
+      obj.backingData = this.entityData.toStorableJson();
     }
     return obj;
   }

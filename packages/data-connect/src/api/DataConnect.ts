@@ -31,8 +31,6 @@ import {
 } from '@firebase/util';
 
 import { Cache as DataConnectCache } from '../cache/Cache';
-import { CacheProvider } from '../cache/CacheProvider';
-import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -88,7 +86,7 @@ export function parseOptions(fullHost: string): TransportOptions {
 /**
  * DataConnectOptions including project id
  */
-export interface DataConnectOptions extends ConnectorConfig {
+export interface DataConnectOptions extends ConnectorConfig, DataConnectInitOptions {
   projectId: string;
 }
 
@@ -124,7 +122,7 @@ export class DataConnect {
         this._transportOptions = parseOptions(host);
       }
     }
-    this.cache = new DataConnectCache();
+    this.cache = new DataConnectCache(this.dataConnectOptions.cacheSettings);
   }
   // @internal
   _useGeneratedSdk(): void {
@@ -257,47 +255,70 @@ export function connectDataConnectEmulator(
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
-export interface DataConnectConfigureOptions {
-  cacheProvider: CacheProvider
+// TODO: Can we do something to make sure that this is more tree-shakable?
+export enum Storage {
+  memory,
+  persistent
+}
+
+export interface CacheSettings {
+  storage: Storage;
+  maxSizeBytes: number;
+}
+
+export interface DataConnectInitOptions {
+  cacheSettings?: CacheSettings;
 }
 
 /**
  * Initialize DataConnect instance
  * @param options ConnectorConfig
  */
+export function getDataConnect(options: ConnectorConfig, extraOptions?: DataConnectInitOptions): DataConnect;
 export function getDataConnect(options: ConnectorConfig): DataConnect;
-/**
+/** 
  * Initialize DataConnect instance
  * @param app FirebaseApp to initialize to.
- * @param options ConnectorConfig
+ * @param connectorConfig ConnectorConfig
  */
 export function getDataConnect(
   app: FirebaseApp,
-  options: ConnectorConfig,
-  additionalOptions?: DataConnectConfigureOptions
+  connectorConfig: ConnectorConfig,
 ): DataConnect;
+
+/** 
+ * Initialize DataConnect instance
+ * @param app FirebaseApp to initialize to.
+ * @param connectorConfig ConnectorConfig
+ */
 export function getDataConnect(
-  appOrOptions: FirebaseApp | ConnectorConfig,
-  optionalOptionsOrCacheOptions?: ConnectorConfig | DataConnectConfigureOptions,
-  additionalOptionsOrCacheOptions?: DataConnectConfigureOptions
+  app: FirebaseApp,
+  connectorConfig: ConnectorConfig,
+  extraOptions: DataConnectInitOptions
+): DataConnect;
+
+export function getDataConnect(
+  appOrConnectorConfig: FirebaseApp | ConnectorConfig,
+  optionsOrConnectorConfig?: ConnectorConfig | DataConnectInitOptions,
+  extraOptions?: DataConnectInitOptions
 ): DataConnect {
   let app: FirebaseApp;
-  let dcOptions: ConnectorConfig;
-  let cacheOptions: DataConnectConfigureOptions;
-  if ('location' in appOrOptions) {
-    dcOptions = appOrOptions;
+  let connectorConfig: ConnectorConfig;
+  let options: DataConnectInitOptions;
+  if ('location' in appOrConnectorConfig) {
+    connectorConfig = appOrConnectorConfig;
     app = getApp();
-    cacheOptions = optionalOptionsOrCacheOptions as DataConnectConfigureOptions;
+    options = optionsOrConnectorConfig as DataConnectInitOptions;
   } else {
-    dcOptions = optionalOptionsOrCacheOptions as ConnectorConfig;
-    cacheOptions = additionalOptionsOrCacheOptions as DataConnectConfigureOptions;
-    app = appOrOptions;
+    app = appOrConnectorConfig;
+    connectorConfig = optionsOrConnectorConfig as ConnectorConfig;
+    options = extraOptions as DataConnectInitOptions;
   }
-  // TODO: initialize data connect with this.
-  if(!cacheOptions) {
-    // TODO: Make this a class that gets passed in.
-    cacheOptions.cacheProvider = new IndexedDBCacheProvider();
-  }
+
+  const dcOptions = {
+    ...options,
+    connectorConfig
+  };
 
   if (!app || Object.keys(app).length === 0) {
     app = getApp();
@@ -313,7 +334,7 @@ export function getDataConnect(
       return dcInstance;
     }
   }
-  validateDCOptions(dcOptions);
+  validateDCOptions(connectorConfig);
 
   logDebug('Creating new DataConnect instance');
   // Initialize with options.

@@ -1,10 +1,10 @@
-import { BackingDataObject } from './BackingDataObject';
+import { EntityDataObject } from './EntityDataObject';
 import { CacheProvider } from './CacheProvider';
 import { ResultTree } from './ResultTree';
 export const BDO_OBJECT_STORE_NAME = 'data-connect-bdos';
 export const SRT_OBJECT_STORE_NAME = 'data-connect-srts';
 export class IndexedDBCacheProvider implements CacheProvider {
-  private bdos = new Map<string, BackingDataObject>();
+  private bdos = new Map<string, EntityDataObject>();
   private resultTrees = new Map<string, ResultTree>();
   private dbPromise: Promise<IDBDatabase>;
   isIdbAvailable(): boolean {
@@ -83,7 +83,7 @@ export class IndexedDBCacheProvider implements CacheProvider {
       };
     });
   }
-  async commitBdoChanges(backingData: BackingDataObject): Promise<void> {
+  async commitBdoChanges(backingData: EntityDataObject): Promise<void> {
     if (!this.isIdbAvailable()) {
       return;
     }
@@ -118,14 +118,14 @@ export class IndexedDBCacheProvider implements CacheProvider {
   createGlobalId(): string {
     return crypto.randomUUID();
   }
-  getBdo(globalId: string): BackingDataObject {
+  getBdo(globalId: string): EntityDataObject {
     if (!this.bdos.has(globalId)) {
-      this.bdos.set(globalId, new BackingDataObject(globalId));
+      this.bdos.set(globalId, new EntityDataObject(globalId));
     }
     // Because of the above, we can guarantee that there will be a BDO at the globalId.
     return this.bdos.get(globalId)!;
   }
-  updateBackingData(backingData: BackingDataObject): void {
+  updateBackingData(backingData: EntityDataObject): void {
     this.bdos.set(backingData.globalID, backingData);
     void this.commitBdoChanges(backingData);
   }

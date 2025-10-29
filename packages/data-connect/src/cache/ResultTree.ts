@@ -1,10 +1,10 @@
-import { StubDataObject, StubDataObjectJson } from './StubDataObject';
+import { EntityNode, StubDataObjectJson } from './EntityNode';
 
 export class ResultTree {
   static parse(value: ResultTreeJson): ResultTree {
     const rt = new ResultTree(
       value.data,
-      StubDataObject.fromStorableJson(value.rootStub),
+      EntityNode.fromStorableJson(value.rootStub),
       value.ttlInMs,
       value.cachedAt,
       value.lastAccessed
@@ -13,7 +13,7 @@ export class ResultTree {
   }
   constructor(
     public readonly data: string,
-    private rootStub: StubDataObject,
+    private rootStub: EntityNode,
     private ttlInMs: number = 300_000,
     private readonly cachedAt: Date,
     private lastAccessed: Date
@@ -27,7 +27,7 @@ export class ResultTree {
   updateAccessed(): void {
     this.lastAccessed = new Date();
   }
-  getRootStub(): StubDataObject {
+  getRootStub(): EntityNode {
     return this.rootStub;
   }
 }
