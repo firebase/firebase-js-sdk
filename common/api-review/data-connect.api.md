@@ -114,6 +114,8 @@ export interface DataConnectSubscription<Data, Variables> {
     // (undocumented)
     errCallback?: (e?: DataConnectError) => void;
     // (undocumented)
+    onCompleteCallback?: () => void;
+    // (undocumented)
     unsubscribe: () => void;
     // (undocumented)
     userCallback: OnResultSubscription<Data, Variables>;
