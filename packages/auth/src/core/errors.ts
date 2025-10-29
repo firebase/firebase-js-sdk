@@ -560,6 +560,7 @@ export const AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY = {
   MISSING_MFA_INFO: 'auth/missing-multi-factor-info',
   MISSING_MFA_SESSION: 'auth/missing-multi-factor-session',
   MISSING_PHONE_NUMBER: 'auth/missing-phone-number',
+  MISSING_PASSWORD: 'auth/missing-password',
   MISSING_SESSION_INFO: 'auth/missing-verification-id',
   MODULE_DESTROYED: 'auth/app-deleted',
   NEED_CONFIRMATION: 'auth/account-exists-with-different-credential',

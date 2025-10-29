@@ -59,6 +59,35 @@ const browserPlugins = [
   terser(util.manglePrivatePropertiesOptions)
 ];
 
+// TODO - update the implementation to match all content in the declare module block.
+function declareModuleReplacePlugin() {
+  // The regex we created earlier
+  const moduleToReplace =
+    /declare module '\.\/\S+' \{\s+interface Firestore \{\s+pipeline\(\): PipelineSource<Pipeline>;\s+}\s*}/gm;
+
+  // What to replace it with (an empty string to remove it)
+  const replacement =
+    'interface Firestore {pipeline(): PipelineSource<Pipeline>;}';
+
+  return {
+    name: 'declare-module-replace',
+    generateBundle(options, bundle) {
+      const outputFileName = 'global_index.d.ts';
+      if (!bundle[outputFileName]) {
+        console.warn(
+          `[regexReplacePlugin] File not found in bundle: ${outputFileName}`
+        );
+        return;
+      }
+
+      const chunk = bundle[outputFileName];
+      if (chunk.type === 'chunk') {
+        chunk.code = chunk.code.replace(moduleToReplace, replacement);
+      }
+    }
+  };
+}
+
 const allBuilds = [
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
@@ -214,7 +243,7 @@ const allBuilds = [
     }
   },
   {
-    input: 'dist/firestore/src/index.d.ts',
+    input: 'dist/firestore/src/global.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
       format: 'es'
@@ -222,7 +251,9 @@ const allBuilds = [
     plugins: [
       dts({
         respectExternal: true
-      })
+      }),
+
+      declareModuleReplacePlugin()
     ]
   }
 ];

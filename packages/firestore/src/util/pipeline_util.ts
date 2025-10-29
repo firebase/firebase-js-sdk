@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { vector } from '../api';
+import { FirestoreError, vector } from '../api';
 import {
   _constant,
   AggregateFunction,
@@ -31,6 +31,7 @@ import {
 } from '../lite-api/expressions';
 import { VectorValue } from '../lite-api/vector_value';
 
+import { fail } from './assert';
 import { isPlainObject } from './input_validation';
 import { isFirestoreValue } from './proto';
 import { isString } from './types';
@@ -40,13 +41,29 @@ export function selectablesToMap(
 ): Map<string, Expression> {
   const result = new Map<string, Expression>();
   for (const selectable of selectables) {
+    let alias: string;
+    let expression: Expression;
     if (typeof selectable === 'string') {
-      result.set(selectable as string, field(selectable));
+      alias = selectable as string;
+      expression = field(selectable);
     } else if (selectable instanceof Field) {
-      result.set(selectable.alias, selectable.expr);
+      alias = selectable.alias;
+      expression = selectable.expr;
     } else if (selectable instanceof AliasedExpression) {
-      result.set(selectable.alias, selectable.expr);
+      alias = selectable.alias;
+      expression = selectable.expr;
+    } else {
+      fail(0x5319, '`selectable` has an unsupported type', { selectable });
     }
+
+    if (result.get(alias) !== undefined) {
+      throw new FirestoreError(
+        'invalid-argument',
+        `Duplicate alias or field '${alias}'`
+      );
+    }
+
+    result.set(alias, expression);
   }
   return result;
 }
@@ -56,6 +73,13 @@ export function aliasedAggregateToMap(
 ): Map<string, AggregateFunction> {
   return aliasedAggregatees.reduce(
     (map: Map<string, AggregateFunction>, selectable: AliasedAggregate) => {
+      if (map.get(selectable.alias) !== undefined) {
+        throw new FirestoreError(
+          'invalid-argument',
+          `Duplicate alias or field '${selectable.alias}'`
+        );
+      }
+
       map.set(selectable.alias, selectable.aggregate as AggregateFunction);
       return map;
     },

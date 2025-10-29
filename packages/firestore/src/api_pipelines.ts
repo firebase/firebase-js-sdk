@@ -54,24 +54,6 @@ export {
 } from './lite-api/stage_options';
 
 export {
-  Stage,
-  AddFields,
-  Aggregate,
-  Distinct,
-  CollectionSource,
-  CollectionGroupSource,
-  DatabaseSource,
-  DocumentsSource,
-  Where,
-  FindNearest,
-  Limit,
-  Offset,
-  Select,
-  Sort,
-  RawStage
-} from './lite-api/stage';
-
-export {
   field,
   constant,
   add,
@@ -98,7 +80,6 @@ export {
   logicalMaximum,
   logicalMinimum,
   exists,
-  isNan,
   reverse,
   byteLength,
   charLength,
@@ -141,9 +122,6 @@ export {
   isError,
   ifError,
   isAbsent,
-  isNull,
-  isNotNull,
-  isNotNan,
   map,
   mapRemove,
   mapMerge,
@@ -160,11 +138,10 @@ export {
   log,
   sqrt,
   stringReverse,
-  length as len,
+  length,
   abs,
   concat,
   currentTimestamp,
-  error,
   ifAbsent,
   join,
   log10,
@@ -175,10 +152,7 @@ export {
   FunctionExpression,
   Ordering,
   BooleanExpression,
-  AggregateFunction
-} from './lite-api/expressions';
-
-export type {
+  AggregateFunction,
   ExpressionType,
   AliasedAggregate,
   Selectable

@@ -263,19 +263,17 @@ export async function invokeExecutePipeline(
   );
 
   const result: PipelineStreamElement[] = [];
-  response
-    .filter(proto => !!proto.results)
-    .forEach(proto => {
-      if (proto.results!.length === 0) {
-        result.push(fromPipelineResponse(datastoreImpl.serializer, proto));
-      } else {
-        return proto.results!.forEach(document =>
-          result.push(
-            fromPipelineResponse(datastoreImpl.serializer, proto, document)
-          )
-        );
-      }
-    });
+  response.forEach(proto => {
+    if (!proto.results || proto.results!.length === 0) {
+      result.push(fromPipelineResponse(datastoreImpl.serializer, proto));
+    } else {
+      return proto.results!.forEach(document =>
+        result.push(
+          fromPipelineResponse(datastoreImpl.serializer, proto, document)
+        )
+      );
+    }
+  });
 
   return result;
 }

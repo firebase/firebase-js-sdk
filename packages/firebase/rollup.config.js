@@ -20,6 +20,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import pkg from './package.json';
 import { resolve } from 'path';
+import { existsSync } from 'fs';
 import resolveModule from '@rollup/plugin-node-resolve';
 import rollupTypescriptPlugin from 'rollup-plugin-typescript2';
 import sourcemaps from 'rollup-plugin-sourcemaps';
@@ -149,10 +150,12 @@ const cdnBuilds = [
     .map(component => {
       // It is needed for handling sub modules, for example firestore/lite which should produce firebase-firestore-lite.js
       // Otherwise, we will create a directory with '/' in the name.
-      const componentName = component.replace('/', '-');
+      const componentName = component.replaceAll('/', '-');
 
       return {
-        input: `${component}/index.ts`,
+        input: existsSync(`${component}/index.cdn.ts`)
+          ? `${component}/index.cdn.ts`
+          : `${component}/index.ts`,
         output: {
           file: `firebase-${componentName}.js`,
           sourcemap: true,

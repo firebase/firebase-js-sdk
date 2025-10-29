@@ -48,7 +48,6 @@ import {
   pipelineResultEqual,
   sum,
   descending,
-  isNan,
   map,
   execute,
   add,
@@ -97,9 +96,6 @@ import {
   ifError,
   trim,
   isAbsent,
-  isNull,
-  isNotNull,
-  isNotNan,
   timestampSubtract,
   mapRemove,
   mapMerge,
@@ -136,10 +132,9 @@ import {
   log,
   sqrt,
   stringReverse,
-  len as length,
+  length,
   abs,
   concat,
-  error,
   currentTimestamp,
   ifAbsent,
   join,
@@ -346,18 +341,30 @@ const timestampDeltaMS = 1000;
 
   describe('console support', () => {
     it('supports internal serialization to proto', async () => {
+      // Perform the same test as the console
       const pipeline = firestore
         .pipeline()
-        .collection('books')
-        .where(equal('awards.hugo', true))
-        .select(
-          'title',
-          field('nestedField.level.1'),
-          mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
-        );
+        .collection('customers')
+        .where(field('country').equal('United Kingdom'));
 
       const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
-      expect(proto).not.to.be.null;
+
+      const expectedStructuredPipelineProto =
+        '{"pipeline":{"stages":[{"name":"collection","options":{},"args":[{"referenceValue":"/customers"}]},{"name":"where","options":{},"args":[{"functionValue":{"name":"equal","args":[{"fieldReferenceValue":"country"},{"stringValue":"United Kingdom"}]}}]}]}}';
+      expect(JSON.stringify(proto.structuredPipeline)).to.equal(
+        expectedStructuredPipelineProto
+      );
+    });
+
+    it('performs validation', async () => {
+      expect(() => {
+        const pipeline = firestore
+          .pipeline()
+          .collection('customers')
+          .where(field('country').equal(new Map([])));
+
+        _internalPipelineToExecutePipelineRequestProto(pipeline);
+      }).to.throw();
     });
   });
 
@@ -878,6 +885,27 @@ const timestampDeltaMS = 1000;
         });
       });
 
+      it('throws on Duplicate aliases', async () => {
+        expect(() =>
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(countAll().as('count'), count('foo').as('count'))
+        ).to.throw("Duplicate alias or field 'count'");
+      });
+
+      it('throws on duplicate group aliases', async () => {
+        expect(() =>
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate({
+              accumulators: [countAll().as('count')],
+              groups: ['bax', field('bar').as('bax')]
+            })
+        ).to.throw("Duplicate alias or field 'bax'");
+      });
+
       it('supports aggregate options', async () => {
         let snapshot = await execute(
           firestore
@@ -1080,6 +1108,16 @@ const timestampDeltaMS = 1000;
         );
       });
 
+      it('throws on Duplicate aliases', async () => {
+        expect(() => {
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(constant(1).as('foo'), constant(2).as('foo'));
+        }).to.throw("Duplicate alias or field 'foo'");
+      });
+
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -1153,6 +1191,17 @@ const timestampDeltaMS = 1000;
         );
       });
 
+      it('throws on Duplicate aliases', async () => {
+        expect(() =>
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select('title', 'author')
+            .addFields(constant('bar').as('foo'), constant('baz').as('foo'))
+            .sort(field('author').ascending())
+        ).to.throw("Duplicate alias or field 'foo'");
+      });
+
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -1217,7 +1266,6 @@ const timestampDeltaMS = 1000;
             .select('title', 'author')
             .sort(field('author').ascending())
             .removeFields(field('author'))
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -1258,7 +1306,6 @@ const timestampDeltaMS = 1000;
             .removeFields({
               fields: [field('author'), 'genre']
             })
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -1299,7 +1346,6 @@ const timestampDeltaMS = 1000;
             .select('title', 'author')
             .sort(field('author').ascending())
             .removeFields(field('author'))
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -1340,7 +1386,6 @@ const timestampDeltaMS = 1000;
             .removeFields({
               fields: [field('author'), 'genre']
             })
-            .sort(field('author').ascending())
         );
         expectResults(
           snapshot,
@@ -2585,8 +2630,8 @@ const timestampDeltaMS = 1000;
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            isNull('rating').as('ratingIsNull'),
-            isNan('rating').as('ratingIsNaN'),
+            equal('rating', null).as('ratingIsNull'),
+            equal('rating', NaN).as('ratingIsNaN'),
             isError(divide(constant(1), constant(0))).as('isError'),
             ifError(divide(constant(1), constant(0)), constant('was error')).as(
               'ifError'
@@ -2598,8 +2643,8 @@ const timestampDeltaMS = 1000;
               .not()
               .as('ifErrorBooleanExpression'),
             isAbsent('foo').as('isAbsent'),
-            isNotNull('title').as('titleIsNotNull'),
-            isNotNan('cost').as('costIsNotNan'),
+            notEqual('title', null).as('titleIsNotNull'),
+            notEqual('cost', NaN).as('costIsNotNan'),
             exists('fooBarBaz').as('fooBarBazExists'),
             field('title').exists().as('titleExists')
           )
@@ -2624,8 +2669,8 @@ const timestampDeltaMS = 1000;
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            field('rating').isNull().as('ratingIsNull'),
-            field('rating').isNan().as('ratingIsNaN'),
+            field('rating').equal(null).as('ratingIsNull'),
+            field('rating').equal(NaN).as('ratingIsNaN'),
             divide(constant(1), constant(0)).isError().as('isError'),
             divide(constant(1), constant(0))
               .ifError(constant('was error'))
@@ -2636,8 +2681,8 @@ const timestampDeltaMS = 1000;
               .not()
               .as('ifErrorBooleanExpression'),
             field('foo').isAbsent().as('isAbsent'),
-            field('title').isNotNull().as('titleIsNotNull'),
-            field('cost').isNotNan().as('costIsNotNan')
+            field('title').notEqual(null).as('titleIsNotNull'),
+            field('cost').notEqual(NaN).as('costIsNotNan')
           )
       );
       expectResults(snapshot, {
@@ -3889,22 +3934,6 @@ const timestampDeltaMS = 1000;
       expect(
         now.toDate().getUTCSeconds() - new Date().getUTCSeconds()
       ).lessThan(5000);
-    });
-
-    // Not implemented in backend
-    // eslint-disable-next-line no-restricted-properties
-    it.skip('supports error', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(isError(error('test error')).as('error'))
-      );
-
-      expectResults(snapshot, {
-        'error': true
-      });
     });
 
     it('supports ifAbsent', async () => {

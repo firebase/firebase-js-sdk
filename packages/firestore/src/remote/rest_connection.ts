@@ -71,7 +71,7 @@ export abstract class RestConnection implements Connection {
     return false;
   }
 
-  constructor(private readonly databaseInfo: DatabaseInfo) {
+  constructor(protected readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
     const proto = databaseInfo.ssl ? 'https' : 'http';
     const projectId = encodeURIComponent(this.databaseId.projectId);
@@ -194,13 +194,17 @@ export abstract class RestConnection implements Connection {
     _forwardCredentials: boolean
   ): Promise<Resp>;
 
-  private makeUrl(rpcName: string, path: string): string {
+  protected makeUrl(rpcName: string, path: string): string {
     const urlRpcName = RPC_NAME_URL_MAPPING[rpcName];
     debugAssert(
       urlRpcName !== undefined,
       'Unknown REST mapping for: ' + rpcName
     );
-    return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+    let url = `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+    if (this.databaseInfo.apiKey) {
+      url = `${url}?key=${encodeURIComponent(this.databaseInfo.apiKey)}`;
+    }
+    return url;
   }
 
   /**

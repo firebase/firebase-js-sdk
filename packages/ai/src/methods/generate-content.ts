@@ -57,14 +57,14 @@ export async function generateContentStream(
   chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentStreamResult> {
-  const response = await callCloudOrDevice(
+  const callResult = await callCloudOrDevice(
     params,
     chromeAdapter,
     () => chromeAdapter!.generateContentStream(params),
     () =>
       generateContentStreamOnCloud(apiSettings, model, params, requestOptions)
   );
-  return processStream(response, apiSettings); // TODO: Map streaming responses
+  return processStream(callResult.response, apiSettings); // TODO: Map streaming responses
 }
 
 async function generateContentOnCloud(
@@ -93,18 +93,19 @@ export async function generateContent(
   chromeAdapter?: ChromeAdapter,
   requestOptions?: RequestOptions
 ): Promise<GenerateContentResult> {
-  const response = await callCloudOrDevice(
+  const callResult = await callCloudOrDevice(
     params,
     chromeAdapter,
     () => chromeAdapter!.generateContent(params),
     () => generateContentOnCloud(apiSettings, model, params, requestOptions)
   );
   const generateContentResponse = await processGenerateContentResponse(
-    response,
+    callResult.response,
     apiSettings
   );
   const enhancedResponse = createEnhancedContentResponse(
-    generateContentResponse
+    generateContentResponse,
+    callResult.inferenceSource
   );
   return {
     response: enhancedResponse

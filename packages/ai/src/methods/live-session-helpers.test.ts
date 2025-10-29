@@ -65,7 +65,7 @@ class MockLiveSession {
   isClosed = false;
   inConversation = false;
   send = sinon.stub();
-  sendMediaChunks = sinon.stub();
+  sendAudioRealtime = sinon.stub();
   sendFunctionResponses = sinon.stub();
   messageGenerator = new MockMessageGenerator();
   receive = (): MockMessageGenerator => this.messageGenerator;
@@ -226,8 +226,8 @@ describe('Audio Conversation Helpers', () => {
 
       await clock.tickAsync(1);
 
-      expect(liveSession.sendMediaChunks).to.have.been.calledOnce;
-      const [sentChunk] = liveSession.sendMediaChunks.getCall(0).args[0];
+      expect(liveSession.sendAudioRealtime).to.have.been.calledOnce;
+      const sentChunk = liveSession.sendAudioRealtime.getCall(0).args[0];
       expect(sentChunk.mimeType).to.equal('audio/pcm');
       expect(sentChunk.data).to.be.a('string');
       await controller.stop();

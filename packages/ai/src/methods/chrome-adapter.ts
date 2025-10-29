@@ -31,10 +31,14 @@ import { ChromeAdapter } from '../types/chrome-adapter';
 import {
   Availability,
   LanguageModel,
+  LanguageModelExpected,
   LanguageModelMessage,
   LanguageModelMessageContent,
   LanguageModelMessageRole
 } from '../types/language-model';
+
+// Defaults to support image inputs for convenience.
+const defaultExpectedInputs: LanguageModelExpected[] = [{ type: 'image' }];
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -47,16 +51,28 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   private isDownloading = false;
   private downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
+  onDeviceParams: OnDeviceParams = {
+    createOptions: {
+      expectedInputs: defaultExpectedInputs
+    }
+  };
   constructor(
     public languageModelProvider: LanguageModel,
     public mode: InferenceMode,
-    public onDeviceParams: OnDeviceParams = {
-      createOptions: {
-        // Defaults to support image inputs for convenience.
-        expectedInputs: [{ type: 'image' }]
+    onDeviceParams?: OnDeviceParams
+  ) {
+    if (onDeviceParams) {
+      this.onDeviceParams = onDeviceParams;
+      if (!this.onDeviceParams.createOptions) {
+        this.onDeviceParams.createOptions = {
+          expectedInputs: defaultExpectedInputs
+        };
+      } else if (!this.onDeviceParams.createOptions.expectedInputs) {
+        this.onDeviceParams.createOptions.expectedInputs =
+          defaultExpectedInputs;
       }
     }
-  ) {}
+  }
 
   /**
    * Checks if a given request can be made on-device.

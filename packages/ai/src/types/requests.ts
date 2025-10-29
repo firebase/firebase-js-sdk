@@ -184,6 +184,24 @@ export interface LiveGenerationConfig {
    * The modalities of the response.
    */
   responseModalities?: ResponseModality[];
+  /**
+   * Enables transcription of audio input.
+   *
+   * When enabled, the model will respond with transcriptions of your audio input in the `inputTranscriptions` property
+   * in {@link LiveServerContent} messages. Note that the transcriptions are broken up across
+   * messages, so you may only receive small amounts of text per message. For example, if you ask the model
+   * "How are you today?", the model may transcribe that input across three messages, broken up as "How a", "re yo", "u today?".
+   */
+  inputAudioTranscription?: AudioTranscriptionConfig;
+  /**
+   * Enables transcription of audio input.
+   *
+   * When enabled, the model will respond with transcriptions of its audio output in the `outputTranscription` property
+   * in {@link LiveServerContent} messages. Note that the transcriptions are broken up across
+   * messages, so you may only receive small amounts of text per message. For example, if the model says
+   * "How are you today?", the model may transcribe that output across three messages, broken up as "How a", "re yo", "u today?".
+   */
+  outputAudioTranscription?: AudioTranscriptionConfig;
 }
 
 /**
@@ -478,3 +496,8 @@ export interface SpeechConfig {
    */
   voiceConfig?: VoiceConfig;
 }
+
+/**
+ * The audio transcription configuration.
+ */
+export interface AudioTranscriptionConfig {}

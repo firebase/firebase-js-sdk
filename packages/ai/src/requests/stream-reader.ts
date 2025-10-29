@@ -28,7 +28,11 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
-import { BackendType, URLContextMetadata } from '../public-types';
+import {
+  BackendType,
+  InferenceSource,
+  URLContextMetadata
+} from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -42,7 +46,8 @@ const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
  */
 export function processStream(
   response: Response,
-  apiSettings: ApiSettings
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
 ): GenerateContentStreamResult {
   const inputStream = response.body!.pipeThrough(
     new TextDecoderStream('utf8', { fatal: true })
@@ -51,14 +56,15 @@ export function processStream(
     getResponseStream<GenerateContentResponse>(inputStream);
   const [stream1, stream2] = responseStream.tee();
   return {
-    stream: generateResponseSequence(stream1, apiSettings),
-    response: getResponsePromise(stream2, apiSettings)
+    stream: generateResponseSequence(stream1, apiSettings, inferenceSource),
+    response: getResponsePromise(stream2, apiSettings, inferenceSource)
   };
 }
 
 async function getResponsePromise(
   stream: ReadableStream<GenerateContentResponse>,
-  apiSettings: ApiSettings
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
 ): Promise<EnhancedGenerateContentResponse> {
   const allResponses: GenerateContentResponse[] = [];
   const reader = stream.getReader();
@@ -71,7 +77,10 @@ async function getResponsePromise(
           generateContentResponse as GoogleAIGenerateContentResponse
         );
       }
-      return createEnhancedContentResponse(generateContentResponse);
+      return createEnhancedContentResponse(
+        generateContentResponse,
+        inferenceSource
+      );
     }
 
     allResponses.push(value);
@@ -80,7 +89,8 @@ async function getResponsePromise(
 
 async function* generateResponseSequence(
   stream: ReadableStream<GenerateContentResponse>,
-  apiSettings: ApiSettings
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
 ): AsyncGenerator<EnhancedGenerateContentResponse> {
   const reader = stream.getReader();
   while (true) {
@@ -94,10 +104,11 @@ async function* generateResponseSequence(
       enhancedResponse = createEnhancedContentResponse(
         GoogleAIMapper.mapGenerateContentResponse(
           value as GoogleAIGenerateContentResponse
-        )
+        ),
+        inferenceSource
       );
     } else {
-      enhancedResponse = createEnhancedContentResponse(value);
+      enhancedResponse = createEnhancedContentResponse(value, inferenceSource);
     }
 
     const firstCandidate = enhancedResponse.candidates?.[0];

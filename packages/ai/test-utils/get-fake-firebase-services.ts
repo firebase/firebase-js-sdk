@@ -21,10 +21,11 @@ import {
   _registerComponent,
   _addOrOverwriteComponent
 } from '@firebase/app';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, InstanceFactory } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { AI_TYPE } from '../src/constants';
-import { factory } from '../src/factory-browser';
+import { factory as factoryNode } from '../src/factory-node';
+import { ChromeAdapter, InferenceMode } from '../src/types';
 
 const fakeConfig = {
   projectId: 'projectId',
@@ -34,10 +35,13 @@ const fakeConfig = {
   storageBucket: 'storageBucket'
 };
 
-export function getFullApp(fakeAppParams?: {
-  appId?: string;
-  apiKey?: string;
-}): FirebaseApp {
+export function getFullApp(
+  fakeAppParams?: {
+    appId?: string;
+    apiKey?: string;
+  },
+  factory: InstanceFactory<'AI'> = factoryNode
+): FirebaseApp {
   _registerComponent(
     new Component(AI_TYPE, factory, ComponentType.PUBLIC).setMultipleInstances(
       true
@@ -69,3 +73,12 @@ export function getFullApp(fakeAppParams?: {
   );
   return app;
 }
+
+export const fakeChromeAdapter: ChromeAdapter = {
+  mode: InferenceMode.PREFER_ON_DEVICE,
+  // Individual tests may stub this to resolve true as needed.
+  isAvailable: () => Promise.resolve(false),
+  generateContent: () => Promise.resolve({} as Response),
+  generateContentStream: () => Promise.resolve({} as Response),
+  countTokens: () => Promise.resolve({} as Response)
+};

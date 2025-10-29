@@ -722,34 +722,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * Creates an expression that checks if this expression evaluates to 'NaN' (Not a Number).
-   *
-   * ```typescript
-   * // Check if the result of a calculation is NaN
-   * field("value").divide(0).isNaN();
-   * ```
-   *
-   * @return A new `Expr` representing the 'isNaN' check.
-   */
-  isNan(): BooleanExpression {
-    return new BooleanExpression('is_nan', [this], 'isNan');
-  }
-
-  /**
-   * Creates an expression that checks if this expression evaluates to 'Null'.
-   *
-   * ```typescript
-   * // Check if the result of a calculation is NaN
-   * field("value").isNull();
-   * ```
-   *
-   * @return A new `Expr` representing the 'isNull' check.
-   */
-  isNull(): BooleanExpression {
-    return new BooleanExpression('is_null', [this], 'isNull');
-  }
-
-  /**
    * Creates an expression that checks if a field exists in the document.
    *
    * ```typescript
@@ -1798,38 +1770,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   isAbsent(): BooleanExpression {
     return new BooleanExpression('is_absent', [this], 'isAbsent');
-  }
-
-  /**
-   * @beta
-   *
-   * Creates an expression that checks if tbe result of an expression is not null.
-   *
-   * ```typescript
-   * // Check if the value of the 'name' field is not null
-   * field("name").isNotNull();
-   * ```
-   *
-   * @return A new {@code BooleanExpr} representing the 'isNotNull' check.
-   */
-  isNotNull(): BooleanExpression {
-    return new BooleanExpression('is_not_null', [this], 'isNotNull');
-  }
-
-  /**
-   * @beta
-   *
-   * Creates an expression that checks if the results of this expression is NOT 'NaN' (Not a Number).
-   *
-   * ```typescript
-   * // Check if the result of a calculation is NOT NaN
-   * field("value").divide(0).isNotNan();
-   * ```
-   *
-   * @return A new {@code Expr} representing the 'isNaN' check.
-   */
-  isNotNan(): BooleanExpression {
-    return new BooleanExpression('is_not_nan', [this], 'isNotNan');
   }
 
   /**
@@ -3089,105 +3029,6 @@ export function isAbsent(value: Expression): BooleanExpression;
 export function isAbsent(field: string): BooleanExpression;
 export function isAbsent(value: Expression | string): BooleanExpression {
   return fieldOrExpression(value).isAbsent();
-}
-
-/**
- * @beta
- *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
- *
- * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(field("value").divide(0));
- * ```
- *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
- */
-export function isNull(value: Expression): BooleanExpression;
-
-/**
- * @beta
- *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
- *
- * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
- * ```
- *
- * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
- */
-export function isNull(value: string): BooleanExpression;
-export function isNull(value: Expression | string): BooleanExpression {
-  return fieldOrExpression(value).isNull();
-}
-
-/**
- * @beta
- *
- * Creates an expression that checks if tbe result of an expression is not null.
- *
- * ```typescript
- * // Check if the value of the 'name' field is not null
- * isNotNull(field("name"));
- * ```
- *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
- */
-export function isNotNull(value: Expression): BooleanExpression;
-
-/**
- * @beta
- *
- * Creates an expression that checks if tbe value of a field is not null.
- *
- * ```typescript
- * // Check if the value of the 'name' field is not null
- * isNotNull("name");
- * ```
- *
- * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
- */
-export function isNotNull(value: string): BooleanExpression;
-export function isNotNull(value: Expression | string): BooleanExpression {
-  return fieldOrExpression(value).isNotNull();
-}
-
-/**
- * @beta
- *
- * Creates an expression that checks if the results of this expression is NOT 'NaN' (Not a Number).
- *
- * ```typescript
- * // Check if the result of a calculation is NOT NaN
- * isNotNaN(field("value").divide(0));
- * ```
- *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNotNaN' check.
- */
-export function isNotNan(value: Expression): BooleanExpression;
-
-/**
- * @beta
- *
- * Creates an expression that checks if the results of this expression is NOT 'NaN' (Not a Number).
- *
- * ```typescript
- * // Check if the value of a field is NOT NaN
- * isNotNaN("value");
- * ```
- *
- * @param value The name of the field to check.
- * @return A new {@code Expr} representing the 'isNotNaN' check.
- */
-export function isNotNan(value: string): BooleanExpression;
-export function isNotNan(value: Expression | string): BooleanExpression {
-  return fieldOrExpression(value).isNotNan();
 }
 
 /**
@@ -5075,39 +4916,6 @@ export function exists(valueOrField: Expression | string): BooleanExpression {
 /**
  * @beta
  *
- * Creates an expression that checks if an expression evaluates to 'NaN' (Not a Number).
- *
- * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN(field("value").divide(0));
- * ```
- *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
- */
-export function isNan(value: Expression): BooleanExpression;
-
-/**
- * @beta
- *
- * Creates an expression that checks if a field's value evaluates to 'NaN' (Not a Number).
- *
- * ```typescript
- * // Check if the result of a calculation is NaN
- * isNaN("value");
- * ```
- *
- * @param fieldName The name of the field to check.
- * @return A new {@code Expr} representing the 'isNaN' check.
- */
-export function isNan(fieldName: string): BooleanExpression;
-export function isNan(value: Expression | string): BooleanExpression {
-  return fieldOrExpression(value).isNan();
-}
-
-/**
- * @beta
- *
  * Creates an expression that reverses a string.
  *
  * ```typescript
@@ -6882,25 +6690,6 @@ export function timestampSubtract(
  */
 export function currentTimestamp(): FunctionExpression {
   return new FunctionExpression('current_timestamp', [], 'currentTimestamp');
-}
-
-/**
- * Creates an expression that raises an error with the given message. This could be useful for
- * debugging purposes.
- *
- * ```typescript
- * // Raise an error with the message "simulating an evaluation error".
- * error("simulating an evaluation error")
- * ```
- *
- * @return A new Expression representing the error() operation.
- */
-export function error(message: string): Expression {
-  return new FunctionExpression(
-    'error',
-    [constant(message)],
-    'currentTimestamp'
-  );
 }
 
 /**

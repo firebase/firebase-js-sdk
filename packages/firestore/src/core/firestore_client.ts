@@ -146,7 +146,11 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo,
+    /**
+     * @internal
+     * Exposed for testing
+     */
+    public _databaseInfo: DatabaseInfo,
     componentProvider?: {
       _offline: OfflineComponentProvider;
       _online: OnlineComponentProvider;
@@ -167,7 +171,7 @@ export class FirestoreClient {
   get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
-      databaseInfo: this.databaseInfo,
+      databaseInfo: this._databaseInfo,
       clientId: this.clientId,
       authCredentials: this.authCredentials,
       appCheckCredentials: this.appCheckCredentials,

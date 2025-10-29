@@ -168,4 +168,35 @@ describe('LiveGenerativeModel', () => {
     mockHandler.simulateServerMessage({ setupComplete: true });
     await connectPromise;
   });
+  it('connect() should deconstruct generationConfig to send transcription configs in top level setup', async () => {
+    const model = new LiveGenerativeModel(
+      fakeAI,
+      {
+        model: 'gemini-pro',
+        generationConfig: {
+          temperature: 0.8,
+          inputAudioTranscription: {},
+          outputAudioTranscription: {}
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'Be a pirate' }] }
+      },
+      mockHandler
+    );
+    const connectPromise = model.connect();
+
+    // Wait for setup message
+    await clock.runAllAsync();
+
+    const sentData = JSON.parse(mockHandler.send.getCall(0).args[0]);
+    // inputAudioTranscription and outputAudioTranscription should be at the top-level setup message,
+    // rather than in the generationConfig.
+    expect(sentData.setup.generationConfig).to.deep.equal({ temperature: 0.8 });
+    expect(sentData.setup.inputAudioTranscription).to.deep.equal({});
+    expect(sentData.setup.outputAudioTranscription).to.deep.equal({});
+    expect(sentData.setup.systemInstruction.parts[0].text).to.equal(
+      'Be a pirate'
+    );
+    mockHandler.simulateServerMessage({ setupComplete: true });
+    await connectPromise;
+  });
 });

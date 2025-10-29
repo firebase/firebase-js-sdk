@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { InferenceMode } from './enums';
 import { CountTokensRequest, GenerateContentRequest } from './requests';
 
 /**
@@ -27,6 +28,10 @@ import { CountTokensRequest, GenerateContentRequest } from './requests';
  * @beta
  */
 export interface ChromeAdapter {
+  /**
+   * @internal
+   */
+  mode: InferenceMode;
   /**
    * Checks if the on-device model is capable of handling a given
    * request.

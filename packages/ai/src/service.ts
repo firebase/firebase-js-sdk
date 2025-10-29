@@ -16,7 +16,13 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { AI, AIOptions, InferenceMode, OnDeviceParams } from './public-types';
+import {
+  AI,
+  AIOptions,
+  ChromeAdapter,
+  InferenceMode,
+  OnDeviceParams
+} from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -27,7 +33,6 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Backend, VertexAIBackend } from './backend';
-import { ChromeAdapterImpl } from './methods/chrome-adapter';
 
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
@@ -44,7 +49,7 @@ export class AIService implements AI, _FirebaseService {
       mode: InferenceMode,
       window?: Window,
       params?: OnDeviceParams
-    ) => ChromeAdapterImpl | undefined
+    ) => ChromeAdapter | undefined
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     const auth = authProvider?.getImmediate({ optional: true });

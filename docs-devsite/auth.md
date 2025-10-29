@@ -1914,6 +1914,7 @@ AUTH_ERROR_CODES_MAP_DO_NOT_USE_INTERNALLY: {
     readonly MISSING_MFA_INFO: "auth/missing-multi-factor-info";
     readonly MISSING_MFA_SESSION: "auth/missing-multi-factor-session";
     readonly MISSING_PHONE_NUMBER: "auth/missing-phone-number";
+    readonly MISSING_PASSWORD: "auth/missing-password";
     readonly MISSING_SESSION_INFO: "auth/missing-verification-id";
     readonly MODULE_DESTROYED: "auth/app-deleted";
     readonly NEED_CONFIRMATION: "auth/account-exists-with-different-credential";

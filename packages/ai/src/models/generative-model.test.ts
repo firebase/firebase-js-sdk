@@ -20,7 +20,8 @@ import {
   FunctionCallingMode,
   AI,
   InferenceMode,
-  AIErrorCode
+  AIErrorCode,
+  ChromeAdapter
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -30,9 +31,9 @@ import {
 } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
 import { VertexAIBackend } from '../backend';
-import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -50,12 +51,6 @@ const fakeAI: AI = {
   backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
-
-const fakeChromeAdapter = new ChromeAdapterImpl(
-  // @ts-expect-error
-  undefined,
-  InferenceMode.PREFER_ON_DEVICE
-);
 
 describe('GenerativeModel', () => {
   it('passes params through to generateContent', async () => {
@@ -436,7 +431,7 @@ describe('GenerativeModel', () => {
 
 describe('GenerativeModel dispatch logic', () => {
   let makeRequestStub: SinonStub;
-  let mockChromeAdapter: ChromeAdapterImpl;
+  let mockChromeAdapter: ChromeAdapter;
 
   function stubMakeRequest(stream?: boolean): void {
     if (stream) {
