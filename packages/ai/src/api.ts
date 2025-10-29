@@ -161,7 +161,7 @@ export function getGenerativeModel(
  * @throws If the `apiKey` or `projectId` fields are missing in your
  * Firebase config.
  *
- * @beta
+ * @public
  */
 export function getImagenModel(
   ai: AI,
