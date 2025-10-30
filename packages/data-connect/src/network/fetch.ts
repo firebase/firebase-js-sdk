@@ -56,9 +56,9 @@ export function dcFetch<T, U>(
   url: string,
   body: DataConnectFetchBody<U>,
   { signal }: AbortController,
-  appId: string | null,
+  appId: string | null | undefined,
   accessToken: string | null,
-  appCheckToken: string | null,
+  appCheckToken: string | null | undefined,
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType,
   _isUsingEmulator: boolean
@@ -135,7 +135,7 @@ interface MessageObject {
   message?: string;
 }
 function getMessage(obj: MessageObject): string {
-  if ('message' in obj) {
+  if ('message' in obj && obj.message) {
     return obj.message;
   }
   return JSON.stringify(obj);
