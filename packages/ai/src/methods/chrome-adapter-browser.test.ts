@@ -29,7 +29,6 @@ import {
 import { match, stub } from 'sinon';
 import { GenerateContentRequest, AIErrorCode, InferenceMode } from '../types';
 import { Schema } from '../api';
-import { isNode } from '@firebase/util';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -54,9 +53,6 @@ async function toStringArray(
 }
 
 describe('ChromeAdapter', () => {
-  if (isNode()) {
-    return;
-  }
   describe('constructor', () => {
     it('sets image as expected input type by default', async () => {
       const languageModelProvider = {
@@ -837,7 +833,7 @@ describe('chromeAdapterFactory', () => {
     const fakeLanguageModel = {} as LanguageModel;
     const adapter = chromeAdapterFactory(
       InferenceMode.PREFER_ON_DEVICE,
-      { LanguageModel: fakeLanguageModel } as any,
+      { LanguageModel: fakeLanguageModel } as Window,
       { createOptions: {} }
     );
     expect(adapter?.languageModelProvider).to.equal(fakeLanguageModel);
