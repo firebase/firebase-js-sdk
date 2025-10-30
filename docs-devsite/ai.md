@@ -61,6 +61,7 @@ The Firebase AI Web SDK.
 |  [AI](./ai.ai.md#ai_interface) | An instance of the Firebase AI SDK.<!-- -->Do not create this instance directly. Instead, use [getAI()](./ai.md#getai_a94a413)<!-- -->. |
 |  [AIOptions](./ai.aioptions.md#aioptions_interface) | Options for initializing the AI service using [getAI()](./ai.md#getai_a94a413)<!-- -->. This allows specifying which backend to use (Vertex AI Gemini API or Gemini Developer API) and configuring its specific options (like location for Vertex AI). |
 |  [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface) | <b><i>(Public Preview)</i></b> A controller for managing an active audio conversation. |
+|  [AudioTranscriptionConfig](./ai.audiotranscriptionconfig.md#audiotranscriptionconfig_interface) | The audio transcription configuration. |
 |  [BaseParams](./ai.baseparams.md#baseparams_interface) | Base parameters for a number of methods. |
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b><i>(Public Preview)</i></b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
@@ -139,6 +140,7 @@ The Firebase AI Web SDK.
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
+|  [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of audio. This can be returned from a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) if transcription is enabled with the <code>inputAudioTranscription</code> or <code>outputAudioTranscription</code> properties on the [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface)<!-- -->. |
 |  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
 |  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
 |  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |

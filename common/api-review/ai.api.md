@@ -93,6 +93,10 @@ export interface AudioConversationController {
 }
 
 // @public
+export interface AudioTranscriptionConfig {
+}
+
+// @public
 export abstract class Backend {
     protected constructor(type: BackendType);
     readonly backendType: BackendType;
@@ -157,6 +161,8 @@ export interface ChromeAdapter {
     generateContent(request: GenerateContentRequest): Promise<Response>;
     generateContentStream(request: GenerateContentRequest): Promise<Response>;
     isAvailable(request: GenerateContentRequest): Promise<boolean>;
+    // @internal (undocumented)
+    mode: InferenceMode;
 }
 
 // @public
@@ -936,7 +942,9 @@ export interface LanguageModelPromptOptions {
 // @beta
 export interface LiveGenerationConfig {
     frequencyPenalty?: number;
+    inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
+    outputAudioTranscription?: AudioTranscriptionConfig;
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
@@ -989,8 +997,10 @@ export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveRespon
 
 // @beta
 export interface LiveServerContent {
+    inputTranscription?: Transcription;
     interrupted?: boolean;
     modelTurn?: Content;
+    outputTranscription?: Transcription;
     turnComplete?: boolean;
     // (undocumented)
     type: 'serverContent';
@@ -1386,6 +1396,11 @@ export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTo
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+}
+
+// @beta
+export interface Transcription {
+    text?: string;
 }
 
 // @public

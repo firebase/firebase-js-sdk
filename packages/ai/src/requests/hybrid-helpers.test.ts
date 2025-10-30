@@ -22,18 +22,18 @@ import {
   GenerateContentRequest,
   InferenceMode,
   AIErrorCode,
+  ChromeAdapter,
   InferenceSource
 } from '../types';
 import { AIError } from '../errors';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 
 use(sinonChai);
 use(chaiAsPromised);
 
 describe('callCloudOrDevice', () => {
-  let chromeAdapter: SinonStubbedInstance<ChromeAdapterImpl>;
+  let chromeAdapter: SinonStubbedInstance<ChromeAdapter>;
   let onDeviceCall: SinonStub;
   let inCloudCall: SinonStub;
   let request: GenerateContentRequest;

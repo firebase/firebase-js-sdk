@@ -35,7 +35,6 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
-  InferenceMode,
   Language,
   Outcome
 } from '../types';
@@ -44,16 +43,10 @@ import { Task } from '../requests/request';
 import { AIError } from '../api';
 import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
-
-const fakeChromeAdapter = new ChromeAdapterImpl(
-  // @ts-expect-error
-  undefined,
-  InferenceMode.PREFER_ON_DEVICE
-);
 
 const fakeApiSettings: ApiSettings = {
   apiKey: 'key',

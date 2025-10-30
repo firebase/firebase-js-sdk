@@ -18,6 +18,8 @@ toc:
     path: /docs/reference/js/ai.arrayschema.md
   - title: AudioConversationController
     path: /docs/reference/js/ai.audioconversationcontroller.md
+  - title: AudioTranscriptionConfig
+    path: /docs/reference/js/ai.audiotranscriptionconfig.md
   - title: Backend
     path: /docs/reference/js/ai.backend.md
   - title: BaseParams
@@ -208,6 +210,8 @@ toc:
     path: /docs/reference/js/ai.thinkingconfig.md
   - title: ToolConfig
     path: /docs/reference/js/ai.toolconfig.md
+  - title: Transcription
+    path: /docs/reference/js/ai.transcription.md
   - title: URLContext
     path: /docs/reference/js/ai.urlcontext.md
   - title: URLContextMetadata

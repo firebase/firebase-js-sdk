@@ -27,7 +27,7 @@ import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -51,12 +51,6 @@ const fakeGoogleAIApiSettings: ApiSettings = {
 const fakeRequestParams: CountTokensRequest = {
   contents: [{ parts: [{ text: 'hello' }], role: 'user' }]
 };
-
-const fakeChromeAdapter = new ChromeAdapterImpl(
-  // @ts-expect-error
-  undefined,
-  InferenceMode.PREFER_ON_DEVICE
-);
 
 describe('countTokens()', () => {
   afterEach(() => {
@@ -201,11 +195,10 @@ describe('countTokens()', () => {
     });
   });
   it('throws if mode is ONLY_ON_DEVICE', async () => {
-    const chromeAdapter = new ChromeAdapterImpl(
-      // @ts-expect-error
-      undefined,
-      InferenceMode.ONLY_ON_DEVICE
-    );
+    const chromeAdapter = {
+      ...fakeChromeAdapter,
+      mode: InferenceMode.ONLY_ON_DEVICE
+    };
     await expect(
       countTokens(fakeApiSettings, 'model', fakeRequestParams, chromeAdapter)
     ).to.be.rejectedWith(

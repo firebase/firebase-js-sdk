@@ -20,11 +20,11 @@ import { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { Content, GenerateContentStreamResult, InferenceMode } from '../types';
+import { Content, GenerateContentStreamResult } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -36,12 +36,6 @@ const fakeApiSettings: ApiSettings = {
   location: 'us-central1',
   backend: new VertexAIBackend()
 };
-
-const fakeChromeAdapter = new ChromeAdapterImpl(
-  // @ts-expect-error
-  undefined,
-  InferenceMode.PREFER_ON_DEVICE
-);
 
 describe('ChatSession', () => {
   afterEach(() => {
