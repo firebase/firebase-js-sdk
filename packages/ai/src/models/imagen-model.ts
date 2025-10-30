@@ -16,7 +16,7 @@
  */
 
 import { AI } from '../public-types';
-import { Task, makeRequest } from '../requests/request';
+import { makeRequest, Task } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
 import {

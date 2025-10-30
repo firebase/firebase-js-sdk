@@ -27,17 +27,18 @@ import {
 import { logger } from '../logger';
 import { BackendType } from '../public-types';
 
-export enum Task {
+export const enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
   COUNT_TOKENS = 'countTokens',
   PREDICT = 'predict'
 }
 
-export type ServerPromptTemplateTask =
-  | 'templateGenerateContent'
-  | 'templateStreamGenerateContent'
-  | 'templatePredict';
+export const enum ServerPromptTemplateTask {
+  TEMPLATE_GENERATE_CONTENT = 'templateGenerateContent',
+  TEMPLATE_STREAM_GENERATE_CONTENT = 'templateStreamGenerateContent',
+  TEMPLATE_PREDICT = 'templatePredict'
+}
 
 interface BaseRequestURLParams {
   apiSettings: ApiSettings;

@@ -22,7 +22,11 @@ import {
   GenerateContentStreamResult,
   RequestOptions
 } from '../types';
-import { Task, makeRequest } from '../requests/request';
+import {
+  makeRequest,
+  ServerPromptTemplateTask,
+  Task
+} from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
@@ -98,7 +102,7 @@ export async function templateGenerateContent(
 ): Promise<GenerateContentResult> {
   const response = await makeRequest(
     {
-      task: 'templateGenerateContent',
+      task: ServerPromptTemplateTask.TEMPLATE_GENERATE_CONTENT,
       templateId,
       apiSettings,
       stream: false,
@@ -126,7 +130,7 @@ export async function templateGenerateContentStream(
 ): Promise<GenerateContentStreamResult> {
   const response = await makeRequest(
     {
-      task: 'templateStreamGenerateContent',
+      task: ServerPromptTemplateTask.TEMPLATE_STREAM_GENERATE_CONTENT,
       templateId,
       apiSettings,
       stream: true,

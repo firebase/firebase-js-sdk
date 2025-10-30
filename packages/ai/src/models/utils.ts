@@ -21,6 +21,13 @@ import { AI, AIErrorCode } from '../public-types';
 import { AIService } from '../service';
 import { ApiSettings } from '../types/internal';
 
+/**
+ * Initializes an {@link ApiSettings} object from an {@link AI} instance.
+ *
+ * If this is a Server App, the {@link ApiSettings} object's `getAppCheckToken()` will resolve
+ * with the `FirebaseServerAppSettings.appCheckToken`, instead of requiring that an App Check
+ * instance is initialized.
+ */
 export function initApiSettings(ai: AI): ApiSettings {
   if (!ai.app?.options?.apiKey) {
     throw new AIError(

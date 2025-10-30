@@ -22,6 +22,7 @@ import {
   getTemplateImagenModel
 } from '../src';
 import { testConfigs } from './constants';
+import { STAGING_URL } from '../src/constants';
 
 const templateBackendSuffix = (
   backendType: BackendType
@@ -35,7 +36,7 @@ describe('Prompt templates', function () {
       describe('Generative Model', () => {
         it('successfully generates content', async () => {
           const model = getTemplateGenerativeModel(testConfig.ai, {
-            baseUrl: 'https://staging-firebasevertexai.sandbox.googleapis.com'
+            baseUrl: STAGING_URL
           });
           const { response } = await model.generateContent(
             `sassy-greeting-${templateBackendSuffix(
@@ -49,7 +50,7 @@ describe('Prompt templates', function () {
       describe('Imagen model', async () => {
         it('successfully generates images', async () => {
           const model = getTemplateImagenModel(testConfig.ai, {
-            baseUrl: 'https://staging-firebasevertexai.sandbox.googleapis.com'
+            baseUrl: STAGING_URL
           });
           const { images } = await model.generateImages(
             `portrait-${templateBackendSuffix(

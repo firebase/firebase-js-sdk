@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import {
   ImagenInlineImage
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
-import { makeRequest } from '../requests/request';
+import { makeRequest, ServerPromptTemplateTask } from '../requests/request';
 import { handlePredictResponse } from '../requests/response-helpers';
 import { initApiSettings } from './utils';
 
@@ -68,7 +68,7 @@ export class TemplateImagenModel {
   ): Promise<ImagenGenerationResponse<ImagenInlineImage>> {
     const response = await makeRequest(
       {
-        task: 'templatePredict',
+        task: ServerPromptTemplateTask.TEMPLATE_PREDICT,
         templateId,
         apiSettings: this._apiSettings,
         stream: false,
