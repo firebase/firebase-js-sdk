@@ -18,11 +18,10 @@
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import { restore, stub } from 'sinon';
-import { AI, Content } from '../public-types';
+import { AI } from '../public-types';
 import { VertexAIBackend } from '../backend';
 import { TemplateGenerativeModel } from './template-generative-model';
 import * as generateContentMethods from '../methods/generate-content';
-import { TemplateChatSession } from '../methods/template-chat-session';
 
 use(sinonChai);
 
@@ -92,26 +91,6 @@ describe('TemplateGenerativeModel', () => {
         { inputs: TEMPLATE_VARS },
         { timeout: 5000 }
       );
-    });
-  });
-
-  describe('startChat', () => {
-    it('should return a TemplateChatSession instance', () => {
-      const model = new TemplateGenerativeModel(fakeAI);
-      const chat = model.startChat(TEMPLATE_ID);
-      expect(chat).to.be.an.instanceOf(TemplateChatSession);
-      expect(chat.templateId).to.equal(TEMPLATE_ID);
-    });
-
-    it('should pass history and requestOptions to TemplateChatSession', () => {
-      const history: Content[] = [{ role: 'user', parts: [{ text: 'hi' }] }];
-      const requestOptions = { timeout: 1000 };
-      const model = new TemplateGenerativeModel(fakeAI, requestOptions);
-      const chat = model.startChat(TEMPLATE_ID, history);
-
-      expect(chat.requestOptions).to.deep.equal(requestOptions);
-      // Private property, but we can check it for test purposes
-      expect((chat as any)._history).to.deep.equal(history);
     });
   });
 });

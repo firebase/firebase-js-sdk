@@ -1329,18 +1329,6 @@ export class StringSchema extends Schema {
 }
 
 // @beta
-export class TemplateChatSession {
-    constructor(_apiSettings: ApiSettings, templateId: string, _history?: Content[], requestOptions?: RequestOptions | undefined);
-    getHistory(): Promise<Content[]>;
-    // (undocumented)
-    requestOptions?: RequestOptions | undefined;
-    sendMessage(request: string | Array<string | Part>, inputs?: object): Promise<GenerateContentResult>;
-    sendMessageStream(request: string | Array<string | Part>, inputs?: object): Promise<GenerateContentStreamResult>;
-    // (undocumented)
-    templateId: string;
-}
-
-// @beta
 export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
@@ -1348,7 +1336,6 @@ export class TemplateGenerativeModel {
     generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
     generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
-    startChat(templateId: string, history?: Content[]): TemplateChatSession;
 }
 
 // @beta

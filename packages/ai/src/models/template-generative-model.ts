@@ -20,9 +20,8 @@ import {
   templateGenerateContentStream
 } from '../methods/generate-content';
 import { GenerateContentResult, RequestOptions } from '../types';
-import { AI, Content, GenerateContentStreamResult } from '../public-types';
+import { AI, GenerateContentStreamResult } from '../public-types';
 import { ApiSettings } from '../types/internal';
-import { TemplateChatSession } from '../methods/template-chat-session';
 import { initApiSettings } from './utils';
 
 /**
@@ -93,25 +92,6 @@ export class TemplateGenerativeModel {
       this._apiSettings,
       templateId,
       { inputs: templateVariables },
-      this.requestOptions
-    );
-  }
-
-  /**
-   * Gets a new {@link TemplateChatSession} instance which can be used for
-   * multi-turn chats.
-   *
-   * @param templateId - The ID of the server-side template to execute.
-   * @param history - An array of {@link Content} objects to initialize the
-   * chat history with.
-   *
-   * @beta
-   */
-  startChat(templateId: string, history?: Content[]): TemplateChatSession {
-    return new TemplateChatSession(
-      this._apiSettings,
-      templateId,
-      history,
       this.requestOptions
     );
   }
