@@ -41,7 +41,6 @@ export declare class TemplateGenerativeModel
 |  --- | --- | --- |
 |  [generateContent(templateId, templateVariables)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [generateContentStream(templateId, templateVariables)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
-|  [startChat(templateId, history)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Gets a new [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class) instance which can be used for multi-turn chats. |
 
 ## TemplateGenerativeModel.(constructor)
 
@@ -123,28 +122,4 @@ generateContentStream(templateId: string, templateVariables: object): Promise<Ge
 <b>Returns:</b>
 
 Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface)<!-- -->&gt;
-
-## TemplateGenerativeModel.startChat()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Gets a new [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class) instance which can be used for multi-turn chats.
-
-<b>Signature:</b>
-
-```typescript
-startChat(templateId: string, history?: Content[]): TemplateChatSession;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  templateId | string | The ID of the server-side template to execute. |
-|  history | [Content](./ai.content.md#content_interface)<!-- -->\[\] | An array of [Content](./ai.content.md#content_interface) objects to initialize the chat history with. |
-
-<b>Returns:</b>
-
-[TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class)
 

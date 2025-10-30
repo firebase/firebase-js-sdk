@@ -19,7 +19,13 @@ import { expect, use } from 'chai';
 import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { RequestURL, ServerPromptTemplateTask, Task, getHeaders, makeRequest } from './request';
+import {
+  RequestURL,
+  ServerPromptTemplateTask,
+  Task,
+  getHeaders,
+  makeRequest
+} from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode } from '../types';

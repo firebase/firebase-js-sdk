@@ -198,8 +198,6 @@ toc:
     path: /docs/reference/js/ai.startchatparams.md
   - title: StringSchema
     path: /docs/reference/js/ai.stringschema.md
-  - title: TemplateChatSession
-    path: /docs/reference/js/ai.templatechatsession.md
   - title: TemplateGenerativeModel
     path: /docs/reference/js/ai.templategenerativemodel.md
   - title: TemplateImagenModel
