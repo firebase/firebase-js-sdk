@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { RequestURL, Task, getHeaders, makeRequest } from './request';
+import { RequestURL, ServerPromptTemplateTask, Task, getHeaders, makeRequest } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode } from '../types';
@@ -103,7 +103,7 @@ describe('request methods', () => {
     it('prompt server template', async () => {
       const url = new RequestURL({
         templateId: 'my-template',
-        task: 'templateGenerateContent',
+        task: ServerPromptTemplateTask.TEMPLATE_GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
         requestOptions: {}
