@@ -27,6 +27,13 @@ export declare class GoogleAIBackend extends Backend
 |  --- | --- | --- |
 |  [(constructor)()](./ai.googleaibackend.md#googleaibackendconstructor) |  | Creates a configuration object for the Gemini Developer API backend. |
 
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [\_getModelPath(project, model)](./ai.googleaibackend.md#googleaibackend_getmodelpath) |  |  |
+|  [\_getTemplatePath(project, templateId)](./ai.googleaibackend.md#googleaibackend_gettemplatepath) |  |  |
+
 ## GoogleAIBackend.(constructor)
 
 Creates a configuration object for the Gemini Developer API backend.
@@ -36,3 +43,42 @@ Creates a configuration object for the Gemini Developer API backend.
 ```typescript
 constructor();
 ```
+
+## GoogleAIBackend.\_getModelPath()
+
+<b>Signature:</b>
+
+```typescript
+_getModelPath(project: string, model: string): string;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  project | string |  |
+|  model | string |  |
+
+<b>Returns:</b>
+
+string
+
+## GoogleAIBackend.\_getTemplatePath()
+
+<b>Signature:</b>
+
+```typescript
+_getTemplatePath(project: string, templateId: string): string;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  project | string |  |
+|  templateId | string |  |
+
+<b>Returns:</b>
+
+string
+
