@@ -54,7 +54,7 @@ function parseRetryAfterToMills(
 export interface FetchTransportParameters {
   url: string;
   headers: Headers;
-  dynamicHeaders?: DynamicHeaderProvider[];
+  dynamicHeaderProviders?: DynamicHeaderProvider[];
 }
 
 /**
@@ -73,12 +73,13 @@ export class FetchTransport implements IExporterTransport {
       const headers = this.parameters.headers;
 
       if (
-        this.parameters.dynamicHeaders &&
-        this.parameters.dynamicHeaders.length > 0
+        this.parameters.dynamicHeaderProviders &&
+        this.parameters.dynamicHeaderProviders.length > 0
       ) {
-        const dynamicHeaderPromises = this.parameters.dynamicHeaders.map(
-          provider => provider.getHeader()
-        );
+        const dynamicHeaderPromises =
+          this.parameters.dynamicHeaderProviders.map(provider =>
+            provider.getHeader()
+          );
         const resolvedHeaders = await Promise.all(dynamicHeaderPromises);
 
         for (const header of resolvedHeaders) {

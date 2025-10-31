@@ -187,7 +187,7 @@ describe('FetchTransport', () => {
 
       const transport = new FetchTransport({
         ...testTransportParameters,
-        dynamicHeaders: [dynamicProvider]
+        dynamicHeaderProviders: [dynamicProvider]
       });
 
       //act
@@ -228,7 +228,7 @@ describe('FetchTransport', () => {
 
       const transport = new FetchTransport({
         ...testTransportParameters,
-        dynamicHeaders: [dynamicProvider]
+        dynamicHeaderProviders: [dynamicProvider]
       });
 
       //act
