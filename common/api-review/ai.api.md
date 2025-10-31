@@ -1012,6 +1012,7 @@ export class LiveSession {
     constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
     close(): Promise<void>;
     inConversation: boolean;
+    inVideoRecording: boolean;
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
@@ -1305,6 +1306,14 @@ export interface StartChatParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @beta
+export function startVideoRecording(liveSession: LiveSession, options?: StartVideoRecordingOptions): Promise<VideoRecordingController>;
+
+// @beta
+export interface StartVideoRecordingOptions {
+    videoSource?: 'camera' | 'screen';
+}
+
 // @public
 export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
@@ -1419,6 +1428,11 @@ export class VertexAIBackend extends Backend {
 export interface VideoMetadata {
     endOffset: string;
     startOffset: string;
+}
+
+// @beta
+export interface VideoRecordingController {
+    stop: () => Promise<void>;
 }
 
 // @beta

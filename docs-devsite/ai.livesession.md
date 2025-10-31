@@ -29,7 +29,8 @@ export declare class LiveSession
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [inConversation](./ai.livesession.md#livesessioninconversation) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is being controlled by an <code>AudioConversationController</code>. |
+|  [inConversation](./ai.livesession.md#livesessioninconversation) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is being controlled by a [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface)<!-- -->. |
+|  [inVideoRecording](./ai.livesession.md#livesessioninvideorecording) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is being controlled by a [VideoRecordingController](./ai.videorecordingcontroller.md#videorecordingcontroller_interface)<!-- -->. |
 |  [isClosed](./ai.livesession.md#livesessionisclosed) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is closed. |
 
 ## Methods
@@ -51,12 +52,25 @@ export declare class LiveSession
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Indicates whether this Live session is being controlled by an `AudioConversationController`<!-- -->.
+Indicates whether this Live session is being controlled by a [AudioConversationController](./ai.audioconversationcontroller.md#audioconversationcontroller_interface)<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
 inConversation: boolean;
+```
+
+## LiveSession.inVideoRecording
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether this Live session is being controlled by a [VideoRecordingController](./ai.videorecordingcontroller.md#videorecordingcontroller_interface)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+inVideoRecording: boolean;
 ```
 
 ## LiveSession.isClosed
