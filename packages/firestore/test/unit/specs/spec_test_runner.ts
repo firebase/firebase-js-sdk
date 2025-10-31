@@ -283,7 +283,8 @@ abstract class TestRunner {
       /*autoDetectLongPolling=*/ false,
       /*longPollingOptions=*/ {},
       /*useFetchStreams=*/ false,
-      /*isUsingEmulator=*/ false
+      /*isUsingEmulator=*/ false,
+      'test-api-key'
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block

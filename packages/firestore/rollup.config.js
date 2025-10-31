@@ -59,14 +59,45 @@ const browserPlugins = [
   terser(util.manglePrivatePropertiesOptions)
 ];
 
+// TODO - update the implementation to match all content in the declare module block.
+function declareModuleReplacePlugin() {
+  // The regex we created earlier
+  const moduleToReplace =
+    /declare module '\.\/\S+' \{\s+interface Firestore \{\s+pipeline\(\): PipelineSource<Pipeline>;\s+}\s*}/gm;
+
+  // What to replace it with (an empty string to remove it)
+  const replacement =
+    'interface Firestore {pipeline(): PipelineSource<Pipeline>;}';
+
+  return {
+    name: 'declare-module-replace',
+    generateBundle(options, bundle) {
+      const outputFileName = 'global_index.d.ts';
+      if (!bundle[outputFileName]) {
+        console.warn(
+          `[regexReplacePlugin] File not found in bundle: ${outputFileName}`
+        );
+        return;
+      }
+
+      const chunk = bundle[outputFileName];
+      if (chunk.type === 'chunk') {
+        chunk.code = chunk.code.replace(moduleToReplace, replacement);
+      }
+    }
+  };
+}
+
 const allBuilds = [
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.node.ts',
+    input: ['./src/index.node.ts', './pipelines/pipelines.node.ts'],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -79,9 +110,14 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: pkg['main-esm'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
-      file: pkg.main,
+      dir: 'dist/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -106,9 +142,14 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: pkg['main-esm'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -125,9 +166,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.ts',
+    input: ['./src/index.ts', './pipelines/pipelines.ts'],
     output: {
-      file: pkg.browser,
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].js',
       format: 'es',
       sourcemap: true
     },
@@ -139,10 +182,12 @@ const allBuilds = [
   },
   // Convert es2020 build to cjs
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: './dist/index.cjs.js',
+        dir: 'dist/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
         sourcemap: true
       }
@@ -158,10 +203,12 @@ const allBuilds = [
   },
   // es2020 build with build target reporting
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: pkg['browser'],
+        dir: 'dist/',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: 'common-[hash].esm.js',
         format: 'es',
         sourcemap: true
       }
@@ -177,9 +224,11 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './src/index.rn.ts',
+    input: ['./src/index.rn.ts', './pipelines/pipelines.rn.ts'],
     output: {
-      file: pkg['react-native'],
+      dir: 'dist/',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].rn.js',
       format: 'es',
       sourcemap: true
     },
@@ -194,7 +243,7 @@ const allBuilds = [
     }
   },
   {
-    input: 'dist/firestore/src/index.d.ts',
+    input: 'dist/firestore/src/global.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
       format: 'es'
@@ -202,7 +251,9 @@ const allBuilds = [
     plugins: [
       dts({
         respectExternal: true
-      })
+      }),
+
+      declareModuleReplacePlugin()
     ]
   }
 ];

@@ -18,12 +18,23 @@
 import { ensureFirestoreConfigured, Firestore } from '../api/database';
 import { AggregateImpl } from '../core/aggregate';
 import { queryToAggregateTarget, queryToTarget } from '../core/query';
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from '../core/structured_pipeline';
 import { AggregateSpec } from '../lite-api/aggregate_types';
+import { getDatastore } from '../lite-api/components';
+import { Pipeline } from '../lite-api/pipeline';
 import { Query } from '../lite-api/reference';
+import { ExecutePipelineRequest as ProtoExecutePipelineRequest } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
-import { toQueryTarget, toRunAggregationQueryRequest } from './serializer';
+import {
+  getEncodedDatabaseId,
+  toQueryTarget,
+  toRunAggregationQueryRequest
+} from './serializer';
 
 /**
  * @internal
@@ -86,4 +97,39 @@ export function _internalAggregationQueryToProtoRunAggregationQueryRequest<
     aggregates,
     /* skipAliasing= */ true
   ).request;
+}
+
+/**
+ * @internal
+ * @private
+ *
+ * This function is for internal use only.
+ *
+ * Returns the `ExecutePipelineRequest` representation of the given query.
+ * Returns `null` if the Firestore client associated with the given query has
+ * not been initialized or has been terminated.
+ *
+ * @param pipeline - The Pipeline to convert to proto representation.
+ */
+export function _internalPipelineToExecutePipelineRequestProto(
+  pipeline: Pipeline
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): any {
+  const firestore = cast(pipeline._db, Firestore);
+  const datastore = getDatastore(firestore);
+  const serializer = datastore.serializer;
+  if (serializer === undefined) {
+    return null;
+  }
+
+  const structuredPipeline = new StructuredPipeline(
+    pipeline,
+    new StructuredPipelineOptions()
+  );
+  const executePipelineRequest: ProtoExecutePipelineRequest = {
+    database: getEncodedDatabaseId(serializer),
+    structuredPipeline: structuredPipeline._toProto(serializer)
+  };
+
+  return executePipelineRequest;
 }

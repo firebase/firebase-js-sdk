@@ -16,7 +16,7 @@
  */
 
 import {
-  createWebChannelTransport,
+  createWebChannelTransport as internalCreateWebChannelTransport,
   ErrorCode,
   EventType,
   WebChannel,
@@ -27,7 +27,8 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  Stat
+  Stat,
+  WebChannelTransport
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { Token } from '../../api/credentials';
@@ -181,7 +182,7 @@ export class WebChannelConnection extends RestConnection {
       rpcName,
       '/channel'
     ];
-    const webchannelTransport = createWebChannelTransport();
+    const webchannelTransport = this.createWebChannelTransport();
     const requestStats = getStatEventTarget();
     const request: WebChannelOptions = {
       // Required for backend stickiness, routing behavior is based on this
@@ -459,5 +460,30 @@ export class WebChannelConnection extends RestConnection {
     this.openWebChannels = this.openWebChannels.filter(
       instance => instance === webChannel
     );
+  }
+
+  /**
+   * Modifies the headers for a request, adding the api key if present,
+   * and then calling super.modifyHeadersForRequest
+   */
+  protected modifyHeadersForRequest(
+    headers: StringMap,
+    authToken: Token | null,
+    appCheckToken: Token | null
+  ): void {
+    super.modifyHeadersForRequest(headers, authToken, appCheckToken);
+
+    // For web channel streams, we want to send the api key in the headers.
+    if (this.databaseInfo.apiKey) {
+      headers['x-goog-api-key'] = this.databaseInfo.apiKey;
+    }
+  }
+
+  /**
+   * Wrapped for mocking.
+   * @protected
+   */
+  protected createWebChannelTransport(): WebChannelTransport {
+    return internalCreateWebChannelTransport();
   }
 }

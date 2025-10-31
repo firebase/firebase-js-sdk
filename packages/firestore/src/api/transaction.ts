@@ -28,9 +28,9 @@ import { validateReference } from '../lite-api/write_batch';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { ExpUserDataWriter } from './reference_impl';
 import { DocumentSnapshot, SnapshotMetadata } from './snapshot';
 import { TransactionOptions } from './transaction_options';
+import { ExpUserDataWriter } from './user_data_writer';
 
 /**
  * A reference to a transaction.
