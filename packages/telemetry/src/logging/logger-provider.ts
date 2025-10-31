@@ -31,6 +31,7 @@ import {
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from './fetch-transport';
 import { DynamicHeaderProvider } from '../types';
+import { FirebaseApp } from '@firebase/app';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -38,8 +39,9 @@ import { DynamicHeaderProvider } from '../types';
  * @internal
  */
 export function createLoggerProvider(
+  app: FirebaseApp,
   endpointUrl: string,
-  dynamicHeaders: DynamicHeaderProvider[] = []
+  dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): LoggerProvider {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
@@ -47,10 +49,17 @@ export function createLoggerProvider(
   if (endpointUrl.endsWith('/')) {
     endpointUrl = endpointUrl.slice(0, -1);
   }
-  const otlpEndpoint = `${endpointUrl}/api/v1/logs`;
+  const { projectId, appId, apiKey } = app.options;
+  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/logs`;
   const logExporter = new OTLPLogExporter(
-    { url: otlpEndpoint },
-    dynamicHeaders
+    {
+      url: otlpEndpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
+      }
+    },
+    dynamicHeaderProviders
   );
 
   return new LoggerProvider({
@@ -67,7 +76,7 @@ class OTLPLogExporter
 {
   constructor(
     config: OTLPExporterConfigBase = {},
-    dynamicHeaders: DynamicHeaderProvider[] = []
+    dynamicHeaderProviders: DynamicHeaderProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -79,10 +88,8 @@ class OTLPLogExporter
         JsonLogsSerializer,
         new FetchTransport({
           url: config.url!,
-          headers: new Headers({
-            'Content-Type': 'application/json'
-          }),
-          dynamicHeaders
+          headers: new Headers(config.headers),
+          dynamicHeaderProviders
         })
       )
     );

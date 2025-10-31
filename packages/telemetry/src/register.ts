@@ -38,10 +38,11 @@ export function registerTelemetry(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
-        const dynamicHeaders = [new AppCheckProvider(appCheckProvider)];
+        const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const loggerProvider = createLoggerProvider(
+          app,
           endpointUrl,
-          dynamicHeaders
+          dynamicHeaderProviders
         );
 
         return new TelemetryService(app, loggerProvider);
