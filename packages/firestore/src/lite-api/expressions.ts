@@ -1042,7 +1042,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * trimmed from the input. If not specified, then whitespace will be trimmed.
    * @return A new `Expr` representing the trimmed string or byte array.
    */
-  trim(valueToTrim?: string | Expression): FunctionExpression {
+  trim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
     const args: Expression[] = [this];
     if (valueToTrim) {
       args.push(valueToDefaultExpr(valueToTrim));
