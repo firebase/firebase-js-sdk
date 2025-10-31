@@ -6006,7 +6006,7 @@ export function trim(
   expr: Expression | string,
   valueToTrim?: string | Expression
 ): FunctionExpression {
-  return fieldOrExpression(expr).trim();
+  return fieldOrExpression(expr).trim(valueToTrim);
 }
 
 /**
