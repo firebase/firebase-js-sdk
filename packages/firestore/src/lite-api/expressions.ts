@@ -1029,17 +1029,25 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Creates an expression that removes leading and trailing whitespace from a string.
+   * Creates an expression that removes leading and trailing characters from a string or byte array.
    *
    * ```typescript
    * // Trim whitespace from the 'userInput' field
    * field("userInput").trim();
-   * ```
    *
-   * @return A new `Expr` representing the trimmed string.
+   * // Trim quotes from the 'userInput' field
+   * field("userInput").trim('"');
+   * ```
+   * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+   * trimmed from the input. If not specified, then whitespace will be trimmed.
+   * @return A new `Expr` representing the trimmed string or byte array.
    */
-  trim(): FunctionExpression {
-    return new FunctionExpression('trim', [this], 'trim');
+  trim(valueToTrim?: string | Expression): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('trim', args, 'trim');
   }
 
   /**
@@ -5952,33 +5960,52 @@ export function toUpper(expr: Expression | string): FunctionExpression {
 /**
  * @beta
  *
- * Creates an expression that removes leading and trailing whitespace from a string field.
+ * Creates an expression that removes leading and trailing whitespace from a string or byte array.
  *
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim("userInput");
+ *
+ * // Trim quotes from the 'userInput' field
+ * trim("userInput", '"');
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string or byte array.
+ * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+ * trimmed from the input. If not specified, then whitespace will be trimmed.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(fieldName: string): FunctionExpression;
+export function trim(
+  fieldName: string,
+  valueToTrim?: string | Expression
+): FunctionExpression;
 
 /**
  * @beta
  *
- * Creates an expression that removes leading and trailing whitespace from a string expression.
+ * Creates an expression that removes leading and trailing characters from a string or byte array expression.
  *
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim(field("userInput"));
+ *
+ * // Trim quotes from the 'userInput' field
+ * trim(field("userInput"), '"');
  * ```
  *
- * @param stringExpression The expression representing the string to trim.
- * @return A new {@code Expr} representing the trimmed string.
+ * @param stringExpression The expression representing the string or byte array to trim.
+ * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+ * trimmed from the input. If not specified, then whitespace will be trimmed.
+ * @return A new {@code Expr} representing the trimmed string or byte array.
  */
-export function trim(stringExpression: Expression): FunctionExpression;
-export function trim(expr: Expression | string): FunctionExpression {
+export function trim(
+  stringExpression: Expression,
+  valueToTrim?: string | Expression
+): FunctionExpression;
+export function trim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression
+): FunctionExpression {
   return fieldOrExpression(expr).trim();
 }
 

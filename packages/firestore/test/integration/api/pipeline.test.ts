@@ -3827,15 +3827,30 @@ const timestampDeltaMS = 1000;
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .addFields(
-            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
           )
-          .select(trim('spacedTitle').as('trimmedTitle'), field('spacedTitle'))
+          .select(
+            trim('spacedTitle').as('trimmedTitle'),
+            field('spacedTitle'),
+            field('userNameWithQuotes').trim('"').as('userName'),
+            field('bytes')
+              .trim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
+          )
           .limit(1)
       );
       expectResults(snapshot, {
         spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-        trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+        trimmedTitle: "The Hitchhiker's Guide to the Galaxy",
+        userName: 'alice',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02]))
       });
     });
 
