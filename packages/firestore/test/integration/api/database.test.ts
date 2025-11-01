@@ -63,14 +63,25 @@ import {
   WithFieldValue,
   Timestamp,
   FieldPath,
-  newTestFirestore,
   SnapshotOptions,
   newTestApp,
   FirestoreError,
   QuerySnapshot,
   querySnapshotFromJSON,
   vector,
-  getDocsFromServer
+  getDocsFromServer,
+  or,
+  newTestFirestore,
+  GeoPoint,
+  Bytes,
+  BsonBinaryData,
+  BsonObjectId,
+  Int32Value,
+  MaxKey,
+  MinKey,
+  RegexValue,
+  BsonTimestamp,
+  Decimal128Value
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -83,7 +94,9 @@ import {
   withNamedTestDbsOrSkipUnlessUsingEmulator,
   toDataArray,
   checkOnlineAndOfflineResultsMatch,
-  toIds
+  toIds,
+  withTestProjectIdAndCollectionSettings,
+  assertSDKQueryResultsConsistentWithBackend
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -3116,5 +3129,1120 @@ apiDescribe('Database', persistence => {
         );
       }
     );
+  });
+
+  describe('BSON types', () => {
+    // TODO(Mila/BSON): simplify the test setup once prod support BSON and
+    // remove the cache population after the test helper is updated
+    const NIGHTLY_PROJECT_ID = 'firestore-sdk-nightly';
+    const settings = {
+      ...DEFAULT_SETTINGS,
+      host: 'test-firestore.sandbox.googleapis.com',
+      databaseId: '(default)'
+    };
+
+    it('can write and read BSON types', async () => {
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        {},
+        async coll => {
+          const docRef = await addDoc(coll, {
+            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            objectId: new BsonObjectId('507f191e810c19729de860ea'),
+            int32: new Int32Value(1),
+            decimal128: new Decimal128Value('1.2e3'),
+            min: MinKey.instance(),
+            max: MaxKey.instance(),
+            regex: new RegexValue('^foo', 'i')
+          });
+
+          await setDoc(
+            docRef,
+            {
+              binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+              timestamp: new BsonTimestamp(1, 2),
+              int32: new Int32Value(2)
+            },
+            { merge: true }
+          );
+
+          const snapshot = await getDoc(docRef);
+          expect(
+            snapshot
+              .get('objectId')
+              .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
+          ).to.be.true;
+          expect(snapshot.get('int32').isEqual(new Int32Value(2))).to.be.true;
+          expect(
+            snapshot.get('decimal128').isEqual(new Decimal128Value('1.2e3'))
+          ).to.be.true;
+          expect(snapshot.get('min') === MinKey.instance()).to.be.true;
+          expect(snapshot.get('max') === MaxKey.instance()).to.be.true;
+          expect(
+            snapshot
+              .get('binary')
+              .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+          ).to.be.true;
+          expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to
+            .be.true;
+          expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).to
+            .be.true;
+        }
+      );
+    });
+
+    it('can write and read BSON types offline', async () => {
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        {},
+        async (coll, db) => {
+          await disableNetwork(db);
+          const docRef = doc(coll, 'testDoc');
+
+          // Adding docs to cache, do not wait for promise to resolve.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
+          setDoc(docRef, {
+            binary: new BsonBinaryData(1, new Uint8Array([1, 2, 3])),
+            objectId: new BsonObjectId('507f191e810c19729de860ea'),
+            int32: new Int32Value(1),
+            decimal128: new Decimal128Value('1.2e3'),
+            regex: new RegexValue('^foo', 'i'),
+            timestamp: new BsonTimestamp(1, 2),
+            min: MinKey.instance(),
+            max: MaxKey.instance()
+          });
+
+          const snapshot = await getDocFromCache(docRef);
+          expect(
+            snapshot
+              .get('binary')
+              .isEqual(new BsonBinaryData(1, new Uint8Array([1, 2, 3])))
+          ).to.be.true;
+          expect(
+            snapshot
+              .get('objectId')
+              .isEqual(new BsonObjectId('507f191e810c19729de860ea'))
+          ).to.be.true;
+          expect(snapshot.get('int32').isEqual(new Int32Value(1))).to.be.true;
+          expect(
+            snapshot.get('decimal128').isEqual(new Decimal128Value('1.2e3'))
+          ).to.be.true;
+          expect(snapshot.get('regex').isEqual(new RegexValue('^foo', 'i'))).to
+            .be.true;
+          expect(snapshot.get('timestamp').isEqual(new BsonTimestamp(1, 2))).to
+            .be.true;
+          expect(snapshot.get('min') === MinKey.instance()).to.be.true;
+          expect(snapshot.get('max') === MaxKey.instance()).to.be.true;
+        }
+      );
+    });
+
+    it('can filter and order objectIds', async () => {
+      const testDocs = {
+        a: { key: new BsonObjectId('507f191e810c19729de860ea') },
+        b: { key: new BsonObjectId('507f191e810c19729de860eb') },
+        c: { key: new BsonObjectId('507f191e810c19729de860ec') }
+      };
+
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let orderedQuery = query(
+            coll,
+            where('key', '>', new BsonObjectId('507f191e810c19729de860ea')),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', 'in', [
+              new BsonObjectId('507f191e810c19729de860ea'),
+              new BsonObjectId('507f191e810c19729de860eb')
+            ]),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['a']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order Int32 values', async () => {
+      const testDocs = {
+        a: { key: new Int32Value(-1) },
+        b: { key: new Int32Value(1) },
+        c: { key: new Int32Value(2) }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let orderedQuery = query(
+            coll,
+            where('key', '>=', new Int32Value(1)),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', 'not-in', [new Int32Value(1)]),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['a']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order Decimal128 values', async () => {
+      const testDocs = {
+        a: { key: new Decimal128Value('-1.2e3') },
+        b: { key: new Decimal128Value('0') },
+        c: { key: new Decimal128Value('1.2e3') },
+        d: { key: new Decimal128Value('NaN') },
+        e: { key: new Decimal128Value('-Infinity') },
+        f: { key: new Decimal128Value('Infinity') }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          // Populate the cache with all docs first
+          await getDocs(coll);
+
+          let orderedQuery = query(
+            coll,
+            where('key', '>', new Decimal128Value('-1.2e3')),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['f'],
+            testDocs['c'],
+            testDocs['b']
+          ]);
+
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', '!=', new Decimal128Value('0.0')),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['f'],
+            testDocs['c'],
+            testDocs['a'],
+            testDocs['e'],
+            testDocs['d']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', '>', new Decimal128Value('-1.2e-3')),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['f'],
+            testDocs['c'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', '!=', new Decimal128Value('NaN'))
+          );
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['e'],
+            testDocs['a'],
+            testDocs['b'],
+            testDocs['c'],
+            testDocs['f']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', 'not-in', [
+              new Decimal128Value('1.2e3'),
+              new Decimal128Value('Infinity'),
+              new Decimal128Value('NaN')
+            ]),
+            orderBy('key', 'desc')
+          );
+          // Note: server is sending NaN incorrectly, but the SDK NotInFilter
+          // `matches` function gracefully handles it and removes the incorrect
+          // doc "d".
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['a'],
+            testDocs['e']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order Timestamp values', async () => {
+      const testDocs = {
+        a: { key: new BsonTimestamp(1, 1) },
+        b: { key: new BsonTimestamp(1, 2) },
+        c: { key: new BsonTimestamp(2, 1) }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let orderedQuery = query(
+            coll,
+            where('key', '>', new BsonTimestamp(1, 1)),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', '!=', new BsonTimestamp(1, 1)),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order Binary values', async () => {
+      const testDocs = {
+        a: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        b: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 4])) },
+        c: { key: new BsonBinaryData(2, new Uint8Array([1, 2, 3])) }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let orderedQuery = query(
+            coll,
+            where('key', '>', new BsonBinaryData(1, new Uint8Array([1, 2, 3]))),
+            orderBy('key', 'desc')
+          );
+
+          let snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where(
+              'key',
+              '>=',
+              new BsonBinaryData(1, new Uint8Array([1, 2, 3]))
+            ),
+            where('key', '<', new BsonBinaryData(2, new Uint8Array([1, 2, 3]))),
+            orderBy('key', 'desc')
+          );
+
+          snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['a']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order Regex values', async () => {
+      const testDocs = {
+        a: { key: new RegexValue('^bar', 'i') },
+        b: { key: new RegexValue('^bar', 'x') },
+        c: { key: new RegexValue('^baz', 'i') }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          const orderedQuery = query(
+            coll,
+            or(
+              where('key', '>', new RegexValue('^bar', 'x')),
+              where('key', '!=', new RegexValue('^bar', 'x'))
+            ),
+            orderBy('key', 'desc')
+          );
+
+          const snapshot = await getDocs(orderedQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['a']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order minKey values', async () => {
+      const testDocs = {
+        a: { key: MinKey.instance() },
+        b: { key: MinKey.instance() },
+        c: { key: null },
+        d: { key: 1 },
+        e: { key: MaxKey.instance() }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let filteredQuery = query(
+            coll,
+            where('key', '==', MinKey.instance())
+          );
+          let snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '!=', MinKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['d'],
+            testDocs['e']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '>=', MinKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '<=', MinKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '>', MinKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '<', MinKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '<', 1));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order maxKey values', async () => {
+      const testDocs = {
+        a: { key: MinKey.instance() },
+        b: { key: 1 },
+        c: { key: MaxKey.instance() },
+        d: { key: MaxKey.instance() },
+        e: { key: null }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let filteredQuery = query(
+            coll,
+            where('key', '==', MaxKey.instance())
+          );
+          let snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['d']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '!=', MaxKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '>=', MaxKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['d']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '<=', MaxKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['c'],
+            testDocs['d']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '>', MaxKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '<', MaxKey.instance()));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '>', 1));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can handle null with bson values', async () => {
+      const testDocs = {
+        a: { key: MinKey.instance() },
+        b: { key: null },
+        c: { key: null },
+        d: { key: 1 },
+        e: { key: MaxKey.instance() }
+      };
+
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          let filteredQuery = query(coll, where('key', '==', null));
+          let snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['c']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          filteredQuery = query(coll, where('key', '!=', null));
+          snapshot = await getDocs(filteredQuery);
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['d'],
+            testDocs['e']
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            filteredQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can filter and order numerical values ', async () => {
+      const testDocs = {
+        a: { key: new Decimal128Value('-1.2e3') }, // -1200
+        b: { key: new Int32Value(0) },
+        c: { key: new Decimal128Value('1') },
+        d: { key: new Int32Value(1) },
+        e: { key: 1 },
+        f: { key: 1.0 },
+        g: { key: new Decimal128Value('1.2e-3') }, // 0.0012
+        h: { key: new Int32Value(2) },
+        i: { key: new Decimal128Value('NaN') },
+        j: { key: new Decimal128Value('-Infinity') },
+        k: { key: NaN },
+        l: { key: Infinity }
+      };
+
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          // Pre-populate the cache with all docs
+          await getDocs(coll);
+
+          let orderedQuery = query(coll, orderBy('key', 'desc'));
+          let snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal([
+            'l', // Infinity
+            'h', // 2
+            'f', // 1.0
+            'e', // 1
+            'd', // 1
+            'c', // 1
+            'g', // 0.0012
+            'b', // 0
+            'a', // -1200
+            'j', // -Infinity
+            'k', // NaN
+            'i' // NaN
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            orderBy('key', 'desc'),
+            where('key', '!=', new Decimal128Value('1.0'))
+          );
+          snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal([
+            'l',
+            'h',
+            'g',
+            'b',
+            'a',
+            'j',
+            'k',
+            'i'
+          ]);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            orderBy('key', 'desc'),
+            where('key', '==', 1)
+          );
+          snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal(['f', 'e', 'd', 'c']);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('decimal128 values with no 2s complement representation', async () => {
+      const testDocs = {
+        a: { key: new Decimal128Value('-1.1e-3') }, // -0.0011
+        b: { key: new Decimal128Value('1.1') },
+        c: { key: 1.1 },
+        d: { key: 1.0 },
+        e: { key: new Decimal128Value('1.1e-3') } // 0.0011
+      };
+
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          // Pre-populate the cache with all docs
+          await getDocs(coll);
+
+          let orderedQuery = query(
+            coll,
+            where('key', '==', new Decimal128Value('1.1'))
+          );
+          let snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal(['b']);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(
+            coll,
+            where('key', '!=', new Decimal128Value('1.1'))
+          );
+          snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal(['a', 'e', 'd', 'c']);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(coll, where('key', '==', 1.1));
+          snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal(['c']);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+
+          orderedQuery = query(coll, where('key', '!=', 1.1));
+          snapshot = await getDocs(orderedQuery);
+          expect(toIds(snapshot)).to.deep.equal(['a', 'e', 'd', 'b']);
+          await assertSDKQueryResultsConsistentWithBackend(
+            coll,
+            orderedQuery,
+            testDocs,
+            toIds(snapshot)
+          );
+        }
+      );
+    });
+
+    it('can listen to documents with bson types', async () => {
+      const testDocs = {
+        a: { key: MaxKey.instance() },
+        b: { key: MinKey.instance() },
+        c: { key: new BsonTimestamp(1, 2) },
+        d: { key: new BsonObjectId('507f191e810c19729de860ea') },
+        e: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+        f: { key: new RegexValue('^foo', 'i') },
+        g: { key: new Decimal128Value('1.2e3') }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        testDocs,
+        async coll => {
+          const orderedQuery = query(coll, orderBy('key', 'asc'));
+
+          const storeEvent = new EventsAccumulator<QuerySnapshot>();
+          const unsubscribe = onSnapshot(orderedQuery, storeEvent.storeEvent);
+
+          let listenSnapshot = await storeEvent.awaitEvent();
+          expect(toDataArray(listenSnapshot)).to.deep.equal([
+            testDocs['b'],
+            testDocs['g'],
+            testDocs['c'],
+            testDocs['e'],
+            testDocs['d'],
+            testDocs['f'],
+            testDocs['a']
+          ]);
+
+          const newData = { key: new Int32Value(2) };
+          await setDoc(doc(coll, 'h'), newData);
+          listenSnapshot = await storeEvent.awaitEvent();
+          expect(toDataArray(listenSnapshot)).to.deep.equal([
+            testDocs['b'],
+            newData,
+            testDocs['g'],
+            testDocs['c'],
+            testDocs['e'],
+            testDocs['d'],
+            testDocs['f'],
+            testDocs['a']
+          ]);
+
+          unsubscribe();
+        }
+      );
+    });
+
+    // TODO(Mila/BSON): Skip the runTransaction tests against nightly when running on browsers.
+    // Run this test when BSON type is supported by prod
+    // eslint-disable-next-line no-restricted-properties
+    it.skip('can run transactions on documents with bson types', async () => {
+      const testDocs = {
+        a: { key: new BsonTimestamp(1, 2) },
+        b: { key: new RegexValue('^foo', 'i') },
+        c: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) }
+      };
+      return withTestProjectIdAndCollectionSettings(
+        persistence,
+        NIGHTLY_PROJECT_ID,
+        settings,
+        {},
+        async (coll, db) => {
+          const docA = await addDoc(coll, testDocs['a']);
+          const docB = await addDoc(coll, { key: 'place holder' });
+          const docC = await addDoc(coll, testDocs['c']);
+
+          await runTransaction(db, async transaction => {
+            const docSnapshot = await transaction.get(docA);
+            expect(docSnapshot.data()).to.deep.equal(testDocs['a']);
+            transaction.set(docB, testDocs['b']);
+            transaction.delete(docC);
+          });
+
+          const orderedQuery = query(coll, orderBy('key', 'asc'));
+          const snapshot = await getDocs(orderedQuery);
+
+          expect(toDataArray(snapshot)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b']
+          ]);
+        }
+      );
+    });
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('From Cache', () => {
+      it('SDK orders different value types together the same way online and offline', async () => {
+        const testDocs: { [key: string]: DocumentData } = {
+          a: { key: null },
+          b: { key: MinKey.instance() },
+          c: { key: true },
+          d: { key: NaN },
+          e: { key: new Int32Value(1) },
+          f: { key: 2.0 },
+          g: { key: 3 },
+          h: { key: new Decimal128Value('1.2e3') },
+          i: { key: new Timestamp(100, 123456000) },
+          j: { key: new BsonTimestamp(1, 2) },
+          k: { key: 'string' },
+          l: { key: Bytes.fromUint8Array(new Uint8Array([0, 1, 255])) },
+          m: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+          o: { key: new BsonObjectId('507f191e810c19729de860ea') },
+          p: { key: new GeoPoint(0, 0) },
+          q: { key: new RegexValue('^foo', 'i') },
+          r: { key: [1, 2] },
+          s: { key: vector([1, 2]) },
+          t: { key: { a: 1 } },
+          u: { key: MaxKey.instance() }
+        };
+
+        return withTestProjectIdAndCollectionSettings(
+          persistence,
+          NIGHTLY_PROJECT_ID,
+          settings,
+          testDocs,
+          async coll => {
+            // TODO(Mila/BSON): remove after prod supports bson, and use `ref` helper function instead
+            const docRef = doc(coll, 'doc');
+            await setDoc(doc(coll, 'n'), { key: docRef });
+            testDocs['n'] = { key: docRef };
+
+            const orderedQuery = query(coll, orderBy('key', 'desc'));
+            await assertSDKQueryResultsConsistentWithBackend(
+              coll,
+              orderedQuery,
+              testDocs,
+              [
+                'u',
+                't',
+                's',
+                'r',
+                'q',
+                'p',
+                'o',
+                'n',
+                'm',
+                'l',
+                'k',
+                'j',
+                'i',
+                'h',
+                'g',
+                'f',
+                'e',
+                'd',
+                'c',
+                'b',
+                'a'
+              ]
+            );
+          }
+        );
+      });
+
+      it('SDK orders bson types the same way online and offline', async () => {
+        const testDocs: { [key: string]: DocumentData } = {
+          a: { key: MaxKey.instance() }, // maxKeys are all equal
+          b: { key: MaxKey.instance() },
+          c: { key: new Int32Value(1) },
+          d: { key: new Int32Value(-1) },
+          e: { key: new Int32Value(0) },
+          f: { key: new Decimal128Value('-1.2e3') },
+          g: { key: new Decimal128Value('0.0') },
+          h: { key: new Decimal128Value('1.2e3') },
+          t: { key: new BsonTimestamp(1, 1) },
+          u: { key: new BsonTimestamp(2, 1) },
+          v: { key: new BsonTimestamp(1, 2) },
+          i: { key: new BsonBinaryData(1, new Uint8Array([1, 2, 3])) },
+          j: { key: new BsonBinaryData(1, new Uint8Array([1, 1, 4])) },
+          k: { key: new BsonBinaryData(2, new Uint8Array([1, 0, 0])) },
+          l: { key: new BsonObjectId('507f191e810c19729de860eb') },
+          m: { key: new BsonObjectId('507f191e810c19729de860ea') },
+          n: { key: new BsonObjectId('407f191e810c19729de860ea') },
+          o: { key: new RegexValue('^foo', 'i') },
+          p: { key: new RegexValue('^foo', 'm') },
+          q: { key: new RegexValue('^bar', 'i') },
+          r: { key: MinKey.instance() }, // minKeys are all equal
+          s: { key: MinKey.instance() }
+        };
+
+        return withTestProjectIdAndCollectionSettings(
+          persistence,
+          NIGHTLY_PROJECT_ID,
+          settings,
+          testDocs,
+          async coll => {
+            const orderedQuery = query(coll, orderBy('key'));
+            await assertSDKQueryResultsConsistentWithBackend(
+              coll,
+              orderedQuery,
+              testDocs,
+              [
+                'r',
+                's',
+                'f',
+                'd',
+                'e',
+                'g',
+                'c',
+                'h',
+                't',
+                'v',
+                'u',
+                'j',
+                'i',
+                'k',
+                'n',
+                'm',
+                'l',
+                'q',
+                'o',
+                'p',
+                'a',
+                'b'
+              ]
+            );
+          }
+        );
+      });
+    });
   });
 });

@@ -44,14 +44,26 @@ import {
 import {
   TYPE_KEY,
   VECTOR_MAP_VECTORS_KEY,
-  VECTOR_VALUE_SENTINEL
+  RESERVED_VECTOR_KEY,
+  RESERVED_REGEX_KEY,
+  RESERVED_REGEX_PATTERN_KEY,
+  RESERVED_REGEX_OPTIONS_KEY,
+  RESERVED_BSON_OBJECT_ID_KEY,
+  RESERVED_INT32_KEY,
+  RESERVED_BSON_TIMESTAMP_KEY,
+  RESERVED_BSON_TIMESTAMP_SECONDS_KEY,
+  RESERVED_BSON_TIMESTAMP_INCREMENT_KEY,
+  RESERVED_BSON_BINARY_KEY,
+  RESERVED_MIN_KEY,
+  RESERVED_MAX_KEY,
+  RESERVED_DECIMAL128_KEY
 } from '../model/values';
 import { newSerializer } from '../platform/serializer';
 import {
   MapValue as ProtoMapValue,
   Value as ProtoValue
 } from '../protos/firestore_proto_api';
-import { toDouble, toNumber } from '../remote/number_serializer';
+import { toDouble, toInteger, toNumber } from '../remote/number_serializer';
 import {
   JsonProtoSerializer,
   toBytes,
@@ -60,20 +72,29 @@ import {
   isProtoValueSerializable
 } from '../remote/serializer';
 import { debugAssert, fail } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { Dict, forEach, isEmpty } from '../util/obj';
 
+import { BsonBinaryData } from './bson_binary_data';
+import { BsonObjectId } from './bson_object_Id';
+import { BsonTimestamp } from './bson_timestamp';
 import { Bytes } from './bytes';
 import { Firestore } from './database';
+import { Decimal128Value } from './decimal128_value';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';
+import { Int32Value } from './int32_value';
+import { MaxKey } from './max_key';
+import { MinKey } from './min_key';
 import {
   DocumentReference,
   PartialWithFieldValue,
   WithFieldValue
 } from './reference';
+import { RegexValue } from './regex_value';
 import { Timestamp } from './timestamp';
 import { VectorValue } from './vector_value';
 
@@ -885,6 +906,22 @@ export function parseScalarValue(
     };
   } else if (value instanceof VectorValue) {
     return parseVectorValue(value, context);
+  } else if (value instanceof RegexValue) {
+    return parseRegexValue(value);
+  } else if (value instanceof BsonObjectId) {
+    return parseBsonObjectId(value);
+  } else if (value instanceof Int32Value) {
+    return parseInt32Value(value);
+  } else if (value instanceof Decimal128Value) {
+    return parseDecimal128Value(value);
+  } else if (value instanceof BsonTimestamp) {
+    return parseBsonTimestamp(value);
+  } else if (value instanceof BsonBinaryData) {
+    return parseBsonBinaryData(context.serializer, value);
+  } else if (value instanceof MinKey) {
+    return parseMinKey();
+  } else if (value instanceof MaxKey) {
+    return parseMaxKey();
   } else if (isProtoValueSerializable(value)) {
     return value._toProto(context.serializer);
   } else {
@@ -905,7 +942,7 @@ export function parseVectorValue(
   const mapValue: ProtoMapValue = {
     fields: {
       [TYPE_KEY]: {
-        stringValue: VECTOR_VALUE_SENTINEL
+        stringValue: RESERVED_VECTOR_KEY
       },
       [VECTOR_MAP_VECTORS_KEY]: {
         arrayValue: {
@@ -926,6 +963,118 @@ export function parseVectorValue(
   return { mapValue };
 }
 
+export function parseRegexValue(value: RegexValue): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_REGEX_KEY]: {
+        mapValue: {
+          fields: {
+            [RESERVED_REGEX_PATTERN_KEY]: {
+              stringValue: value.pattern
+            },
+            [RESERVED_REGEX_OPTIONS_KEY]: {
+              stringValue: value.options
+            }
+          }
+        }
+      }
+    }
+  };
+
+  return { mapValue };
+}
+
+export function parseMinKey(): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_MIN_KEY]: {
+        nullValue: 'NULL_VALUE'
+      }
+    }
+  };
+  return { mapValue };
+}
+
+export function parseMaxKey(): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_MAX_KEY]: {
+        nullValue: 'NULL_VALUE'
+      }
+    }
+  };
+  return { mapValue };
+}
+
+export function parseBsonObjectId(value: BsonObjectId): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_BSON_OBJECT_ID_KEY]: {
+        stringValue: value.value
+      }
+    }
+  };
+  return { mapValue };
+}
+
+export function parseInt32Value(value: Int32Value): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_INT32_KEY]: toInteger(value.value)
+    }
+  };
+  return { mapValue };
+}
+
+export function parseDecimal128Value(value: Decimal128Value): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_DECIMAL128_KEY]: {
+        stringValue: value.stringValue
+      }
+    }
+  };
+  return { mapValue };
+}
+
+export function parseBsonTimestamp(value: BsonTimestamp): ProtoValue {
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_BSON_TIMESTAMP_KEY]: {
+        mapValue: {
+          fields: {
+            [RESERVED_BSON_TIMESTAMP_SECONDS_KEY]: toInteger(value.seconds),
+            [RESERVED_BSON_TIMESTAMP_INCREMENT_KEY]: toInteger(value.increment)
+          }
+        }
+      }
+    }
+  };
+  return { mapValue };
+}
+
+export function parseBsonBinaryData(
+  serializer: JsonProtoSerializer,
+  value: BsonBinaryData
+): ProtoValue {
+  const subtypeAndData = new Uint8Array(value.data.length + 1);
+  // This converts the subtype from `number` to a byte.
+  subtypeAndData[0] = value.subtype;
+  // Concatenate the rest of the data starting at index 1.
+  subtypeAndData.set(value.data, /* offset */ 1);
+
+  const mapValue: ProtoMapValue = {
+    fields: {
+      [RESERVED_BSON_BINARY_KEY]: {
+        bytesValue: toBytes(
+          serializer,
+          ByteString.fromUint8Array(subtypeAndData)
+        )
+      }
+    }
+  };
+  return { mapValue };
+}
 /**
  * Checks whether an object looks like a JSON object that should be converted
  * into a struct. Normal class/prototype instances are considered to look like
@@ -945,6 +1094,14 @@ export function looksLikeJsonObject(input: unknown): boolean {
     !(input instanceof DocumentReference) &&
     !(input instanceof FieldValue) &&
     !(input instanceof VectorValue) &&
+    !(input instanceof MinKey) &&
+    !(input instanceof MaxKey) &&
+    !(input instanceof Int32Value) &&
+    !(input instanceof Decimal128Value) &&
+    !(input instanceof RegexValue) &&
+    !(input instanceof BsonObjectId) &&
+    !(input instanceof BsonTimestamp) &&
+    !(input instanceof BsonBinaryData) &&
     !isProtoValueSerializable(input)
   );
 }

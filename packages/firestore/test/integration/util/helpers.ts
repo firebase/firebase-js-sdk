@@ -18,6 +18,7 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { EventsAccumulator } from './events_accumulator';
 import {
   clearIndexedDbPersistence,
   collection,
@@ -44,7 +45,8 @@ import {
   Query,
   getDocsFromServer,
   getDocsFromCache,
-  _AutoId
+  _AutoId,
+  onSnapshot
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -445,9 +447,26 @@ export function withTestCollectionSettings<T>(
   docs: { [key: string]: DocumentData },
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  const collectionId = _AutoId.newId();
-  return batchCommitDocsToCollection(
+  return withTestProjectIdAndCollectionSettings(
     persistence,
+    DEFAULT_PROJECT_ID,
+    settings,
+    docs,
+    fn
+  );
+}
+
+export function withTestProjectIdAndCollectionSettings<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  projectId: string,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
+  const collectionId = _AutoId.newId();
+  return batchCommitDocsToCollectionWithSettings(
+    persistence,
+    projectId,
     settings,
     docs,
     collectionId,
@@ -462,9 +481,27 @@ export function batchCommitDocsToCollection<T>(
   collectionId: string,
   fn: (collection: CollectionReference, db: Firestore) => Promise<T>
 ): Promise<T> {
-  return withTestDbsSettings(
+  return batchCommitDocsToCollectionWithSettings(
     persistence,
     DEFAULT_PROJECT_ID,
+    settings,
+    docs,
+    collectionId,
+    fn
+  );
+}
+
+export function batchCommitDocsToCollectionWithSettings<T>(
+  persistence: PersistenceMode | typeof PERSISTENCE_MODE_UNSPECIFIED,
+  projectId: string,
+  settings: PrivateSettings,
+  docs: { [key: string]: DocumentData },
+  collectionId: string,
+  fn: (collection: CollectionReference, db: Firestore) => Promise<T>
+): Promise<T> {
+  return withTestDbsSettings(
+    persistence,
+    projectId,
     settings,
     2,
     ([testDb, setupDb]) => {
@@ -578,6 +615,80 @@ export async function checkOnlineAndOfflineResultsMatch(
   );
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
+  }
+}
+
+/**
+ * Asserts that the given query produces the expected result for all of the
+ * following scenarios:
+ * 1. Performing the given query using source=server, compare with expected result and populate
+ * cache.
+ * 2. Performing the given query using source=cache, compare with server result and expected
+ * result.
+ * 3. Using a snapshot listener to raise snapshots from cache and server, compare them with
+ * expected result.
+ * @param {firebase.firestore.Query} query The query to test.
+ * @param {Object<string, Object<string, any>>} allData A map of document IDs to their data.
+ * @param {string[]} expectedDocIds An array of expected document IDs in the result.
+ * @returns {Promise<void>} A Promise that resolves when the assertions are complete.
+ */
+export async function assertSDKQueryResultsConsistentWithBackend(
+  collection: CollectionReference,
+  query: Query,
+  allData: { [key: string]: DocumentData },
+  expectedDocIds: string[]
+): Promise<void> {
+  // Check the cache round trip first to make sure cache is properly populated, otherwise the
+  // snapshot listener below will return partial results from previous
+  // "assertSDKQueryResultsConsistentWithBackend" calls if it is called multiple times in one test
+  await checkOnlineAndOfflineResultsMatch(collection, query, ...expectedDocIds);
+
+  const eventAccumulator = new EventsAccumulator<QuerySnapshot>();
+  const unsubscribe = onSnapshot(
+    query,
+    { includeMetadataChanges: true },
+    eventAccumulator.storeEvent
+  );
+  let watchSnapshots;
+  try {
+    watchSnapshots = await eventAccumulator.awaitEvents(2);
+  } finally {
+    unsubscribe();
+  }
+
+  expect(watchSnapshots[0].metadata.fromCache).to.be.true;
+  verifySnapshot(watchSnapshots[0], allData, expectedDocIds);
+  expect(watchSnapshots[1].metadata.fromCache).to.be.false;
+  verifySnapshot(watchSnapshots[1], allData, expectedDocIds);
+}
+
+/**
+ * Verifies that a QuerySnapshot matches the expected data and document IDs.
+ * @param {firebase.firestore.QuerySnapshot} snapshot The QuerySnapshot to verify.
+ * @param {Object<string, Object<string, any>>} allData A map of document IDs to their data.
+ * @param {string[]} expectedDocIds An array of expected document IDs in the result.
+ */
+function verifySnapshot(
+  snapshot: QuerySnapshot,
+  allData: { [key: string]: DocumentData },
+  expectedDocIds: string[]
+): void {
+  const snapshotDocIds = toIds(snapshot);
+  expect(
+    expectedDocIds.length === snapshotDocIds.length,
+    `Did not get the same document size. Expected doc size: ${expectedDocIds.length}, Actual doc size: ${snapshotDocIds.length} `
+  ).to.be.true;
+
+  expect(
+    expectedDocIds.every((id, index) => id === snapshotDocIds[index]),
+    `Did not get the expected document IDs. Expected doc IDs: ${expectedDocIds}, Actual doc IDs: ${snapshotDocIds} `
+  ).to.be.true;
+
+  const actualDocs = toDataMap(snapshot);
+  for (const docId of expectedDocIds) {
+    const expectedDoc = allData[docId];
+    const actualDoc = actualDocs[docId];
+    expect(expectedDoc).to.deep.equal(actualDoc);
   }
 }
 

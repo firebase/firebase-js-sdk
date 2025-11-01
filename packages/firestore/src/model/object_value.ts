@@ -25,7 +25,7 @@ import { forEach } from '../util/obj';
 import { FieldMask } from './field_mask';
 import { FieldPath } from './path';
 import { isServerTimestamp } from './server_timestamps';
-import { deepClone, isMapValue, valueEquals } from './values';
+import { deepClone, isBsonType, isMapValue, valueEquals } from './values';
 
 export interface JsonObject<T> {
   [name: string]: T;
@@ -188,7 +188,8 @@ export function extractFieldMask(value: ProtoMapValue): FieldMask {
   const fields: FieldPath[] = [];
   forEach(value!.fields, (key, value) => {
     const currentPath = new FieldPath([key]);
-    if (isMapValue(value)) {
+    // BSON types do not need to extract reserved keys, ie,__regex__.
+    if (isMapValue(value) && !isBsonType(value)) {
       const nestedMask = extractFieldMask(value.mapValue!);
       const nestedFields = nestedMask.fields;
       if (nestedFields.length === 0) {

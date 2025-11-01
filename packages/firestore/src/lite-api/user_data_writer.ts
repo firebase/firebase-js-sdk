@@ -30,7 +30,22 @@ import {
   getPreviousValue
 } from '../model/server_timestamps';
 import { TypeOrder } from '../model/type_order';
-import { VECTOR_MAP_VECTORS_KEY, typeOrder } from '../model/values';
+import {
+  RESERVED_BSON_BINARY_KEY,
+  RESERVED_INT32_KEY,
+  RESERVED_BSON_OBJECT_ID_KEY,
+  RESERVED_REGEX_KEY,
+  RESERVED_REGEX_OPTIONS_KEY,
+  RESERVED_REGEX_PATTERN_KEY,
+  RESERVED_BSON_TIMESTAMP_INCREMENT_KEY,
+  RESERVED_BSON_TIMESTAMP_KEY,
+  RESERVED_BSON_TIMESTAMP_SECONDS_KEY,
+  typeOrder,
+  VECTOR_MAP_VECTORS_KEY,
+  RESERVED_DECIMAL128_KEY,
+  isInt32Value,
+  isDecimal128Value
+} from '../model/values';
 import {
   ApiClientObjectMap,
   ArrayValue as ProtoArrayValue,
@@ -46,7 +61,15 @@ import { ByteString } from '../util/byte_string';
 import { logError } from '../util/log';
 import { forEach } from '../util/obj';
 
+import { BsonBinaryData } from './bson_binary_data';
+import { BsonObjectId } from './bson_object_Id';
+import { BsonTimestamp } from './bson_timestamp';
+import { Decimal128Value } from './decimal128_value';
 import { GeoPoint } from './geo_point';
+import { Int32Value } from './int32_value';
+import { MaxKey } from './max_key';
+import { MinKey } from './min_key';
+import { RegexValue } from './regex_value';
 import { Timestamp } from './timestamp';
 import { VectorValue } from './vector_value';
 
@@ -69,6 +92,13 @@ export abstract class AbstractUserDataWriter {
       case TypeOrder.BooleanValue:
         return value.booleanValue!;
       case TypeOrder.NumberValue:
+        if ('mapValue' in value) {
+          if (isInt32Value(value)) {
+            return this.convertToInt32Value(value.mapValue!);
+          } else if (isDecimal128Value(value)) {
+            return this.convertToDecimal128Value(value.mapValue!);
+          }
+        }
         return normalizeNumber(value.integerValue || value.doubleValue);
       case TypeOrder.TimestampValue:
         return this.convertTimestamp(value.timestampValue!);
@@ -88,6 +118,18 @@ export abstract class AbstractUserDataWriter {
         return this.convertObject(value.mapValue!, serverTimestampBehavior);
       case TypeOrder.VectorValue:
         return this.convertVectorValue(value.mapValue!);
+      case TypeOrder.RegexValue:
+        return this.convertToRegexValue(value.mapValue!);
+      case TypeOrder.BsonObjectIdValue:
+        return this.convertToBsonObjectId(value.mapValue!);
+      case TypeOrder.BsonBinaryValue:
+        return this.convertToBsonBinaryData(value.mapValue!);
+      case TypeOrder.BsonTimestampValue:
+        return this.convertToBsonTimestamp(value.mapValue!);
+      case TypeOrder.MaxKeyValue:
+        return MaxKey.instance();
+      case TypeOrder.MinKeyValue:
+        return MinKey.instance();
       default:
         throw fail(0xf2a2, 'Invalid value type', {
           value
@@ -127,6 +169,64 @@ export abstract class AbstractUserDataWriter {
     });
 
     return new VectorValue(values);
+  }
+
+  private convertToBsonObjectId(mapValue: ProtoMapValue): BsonObjectId {
+    const oid =
+      mapValue!.fields?.[RESERVED_BSON_OBJECT_ID_KEY]?.stringValue ?? '';
+    return new BsonObjectId(oid);
+  }
+
+  private convertToBsonBinaryData(mapValue: ProtoMapValue): BsonBinaryData {
+    const fields = mapValue!.fields?.[RESERVED_BSON_BINARY_KEY];
+    const subtypeAndData = fields?.bytesValue;
+    if (!subtypeAndData) {
+      throw new Error('Received incorrect bytesValue for BsonBinaryData');
+    }
+
+    const bytes = normalizeByteString(subtypeAndData).toUint8Array();
+    if (bytes.length === 0) {
+      throw new Error('Received empty bytesValue for BsonBinaryData');
+    }
+    const subtype = bytes.at(0);
+    const data = bytes.slice(1);
+    return new BsonBinaryData(Number(subtype), data);
+  }
+
+  private convertToBsonTimestamp(mapValue: ProtoMapValue): BsonTimestamp {
+    const fields = mapValue!.fields?.[RESERVED_BSON_TIMESTAMP_KEY];
+    const seconds = Number(
+      fields?.mapValue?.fields?.[RESERVED_BSON_TIMESTAMP_SECONDS_KEY]
+        ?.integerValue
+    );
+    const increment = Number(
+      fields?.mapValue?.fields?.[RESERVED_BSON_TIMESTAMP_INCREMENT_KEY]
+        ?.integerValue
+    );
+    return new BsonTimestamp(seconds, increment);
+  }
+
+  private convertToRegexValue(mapValue: ProtoMapValue): RegexValue {
+    const pattern =
+      mapValue!.fields?.[RESERVED_REGEX_KEY]?.mapValue?.fields?.[
+        RESERVED_REGEX_PATTERN_KEY
+      ]?.stringValue ?? '';
+    const options =
+      mapValue!.fields?.[RESERVED_REGEX_KEY]?.mapValue?.fields?.[
+        RESERVED_REGEX_OPTIONS_KEY
+      ]?.stringValue ?? '';
+    return new RegexValue(pattern, options);
+  }
+
+  private convertToInt32Value(mapValue: ProtoMapValue): Int32Value {
+    const value = Number(mapValue!.fields?.[RESERVED_INT32_KEY]?.integerValue);
+    return new Int32Value(value);
+  }
+
+  private convertToDecimal128Value(mapValue: ProtoMapValue): Decimal128Value {
+    const value =
+      mapValue!.fields?.[RESERVED_DECIMAL128_KEY]?.stringValue ?? '';
+    return new Decimal128Value(value);
   }
 
   private convertGeoPoint(value: ProtoLatLng): GeoPoint {
