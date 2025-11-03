@@ -39,14 +39,6 @@ export type OnErrorSubscription = (err?: DataConnectError) => void;
  * Signature for unsubscribe from `subscribe`
  */
 export type QueryUnsubscribe = () => void;
-/**
- * Representation of user provided subscription options.
- */
-export interface DataConnectSubscription<Data, Variables> {
-  userCallback: OnResultSubscription<Data, Variables>;
-  errCallback?: (e?: DataConnectError) => void;
-  unsubscribe: () => void;
-}
 
 /**
  * QueryRef object
@@ -124,7 +116,7 @@ export function queryRef<Data, Variables>(
     dataConnect: dcInstance,
     refType: QUERY_STR,
     name: queryName,
-    variables
+    variables: variables as Variables
   };
 }
 /**
