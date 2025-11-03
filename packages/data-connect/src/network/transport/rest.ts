@@ -34,7 +34,7 @@ export class RESTTransport implements DataConnectTransport {
   private _project = 'p';
   private _serviceName: string;
   private _accessToken: string | null = null;
-  private _appCheckToken: string | null = null;
+  private _appCheckToken: string | null | undefined = null;
   private _lastToken: string | null = null;
   private _isUsingEmulator = false;
   constructor(
@@ -106,7 +106,7 @@ export class RESTTransport implements DataConnectTransport {
     this._accessToken = newToken;
   }
 
-  async getWithAuth(forceToken = false): Promise<string> {
+  async getWithAuth(forceToken = false): Promise<string | null> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
     );

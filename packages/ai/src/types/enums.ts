@@ -380,6 +380,24 @@ export const InferenceMode = {
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
 /**
+ * Indicates whether inference happened on-device or in-cloud.
+ *
+ * @beta
+ */
+export const InferenceSource = {
+  'ON_DEVICE': 'on_device',
+  'IN_CLOUD': 'in_cloud'
+} as const;
+
+/**
+ * Indicates whether inference happened on-device or in-cloud.
+ *
+ * @beta
+ */
+export type InferenceSource =
+  (typeof InferenceSource)[keyof typeof InferenceSource];
+
+/**
  * Represents the result of the code execution.
  *
  * @beta
