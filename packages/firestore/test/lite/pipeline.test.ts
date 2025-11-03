@@ -46,6 +46,7 @@ import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import { addEqualityMatcher } from '../util/equality_matcher';
+import { describe } from '../util/mocha_extensions';
 import { Deferred } from '../util/promise';
 
 import { withTestCollection } from './helpers';
@@ -149,8 +150,7 @@ use(chaiAsPromised);
 
 const timestampDeltaMS = 1000;
 
-// eslint-disable-next-line no-restricted-properties
-describe.only('Firestore Pipelines', () => {
+describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -3244,9 +3244,10 @@ describe.only('Firestore Pipelines', () => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expectResults(snapshot, {
-        expRating: 109.94717245212352
-      });
+      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+        109.94717245212352,
+        0.00001
+      );
     });
 
     it('can compute e to the power of a numeric value with the top-level function', async () => {

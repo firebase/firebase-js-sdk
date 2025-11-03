@@ -152,9 +152,7 @@ setLogLevel('debug');
 
 const timestampDeltaMS = 1000;
 
-(process.env.FIRESTORE_TARGET_DB_ID === 'enterprise'
-  ? apiDescribe.only
-  : apiDescribe.skip)('Pipelines', persistence => {
+apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;

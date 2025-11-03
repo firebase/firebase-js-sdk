@@ -18,6 +18,8 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { describe } from '../../util/mocha_extensions';
+
 import {
   clearIndexedDbPersistence,
   collection,
@@ -204,6 +206,9 @@ interface ApiDescribe {
   (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
+  skipEnterprise: ApiSuiteFunction;
+  skipEmulator: ApiSuiteFunction;
+  skipClassic: ApiSuiteFunction;
 }
 
 export const apiDescribe = apiDescribeInternal.bind(
@@ -214,6 +219,15 @@ export const apiDescribe = apiDescribeInternal.bind(
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+apiDescribe.skipEnterprise = apiDescribeInternal.bind(
+  null,
+  describe.skipEnterprise
+);
+apiDescribe.skipClassic = apiDescribeInternal.bind(null, describe.skipClassic);
+apiDescribe.skipEmulator = apiDescribeInternal.bind(
+  null,
+  describe.skipEmulator
+);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
