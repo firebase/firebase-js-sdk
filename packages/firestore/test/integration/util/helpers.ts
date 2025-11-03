@@ -179,7 +179,10 @@ export function isPersistenceAvailable(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 function apiDescribeInternal(
-  describeFn: Mocha.PendingSuiteFunction,
+  describeFn:
+    | Mocha.PendingSuiteFunction
+    | Mocha.SuiteFunction
+    | Mocha.ExclusiveSuiteFunction,
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
@@ -593,11 +596,4 @@ export async function checkOnlineAndOfflineResultsMatch(
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
-}
-
-export function itIf(
-  condition: boolean | 'only'
-): Mocha.TestFunction | Mocha.PendingTestFunction {
-  // eslint-disable-next-line no-restricted-properties
-  return condition === 'only' ? it.only : condition ? it : it.skip;
 }
