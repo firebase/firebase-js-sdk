@@ -29,7 +29,7 @@ import { Provider } from '@firebase/component';
  * Abstraction around AppCheck's token fetching capabilities.
  */
 export class AppCheckTokenProvider {
-  private appCheck?: FirebaseAppCheckInternal;
+  private appCheck?: FirebaseAppCheckInternal | null;
   private serverAppAppCheckToken?: string;
   constructor(
     app: FirebaseApp,
@@ -47,13 +47,13 @@ export class AppCheckTokenProvider {
     }
   }
 
-  getToken(): Promise<AppCheckTokenResult> {
+  getToken(): Promise<AppCheckTokenResult | null> {
     if (this.serverAppAppCheckToken) {
       return Promise.resolve({ token: this.serverAppAppCheckToken });
     }
 
     if (!this.appCheck) {
-      return new Promise<AppCheckTokenResult>((resolve, reject) => {
+      return new Promise<AppCheckTokenResult | null>((resolve, reject) => {
         // Support delayed initialization of FirebaseAppCheck. This allows our
         // customers to initialize the RTDB SDK before initializing Firebase
         // AppCheck and ensures that all requests are authenticated if a token
