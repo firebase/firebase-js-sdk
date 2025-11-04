@@ -156,8 +156,8 @@ export class ChatSession {
       this._apiSettings,
       this.model,
       generateContentRequest,
-      // Merge requestOptions
       this.chromeAdapter,
+      // Merge requestOptions
       {
         ...this.requestOptions,
         ...singleRequestOptions
@@ -167,12 +167,20 @@ export class ChatSession {
     // Add onto the chain.
     this._sendPromise = this._sendPromise
       .then(() => streamPromise)
-      // This must be handled to avoid unhandled rejection, but jump
-      // to the final catch block with a label to not log this error.
+      .then(streamResult => streamResult.response)
       .catch(_ignored => {
         throw new Error(SILENT_ERROR);
       })
-      .then(streamResult => streamResult.response)
+      // We want to log errors that the user cannot catch.
+      // The user can catch all errors that are thrown from the `streamPromise` and the
+      // `streamResult.response`, since these are returned to the user in the `GenerateContentResult`.
+      // The user cannot catch errors that are thrown in the following `then` block, which appends
+      // the model's response to the chat history.
+      //
+      // To prevent us from logging errors that the user *can* catch, we re-throw them as
+      // SILENT_ERROR, then in the final `catch` block below, we only log errors that are not
+      // SILENT_ERROR. There is currently no way for these errors to be propagated to the user,
+      // so we log them to try to make up for this.
       .then(response => {
         if (response.candidates && response.candidates.length > 0) {
           this._history.push(newContent);
@@ -192,16 +200,7 @@ export class ChatSession {
         }
       })
       .catch(e => {
-        // Errors in streamPromise are already catchable by the user as
-        // streamPromise is returned.
-        // Avoid duplicating the error message in logs.
-        // AbortErrors are thrown after the initial streamPromise resolves, since the request
-        // may be aborted once streaming has begun. Since these errors won't be wrapped in a SILENT_ERROR,
-        // we have to explicitly check for them. The user will be able to catch these AbortErrors when
-        // awaiting the resolution of the result.response.
-        if (e.message !== SILENT_ERROR && e.name !== 'AbortError') {
-          // Users do not have access to _sendPromise to catch errors
-          // downstream from streamPromise, so they should not throw.
+        if (e.message !== SILENT_ERROR) {
           logger.error(e);
         }
       });

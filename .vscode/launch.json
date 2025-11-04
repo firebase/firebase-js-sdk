@@ -17,7 +17,7 @@
         "src/index.node.ts",
         "--timeout",
         "5000",
-        "src/**/*.test.ts"
+        "src/**/!(*-browser)*.test.ts"
       ],
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"

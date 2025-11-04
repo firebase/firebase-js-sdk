@@ -407,7 +407,9 @@ describe('GenerativeModel', () => {
       {
         model: 'my-model',
         tools: [
-          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] },
+          { googleSearch: {} },
+          { urlContext: {} }
         ],
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
@@ -420,7 +422,7 @@ describe('GenerativeModel', () => {
       {},
       fakeChromeAdapter
     );
-    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.tools?.length).to.equal(3);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
@@ -539,7 +541,12 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('calls countTokens', async () => {
-    const genModel = new GenerativeModel(fakeAI, { model: 'my-model' });
+    const genModel = new GenerativeModel(
+      fakeAI,
+      { model: 'my-model' },
+      {},
+      fakeChromeAdapter
+    );
     const mockResponse = getMockResponse(
       'vertexAI',
       'unary-success-total-tokens.json'

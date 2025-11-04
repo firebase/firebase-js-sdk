@@ -220,6 +220,34 @@ describe('ChatSession', () => {
       );
       clock.restore();
     });
+    it('error from stream promise should not be logged', async () => {
+      const consoleStub = stub(console, 'error');
+      stub(generateContentMethods, 'generateContentStream').rejects('foo');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
+      try {
+        // This will throw since generateContentStream will reject immediately.
+        await chatSession.sendMessageStream('hello');
+      } catch (_) {}
+
+      expect(consoleStub).to.not.have.been.called;
+    });
+    it('error from final response promise should not be logged', async () => {
+      const consoleStub = stub(console, 'error');
+      stub(generateContentMethods, 'generateContentStream').resolves({
+        response: new Promise((_, reject) => reject(new Error()))
+      } as unknown as GenerateContentStreamResult);
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
+      await chatSession.sendMessageStream('hello');
+      expect(consoleStub).to.not.have.been.called;
+    });
     it('singleRequestOptions overrides requestOptions', async () => {
       const generateContentStub = stub(
         generateContentMethods,
