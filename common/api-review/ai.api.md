@@ -580,9 +580,9 @@ export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions):
 // @public
 export class GoogleAIBackend extends Backend {
     constructor();
-    // (undocumented)
+    // @internal (undocumented)
     _getModelPath(project: string, model: string): string;
-    // (undocumented)
+    // @internal (undocumented)
     _getTemplatePath(project: string, templateId: string): string;
 }
 
@@ -1445,9 +1445,9 @@ export interface UsageMetadata {
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
-    // (undocumented)
+    // @internal (undocumented)
     _getModelPath(project: string, model: string): string;
-    // (undocumented)
+    // @internal (undocumented)
     _getTemplatePath(project: string, templateId: string): string;
     readonly location: string;
 }

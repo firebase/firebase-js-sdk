@@ -33,13 +33,6 @@ export declare class VertexAIBackend extends Backend
 |  --- | --- | --- | --- |
 |  [location](./ai.vertexaibackend.md#vertexaibackendlocation) |  | string | The region identifier. See [Vertex AI locations](https://firebase.google.com/docs/vertex-ai/locations#available-locations) for a list of supported locations. |
 
-## Methods
-
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [\_getModelPath(project, model)](./ai.vertexaibackend.md#vertexaibackend_getmodelpath) |  |  |
-|  [\_getTemplatePath(project, templateId)](./ai.vertexaibackend.md#vertexaibackend_gettemplatepath) |  |  |
-
 ## VertexAIBackend.(constructor)
 
 Creates a configuration object for the Vertex AI backend.
@@ -65,42 +58,3 @@ The region identifier. See [Vertex AI locations](https://firebase.google.com/doc
 ```typescript
 readonly location: string;
 ```
-
-## VertexAIBackend.\_getModelPath()
-
-<b>Signature:</b>
-
-```typescript
-_getModelPath(project: string, model: string): string;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  project | string |  |
-|  model | string |  |
-
-<b>Returns:</b>
-
-string
-
-## VertexAIBackend.\_getTemplatePath()
-
-<b>Signature:</b>
-
-```typescript
-_getTemplatePath(project: string, templateId: string): string;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  project | string |  |
-|  templateId | string |  |
-
-<b>Returns:</b>
-
-string
-

@@ -67,10 +67,16 @@ export class GoogleAIBackend extends Backend {
     super(BackendType.GOOGLE_AI);
   }
 
+  /**
+   * @internal
+   */
   _getModelPath(project: string, model: string): string {
     return `/${DEFAULT_API_VERSION}/projects/${project}/${model}`;
   }
 
+  /**
+   * @internal
+   */
   _getTemplatePath(project: string, templateId: string): string {
     return `/${DEFAULT_API_VERSION}/projects/${project}/templates/${templateId}`;
   }
@@ -108,10 +114,16 @@ export class VertexAIBackend extends Backend {
     }
   }
 
+  /**
+   * @internal
+   */
   _getModelPath(project: string, model: string): string {
     return `/${DEFAULT_API_VERSION}/projects/${project}/locations/${this.location}/${model}`;
   }
 
+  /**
+   * @internal
+   */
   _getTemplatePath(project: string, templateId: string): string {
     return `/${DEFAULT_API_VERSION}/projects/${project}/locations/${this.location}/templates/${templateId}`;
   }
