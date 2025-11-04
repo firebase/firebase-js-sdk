@@ -191,7 +191,11 @@ export class ChatSession {
         // Errors in streamPromise are already catchable by the user as
         // streamPromise is returned.
         // Avoid duplicating the error message in logs.
-        if (e.message !== SILENT_ERROR) {
+        // AbortErrors are thrown after the initial streamPromise resolves, since the request
+        // may be aborted once streaming has begun. Since these errors won't be wrapped in a SILENT_ERROR,
+        // we have to explicitly check for them. The user will be able to catch these AbortErrors when
+        // awaiting the resolution of the result.response.
+        if (e.message !== SILENT_ERROR && e.name !== 'AbortError') {
           // Users do not have access to _sendPromise to catch errors
           // downstream from streamPromise, so they should not throw.
           logger.error(e);
