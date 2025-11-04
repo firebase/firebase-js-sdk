@@ -23,11 +23,15 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [functionCalls](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsefunctioncalls) | () =&gt; [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->\[\] \| undefined |  |
-|  [inlineDataParts](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponseinlinedataparts) | () =&gt; [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface)<!-- -->\[\] \| undefined | Aggregates and returns all [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface)<!-- -->s from the [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->'s first candidate. |
+|  [functionCalls](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsefunctioncalls) | () =&gt; [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->\[\] \| undefined | Aggregates and returns every [FunctionCall](./ai.functioncall.md#functioncall_interface) from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [inferenceSource](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponseinferencesource) | [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
+|  [inlineDataParts](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponseinlinedataparts) | () =&gt; [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface)<!-- -->\[\] \| undefined | Aggregates and returns every [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [text](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsetext) | () =&gt; string | Returns the text string from the response, if available. Throws if the prompt or candidate was blocked. |
+|  [thoughtSummary](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponsethoughtsummary) | () =&gt; string \| undefined | Aggregates and returns every [TextPart](./ai.textpart.md#textpart_interface) with their <code>thought</code> property set to <code>true</code> from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 
 ## EnhancedGenerateContentResponse.functionCalls
+
+Aggregates and returns every [FunctionCall](./ai.functioncall.md#functioncall_interface) from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -35,9 +39,22 @@ export interface EnhancedGenerateContentResponse extends GenerateContentResponse
 functionCalls: () => FunctionCall[] | undefined;
 ```
 
+## EnhancedGenerateContentResponse.inferenceSource
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Indicates whether inference happened on-device or in-cloud.
+
+<b>Signature:</b>
+
+```typescript
+inferenceSource?: InferenceSource;
+```
+
 ## EnhancedGenerateContentResponse.inlineDataParts
 
-Aggregates and returns all [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface)<!-- -->s from the [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->'s first candidate.
+Aggregates and returns every [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
 <b>Signature:</b>
 
@@ -53,4 +70,18 @@ Returns the text string from the response, if available. Throws if the prompt or
 
 ```typescript
 text: () => string;
+```
+
+## EnhancedGenerateContentResponse.thoughtSummary
+
+Aggregates and returns every [TextPart](./ai.textpart.md#textpart_interface) with their `thought` property set to `true` from the first candidate of [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
+
+Thought summaries provide a brief overview of the model's internal thinking process, offering insight into how it arrived at the final answer. This can be useful for debugging, understanding the model's reasoning, and verifying its accuracy.
+
+Thoughts will only be included if [ThinkingConfig.includeThoughts](./ai.thinkingconfig.md#thinkingconfigincludethoughts) is set to `true`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+thoughtSummary: () => string | undefined;
 ```

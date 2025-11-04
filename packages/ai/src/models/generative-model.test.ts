@@ -15,16 +15,27 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import chaiAsPromised from 'chai-as-promised';
 import { GenerativeModel } from './generative-model';
-import { FunctionCallingMode, AI } from '../public-types';
+import {
+  FunctionCallingMode,
+  AI,
+  InferenceMode,
+  AIErrorCode,
+  ChromeAdapter
+} from '../public-types';
 import * as request from '../requests/request';
-import { match, restore, stub } from 'sinon';
-import { getMockResponse } from '../../test-utils/mock-response';
+import { SinonStub, match, restore, stub } from 'sinon';
+import {
+  getMockResponse,
+  getMockResponseStreaming
+} from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
 import * as generateContentMethods from '../methods/generate-content';
 import * as countTokens from '../methods/count-tokens';
 import { VertexAIBackend } from '../backend';
+import { AIError } from '../errors';
+import chaiAsPromised from 'chai-as-promised';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -48,22 +59,31 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes params through to generateContent', async () => {
-    const genModel = new GenerativeModel(fakeAI, {
-      model: 'my-model',
-      tools: [
-        {
-          functionDeclarations: [
-            {
-              name: 'myfunc',
-              description: 'mydesc'
-            }
-          ]
-        }
-      ],
-      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
-    });
-    expect(genModel.tools?.length).to.equal(1);
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: 'myfunc',
+                description: 'mydesc'
+              }
+            ]
+          },
+          { googleSearch: {} },
+          { codeExecution: {} }
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.NONE }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      },
+      {},
+      fakeChromeAdapter
+    );
+    expect(genModel.tools?.length).to.equal(3);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
     );
@@ -84,6 +104,8 @@ describe('GenerativeModel', () => {
       match((value: string) => {
         return (
           value.includes('myfunc') &&
+          value.includes('googleSearch') &&
+          value.includes('codeExecution') &&
           value.includes(FunctionCallingMode.NONE) &&
           value.includes('be friendly')
         );
@@ -93,10 +115,15 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('passes text-only systemInstruction through to generateContent', async () => {
-    const genModel = new GenerativeModel(fakeAI, {
-      model: 'my-model',
-      systemInstruction: 'be friendly'
-    });
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        systemInstruction: 'be friendly'
+      },
+      {},
+      fakeChromeAdapter
+    );
     expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
     const mockResponse = getMockResponse(
       'vertexAI',
@@ -119,21 +146,28 @@ describe('GenerativeModel', () => {
     restore();
   });
   it('generateContent overrides model values', async () => {
-    const genModel = new GenerativeModel(fakeAI, {
-      model: 'my-model',
-      tools: [
-        {
-          functionDeclarations: [
-            {
-              name: 'myfunc',
-              description: 'mydesc'
-            }
-          ]
-        }
-      ],
-      toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.NONE } },
-      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
-    });
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        tools: [
+          {
+            functionDeclarations: [
+              {
+                name: 'myfunc',
+                description: 'mydesc'
+              }
+            ]
+          }
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.NONE }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] }
+      },
+      {},
+      fakeChromeAdapter
+    );
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
@@ -153,7 +187,9 @@ describe('GenerativeModel', () => {
           functionDeclarations: [
             { name: 'otherfunc', description: 'otherdesc' }
           ]
-        }
+        },
+        { googleSearch: {} },
+        { codeExecution: {} }
       ],
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode.AUTO } },
       systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
@@ -166,6 +202,8 @@ describe('GenerativeModel', () => {
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
+          value.includes('googleSearch') &&
+          value.includes('codeExecution') &&
           value.includes(FunctionCallingMode.AUTO) &&
           value.includes('be formal')
         );
@@ -196,10 +234,29 @@ describe('GenerativeModel', () => {
       match.any,
       match.any,
       match.any,
+      match.any,
       match({
         timeout: singleRequestOptions.timeout
       })
     );
+  });
+  it('passes base model params through to ChatSession when there are no startChatParams', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
+        model: 'my-model',
+        generationConfig: {
+          topK: 1
+        }
+      },
+      {},
+      fakeChromeAdapter
+    );
+    const chatSession = genModel.startChat();
+    expect(chatSession.params?.generationConfig).to.deep.equal({
+      topK: 1
+    });
+    restore();
   });
   it('generateContent singleRequestOptions is merged with requestOptions', async () => {
     const generateContentStub = stub(
@@ -221,6 +278,7 @@ describe('GenerativeModel', () => {
     await expect(genModel.generateContent('hello', singleRequestOptions)).to.be
       .rejected;
     expect(generateContentStub).to.be.calledWith(
+      match.any,
       match.any,
       match.any,
       match.any,
@@ -258,11 +316,16 @@ describe('GenerativeModel', () => {
         topK: 2
       });
     });
-    it('passes params through to chat.sendMessage', async () => {
-      const genModel = new GenerativeModel(fakeAI, {
+  });
+  it('passes params through to chat.sendMessage', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
         model: 'my-model',
         tools: [
-          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] },
+          { googleSearch: {} },
+          { codeExecution: {} }
         ],
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
@@ -271,65 +334,77 @@ describe('GenerativeModel', () => {
         generationConfig: {
           topK: 1
         }
-      });
-      expect(genModel.tools?.length).to.equal(1);
-      expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
-        FunctionCallingMode.NONE
-      );
-      expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
-      const mockResponse = getMockResponse(
-        'vertexAI',
-        'unary-success-basic-reply-short.json'
-      );
-      const makeRequestStub = stub(request, 'makeRequest').resolves(
-        mockResponse as Response
-      );
-      await genModel.startChat().sendMessage('hello');
-      expect(makeRequestStub).to.be.calledWith(
-        'publishers/google/models/my-model',
-        request.Task.GENERATE_CONTENT,
-        match.any,
-        false,
-        match((value: string) => {
-          return (
-            value.includes('myfunc') &&
-            value.includes(FunctionCallingMode.NONE) &&
-            value.includes('be friendly') &&
-            value.includes('topK')
-          );
-        }),
-        {}
-      );
-      restore();
-    });
-    it('passes text-only systemInstruction through to chat.sendMessage', async () => {
-      const genModel = new GenerativeModel(fakeAI, {
+      },
+      {},
+      fakeChromeAdapter
+    );
+    expect(genModel.tools?.length).to.equal(3);
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('myfunc') &&
+          value.includes('googleSearch') &&
+          value.includes('codeExecution') &&
+          value.includes(FunctionCallingMode.NONE) &&
+          value.includes('be friendly') &&
+          value.includes('topK')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
+  it('passes text-only systemInstruction through to chat.sendMessage', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
         model: 'my-model',
         systemInstruction: 'be friendly'
-      });
-      expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
-      const mockResponse = getMockResponse(
-        'vertexAI',
-        'unary-success-basic-reply-short.json'
-      );
-      const makeRequestStub = stub(request, 'makeRequest').resolves(
-        mockResponse as Response
-      );
-      await genModel.startChat().sendMessage('hello');
-      expect(makeRequestStub).to.be.calledWith(
-        'publishers/google/models/my-model',
-        request.Task.GENERATE_CONTENT,
-        match.any,
-        false,
-        match((value: string) => {
-          return value.includes('be friendly');
-        }),
-        {}
-      );
-      restore();
-    });
-    it('startChat overrides model values', async () => {
-      const genModel = new GenerativeModel(fakeAI, {
+      },
+      {},
+      fakeChromeAdapter
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return value.includes('be friendly');
+      }),
+      {}
+    );
+    restore();
+  });
+  it('startChat overrides model values', async () => {
+    const genModel = new GenerativeModel(
+      fakeAI,
+      {
         model: 'my-model',
         tools: [
           { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
@@ -341,129 +416,499 @@ describe('GenerativeModel', () => {
         generationConfig: {
           responseMimeType: 'image/jpeg'
         }
-      });
-      expect(genModel.tools?.length).to.equal(1);
-      expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
-        FunctionCallingMode.NONE
-      );
-      expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
-      const mockResponse = getMockResponse(
-        'vertexAI',
-        'unary-success-basic-reply-short.json'
-      );
-      const makeRequestStub = stub(request, 'makeRequest').resolves(
-        mockResponse as Response
-      );
-      await genModel
-        .startChat({
-          tools: [
-            {
-              functionDeclarations: [
-                { name: 'otherfunc', description: 'otherdesc' }
-              ]
-            }
-          ],
-          toolConfig: {
-            functionCallingConfig: { mode: FunctionCallingMode.AUTO }
-          },
-          systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] },
-          generationConfig: {
-            responseMimeType: 'image/png'
+      },
+      {},
+      fakeChromeAdapter
+    );
+    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('myfunc') &&
+          value.includes(FunctionCallingMode.NONE) &&
+          value.includes('be friendly')
+          // value.includes('topK')
+        );
+      }),
+      match.any
+    );
+    restore();
+  });
+  it('passes text-only systemInstruction through to chat.sendMessage', async () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      systemInstruction: 'be friendly'
+    });
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return value.includes('be friendly');
+      }),
+      {}
+    );
+    restore();
+  });
+  it('startChat overrides model values', async () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      tools: [
+        { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+      ],
+      toolConfig: {
+        functionCallingConfig: { mode: FunctionCallingMode.NONE }
+      },
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] },
+      generationConfig: {
+        responseMimeType: 'image/jpeg'
+      }
+    });
+    expect(genModel.tools?.length).to.equal(1);
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel
+      .startChat({
+        tools: [
+          {
+            functionDeclarations: [
+              { name: 'otherfunc', description: 'otherdesc' }
+            ]
           }
-        })
-        .sendMessage('hello');
-      expect(makeRequestStub).to.be.calledWith(
-        'publishers/google/models/my-model',
-        request.Task.GENERATE_CONTENT,
-        match.any,
-        false,
-        match((value: string) => {
-          return (
-            value.includes('otherfunc') &&
-            value.includes(FunctionCallingMode.AUTO) &&
-            value.includes('be formal') &&
-            value.includes('image/png') &&
-            !value.includes('image/jpeg')
-          );
-        }),
-        {}
+        ],
+        toolConfig: {
+          functionCallingConfig: { mode: FunctionCallingMode.AUTO }
+        },
+        systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] },
+        generationConfig: {
+          responseMimeType: 'image/png'
+        }
+      })
+      .sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.GENERATE_CONTENT,
+      match.any,
+      false,
+      match((value: string) => {
+        return (
+          value.includes('otherfunc') &&
+          value.includes(FunctionCallingMode.AUTO) &&
+          value.includes('be formal') &&
+          value.includes('image/png') &&
+          !value.includes('image/jpeg')
+        );
+      }),
+      {}
+    );
+    restore();
+  });
+  it('calls countTokens', async () => {
+    const genModel = new GenerativeModel(fakeAI, { model: 'my-model' });
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-total-tokens.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.countTokens('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      'publishers/google/models/my-model',
+      request.Task.COUNT_TOKENS,
+      match.any,
+      false,
+      match((value: string) => {
+        return value.includes('hello');
+      })
+    );
+    restore();
+  });
+  it('countTokens singleRequestOptions overrides requestOptions', async () => {
+    const countTokensStub = stub(countTokens, 'countTokens').rejects(
+      'countTokens failed'
+    );
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const genModel = new GenerativeModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(countTokensStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: singleRequestOptions.timeout
+      })
+    );
+  });
+  it('countTokens singleRequestOptions is merged with requestOptions', async () => {
+    const countTokensStub = stub(countTokens, 'countTokens').rejects(
+      'countTokens failed'
+    );
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
+    const genModel = new GenerativeModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(countTokensStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: requestOptions.timeout,
+        signal: singleRequestOptions.signal
+      })
+    );
+  });
+});
+
+describe('GenerativeModel dispatch logic', () => {
+  let makeRequestStub: SinonStub;
+  let mockChromeAdapter: ChromeAdapter;
+
+  function stubMakeRequest(stream?: boolean): void {
+    if (stream) {
+      makeRequestStub = stub(request, 'makeRequest').resolves(
+        getMockResponseStreaming(
+          'vertexAI',
+          'unary-success-basic-reply-short.json'
+        ) as Response
       );
-      restore();
+    } else {
+      makeRequestStub = stub(request, 'makeRequest').resolves(
+        getMockResponse(
+          'vertexAI',
+          'unary-success-basic-reply-short.json'
+        ) as Response
+      );
+    }
+  }
+
+  beforeEach(() => {
+    // @ts-ignore
+    mockChromeAdapter = {
+      isAvailable: stub(),
+      generateContent: stub().resolves(new Response(JSON.stringify({}))),
+      generateContentStream: stub().resolves(
+        new Response(new ReadableStream())
+      ),
+      countTokens: stub().resolves(new Response(JSON.stringify({}))),
+      mode: InferenceMode.PREFER_ON_DEVICE
+    };
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  describe('PREFER_ON_DEVICE', () => {
+    beforeEach(() => {
+      mockChromeAdapter.mode = InferenceMode.PREFER_ON_DEVICE;
     });
-    it('calls countTokens', async () => {
-      const genModel = new GenerativeModel(fakeAI, { model: 'my-model' });
-      const mockResponse = getMockResponse(
-        'vertexAI',
-        'unary-success-total-tokens.json'
-      );
-      const makeRequestStub = stub(request, 'makeRequest').resolves(
-        mockResponse as Response
-      );
-      await genModel.countTokens('hello');
-      expect(makeRequestStub).to.be.calledWith(
-        'publishers/google/models/my-model',
-        request.Task.COUNT_TOKENS,
-        match.any,
-        false,
-        match((value: string) => {
-          return value.includes('hello');
-        })
-      );
-      restore();
-    });
-    it('countTokens singleRequestOptions overrides requestOptions', async () => {
-      const countTokensStub = stub(countTokens, 'countTokens').rejects(
-        'countTokens failed'
-      );
-      const requestOptions = {
-        timeout: 1000
-      };
-      const singleRequestOptions = {
-        timeout: 2000
-      };
-      const genModel = new GenerativeModel(
+    it('should use on-device for generateContent when available', async () => {
+      stubMakeRequest();
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
         fakeAI,
-        { model: 'my-model' },
-        requestOptions
+        { model: 'model' },
+        {},
+        mockChromeAdapter
       );
-      await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
-        .rejected;
-      expect(countTokensStub).to.be.calledWith(
-        match.any,
-        match.any,
-        match.any,
-        match({
-          timeout: singleRequestOptions.timeout
-        })
-      );
+      await model.generateContent('hello');
+      expect(mockChromeAdapter.generateContent).to.have.been.calledOnce;
+      expect(makeRequestStub).to.not.have.been.called;
     });
-    it('countTokens singleRequestOptions is merged with requestOptions', async () => {
-      const countTokensStub = stub(countTokens, 'countTokens').rejects(
-        'countTokens failed'
-      );
-      const abortController = new AbortController();
-      const requestOptions = {
-        timeout: 1000
-      };
-      const singleRequestOptions = {
-        signal: abortController.signal
-      };
-      const genModel = new GenerativeModel(
+    it('should use cloud for generateContent when on-device is not available', async () => {
+      stubMakeRequest();
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
+      const model = new GenerativeModel(
         fakeAI,
-        { model: 'my-model' },
-        requestOptions
+        { model: 'model' },
+        {},
+        mockChromeAdapter
       );
-      await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
-        .rejected;
-      expect(countTokensStub).to.be.calledWith(
-        match.any,
-        match.any,
-        match.any,
-        match({
-          timeout: requestOptions.timeout,
-          signal: singleRequestOptions.signal
-        })
+      await model.generateContent('hello');
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
+      expect(makeRequestStub).to.have.been.calledOnce;
+    });
+    it('should use on-device for generateContentStream when available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
       );
+      await model.generateContentStream('hello');
+      expect(mockChromeAdapter.generateContentStream).to.have.been.calledOnce;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('should use cloud for generateContentStream when on-device is not available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContentStream('hello');
+      expect(mockChromeAdapter.generateContentStream).to.not.have.been.called;
+      expect(makeRequestStub).to.have.been.calledOnce;
+    });
+    it('should use cloud for countTokens', async () => {
+      stubMakeRequest();
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.countTokens('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+    });
+  });
+
+  describe('ONLY_ON_DEVICE', () => {
+    beforeEach(() => {
+      mockChromeAdapter.mode = InferenceMode.ONLY_ON_DEVICE;
+    });
+    it('should use on-device for generateContent when available', async () => {
+      stubMakeRequest();
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContent('hello');
+      expect(mockChromeAdapter.generateContent).to.have.been.calledOnce;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('generateContent should throw when on-device is not available', async () => {
+      stubMakeRequest();
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await expect(model.generateContent('hello')).to.be.rejectedWith(
+        /on-device model is not available/
+      );
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('should use on-device for generateContentStream when available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContentStream('hello');
+      expect(mockChromeAdapter.generateContentStream).to.have.been.calledOnce;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('generateContentStream should throw when on-device is not available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(false);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await expect(model.generateContentStream('hello')).to.be.rejectedWith(
+        /on-device model is not available/
+      );
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+    it('should always throw for countTokens', async () => {
+      stubMakeRequest();
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await expect(model.countTokens('hello')).to.be.rejectedWith(AIError);
+      expect(makeRequestStub).to.not.have.been.called;
+    });
+  });
+
+  describe('ONLY_IN_CLOUD', () => {
+    beforeEach(() => {
+      mockChromeAdapter.mode = InferenceMode.ONLY_IN_CLOUD;
+    });
+    it('should use cloud for generateContent even when on-device is available', async () => {
+      stubMakeRequest();
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContent('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
+    });
+    it('should use cloud for generateContentStream even when on-device is available', async () => {
+      stubMakeRequest(true);
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContentStream('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContentStream).to.not.have.been.called;
+    });
+    it('should always use cloud for countTokens', async () => {
+      stubMakeRequest();
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.countTokens('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+    });
+  });
+
+  describe('PREFER_IN_CLOUD', () => {
+    beforeEach(() => {
+      mockChromeAdapter.mode = InferenceMode.PREFER_IN_CLOUD;
+    });
+    it('should use cloud for generateContent when available', async () => {
+      stubMakeRequest();
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContent('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContent).to.not.have.been.called;
+    });
+    it('should fall back to on-device for generateContent if cloud fails', async () => {
+      makeRequestStub.rejects(
+        new AIError(AIErrorCode.FETCH_ERROR, 'Network error')
+      );
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContent('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContent).to.have.been.calledOnce;
+    });
+    it('should use cloud for generateContentStream when available', async () => {
+      stubMakeRequest(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContentStream('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContentStream).to.not.have.been.called;
+    });
+    it('should fall back to on-device for generateContentStream if cloud fails', async () => {
+      makeRequestStub.rejects(
+        new AIError(AIErrorCode.FETCH_ERROR, 'Network error')
+      );
+      (mockChromeAdapter.isAvailable as SinonStub).resolves(true);
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.generateContentStream('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
+      expect(mockChromeAdapter.generateContentStream).to.have.been.calledOnce;
+    });
+    it('should use cloud for countTokens', async () => {
+      stubMakeRequest();
+      const model = new GenerativeModel(
+        fakeAI,
+        { model: 'model' },
+        {},
+        mockChromeAdapter
+      );
+      await model.countTokens('hello');
+      expect(makeRequestStub).to.have.been.calledOnce;
     });
   });
 });

@@ -54,6 +54,12 @@ const backendNames: Map<BackendType, string> = new Map([
 
 const modelNames: readonly string[] = ['gemini-2.0-flash', 'gemini-2.5-flash'];
 
+// The Live API requires a different set of models, and they're different for each backend.
+const liveModelNames: Map<BackendType, string[]> = new Map([
+  [BackendType.GOOGLE_AI, ['gemini-live-2.5-flash-preview']],
+  [BackendType.VERTEX_AI, ['gemini-2.0-flash-exp']]
+]);
+
 /**
  * Array of test configurations that is iterated over to get full coverage
  * of backends and models. Contains all combinations of backends and models.
@@ -68,6 +74,25 @@ export const testConfigs: readonly TestConfig[] = backends.flatMap(backend => {
     };
   });
 });
+
+/**
+ * Test configurations used for the Live API integration tests.
+ */
+export const liveTestConfigs: readonly TestConfig[] = backends.flatMap(
+  backend => {
+    const testConfigs: TestConfig[] = [];
+    liveModelNames.get(backend.backendType)!.forEach(modelName => {
+      const ai = getAI(app, { backend });
+      testConfigs.push({
+        ai,
+        model: modelName,
+        toString: () => formatConfigAsString({ ai, model: modelName })
+      });
+    });
+
+    return testConfigs;
+  }
+);
 
 export const TINY_IMG_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';

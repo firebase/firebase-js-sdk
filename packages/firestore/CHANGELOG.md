@@ -1,5 +1,58 @@
 # @firebase/firestore
 
+## 4.9.2
+
+### Patch Changes
+
+- [`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f) [#9242](https://github.com/firebase/firebase-js-sdk/pull/9242) - Increased the buffering-proxy detection timeout to minimize the false-positive rate. Updating WebChannel to ignore duplicate messages received from the server. Fix for https://github.com/firebase/firebase-js-sdk/issues/8250.
+
+- Updated dependencies [[`43276b0`](https://github.com/firebase/firebase-js-sdk/commit/43276b0414ea5a73e8d8f7e3b80275d8b910102f)]:
+  - @firebase/webchannel-wrapper@1.0.5
+
+## 4.9.1
+
+### Patch Changes
+
+- [`2058432`](https://github.com/firebase/firebase-js-sdk/commit/2058432e6c8e809d5b695e31fde582e94f1349c5) [#9177](https://github.com/firebase/firebase-js-sdk/pull/9177) (fixes [#9147](https://github.com/firebase/firebase-js-sdk/issues/9147)) - Fixed a bug where a rejected promise with an empty message in a transaction would cause a timeout.
+
+## 4.9.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f11b552`](https://github.com/firebase/firebase-js-sdk/commit/f11b55294a04dfe6a1216c487b1af3a7e7d07196) [#9162](https://github.com/firebase/firebase-js-sdk/pull/9162) - Revert fix for issue where Firestore would produce `undefined` for document snapshot if "clear site data" button was pressed in the web browser. This fix was introduced in v11.6.1 but inadvertantly caused issues for some customers (https://github.com/firebase/firebase-js-sdk/issues/9056).
+
+- [`9771bff`](https://github.com/firebase/firebase-js-sdk/commit/9771bffadbc464890150dd7dd1a9a0fe2df60bf0) [#9168](https://github.com/firebase/firebase-js-sdk/pull/9168) - Fixed a regression where the SDK did not re-connect to IndexedDb after disconnect (#9087)
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- [`a029ce3`](https://github.com/firebase/firebase-js-sdk/commit/a029ce39ee1ea1f6f28e79a1733ad8e8ebedf4bb) [#9143](https://github.com/firebase/firebase-js-sdk/pull/9143) - Further improved performance of UTF-8 string ordering logic, which had degraded in v11.3.0, was reverted in v11.3.1, and was re-introduced with some improvements in v11.5.0.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/webchannel-wrapper@1.0.4
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
+## 4.8.0
+
+### Minor Changes
+
+- [`86155b3`](https://github.com/firebase/firebase-js-sdk/commit/86155b3c8f3974f8d777232625108c14f924e035) [#9115](https://github.com/firebase/firebase-js-sdk/pull/9115) - Added support for Firestore result types to be serialized with `toJSON` and then deserialized with `fromJSON` methods on the objects.
+
+  Addeed support to resume `onSnapshot` listeners in the CSR phase based on serialized `DataSnapshot`s and `QuerySnapshot`s built in the SSR phase.
+
+### Patch Changes
+
+- [`f73e08b`](https://github.com/firebase/firebase-js-sdk/commit/f73e08b212314547b39a10cd3e393f9e94776f21) [#9087](https://github.com/firebase/firebase-js-sdk/pull/9087) - Internal listener registration change for IndexedDB "versionchange" events.
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
 ## 4.7.17
 
 ### Patch Changes

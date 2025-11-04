@@ -97,7 +97,7 @@ const allBuilds = [
         cacheDir: tmp.dirSync()
       }),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -114,7 +114,7 @@ const allBuilds = [
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -137,7 +137,7 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Convert es2017 build to cjs
+  // Convert es2020 build to cjs
   {
     input: pkg['browser'],
     output: [
@@ -149,14 +149,14 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // es2017 build with build target reporting
+  // es2020 build with build target reporting
   {
     input: pkg['browser'],
     output: [
@@ -168,7 +168,7 @@ const allBuilds = [
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -186,7 +186,7 @@ const allBuilds = [
     plugins: [
       alias(util.generateAliasConfig('rn')),
       ...browserPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {

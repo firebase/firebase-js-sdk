@@ -1,9 +1,9 @@
 {
     "extends": "../../config/api-extractor.json",
-    "mainEntryPointFilePath": "<projectFolder>/dist/esm2017/index.d.ts",
+    "mainEntryPointFilePath": "<projectFolder>/dist/esm/index.d.ts",
     "dtsRollup": {
         "enabled": true,
         "untrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>.d.ts",
-        "publicTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
+        "betaTrimmedFilePath": "<projectFolder>/dist/<unscopedPackageName>-public.d.ts"
     }
 }

@@ -16,7 +16,7 @@
  */
 
 import {
-  DataConnectSubscription,
+  OnCompleteSubscription,
   OnErrorSubscription,
   OnResultSubscription,
   QueryPromise,
@@ -38,6 +38,16 @@ import { encoderImpl } from '../util/encoder';
 import { setIfNotExists } from '../util/map';
 
 import { Code, DataConnectError } from './error';
+
+/**
+ * Representation of user provided subscription options.
+ */
+interface DataConnectSubscription<Data, Variables> {
+  userCallback: OnResultSubscription<Data, Variables>;
+  errCallback?: (e?: DataConnectError) => void;
+  onCompleteCallback?: () => void;
+  unsubscribe: () => void;
+}
 
 interface TrackedQuery<Data, Variables> {
   ref: Omit<OperationRef<Data, Variables>, 'dataConnect'>;
@@ -97,6 +107,7 @@ export class QueryManager {
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
+    onCompleteCallback?: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
     initialCache?: OpResult<Data>
   ): () => void {
@@ -111,6 +122,7 @@ export class QueryManager {
     >;
     const subscription = {
       userCallback: onResultCallback,
+      onCompleteCallback,
       errCallback: onErrorCallback
     };
     const unsubscribe = (): void => {
@@ -118,6 +130,7 @@ export class QueryManager {
       trackedQuery.subscriptions = trackedQuery.subscriptions.filter(
         sub => sub !== subscription
       );
+      onCompleteCallback?.();
     };
     if (initialCache && trackedQuery.currentCache !== initialCache) {
       logDebug('Initial cache found. Comparing dates.');

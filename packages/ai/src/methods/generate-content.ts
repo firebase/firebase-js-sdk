@@ -28,17 +28,19 @@ import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
+import { ChromeAdapter } from '../types/chrome-adapter';
+import { callCloudOrDevice } from '../requests/hybrid-helpers';
 
-export async function generateContentStream(
+async function generateContentStreamOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
   singleRequestOptions?: SingleRequestOptions
-): Promise<GenerateContentStreamResult> {
+): Promise<Response> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
-  const response = await makeRequest(
+  return makeRequest(
     model,
     Task.STREAM_GENERATE_CONTENT,
     apiSettings,
@@ -46,19 +48,40 @@ export async function generateContentStream(
     JSON.stringify(params),
     singleRequestOptions
   );
-  return processStream(response, apiSettings); // TODO: Map streaming responses
 }
 
-export async function generateContent(
+export async function generateContentStream(
+  apiSettings: ApiSettings,
+  model: string,
+  params: GenerateContentRequest,
+  chromeAdapter?: ChromeAdapter,
+  singleRequestOptions?: SingleRequestOptions
+): Promise<GenerateContentStreamResult> {
+  const callResult = await callCloudOrDevice(
+    params,
+    chromeAdapter,
+    () => chromeAdapter!.generateContentStream(params),
+    () =>
+      generateContentStreamOnCloud(
+        apiSettings,
+        model,
+        params,
+        singleRequestOptions
+      )
+  );
+  return processStream(callResult.response, apiSettings); // TODO: Map streaming responses
+}
+
+async function generateContentOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
   singleRequestOptions?: SingleRequestOptions
-): Promise<GenerateContentResult> {
+): Promise<Response> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
-  const response = await makeRequest(
+  return makeRequest(
     model,
     Task.GENERATE_CONTENT,
     apiSettings,
@@ -66,12 +89,29 @@ export async function generateContent(
     JSON.stringify(params),
     singleRequestOptions
   );
+}
+
+export async function generateContent(
+  apiSettings: ApiSettings,
+  model: string,
+  params: GenerateContentRequest,
+  chromeAdapter?: ChromeAdapter,
+  singleRequestOptions?: SingleRequestOptions
+): Promise<GenerateContentResult> {
+  const callResult = await callCloudOrDevice(
+    params,
+    chromeAdapter,
+    () => chromeAdapter!.generateContent(params),
+    () =>
+      generateContentOnCloud(apiSettings, model, params, singleRequestOptions)
+  );
   const generateContentResponse = await processGenerateContentResponse(
-    response,
+    callResult.response,
     apiSettings
   );
   const enhancedResponse = createEnhancedContentResponse(
-    generateContentResponse
+    generateContentResponse,
+    callResult.inferenceSource
   );
   return {
     response: enhancedResponse

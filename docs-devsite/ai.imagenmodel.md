@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModel class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Class for Imagen model APIs.
 
 This class provides methods for generating images using the Imagen model.
@@ -28,26 +25,23 @@ export declare class ImagenModel extends AIModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, modelParams, requestOptions)](./ai.imagenmodel.md#imagenmodelconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class. |
+|  [(constructor)(ai, modelParams, requestOptions)](./ai.imagenmodel.md#imagenmodelconstructor) |  | Constructs a new instance of the [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class. |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [generationConfig](./ai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | <b><i>(Public Preview)</i></b> The Imagen generation configuration. |
-|  [requestOptions](./ai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined | <b><i>(Public Preview)</i></b> |
-|  [safetySettings](./ai.imagenmodel.md#imagenmodelsafetysettings) |  | [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | <b><i>(Public Preview)</i></b> Safety settings for filtering inappropriate content. |
+|  [generationConfig](./ai.imagenmodel.md#imagenmodelgenerationconfig) |  | [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface) | The Imagen generation configuration. |
+|  [requestOptions](./ai.imagenmodel.md#imagenmodelrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  [safetySettings](./ai.imagenmodel.md#imagenmodelsafetysettings) |  | [ImagenSafetySettings](./ai.imagensafetysettings.md#imagensafetysettings_interface) | Safety settings for filtering inappropriate content. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt, singleRequestOptions)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Generates images using the Imagen model and returns them as base64-encoded strings. |
+|  [generateImages(prompt, singleRequestOptions)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Constructs a new instance of the [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class.
 
@@ -71,9 +65,6 @@ If the `apiKey` or `projectId` fields are missing in your Firebase config.
 
 ## ImagenModel.generationConfig
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The Imagen generation configuration.
 
 <b>Signature:</b>
@@ -84,9 +75,6 @@ generationConfig?: ImagenGenerationConfig;
 
 ## ImagenModel.requestOptions
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -94,9 +82,6 @@ requestOptions?: RequestOptions | undefined;
 ```
 
 ## ImagenModel.safetySettings
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Safety settings for filtering inappropriate content.
 
@@ -107,9 +92,6 @@ safetySettings?: ImagenSafetySettings;
 ```
 
 ## ImagenModel.generateImages()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Generates images using the Imagen model and returns them as base64-encoded strings.
 

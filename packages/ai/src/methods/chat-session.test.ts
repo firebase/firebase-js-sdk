@@ -20,10 +20,11 @@ import { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { GenerateContentStreamResult } from '../types';
+import { Content, GenerateContentStreamResult } from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -46,7 +47,11 @@ describe('ChatSession', () => {
         generateContentMethods,
         'generateContent'
       ).rejects('generateContent failed');
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
       await expect(chatSession.sendMessage('hello')).to.be.rejected;
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
@@ -69,6 +74,7 @@ describe('ChatSession', () => {
         fakeApiSettings,
         'a-model',
         undefined,
+        undefined,
         requestOptions
       );
       await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
@@ -76,6 +82,7 @@ describe('ChatSession', () => {
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any,
         match({
           timeout: singleRequestOptions.timeout
@@ -98,6 +105,7 @@ describe('ChatSession', () => {
         fakeApiSettings,
         'a-model',
         undefined,
+        undefined,
         requestOptions
       );
       await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
@@ -106,10 +114,58 @@ describe('ChatSession', () => {
         fakeApiSettings,
         'a-model',
         match.any,
+        match.any,
         match({
           timeout: requestOptions.timeout,
           signal: singleRequestOptions.signal
         })
+      );
+    });
+    it('adds message and response to history', async () => {
+      const fakeContent: Content = {
+        role: 'model',
+        parts: [
+          { text: 'hi' },
+          {
+            text: 'thought about hi',
+            thoughtSignature: 'thought signature'
+          }
+        ]
+      };
+      const fakeResponse = {
+        candidates: [
+          {
+            index: 1,
+            content: fakeContent
+          }
+        ]
+      };
+      const generateContentStub = stub(
+        generateContentMethods,
+        'generateContent'
+      ).resolves({
+        // @ts-ignore
+        response: fakeResponse
+      });
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const result = await chatSession.sendMessage('hello');
+      // @ts-ignore
+      expect(result.response).to.equal(fakeResponse);
+      // Test: stores history correctly?
+      const history = await chatSession.getHistory();
+      expect(history[0].role).to.equal('user');
+      expect(history[0].parts[0].text).to.equal('hello');
+      expect(history[1]).to.deep.equal(fakeResponse.candidates[0].content);
+      // Test: sends history correctly?
+      await chatSession.sendMessage('hello 2');
+      expect(generateContentStub.args[1][2].contents[0].parts[0].text).to.equal(
+        'hello'
+      );
+      expect(generateContentStub.args[1][2].contents[1]).to.deep.equal(
+        fakeResponse.candidates[0].content
+      );
+      expect(generateContentStub.args[1][2].contents[2].parts[0].text).to.equal(
+        'hello 2'
       );
     });
   });
@@ -121,11 +177,16 @@ describe('ChatSession', () => {
         generateContentMethods,
         'generateContentStream'
       ).rejects('generateContentStream failed');
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
       await expect(chatSession.sendMessageStream('hello')).to.be.rejected;
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any
       );
       await clock.runAllAsync();
@@ -140,11 +201,16 @@ describe('ChatSession', () => {
         generateContentMethods,
         'generateContentStream'
       ).resolves({} as unknown as GenerateContentStreamResult);
-      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
       await chatSession.sendMessageStream('hello');
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any
       );
       await clock.runAllAsync();
@@ -169,6 +235,7 @@ describe('ChatSession', () => {
         fakeApiSettings,
         'a-model',
         undefined,
+        undefined,
         requestOptions
       );
       await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
@@ -176,6 +243,7 @@ describe('ChatSession', () => {
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any,
         match({
           timeout: singleRequestOptions.timeout
@@ -198,6 +266,7 @@ describe('ChatSession', () => {
         fakeApiSettings,
         'a-model',
         undefined,
+        undefined,
         requestOptions
       );
       await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
@@ -205,6 +274,7 @@ describe('ChatSession', () => {
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any,
         match({
           timeout: requestOptions.timeout,

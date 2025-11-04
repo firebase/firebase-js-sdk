@@ -9,25 +9,14 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# VertexAIOptions interface
-Options when initializing the Firebase AI SDK.
+# URLContext interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Specifies the URL Context configuration.
 
 <b>Signature:</b>
 
 ```typescript
-export interface VertexAIOptions 
-```
-
-## Properties
-
-|  Property | Type | Description |
-|  --- | --- | --- |
-|  [location](./ai.vertexaioptions.md#vertexaioptionslocation) | string |  |
-
-## VertexAIOptions.location
-
-<b>Signature:</b>
-
-```typescript
-location?: string;
+export interface URLContext 
 ```

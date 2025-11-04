@@ -14,8 +14,8 @@
     "test:memory:debug": "yarn build:memory; karma start --auto-watch --browsers Chrome"
   },
   "dependencies": {
-    "@firebase/app": "0.13.1",
-    "@firebase/firestore": "4.7.17"
+    "@firebase/app": "0.14.5",
+    "@firebase/firestore": "4.9.2"
   },
   "devDependencies": {
     "@types/mocha": "9.1.1",
@@ -26,6 +26,6 @@
     "webpack-stream": "7.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

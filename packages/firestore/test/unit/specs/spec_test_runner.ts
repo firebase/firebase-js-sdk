@@ -365,14 +365,8 @@ abstract class TestRunner {
     this.eventManager.onLastRemoteStoreUnlisten =
       triggerRemoteStoreUnlisten.bind(null, this.syncEngine);
 
-    this.persistence.setDatabaseDeletedListener(() => {
-      this.shutdown().catch(error => {
-        console.warn(
-          'WARNING: this.shutdown() failed in callback ' +
-            'specified to persistence.setDatabaseDeletedListener',
-          error
-        );
-      });
+    await this.persistence.setDatabaseDeletedListener(async () => {
+      await this.shutdown();
     });
 
     this.started = true;

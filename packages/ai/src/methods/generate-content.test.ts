@@ -27,13 +27,16 @@ import {
   GenerateContentRequest,
   HarmBlockMethod,
   HarmBlockThreshold,
-  HarmCategory
+  HarmCategory,
+  Language,
+  Outcome
 } from '../types';
 import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { AIError } from '../api';
 import { mapGenerateContentRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -193,6 +196,123 @@ describe('generateContent()', () => {
       match.any
     );
   });
+  it('google search grounding', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-google-search-grounding.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.text()).to.include('The temperature is 67°F (19°C)');
+    const groundingMetadata = result.response.candidates?.[0].groundingMetadata;
+    expect(groundingMetadata).to.not.be.undefined;
+    expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
+      'div'
+    );
+    expect(groundingMetadata!.groundingChunks?.length).to.equal(2);
+    expect(groundingMetadata!.groundingChunks?.[0].web?.uri).to.contain(
+      'https://vertexaisearch.cloud.google.com'
+    );
+    expect(groundingMetadata!.groundingChunks?.[0].web?.title).to.equal(
+      'accuweather.com'
+    );
+    expect(groundingMetadata!.groundingSupports?.length).to.equal(3);
+    expect(
+      groundingMetadata!.groundingSupports?.[0].groundingChunkIndices
+    ).to.deep.equal([0]);
+    expect(groundingMetadata!.groundingSupports?.[0].segment).to.deep.equal({
+      endIndex: 56,
+      text: 'The current weather in London, United Kingdom is cloudy.'
+    });
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
+      .undefined;
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to.be
+      .undefined;
+
+    expect(makeRequestStub).to.be.calledWith(
+      'model',
+      Task.GENERATE_CONTENT,
+      fakeApiSettings,
+      false,
+      match.any
+    );
+
+    it('url context', async () => {
+      const mockResponse = getMockResponse(
+        'vertexAI',
+        'unary-success-url-context.json'
+      );
+      const makeRequestStub = stub(request, 'makeRequest').resolves(
+        mockResponse as Response
+      );
+      const result = await generateContent(
+        fakeApiSettings,
+        'model',
+        fakeRequestParams
+      );
+      expect(result.response.text()).to.include(
+        'The temperature is 67°F (19°C)'
+      );
+      const groundingMetadata =
+        result.response.candidates?.[0].groundingMetadata;
+      expect(groundingMetadata).to.not.be.undefined;
+      expect(groundingMetadata!.searchEntryPoint?.renderedContent).to.contain(
+        'div'
+      );
+      expect(groundingMetadata!.groundingChunks?.length).to.equal(2);
+      expect(groundingMetadata!.groundingChunks?.[0].web?.uri).to.contain(
+        'https://vertexaisearch.cloud.google.com'
+      );
+      expect(groundingMetadata!.groundingChunks?.[0].web?.title).to.equal(
+        'accuweather.com'
+      );
+      expect(groundingMetadata!.groundingSupports?.length).to.equal(3);
+      expect(
+        groundingMetadata!.groundingSupports?.[0].groundingChunkIndices
+      ).to.deep.equal([0]);
+      expect(groundingMetadata!.groundingSupports?.[0].segment).to.deep.equal({
+        endIndex: 56,
+        text: 'The current weather in London, United Kingdom is cloudy.'
+      });
+      expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
+        .undefined;
+      expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
+        .be.undefined;
+
+      expect(makeRequestStub).to.be.calledWith(
+        'model',
+        Task.GENERATE_CONTENT,
+        fakeApiSettings,
+        false,
+        match.any
+      );
+    });
+  });
+  it('codeExecution', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-code-execution.json'
+    );
+    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    const parts = result.response.candidates?.[0].content.parts;
+    expect(
+      parts?.some(part => part.codeExecutionResult?.outcome === Outcome.OK)
+    ).to.be.true;
+    expect(
+      parts?.some(part => part.executableCode?.language === Language.PYTHON)
+    ).to.be.true;
+  });
   it('blocked prompt', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
@@ -258,6 +378,22 @@ describe('generateContent()', () => {
       false,
       match.any
     );
+  });
+  it('empty part', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-empty-part.json'
+    );
+    stub(request, 'makeRequest').resolves(mockResponse as Response);
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.text()).to.include(
+      'I can certainly help you with that!'
+    );
+    expect(result.response.inlineDataParts()?.length).to.equal(1);
   });
   it('unknown enum - should ignore', async () => {
     const mockResponse = getMockResponse(
@@ -374,5 +510,26 @@ describe('generateContent()', () => {
         undefined
       );
     });
+  });
+  // TODO: define a similar test for generateContentStream
+  it('on-device', async () => {
+    const chromeAdapter = fakeChromeAdapter;
+    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const generateContentStub = stub(chromeAdapter, 'generateContent').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams,
+      chromeAdapter
+    );
+    expect(result.response.text()).to.include('Mountain View, California');
+    expect(isAvailableStub).to.be.called;
+    expect(generateContentStub).to.be.calledWith(fakeRequestParams);
   });
 });

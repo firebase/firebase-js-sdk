@@ -16,7 +16,13 @@
  */
 
 import { FirebaseApp, _FirebaseService } from '@firebase/app';
-import { AI } from './public-types';
+import {
+  AI,
+  AIOptions,
+  ChromeAdapter,
+  InferenceMode,
+  OnDeviceParams
+} from './public-types';
 import {
   AppCheckInternalComponentName,
   FirebaseAppCheckInternal
@@ -31,13 +37,19 @@ import { Backend, VertexAIBackend } from './backend';
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
   appCheck: FirebaseAppCheckInternal | null;
+  _options?: Omit<AIOptions, 'backend'>;
   location: string; // This is here for backwards-compatibility
 
   constructor(
     public app: FirebaseApp,
     public backend: Backend,
     authProvider?: Provider<FirebaseAuthInternalName>,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>
+    appCheckProvider?: Provider<AppCheckInternalComponentName>,
+    public chromeAdapterFactory?: (
+      mode: InferenceMode,
+      window?: Window,
+      params?: OnDeviceParams
+    ) => ChromeAdapter | undefined
   ) {
     const appCheck = appCheckProvider?.getImmediate({ optional: true });
     const auth = authProvider?.getImmediate({ optional: true });
@@ -53,5 +65,13 @@ export class AIService implements AI, _FirebaseService {
 
   _delete(): Promise<void> {
     return Promise.resolve();
+  }
+
+  set options(optionsToSet: AIOptions) {
+    this._options = optionsToSet;
+  }
+
+  get options(): AIOptions | undefined {
+    return this._options;
   }
 }
