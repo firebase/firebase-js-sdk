@@ -1221,7 +1221,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'count' aggregation.
    */
   count(): AggregateFunction {
-    return new AggregateFunction('count', [this], 'count');
+    return AggregateFunction._create('count', [this], 'count');
   }
 
   /**
@@ -1236,7 +1236,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'sum' aggregation.
    */
   sum(): AggregateFunction {
-    return new AggregateFunction('sum', [this], 'sum');
+    return AggregateFunction._create('sum', [this], 'sum');
   }
 
   /**
@@ -1252,7 +1252,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'average' aggregation.
    */
   average(): AggregateFunction {
-    return new AggregateFunction('average', [this], 'average');
+    return AggregateFunction._create('average', [this], 'average');
   }
 
   /**
@@ -1267,7 +1267,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'minimum' aggregation.
    */
   minimum(): AggregateFunction {
-    return new AggregateFunction('minimum', [this], 'minimum');
+    return AggregateFunction._create('minimum', [this], 'minimum');
   }
 
   /**
@@ -1282,7 +1282,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'maximum' aggregation.
    */
   maximum(): AggregateFunction {
-    return new AggregateFunction('maximum', [this], 'maximum');
+    return AggregateFunction._create('maximum', [this], 'maximum');
   }
 
   /**
@@ -1297,7 +1297,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'count_distinct' aggregation.
    */
   countDistinct(): AggregateFunction {
-    return new AggregateFunction('count_distinct', [this], 'countDistinct');
+    return AggregateFunction._create('count_distinct', [this], 'countDistinct');
   }
 
   /**
@@ -2405,25 +2405,27 @@ export interface Selectable {
 export class AggregateFunction implements ProtoValueSerializable, UserData {
   exprType: ExpressionType = 'AggregateFunction';
 
-  constructor(name: string, params: Expression[]);
   /**
-   * @beta
-   * INTERNAL Constructor with method name for validation.
-   * @hideconstructor
-   * @param name
-   * @param params
-   * @param _methodName
+   * @internal
    */
-  constructor(
+  _methodName?: string;
+
+  constructor(private name: string, private params: Expression[]) {}
+
+  /**
+   * @internal
+   * @private
+   */
+  static _create(
     name: string,
     params: Expression[],
-    _methodName: string | undefined
-  );
-  constructor(
-    private name: string,
-    private params: Expression[],
-    readonly _methodName?: string
-  ) {}
+    methodName: string
+  ): AggregateFunction {
+    const af = new AggregateFunction(name, params);
+    af._methodName = methodName;
+
+    return af;
+  }
 
   /**
    * @beta
@@ -2948,7 +2950,7 @@ export class BooleanExpression extends FunctionExpression {
    * @return A new `AggregateFunction` representing the 'countIf' aggregation.
    */
   countIf(): AggregateFunction {
-    return new AggregateFunction('count_if', [this], 'countIf');
+    return AggregateFunction._create('count_if', [this], 'countIf');
   }
 
   /**
@@ -6114,7 +6116,7 @@ export function mapGet(
  * @return A new {@code AggregateFunction} representing the 'countAll' aggregation.
  */
 export function countAll(): AggregateFunction {
-  return new AggregateFunction('count', [], 'count');
+  return AggregateFunction._create('count', [], 'count');
 }
 
 /**
