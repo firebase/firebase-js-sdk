@@ -158,7 +158,8 @@ export {
   AggregateFunction,
   ExpressionType,
   AliasedAggregate,
-  Selectable
+  Selectable,
+  TimeGranularity
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

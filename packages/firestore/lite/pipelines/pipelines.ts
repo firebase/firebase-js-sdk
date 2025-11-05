@@ -189,5 +189,6 @@ export {
   AliasedAggregate,
   Selectable,
   BooleanExpression,
-  AggregateFunction
+  AggregateFunction,
+  TimeGranularity
 } from '../../src/lite-api/expressions';
