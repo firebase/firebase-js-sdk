@@ -19,6 +19,7 @@ The SDK is composed of several key components that work together to provide the 
     *   **Remote Table**: A cache of the most recent version of documents as known by the Firestore backend.
     *   **Mutation Queue**: A queue of all the user-initiated writes (set, update, delete) that have not yet been acknowledged by the Firestore backend.
     *   **Local View**: A cache that represents the user's current view of the data, combining the Remote Table with the Mutation Queue.
+    *   **Overlays**: A performance-optimizing cache that stores the calculated effect of pending mutations from the Mutation Queue on documents. Instead of re-applying mutations every time a document is read, the SDK computes this "overlay" once and caches it, allowing the Local View to be constructed more efficiently.
 *   **Remote Store**: The component responsible for all network communication with the Firestore backend. It manages the gRPC streams for reading and writing data, and it abstracts away the complexities of the network protocol from the rest of the SDK.
 *   **Persistence Layer**: The underlying storage mechanism used by the Local Store to persist data on the client. In the browser, this is implemented using IndexedDB.
 
@@ -28,7 +29,7 @@ The architecture and systems within the SDK map closely to the directory structu
     *   `api/`: Implements the **API Layer** for the main SDK.
     *   `lite-api/`: Implements the **API Layer** for the lite SDK.
     *   `core/`: Implements the **Sync Engine** and **Event Manager**.
-    *   `local/`: Implements the **Local Store**, which includes the **Mutation Queue**, **Remote Table**, **Local View**, and the **Persistence Layer**.
+    *   `local/`: Implements the **Local Store**, which includes the **Mutation Queue**, **Remote Table**, **Local View**, **Overlays** and the **Persistence Layer**.
     *   `remote/`: Implements the **Remote Store**, handling all network communication.
 
 For a more detailed explanation of the contents of each directory, see the [Code Layout](./code-layout.md) documentation.
@@ -66,7 +67,7 @@ Here's a step-by-step walkthrough of how data flows through the SDK for a write 
 1.  **API Layer**: A user initiates a write operation (e.g., `setDoc`, `updateDoc`, `deleteDoc`).
 2.  **Sync Engine**: The call is routed to the Sync Engine, which wraps the operation in a "mutation".
 3.  **Mutation Queue (in Local Store)**: The Sync Engine adds this mutation to the Mutation Queue. The queue is persisted to the **Persistence Layer** (IndexedDB). At this point, the SDK "optimistically" considers the write successful locally.
-4.  **Local View (in Local Store)**: The change is immediately reflected in the Local View, making it available to any active listeners without waiting for backend confirmation.
+4.  **Local View (in Local Store)**: The change is reflected in the Local View. This is done by creating or updating a cached **Overlay** for the affected document, making the change efficiently available to any active listeners without waiting for backend confirmation.
 5.  **Remote Store**: The Sync Engine notifies the Remote Store that there are pending mutations.
 6.  **Backend**: The Remote Store sends the mutations from the queue to the Firestore backend.
 7.  **Acknowledgement**: The backend acknowledges the write.
@@ -77,7 +78,7 @@ Here's a step-by-step walkthrough of how data flows through the SDK for a write 
 1.  **API Layer**: A user attaches a listener to a query (e.g., `onSnapshot`).
 2.  **Event Manager**: The Event Manager creates a listener and passes it to the Sync Engine.
 3.  **Sync Engine**: The Sync Engine creates a "view" for the query.
-4.  **Local View (in Local Store)**: The Sync Engine asks the Local Store for the current documents matching the query. This includes any optimistic local changes from the **Mutation Queue**.
+4.  **Local View (in Local Store)**: The Sync Engine asks the Local Store for the current documents matching the query. The Local Store provides these by applying cached **Overlays** on top of the documents to reflect optimistic local changes from the **Mutation Queue**.
 5.  **API Layer**: The initial data from the Local View is sent back to the user's `onSnapshot` callback. This provides a fast, initial result.
 6.  **Remote Store**: Simultaneously, the Sync Engine instructs the Remote Store to listen to the query on the Firestore backend.
 7.  **Backend**: The backend returns the initial matching documents for the query.
