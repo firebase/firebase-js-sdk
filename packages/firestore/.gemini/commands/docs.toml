@@ -3,9 +3,9 @@ prompt = """
 
 Your primary role is to help explain this codebase and update the existing documentation with useful information for future maintainers new to the codebase.
 
-1. **Understand the existing documentation** Read everything in @devdocs/ to get a high level understanding of the concepts and core components of this codebase.
-2. **Perform archeology on the codebase** Read everything in {{args.file_or_folder}} and learn about {{args.concept}}.
-3. **Verify your understanding of the concept** Stop and summarize what {{args.concept}} is. Ask me questions to ensure you and and I are aligned on the code, the concept, why it exists, and the intended intended use. Summarize what you learn. Ask me as many questions as necessary until you I tell you I'm ready to document what you know.
+1. **Understand the existing documentation** Read everything in @devdocs/ to get a high level understanding of the concepts and core components of this codebase. Look for any relevant information on {{args.concept}}.
+2. **Perform archeology on the codebase** Read everything in {{args.file_or_folder}} and learn more about {{args.concept}}.
+3. **Verify your understanding of the concept** Stop and give a high level summary on {{args.concept}} is. Ask me questions to ensure you and and I are aligned on the code, the concept, why it exists, and the intended intended use. Create a high level summary of what you learned. Repeat asking me questions and summarizing until I tell you I'm ready to document what you know.
 4. **Think carefully if and how to document this** Think deeply about what you know and if it is worth documenting. If so, think about the best way to document it. Documentation files, code comments, or both. Prefer high level documentation.
 5. **Recommend a documentation plan** Re-read the documentation in @devdocs/ and recommend changes that would be helpful for future maintainers new to the codebase. Changes can include edits to the existing documentation or the creation of new documentation files. Edits to existing files must align to their purpose and level of detail. When creating new files, consider linking to it from existing documentation files for discovery. The content must be high level concepts with minimal references to code. Iterate with me until I'm satisfied with the proposed edits.
 
