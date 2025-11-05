@@ -27,29 +27,13 @@ Beyond SSR hydration, bundles offer several other advantages:
 
 ## The Loading Process
 
-The process of loading a bundle into the Firestore SDK is initiated by the `loadBundle()` method. This method returns a `LoadBundleTask`, which allows the developer to track the progress of the loading operation.
+When an application provides a bundle to the SDK, a loading process is initiated. The SDK reads the bundle, which is a stream of documents and queries, and saves each item into its local cache. This process is asynchronous, allowing the application to continue running while the data is being loaded in the background.
 
-Here's a step-by-step walkthrough of what happens when `loadBundle()` is called:
-
-1.  **`loadBundle()` called:** The developer calls `loadBundle()` with the bundle data (as a `ReadableStream` or `ArrayBuffer`).
-2.  **`LoadBundleTask` created:** A `LoadBundleTask` is created and returned to the developer. This task acts as a `Promise` and also provides progress updates.
-3.  **`BundleLoader` initiated:** Internally, a `BundleLoader` is created to process the bundle.
-4.  **Bundle processing:** The `BundleLoader` reads the bundle element by element. The bundle is a sequence of JSON objects, each representing a metadata element, a named query, or a document.
-5.  **Data caching:** As the `BundleLoader` processes the bundle, it saves the data to the local store:
-    *   **Bundle Metadata:** The bundle's metadata is saved to the `BundleCache`. This is used to track which bundles have been loaded.
-    *   **Named Queries:** Named queries are saved to the `BundleCache`.
-    *   **Documents:** Documents are saved to the `RemoteDocumentCache`.
-6.  **Progress updates:** The `LoadBundleTask` is updated with progress information (e.g., bytes loaded, documents loaded) as the `BundleLoader` processes the bundle.
-7.  **Completion:** Once the `BundleLoader` has finished processing the bundle, the `LoadBundleTask` is marked as complete.
+To give developers visibility into this process, the SDK provides progress updates, including the number of documents and bytes loaded so far. Once all the data has been successfully loaded into the cache, the SDK signals that the process is complete.
 
 ## Error Handling
 
-Errors can occur during the bundle loading process for a variety of reasons, such as a malformed bundle or a storage issue.
-
-When an error occurs, the `LoadBundleTask` is put into an `'Error'` state. The error is surfaced to the developer in two ways:
-
-*   **Promise rejection:** The `LoadBundleTask`'s promise is rejected with a `FirestoreError`.
-*   **`onProgress` observer:** If an `error` callback is provided to the `onProgress` method, it will be called with the `FirestoreError`.
+The bundle loading process is designed to be robust. If an error is encountered at any point—for example, if the bundle data is malformed or there is an issue writing to the local cache—the entire operation is aborted. The SDK ensures that the application is notified of the failure, allowing developers to catch the error and implement appropriate fallback or recovery logic.
 
 ## Interacting with Bundled Data
 
