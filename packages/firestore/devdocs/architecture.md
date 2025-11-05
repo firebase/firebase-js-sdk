@@ -57,6 +57,15 @@ All data modifications—creates, updates, and deletes—are treated as "writes.
 
 *   **Transactions**: For grouping multiple write operations into a single atomic unit, the SDK provides `runTransaction`. Unlike standard writes, transactions do not use the optimistic, offline-capable write pipeline. Instead, they are sent directly to the backend, which requires an active internet connection. This ensures atomicity but means transactions do not benefit from the offline capabilities of the standard write pipeline.
 
+### Data Bundles
+
+A Firestore data bundle is a serialized collection of documents and query results, created on a server using the Firebase Admin SDK. Bundles are used to efficiently deliver a pre-packaged set of data to the client, which can then be loaded directly into the SDK's local cache. This is useful for:
+
+*   **Seeding initial data** for an application, allowing users to have a complete offline experience on their first use.
+*   **Distributing curated datasets** to clients in a single, efficient package.
+
+When a bundle is loaded, its contents are unpacked and stored in the local cache, making the data available for immediate querying without needing to connect to the Firestore backend. For more details, see the [Bundles documentation](./bundles.md).
+
 
 # Data Flow
 
@@ -86,3 +95,10 @@ Here's a step-by-step walkthrough of how data flows through the SDK for a write 
 9.  **Sync Engine**: The Sync Engine is notified of the updated documents. It re-calculates the query view by combining the new data from the Remote Table with any applicable pending mutations from the **Mutation Queue**.
 10. **API Layer**: If the query results have changed after this reconciliation, the new results are sent to the user's `onSnapshot` callback. This is why a listener may fire twice initially.
 11. **Real-time Updates**: From now on, any changes on the backend that affect the query are pushed to the Remote Store, which updates the Remote Table, triggering the Sync Engine to re-calculate the view and notify the listener.
+
+## Bundle Loading Data Flow
+
+1.  **API Layer**: The user initiates a bundle load via the public API.
+2.  **Sync Engine**: The Sync Engine receives the bundle and begins processing it.
+3.  **Local Store**: The Sync Engine unpacks the bundle and saves its contents (documents and named queries) into the **Local Store**.
+4.  **API Layer**: The user is notified of the progress and completion of the bundle loading operation via the task returned by the API.
