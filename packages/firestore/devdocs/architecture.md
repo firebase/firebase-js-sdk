@@ -12,9 +12,12 @@ The SDK is composed of several key components that work together to provide the 
 *   **Core**:
     *   **Event Manager**: Acts as a central hub for all eventing in the SDK. It is responsible for routing events between the API Layer and Sync Engine. It manages query listeners and is responsible for raising snapshot events, as well as handling connectivity changes and some query failures.
     *   **Sync Engine**: The central controller of the SDK. It acts as the glue between the Event Manager, Local Store, and Remote Store. Its responsibilities include:
-        *   Coordinating client requests and remote events.
-        *   Managing a view for each query, which represents the unified view between the local and remote data stores.
+        *   Coordinating and translating client requests and remote events from the backend.
+        *   Initiating responses to user code from both remote events (backend updates) and local events (e.g. garbage collection).
+        *   Managing a "view" for each query, which represents the unified view between the local and remote data stores.
+        *   Deciding whether a document is in a "limbo" state (e.g. its state is unknown) and needs to be fetched from the backend.
         *   Notifying the Remote Store when the Local Store has new mutations that need to be sent to the backend.
+        *   For web clients, synchronizing query and mutation states across multiple tabs.
 *   **Local Store**: A container for the components that manage persisted and in-memory data.
     *   **Remote Table**: A cache of the most recent version of documents as known by the Firestore backend.
     *   **Mutation Queue**: A queue of all the user-initiated writes (set, update, delete) that have not yet been acknowledged by the Firestore backend.
@@ -61,6 +64,7 @@ All data modifications—creates, updates, and deletes—are treated as "writes.
 
 A Firestore data bundle is a serialized collection of documents and query results, created on a server using the Firebase Admin SDK. Bundles are used to efficiently deliver a pre-packaged set of data to the client, which can then be loaded directly into the SDK's local cache. This is useful for:
 
+*   **Optimizing Server-Side Rendering (SSR)**: Bundles enable efficient hydration of client-side applications with data pre-fetched during server-side rendering, reducing initial load times and backend roundtrips.
 *   **Seeding initial data** for an application, allowing users to have a complete offline experience on their first use.
 *   **Distributing curated datasets** to clients in a single, efficient package.
 
