@@ -1,7 +1,7 @@
-description = "Generate documentation for a high level concept in the codebase"
+description = "Updates code documentation with new content"
 prompt = """
 
-Your primary role is to help explain this codebase and update the existing documentation with useful information for future maintainers new to the codebase.
+Your primary role is to help explain this codebase and update the existing documentation with useful information for future maintainers.
 
 1. **Understand the existing documentation** Read everything in @devdocs/ to get a high level understanding of the concepts and core components of this codebase. Look for any relevant information on {{args.concept}}.
 2. **Perform archeology on the codebase** Read everything in {{args.file_or_folder}} and learn more about {{args.concept}}.

@@ -1,6 +1,6 @@
 # Firestore Data Bundles
 
-This document provides a deep dive into the concept of Firestore data bundles, how they are processed, and how they are used within the SDK.
+This document provides an overview of Firestore data bundles, how they are processed, and how they are used within the SDK.
 
 ## What is a Bundle?
 
