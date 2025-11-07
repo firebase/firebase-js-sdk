@@ -89,7 +89,7 @@ export class Experiment {
         analytics.setUserProperties(customProperty);
         analytics.logEvent(`set_firebase_experiment_state`);
       } else {
-        this.logger.warn(`Analytics import failed`);
+        this.logger.warn(`Analytics import failed. Verify if you have imported Firebase Analytics in your app code.`);
       }
     } catch (error) {
       throw ERROR_FACTORY.create(ErrorCode.ANALYTICS_UNAVAILABLE, {
