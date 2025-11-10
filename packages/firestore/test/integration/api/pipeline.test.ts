@@ -341,7 +341,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
   });
 
   describe('console support', () => {
-    it('supports internal serialization to proto', async () => {
+    it('supports pipeline query serialization to proto', async () => {
       // Perform the same test as the console
       const pipeline = firestore
         .pipeline()
@@ -355,6 +355,104 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expect(JSON.stringify(proto.structuredPipeline)).to.equal(
         expectedStructuredPipelineProto
       );
+    });
+
+    it('supports PipelineSnapshot serialization to proto', async () => {
+      // Perform the same test as the console
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol)
+        .sort(field('title').ascending())
+        .limit(1);
+
+      const result = await execute(pipeline);
+
+      expect(result.results[0]._fieldsProto()).to.deep.equal({
+        'author': {
+          'stringValue': 'George Orwell'
+        },
+        'awards': {
+          'mapValue': {
+            'fields': {
+              'prometheus': {
+                'booleanValue': true
+              }
+            }
+          }
+        },
+        'embedding': {
+          'mapValue': {
+            'fields': {
+              '__type__': {
+                'stringValue': '__vector__'
+              },
+              'value': {
+                'arrayValue': {
+                  'values': [
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 10
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        'genre': {
+          'stringValue': 'Dystopian'
+        },
+        'published': {
+          'integerValue': '1949'
+        },
+        'rating': {
+          'doubleValue': 4.2
+        },
+        'tags': {
+          'arrayValue': {
+            'values': [
+              {
+                'stringValue': 'surveillance'
+              },
+              {
+                'stringValue': 'totalitarianism'
+              },
+              {
+                'stringValue': 'propaganda'
+              }
+            ]
+          }
+        },
+        'title': {
+          'stringValue': '1984'
+        }
+      });
     });
 
     it('performs validation', async () => {

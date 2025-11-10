@@ -16,6 +16,7 @@
  */
 
 import { ObjectValue } from '../model/object_value';
+import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import { isOptionalEqual } from '../util/misc';
 
 import { Field, isField } from './expressions';
@@ -202,6 +203,19 @@ export class PipelineResult<AppModelType = DocumentData> {
     return this._userDataWriter.convertValue(
       this._fields.value
     ) as AppModelType;
+  }
+
+  /**
+   * @internal
+   * @private
+   *
+   * Retrieves all fields in the result as a proto value.
+   *
+   * @returns An `Object` containing all fields in the result.
+   */
+  _fieldsProto(): { [key: string]: firestoreV1ApiClientInterfaces.Value } {
+    // Return a cloned value to prevent manipulation of the Snapshot's data
+    return this._fields.clone().value.mapValue.fields!;
   }
 
   /**
