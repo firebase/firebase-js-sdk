@@ -1,4 +1,4 @@
-import { DataConnectError } from '../api';
+import { DataConnectError } from '../core/error';
 
 import { CacheProvider } from './CacheProvider';
 import { EntityDataObject, BackingDataObjectJson, FDCScalarValue } from './EntityDataObject';

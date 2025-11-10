@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnectError } from '../core/error';
+import { ExecuteQueryOptions } from '../core/query/queryOptions';
 
 import { DataConnect, getDataConnect } from './DataConnect';
 import {
@@ -25,28 +25,6 @@ import {
   SerializedRef
 } from './Reference';
 
-/**
- * Signature for `OnResultSubscription` for `subscribe`
- */
-export type OnResultSubscription<Data, Variables> = (
-  res: QueryResult<Data, Variables>
-) => void;
-/**
- * Signature for `OnErrorSubscription` for `subscribe`
- */
-export type OnErrorSubscription = (err?: DataConnectError) => void;
-/**
- * Signature for unsubscribe from `subscribe`
- */
-export type QueryUnsubscribe = () => void;
-/**
- * Representation of user provided subscription options.
- */
-export interface DataConnectSubscription<Data, Variables> {
-  userCallback: OnResultSubscription<Data, Variables>;
-  errCallback?: (e?: DataConnectError) => void;
-  unsubscribe: () => void;
-}
 
 /**
  * QueryRef object
@@ -72,15 +50,6 @@ export interface QueryPromise<Data, Variables>
 }
 
 
-export enum QueryFetchPolicy {
-  preferCache,
-  cacheOnly,
-  serverOnly
-}
-
-export interface ExecuteQueryOptions {
-  fetchPolicy: QueryFetchPolicy;
-}
 
 /**
  * Execute Query
@@ -132,9 +101,11 @@ export function queryRef<Data, Variables>(
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
   if(initialCache !== undefined) {
-    // TODO: Check the TTL etc. to see if cache needs to be updated.
-    const changes = dcInstance._queryManager.updateCache(queryName, variables, initialCache);
-    dcInstance._queryManager.publishCacheResultsToSubscribers(changes);
+    /**
+     * TODO(mtewani):
+     * 1. Check whether the cache should be updated based on when the data was fetched
+     */
+    dcInstance._queryManager.updateSSR(initialCache);
   }
   return {
     dataConnect: dcInstance,
@@ -155,16 +126,4 @@ export function toQueryRef<Data, Variables>(
     refInfo: { name, variables, connectorConfig }
   } = serializedRef;
   return queryRef(getDataConnect(connectorConfig), name, variables);
-}
-/**
- * `OnCompleteSubscription`
- */
-export type OnCompleteSubscription = () => void;
-/**
- * Representation of full observer options in `subscribe`
- */
-export interface SubscriptionOptions<Data, Variables> {
-  onNext?: OnResultSubscription<Data, Variables>;
-  onErr?: OnErrorSubscription;
-  onComplete?: OnCompleteSubscription;
 }

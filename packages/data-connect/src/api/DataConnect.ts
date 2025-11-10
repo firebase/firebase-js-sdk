@@ -30,14 +30,14 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 
-import { Cache as DataConnectCache } from '../cache/Cache';
+import { CacheSettings, DataConnectCache, InMemoryCacheProvider } from '../cache/Cache';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
   AuthTokenProvider,
   FirebaseAuthProvider
 } from '../core/FirebaseAuthProvider';
-import { QueryManager } from '../core/QueryManager';
+import { QueryManager } from '../core/query/QueryManager';
 import { logDebug, logError } from '../logger';
 import {
   CallerSdkType,
@@ -46,8 +46,11 @@ import {
   TransportClass
 } from '../network';
 import { RESTTransport } from '../network/transport/rest';
+import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
+import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
+import { CacheProvider } from '../cache/CacheProvider';
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -86,7 +89,7 @@ export function parseOptions(fullHost: string): TransportOptions {
 /**
  * DataConnectOptions including project id
  */
-export interface DataConnectOptions extends ConnectorConfig, DataConnectInitOptions {
+export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings {
   projectId: string;
 }
 
@@ -122,7 +125,6 @@ export class DataConnect {
         this._transportOptions = parseOptions(host);
       }
     }
-    this.cache = new DataConnectCache(this.dataConnectOptions.cacheSettings);
   }
   // @internal
   _useGeneratedSdk(): void {
@@ -168,8 +170,16 @@ export class DataConnect {
         this.app.options,
         this._authProvider
       );
-      this.cache.setAuthProvider(this._authTokenProvider);
+
+
     }
+    const connectorConfig: ConnectorConfig = {
+      connector: this.dataConnectOptions.connector,
+      service: this.dataConnectOptions.service,
+      location: this.dataConnectOptions.location
+    };
+    this.cache = new DataConnectCache(this._authTokenProvider, this.app.options.projectId, connectorConfig, this._transportOptions.host || PROD_HOST, this.dataConnectOptions.cacheSettings);
+    this.cache.setAuthProvider(this._authTokenProvider);
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
         this.app,
@@ -177,7 +187,6 @@ export class DataConnect {
       );
     }
 
-    this._initialized = true;
     this._transport = new this._transportClass(
       this.dataConnectOptions,
       this.app.options.apiKey,
@@ -195,8 +204,10 @@ export class DataConnect {
         this._transportOptions.sslEnabled
       );
     }
+
     this._queryManager = new QueryManager(this._transport, this.cache, this);
     this._mutationManager = new MutationManager(this._transport);
+    this._initialized = true;
   }
 
   // @internal
@@ -255,26 +266,36 @@ export function connectDataConnectEmulator(
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
-// TODO: Can we do something to make sure that this is more tree-shakable?
-export enum Storage {
-  memory,
-  persistent
+export type CacheProviderImpl = PublicIndexedDbProvider | PublicEphemeralDbProvider;
+
+class PublicIndexedDbProvider {
+  
+  /**
+   * @internal
+   */
+  initializeProvider(cacheId: string): CacheProvider {
+    return new IndexedDBCacheProvider(cacheId);
+  }
 }
 
-export interface CacheSettings {
-  storage: Storage;
-  maxSizeBytes: number;
+class PublicEphemeralDbProvider {
+  /**
+   * @internal
+   */
+  initializeProvider(cacheId: string): CacheProvider {
+    return new InMemoryCacheProvider(cacheId);
+  }
 }
 
-export interface DataConnectInitOptions {
-  cacheSettings?: CacheSettings;
+export interface DataConnectSettings {
+  cacheSettings?: CacheProviderImpl;
 }
 
 /**
  * Initialize DataConnect instance
  * @param options ConnectorConfig
  */
-export function getDataConnect(options: ConnectorConfig, extraOptions?: DataConnectInitOptions): DataConnect;
+export function getDataConnect(options: ConnectorConfig, settings?: DataConnectSettings): DataConnect;
 export function getDataConnect(options: ConnectorConfig): DataConnect;
 /** 
  * Initialize DataConnect instance
@@ -294,36 +315,39 @@ export function getDataConnect(
 export function getDataConnect(
   app: FirebaseApp,
   connectorConfig: ConnectorConfig,
-  extraOptions: DataConnectInitOptions
+  settings: DataConnectSettings
 ): DataConnect;
 
 export function getDataConnect(
   appOrConnectorConfig: FirebaseApp | ConnectorConfig,
-  optionsOrConnectorConfig?: ConnectorConfig | DataConnectInitOptions,
-  extraOptions?: DataConnectInitOptions
+  settingsOrConnectorConfig?: ConnectorConfig | DataConnectSettings,
+  settings?: DataConnectSettings
 ): DataConnect {
   let app: FirebaseApp;
   let connectorConfig: ConnectorConfig;
-  let options: DataConnectInitOptions;
+  let realSettings: DataConnectSettings;
   if ('location' in appOrConnectorConfig) {
     connectorConfig = appOrConnectorConfig;
     app = getApp();
-    options = optionsOrConnectorConfig as DataConnectInitOptions;
+    realSettings = settingsOrConnectorConfig as DataConnectSettings;
   } else {
     app = appOrConnectorConfig;
-    connectorConfig = optionsOrConnectorConfig as ConnectorConfig;
-    options = extraOptions as DataConnectInitOptions;
+    connectorConfig = settingsOrConnectorConfig as ConnectorConfig;
+    realSettings = settings as DataConnectSettings;
   }
 
-  const dcOptions = {
-    ...options,
-    connectorConfig
-  };
+
 
   if (!app || Object.keys(app).length === 0) {
     app = getApp();
   }
+  const dcOptions: DataConnectOptions = {
+    ...realSettings,
+    ...connectorConfig,
+    projectId: app.options.projectId
+  };
   const provider = _getProvider(app, 'data-connect');
+  // TODO: Deal with the parsing of these options properly.
   const identifier = JSON.stringify(dcOptions);
   if (provider.isInitialized(identifier)) {
     const dcInstance = provider.getImmediate({ identifier });

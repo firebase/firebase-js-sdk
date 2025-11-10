@@ -11,6 +11,17 @@ import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
+// @public (undocumented)
+export const CacheOnly = "cacheOnly";
+
+// @public
+export interface CacheSettings {
+    // (undocumented)
+    maxSizeBytes: number;
+    // (undocumented)
+    storage: DataConnectStorage;
+}
+
 // @public
 export type CallerSdkType = 'Base' | 'Generated' | 'TanstackReactCore' | 'GeneratedReact' | 'TanstackAngularCore' | 'GeneratedAngular';
 
@@ -98,7 +109,7 @@ export interface DataConnectOperationFailureResponseErrorInfo {
 }
 
 // @public
-export interface DataConnectOptions extends ConnectorConfig {
+export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings {
     // (undocumented)
     projectId: string;
 }
@@ -108,6 +119,15 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
     // (undocumented)
     ref: OperationRef<Data, Variables>;
 }
+
+// @public (undocumented)
+export interface DataConnectSettings {
+    // (undocumented)
+    cacheSettings?: CacheSettings;
+}
+
+// @public (undocumented)
+export type DataConnectStorage = typeof Memory | typeof Persistent;
 
 // @public
 export interface DataConnectSubscription<Data, Variables> {
@@ -126,13 +146,28 @@ export type DataSource = typeof SOURCE_CACHE | typeof SOURCE_SERVER;
 export function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, Variables>): MutationPromise<Data, Variables>;
 
 // @public
-export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>): QueryPromise<Data, Variables>;
+export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>, options?: ExecuteQueryOptions): QueryPromise<Data, Variables>;
+
+// @public (undocumented)
+export interface ExecuteQueryOptions {
+    // (undocumented)
+    fetchPolicy: QueryFetchPolicy;
+}
 
 // @public
+export function getDataConnect(options: ConnectorConfig, settings?: DataConnectSettings): DataConnect;
+
+// @public (undocumented)
 export function getDataConnect(options: ConnectorConfig): DataConnect;
 
 // @public
-export function getDataConnect(app: FirebaseApp, options: ConnectorConfig): DataConnect;
+export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig): DataConnect;
+
+// @public
+export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig, settings: DataConnectSettings): DataConnect;
+
+// @public (undocumented)
+export const Memory = "memory";
 
 // @public (undocumented)
 export const MUTATION_STR = "mutation";
@@ -191,7 +226,16 @@ export interface OpResult<Data> {
 }
 
 // @public (undocumented)
+export const Persistent = "persistent";
+
+// @public (undocumented)
+export const PreferCache = "preferCache";
+
+// @public (undocumented)
 export const QUERY_STR = "query";
+
+// @public (undocumented)
+export type QueryFetchPolicy = typeof PreferCache | typeof CacheOnly | typeof ServerOnly;
 
 // @public
 export interface QueryPromise<Data, Variables> extends Promise<QueryResult<Data, Variables>> {
@@ -238,6 +282,9 @@ export interface SerializedRef<Data, Variables> extends OpResult<Data> {
     // (undocumented)
     refInfo: RefInfo<Variables>;
 }
+
+// @public (undocumented)
+export const ServerOnly = "serverOnly";
 
 // @public (undocumented)
 export function setLogLevel(logLevel: LogLevelString): void;
