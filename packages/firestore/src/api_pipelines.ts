@@ -146,6 +146,9 @@ export {
   join,
   log10,
   arraySum,
+  timestampTruncate,
+  split,
+  type,
   Expression,
   AliasedExpression,
   Field,
@@ -155,7 +158,8 @@ export {
   AggregateFunction,
   ExpressionType,
   AliasedAggregate,
-  Selectable
+  Selectable,
+  TimeGranularity
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

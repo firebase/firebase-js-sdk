@@ -171,6 +171,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that subtracts another expression from this expression.
    *
    * ```typescript
@@ -184,6 +185,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   subtract(subtrahend: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Creates an expression that subtracts a constant value from this expression.
    *
    * ```typescript
@@ -204,6 +206,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that multiplies this expression by another expression.
    *
    * ```typescript
@@ -224,6 +227,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that divides this expression by another expression.
    *
    * ```typescript
@@ -237,6 +241,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   divide(divisor: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Creates an expression that divides this expression by a constant value.
    *
    * ```typescript
@@ -257,6 +262,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression.
    *
    * ```typescript
@@ -270,6 +276,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   mod(expression: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
    *
    * ```typescript
@@ -290,6 +297,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is equal to another expression.
    *
    * ```typescript
@@ -303,6 +311,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   equal(expression: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is equal to a constant value.
    *
    * ```typescript
@@ -323,6 +332,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is not equal to another expression.
    *
    * ```typescript
@@ -336,6 +346,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   notEqual(expression: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is not equal to a constant value.
    *
    * ```typescript
@@ -356,6 +367,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is less than another expression.
    *
    * ```typescript
@@ -369,6 +381,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   lessThan(experession: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is less than a constant value.
    *
    * ```typescript
@@ -389,6 +402,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is less than or equal to another
    * expression.
    *
@@ -403,6 +417,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   lessThanOrEqual(expression: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is less than or equal to a constant value.
    *
    * ```typescript
@@ -423,6 +438,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is greater than another expression.
    *
    * ```typescript
@@ -436,6 +452,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   greaterThan(expression: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is greater than a constant value.
    *
    * ```typescript
@@ -456,6 +473,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is greater than or equal to another
    * expression.
    *
@@ -470,6 +488,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   greaterThanOrEqual(expression: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is greater than or equal to a constant
    * value.
    *
@@ -491,6 +510,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that concatenates an array expression with one or more other arrays.
    *
    * ```typescript
@@ -515,6 +535,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if an array contains a specific element.
    *
    * ```typescript
@@ -528,6 +549,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   arrayContains(expression: Expression): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if an array contains a specific value.
    *
    * ```typescript
@@ -548,6 +570,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if an array contains all the specified elements.
    *
    * ```typescript
@@ -561,6 +584,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   arrayContainsAll(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if an array contains all the specified elements.
    *
    * ```typescript
@@ -584,6 +608,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if an array contains any of the specified elements.
    *
    * ```typescript
@@ -597,6 +622,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   arrayContainsAny(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if an array contains any of the specified elements.
    *
    * ```typescript
@@ -623,6 +649,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that reverses an array.
    *
    * ```typescript
@@ -637,6 +664,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that calculates the length of an array.
    *
    * ```typescript
@@ -651,6 +679,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
    *
@@ -665,6 +694,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   equalAny(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
    *
@@ -685,6 +715,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is not equal to any of the provided values or
    * expressions.
    *
@@ -699,6 +730,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   notEqualAny(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
    *
    * ```typescript
@@ -722,6 +754,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if a field exists in the document.
    *
    * ```typescript
@@ -736,6 +769,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that calculates the character length of a string in UTF-8.
    *
    * ```typescript
@@ -750,6 +784,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that performs a case-sensitive string comparison.
    *
    * ```typescript
@@ -763,6 +798,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   like(pattern: string): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that performs a case-sensitive string comparison.
    *
    * ```typescript
@@ -783,6 +819,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if a string contains a specified regular expression as a
    * substring.
    *
@@ -797,6 +834,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   regexContains(pattern: string): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if a string contains a specified regular expression as a
    * substring.
    *
@@ -818,6 +856,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if a string matches a specified regular expression.
    *
    * ```typescript
@@ -831,6 +870,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   regexMatch(pattern: string): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if a string matches a specified regular expression.
    *
    * ```typescript
@@ -851,6 +891,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if a string contains a specified substring.
    *
    * ```typescript
@@ -864,6 +905,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   stringContains(substring: string): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if a string contains the string represented by another expression.
    *
    * ```typescript
@@ -884,6 +926,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if a string starts with a given prefix.
    *
    * ```typescript
@@ -897,6 +940,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   startsWith(prefix: string): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if a string starts with a given prefix (represented as an
    * expression).
    *
@@ -918,6 +962,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that checks if a string ends with a given postfix.
    *
    * ```typescript
@@ -931,6 +976,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   endsWith(suffix: string): BooleanExpression;
 
   /**
+   * @beta
    * Creates an expression that checks if a string ends with a given postfix (represented as an
    * expression).
    *
@@ -952,6 +998,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that converts a string to lowercase.
    *
    * ```typescript
@@ -966,6 +1013,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that converts a string to uppercase.
    *
    * ```typescript
@@ -980,20 +1028,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * Creates an expression that removes leading and trailing whitespace from a string.
+   * @beta
+   * Creates an expression that removes leading and trailing characters from a string or byte array.
    *
    * ```typescript
    * // Trim whitespace from the 'userInput' field
    * field("userInput").trim();
-   * ```
    *
-   * @return A new `Expr` representing the trimmed string.
+   * // Trim quotes from the 'userInput' field
+   * field("userInput").trim('"');
+   * ```
+   * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+   * trimmed from the input. If not specified, then whitespace will be trimmed.
+   * @return A new `Expr` representing the trimmed string or byte array.
    */
-  trim(): FunctionExpression {
-    return new FunctionExpression('trim', [this], 'trim');
+  trim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('trim', args, 'trim');
   }
 
   /**
+   * @beta
    * Creates an expression that concatenates string expressions together.
    *
    * ```typescript
@@ -1019,6 +1077,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that concatenates expression results together.
    *
    * ```typescript
@@ -1040,6 +1099,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that reverses this string expression.
    *
    * ```typescript
@@ -1054,6 +1114,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that calculates the length of this string expression in bytes.
    *
    * ```typescript
@@ -1068,6 +1129,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the ceiling of a numeric value.
    *
    * ```typescript
@@ -1082,6 +1144,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the floor of a numeric value.
    *
    * ```typescript
@@ -1096,6 +1159,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the absolute value of a numeric value.
    *
    * ```typescript
@@ -1110,6 +1174,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes e to the power of this expression.
    *
    * ```typescript
@@ -1124,6 +1189,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Accesses a value from a map (object) field using the provided key.
    *
    * ```typescript
@@ -1143,6 +1209,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
    * expression or field.
    *
@@ -1154,10 +1221,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'count' aggregation.
    */
   count(): AggregateFunction {
-    return new AggregateFunction('count', [this], 'count');
+    return AggregateFunction._create('count', [this], 'count');
   }
 
   /**
+   * @beta
    * Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs.
    *
    * ```typescript
@@ -1168,10 +1236,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'sum' aggregation.
    */
   sum(): AggregateFunction {
-    return new AggregateFunction('sum', [this], 'sum');
+    return AggregateFunction._create('sum', [this], 'sum');
   }
 
   /**
+   * @beta
    * Creates an aggregation that calculates the average (mean) of a numeric field across multiple
    * stage inputs.
    *
@@ -1183,10 +1252,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'average' aggregation.
    */
   average(): AggregateFunction {
-    return new AggregateFunction('average', [this], 'average');
+    return AggregateFunction._create('average', [this], 'average');
   }
 
   /**
+   * @beta
    * Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
    *
    * ```typescript
@@ -1197,10 +1267,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'minimum' aggregation.
    */
   minimum(): AggregateFunction {
-    return new AggregateFunction('minimum', [this], 'minimum');
+    return AggregateFunction._create('minimum', [this], 'minimum');
   }
 
   /**
+   * @beta
    * Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
    *
    * ```typescript
@@ -1211,10 +1282,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'maximum' aggregation.
    */
   maximum(): AggregateFunction {
-    return new AggregateFunction('maximum', [this], 'maximum');
+    return AggregateFunction._create('maximum', [this], 'maximum');
   }
 
   /**
+   * @beta
    * Creates an aggregation that counts the number of distinct values of the expression or field.
    *
    * ```typescript
@@ -1225,10 +1297,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `AggregateFunction` representing the 'count_distinct' aggregation.
    */
   countDistinct(): AggregateFunction {
-    return new AggregateFunction('count_distinct', [this], 'countDistinct');
+    return AggregateFunction._create('count_distinct', [this], 'countDistinct');
   }
 
   /**
+   * @beta
    * Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
    *
    * ```typescript
@@ -1253,6 +1326,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering.
    *
    * ```typescript
@@ -1277,6 +1351,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression.
    *
    * ```typescript
@@ -1291,6 +1366,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Calculates the cosine distance between two vectors.
    *
    * ```typescript
@@ -1303,6 +1379,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   cosineDistance(vectorExpression: Expression): FunctionExpression;
   /**
+   * @beta
    * Calculates the Cosine distance between two vectors.
    *
    * ```typescript
@@ -1325,6 +1402,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Calculates the dot product between two vectors.
    *
    * ```typescript
@@ -1338,6 +1416,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   dotProduct(vectorExpression: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Calculates the dot product between two vectors.
    *
    * ```typescript
@@ -1358,6 +1437,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Calculates the Euclidean distance between two vectors.
    *
    * ```typescript
@@ -1371,6 +1451,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   euclideanDistance(vectorExpression: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Calculates the Euclidean distance between two vectors.
    *
    * ```typescript
@@ -1393,6 +1474,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
@@ -1412,6 +1494,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
    * ```typescript
@@ -1430,6 +1513,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
@@ -1449,6 +1533,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
    * ```typescript
@@ -1467,6 +1552,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
@@ -1486,6 +1572,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
    * ```typescript
@@ -1504,6 +1591,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that adds a specified amount of time to this timestamp expression.
    *
    * ```typescript
@@ -1518,6 +1606,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Creates an expression that adds a specified amount of time to this timestamp expression.
    *
    * ```typescript
@@ -1552,6 +1641,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
    *
    * ```typescript
@@ -1566,6 +1656,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
    *
    * ```typescript
@@ -1840,6 +1931,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that returns the value of this expression raised to the power of another expression.
    *
    * ```typescript
@@ -1853,6 +1945,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   pow(exponent: Expression): FunctionExpression;
 
   /**
+   * @beta
    * Creates an expression that returns the value of this expression raised to the power of a constant value.
    *
    * ```typescript
@@ -1869,6 +1962,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that rounds a numeric value to the nearest whole number.
    *
    * ```typescript
@@ -1880,6 +1974,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   round(): FunctionExpression;
   /**
+   * @beta
    * Creates an expression that rounds a numeric value to the specified number of decimal places.
    *
    * ```typescript
@@ -1893,6 +1988,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   round(decimalPlaces: number): FunctionExpression;
   /**
+   * @beta
    * Creates an expression that rounds a numeric value to the specified number of decimal places.
    *
    * ```typescript
@@ -1918,6 +2014,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that returns the collection ID from a path.
    *
    * ```typescript
@@ -1932,6 +2029,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
    *
    * ```typescript
@@ -1949,6 +2047,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the natural logarithm of a numeric value.
    *
    * ```typescript
@@ -1963,6 +2062,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the square root of a numeric value.
    *
    * ```typescript
@@ -1977,6 +2077,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that reverses a string.
    *
    * ```typescript
@@ -1991,6 +2092,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
    * return the result of the this expression evaluation.
    *
@@ -2006,6 +2108,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   ifAbsent(elseValue: unknown): Expression;
 
   /**
+   * @beta
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
    * return the result of this expression evaluation.
    *
@@ -2029,6 +2132,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that joins the elements of an array into a string.
    *
    * ```typescript
@@ -2042,6 +2146,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   join(delimiterExpression: Expression): Expression;
 
   /**
+   * @beta
    * Creates an expression that joins the elements of an array field into a string.
    *
    * ```typescript
@@ -2063,6 +2168,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the base-10 logarithm of a numeric value.
    *
    * ```typescript
@@ -2077,6 +2183,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that computes the sum of the elements in an array.
    *
    * ```typescript
@@ -2090,9 +2197,114 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new FunctionExpression('sum', [this]);
   }
 
+  /**
+   * @beta
+   * Creates an expression that splits the result of this expression into an
+   * array of substrings based on the provided delimiter.
+   *
+   * @example
+   * ```typescript
+   * // Split the 'scoresCsv' field on delimiter ','
+   * field('scoresCsv').split(',')
+   * ```
+   *
+   * @return A new {@code Expression} representing the split function.
+   */
+  split(delimiter: string): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that splits the result of this expression into an
+   * array of substrings based on the provided delimiter.
+   *
+   * @example
+   * ```typescript
+   * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
+   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':'))
+   * ```
+   *
+   * @return A new {@code Expression} representing the split function.
+   */
+  split(delimiter: Expression): FunctionExpression;
+  split(delimiter: string | Expression): FunctionExpression {
+    return new FunctionExpression('split', [
+      this,
+      valueToDefaultExpr(delimiter)
+    ]);
+  }
+
+  /**
+   * Creates an expression that truncates a timestamp to a specified granularity.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the 'createdAt' timestamp to the beginning of the day.
+   * field('createdAt').timestampTruncate('day')
+   * ```
+   *
+   * @param granularity The granularity to truncate to.
+   * @param timezone The timezone to use for truncation. Valid values are from
+   * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
+   * @return A new {Expression} representing the truncated timestamp.
+   */
+  timestampTruncate(
+    granularity: TimeGranularity,
+    timezone?: string | Expression
+  ): FunctionExpression;
+
+  /**
+   * Creates an expression that truncates a timestamp to a specified granularity.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
+   * field('createdAt').timestampTruncate(field('granularity'))
+   * ```
+   *
+   * @param granularity The granularity to truncate to.
+   * @param timezone The timezone to use for truncation. Valid values are from
+   * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
+   * @return A new {Expression} representing the truncated timestamp.
+   */
+  timestampTruncate(
+    granularity: Expression,
+    timezone?: string | Expression
+  ): FunctionExpression;
+  timestampTruncate(
+    granularity: TimeGranularity | Expression,
+    timezone?: string | Expression
+  ): FunctionExpression {
+    const internalGranularity = isString(granularity)
+      ? granularity.toLowerCase()
+      : granularity;
+
+    const args = [this, valueToDefaultExpr(internalGranularity)];
+    if (timezone) {
+      args.push(valueToDefaultExpr(timezone));
+    }
+    return new FunctionExpression('timestamp_trunc', args);
+  }
+
+  /**
+   * @beta
+   * Creates an expression that returns the data type of this expression's result, as a string.
+   *
+   * @example
+   * ```typescript
+   * // Get the data type of the value in field 'title'
+   * field('title').type()
+   * ```
+   *
+   * @return A new {Expression} representing the data type.
+   */
+  type(): FunctionExpression {
+    return new FunctionExpression('type', [this]);
+  }
+
   // TODO(new-expression): Add new expression method definitions above this line
 
   /**
+   * @beta
    * Creates an {@link Ordering} that sorts documents in ascending order based on this expression.
    *
    * ```typescript
@@ -2108,6 +2320,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an {@link Ordering} that sorts documents in descending order based on this expression.
    *
    * ```typescript
@@ -2123,6 +2336,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Assigns an alias to this expression.
    *
    * Aliases are useful for renaming fields in the output of a stage or for giving meaningful
@@ -2142,6 +2356,27 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new AliasedExpression(this, name, 'as');
   }
 }
+
+export type TimeGranularity =
+  | 'microsecond'
+  | 'millisecond'
+  | 'second'
+  | 'minute'
+  | 'hour'
+  | 'day'
+  | 'week'
+  | 'week(monday)'
+  | 'week(tuesday)'
+  | 'week(wednesday)'
+  | 'week(thursday)'
+  | 'week(friday)'
+  | 'week(saturday)'
+  | 'week(sunday)'
+  | 'isoWeek'
+  | 'month'
+  | 'quarter'
+  | 'year'
+  | 'isoYear';
 
 /**
  * @beta
@@ -2170,26 +2405,30 @@ export interface Selectable {
 export class AggregateFunction implements ProtoValueSerializable, UserData {
   exprType: ExpressionType = 'AggregateFunction';
 
-  constructor(name: string, params: Expression[]);
   /**
-   * INTERNAL Constructor with method name for validation.
-   * @hideconstructor
-   * @param name
-   * @param params
-   * @param _methodName
+   * @internal
    */
-  constructor(
-    name: string,
-    params: Expression[],
-    _methodName: string | undefined
-  );
-  constructor(
-    private name: string,
-    private params: Expression[],
-    readonly _methodName?: string
-  ) {}
+  _methodName?: string;
+
+  constructor(private name: string, private params: Expression[]) {}
 
   /**
+   * @internal
+   * @private
+   */
+  static _create(
+    name: string,
+    params: Expression[],
+    methodName: string
+  ): AggregateFunction {
+    const af = new AggregateFunction(name, params);
+    af._methodName = methodName;
+
+    return af;
+  }
+
+  /**
+   * @beta
    * Assigns an alias to this AggregateFunction. The alias specifies the name that
    * the aggregated value will have in the output document.
    *
@@ -2378,6 +2617,7 @@ export class Field extends Expression implements Selectable {
 }
 
 /**
+ * @beta
  * Creates a {@code Field} instance representing the field at the given path.
  *
  * The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field
@@ -2487,6 +2727,7 @@ export class Constant extends Expression {
 }
 
 /**
+ * @beta
  * Creates a `Constant` instance for a number value.
  *
  * @param value The number value.
@@ -2495,6 +2736,7 @@ export class Constant extends Expression {
 export function constant(value: number): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a string value.
  *
  * @param value The string value.
@@ -2503,6 +2745,7 @@ export function constant(value: number): Expression;
 export function constant(value: string): Expression;
 
 /**
+ * @beta
  * Creates a `BooleanExpression` instance for a boolean value.
  *
  * @param value The boolean value.
@@ -2511,6 +2754,7 @@ export function constant(value: string): Expression;
 export function constant(value: boolean): BooleanExpression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a null value.
  *
  * @param value The null value.
@@ -2519,6 +2763,7 @@ export function constant(value: boolean): BooleanExpression;
 export function constant(value: null): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a GeoPoint value.
  *
  * @param value The GeoPoint value.
@@ -2527,6 +2772,7 @@ export function constant(value: null): Expression;
 export function constant(value: GeoPoint): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a Timestamp value.
  *
  * @param value The Timestamp value.
@@ -2535,6 +2781,7 @@ export function constant(value: GeoPoint): Expression;
 export function constant(value: Timestamp): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a Date value.
  *
  * @param value The Date value.
@@ -2543,6 +2790,7 @@ export function constant(value: Timestamp): Expression;
 export function constant(value: Date): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a Bytes value.
  *
  * @param value The Bytes value.
@@ -2551,6 +2799,7 @@ export function constant(value: Date): Expression;
 export function constant(value: Bytes): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a DocumentReference value.
  *
  * @param value The DocumentReference value.
@@ -2569,6 +2818,7 @@ export function constant(value: DocumentReference): Expression;
 export function constant(value: ProtoValue): Expression;
 
 /**
+ * @beta
  * Creates a `Constant` instance for a VectorValue value.
  *
  * @param value The VectorValue value.
@@ -2688,6 +2938,7 @@ export class BooleanExpression extends FunctionExpression {
   filterable: true = true;
 
   /**
+   * @beta
    * Creates an aggregation that finds the count of input documents satisfying
    * this boolean expression.
    *
@@ -2699,10 +2950,11 @@ export class BooleanExpression extends FunctionExpression {
    * @return A new `AggregateFunction` representing the 'countIf' aggregation.
    */
   countIf(): AggregateFunction {
-    return new AggregateFunction('count_if', [this], 'countIf');
+    return AggregateFunction._create('count_if', [this], 'countIf');
   }
 
   /**
+   * @beta
    * Creates an expression that negates this boolean expression.
    *
    * ```typescript
@@ -2717,6 +2969,7 @@ export class BooleanExpression extends FunctionExpression {
   }
 
   /**
+   * @beta
    * Creates a conditional expression that evaluates to the 'then' expression
    * if `this` expression evaluates to `true`,
    * or evaluates to the 'else' expression if `this` expressions evaluates `false`.
@@ -3955,6 +4208,7 @@ export function lessThanOrEqual(
 ): BooleanExpression;
 
 /**
+ * @beta
  * Creates an expression that checks if a field's value is less than or equal to an expression.
  *
  * ```typescript
@@ -4981,6 +5235,7 @@ export function byteLength(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that reverses an array.
  *
  * ```typescript
@@ -4994,6 +5249,7 @@ export function byteLength(expr: Expression | string): FunctionExpression {
 export function arrayReverse(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that reverses an array.
  *
  * ```typescript
@@ -5010,6 +5266,7 @@ export function arrayReverse(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that computes e to the power of the expression's result.
  *
  * ```typescript
@@ -5022,6 +5279,7 @@ export function arrayReverse(expr: Expression | string): FunctionExpression {
 export function exp(expression: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes e to the power of the expression's result.
  *
  * ```typescript
@@ -5040,6 +5298,7 @@ export function exp(
 }
 
 /**
+ * @beta
  * Creates an expression that computes the ceiling of a numeric value.
  *
  * ```typescript
@@ -5053,6 +5312,7 @@ export function exp(
 export function ceil(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes the ceiling of a numeric value.
  *
  * ```typescript
@@ -5069,6 +5329,7 @@ export function ceil(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that computes the floor of a numeric value.
  *
  * @param expr The expression to compute the floor of.
@@ -5077,6 +5338,7 @@ export function ceil(expr: Expression | string): FunctionExpression {
 export function floor(expr: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes the floor of a numeric value.
  *
  * @param fieldName The name of the field to compute the floor of.
@@ -5088,6 +5350,7 @@ export function floor(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an aggregation that counts the number of distinct values of a field.
  *
  * @param expr The expression or field to count distinct values of.
@@ -5699,34 +5962,53 @@ export function toUpper(expr: Expression | string): FunctionExpression {
 /**
  * @beta
  *
- * Creates an expression that removes leading and trailing whitespace from a string field.
+ * Creates an expression that removes leading and trailing whitespace from a string or byte array.
  *
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim("userInput");
+ *
+ * // Trim quotes from the 'userInput' field
+ * trim("userInput", '"');
  * ```
  *
- * @param fieldName The name of the field containing the string.
+ * @param fieldName The name of the field containing the string or byte array.
+ * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+ * trimmed from the input. If not specified, then whitespace will be trimmed.
  * @return A new {@code Expr} representing the trimmed string.
  */
-export function trim(fieldName: string): FunctionExpression;
+export function trim(
+  fieldName: string,
+  valueToTrim?: string | Expression
+): FunctionExpression;
 
 /**
  * @beta
  *
- * Creates an expression that removes leading and trailing whitespace from a string expression.
+ * Creates an expression that removes leading and trailing characters from a string or byte array expression.
  *
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim(field("userInput"));
+ *
+ * // Trim quotes from the 'userInput' field
+ * trim(field("userInput"), '"');
  * ```
  *
- * @param stringExpression The expression representing the string to trim.
- * @return A new {@code Expr} representing the trimmed string.
+ * @param stringExpression The expression representing the string or byte array to trim.
+ * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+ * trimmed from the input. If not specified, then whitespace will be trimmed.
+ * @return A new {@code Expr} representing the trimmed string or byte array.
  */
-export function trim(stringExpression: Expression): FunctionExpression;
-export function trim(expr: Expression | string): FunctionExpression {
-  return fieldOrExpression(expr).trim();
+export function trim(
+  stringExpression: Expression,
+  valueToTrim?: string | Expression
+): FunctionExpression;
+export function trim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(expr).trim(valueToTrim);
 }
 
 /**
@@ -5834,7 +6116,7 @@ export function mapGet(
  * @return A new {@code AggregateFunction} representing the 'countAll' aggregation.
  */
 export function countAll(): AggregateFunction {
-  return new AggregateFunction('count', [], 'count');
+  return AggregateFunction._create('count', [], 'count');
 }
 
 /**
@@ -5854,6 +6136,7 @@ export function countAll(): AggregateFunction {
 export function count(expression: Expression): AggregateFunction;
 
 /**
+ * @beta
  * Creates an aggregation that counts the number of stage inputs where the input field exists.
  *
  * ```typescript
@@ -6741,6 +7024,7 @@ export function or(
 }
 
 /**
+ * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
  *
  * ```typescript
@@ -6755,6 +7039,7 @@ export function or(
 export function pow(base: Expression, exponent: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent.
  *
  * ```typescript
@@ -6769,6 +7054,7 @@ export function pow(base: Expression, exponent: Expression): FunctionExpression;
 export function pow(base: Expression, exponent: number): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that returns the value of the base field raised to the power of the exponent expression.
  *
  * ```typescript
@@ -6783,6 +7069,7 @@ export function pow(base: Expression, exponent: number): FunctionExpression;
 export function pow(base: string, exponent: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that returns the value of the base field raised to the power of the exponent.
  *
  * ```typescript
@@ -6803,6 +7090,7 @@ export function pow(
 }
 
 /**
+ * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
  * ```typescript
@@ -6816,6 +7104,7 @@ export function pow(
 export function round(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
  * ```typescript
@@ -6829,6 +7118,7 @@ export function round(fieldName: string): FunctionExpression;
 export function round(expression: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that rounds a numeric value to the specified number of decimal places.
  *
  * ```typescript
@@ -6846,6 +7136,7 @@ export function round(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that rounds a numeric value to the specified number of decimal places.
  *
  * ```typescript
@@ -6873,6 +7164,7 @@ export function round(
 }
 
 /**
+ * @beta
  * Creates an expression that returns the collection ID from a path.
  *
  * ```typescript
@@ -6886,6 +7178,7 @@ export function round(
 export function collectionId(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that returns the collection ID from a path.
  *
  * ```typescript
@@ -6902,6 +7195,7 @@ export function collectionId(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
  *
  * ```typescript
@@ -6918,6 +7212,7 @@ export function collectionId(expr: Expression | string): FunctionExpression {
 export function length(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
  *
  * ```typescript
@@ -6937,6 +7232,7 @@ export function length(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that computes the natural logarithm of a numeric value.
  *
  * ```typescript
@@ -6950,6 +7246,7 @@ export function length(expr: Expression | string): FunctionExpression {
 export function ln(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes the natural logarithm of a numeric value.
  *
  * ```typescript
@@ -6966,6 +7263,7 @@ export function ln(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that computes the logarithm of an expression to a given base.
  *
  * ```typescript
@@ -6979,6 +7277,7 @@ export function ln(expr: Expression | string): FunctionExpression {
  */
 export function log(expression: Expression, base: number): FunctionExpression;
 /**
+ * @beta
  * Creates an expression that computes the logarithm of an expression to a given base.
  *
  * ```typescript
@@ -6995,6 +7294,7 @@ export function log(
   base: Expression
 ): FunctionExpression;
 /**
+ * @beta
  * Creates an expression that computes the logarithm of a field to a given base.
  *
  * ```typescript
@@ -7008,6 +7308,7 @@ export function log(
  */
 export function log(fieldName: string, base: number): FunctionExpression;
 /**
+ * @beta
  * Creates an expression that computes the logarithm of a field to a given base.
  *
  * ```typescript
@@ -7031,6 +7332,7 @@ export function log(
 }
 
 /**
+ * @beta
  * Creates an expression that computes the square root of a numeric value.
  *
  * ```typescript
@@ -7043,6 +7345,7 @@ export function log(
  */
 export function sqrt(expression: Expression): FunctionExpression;
 /**
+ * @beta
  * Creates an expression that computes the square root of a numeric value.
  *
  * ```typescript
@@ -7059,6 +7362,7 @@ export function sqrt(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that reverses a string.
  *
  * ```typescript
@@ -7072,6 +7376,7 @@ export function sqrt(expr: Expression | string): FunctionExpression {
 export function stringReverse(stringExpression: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that reverses a string value in the specified field.
  *
  * ```typescript
@@ -7088,6 +7393,7 @@ export function stringReverse(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
  *
  * ```typescript
@@ -7107,6 +7413,7 @@ export function concat(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
  *
  * ```typescript
@@ -7138,6 +7445,7 @@ export function concat(
 }
 
 /**
+ * @beta
  * Creates an expression that computes the absolute value of a numeric value.
  *
  * @param expr The expression to compute the absolute value of.
@@ -7146,6 +7454,7 @@ export function concat(
 export function abs(expr: Expression): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes the absolute value of a numeric value.
  *
  * @param fieldName The field to compute the absolute value of.
@@ -7157,6 +7466,7 @@ export function abs(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that returns the `elseExpr` argument if `ifExpr` is absent, else return
  * the result of the `ifExpr` argument evaluation.
  *
@@ -7173,6 +7483,7 @@ export function abs(expr: Expression | string): FunctionExpression {
 export function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
 
 /**
+ * @beta
  * Creates an expression that returns the `elseValue` argument if `ifExpr` is absent, else
  * return the result of the `ifExpr` argument evaluation.
  *
@@ -7189,6 +7500,7 @@ export function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
 export function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
 
 /**
+ * @beta
  * Creates an expression that returns the `elseExpr` argument if `ifFieldName` is absent, else
  * return the value of the field.
  *
@@ -7206,6 +7518,7 @@ export function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
 export function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
 
 /**
+ * @beta
  * Creates an expression that returns the `elseValue` argument if `ifFieldName` is absent, else
  * return the value of the field.
  *
@@ -7233,6 +7546,7 @@ export function ifAbsent(
 }
 
 /**
+ * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
  * ```typescript
@@ -7247,6 +7561,7 @@ export function ifAbsent(
 export function join(arrayFieldName: string, delimiter: string): Expression;
 
 /**
+ * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
  * ```typescript
@@ -7264,6 +7579,7 @@ export function join(
 ): Expression;
 
 /**
+ * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
  * ```typescript
@@ -7281,6 +7597,7 @@ export function join(
 ): Expression;
 
 /**
+ * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
  * ```typescript
@@ -7306,6 +7623,7 @@ export function join(
 }
 
 /**
+ * @beta
  * Creates an expression that computes the base-10 logarithm of a numeric value.
  *
  * ```typescript
@@ -7319,6 +7637,7 @@ export function join(
 export function log10(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes the base-10 logarithm of a numeric value.
  *
  * ```typescript
@@ -7335,6 +7654,7 @@ export function log10(expr: Expression | string): FunctionExpression {
 }
 
 /**
+ * @beta
  * Creates an expression that computes the sum of the elements in an array.
  *
  * ```typescript
@@ -7348,6 +7668,7 @@ export function log10(expr: Expression | string): FunctionExpression {
 export function arraySum(fieldName: string): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that computes the sum of the elements in an array.
  *
  * ```typescript
@@ -7361,6 +7682,220 @@ export function arraySum(fieldName: string): FunctionExpression;
 export function arraySum(expression: Expression): FunctionExpression;
 export function arraySum(expr: Expression | string): FunctionExpression {
   return fieldOrExpression(expr).arraySum();
+}
+
+/**
+ * @beta
+ * Creates an expression that splits the value of a field on the provided delimiter.
+ *
+ * @example
+ * ```typescript
+ * // Split the 'scoresCsv' field on delimiter ','
+ * split('scoresCsv', ',')
+ * ```
+ *
+ * @param fieldName Split the value in this field.
+ * @param delimiter Split on this delimiter.
+ *
+ * @return A new {@code Expression} representing the split function.
+ */
+export function split(fieldName: string, delimiter: string): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that splits the value of a field on the provided delimiter.
+ *
+ * @example
+ * ```typescript
+ * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
+ * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * ```
+ *
+ * @param fieldName Split the value in this field.
+ * @param delimiter Split on this delimiter returned by evaluating this expression.
+ *
+ * @return A new {@code Expression} representing the split function.
+ */
+export function split(
+  fieldName: string,
+  delimiter: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that splits a string into an array of substrings based on the provided delimiter.
+ *
+ * @example
+ * ```typescript
+ * // Split the 'scoresCsv' field on delimiter ','
+ * split(field('scoresCsv'), ',')
+ * ```
+ *
+ * @param expression Split the result of this expression.
+ * @param delimiter Split on this delimiter.
+ *
+ * @return A new {@code Expression} representing the split function.
+ */
+export function split(
+  expression: Expression,
+  delimiter: string
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that splits a string into an array of substrings based on the provided delimiter.
+ *
+ * @example
+ * ```typescript
+ * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
+ * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * ```
+ *
+ * @param expression Split the result of this expression.
+ * @param delimiter Split on this delimiter returned by evaluating this expression.
+ *
+ * @return A new {@code Expression} representing the split function.
+ */
+export function split(
+  expression: Expression,
+  delimiter: Expression
+): FunctionExpression;
+export function split(
+  fieldNameOrExpression: string | Expression,
+  delimiter: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).split(
+    valueToDefaultExpr(delimiter)
+  );
+}
+
+/**
+ * Creates an expression that truncates a timestamp to a specified granularity.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the 'createdAt' timestamp to the beginning of the day.
+ * field('createdAt').timestampTruncate('day')
+ * ```
+ *
+ * @param fieldName Truncate the timestamp value contained in this field.
+ * @param granularity The granularity to truncate to.
+ * @param timezone The timezone to use for truncation. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
+ * @return A new {Expression} representing the truncated timestamp.
+ */
+export function timestampTruncate(
+  fieldName: string,
+  granularity: TimeGranularity,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that truncates a timestamp to a specified granularity.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
+ * field('createdAt').timestampTruncate(field('granularity'))
+ * ```
+ *
+ * @param fieldName Truncate the timestamp value contained in this field.
+ * @param granularity The granularity to truncate to.
+ * @param timezone The timezone to use for truncation. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
+ * @return A new {Expression} representing the truncated timestamp.
+ */
+export function timestampTruncate(
+  fieldName: string,
+  granularity: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that truncates a timestamp to a specified granularity.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the 'createdAt' timestamp to the beginning of the day.
+ * field('createdAt').timestampTruncate('day')
+ * ```
+ *
+ * @param timestampExpression Truncate the timestamp value that is returned by this expression.
+ * @param granularity The granularity to truncate to.
+ * @param timezone The timezone to use for truncation. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
+ * @return A new {Expression} representing the truncated timestamp.
+ */
+export function timestampTruncate(
+  timestampExpression: Expression,
+  granularity: TimeGranularity,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that truncates a timestamp to a specified granularity.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
+ * field('createdAt').timestampTruncate(field('granularity'))
+ * ```
+ *
+ * @param timestampExpression Truncate the timestamp value that is returned by this expression.
+ * @param granularity The granularity to truncate to.
+ * @param timezone The timezone to use for truncation. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
+ * @return A new {Expression} representing the truncated timestamp.
+ */
+export function timestampTruncate(
+  timestampExpression: Expression,
+  granularity: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
+export function timestampTruncate(
+  fieldNameOrExpression: string | Expression,
+  granularity: TimeGranularity | Expression,
+  timezone?: string | Expression
+): FunctionExpression {
+  const internalGranularity = isString(granularity)
+    ? valueToDefaultExpr(granularity.toLowerCase())
+    : granularity;
+  return fieldOrExpression(fieldNameOrExpression).timestampTruncate(
+    internalGranularity,
+    timezone
+  );
+}
+
+/**
+ * @beta
+ * Creates an expression that returns the data type of the data in the specified field.
+ *
+ * @example
+ * ```typescript
+ * // Get the data type of the value in field 'title'
+ * type('title')
+ * ```
+ *
+ * @return A new {Expression} representing the data type.
+ */
+export function type(fieldName: string): FunctionExpression;
+/**
+ * @beta
+ * Creates an expression that returns the data type of an expression's result.
+ *
+ * @example
+ * ```typescript
+ * // Get the data type of a conditional expression
+ * type(conditional(exists('foo'), constant(1), constant(true)))
+ * ```
+ *
+ * @return A new {Expression} representing the data type.
+ */
+export function type(expression: Expression): FunctionExpression;
+export function type(
+  fieldNameOrExpression: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).type();
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line

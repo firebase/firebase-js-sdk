@@ -140,7 +140,10 @@ import {
   join,
   log10,
   arraySum,
-  PipelineSnapshot
+  PipelineSnapshot,
+  timestampTruncate,
+  split,
+  type
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -149,9 +152,7 @@ setLogLevel('debug');
 
 const timestampDeltaMS = 1000;
 
-(process.env.FIRESTORE_TARGET_DB_ID === 'enterprise'
-  ? apiDescribe.only
-  : apiDescribe.skip)('Pipelines', persistence => {
+apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
@@ -340,7 +341,7 @@ const timestampDeltaMS = 1000;
   });
 
   describe('console support', () => {
-    it('supports internal serialization to proto', async () => {
+    it('supports pipeline query serialization to proto', async () => {
       // Perform the same test as the console
       const pipeline = firestore
         .pipeline()
@@ -354,6 +355,104 @@ const timestampDeltaMS = 1000;
       expect(JSON.stringify(proto.structuredPipeline)).to.equal(
         expectedStructuredPipelineProto
       );
+    });
+
+    it('supports PipelineSnapshot serialization to proto', async () => {
+      // Perform the same test as the console
+      const pipeline = firestore
+        .pipeline()
+        .collection(randomCol)
+        .sort(field('title').ascending())
+        .limit(1);
+
+      const result = await execute(pipeline);
+
+      expect(result.results[0]._fieldsProto()).to.deep.equal({
+        'author': {
+          'stringValue': 'George Orwell'
+        },
+        'awards': {
+          'mapValue': {
+            'fields': {
+              'prometheus': {
+                'booleanValue': true
+              }
+            }
+          }
+        },
+        'embedding': {
+          'mapValue': {
+            'fields': {
+              '__type__': {
+                'stringValue': '__vector__'
+              },
+              'value': {
+                'arrayValue': {
+                  'values': [
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 10
+                    },
+                    {
+                      'doubleValue': 1
+                    },
+                    {
+                      'doubleValue': 1
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        'genre': {
+          'stringValue': 'Dystopian'
+        },
+        'published': {
+          'integerValue': '1949'
+        },
+        'rating': {
+          'doubleValue': 4.2
+        },
+        'tags': {
+          'arrayValue': {
+            'values': [
+              {
+                'stringValue': 'surveillance'
+              },
+              {
+                'stringValue': 'totalitarianism'
+              },
+              {
+                'stringValue': 'propaganda'
+              }
+            ]
+          }
+        },
+        'title': {
+          'stringValue': '1984'
+        }
+      });
     });
 
     it('performs validation', async () => {
@@ -3824,15 +3923,30 @@ const timestampDeltaMS = 1000;
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .addFields(
-            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
           )
-          .select(trim('spacedTitle').as('trimmedTitle'), field('spacedTitle'))
+          .select(
+            trim('spacedTitle').as('trimmedTitle'),
+            field('spacedTitle'),
+            field('userNameWithQuotes').trim('"').as('userName'),
+            field('bytes')
+              .trim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
+          )
           .limit(1)
       );
       expectResults(snapshot, {
         spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-        trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+        trimmedTitle: "The Hitchhiker's Guide to the Galaxy",
+        userName: 'alice',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02]))
       });
     });
 
@@ -4009,6 +4123,168 @@ const timestampDeltaMS = 1000;
       );
       expectResults(snapshot, {
         totalSales: 350
+      });
+    });
+
+    it('truncate timestamp', async () => {
+      const results = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .replaceWith(
+            map({
+              timestamp: new Timestamp(
+                Date.UTC(2025, 10, 30, 1, 2, 3) / 1000,
+                456789
+              )
+            })
+          )
+          .select(
+            timestampTruncate('timestamp', 'year').as('trunc_year'),
+            timestampTruncate(field('timestamp'), 'month').as('trunc_month'),
+            timestampTruncate(field('timestamp'), constant('day')).as(
+              'trunc_day'
+            ),
+            field('timestamp')
+              .timestampTruncate(constant('day'), 'MST')
+              .as('trunc_day_mst'),
+            field('timestamp').timestampTruncate('hour').as('trunc_hour'),
+            field('timestamp')
+              .timestampTruncate(constant('minute'))
+              .as('trunc_minute'),
+            field('timestamp').timestampTruncate('second').as('trunc_second')
+          )
+      );
+
+      expectResults(results, {
+        'trunc_year': new Timestamp(Date.UTC(2025, 0) / 1000, 0),
+        'trunc_month': new Timestamp(Date.UTC(2025, 10) / 1000, 0),
+        'trunc_day': new Timestamp(Date.UTC(2025, 10, 30) / 1000, 0),
+        'trunc_day_mst': new Timestamp(
+          Date.UTC(2025, 10, 29) / 1000 + 7 * 3600,
+          0
+        ),
+        'trunc_hour': new Timestamp(Date.UTC(2025, 10, 30, 1) / 1000, 0),
+        'trunc_minute': new Timestamp(Date.UTC(2025, 10, 30, 1, 2) / 1000, 0),
+        'trunc_second': new Timestamp(Date.UTC(2025, 10, 30, 1, 2, 3) / 1000, 0)
+      });
+    });
+
+    it('supports split', async () => {
+      const results = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .replaceWith(
+            map({
+              csv: 'foo,bar,baz',
+              data: 'baz:bar:foo',
+              csvDelimeter: ',',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x01, 0x00, 0x02, 0x00, 0x03])
+              )
+            })
+          )
+          .select(
+            split('csv', field('csvDelimeter')).as('csv'),
+            split(field('data'), ':').as('data'),
+            field('bytes')
+              .split(constant(Bytes.fromUint8Array(Uint8Array.from([0x00]))))
+              .as('bytes')
+          )
+      );
+
+      expectResults(results, {
+        csv: ['foo', 'bar', 'baz'],
+        data: ['baz', 'bar', 'foo'],
+        bytes: [
+          Bytes.fromUint8Array(Uint8Array.from([0x01])),
+          Bytes.fromUint8Array(Uint8Array.from([0x02])),
+          Bytes.fromUint8Array(Uint8Array.from([0x03]))
+        ]
+      });
+
+      void expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(randomCol)
+            .limit(1)
+            .replaceWith(
+              map({
+                csv: 'foo,bar,baz'
+              })
+            )
+            .select(
+              field('csv')
+                .split(constant(Bytes.fromUint8Array(Uint8Array.from([0x00]))))
+                .as('dontSplitStringAndBytes')
+            )
+        )
+      ).to.be.rejected;
+    });
+
+    it('supports type', async () => {
+      const result = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              date: constant(new Date()),
+              bytes: constant(
+                Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+              ),
+              docRef: constant(doc(firestore, 'foo', 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                'number': 1,
+                'string': 'a string'
+              }),
+              array: array([1, 'a string'])
+            })
+          )
+          .select(
+            type('int').as('int'),
+            field('float').type().as('float'),
+            field('str').type().as('str'),
+            type('bool').as('bool'),
+            type('null').as('null'),
+            type('geoPoint').as('geoPoint'),
+            type('timestamp').as('timestamp'),
+            type('date').as('date'),
+            type('bytes').as('bytes'),
+            type('docRef').as('docRef'),
+            type('vector').as('vector'),
+            type('map').as('map'),
+            type('array').as('array')
+          )
+      );
+
+      expectResults(result, {
+        int: 'int64',
+        float: 'float64',
+        str: 'string',
+        bool: 'boolean',
+        null: 'null',
+        geoPoint: 'geo_point',
+        timestamp: 'timestamp',
+        date: 'timestamp',
+        bytes: 'bytes',
+        docRef: 'reference',
+        vector: 'vector',
+        map: 'map',
+        array: 'array'
       });
     });
 

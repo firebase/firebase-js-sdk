@@ -177,6 +177,9 @@ export {
   join,
   length,
   arraySum,
+  split,
+  timestampTruncate,
+  type,
   AliasedExpression,
   Field,
   Constant,
@@ -186,5 +189,6 @@ export {
   AliasedAggregate,
   Selectable,
   BooleanExpression,
-  AggregateFunction
+  AggregateFunction,
+  TimeGranularity
 } from '../../src/lite-api/expressions';

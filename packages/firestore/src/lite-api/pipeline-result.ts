@@ -16,6 +16,7 @@
  */
 
 import { ObjectValue } from '../model/object_value';
+import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import { isOptionalEqual } from '../util/misc';
 
 import { Field, isField } from './expressions';
@@ -26,6 +27,27 @@ import { Timestamp } from './timestamp';
 import { fieldPathFromArgument } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
 
+/**
+ * @beta
+ * Represents the results of a Firestore pipeline execution.
+ *
+ * A `PipelineSnapshot` contains zero or more {@link PipelineResult} objects
+ * representing the documents returned by a pipeline query. It provides methods
+ * to iterate over the documents and access metadata about the query results.
+ *
+ * @example
+ * ```typescript
+ * const snapshot: PipelineSnapshot = await firestore
+ *   .pipeline()
+ *   .collection('myCollection')
+ *   .where(field('value').greaterThan(10))
+ *   .execute();
+ *
+ * snapshot.results.forEach(doc => {
+ *   console.log(doc.id, '=>', doc.data());
+ * });
+ * ```
+ */
 export class PipelineSnapshot {
   private readonly _pipeline: Pipeline;
   private readonly _executionTime: Timestamp | undefined;
@@ -40,12 +62,15 @@ export class PipelineSnapshot {
     this._results = results;
   }
 
-  /** An array of all the results in the `PipelineSnapshot`. */
+  /**
+   * @beta An array of all the results in the `PipelineSnapshot`.
+   */
   get results(): PipelineResult[] {
     return this._results;
   }
 
   /**
+   * @beta
    * The time at which the pipeline producing this result is executed.
    *
    * @type {Timestamp}
@@ -115,6 +140,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
+   * @beta
    * The reference of the document, if it is a document; otherwise `undefined`.
    */
   get ref(): DocumentReference | undefined {
@@ -122,6 +148,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
+   * @beta
    * The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`.
    *
    * @type {string}
@@ -133,6 +160,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
+   * @beta
    * The time the document was created. Undefined if this result is not a document.
    *
    * @type {Timestamp|undefined}
@@ -143,6 +171,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
+   * @beta
    * The time the document was last updated (at the time the snapshot was
    * generated). Undefined if this result is not a document.
    *
@@ -154,6 +183,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
+   * @beta
    * Retrieves all fields in the result as an object.
    *
    * @returns {T} An object containing all fields in the document or
@@ -176,6 +206,20 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
+   * @internal
+   * @private
+   *
+   * Retrieves all fields in the result as a proto value.
+   *
+   * @returns An `Object` containing all fields in the result.
+   */
+  _fieldsProto(): { [key: string]: firestoreV1ApiClientInterfaces.Value } {
+    // Return a cloned value to prevent manipulation of the Snapshot's data
+    return this._fields.clone().value.mapValue.fields!;
+  }
+
+  /**
+   * @beta
    * Retrieves the field specified by `field`.
    *
    * @param {string|FieldPath|Field} field The field path

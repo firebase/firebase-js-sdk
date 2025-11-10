@@ -15,26 +15,25 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
-
-import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 import {
   WebChannelOptions,
   WebChannelTransport
 } from '@firebase/webchannel-wrapper';
+import { expect } from 'chai';
+
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { WebChannelConnection } from '../../../src/platform/browser/webchannel_connection';
 
 export class TestWebChannelConnection extends WebChannelConnection {
-  public transport: { lastOptions?: WebChannelOptions } & WebChannelTransport =
-    {
-      lastOptions: undefined,
-      createWebChannel(url: string, options: WebChannelOptions): never {
-        this.lastOptions = options;
+  transport: { lastOptions?: WebChannelOptions } & WebChannelTransport = {
+    lastOptions: undefined,
+    createWebChannel(url: string, options: WebChannelOptions): never {
+      this.lastOptions = options;
 
-        // Throw here so we don't have to mock out any more of Web Channel
-        throw new Error('Not implemented for test');
-      }
-    };
+      // Throw here so we don't have to mock out any more of Web Channel
+      throw new Error('Not implemented for test');
+    }
+  };
   protected createWebChannelTransport(): WebChannelTransport {
     return this.transport;
   }

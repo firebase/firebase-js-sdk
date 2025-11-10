@@ -152,6 +152,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   ) {}
 
   /**
+   * @beta
    * Adds new fields to outputs from previous stages.
    *
    * This stage allows you to compute values on-the-fly based on existing data from previous
@@ -180,6 +181,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
   /**
+   * @beta
    * Adds new fields to outputs from previous stages.
    *
    * This stage allows you to compute values on-the-fly based on existing data from previous
@@ -239,6 +241,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Remove fields from outputs of previous stages.
    *
    * Example:
@@ -261,6 +264,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     ...additionalFields: Array<Field | string>
   ): Pipeline;
   /**
+   * @beta
    * Remove fields from outputs of previous stages.
    *
    * Example:
@@ -311,6 +315,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
    * <p>The selected fields are defined using {@link Selectable} expressions, which can be:
@@ -348,6 +353,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     ...additionalSelections: Array<Selectable | string>
   ): Pipeline;
   /**
+   * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
    * <p>The selected fields are defined using {@link Selectable} expressions, which can be:
@@ -413,6 +419,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
    * BooleanExpression}.
    *
@@ -445,6 +452,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   where(condition: BooleanExpression): Pipeline;
   /**
+   * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
    * BooleanExpression}.
    *
@@ -499,6 +507,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
@@ -520,6 +529,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   offset(offset: number): Pipeline;
   /**
+   * @beta
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
@@ -568,6 +578,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Limits the maximum number of documents returned by previous stages to `limit`.
    *
    * <p>This stage is particularly useful when you want to retrieve a controlled subset of data from
@@ -594,6 +605,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   limit(limit: number): Pipeline;
   /**
+   * @beta
    * Limits the maximum number of documents returned by previous stages to `limit`.
    *
    * <p>This stage is particularly useful when you want to retrieve a controlled subset of data from
@@ -642,6 +654,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -674,6 +687,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     ...additionalGroups: Array<string | Selectable>
   ): Pipeline;
   /**
+   * @beta
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -732,6 +746,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
@@ -760,6 +775,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     ...additionalAccumulators: AliasedAggregate[]
   ): Pipeline;
   /**
+   * @beta
    * Performs optionally grouped aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents, optionally
@@ -832,6 +848,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Performs a vector proximity search on the documents from the previous stage, returning the
    * K-nearest documents based on the specified query `vectorValue` and `distanceMeasure`. The
    * returned documents will be sorted in order from nearest to furthest from the query `vectorValue`.
@@ -890,6 +907,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Sorts the documents from previous stages based on one or more {@link Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
@@ -916,6 +934,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   /**
+   * @beta
    * Sorts the documents from previous stages based on one or more {@link Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
@@ -966,6 +985,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Fully overwrites all fields in a document with those coming from a nested map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -998,6 +1018,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   replaceWith(fieldName: string): Pipeline;
   /**
+   * @beta
    * Fully overwrites all fields in a document with those coming from a map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1035,6 +1056,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   replaceWith(expr: Expression): Pipeline;
   /**
+   * @beta
    * Fully overwrites all fields in a document with those coming from a map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1101,6 +1123,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The parameter specifies how number of
@@ -1120,6 +1143,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   sample(documents: number): Pipeline;
 
   /**
+   * @beta
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how
@@ -1171,6 +1195,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
@@ -1190,6 +1215,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   union(other: Pipeline): Pipeline;
   /**
+   * @beta
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
@@ -1235,6 +1261,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
@@ -1268,6 +1295,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline;
   /**
+   * @beta
    * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
@@ -1342,6 +1370,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
+   * @beta
    * Adds a raw stage to the pipeline.
    *
    * <p>This method provides a flexible way to extend the pipeline's functionality by adding custom

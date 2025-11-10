@@ -37,11 +37,21 @@ import {
 
 declare module './database' {
   interface Firestore {
+    /**
+     * @beta
+     * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link Pipeline}.
+     *
+     * @example
+     * ```
+     * let myPipeline: Pipeline = firestore.pipeline().collection('books');
+     * ```
+     */
     pipeline(): PipelineSource<Pipeline>;
   }
 }
 
 /**
+ * @beta
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -120,6 +130,15 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   });
 }
 
+/**
+ * @beta
+ * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link Pipeline}.
+ *
+ * @example
+ * ```
+ * let myPipeline: Pipeline = firestore.pipeline().collection('books');
+ * ```
+ */
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
   const userDataWriter = new LiteUserDataWriter(this);
   const userDataReader = newUserDataReader(this);

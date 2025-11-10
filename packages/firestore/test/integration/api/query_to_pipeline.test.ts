@@ -46,8 +46,7 @@ import {
 import {
   apiDescribe,
   PERSISTENCE_MODE_UNSPECIFIED,
-  withTestCollection,
-  itIf
+  withTestCollection
 } from '../util/helpers';
 import { execute, PipelineSnapshot } from '../util/pipeline_export';
 
@@ -55,13 +54,9 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-const testUnsupportedFeatures: boolean | 'only' = false;
-
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
-(process.env.FIRESTORE_TARGET_DB_ID === 'enterprise'
-  ? apiDescribe.only
-  : apiDescribe.skip)('Query to Pipeline', persistence => {
+apiDescribe.skipClassic('Query to Pipeline', persistence => {
   addEqualityMatcher();
 
   function verifyResults(
@@ -481,8 +476,7 @@ const testUnsupportedFeatures: boolean | 'only' = false;
     );
   });
 
-  // needs subcollection support
-  itIf(testUnsupportedFeatures)('supports collection groups', () => {
+  it('supports collection groups', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {},
@@ -508,34 +502,30 @@ const testUnsupportedFeatures: boolean | 'only' = false;
     );
   });
 
-  // needs subcollection support
-  itIf(testUnsupportedFeatures)(
-    'supports query over collection path with special characters',
-    () => {
-      return withTestCollection(
-        PERSISTENCE_MODE_UNSPECIFIED,
-        {},
-        async (collRef, db) => {
-          const docWithSpecials = doc(collRef, 'so!@#$%^&*()_+special');
+  it('supports query over collection path with special characters', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {},
+      async (collRef, db) => {
+        const docWithSpecials = doc(collRef, 'so!@#$%^&*()_+special');
 
-          const collectionWithSpecials = collection(
-            docWithSpecials,
-            'so!@#$%^&*()_+special'
-          );
-          await addDoc(collectionWithSpecials, { foo: 1 });
-          await addDoc(collectionWithSpecials, { foo: 2 });
+        const collectionWithSpecials = collection(
+          docWithSpecials,
+          'so!@#$%^&*()_+special'
+        );
+        await addDoc(collectionWithSpecials, { foo: 1 });
+        await addDoc(collectionWithSpecials, { foo: 2 });
 
-          const snapshot = await execute(
-            db
-              .pipeline()
-              .createFrom(query(collectionWithSpecials, orderBy('foo', 'asc')))
-          );
+        const snapshot = await execute(
+          db
+            .pipeline()
+            .createFrom(query(collectionWithSpecials, orderBy('foo', 'asc')))
+        );
 
-          verifyResults(snapshot, { foo: 1 }, { foo: 2 });
-        }
-      );
-    }
-  );
+        verifyResults(snapshot, { foo: 1 }, { foo: 2 });
+      }
+    );
+  });
 
   it('supports multiple inequality on same field', () => {
     return withTestCollection(
@@ -772,7 +762,7 @@ const testUnsupportedFeatures: boolean | 'only' = false;
     );
   });
 
-  itIf(testUnsupportedFeatures)('supports not in', () => {
+  it('supports not in', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {
@@ -781,7 +771,11 @@ const testUnsupportedFeatures: boolean | 'only' = false;
         3: { foo: 3, bar: 10 }
       },
       async (collRef, db) => {
-        const query1 = query(collRef, where('bar', 'not-in', [0, 10, 20]));
+        const query1 = query(
+          collRef,
+          where('bar', 'not-in', [0, 10, 20]),
+          orderBy('foo')
+        );
         const snapshot = await execute(db.pipeline().createFrom(query1));
         verifyResults(snapshot, { foo: 1, bar: 2 }, { foo: 2, bar: 1 });
       }
