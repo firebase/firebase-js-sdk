@@ -104,7 +104,9 @@ export class DataConnect {
   _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
-  // @internal
+  /**
+   * @hideconstructor
+   */
   constructor(
     public readonly app: FirebaseApp,
     // TODO(mtewani): Replace with _dataConnectOptions in the future
