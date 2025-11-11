@@ -18,7 +18,6 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Telemetry, TelemetryOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { getInstallations, getId } from '@firebase/installations';
 
 export class TelemetryService implements Telemetry, _FirebaseService {
   private _options?: TelemetryOptions;
