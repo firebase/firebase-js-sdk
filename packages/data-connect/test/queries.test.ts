@@ -35,7 +35,7 @@ import {
   terminate
 } from '../src';
 
-import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
+import { getConnectionConfig, initDatabase } from './util';
 
 use(chaiAsPromised);
 
@@ -146,8 +146,7 @@ describe('DataConnect Tests', async () => {
       fetchTime: Date.now().toLocaleString(),
       refInfo: {
         connectorConfig: {
-          ...getConnectionConfig(),
-          projectId: PROJECT_ID
+          ...getConnectionConfig()
         },
         name: taskListQuery.name,
         variables: { testId: TEST_ID }
