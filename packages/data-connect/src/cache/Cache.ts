@@ -72,10 +72,13 @@ export class DataConnectCache {
     private connectorConfig: ConnectorConfig,
     private host: string,
     private cacheSettings?: CacheSettings
-  ) {}
+  ) {
+  }
 
   async initialize(): Promise<void> {
     if (!this.cacheProvider) {
+      const identifier = await this.getIdentifier(this.uid);
+      this.cacheProvider = this.initializeNewProviders(identifier);
     }
   }
 
@@ -93,15 +96,15 @@ export class DataConnectCache {
 
   setAuthProvider(_authTokenProvider: AuthTokenProvider): void {
     this.authProvider.addTokenChangeListener(async _ => {
+      await this.cacheProvider?.close();
       this.uid = this.authProvider.getAuth().getUid();
-      this.cacheProvider = await this.initializeNewProviders();
+      const identifier = await this.getIdentifier(this.uid);
+      this.cacheProvider = this.initializeNewProviders(identifier);
     });
   }
 
-  async initializeNewProviders(): Promise<CacheProvider> {
-    await this.cacheProvider?.close();
+  initializeNewProviders(identifier: string): CacheProvider {
     let cacheProvider: CacheProvider;
-    const identifier = await this.getIdentifier(this.uid);
     const isPersistenceEnabled =
       this.cacheSettings?.storage instanceof PublicIndexedDbProvider;
     if (this.cacheSettings) {
