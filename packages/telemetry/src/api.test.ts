@@ -67,7 +67,8 @@ const fakeTelemetry: Telemetry = {
       appId: APP_ID
     }
   },
-  loggerProvider: fakeLoggerProvider
+  loggerProvider: fakeLoggerProvider,
+  fid: 'fid-1234'
 };
 
 describe('Top level API', () => {
@@ -123,6 +124,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('This is a test error');
       expect(log.attributes).to.deep.equal({
+        'user.id': 'fid-1234',
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset'
@@ -140,6 +142,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('error with no stack');
       expect(log.attributes).to.deep.equal({
+        'user.id': 'fid-1234',
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
         'app.version': 'unset'
@@ -191,6 +194,7 @@ describe('Top level API', () => {
       await provider.shutdown();
 
       expect(emittedLogs[0].attributes).to.deep.equal({
+        'user.id': 'fid-1234',
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset',
@@ -216,6 +220,7 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
+        'user.id': 'fid-1234',
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset',
@@ -265,6 +270,16 @@ function getFakeApp(): FirebaseApp {
   registerTelemetry();
   _registerComponent(
     new Component(
+      'installations-internal',
+      () => ({
+        getId: () => Promise.resolve('fid-1234'),
+        getToken: () => Promise.resolve('token-5678')
+      }),
+      ComponentType.PRIVATE
+    )
+  );
+  _registerComponent(
+    new Component(
       'app-check-internal',
       () => {
         return {} as FirebaseAppCheckInternal;
@@ -281,7 +296,7 @@ function getFakeApp(): FirebaseApp {
       // @ts-ignore
       () => {
         return {
-          triggerHeartbeat: () => {}
+          triggerHeartbeat: () => { }
         };
       },
       ComponentType.PUBLIC
