@@ -106,6 +106,7 @@ export class DataConnect {
   private _appCheckTokenProvider?: AppCheckTokenProvider;
   /**
    * @hideconstructor
+   * @internal
    */
   constructor(
     public readonly app: FirebaseApp,
