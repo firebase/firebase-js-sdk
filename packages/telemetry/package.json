@@ -71,6 +71,7 @@
   "peerDependencies": {
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
+    "@firebase/installations": "0.x",
     "@types/react": "17.x || 18.x || 19.x",
     "react": "17.x || 18.x || 19.x"
   },
