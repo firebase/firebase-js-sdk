@@ -128,7 +128,7 @@ export function dcFetch<T, U>(
           response
         );
       }
-      return res as { data: T, errors: []};
+      return res as { data: T; errors: [] };
     });
 }
 interface MessageObject {

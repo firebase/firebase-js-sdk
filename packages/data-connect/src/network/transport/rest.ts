@@ -111,8 +111,8 @@ export class RESTTransport implements DataConnectTransport {
       resolve(this._accessToken)
     );
     if (this.appCheckProvider) {
-      const appCheckToken = (await this.appCheckProvider.getToken());
-      if(appCheckToken) {
+      const appCheckToken = await this.appCheckProvider.getToken();
+      if (appCheckToken) {
         this._appCheckToken = appCheckToken.token;
       }
     }

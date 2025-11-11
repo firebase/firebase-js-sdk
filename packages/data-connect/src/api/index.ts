@@ -16,8 +16,19 @@
  */
 
 export * from '../network';
-export { CacheSettings, DataConnectStorage, Memory, Persistent } from '../cache/Cache';
-export { ExecuteQueryOptions, QueryFetchPolicy, PreferCache, CacheOnly, ServerOnly } from '../core/query/queryOptions';
+export {
+  CacheSettings,
+  DataConnectStorage,
+  Memory,
+  Persistent
+} from '../cache/Cache';
+export {
+  ExecuteQueryOptions,
+  QueryFetchPolicy,
+  PreferCache,
+  CacheOnly,
+  ServerOnly
+} from '../core/query/queryOptions';
 export * from './DataConnect';
 export * from './Reference';
 export * from './Mutation';

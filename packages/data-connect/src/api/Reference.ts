@@ -42,7 +42,6 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
   // future metadata
 }
 
-
 /**
  * Serialized RefInfo as a result of `QueryResult.toJSON().refInfo`
  */

@@ -49,9 +49,7 @@ module.exports = {
         'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }
     ],
-    'no-restricted-globals': [
-      'error',
-    ]
+    'no-restricted-globals': ['error']
   },
   overrides: [
     {

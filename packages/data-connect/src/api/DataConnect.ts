@@ -30,7 +30,11 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 
-import { DataConnectCache, InMemoryCacheProvider } from '../cache/Cache';
+import {
+  CacheSettings,
+  DataConnectCache,
+  InMemoryCacheProvider
+} from '../cache/Cache';
 import { CacheProvider } from '../cache/CacheProvider';
 import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -89,7 +93,9 @@ export function parseOptions(fullHost: string): TransportOptions {
 /**
  * DataConnectOptions including project id
  */
-export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings {
+export interface DataConnectOptions
+  extends ConnectorConfig,
+    DataConnectSettings {
   projectId: string;
 }
 
@@ -170,15 +176,19 @@ export class DataConnect {
         this.app.options,
         this._authProvider
       );
-
-
     }
     const connectorConfig: ConnectorConfig = {
       connector: this.dataConnectOptions.connector,
       service: this.dataConnectOptions.service,
       location: this.dataConnectOptions.location
     };
-    this.cache = new DataConnectCache(this._authTokenProvider, this.app.options.projectId, connectorConfig, this._transportOptions.host || PROD_HOST, this.dataConnectOptions.cacheSettings);
+    this.cache = new DataConnectCache(
+      this._authTokenProvider,
+      this.app.options.projectId,
+      connectorConfig,
+      this._transportOptions.host || PROD_HOST,
+      this.dataConnectOptions.cacheSettings
+    );
     this.cache.setAuthProvider(this._authTokenProvider);
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
@@ -266,10 +276,11 @@ export function connectDataConnectEmulator(
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
-export type CacheProviderImpl = PublicIndexedDbProvider | PublicEphemeralDbProvider;
+export type CacheProviderImpl =
+  | PublicIndexedDbProvider
+  | PublicEphemeralDbProvider;
 
 export class PublicIndexedDbProvider {
-  
   /**
    * @internal
    */
@@ -288,26 +299,29 @@ export class PublicEphemeralDbProvider {
 }
 
 export interface DataConnectSettings {
-  cacheSettings?: CacheProviderImpl;
+  cacheSettings?: CacheSettings;
 }
 
 /**
  * Initialize DataConnect instance
  * @param options ConnectorConfig
  */
-export function getDataConnect(options: ConnectorConfig, settings?: DataConnectSettings): DataConnect;
+export function getDataConnect(
+  options: ConnectorConfig,
+  settings?: DataConnectSettings
+): DataConnect;
 export function getDataConnect(options: ConnectorConfig): DataConnect;
-/** 
+/**
  * Initialize DataConnect instance
  * @param app FirebaseApp to initialize to.
  * @param connectorConfig ConnectorConfig
  */
 export function getDataConnect(
   app: FirebaseApp,
-  connectorConfig: ConnectorConfig,
+  connectorConfig: ConnectorConfig
 ): DataConnect;
 
-/** 
+/**
  * Initialize DataConnect instance
  * @param app FirebaseApp to initialize to.
  * @param connectorConfig ConnectorConfig
@@ -335,8 +349,6 @@ export function getDataConnect(
     connectorConfig = settingsOrConnectorConfig as ConnectorConfig;
     realSettings = settings as DataConnectSettings;
   }
-
-
 
   if (!app || Object.keys(app).length === 0) {
     app = getApp();

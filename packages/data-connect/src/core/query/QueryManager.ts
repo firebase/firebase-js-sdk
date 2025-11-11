@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 
-import { type DataConnect, } from '../../api/DataConnect';
-import {
-  QueryRef,
-  QueryResult,
-} from '../../api/query';
+import { type DataConnect } from '../../api/DataConnect';
+import { QueryRef, QueryResult } from '../../api/query';
 import {
   OperationRef,
   QUERY_STR,
@@ -70,13 +67,15 @@ export class QueryManager {
     private transport: DataConnectTransport,
     private cache: DataConnectCache,
     private dc: DataConnect
-  ) { }
+  ) {}
 
   updateSSR(updatedData: QueryResult<unknown, unknown>): void {
     // What about two different values overriding each other?
-    this.updateCache(updatedData).then(async (result) => {
-      await this.publishCacheResultsToSubscribers(result);
-    }).catch(() => {});
+    this.updateCache(updatedData)
+      .then(async result => {
+        await this.publishCacheResultsToSubscribers(result);
+      })
+      .catch(() => {});
   }
 
   updateCache<Data, Variables>(
@@ -111,7 +110,6 @@ export class QueryManager {
         });
         this.callbacks.set(key, []);
       }
-
     };
 
     if (initialCache) {
@@ -119,15 +117,16 @@ export class QueryManager {
       this.updateSSR(initialCache as QueryResult<Data, Variables>);
     }
 
-      logDebug(
-        `Cache not available for query ${queryRef.name
-        } with variables ${JSON.stringify(
-          queryRef.variables
-        )}. Calling executeQuery.`
-      );
-      const promise = this.executeQuery(queryRef as QueryRef<Data, Variables>);
-      // We want to ignore the error and let subscriptions handle it
-      promise.then(undefined, err => { });
+    logDebug(
+      `Cache not available for query ${
+        queryRef.name
+      } with variables ${JSON.stringify(
+        queryRef.variables
+      )}. Calling executeQuery.`
+    );
+    const promise = this.executeQuery(queryRef as QueryRef<Data, Variables>);
+    // We want to ignore the error and let subscriptions handle it
+    promise.then(undefined, err => {});
 
     if (!this.callbacks.has(key)) {
       this.callbacks.set(key, []);
@@ -157,7 +156,11 @@ export class QueryManager {
     });
     // TODO: It seems like the cache isn't loading the data correctly.
     // TODO: It seems like cache loading is async. That needs to be fixed.
-    if (options?.fetchPolicy !== ServerOnly && await this.cache.containsResultTree(key) && !((await this.cache.getResultTree(key)).isStale())) {
+    if (
+      options?.fetchPolicy !== ServerOnly &&
+      (await this.cache.containsResultTree(key)) &&
+      !(await this.cache.getResultTree(key)).isStale()
+    ) {
       const cacheResult: Data = JSON.parse(await this.cache.getResultJSON(key));
       const result: QueryResult<Data, Variables> = {
         ...cacheResult,
@@ -175,13 +178,15 @@ export class QueryManager {
         logDebug(`Skipping cache for fetch policy "serverOnly"`);
       } else {
         logDebug(
-          `No Cache found for query ${queryRef.name
-          } with variables ${JSON.stringify(queryRef.variables)}. Calling executeQuery`
+          `No Cache found for query ${
+            queryRef.name
+          } with variables ${JSON.stringify(
+            queryRef.variables
+          )}. Calling executeQuery`
         );
       }
     }
     try {
-
       const res = await this.transport.invokeQuery<Data, Variables>(
         queryRef.name,
         queryRef.variables
@@ -202,7 +207,11 @@ export class QueryManager {
       }
       if (await this.cache.containsResultTree(key)) {
         (await this.cache.getResultTree(key)).updateAccessed();
-      } const impactedQueries = await this.cache.update(key, result.data as ServerValues);
+      }
+      const impactedQueries = await this.cache.update(
+        key,
+        result.data as ServerValues
+      );
       await this.publishCacheResultsToSubscribers(impactedQueries);
       return result;
     } catch (err) {
@@ -214,14 +223,21 @@ export class QueryManager {
       throw err;
     }
   }
-  async publishCacheResultsToSubscribers(impactedQueries: string[]): Promise<void> {
+  async publishCacheResultsToSubscribers(
+    impactedQueries: string[]
+  ): Promise<void> {
     for (const query of impactedQueries) {
       const callbacks = this.callbacks.get(query);
       if (!callbacks) {
         continue;
       }
-      const newJson = (await this.cache.getResultTree(query)).getRootStub().toJson();
-      const { name, variables } = decoderImpl(query) as QueryRef<unknown, unknown>;
+      const newJson = (await this.cache.getResultTree(query))
+        .getRootStub()
+        .toJson();
+      const { name, variables } = decoderImpl(query) as QueryRef<
+        unknown,
+        unknown
+      >;
       const queryRef: QueryRef<unknown, unknown> = {
         dataConnect: this.dc,
         refType: QUERY_STR,
@@ -234,7 +250,7 @@ export class QueryManager {
           data: newJson,
           fetchTime: new Date().toISOString(),
           source: SOURCE_CACHE,
-          ref: queryRef,
+          ref: queryRef
         } as QueryResult<unknown, unknown>);
       });
     }

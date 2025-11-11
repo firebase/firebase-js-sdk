@@ -25,7 +25,6 @@ import {
   SerializedRef
 } from './Reference';
 
-
 /**
  * QueryRef object
  */
@@ -48,8 +47,6 @@ export interface QueryPromise<Data, Variables>
   extends Promise<QueryResult<Data, Variables>> {
   // reserved for special actions like cancellation
 }
-
-
 
 /**
  * Execute Query
@@ -83,7 +80,7 @@ export function queryRef<Data>(
 export function queryRef<Data, Variables>(
   dcInstance: DataConnect,
   queryName: string,
-  variables: Variables,
+  variables: Variables
 ): QueryRef<Data, Variables>;
 /**
  * Execute Query
@@ -100,7 +97,7 @@ export function queryRef<Data, Variables>(
   initialCache?: QueryResult<Data, Variables>
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
-  if(initialCache !== undefined) {
+  if (initialCache !== undefined) {
     /**
      * TODO(mtewani):
      * 1. Check whether the cache should be updated based on when the data was fetched

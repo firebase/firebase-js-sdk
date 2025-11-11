@@ -1,7 +1,28 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { DataConnectError } from '../core/error';
 
 import { CacheProvider } from './CacheProvider';
-import { EntityDataObject, BackingDataObjectJson, FDCScalarValue } from './EntityDataObject';
+import {
+  EntityDataObject,
+  BackingDataObjectJson,
+  FDCScalarValue
+} from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 
 export const GLOBAL_ID_KEY = 'cacheId';
@@ -16,9 +37,21 @@ export class EntityNode {
   impactedQueryRefs = new Set<string>();
 
   constructor();
-  constructor(values: FDCScalarValue, cacheProvider: CacheProvider, acc: ImpactedQueryRefsAccumulator);
-  constructor(values?: FDCScalarValue, cacheProvider?: CacheProvider, private acc?: ImpactedQueryRefsAccumulator) {
-    if(typeof values === 'undefined' && typeof cacheProvider === 'undefined' && typeof acc === 'undefined') {
+  constructor(
+    values: FDCScalarValue,
+    cacheProvider: CacheProvider,
+    acc: ImpactedQueryRefsAccumulator
+  );
+  constructor(
+    values?: FDCScalarValue,
+    cacheProvider?: CacheProvider,
+    private acc?: ImpactedQueryRefsAccumulator
+  ) {
+    if (
+      typeof values === 'undefined' &&
+      typeof cacheProvider === 'undefined' &&
+      typeof acc === 'undefined'
+    ) {
       return;
     }
     if (typeof values !== 'object' || Array.isArray(values)) {
@@ -66,7 +99,10 @@ export class EntityNode {
             }
             if (scalarArray.length > 0) {
               if (this.entityData) {
-                const impactedRefs = this.entityData.updateServerValue(key, scalarArray);
+                const impactedRefs = this.entityData.updateServerValue(
+                  key,
+                  scalarArray
+                );
                 this.acc.add(impactedRefs);
               } else {
                 this.scalars[key] = scalarArray;
@@ -133,14 +169,21 @@ export class EntityNode {
     }
     return resultObject;
   }
-  static parseMap(map: {[key: string]: EntityNode | EntityNode[] | FDCScalarValue}, isSdo = false): typeof map {
+  static parseMap(
+    map: { [key: string]: EntityNode | EntityNode[] | FDCScalarValue },
+    isSdo = false
+  ): typeof map {
     const newMap: typeof map = {};
     for (const key in map) {
-      if(map.hasOwnProperty(key)) {
-        if(Array.isArray(map[key])) {
-          newMap[key] = map[key].map(value => isSdo ? EntityNode.fromStorableJson(value) : value);
+      if (map.hasOwnProperty(key)) {
+        if (Array.isArray(map[key])) {
+          newMap[key] = map[key].map(value =>
+            isSdo ? EntityNode.fromStorableJson(value) : value
+          );
         } else {
-          newMap[key] = isSdo ? EntityNode.fromStorableJson(map[key] as StubDataObjectJson) : map[key];
+          newMap[key] = isSdo
+            ? EntityNode.fromStorableJson(map[key] as StubDataObjectJson)
+            : map[key];
         }
       }
     }
@@ -148,7 +191,7 @@ export class EntityNode {
   }
   static fromStorableJson(obj: StubDataObjectJson): EntityNode {
     const sdo = new EntityNode();
-    if(obj.backingData) {
+    if (obj.backingData) {
       sdo.entityData = EntityDataObject.fromStorableJson(obj.backingData);
     }
     sdo.acc = new ImpactedQueryRefsAccumulator();
@@ -156,14 +199,20 @@ export class EntityNode {
     sdo.impactedQueryRefs = new Set<string>();
     sdo.scalars = this.parseMap(obj.scalars);
     sdo.references = this.parseMap(obj.references) as typeof sdo.references;
-    sdo.objectLists = this.parseMap(obj.objectLists, true) as typeof sdo.objectLists;
+    sdo.objectLists = this.parseMap(
+      obj.objectLists,
+      true
+    ) as typeof sdo.objectLists;
     return sdo;
   }
-  getStorableMap(map: {[key: string]: EntityNode | EntityNode[]}): {[key: string]: StubDataObjectJson | StubDataObjectJson[]} {
-    const newMap: {[key: string]: StubDataObjectJson | StubDataObjectJson[]} = {};
+  getStorableMap(map: { [key: string]: EntityNode | EntityNode[] }): {
+    [key: string]: StubDataObjectJson | StubDataObjectJson[];
+  } {
+    const newMap: { [key: string]: StubDataObjectJson | StubDataObjectJson[] } =
+      {};
     for (const key in map) {
-      if(map.hasOwnProperty(key)) {
-        if(Array.isArray(map[key])) {
+      if (map.hasOwnProperty(key)) {
+        if (Array.isArray(map[key])) {
           newMap[key] = map[key].map(value => value.toStorableJson());
         } else {
           newMap[key] = map[key].toStorableJson();
@@ -176,10 +225,14 @@ export class EntityNode {
     const obj: StubDataObjectJson = {
       globalID: this.globalId,
       scalars: this.scalars,
-      references: this.getStorableMap(this.references) as StubDataObjectJson['references'],
-      objectLists: this.getStorableMap(this.objectLists) as StubDataObjectJson['objectLists']
+      references: this.getStorableMap(
+        this.references
+      ) as StubDataObjectJson['references'],
+      objectLists: this.getStorableMap(
+        this.objectLists
+      ) as StubDataObjectJson['objectLists']
     };
-    if(this.entityData) {
+    if (this.entityData) {
       obj.backingData = this.entityData.toStorableJson();
     }
     return obj;

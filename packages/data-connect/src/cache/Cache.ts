@@ -1,6 +1,30 @@
-import { isIndexedDBAvailable, generateSHA256HashBrowser, Deferred } from '@firebase/util';
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-import { CacheProviderImpl, PublicIndexedDbProvider, type ConnectorConfig } from '../api/DataConnect';
+import {
+  isIndexedDBAvailable,
+  generateSHA256HashBrowser
+} from '@firebase/util';
+
+import {
+  CacheProviderImpl,
+  PublicIndexedDbProvider,
+  type ConnectorConfig
+} from '../api/DataConnect';
 import { DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 import { logDebug } from '../logger';
@@ -25,7 +49,6 @@ export interface CacheSettings {
   maxSizeBytes: number;
 }
 
-
 /**
  * ServerValues
  */
@@ -43,33 +66,35 @@ export interface ServerValues {
 export class DataConnectCache {
   private cacheProvider: CacheProvider | null = null;
   private uid: string | null = null;
-  private firstToken: Deferred<void> = new Deferred();
-  private hasFirstToken = false;
-  private initialized = false;
-  constructor(private authProvider: AuthTokenProvider, private projectId: string, private connectorConfig: ConnectorConfig, private host: string, private cacheSettings?: CacheSettings) {
-  }
+  constructor(
+    private authProvider: AuthTokenProvider,
+    private projectId: string,
+    private connectorConfig: ConnectorConfig,
+    private host: string,
+    private cacheSettings?: CacheSettings
+  ) {}
 
   async initialize(): Promise<void> {
-    if(!this.cacheProvider) {
-      await this.firstToken.promise;
-      this.cacheProvider = await this.initializeNewProviders();
+    if (!this.cacheProvider) {
     }
   }
 
   async getIdentifier(uid: string): Promise<string> {
-    const identifier = `${this.cacheSettings?.storage instanceof InMemoryCacheProvider  ? 'persistent' : 'memory'}-${this.projectId}-${this.connectorConfig.service}-${this.connectorConfig.connector}-${this.connectorConfig.location}-${uid}-${this.host}`;
+    const identifier = `${
+      this.cacheSettings?.storage instanceof InMemoryCacheProvider
+        ? 'persistent'
+        : 'memory'
+    }-${this.projectId}-${this.connectorConfig.service}-${
+      this.connectorConfig.connector
+    }-${this.connectorConfig.location}-${uid}-${this.host}`;
     const sha256 = await generateSHA256HashBrowser(identifier);
     return sha256;
   }
 
   setAuthProvider(_authTokenProvider: AuthTokenProvider): void {
-    this.authProvider.addTokenChangeListener(async (_) => {
+    this.authProvider.addTokenChangeListener(async _ => {
       this.uid = this.authProvider.getAuth().getUid();
-      if(!this.hasFirstToken) {
-        this.firstToken.resolve();
-      } else {
-        this.cacheProvider = await this.initializeNewProviders();
-      }
+      this.cacheProvider = await this.initializeNewProviders();
     });
   }
 
@@ -77,11 +102,16 @@ export class DataConnectCache {
     await this.cacheProvider?.close();
     let cacheProvider: CacheProvider;
     const identifier = await this.getIdentifier(this.uid);
-    const isPersistenceEnabled = this.cacheSettings?.storage instanceof PublicIndexedDbProvider;
+    const isPersistenceEnabled =
+      this.cacheSettings?.storage instanceof PublicIndexedDbProvider;
     if (this.cacheSettings) {
-      cacheProvider = isPersistenceEnabled ? new IndexedDBCacheProvider(identifier) : new InMemoryCacheProvider(identifier);
+      cacheProvider = isPersistenceEnabled
+        ? new IndexedDBCacheProvider(identifier)
+        : new InMemoryCacheProvider(identifier);
     } else if (!isIndexedDBAvailable()) {
-      logDebug('IndexedDB is not available. Using In-Memory Cache Provider instead.');
+      logDebug(
+        'IndexedDB is not available. Using In-Memory Cache Provider instead.'
+      );
       cacheProvider = new InMemoryCacheProvider(identifier);
     } else {
       logDebug('Initializing IndexedDB Cache Provider.');
@@ -134,9 +164,7 @@ export class DataConnectCache {
 export class InMemoryCacheProvider implements CacheProvider {
   private bdos = new Map<string, EntityDataObject>();
   private resultTrees = new Map<string, ResultTree>();
-  constructor(private _keyId: string) {
-
-  }
+  constructor(private _keyId: string) {}
 
   setResultTree(queryId: string, rt: ResultTree): Promise<void> {
     this.resultTrees.set(queryId, rt);

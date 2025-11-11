@@ -1,3 +1,19 @@
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import { CacheProvider } from './CacheProvider';
 import { EntityDataObject } from './EntityDataObject';
@@ -22,7 +38,7 @@ export class IndexedDBCacheProvider implements CacheProvider {
   }
   async initialize(): Promise<void> {
     // load BDOs
-    if(this.initialized) {
+    if (this.initialized) {
       return;
     }
     const db = await this.idbManager.dbPromise;
@@ -39,7 +55,10 @@ export class IndexedDBCacheProvider implements CacheProvider {
     await this.initialize();
     void this.idbManager.updateBdo(backingData);
   }
-  async commitResultTreeChanges(queryId: string, rt: ResultTree): Promise<void> {
+  async commitResultTreeChanges(
+    queryId: string,
+    rt: ResultTree
+  ): Promise<void> {
     if (!this.isIdbAvailable()) {
       return;
     }
@@ -93,7 +112,7 @@ class IndexedDbManager {
         db.createObjectStore(SRT_OBJECT_STORE_NAME);
         dbResolve(db);
       };
-      request.onsuccess = async (event) => {
+      request.onsuccess = async event => {
         const db = (event.target as IDBOpenDBRequest).result;
         dbResolve(db);
       };
@@ -117,13 +136,11 @@ class IndexedDbManager {
     // TODO: What happens if you override an existing entry?
     // TODO: We should first check whether the tree is hydrated or not.
     // TODO: We should make sure that everything has been written.
-    objectStore.put(
-      rt.getRootStub().toStorableJson(),
-      queryId);
+    objectStore.put(rt.getRootStub().toStorableJson(), queryId);
   }
   async readFromDb(db: IDBDatabase): Promise<Map<string, ResultTree>> {
     const resultTrees = new Map<string, ResultTree>();
-    if(this.alreadyRead) {
+    if (this.alreadyRead) {
       return resultTrees;
     }
     const bdos = new Map<string, EntityDataObject>();
@@ -139,7 +156,10 @@ class IndexedDbManager {
         const cursor = (event.target as IDBRequest)
           .result as IDBCursorWithValue;
         if (cursor) {
-          bdos.set(cursor.key as string, EntityDataObject.fromStorableJson(cursor.value));
+          bdos.set(
+            cursor.key as string,
+            EntityDataObject.fromStorableJson(cursor.value)
+          );
           cursor.continue();
         } else {
           // No more entries
@@ -158,10 +178,7 @@ class IndexedDbManager {
           .result as IDBCursorWithValue;
         if (cursor) {
           const srt = ResultTree.parse(cursor.value);
-          resultTrees.set(
-            cursor.key as string,
-            srt
-          );
+          resultTrees.set(cursor.key as string, srt);
           cursor.continue();
         } else {
           // No more entries
