@@ -37,9 +37,12 @@ import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { captureError, flush, getTelemetry } from './api';
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
+const API_KEY = 'my-api-key';
+const FID = 'fid-1234';
 
 const emittedLogs: LogRecord[] = [];
 
@@ -68,7 +71,7 @@ const fakeTelemetry: Telemetry = {
     }
   },
   loggerProvider: fakeLoggerProvider,
-  fid: 'fid-1234'
+  fid: FID
 };
 
 describe('Top level API', () => {
@@ -124,7 +127,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('This is a test error');
       expect(log.attributes).to.deep.equal({
-        'user.id': 'fid-1234',
+        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset'
@@ -142,7 +145,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('error with no stack');
       expect(log.attributes).to.deep.equal({
-        'user.id': 'fid-1234',
+        'user.id': FID,
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
         'app.version': 'unset'
@@ -194,7 +197,7 @@ describe('Top level API', () => {
       await provider.shutdown();
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        'user.id': 'fid-1234',
+        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset',
@@ -220,7 +223,7 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        'user.id': 'fid-1234',
+        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset',
@@ -272,10 +275,10 @@ function getFakeApp(): FirebaseApp {
     new Component(
       'installations-internal',
       () => ({
-        getId: () => Promise.resolve('fid-1234'),
-        getToken: () => Promise.resolve('token-5678')
-      }),
-      ComponentType.PRIVATE
+        getId: async () => 'FID',
+        getToken: async () => 'authToken'
+      }) as _FirebaseInstallationsInternal,
+      ComponentType.PUBLIC
     )
   );
   _registerComponent(
@@ -287,7 +290,11 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({});
+  const app = initializeApp({
+    projectId: PROJECT_ID,
+    appId: APP_ID,
+    apiKey: API_KEY
+  });
   _addOrOverwriteComponent(
     app,
     //@ts-ignore
