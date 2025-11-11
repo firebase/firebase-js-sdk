@@ -24,7 +24,7 @@ export class TelemetryService implements Telemetry, _FirebaseService {
   fid?: string;
 
   constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {
-    this._getFid().catch(console.error);
+    this._getFid().catch(err => console.error('Failed to get FID for telemetry:', err));
   }
 
   private async _getFid(): Promise<void> {
