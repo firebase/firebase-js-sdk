@@ -1,6 +1,6 @@
 import { isIndexedDBAvailable, generateSHA256HashBrowser, Deferred } from '@firebase/util';
 
-import { type ConnectorConfig } from '../api/DataConnect';
+import { CacheProviderImpl, PublicIndexedDbProvider, type ConnectorConfig } from '../api/DataConnect';
 import { DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 import { logDebug } from '../logger';
@@ -21,7 +21,7 @@ export type DataConnectStorage = typeof Memory | typeof Persistent;
  * CacheSettings
  */
 export interface CacheSettings {
-  storage: DataConnectStorage;
+  storage: CacheProviderImpl;
   maxSizeBytes: number;
 }
 
@@ -57,7 +57,7 @@ export class DataConnectCache {
   }
 
   async getIdentifier(uid: string): Promise<string> {
-    const identifier = `${this.cacheSettings?.storage === Persistent ? 'persistent' : 'memory'}-${this.projectId}-${this.connectorConfig.service}-${this.connectorConfig.connector}-${this.connectorConfig.location}-${uid}-${this.host}`;
+    const identifier = `${this.cacheSettings?.storage instanceof InMemoryCacheProvider  ? 'persistent' : 'memory'}-${this.projectId}-${this.connectorConfig.service}-${this.connectorConfig.connector}-${this.connectorConfig.location}-${uid}-${this.host}`;
     const sha256 = await generateSHA256HashBrowser(identifier);
     return sha256;
   }
@@ -77,7 +77,7 @@ export class DataConnectCache {
     await this.cacheProvider?.close();
     let cacheProvider: CacheProvider;
     const identifier = await this.getIdentifier(this.uid);
-    const isPersistenceEnabled = this.cacheSettings?.storage === Persistent;
+    const isPersistenceEnabled = this.cacheSettings?.storage instanceof PublicIndexedDbProvider;
     if (this.cacheSettings) {
       cacheProvider = isPersistenceEnabled ? new IndexedDBCacheProvider(identifier) : new InMemoryCacheProvider(identifier);
     } else if (!isIndexedDBAvailable()) {

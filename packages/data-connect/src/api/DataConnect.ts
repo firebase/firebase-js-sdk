@@ -30,7 +30,9 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 
-import { CacheSettings, DataConnectCache, InMemoryCacheProvider } from '../cache/Cache';
+import { DataConnectCache, InMemoryCacheProvider } from '../cache/Cache';
+import { CacheProvider } from '../cache/CacheProvider';
+import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -49,8 +51,6 @@ import { RESTTransport } from '../network/transport/rest';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
-import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
-import { CacheProvider } from '../cache/CacheProvider';
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -268,7 +268,7 @@ export function connectDataConnectEmulator(
 
 export type CacheProviderImpl = PublicIndexedDbProvider | PublicEphemeralDbProvider;
 
-class PublicIndexedDbProvider {
+export class PublicIndexedDbProvider {
   
   /**
    * @internal
@@ -278,7 +278,7 @@ class PublicIndexedDbProvider {
   }
 }
 
-class PublicEphemeralDbProvider {
+export class PublicEphemeralDbProvider {
   /**
    * @internal
    */

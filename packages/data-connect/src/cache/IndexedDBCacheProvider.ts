@@ -8,7 +8,6 @@ export class IndexedDBCacheProvider implements CacheProvider {
   private bdos = new Map<string, EntityDataObject>();
   private resultTrees = new Map<string, ResultTree>();
   private idbManager: IndexedDbManager;
-  private readFromDb = false;
   private initialized = false;
   isIdbAvailable(): boolean {
     return typeof window !== 'undefined' && 'indexedDB' in window;
