@@ -122,17 +122,6 @@ async function* generateResponseSequence(
       continue;
     }
 
-    const firstCandidate = enhancedResponse.candidates?.[0];
-    // Don't yield a response with no useful data for the developer.
-    if (
-      !firstCandidate?.content?.parts &&
-      !firstCandidate?.finishReason &&
-      !firstCandidate?.citationMetadata &&
-      !firstCandidate?.urlContextMetadata
-    ) {
-      continue;
-    }
-
     yield enhancedResponse;
   }
 }
