@@ -37,8 +37,7 @@ export const enum ErrorCode {
   CONFIG_UPDATE_STREAM_ERROR = 'stream-error',
   CONFIG_UPDATE_UNAVAILABLE = 'realtime-unavailable',
   CONFIG_UPDATE_MESSAGE_INVALID = 'update-message-invalid',
-  CONFIG_UPDATE_NOT_FETCHED = 'update-not-fetched',
-  ANALYTICS_UNAVAILABLE = 'analytics-unavailable'
+  CONFIG_UPDATE_NOT_FETCHED = 'update-not-fetched'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -85,9 +84,7 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID]:
     'The stream invalidation message was unparsable: {$originalErrorMessage}',
   [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]:
-    'Unable to fetch the latest config: {$originalErrorMessage}',
-  [ErrorCode.ANALYTICS_UNAVAILABLE]:
-    'Connection to Firebase Analytics failed: {$originalErrorMessage}'
+    'Unable to fetch the latest config: {$originalErrorMessage}'
 };
 
 // Note this is effectively a type system binding a code to params. This approach overlaps with the
@@ -111,7 +108,6 @@ interface ErrorParams {
   [ErrorCode.CONFIG_UPDATE_UNAVAILABLE]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_MESSAGE_INVALID]: { originalErrorMessage: string };
   [ErrorCode.CONFIG_UPDATE_NOT_FETCHED]: { originalErrorMessage: string };
-  [ErrorCode.ANALYTICS_UNAVAILABLE]: { originalErrorMessage: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(

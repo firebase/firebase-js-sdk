@@ -46,9 +46,6 @@ import {
 import * as api from '../src/api';
 import { fetchAndActivate } from '../src';
 import { restore } from 'sinon';
-import { Experiment } from '../src/abt/experiment';
-import { Provider } from '@firebase/component';
-import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { RealtimeHandler } from '../src/client/realtime_handler';
 
 describe('RemoteConfig', () => {
@@ -73,7 +70,6 @@ describe('RemoteConfig', () => {
   let logger: Logger;
   let realtimeHandler: RealtimeHandler;
   let rc: RemoteConfigType;
-  let analyticsProvider: Provider<FirebaseAnalyticsInternalName>;
 
   let getActiveConfigStub: sinon.SinonStub;
   let loggerDebugSpy: sinon.SinonSpy;
@@ -85,7 +81,6 @@ describe('RemoteConfig', () => {
     client = {} as RemoteConfigFetchClient;
     storageCache = {} as StorageCache;
     storage = {} as Storage;
-    analyticsProvider = {} as Provider<FirebaseAnalyticsInternalName>;
     realtimeHandler = {} as RealtimeHandler;
     logger = new Logger('package-name');
     getActiveConfigStub = sinon.stub().returns(undefined);
@@ -98,8 +93,7 @@ describe('RemoteConfig', () => {
       storageCache,
       storage,
       logger,
-      realtimeHandler,
-      analyticsProvider
+      realtimeHandler
     );
   });
 
@@ -397,18 +391,7 @@ describe('RemoteConfig', () => {
     const CONFIG = { key: 'val' };
     const NEW_ETAG = 'new_etag';
     const TEMPLATE_VERSION = 1;
-    const EXPERIMENTS = [
-      {
-        'experimentId': '_exp_1',
-        'variantId': '1',
-        'experimentStartTime': '2025-04-06T14:13:57.597Z',
-        'triggerTimeoutMillis': '15552000000',
-        'timeToLiveMillis': '15552000000'
-      }
-    ];
 
-    let sandbox: sinon.SinonSandbox;
-    let updateActiveExperimentsStub: sinon.SinonStub;
     let getLastSuccessfulFetchResponseStub: sinon.SinonStub;
     let getActiveConfigEtagStub: sinon.SinonStub;
     let getActiveConfigTemplateVersionStub: sinon.SinonStub;
@@ -417,11 +400,6 @@ describe('RemoteConfig', () => {
     let setActiveConfigTemplateVersionStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox = sinon.createSandbox();
-      updateActiveExperimentsStub = sandbox.stub(
-        Experiment.prototype,
-        'updateActiveExperiments'
-      );
       getLastSuccessfulFetchResponseStub = sinon.stub();
       getActiveConfigEtagStub = sinon.stub();
       getActiveConfigTemplateVersionStub = sinon.stub();
@@ -440,14 +418,6 @@ describe('RemoteConfig', () => {
         setActiveConfigTemplateVersionStub;
     });
 
-    afterEach(() => {
-      sandbox.restore();
-    });
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
     it('does not activate if last successful fetch response is undefined', async () => {
       getLastSuccessfulFetchResponseStub.returns(Promise.resolve());
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
@@ -461,7 +431,6 @@ describe('RemoteConfig', () => {
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
       expect(storage.setActiveConfigTemplateVersion).to.not.have.been.called;
-      expect(updateActiveExperimentsStub).to.not.have.been.called;
     });
 
     it('does not activate if fetched and active etags are the same', async () => {
@@ -480,7 +449,6 @@ describe('RemoteConfig', () => {
       expect(storage.setActiveConfigEtag).to.not.have.been.called;
       expect(storageCache.setActiveConfig).to.not.have.been.called;
       expect(storage.setActiveConfigTemplateVersion).to.not.have.been.called;
-      expect(updateActiveExperimentsStub).to.not.have.been.called;
     });
 
     it('activates if fetched and active etags are different', async () => {
@@ -488,8 +456,7 @@ describe('RemoteConfig', () => {
         Promise.resolve({
           config: CONFIG,
           eTag: NEW_ETAG,
-          templateVersion: TEMPLATE_VERSION,
-          experiments: EXPERIMENTS
+          templateVersion: TEMPLATE_VERSION
         })
       );
       getActiveConfigEtagStub.returns(Promise.resolve(ETAG));
@@ -509,8 +476,7 @@ describe('RemoteConfig', () => {
         Promise.resolve({
           config: CONFIG,
           eTag: NEW_ETAG,
-          templateVersion: TEMPLATE_VERSION,
-          experiments: EXPERIMENTS
+          templateVersion: TEMPLATE_VERSION
         })
       );
       getActiveConfigEtagStub.returns(Promise.resolve());
@@ -523,7 +489,6 @@ describe('RemoteConfig', () => {
       expect(storage.setActiveConfigTemplateVersion).to.have.been.calledWith(
         TEMPLATE_VERSION
       );
-      expect(updateActiveExperimentsStub).to.have.been.calledWith(EXPERIMENTS);
     });
   });
 
