@@ -81,9 +81,6 @@ describe('Live', function () {
   };
 
   liveTestConfigs.forEach(testConfig => {
-    if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
-      return;
-    }
     describe(`${testConfig.toString()}`, () => {
       describe('Live', () => {
         it('should connect, send a message, receive a response, and close', async () => {
