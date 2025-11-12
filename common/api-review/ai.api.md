@@ -100,6 +100,10 @@ export interface AudioTranscriptionConfig {
 export abstract class Backend {
     protected constructor(type: BackendType);
     readonly backendType: BackendType;
+    // @internal (undocumented)
+    abstract _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    abstract _getTemplatePath(project: string, templateId: string): string;
 }
 
 // @public
@@ -157,6 +161,8 @@ export interface ChromeAdapter {
     generateContent(request: GenerateContentRequest): Promise<Response>;
     generateContentStream(request: GenerateContentRequest): Promise<Response>;
     isAvailable(request: GenerateContentRequest): Promise<boolean>;
+    // @internal (undocumented)
+    mode: InferenceMode;
 }
 
 // @public
@@ -565,9 +571,19 @@ export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOp
 // @beta
 export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
+// @beta
+export function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
+
+// @beta
+export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
+
 // @public
 export class GoogleAIBackend extends Backend {
     constructor();
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
@@ -1312,6 +1328,25 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// @beta
+export class TemplateGenerativeModel {
+    constructor(ai: AI, requestOptions?: RequestOptions);
+    // @internal (undocumented)
+    _apiSettings: ApiSettings;
+    generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
+    requestOptions?: RequestOptions;
+}
+
+// @beta
+export class TemplateImagenModel {
+    constructor(ai: AI, requestOptions?: RequestOptions);
+    // @internal (undocumented)
+    _apiSettings: ApiSettings;
+    generateImages(templateId: string, templateVariables: object): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    requestOptions?: RequestOptions;
+}
+
 // @public
 export interface TextPart {
     // (undocumented)
@@ -1410,6 +1445,10 @@ export interface UsageMetadata {
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
     readonly location: string;
 }
 

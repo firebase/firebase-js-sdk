@@ -23,7 +23,6 @@ import {
   ChromeAdapter,
   InferenceSource
 } from '../types';
-import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 
 const errorsCausingFallback: AIErrorCode[] = [
   // most network errors
@@ -61,7 +60,7 @@ export async function callCloudOrDevice<Response>(
       inferenceSource: InferenceSource.IN_CLOUD
     };
   }
-  switch ((chromeAdapter as ChromeAdapterImpl).mode) {
+  switch (chromeAdapter.mode) {
     case InferenceMode.ONLY_ON_DEVICE:
       if (await chromeAdapter.isAvailable(request)) {
         return {
@@ -107,9 +106,7 @@ export async function callCloudOrDevice<Response>(
     default:
       throw new AIError(
         AIErrorCode.ERROR,
-        `Unexpected infererence mode: ${
-          (chromeAdapter as ChromeAdapterImpl).mode
-        }`
+        `Unexpected infererence mode: ${chromeAdapter.mode}`
       );
   }
 }

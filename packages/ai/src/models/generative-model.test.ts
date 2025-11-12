@@ -20,7 +20,8 @@ import {
   FunctionCallingMode,
   AI,
   InferenceMode,
-  AIErrorCode
+  AIErrorCode,
+  ChromeAdapter
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -30,9 +31,9 @@ import {
 } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
 import { VertexAIBackend } from '../backend';
-import { ChromeAdapterImpl } from '../methods/chrome-adapter';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -50,12 +51,6 @@ const fakeAI: AI = {
   backend: new VertexAIBackend('us-central1'),
   location: 'us-central1'
 };
-
-const fakeChromeAdapter = new ChromeAdapterImpl(
-  // @ts-expect-error
-  undefined,
-  InferenceMode.PREFER_ON_DEVICE
-);
 
 describe('GenerativeModel', () => {
   it('passes params through to generateContent', async () => {
@@ -97,10 +92,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('myfunc') &&
@@ -109,8 +107,7 @@ describe('GenerativeModel', () => {
           value.includes(FunctionCallingMode.NONE) &&
           value.includes('be friendly')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -134,14 +131,16 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return value.includes('be friendly');
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -195,10 +194,13 @@ describe('GenerativeModel', () => {
       systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
     });
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
@@ -207,8 +209,7 @@ describe('GenerativeModel', () => {
           value.includes(FunctionCallingMode.AUTO) &&
           value.includes('be formal')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -286,10 +287,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('myfunc') &&
@@ -299,8 +303,7 @@ describe('GenerativeModel', () => {
           value.includes('be friendly') &&
           value.includes('topK')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -324,14 +327,16 @@ describe('GenerativeModel', () => {
     );
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return value.includes('be friendly');
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -387,10 +392,13 @@ describe('GenerativeModel', () => {
       })
       .sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
@@ -401,8 +409,7 @@ describe('GenerativeModel', () => {
           value.includes('image/png') &&
           !value.includes('image/jpeg')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -422,10 +429,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.countTokens('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.COUNT_TOKENS,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.COUNT_TOKENS,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('hello');
       })
@@ -436,7 +446,7 @@ describe('GenerativeModel', () => {
 
 describe('GenerativeModel dispatch logic', () => {
   let makeRequestStub: SinonStub;
-  let mockChromeAdapter: ChromeAdapterImpl;
+  let mockChromeAdapter: ChromeAdapter;
 
   function stubMakeRequest(stream?: boolean): void {
     if (stream) {
