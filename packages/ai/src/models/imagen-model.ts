@@ -16,7 +16,7 @@
  */
 
 import { AI } from '../public-types';
-import { Task, makeRequest } from '../requests/request';
+import { makeRequest, Task } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
 import {
@@ -111,16 +111,18 @@ export class ImagenModel extends AIModel {
       ...this.safetySettings
     });
     const response = await makeRequest(
-      this.model,
-      Task.PREDICT,
-      this._apiSettings,
-      /* stream */ false,
-      JSON.stringify(body),
-      // Merge request options
       {
-        ...this.requestOptions,
-        ...singleRequestOptions
-      }
+        task: Task.PREDICT,
+        model: this.model,
+        apiSettings: this._apiSettings,
+        stream: false,
+        // Merge request options. Single request options overwrite the model's request options.
+        singleRequestOptions: {
+          ...this.requestOptions,
+          ...singleRequestOptions
+        }
+      },
+      JSON.stringify(body)
     );
     return handlePredictResponse<ImagenInlineImage>(response);
   }
@@ -155,15 +157,18 @@ export class ImagenModel extends AIModel {
       ...this.safetySettings
     });
     const response = await makeRequest(
-      this.model,
-      Task.PREDICT,
-      this._apiSettings,
-      /* stream */ false,
-      JSON.stringify(body),
       {
-        ...this.requestOptions,
-        ...singleRequestOptions
-      }
+        task: Task.PREDICT,
+        model: this.model,
+        apiSettings: this._apiSettings,
+        stream: false,
+        // Merge request options. Single request options overwrite the model's request options.
+        singleRequestOptions: {
+          ...this.requestOptions,
+          ...singleRequestOptions
+        }
+      },
+      JSON.stringify(body)
     );
     return handlePredictResponse<ImagenGCSImage>(response);
   }

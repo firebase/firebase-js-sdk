@@ -23,6 +23,9 @@ export const DEFAULT_LOCATION = 'us-central1';
 
 export const DEFAULT_DOMAIN = 'firebasevertexai.googleapis.com';
 
+export const STAGING_URL =
+  'https://staging-firebasevertexai.sandbox.googleapis.com';
+
 export const DEFAULT_API_VERSION = 'v1beta';
 
 export const PACKAGE_VERSION = version;

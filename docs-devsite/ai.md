@@ -22,6 +22,8 @@ The Firebase AI Web SDK.
 |  [getGenerativeModel(ai, modelParams, requestOptions)](./ai.md#getgenerativemodel_c63f46a) | Returns a [GenerativeModel](./ai.generativemodel.md#generativemodel_class) class with methods for inference and other functionality. |
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 |  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.<!-- -->The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22. |
+|  [getTemplateGenerativeModel(ai, requestOptions)](./ai.md#gettemplategenerativemodel_9476bbc) | <b><i>(Public Preview)</i></b> Returns a [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) class for executing server-side templates. |
+|  [getTemplateImagenModel(ai, requestOptions)](./ai.md#gettemplateimagenmodel_9476bbc) | <b><i>(Public Preview)</i></b> Returns a [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) class for executing server-side Imagen templates. |
 |  <b>function(liveSession, ...)</b> |
 |  [startAudioConversation(liveSession, options)](./ai.md#startaudioconversation_01c8e7f) | <b><i>(Public Preview)</i></b> Starts a real-time, bidirectional audio conversation with the model. This helper function manages the complexities of microphone access, audio recording, playback, and interruptions. |
 
@@ -47,6 +49,8 @@ The Firebase AI Web SDK.
 |  [ObjectSchema](./ai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of <code>Schema</code> objects. |
 |  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
+|  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
+|  [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) | <b><i>(Public Preview)</i></b> Class for Imagen model APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateImagenModel()](./ai.md#gettemplateimagenmodel_9476bbc)<!-- -->. |
 |  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
 
 ## Interfaces
@@ -341,6 +345,54 @@ export declare function getLiveGenerativeModel(ai: AI, modelParams: LiveModelPar
 #### Exceptions
 
 If the `apiKey` or `projectId` fields are missing in your Firebase config.
+
+### getTemplateGenerativeModel(ai, requestOptions) {:#gettemplategenerativemodel_9476bbc}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns a [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) class for executing server-side templates.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  ai | [AI](./ai.ai.md#ai_interface) | An [AI](./ai.ai.md#ai_interface) instance. |
+|  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Additional options to use when making requests. |
+
+<b>Returns:</b>
+
+[TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class)
+
+### getTemplateImagenModel(ai, requestOptions) {:#gettemplateimagenmodel_9476bbc}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns a [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) class for executing server-side Imagen templates.
+
+<b>Signature:</b>
+
+```typescript
+export declare function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  ai | [AI](./ai.ai.md#ai_interface) | An [AI](./ai.ai.md#ai_interface) instance. |
+|  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Additional options to use when making requests. |
+
+<b>Returns:</b>
+
+[TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class)
 
 ## function(liveSession, ...)
 

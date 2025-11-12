@@ -200,6 +200,10 @@ toc:
     path: /docs/reference/js/ai.startchatparams.md
   - title: StringSchema
     path: /docs/reference/js/ai.stringschema.md
+  - title: TemplateGenerativeModel
+    path: /docs/reference/js/ai.templategenerativemodel.md
+  - title: TemplateImagenModel
+    path: /docs/reference/js/ai.templateimagenmodel.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
   - title: ThinkingConfig

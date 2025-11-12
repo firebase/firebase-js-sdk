@@ -65,17 +65,19 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt);
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.PREDICT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes(`"prompt":"${prompt}"`) &&
           value.includes(`"sampleCount":1`)
         );
-      }),
-      {}
+      })
     );
   });
   it('generateImages makes a request to predict with generation config and safety settings', async () => {
@@ -104,10 +106,13 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt);
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.PREDICT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes(
@@ -132,8 +137,7 @@ describe('ImagenModel', () => {
             JSON.stringify(imagenModel.safetySettings?.personFilterLevel)
           )
         );
-      }),
-      {}
+      })
     );
   });
   it('generateImages singleRequestOptions overrides requestOptions', async () => {
@@ -158,14 +162,14 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt, singleRequestOptions);
     expect(makeRequestStub).to.be.calledWith(
-      match.any,
-      request.Task.PREDICT,
-      match.any,
-      false,
-      match.any,
-      match({
-        timeout: singleRequestOptions.timeout
-      })
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions
+      },
+      match.any
     );
   });
   it('generateImages singleRequestOptions is merged with requestOptions', async () => {
@@ -191,15 +195,17 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt, singleRequestOptions);
     expect(makeRequestStub).to.be.calledWith(
-      match.any,
-      request.Task.PREDICT,
-      match.any,
-      false,
-      match.any,
-      match({
-        timeout: requestOptions.timeout,
-        signal: singleRequestOptions.signal
-      })
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: requestOptions.timeout,
+          signal: singleRequestOptions.signal
+        }
+      },
+      match.any
     );
   });
   it('throws if prompt blocked', async () => {
@@ -250,14 +256,16 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImagesGCS(prompt, '', singleRequestOptions);
     expect(makeRequestStub).to.be.calledWith(
-      match.any,
-      request.Task.PREDICT,
-      match.any,
-      false,
-      match.any,
-      match({
-        timeout: singleRequestOptions.timeout
-      })
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: singleRequestOptions.timeout
+        }
+      },
+      match.any
     );
   });
   it('generateImages singleRequestOptions is merged with requestOptions', async () => {
@@ -283,15 +291,17 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImagesGCS(prompt, '', singleRequestOptions);
     expect(makeRequestStub).to.be.calledWith(
-      match.any,
-      request.Task.PREDICT,
-      match.any,
-      false,
-      match.any,
-      match({
-        timeout: requestOptions.timeout,
-        signal: singleRequestOptions.signal
-      })
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: requestOptions.timeout,
+          signal: singleRequestOptions.signal
+        }
+      },
+      match.any
     );
   });
 });

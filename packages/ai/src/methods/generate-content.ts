@@ -22,7 +22,11 @@ import {
   GenerateContentStreamResult,
   SingleRequestOptions
 } from '../types';
-import { Task, makeRequest } from '../requests/request';
+import {
+  makeRequest,
+  ServerPromptTemplateTask,
+  Task
+} from '../requests/request';
 import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
@@ -41,12 +45,14 @@ async function generateContentStreamOnCloud(
     params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
   return makeRequest(
-    model,
-    Task.STREAM_GENERATE_CONTENT,
-    apiSettings,
-    /* stream */ true,
-    JSON.stringify(params),
-    singleRequestOptions
+    {
+      task: Task.STREAM_GENERATE_CONTENT,
+      model,
+      apiSettings,
+      stream: true,
+      singleRequestOptions
+    },
+    JSON.stringify(params)
   );
 }
 
@@ -82,13 +88,62 @@ async function generateContentOnCloud(
     params = GoogleAIMapper.mapGenerateContentRequest(params);
   }
   return makeRequest(
-    model,
-    Task.GENERATE_CONTENT,
-    apiSettings,
-    /* stream */ false,
-    JSON.stringify(params),
-    singleRequestOptions
+    {
+      model,
+      task: Task.GENERATE_CONTENT,
+      apiSettings,
+      stream: false,
+      singleRequestOptions
+    },
+    JSON.stringify(params)
   );
+}
+
+export async function templateGenerateContent(
+  apiSettings: ApiSettings,
+  templateId: string,
+  templateParams: object,
+  singleRequestOptions?: SingleRequestOptions
+): Promise<GenerateContentResult> {
+  const response = await makeRequest(
+    {
+      task: ServerPromptTemplateTask.TEMPLATE_GENERATE_CONTENT,
+      templateId,
+      apiSettings,
+      stream: false,
+      singleRequestOptions
+    },
+    JSON.stringify(templateParams)
+  );
+  const generateContentResponse = await processGenerateContentResponse(
+    response,
+    apiSettings
+  );
+  const enhancedResponse = createEnhancedContentResponse(
+    generateContentResponse
+  );
+  return {
+    response: enhancedResponse
+  };
+}
+
+export async function templateGenerateContentStream(
+  apiSettings: ApiSettings,
+  templateId: string,
+  templateParams: object,
+  singleRequestOptions?: SingleRequestOptions
+): Promise<GenerateContentStreamResult> {
+  const response = await makeRequest(
+    {
+      task: ServerPromptTemplateTask.TEMPLATE_STREAM_GENERATE_CONTENT,
+      templateId,
+      apiSettings,
+      stream: true,
+      singleRequestOptions
+    },
+    JSON.stringify(templateParams)
+  );
+  return processStream(response, apiSettings);
 }
 
 export async function generateContent(

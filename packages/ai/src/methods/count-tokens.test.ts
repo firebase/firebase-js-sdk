@@ -71,16 +71,17 @@ describe('countTokens()', () => {
       fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(6);
-    expect(result.totalBillableCharacters).to.equal(16);
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.COUNT_TOKENS,
-      fakeApiSettings,
-      false,
+      {
+        model: 'model',
+        task: Task.COUNT_TOKENS,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('contents');
-      }),
-      undefined
+      })
     );
   });
   it('total tokens with modality details', async () => {
@@ -102,14 +103,16 @@ describe('countTokens()', () => {
     expect(result.promptTokensDetails?.[0].modality).to.equal('IMAGE');
     expect(result.promptTokensDetails?.[0].tokenCount).to.equal(1806);
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.COUNT_TOKENS,
-      fakeApiSettings,
-      false,
+      {
+        model: 'model',
+        task: Task.COUNT_TOKENS,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('contents');
-      }),
-      undefined
+      })
     );
   });
   it('total tokens no billable characters', async () => {
@@ -129,14 +132,16 @@ describe('countTokens()', () => {
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.COUNT_TOKENS,
-      fakeApiSettings,
-      false,
+      {
+        model: 'model',
+        task: Task.COUNT_TOKENS,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('contents');
-      }),
-      undefined
+      })
     );
   });
   it('model not found', async () => {
@@ -181,12 +186,14 @@ describe('countTokens()', () => {
       );
 
       expect(makeRequestStub).to.be.calledWith(
-        'model',
-        Task.COUNT_TOKENS,
-        fakeGoogleAIApiSettings,
-        false,
-        JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model')),
-        undefined
+        {
+          model: 'model',
+          task: Task.COUNT_TOKENS,
+          apiSettings: fakeGoogleAIApiSettings,
+          stream: false,
+          singleRequestOptions: undefined
+        },
+        JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model'))
       );
     });
   });
