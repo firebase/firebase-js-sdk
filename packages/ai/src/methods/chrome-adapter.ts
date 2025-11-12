@@ -400,8 +400,7 @@ export function chromeAdapterFactory(
   // Do not initialize a ChromeAdapter if we are not in hybrid mode.
   if (typeof window !== 'undefined' && mode) {
     return new ChromeAdapterImpl(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as unknown as any).LanguageModel as LanguageModel,
+      (window as Window).LanguageModel as LanguageModel,
       mode,
       params
     );
