@@ -44,7 +44,7 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 
 const backends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new VertexAIBackend()
+  new VertexAIBackend('global')
 ];
 
 const backendNames: Map<BackendType, string> = new Map([
