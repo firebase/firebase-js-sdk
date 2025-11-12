@@ -3,4 +3,4 @@
 '@firebase/ai': minor
 ---
 
-Add support for Server Prompt Templates.
+Add support for server prompt templates.
