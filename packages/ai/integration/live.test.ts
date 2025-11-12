@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import {
-  BackendType,
   getLiveGenerativeModel,
   LiveGenerationConfig,
   LiveServerContent,
