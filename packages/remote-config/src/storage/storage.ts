@@ -71,7 +71,6 @@ export interface RealtimeBackoffMetadata {
 type ProjectNamespaceKeyFieldValue =
   | 'active_config'
   | 'active_config_etag'
-  | 'active_experiments'
   | 'last_fetch_status'
   | 'last_successful_fetch_timestamp_millis'
   | 'last_successful_fetch_response'
@@ -164,14 +163,6 @@ export abstract class Storage {
 
   setActiveConfigEtag(etag: string): Promise<void> {
     return this.set<string>('active_config_etag', etag);
-  }
-
-  getActiveExperiments(): Promise<Set<string> | undefined> {
-    return this.get<Set<string>>('active_experiments');
-  }
-
-  setActiveExperiments(experiments: Set<string>): Promise<void> {
-    return this.set<Set<string>>('active_experiments', experiments);
   }
 
   getThrottleMetadata(): Promise<ThrottleMetadata | undefined> {
