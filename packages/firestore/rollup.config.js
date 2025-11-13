@@ -26,6 +26,7 @@ import tmp from 'tmp';
 import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module';
 
 import pkg from './package.json';
 import tsconfig from './tsconfig.json';
@@ -58,35 +59,6 @@ const browserPlugins = [
   json({ preferConst: true }),
   terser(util.manglePrivatePropertiesOptions)
 ];
-
-// TODO - update the implementation to match all content in the declare module block.
-function declareModuleReplacePlugin() {
-  // The regex we created earlier
-  const moduleToReplace =
-    /declare module '\.\/\S+' \{\s+interface Firestore \{\s+pipeline\(\): PipelineSource<Pipeline>;\s+}\s*}/gm;
-
-  // What to replace it with (an empty string to remove it)
-  const replacement =
-    'interface Firestore {pipeline(): PipelineSource<Pipeline>;}';
-
-  return {
-    name: 'declare-module-replace',
-    generateBundle(options, bundle) {
-      const outputFileName = 'global_index.d.ts';
-      if (!bundle[outputFileName]) {
-        console.warn(
-          `[regexReplacePlugin] File not found in bundle: ${outputFileName}`
-        );
-        return;
-      }
-
-      const chunk = bundle[outputFileName];
-      if (chunk.type === 'chunk') {
-        chunk.code = chunk.code.replace(moduleToReplace, replacement);
-      }
-    }
-  };
-}
 
 const allBuilds = [
   // Intermediate Node ESM build without build target reporting
@@ -253,7 +225,15 @@ const allBuilds = [
         respectExternal: true
       }),
 
-      declareModuleReplacePlugin()
+      // The global.d.ts input file will include
+      // a `declare module './database' { ... }` block. This block
+      // was not removed in the build, and the module
+      // './database' is not known in context of the global.d.ts file.
+      // Use the declareModuleReplacePlugin to replace:
+      // `declare module './database' { Y }`
+      // with the contents of the block:
+      // `Y`
+      replaceDeclareModule('global_index.d.ts', './database')
     ]
   }
 ];
