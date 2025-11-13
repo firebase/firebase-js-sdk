@@ -37,9 +37,12 @@ import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { captureError, flush, getTelemetry } from './api';
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
+const API_KEY = 'my-api-key';
+const FID = 'fid-1234';
 
 const emittedLogs: LogRecord[] = [];
 
@@ -67,7 +70,8 @@ const fakeTelemetry: Telemetry = {
       appId: APP_ID
     }
   },
-  loggerProvider: fakeLoggerProvider
+  loggerProvider: fakeLoggerProvider,
+  fid: FID
 };
 
 describe('Top level API', () => {
@@ -123,6 +127,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('This is a test error');
       expect(log.attributes).to.deep.equal({
+        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...'
       });
@@ -139,6 +144,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('error with no stack');
       expect(log.attributes).to.deep.equal({
+        'user.id': FID,
         'error.type': 'Error',
         'error.stack': 'No stack trace available'
       });
@@ -151,7 +157,9 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
-      expect(log.attributes).to.deep.equal({});
+      expect(log.attributes).to.deep.equal({
+        "user.id": "fid-1234"
+      });
     });
 
     it('should capture an unknown error type correctly', () => {
@@ -161,7 +169,9 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
-      expect(log.attributes).to.deep.equal({});
+      expect(log.attributes).to.deep.equal({
+        "user.id": "fid-1234"
+      });
     });
 
     it('should propagate trace context', async () => {
@@ -185,6 +195,7 @@ describe('Top level API', () => {
       await provider.shutdown();
 
       expect(emittedLogs[0].attributes).to.deep.equal({
+        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
@@ -209,6 +220,7 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
+        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         strAttr: 'string attribute',
@@ -239,6 +251,16 @@ function getFakeApp(): FirebaseApp {
   registerTelemetry();
   _registerComponent(
     new Component(
+      'installations-internal',
+      () => ({
+        getId: async () => 'FID',
+        getToken: async () => 'authToken'
+      }) as _FirebaseInstallationsInternal,
+      ComponentType.PUBLIC
+    )
+  );
+  _registerComponent(
+    new Component(
       'app-check-internal',
       () => {
         return {} as FirebaseAppCheckInternal;
@@ -246,7 +268,11 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({});
+  const app = initializeApp({
+    projectId: PROJECT_ID,
+    appId: APP_ID,
+    apiKey: API_KEY
+  });
   _addOrOverwriteComponent(
     app,
     //@ts-ignore

@@ -21,6 +21,9 @@ import { TELEMETRY_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { TelemetryService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
+// This needs to be in the same file that calls `getProvider()` on the component
+// or it will get tree-shaken out.
+import '@firebase/installations';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -36,9 +39,10 @@ export function registerTelemetry(): void {
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
+        const installationsProvider = container.getProvider('installations-internal').getImmediate();
         const loggerProvider = createLoggerProvider(app, endpointUrl);
 
-        return new TelemetryService(app, loggerProvider);
+        return new TelemetryService(app, installationsProvider, loggerProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

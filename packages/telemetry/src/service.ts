@@ -18,9 +18,23 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Telemetry } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 export class TelemetryService implements Telemetry, _FirebaseService {
-  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
+  fid?: string;
+
+  constructor(public app: FirebaseApp, public installationsProvider: _FirebaseInstallationsInternal, public loggerProvider: LoggerProvider) {
+    void this._getFid();
+  }
+
+  private async _getFid(): Promise<void> {
+    try {
+      const fid = await this.installationsProvider.getId();
+      this.fid = fid;
+    } catch (err) {
+      console.error('Failed to get FID for telemetry:', err);
+    }
+  }
 
   _delete(): Promise<void> {
     return Promise.resolve();
