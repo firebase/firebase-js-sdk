@@ -1,5 +1,19 @@
 # firebase
 
+## 12.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
+### Patch Changes
+
+- Updated dependencies [[`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd), [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d)]:
+  - @firebase/app@0.14.6
+  - @firebase/ai@2.6.0
+  - @firebase/data-connect@0.3.12
+  - @firebase/app-compat@0.5.6
+
 ## 12.5.0
 
 ### Minor Changes
