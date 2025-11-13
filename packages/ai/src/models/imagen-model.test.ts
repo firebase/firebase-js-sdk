@@ -62,17 +62,19 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt);
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.PREDICT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return (
           value.includes(`"prompt":"${prompt}"`) &&
           value.includes(`"sampleCount":1`)
         );
-      }),
-      undefined
+      })
     );
     restore();
   });
@@ -102,10 +104,13 @@ describe('ImagenModel', () => {
     const prompt = 'A photorealistic image of a toy boat at sea.';
     await imagenModel.generateImages(prompt);
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.PREDICT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return (
           value.includes(
@@ -130,8 +135,7 @@ describe('ImagenModel', () => {
             JSON.stringify(imagenModel.safetySettings?.personFilterLevel)
           )
         );
-      }),
-      undefined
+      })
     );
     restore();
   });

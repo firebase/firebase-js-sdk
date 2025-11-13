@@ -19,7 +19,13 @@ import { expect, use } from 'chai';
 import { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { RequestUrl, Task, getHeaders, makeRequest } from './request';
+import {
+  RequestURL,
+  ServerPromptTemplateTask,
+  Task,
+  getHeaders,
+  makeRequest
+} from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
 import { AIErrorCode } from '../types';
@@ -42,64 +48,76 @@ describe('request methods', () => {
   afterEach(() => {
     restore();
   });
-  describe('RequestUrl', () => {
+  describe('RequestURL', () => {
     it('stream', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        true,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        requestOptions: {}
+      });
       expect(url.toString()).to.include('models/model-name:generateContent');
-      expect(url.toString()).to.not.include(fakeApiSettings);
       expect(url.toString()).to.include('alt=sse');
     });
     it('non-stream', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: {}
+      });
       expect(url.toString()).to.include('models/model-name:generateContent');
       expect(url.toString()).to.not.include(fakeApiSettings);
       expect(url.toString()).to.not.include('alt=sse');
     });
     it('default apiVersion', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: {}
+      });
       expect(url.toString()).to.include(DEFAULT_API_VERSION);
     });
     it('custom baseUrl', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        { baseUrl: 'https://my.special.endpoint' }
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: { baseUrl: 'https://my.special.endpoint' }
+      });
       expect(url.toString()).to.include('https://my.special.endpoint');
     });
     it('non-stream - tunedModels/', async () => {
-      const url = new RequestUrl(
-        'tunedModels/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'tunedModels/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: {}
+      });
       expect(url.toString()).to.include(
         'tunedModels/model-name:generateContent'
       );
       expect(url.toString()).to.not.include(fakeApiSettings);
       expect(url.toString()).to.not.include('alt=sse');
+    });
+    it('prompt server template', async () => {
+      const url = new RequestURL({
+        templateId: 'my-template',
+        task: ServerPromptTemplateTask.TEMPLATE_GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: {}
+      });
+      expect(url.toString()).to.include(
+        'templates/my-template:templateGenerateContent'
+      );
+      expect(url.toString()).to.not.include(fakeApiSettings);
     });
   });
   describe('getHeaders', () => {
@@ -112,13 +130,13 @@ describe('request methods', () => {
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
-    const fakeUrl = new RequestUrl(
-      'models/model-name',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      true,
-      {}
-    );
+    const fakeUrl = new RequestURL({
+      model: 'models/model-name',
+      task: Task.GENERATE_CONTENT,
+      apiSettings: fakeApiSettings,
+      stream: true,
+      requestOptions: {}
+    });
     it('adds client headers', async () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-client')).to.match(
@@ -140,13 +158,13 @@ describe('request methods', () => {
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
       };
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        true,
-        {}
-      );
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        requestOptions: {}
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-Appid')).to.equal('my-appid');
     });
@@ -165,13 +183,13 @@ describe('request methods', () => {
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
       };
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        true,
-        {}
-      );
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        requestOptions: {}
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-Appid')).to.be.null;
     });
@@ -180,44 +198,44 @@ describe('request methods', () => {
       expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');
     });
     it('ignores app check token header if no appcheck service', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
           backend: new VertexAIBackend()
         },
-        true,
-        {}
-      );
+        stream: true,
+        requestOptions: {}
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('X-Firebase-AppCheck')).to.be.false;
     });
     it('ignores app check token header if returned token was undefined', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
-        true,
-        {}
-      );
+        stream: true,
+        requestOptions: {}
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('X-Firebase-AppCheck')).to.be.false;
     });
     it('ignores app check token header if returned token had error', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
@@ -226,9 +244,9 @@ describe('request methods', () => {
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
-        true,
-        {}
-      );
+        stream: true,
+        requestOptions: {}
+      });
       const warnStub = stub(console, 'warn');
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).to.equal('dummytoken');
@@ -242,36 +260,36 @@ describe('request methods', () => {
       expect(headers.get('Authorization')).to.equal('Firebase authtoken');
     });
     it('ignores auth token header if no auth service', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
           backend: new VertexAIBackend()
         },
-        true,
-        {}
-      );
+        stream: true,
+        requestOptions: {}
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('Authorization')).to.be.false;
     });
     it('ignores auth token header if returned token was undefined', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
-        true,
-        {}
-      );
+        stream: true,
+        requestOptions: {}
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('Authorization')).to.be.false;
     });
@@ -282,10 +300,12 @@ describe('request methods', () => {
         ok: true
       } as Response);
       const response = await makeRequest(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false
+        },
         ''
       );
       expect(fetchStub).to.be.calledOnce;
@@ -300,14 +320,16 @@ describe('request methods', () => {
 
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
-          '',
           {
-            timeout: 180000
-          }
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false,
+            requestOptions: {
+              timeout: 180000
+            }
+          },
+          ''
         );
       } catch (e) {
         expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
@@ -328,10 +350,12 @@ describe('request methods', () => {
       } as Response);
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
           ''
         );
       } catch (e) {
@@ -353,10 +377,12 @@ describe('request methods', () => {
       } as Response);
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
           ''
         );
       } catch (e) {
@@ -391,10 +417,12 @@ describe('request methods', () => {
       } as Response);
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
           ''
         );
       } catch (e) {
@@ -420,10 +448,12 @@ describe('request methods', () => {
     );
     try {
       await makeRequest(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false
+        },
         ''
       );
     } catch (e) {
