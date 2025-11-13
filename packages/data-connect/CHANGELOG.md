@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.3.12
+
+### Patch Changes
+
+- [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d) [#9349](https://github.com/firebase/firebase-js-sdk/pull/9349) (fixes [#9348](https://github.com/firebase/firebase-js-sdk/issues/9348)) - Fixed issue where onComplete wasn't triggering when the user calls `unsubscribe` on a subscription.
+
 ## 0.3.11
 
 ### Patch Changes
