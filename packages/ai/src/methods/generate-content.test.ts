@@ -19,9 +19,16 @@ import { expect, use } from 'chai';
 import Sinon, { match, restore, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { getMockResponse } from '../../test-utils/mock-response';
+import {
+  getMockResponse,
+  getMockResponseStreaming
+} from '../../test-utils/mock-response';
 import * as request from '../requests/request';
-import { generateContent } from './generate-content';
+import {
+  generateContent,
+  templateGenerateContent,
+  templateGenerateContentStream
+} from './generate-content';
 import {
   AIErrorCode,
   GenerateContentRequest,
@@ -103,12 +110,14 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('Mountain View, California');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      JSON.stringify(fakeRequestParams),
-      undefined
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('long response', async () => {
@@ -127,11 +136,14 @@ describe('generateContent()', () => {
     expect(result.response.text()).to.include('Use Freshly Ground Coffee');
     expect(result.response.text()).to.include('30 minutes of brewing');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('long response with token details', async () => {
@@ -162,11 +174,14 @@ describe('generateContent()', () => {
       result.response.usageMetadata?.candidatesTokensDetails?.[0].tokenCount
     ).to.equal(76);
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('citations', async () => {
@@ -189,11 +204,14 @@ describe('generateContent()', () => {
       result.response.candidates?.[0].citationMetadata?.citations.length
     ).to.equal(3);
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('google search grounding', async () => {
@@ -236,11 +254,14 @@ describe('generateContent()', () => {
       .undefined;
 
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
 
     it('url context', async () => {
@@ -286,10 +307,12 @@ describe('generateContent()', () => {
         .be.undefined;
 
       expect(makeRequestStub).to.be.calledWith(
-        'model',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
+        {
+          model: 'model',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false
+        },
         match.any
       );
     });
@@ -328,11 +351,14 @@ describe('generateContent()', () => {
     );
     expect(result.response.text).to.throw('SAFETY');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('finishReason safety', async () => {
@@ -350,11 +376,14 @@ describe('generateContent()', () => {
     );
     expect(result.response.text).to.throw('SAFETY');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('empty content', async () => {
@@ -372,11 +401,14 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.equal('');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('empty part', async () => {
@@ -410,11 +442,14 @@ describe('generateContent()', () => {
     );
     expect(result.response.text()).to.include('Some text');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      false,
-      match.any
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
     );
   });
   it('image rejected (400)', async () => {
@@ -502,12 +537,14 @@ describe('generateContent()', () => {
       );
 
       expect(makeRequestStub).to.be.calledWith(
-        'model',
-        Task.GENERATE_CONTENT,
-        fakeGoogleAIApiSettings,
-        false,
-        JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams)),
-        undefined
+        {
+          model: 'model',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeGoogleAIApiSettings,
+          stream: false,
+          requestOptions: match.any
+        },
+        JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams))
       );
     });
   });
@@ -531,5 +568,85 @@ describe('generateContent()', () => {
     expect(result.response.text()).to.include('Mountain View, California');
     expect(isAvailableStub).to.be.called;
     expect(generateContentStub).to.be.calledWith(fakeRequestParams);
+  });
+});
+
+describe('templateGenerateContent', () => {
+  afterEach(() => {
+    restore();
+  });
+  it('should call makeRequest with correct parameters and process the response', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const templateId = 'my-template';
+    const templateParams = { name: 'world' };
+    const requestOptions = { timeout: 5000 };
+
+    const result = await templateGenerateContent(
+      fakeApiSettings,
+      templateId,
+      templateParams,
+      requestOptions
+    );
+
+    expect(makeRequestStub).to.have.been.calledOnceWith(
+      {
+        task: 'templateGenerateContent',
+        templateId,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions
+      },
+      JSON.stringify(templateParams)
+    );
+    expect(result.response.text()).to.include('Mountain View, California');
+  });
+});
+
+describe('templateGenerateContentStream', () => {
+  afterEach(() => {
+    restore();
+  });
+  it('should call makeRequest with correct parameters for streaming', async () => {
+    const mockResponse = getMockResponseStreaming(
+      'vertexAI',
+      'streaming-success-basic-reply-short.txt'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const templateId = 'my-stream-template';
+    const templateParams = { name: 'streaming world' };
+    const requestOptions = { timeout: 10000 };
+
+    const result = await templateGenerateContentStream(
+      fakeApiSettings,
+      templateId,
+      templateParams,
+      requestOptions
+    );
+
+    expect(makeRequestStub).to.have.been.calledOnceWith(
+      {
+        task: 'templateStreamGenerateContent',
+        templateId,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        requestOptions
+      },
+      JSON.stringify(templateParams)
+    );
+
+    // Verify the stream processing part
+    for await (const item of result.stream) {
+      expect(item.text()).to.not.be.empty;
+    }
+    const response = await result.response;
+    expect(response.text()).to.include('Cheyenne');
   });
 });
