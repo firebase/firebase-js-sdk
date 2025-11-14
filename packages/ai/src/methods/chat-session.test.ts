@@ -59,6 +59,68 @@ describe('ChatSession', () => {
         match.any
       );
     });
+    it('singleRequestOptions overrides requestOptions', async () => {
+      const generateContentStub = stub(
+        generateContentMethods,
+        'generateContent'
+      ).rejects('generateContent failed'); // not important
+      const requestOptions = {
+        timeout: 1000
+      };
+      const singleRequestOptions = {
+        timeout: 2000
+      };
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        undefined,
+        requestOptions
+      );
+      await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
+        .rejected;
+      expect(generateContentStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match.any,
+        match.any,
+        match({
+          timeout: singleRequestOptions.timeout
+        })
+      );
+    });
+    it('singleRequestOptions is merged with requestOptions', async () => {
+      const generateContentStub = stub(
+        generateContentMethods,
+        'generateContent'
+      ).rejects('generateContent failed'); // not important
+      const abortController = new AbortController();
+      const requestOptions = {
+        timeout: 1000
+      };
+      const singleRequestOptions = {
+        signal: abortController.signal
+      };
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        undefined,
+        requestOptions
+      );
+      await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
+        .rejected;
+      expect(generateContentStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match.any,
+        match.any,
+        match({
+          timeout: requestOptions.timeout,
+          signal: singleRequestOptions.signal
+        })
+      );
+    });
     it('adds message and response to history', async () => {
       const fakeContent: Content = {
         role: 'model',
@@ -124,6 +186,7 @@ describe('ChatSession', () => {
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any
       );
       await clock.runAllAsync();
@@ -147,6 +210,7 @@ describe('ChatSession', () => {
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
+        match.any,
         match.any
       );
       await clock.runAllAsync();
@@ -155,6 +219,96 @@ describe('ChatSession', () => {
         'undefined'
       );
       clock.restore();
+    });
+    it('error from stream promise should not be logged', async () => {
+      const consoleStub = stub(console, 'error');
+      stub(generateContentMethods, 'generateContentStream').rejects('foo');
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
+      try {
+        // This will throw since generateContentStream will reject immediately.
+        await chatSession.sendMessageStream('hello');
+      } catch (_) {}
+
+      expect(consoleStub).to.not.have.been.called;
+    });
+    it('error from final response promise should not be logged', async () => {
+      const consoleStub = stub(console, 'error');
+      stub(generateContentMethods, 'generateContentStream').resolves({
+        response: new Promise((_, reject) => reject(new Error()))
+      } as unknown as GenerateContentStreamResult);
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter
+      );
+      await chatSession.sendMessageStream('hello');
+      expect(consoleStub).to.not.have.been.called;
+    });
+    it('singleRequestOptions overrides requestOptions', async () => {
+      const generateContentStreamStub = stub(
+        generateContentMethods,
+        'generateContentStream'
+      ).rejects('generateContentStream failed'); // not important
+      const requestOptions = {
+        timeout: 1000
+      };
+      const singleRequestOptions = {
+        timeout: 2000
+      };
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        undefined,
+        requestOptions
+      );
+      await expect(chatSession.sendMessageStream('hello', singleRequestOptions))
+        .to.be.rejected;
+      expect(generateContentStreamStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match.any,
+        match.any,
+        match({
+          timeout: singleRequestOptions.timeout
+        })
+      );
+    });
+    it('singleRequestOptions is merged with requestOptions', async () => {
+      const generateContentStreamStub = stub(
+        generateContentMethods,
+        'generateContentStream'
+      ).rejects('generateContentStream failed'); // not important
+      const abortController = new AbortController();
+      const requestOptions = {
+        timeout: 1000
+      };
+      const singleRequestOptions = {
+        signal: abortController.signal
+      };
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        undefined,
+        undefined,
+        requestOptions
+      );
+      await expect(chatSession.sendMessageStream('hello', singleRequestOptions))
+        .to.be.rejected;
+      expect(generateContentStreamStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match.any,
+        match.any,
+        match({
+          timeout: requestOptions.timeout,
+          signal: singleRequestOptions.signal
+        })
+      );
     });
   });
 });

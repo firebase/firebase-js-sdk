@@ -77,7 +77,7 @@ describe('countTokens()', () => {
         task: Task.COUNT_TOKENS,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       match((value: string) => {
         return value.includes('contents');
@@ -108,7 +108,7 @@ describe('countTokens()', () => {
         task: Task.COUNT_TOKENS,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       match((value: string) => {
         return value.includes('contents');
@@ -137,7 +137,7 @@ describe('countTokens()', () => {
         task: Task.COUNT_TOKENS,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       match((value: string) => {
         return value.includes('contents');
@@ -191,7 +191,7 @@ describe('countTokens()', () => {
           task: Task.COUNT_TOKENS,
           apiSettings: fakeGoogleAIApiSettings,
           stream: false,
-          requestOptions: undefined
+          singleRequestOptions: undefined
         },
         JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model'))
       );

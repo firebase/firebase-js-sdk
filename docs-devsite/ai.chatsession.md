@@ -37,8 +37,8 @@ export declare class ChatSession
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [getHistory()](./ai.chatsession.md#chatsessiongethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
-|  [sendMessage(request)](./ai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request)](./ai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
+|  [sendMessage(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
 ## ChatSession.(constructor)
 
@@ -104,7 +104,7 @@ Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.g
 <b>Signature:</b>
 
 ```typescript
-sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
+sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
@@ -112,6 +112,7 @@ sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResu
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -124,7 +125,7 @@ Sends a chat message and receives the response as a [GenerateContentStreamResult
 <b>Signature:</b>
 
 ```typescript
-sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
@@ -132,6 +133,7 @@ sendMessageStream(request: string | Array<string | Part>): Promise<GenerateConte
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 

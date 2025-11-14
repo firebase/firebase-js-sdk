@@ -72,7 +72,7 @@ export class TemplateImagenModel {
         templateId,
         apiSettings: this._apiSettings,
         stream: false,
-        requestOptions: this.requestOptions
+        singleRequestOptions: this.requestOptions // TODO: Add singleRequestOptions parameter and merge both request options here.
       },
       JSON.stringify({ inputs: templateVariables })
     );

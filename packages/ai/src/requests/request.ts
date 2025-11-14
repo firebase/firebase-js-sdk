@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ErrorDetails, RequestOptions, AIErrorCode } from '../types';
+import { SingleRequestOptions, AIErrorCode, ErrorDetails } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
@@ -26,6 +26,9 @@ import {
 } from '../constants';
 import { logger } from '../logger';
 import { BackendType } from '../public-types';
+
+const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
+const ABORT_ERROR_NAME = 'AbortError';
 
 export const enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -43,7 +46,7 @@ export const enum ServerPromptTemplateTask {
 interface BaseRequestURLParams {
   apiSettings: ApiSettings;
   stream: boolean;
-  requestOptions?: RequestOptions;
+  singleRequestOptions?: SingleRequestOptions;
 }
 
 /**
@@ -94,7 +97,9 @@ export class RequestURL {
   }
 
   private get baseUrl(): string {
-    return this.params.requestOptions?.baseUrl ?? `https://${DEFAULT_DOMAIN}`;
+    return (
+      this.params.singleRequestOptions?.baseUrl ?? `https://${DEFAULT_DOMAIN}`
+    );
   }
 
   private get queryParams(): URLSearchParams {
@@ -175,23 +180,46 @@ export async function makeRequest(
 ): Promise<Response> {
   const url = new RequestURL(requestUrlParams);
   let response;
-  let fetchTimeoutId: string | number | NodeJS.Timeout | undefined;
+
+  const externalSignal = requestUrlParams.singleRequestOptions?.signal;
+  const timeoutMillis =
+    requestUrlParams.singleRequestOptions?.timeout != null &&
+    requestUrlParams.singleRequestOptions.timeout >= 0
+      ? requestUrlParams.singleRequestOptions.timeout
+      : DEFAULT_FETCH_TIMEOUT_MS;
+  const internalAbortController = new AbortController();
+  const fetchTimeoutId = setTimeout(() => {
+    internalAbortController.abort(TIMEOUT_EXPIRED_MESSAGE);
+    logger.debug(
+      `Aborting request to ${url} due to timeout (${timeoutMillis}ms)`
+    );
+  }, timeoutMillis);
+
+  const externalAbortListener = (): void => {
+    logger.debug(`Aborting request to ${url} due to external abort signal.`);
+    // If this listener was invoked, an external signal was aborted, so externalSignal must be defined.
+    internalAbortController.abort(externalSignal!.reason);
+  };
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      clearTimeout(fetchTimeoutId);
+      throw new DOMException(
+        externalSignal.reason ?? 'Aborted externally before fetch',
+        ABORT_ERROR_NAME
+      );
+    }
+
+    externalSignal.addEventListener('abort', externalAbortListener);
+  }
+
   try {
     const fetchOptions: RequestInit = {
       method: 'POST',
       headers: await getHeaders(url),
+      signal: internalAbortController.signal,
       body
     };
-
-    // Timeout is 180s by default.
-    const timeoutMillis =
-      requestUrlParams.requestOptions?.timeout != null &&
-      requestUrlParams.requestOptions.timeout >= 0
-        ? requestUrlParams.requestOptions.timeout
-        : DEFAULT_FETCH_TIMEOUT_MS;
-    const abortController = new AbortController();
-    fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
-    fetchOptions.signal = abortController.signal;
 
     response = await fetch(url.toString(), fetchOptions);
     if (!response.ok) {
@@ -263,8 +291,9 @@ export async function makeRequest(
 
     throw err;
   } finally {
-    if (fetchTimeoutId) {
-      clearTimeout(fetchTimeoutId);
+    clearTimeout(fetchTimeoutId);
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', externalAbortListener);
     }
   }
   return response;

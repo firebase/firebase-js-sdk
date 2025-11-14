@@ -47,6 +47,9 @@ const fakeAI: AI = {
 };
 
 describe('ImagenModel', () => {
+  afterEach(() => {
+    restore();
+  });
   it('generateImages makes a request to predict with default parameters', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
@@ -67,7 +70,7 @@ describe('ImagenModel', () => {
         task: request.Task.PREDICT,
         apiSettings: match.any,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: {}
       },
       match((value: string) => {
         return (
@@ -76,7 +79,6 @@ describe('ImagenModel', () => {
         );
       })
     );
-    restore();
   });
   it('generateImages makes a request to predict with generation config and safety settings', async () => {
     const imagenModel = new ImagenModel(fakeAI, {
@@ -109,7 +111,7 @@ describe('ImagenModel', () => {
         task: request.Task.PREDICT,
         apiSettings: match.any,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: {}
       },
       match((value: string) => {
         return (
@@ -137,7 +139,76 @@ describe('ImagenModel', () => {
         );
       })
     );
-    restore();
+  });
+  it('generateImages singleRequestOptions overrides requestOptions', async () => {
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const imagenModel = new ImagenModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-generate-images-base64.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    await imagenModel.generateImages(prompt, singleRequestOptions);
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: singleRequestOptions.timeout
+        }
+      },
+      match.any
+    );
+  });
+  it('generateImages singleRequestOptions is merged with requestOptions', async () => {
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
+    const imagenModel = new ImagenModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-generate-images-base64.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    await imagenModel.generateImages(prompt, singleRequestOptions);
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: requestOptions.timeout,
+          signal: singleRequestOptions.signal
+        }
+      },
+      match.any
+    );
   });
   it('throws if prompt blocked', async () => {
     const mockResponse = getMockResponse(
@@ -163,8 +234,76 @@ describe('ImagenModel', () => {
       expect((e as AIError).message).to.include(
         "Image generation failed with the following error: The prompt could not be submitted. This prompt contains sensitive words that violate Google's Responsible AI practices. Try rephrasing the prompt. If you think this was an error, send feedback."
       );
-    } finally {
-      restore();
     }
+  });
+  it('generateImagesGCS singleRequestOptions overrides requestOptions', async () => {
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const imagenModel = new ImagenModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-generate-images-gcs.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    await imagenModel.generateImagesGCS(prompt, '', singleRequestOptions);
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: singleRequestOptions.timeout
+        }
+      },
+      match.any
+    );
+  });
+  it('generateImages singleRequestOptions is merged with requestOptions', async () => {
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
+    const imagenModel = new ImagenModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-generate-images-gcs.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const prompt = 'A photorealistic image of a toy boat at sea.';
+    await imagenModel.generateImagesGCS(prompt, '', singleRequestOptions);
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: match.any,
+        task: request.Task.PREDICT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {
+          timeout: requestOptions.timeout,
+          signal: singleRequestOptions.signal
+        }
+      },
+      match.any
+    );
   });
 });

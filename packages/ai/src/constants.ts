@@ -32,7 +32,7 @@ export const PACKAGE_VERSION = version;
 
 export const LANGUAGE_TAG = 'gl-js';
 
-export const DEFAULT_FETCH_TIMEOUT_MS = 180 * 1000;
+export const DEFAULT_FETCH_TIMEOUT_MS = 180 * 1000; // TODO: Extend default timeout to accommodate for longer generation requests with pro models.
 
 /**
  * Defines the name of the default in-cloud model to use for hybrid inference.

@@ -83,7 +83,7 @@ describe('TemplateImagenModel', () => {
           templateId: TEMPLATE_ID,
           apiSettings: model._apiSettings,
           stream: false,
-          requestOptions: { timeout: 5000 }
+          singleRequestOptions: { timeout: 5000 }
         },
         JSON.stringify({ inputs: TEMPLATE_VARS })
       );

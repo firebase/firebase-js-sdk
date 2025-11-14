@@ -68,7 +68,7 @@ export class TemplateGenerativeModel {
       this._apiSettings,
       templateId,
       { inputs: templateVariables },
-      this.requestOptions
+      this.requestOptions // TODO: Add singleRequestOptions parameter and merge both request options here.
     );
   }
 
@@ -92,7 +92,7 @@ export class TemplateGenerativeModel {
       this._apiSettings,
       templateId,
       { inputs: templateVariables },
-      this.requestOptions
+      this.requestOptions // TODO: Add singleRequestOptions parameter and merge both request options here.
     );
   }
 }

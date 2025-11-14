@@ -115,7 +115,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -141,7 +141,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -179,7 +179,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -209,7 +209,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -259,7 +259,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -356,7 +356,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -381,7 +381,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -406,7 +406,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -447,7 +447,7 @@ describe('generateContent()', () => {
         task: Task.GENERATE_CONTENT,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions: undefined
+        singleRequestOptions: undefined
       },
       JSON.stringify(fakeRequestParams)
     );
@@ -542,7 +542,7 @@ describe('generateContent()', () => {
           task: Task.GENERATE_CONTENT,
           apiSettings: fakeGoogleAIApiSettings,
           stream: false,
-          requestOptions: match.any
+          singleRequestOptions: match.any
         },
         JSON.stringify(mapGenerateContentRequest(fakeGoogleAIRequestParams))
       );
@@ -585,13 +585,13 @@ describe('templateGenerateContent', () => {
     );
     const templateId = 'my-template';
     const templateParams = { name: 'world' };
-    const requestOptions = { timeout: 5000 };
+    const singleRequestOptions = { timeout: 5000 };
 
     const result = await templateGenerateContent(
       fakeApiSettings,
       templateId,
       templateParams,
-      requestOptions
+      singleRequestOptions
     );
 
     expect(makeRequestStub).to.have.been.calledOnceWith(
@@ -600,7 +600,7 @@ describe('templateGenerateContent', () => {
         templateId,
         apiSettings: fakeApiSettings,
         stream: false,
-        requestOptions
+        singleRequestOptions
       },
       JSON.stringify(templateParams)
     );
@@ -622,13 +622,13 @@ describe('templateGenerateContentStream', () => {
     );
     const templateId = 'my-stream-template';
     const templateParams = { name: 'streaming world' };
-    const requestOptions = { timeout: 10000 };
+    const singleRequestOptions = { timeout: 10000 };
 
     const result = await templateGenerateContentStream(
       fakeApiSettings,
       templateId,
       templateParams,
-      requestOptions
+      singleRequestOptions
     );
 
     expect(makeRequestStub).to.have.been.calledOnceWith(
@@ -637,7 +637,7 @@ describe('templateGenerateContentStream', () => {
         templateId,
         apiSettings: fakeApiSettings,
         stream: true,
-        requestOptions
+        singleRequestOptions
       },
       JSON.stringify(templateParams)
     );
