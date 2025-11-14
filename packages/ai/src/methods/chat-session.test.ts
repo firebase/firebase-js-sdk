@@ -249,10 +249,10 @@ describe('ChatSession', () => {
       expect(consoleStub).to.not.have.been.called;
     });
     it('singleRequestOptions overrides requestOptions', async () => {
-      const generateContentStub = stub(
+      const generateContentStreamStub = stub(
         generateContentMethods,
-        'generateContent'
-      ).rejects('generateContent failed'); // not important
+        'generateContentStream'
+      ).rejects('generateContentStream failed'); // not important
       const requestOptions = {
         timeout: 1000
       };
@@ -266,9 +266,9 @@ describe('ChatSession', () => {
         undefined,
         requestOptions
       );
-      await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
+      await expect(chatSession.sendMessageStream('hello', singleRequestOptions)).to.be
         .rejected;
-      expect(generateContentStub).to.be.calledWith(
+      expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
         match.any,
@@ -279,10 +279,10 @@ describe('ChatSession', () => {
       );
     });
     it('singleRequestOptions is merged with requestOptions', async () => {
-      const generateContentStub = stub(
+      const generateContentStreamStub = stub(
         generateContentMethods,
-        'generateContent'
-      ).rejects('generateContent failed'); // not important
+        'generateContentStream'
+      ).rejects('generateContentStream failed'); // not important
       const abortController = new AbortController();
       const requestOptions = {
         timeout: 1000
@@ -297,9 +297,9 @@ describe('ChatSession', () => {
         undefined,
         requestOptions
       );
-      await expect(chatSession.sendMessage('hello', singleRequestOptions)).to.be
+      await expect(chatSession.sendMessageStream('hello', singleRequestOptions)).to.be
         .rejected;
-      expect(generateContentStub).to.be.calledWith(
+      expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
         match.any,
