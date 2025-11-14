@@ -25,10 +25,25 @@ export interface LiveServerContent
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [inputTranscription](./ai.liveservercontent.md#liveservercontentinputtranscription) | [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of the audio that was input to the model. |
 |  [interrupted](./ai.liveservercontent.md#liveservercontentinterrupted) | boolean | <b><i>(Public Preview)</i></b> Indicates whether the model was interrupted by the client. An interruption occurs when the client sends a message before the model finishes it's turn. This is <code>undefined</code> if the model was not interrupted. |
 |  [modelTurn](./ai.liveservercontent.md#liveservercontentmodelturn) | [Content](./ai.content.md#content_interface) | <b><i>(Public Preview)</i></b> The content that the model has generated as part of the current conversation with the user. |
+|  [outputTranscription](./ai.liveservercontent.md#liveservercontentoutputtranscription) | [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of the audio output from the model. |
 |  [turnComplete](./ai.liveservercontent.md#liveservercontentturncomplete) | boolean | <b><i>(Public Preview)</i></b> Indicates whether the turn is complete. This is <code>undefined</code> if the turn is not complete. |
 |  [type](./ai.liveservercontent.md#liveservercontenttype) | 'serverContent' | <b><i>(Public Preview)</i></b> |
+
+## LiveServerContent.inputTranscription
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Transcription of the audio that was input to the model.
+
+<b>Signature:</b>
+
+```typescript
+inputTranscription?: Transcription;
+```
 
 ## LiveServerContent.interrupted
 
@@ -54,6 +69,19 @@ The content that the model has generated as part of the current conversation wit
 
 ```typescript
 modelTurn?: Content;
+```
+
+## LiveServerContent.outputTranscription
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Transcription of the audio output from the model.
+
+<b>Signature:</b>
+
+```typescript
+outputTranscription?: Transcription;
 ```
 
 ## LiveServerContent.turnComplete

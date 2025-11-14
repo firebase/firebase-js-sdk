@@ -1,5 +1,26 @@
 # @firebase/ai
 
+## 2.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
+## 2.5.0
+
+### Minor Changes
+
+- [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b) [#9291](https://github.com/firebase/firebase-js-sdk/pull/9291) - Deprecate `sendMediaChunks()` and `sendMediaStream()`. Instead, use the new methods added to the `LiveSession` class.
+  Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class.
+
+- [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd) [#9330](https://github.com/firebase/firebase-js-sdk/pull/9330) - Add support for audio transcriptions in the Live API.
+
+- [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e) [#9315](https://github.com/firebase/firebase-js-sdk/pull/9315) - Add `inferenceSource` to the response from `generateContent` and `generateContentStream`. This property indicates whether on-device or in-cloud inference was used to generate the result.
+
+### Patch Changes
+
+- [`44d9891`](https://github.com/firebase/firebase-js-sdk/commit/44d9891f93298ab4bcef5170c40c235831af0276) [#9314](https://github.com/firebase/firebase-js-sdk/pull/9314) - Fix logic for merging default `onDeviceParams` with user-provided `onDeviceParams`.
+
 ## 2.4.0
 
 ### Minor Changes

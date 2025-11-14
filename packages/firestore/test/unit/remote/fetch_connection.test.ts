@@ -43,6 +43,7 @@ describe('Fetch Connection', () => {
         DatabaseId.empty(),
         '',
         '',
+        '',
         new FirestoreSettingsImpl({
           host: 'abc.cloudworkstations.dev'
         })

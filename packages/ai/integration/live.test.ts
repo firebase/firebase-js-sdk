@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import {
-  BackendType,
   getLiveGenerativeModel,
   LiveGenerationConfig,
   LiveServerContent,
@@ -81,9 +80,6 @@ describe('Live', function () {
   };
 
   liveTestConfigs.forEach(testConfig => {
-    if (testConfig.ai.backend.backendType === BackendType.VERTEX_AI) {
-      return;
-    }
     describe(`${testConfig.toString()}`, () => {
       describe('Live', () => {
         it('should connect, send a message, receive a response, and close', async () => {
@@ -151,6 +147,45 @@ describe('Live', function () {
 
           // Should resolve without timing out
           await consumptionPromise;
+        });
+      });
+
+      describe('sendTextRealtime()', () => {
+        it('should send a single text chunk and receive a response', async () => {
+          const model = getLiveGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: textLiveGenerationConfig
+          });
+          const session = await model.connect();
+          const responsePromise = nextTurnText(session.receive());
+
+          await session.sendTextRealtime('Are you an AI? Yes or No.');
+
+          const responseText = await responsePromise;
+          expect(responseText).to.include('Yes');
+
+          await session.close();
+        });
+      });
+
+      describe('sendAudioRealtime()', () => {
+        it('should send a single audio chunk and receive a response', async () => {
+          const model = getLiveGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: textLiveGenerationConfig
+          });
+          const session = await model.connect();
+          const responsePromise = nextTurnText(session.receive());
+
+          await session.sendAudioRealtime({
+            data: HELLO_AUDIO_PCM_BASE64, // "Hey, can you hear me?"
+            mimeType: 'audio/pcm'
+          });
+
+          const responseText = await responsePromise;
+          expect(responseText).to.include('Yes');
+
+          await session.close();
         });
       });
 
@@ -226,6 +261,56 @@ describe('Live', function () {
           await session.sendMediaStream(testStream);
           const responseText = await responsePromise;
           expect(responseText).to.include('Yes');
+
+          await session.close();
+        });
+      });
+
+      describe('Transcripts', async () => {
+        it('should receive transcript of audio input', async () => {
+          const model = getLiveGenerativeModel(testConfig.ai, {
+            model: testConfig.model,
+            generationConfig: {
+              responseModalities: [ResponseModality.AUDIO],
+              inputAudioTranscription: {},
+              outputAudioTranscription: {}
+            }
+          });
+          const session = await model.connect();
+          const stream = session.receive();
+
+          await session.sendAudioRealtime({
+            data: HELLO_AUDIO_PCM_BASE64,
+            mimeType: 'audio/pcm'
+          });
+
+          let aggregatedInputTranscription = '';
+          let aggregatedOutputTranscription = '';
+          let result = await stream.next();
+          while (!result.done) {
+            const chunk = result.value as
+              | LiveServerContent
+              | LiveServerToolCall
+              | LiveServerToolCallCancellation;
+            if (chunk.type === 'serverContent') {
+              if (chunk.turnComplete) {
+                break;
+              }
+
+              if (chunk.inputTranscription) {
+                aggregatedInputTranscription += chunk.inputTranscription?.text;
+              }
+              if (chunk.outputTranscription) {
+                aggregatedOutputTranscription +=
+                  chunk.outputTranscription?.text;
+              }
+            }
+
+            result = await stream.next();
+          }
+
+          expect(aggregatedInputTranscription).to.not.be.empty;
+          expect(aggregatedOutputTranscription).to.not.be.empty;
 
           await session.close();
         });

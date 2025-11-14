@@ -7,6 +7,12 @@
 import { FirebaseApp } from '@firebase/app';
 
 // @beta
+export function abs(expr: Expression): FunctionExpression;
+
+// @beta
+export function abs(fieldName: string): FunctionExpression;
+
+// @beta
 export function add(first: Expression, second: Expression | unknown): FunctionExpression;
 
 // @beta
@@ -102,10 +108,28 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayGet(arrayField: string, offset: number): FunctionExpression;
+
+// @beta
+export function arrayGet(arrayField: string, offsetExpr: Expression): FunctionExpression;
+
+// @beta
+export function arrayGet(arrayExpression: Expression, offset: number): FunctionExpression;
+
+// @beta
+export function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
+
+// @beta
 export function arrayLength(fieldName: string): FunctionExpression;
 
 // @beta
 export function arrayLength(array: Expression): FunctionExpression;
+
+// @beta
+export function arraySum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arraySum(expression: Expression): FunctionExpression;
 
 // @beta
 export function ascending(expr: Expression): Ordering;
@@ -136,6 +160,12 @@ export function byteLength(expr: Expression): FunctionExpression;
 export function byteLength(fieldName: string): FunctionExpression;
 
 // @beta
+export function ceil(fieldName: string): FunctionExpression;
+
+// @beta
+export function ceil(expression: Expression): FunctionExpression;
+
+// @beta
 export function charLength(fieldName: string): FunctionExpression;
 
 // @beta
@@ -147,6 +177,12 @@ export type CollectionGroupStageOptions = StageOptions & {
     forceIndex?: string;
 };
 
+// @beta
+export function collectionId(fieldName: string): FunctionExpression;
+
+// @beta
+export function collectionId(expression: Expression): FunctionExpression;
+
 // @public
 export type CollectionStageOptions = StageOptions & {
     collection: string | Query;
@@ -154,61 +190,52 @@ export type CollectionStageOptions = StageOptions & {
 };
 
 // @beta
+export function concat(first: Expression, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+
+// @beta
+export function concat(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+
+// @beta
 export function conditional(condition: BooleanExpression, thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
+// @beta
 export function constant(value: number): Expression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
+// @beta
 export function constant(value: string): Expression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function constant(value: boolean): BooleanExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
+// @beta
 export function constant(value: null): Expression;
 
 // Warning: (ae-forgotten-export) The symbol "GeoPoint" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
-// @public
+// @beta
 export function constant(value: GeoPoint): Expression;
 
 // Warning: (ae-forgotten-export) The symbol "Timestamp" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
-// @public
+// @beta
 export function constant(value: Timestamp): Expression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
+// @beta
 export function constant(value: Date): Expression;
 
 // Warning: (ae-forgotten-export) The symbol "Bytes" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
-// @public
+// @beta
 export function constant(value: Bytes): Expression;
 
 // Warning: (ae-forgotten-export) The symbol "DocumentReference" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
-// @public
+// @beta
 export function constant(value: DocumentReference): Expression;
 
 // Warning: (ae-forgotten-export) The symbol "VectorValue" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "constant" is marked as @public, but its signature references "Expression" which is marked as @beta
 //
-// @public
+// @beta
 export function constant(value: VectorValue): Expression;
 
 // @beta
@@ -226,16 +253,20 @@ export function cosineDistance(vectorExpression: Expression, otherVectorExpressi
 // @beta
 export function count(expression: Expression): AggregateFunction;
 
-// Warning: (ae-incompatible-release-tags) The symbol "count" is marked as @public, but its signature references "AggregateFunction" which is marked as @beta
-//
-// @public
+// @beta
 export function count(fieldName: string): AggregateFunction;
 
 // @beta
 export function countAll(): AggregateFunction;
 
 // @beta
+export function countDistinct(expr: Expression | string): AggregateFunction;
+
+// @beta
 export function countIf(booleanExpr: BooleanExpression): AggregateFunction;
+
+// @beta
+export function currentTimestamp(): FunctionExpression;
 
 // @public
 export type DatabaseStageOptions = StageOptions & {};
@@ -334,9 +365,7 @@ export function euclideanDistance(vectorExpression: Expression, vector: number[]
 // @beta
 export function euclideanDistance(vectorExpression: Expression, otherVectorExpression: Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-//
-// @public
+// @beta
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 
 // @beta
@@ -344,6 +373,12 @@ export function exists(value: Expression): BooleanExpression;
 
 // @beta
 export function exists(fieldName: string): BooleanExpression;
+
+// @beta
+export function exp(expression: Expression): FunctionExpression;
+
+// @beta
+export function exp(fieldName: string): FunctionExpression;
 
 // @beta
 export abstract class Expression {
@@ -456,14 +491,6 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     isError(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
-    isNan(): BooleanExpression;
-    /* Excluded from this release type: _readUserData */
-    isNotNan(): BooleanExpression;
-    /* Excluded from this release type: _readUserData */
-    isNotNull(): BooleanExpression;
-    /* Excluded from this release type: _readUserData */
-    isNull(): BooleanExpression;
-    /* Excluded from this release type: _readUserData */
     join(delimiterExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
     join(delimiter: string): Expression;
@@ -536,6 +563,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    split(delimiter: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    split(delimiter: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     sqrt(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     startsWith(prefix: string): BooleanExpression;
@@ -574,11 +605,17 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     timestampToUnixSeconds(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    timestampTruncate(granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampTruncate(granularity: Expression, timezone?: string | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     toLower(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     toUpper(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    trim(): FunctionExpression;
+    trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    type(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     unixMicrosToTimestamp(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -606,9 +643,7 @@ export class Field extends Expression implements Selectable {
     selectable: true;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
-//
-// @public
+// @beta
 export function field(name: string): Field;
 
 // Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
@@ -625,6 +660,12 @@ export type FindNearestStageOptions = StageOptions & {
     limit?: number;
     distanceField?: string;
 };
+
+// @beta
+export function floor(expr: Expression): FunctionExpression;
+
+// @beta
+export function floor(fieldName: string): FunctionExpression;
 
 // @beta
 export class FunctionExpression extends Expression {
@@ -659,6 +700,18 @@ export function greaterThanOrEqual(fieldName: string, value: Expression): Boolea
 export function greaterThanOrEqual(fieldName: string, value: unknown): BooleanExpression;
 
 // @beta
+export function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
+
+// @beta
+export function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
+
+// @beta
+export function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
+
+// @beta
+export function ifAbsent(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
+
+// @beta
 export function ifError(tryExpr: BooleanExpression, catchExpr: BooleanExpression): BooleanExpression;
 
 // @beta
@@ -677,28 +730,24 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @beta
-export function isNan(value: Expression): BooleanExpression;
+export function join(arrayFieldName: string, delimiter: string): Expression;
 
 // @beta
-export function isNan(fieldName: string): BooleanExpression;
+export function join(arrayExpression: Expression, delimiterExpression: Expression): Expression;
 
 // @beta
-export function isNotNan(value: Expression): BooleanExpression;
+export function join(arrayExpression: Expression, delimiter: string): Expression;
 
 // @beta
-export function isNotNan(value: string): BooleanExpression;
+export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
 
 // @beta
-export function isNotNull(value: Expression): BooleanExpression;
+function length_2(fieldName: string): FunctionExpression;
 
 // @beta
-export function isNotNull(value: string): BooleanExpression;
+function length_2(expression: Expression): FunctionExpression;
 
-// @beta
-export function isNull(value: Expression): BooleanExpression;
-
-// @beta
-export function isNull(value: string): BooleanExpression;
+export { length_2 as length }
 
 // @beta
 export function lessThan(left: Expression, right: Expression): BooleanExpression;
@@ -718,10 +767,7 @@ export function lessThanOrEqual(left: Expression, right: Expression): BooleanExp
 // @beta
 export function lessThanOrEqual(expression: Expression, value: unknown): BooleanExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "lessThanOrEqual" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "lessThanOrEqual" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function lessThanOrEqual(fieldName: string, expression: Expression): BooleanExpression;
 
 // @beta
@@ -743,6 +789,30 @@ export function like(stringExpression: Expression, pattern: Expression): Boolean
 export type LimitStageOptions = StageOptions & {
     limit: number;
 };
+
+// @beta
+export function ln(fieldName: string): FunctionExpression;
+
+// @beta
+export function ln(expression: Expression): FunctionExpression;
+
+// @beta
+export function log(expression: Expression, base: number): FunctionExpression;
+
+// @beta
+export function log(expression: Expression, base: Expression): FunctionExpression;
+
+// @beta
+export function log(fieldName: string, base: number): FunctionExpression;
+
+// @beta
+export function log(fieldName: string, base: Expression): FunctionExpression;
+
+// @beta
+export function log10(fieldName: string): FunctionExpression;
+
+// @beta
+export function log10(expression: Expression): FunctionExpression;
 
 // @beta
 export function logicalMaximum(first: Expression, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
@@ -943,13 +1013,10 @@ export class PipelineResult<AppModelType = DocumentData> {
     get updateTime(): Timestamp | undefined;
 }
 
-// @public (undocumented)
+// @beta
 export class PipelineSnapshot {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
     constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Timestamp);
     get executionTime(): Timestamp;
-    // Warning: (ae-incompatible-release-tags) The symbol "results" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
     get results(): PipelineResult[];
 }
 
@@ -965,6 +1032,18 @@ export class PipelineSource<PipelineType> {
     documents(docs: Array<string | DocumentReference>): PipelineType;
     documents(options: DocumentsStageOptions): PipelineType;
     }
+
+// @beta
+export function pow(base: Expression, exponent: Expression): FunctionExpression;
+
+// @beta
+export function pow(base: Expression, exponent: number): FunctionExpression;
+
+// @beta
+export function pow(base: string, exponent: Expression): FunctionExpression;
+
+// @beta
+export function pow(base: string, exponent: number): FunctionExpression;
 
 // @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
@@ -1006,6 +1085,18 @@ export function reverse(stringExpression: Expression): FunctionExpression;
 // @beta
 export function reverse(field: string): FunctionExpression;
 
+// @beta
+export function round(fieldName: string): FunctionExpression;
+
+// @beta
+export function round(expression: Expression): FunctionExpression;
+
+// @beta
+export function round(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
 // @public
 export type SampleStageOptions = StageOptions & OneOf<{
     percentage: number;
@@ -1027,6 +1118,24 @@ export type SelectStageOptions = StageOptions & {
 export type SortStageOptions = StageOptions & {
     orderings: Ordering[];
 };
+
+// @beta
+export function split(fieldName: string, delimiter: string): FunctionExpression;
+
+// @beta
+export function split(fieldName: string, delimiter: Expression): FunctionExpression;
+
+// @beta
+export function split(expression: Expression, delimiter: string): FunctionExpression;
+
+// @beta
+export function split(expression: Expression, delimiter: Expression): FunctionExpression;
+
+// @beta
+export function sqrt(expression: Expression): FunctionExpression;
+
+// @beta
+export function sqrt(fieldName: string): FunctionExpression;
 
 // @public
 export interface StageOptions {
@@ -1066,6 +1175,12 @@ export function stringContains(stringExpression: Expression, substring: string):
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
 
 // @beta
+export function stringReverse(stringExpression: Expression): FunctionExpression;
+
+// @beta
+export function stringReverse(field: string): FunctionExpression;
+
+// @beta
 export function substring(field: string, position: number, length?: number): FunctionExpression;
 
 // @beta
@@ -1088,6 +1203,15 @@ export function subtract(fieldName: string, expression: Expression): FunctionExp
 
 // @beta
 export function subtract(fieldName: string, value: unknown): FunctionExpression;
+
+// @beta
+export function sum(expression: Expression): AggregateFunction;
+
+// @beta
+export function sum(fieldName: string): AggregateFunction;
+
+// @public (undocumented)
+export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
 
 // @beta
 export function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
@@ -1125,6 +1249,30 @@ export function timestampToUnixSeconds(expr: Expression): FunctionExpression;
 // @beta
 export function timestampToUnixSeconds(fieldName: string): FunctionExpression;
 
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public
+export function timestampTruncate(fieldName: string, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public
+export function timestampTruncate(fieldName: string, granularity: Expression, timezone?: string | Expression): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public
+export function timestampTruncate(timestampExpression: Expression, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public
+export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
+
 // @beta
 export function toLower(fieldName: string): FunctionExpression;
 
@@ -1138,10 +1286,16 @@ export function toUpper(fieldName: string): FunctionExpression;
 export function toUpper(stringExpression: Expression): FunctionExpression;
 
 // @beta
-export function trim(fieldName: string): FunctionExpression;
+export function trim(fieldName: string, valueToTrim?: string | Expression): FunctionExpression;
 
 // @beta
-export function trim(stringExpression: Expression): FunctionExpression;
+export function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
+
+// @beta
+export function type(fieldName: string): FunctionExpression;
+
+// @beta
+export function type(expression: Expression): FunctionExpression;
 
 // @public
 export type UnionStageOptions = StageOptions & {
@@ -1189,19 +1343,19 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:55:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:92:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:97:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:606:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:862:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:2871:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5095:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5105:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5175:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5185:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5734:5 - (ae-incompatible-release-tags) The symbol "other" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5834:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5876:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:71:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:110:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:115:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:772:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1090:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:3254:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5774:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5784:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5908:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5918:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6715:5 - (ae-incompatible-release-tags) The symbol "other" is marked as @public, but its signature references "Pipeline" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6815:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6857:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

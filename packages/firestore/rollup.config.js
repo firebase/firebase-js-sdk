@@ -26,6 +26,7 @@ import tmp from 'tmp';
 import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module';
 
 import pkg from './package.json';
 import tsconfig from './tsconfig.json';
@@ -214,7 +215,7 @@ const allBuilds = [
     }
   },
   {
-    input: 'dist/firestore/src/index.d.ts',
+    input: 'dist/firestore/src/global.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
       format: 'es'
@@ -222,7 +223,17 @@ const allBuilds = [
     plugins: [
       dts({
         respectExternal: true
-      })
+      }),
+
+      // The global.d.ts input file will include
+      // a `declare module './database' { ... }` block. This block
+      // was not removed in the build, and the module
+      // './database' is not known in context of the global.d.ts file.
+      // Use the declareModuleReplacePlugin to replace:
+      // `declare module './database' { Y }`
+      // with the contents of the block:
+      // `Y`
+      replaceDeclareModule('global_index.d.ts', './database')
     ]
   }
 ];

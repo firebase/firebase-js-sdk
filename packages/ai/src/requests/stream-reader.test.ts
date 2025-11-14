@@ -34,7 +34,8 @@ import {
   HarmCategory,
   HarmProbability,
   SafetyRating,
-  AIErrorCode
+  AIErrorCode,
+  InferenceSource
 } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
@@ -61,6 +62,7 @@ describe('getResponseStream', () => {
         .map(v => JSON.stringify(v))
         .map(v => 'data: ' + v + '\r\n\r\n')
         .join('')
+      // @ts-ignore
     ).pipeThrough(new TextDecoderStream('utf8', { fatal: true }));
     const responseStream = getResponseStream<{ text: string }>(inputStream);
     const reader = responseStream.getReader();
@@ -88,9 +90,33 @@ describe('processStream', () => {
     const result = processStream(fakeResponse as Response, fakeApiSettings);
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
+      expect(response.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
     }
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cheyenne');
+    expect(aggregatedResponse.inferenceSource).to.equal(
+      InferenceSource.IN_CLOUD
+    );
+  });
+  it('streaming response - short - on-device', async () => {
+    const fakeResponse = getMockResponseStreaming(
+      'vertexAI',
+      'streaming-success-basic-reply-short.txt'
+    );
+    const result = processStream(
+      fakeResponse as Response,
+      fakeApiSettings,
+      InferenceSource.ON_DEVICE
+    );
+    for await (const response of result.stream) {
+      expect(response.text()).to.not.be.empty;
+      expect(response.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
+    }
+    const aggregatedResponse = await result.response;
+    expect(aggregatedResponse.text()).to.include('Cheyenne');
+    expect(aggregatedResponse.inferenceSource).to.equal(
+      InferenceSource.ON_DEVICE
+    );
   });
   it('streaming response - long', async () => {
     const fakeResponse = getMockResponseStreaming(

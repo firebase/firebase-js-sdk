@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { it } from '../../util/mocha_extensions';
 import {
   collection,
   collectionGroup,
@@ -42,7 +43,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
@@ -150,7 +150,7 @@ apiDescribe('Count queries', persistence => {
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it.skipEnterprise.skipEmulator(
     'getCountFromServer error message contains console link if missing index',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
@@ -362,7 +362,7 @@ apiDescribe('Aggregation queries', persistence => {
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it.skipEmulator.skipEnterprise(
     'getAggregateFromServer error message contains console link good if missing index',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
@@ -480,26 +480,29 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
     });
   });
 
-  it('fails when exceeding the max (5) aggregations using getAggregationFromServer', () => {
-    const testDocs = {
-      a: { author: 'authorA', title: 'titleA', pages: 100 },
-      b: { author: 'authorB', title: 'titleB', pages: 50 }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const promise = getAggregateFromServer(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        count: count(),
-        totalPagesX: sum('pages'),
-        averagePagesY: average('pages'),
-        countZ: count()
-      });
+  it.skipEnterprise(
+    'fails when exceeding the max (5) aggregations using getAggregationFromServer',
+    () => {
+      const testDocs = {
+        a: { author: 'authorA', title: 'titleA', pages: 100 },
+        b: { author: 'authorB', title: 'titleB', pages: 50 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        const promise = getAggregateFromServer(coll, {
+          totalPages: sum('pages'),
+          averagePages: average('pages'),
+          count: count(),
+          totalPagesX: sum('pages'),
+          averagePagesY: average('pages'),
+          countZ: count()
+        });
 
-      await expect(promise).to.eventually.be.rejectedWith(
-        /maximum number of aggregations/
-      );
-    });
-  });
+        await expect(promise).to.eventually.be.rejectedWith(
+          /maximum number of aggregations/
+        );
+      });
+    }
+  );
 
   it('returns undefined when getting the result of an unrequested aggregation', () => {
     const testDocs = {
@@ -940,47 +943,50 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
     });
   });
 
-  it('performs sum over a result set of zero documents using getAggregationFromServer', () => {
-    const testDocs = {
-      a: {
-        author: 'authorA',
-        title: 'titleA',
-        pages: 100,
-        year: 1980,
-        rating: 5
-      },
-      b: {
-        author: 'authorB',
-        title: 'titleB',
-        pages: 50,
-        year: 2020,
-        rating: 4
-      },
-      c: {
-        author: 'authorC',
-        title: 'titleC',
-        pages: 100,
-        year: 1980,
-        rating: 3
-      },
-      d: {
-        author: 'authorD',
-        title: 'titleD',
-        pages: 50,
-        year: 2020,
-        rating: 0
-      }
-    };
-    return withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await getAggregateFromServer(
-        query(coll, where('pages', '>', 200)),
-        {
-          totalPages: sum('pages')
+  it.skipEnterprise(
+    'performs sum over a result set of zero documents using getAggregationFromServer',
+    () => {
+      const testDocs = {
+        a: {
+          author: 'authorA',
+          title: 'titleA',
+          pages: 100,
+          year: 1980,
+          rating: 5
+        },
+        b: {
+          author: 'authorB',
+          title: 'titleB',
+          pages: 50,
+          year: 2020,
+          rating: 4
+        },
+        c: {
+          author: 'authorC',
+          title: 'titleC',
+          pages: 100,
+          year: 1980,
+          rating: 3
+        },
+        d: {
+          author: 'authorD',
+          title: 'titleD',
+          pages: 50,
+          year: 2020,
+          rating: 0
         }
-      );
-      expect(snapshot.data().totalPages).to.equal(0);
-    });
-  });
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        const snapshot = await getAggregateFromServer(
+          query(coll, where('pages', '>', 200)),
+          {
+            totalPages: sum('pages')
+          }
+        );
+        expect(snapshot.data().totalPages).to.equal(0);
+      });
+    }
+  );
 
   it('performs sum only on numeric fields using getAggregationFromServer', () => {
     const testDocs = {

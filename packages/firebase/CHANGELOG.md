@@ -1,5 +1,41 @@
 # firebase
 
+## 12.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
+### Patch Changes
+
+- Updated dependencies [[`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd), [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d)]:
+  - @firebase/app@0.14.6
+  - @firebase/ai@2.6.0
+  - @firebase/data-connect@0.3.12
+  - @firebase/app-compat@0.5.6
+
+## 12.5.0
+
+### Minor Changes
+
+- [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b) [#9291](https://github.com/firebase/firebase-js-sdk/pull/9291) - Deprecate `sendMediaChunks()` and `sendMediaStream()`. Instead, use the new methods added to the `LiveSession` class.
+  Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class.
+
+- [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd) [#9330](https://github.com/firebase/firebase-js-sdk/pull/9330) - Add support for audio transcriptions in the Live API.
+
+- [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e) [#9315](https://github.com/firebase/firebase-js-sdk/pull/9315) - Add `inferenceSource` to the response from `generateContent` and `generateContentStream`. This property indicates whether on-device or in-cloud inference was used to generate the result.
+
+### Patch Changes
+
+- [`2615081`](https://github.com/firebase/firebase-js-sdk/commit/261508183c249dcec737448dde3aad7399f4668c) [#9297](https://github.com/firebase/firebase-js-sdk/pull/9297) (fixes [#9270](https://github.com/firebase/firebase-js-sdk/issues/9270)) - Export MISSING_PASSWORD via AuthErrorCodes in @firebase/auth.
+
+- Updated dependencies [[`91c218d`](https://github.com/firebase/firebase-js-sdk/commit/91c218db2d14cb4f1b978b9073510b8bc8f91233), [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b), [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd), [`2615081`](https://github.com/firebase/firebase-js-sdk/commit/261508183c249dcec737448dde3aad7399f4668c), [`44d9891`](https://github.com/firebase/firebase-js-sdk/commit/44d9891f93298ab4bcef5170c40c235831af0276), [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e)]:
+  - @firebase/auth@1.11.1
+  - @firebase/app@0.14.5
+  - @firebase/ai@2.5.0
+  - @firebase/auth-compat@0.6.1
+  - @firebase/app-compat@0.5.5
+
 ## 12.4.0
 
 ### Minor Changes
