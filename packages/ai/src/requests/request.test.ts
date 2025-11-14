@@ -304,7 +304,6 @@ describe('request methods', () => {
       expect(options).to.not.be.undefined;
       expect(options!.signal).to.not.be.undefined;
       const signal = options!.signal;
-      console.log(signal);
       return new Promise((_resolve, reject): void => {
         const abortListener = (): void => {
           reject(new DOMException(signal?.reason || 'Aborted', 'AbortError'));
