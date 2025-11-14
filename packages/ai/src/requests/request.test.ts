@@ -706,5 +706,124 @@ describe('request methods', () => {
       expect(fetchOptions.signal).to.be.instanceOf(AbortSignal);
       expect(fetchOptions.signal?.aborted).to.be.false;
     });
+
+    it('should remove abort listener on successful completion to prevent memory leaks', async () => {
+      const controller = new AbortController();
+      const addSpy = Sinon.spy(controller.signal, 'addEventListener');
+      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
+
+      const mockResponse = new Response('{}', {
+        status: 200,
+        statusText: 'OK'
+      });
+      fetchStub.resolves(mockResponse);
+
+      await makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      expect(addSpy).to.have.been.calledOnceWith('abort');
+      expect(removeSpy).to.have.been.calledOnceWith('abort');
+    });
+
+    it('should remove listener if fetch itself rejects', async () => {
+      const controller = new AbortController();
+      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
+      const error = new Error('Network failure');
+      fetchStub.rejects(error);
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      await expect(requestPromise).to.be.rejectedWith(AIError, /Network failure/);
+      expect(removeSpy).to.have.been.calledOnce;
+    });
+
+    it('should remove listener if response is not ok', async () => {
+      const controller = new AbortController();
+      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
+      const mockResponse = new Response('{}', {
+        status: 500,
+        statusText: 'Internal Server Error'
+      });
+      fetchStub.resolves(mockResponse);
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      await expect(requestPromise).to.be.rejectedWith(AIError, /500/);
+      expect(removeSpy).to.have.been.calledOnce;
+    });
+
+    it('should abort immediately if timeout is 0', async () => {
+      fetchStub.callsFake(fetchAborter);
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { timeout: 0 }
+        },
+        '{}'
+      );
+
+      // Tick the clock just enough to trigger a timeout(0)
+      await clock.tickAsync(1);
+
+      await expect(requestPromise).to.be.rejectedWith(
+        AIError,
+        /Timeout has expired/
+      );
+    });
+
+    it('should not error if signal is aborted after completion', async () => {
+      const controller = new AbortController();
+      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
+      const mockResponse = new Response('{}', {
+        status: 200,
+        statusText: 'OK'
+      });
+      fetchStub.resolves(mockResponse);
+
+      await makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      // Listener should be removed, so this abort should do nothing.
+      controller.abort('Too late');
+
+      expect(removeSpy).to.have.been.calledOnce;
+    });
   });
 });

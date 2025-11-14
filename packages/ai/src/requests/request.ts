@@ -195,6 +195,12 @@ export async function makeRequest(
     );
   }, timeoutMillis);
 
+  const externalAbortListener = (): void => {
+    logger.debug(`Aborting request to ${url} due to external abort signal.`);
+    // If this listener was invoked, an external signal was aborted, so externalSignal must be defined.
+    internalAbortController.abort(externalSignal!.reason);
+  };
+
   if (externalSignal) {
     if (externalSignal.aborted) {
       clearTimeout(fetchTimeoutId);
@@ -204,14 +210,7 @@ export async function makeRequest(
       );
     }
 
-    const externalAbortListener = (): void => {
-      logger.debug(`Aborting request to ${url} due to external abort signal.`);
-      internalAbortController.abort(externalSignal.reason);
-    };
-
-    externalSignal.addEventListener('abort', externalAbortListener, {
-      once: true
-    });
+    externalSignal.addEventListener('abort', externalAbortListener);
   }
 
   try {
@@ -292,8 +291,9 @@ export async function makeRequest(
 
     throw err;
   } finally {
-    if (fetchTimeoutId) {
-      clearTimeout(fetchTimeoutId);
+    clearTimeout(fetchTimeoutId);
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', externalAbortListener);
     }
   }
   return response;
