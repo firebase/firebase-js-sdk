@@ -750,7 +750,10 @@ describe('request methods', () => {
         '{}'
       );
 
-      await expect(requestPromise).to.be.rejectedWith(AIError, /Network failure/);
+      await expect(requestPromise).to.be.rejectedWith(
+        AIError,
+        /Network failure/
+      );
       expect(removeSpy).to.have.been.calledOnce;
     });
 

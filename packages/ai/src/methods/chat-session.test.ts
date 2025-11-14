@@ -266,8 +266,8 @@ describe('ChatSession', () => {
         undefined,
         requestOptions
       );
-      await expect(chatSession.sendMessageStream('hello', singleRequestOptions)).to.be
-        .rejected;
+      await expect(chatSession.sendMessageStream('hello', singleRequestOptions))
+        .to.be.rejected;
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
@@ -297,8 +297,8 @@ describe('ChatSession', () => {
         undefined,
         requestOptions
       );
-      await expect(chatSession.sendMessageStream('hello', singleRequestOptions)).to.be
-        .rejected;
+      await expect(chatSession.sendMessageStream('hello', singleRequestOptions))
+        .to.be.rejected;
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
