@@ -39,7 +39,7 @@ jobs:
       - name: Set up Node (22)
         uses: actions/setup-node@master
         with:
-          node-version: 22.10.0
+          node-version: 22.21.1
       - name: install Chrome stable
         run: |
           sudo apt-get update
