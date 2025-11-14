@@ -44,7 +44,7 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 
 const backends: readonly Backend[] = [
   new GoogleAIBackend(),
-  new VertexAIBackend()
+  new VertexAIBackend('global')
 ];
 
 const backendNames: Map<BackendType, string> = new Map([
@@ -57,7 +57,7 @@ const modelNames: readonly string[] = ['gemini-2.0-flash', 'gemini-2.5-flash'];
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
   [BackendType.GOOGLE_AI, ['gemini-live-2.5-flash-preview']],
-  [BackendType.VERTEX_AI, ['gemini-2.0-flash-exp']]
+  [BackendType.VERTEX_AI, ['gemini-2.0-flash-live-preview-04-09']]
 ]);
 
 /**
