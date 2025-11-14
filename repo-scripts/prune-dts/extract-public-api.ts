@@ -141,7 +141,8 @@ export async function generateApi(
   typescriptDtsPath: string,
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
-  publicDtsPath: string
+  publicDtsPath: string,
+  otherExportDtsPaths: string[]
 ): Promise<void> {
   console.log(`Configuring API Extractor for ${packageName}`);
   writeTypeScriptConfig(packageRoot);
@@ -160,7 +161,7 @@ export async function generateApi(
   });
 
   console.log('Generated rollup DTS');
-  pruneDts(rollupDtsPath, publicDtsPath);
+  pruneDts(rollupDtsPath, publicDtsPath, otherExportDtsPaths);
   console.log('Pruned DTS file');
   await addBlankLines(publicDtsPath);
   console.log('Added blank lines after imports');
@@ -221,6 +222,13 @@ const argv = yargs
         'The output file for the customer-facing .d.ts file that only ' +
         'includes the public APIs',
       require: true
+    },
+    otherExportsPublicDtsFiles: {
+      type: 'string',
+      desc:
+        'Optional. A comma-separated list of customer-facing of .d.ts' +
+        'files for other exports from this package.',
+      require: false
     }
   })
   .parseSync();
@@ -231,5 +239,10 @@ void generateApi(
   path.resolve(argv.typescriptDts),
   path.resolve(argv.rollupDts),
   path.resolve(argv.untrimmedRollupDts),
-  path.resolve(argv.publicDts)
+  path.resolve(argv.publicDts),
+  argv.otherExportsPublicDtsFiles
+    ? argv.otherExportsPublicDtsFiles
+        .split(',')
+        .map(filePath => path.resolve(filePath))
+    : []
 );

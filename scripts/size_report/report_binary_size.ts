@@ -57,7 +57,7 @@ function generateReportForCDNScripts(): Report[] {
     ...special_files.map((file: string) => `${firebaseRoot}/${file}`),
     ...pkgJson.components.map(
       (component: string) =>
-        `${firebaseRoot}/firebase-${component.replace('/', '-')}.js`
+        `${firebaseRoot}/firebase-${component.replaceAll('/', '-')}.js`
     ),
     ...compatPkgJson.components.map(
       (component: string) => `${firebaseRoot}/firebase-${component}-compat.js`

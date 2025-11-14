@@ -18,8 +18,8 @@
 import { expect } from 'chai';
 
 import { Query } from '../../../src/api/reference';
-import { ExpUserDataWriter } from '../../../src/api/reference_impl';
 import { QuerySnapshot } from '../../../src/api/snapshot';
+import { ExpUserDataWriter } from '../../../src/api/user_data_writer';
 import { Query as InternalQuery } from '../../../src/core/query';
 import { View } from '../../../src/core/view';
 import { documentKeySet } from '../../../src/model/collections';

@@ -19,6 +19,7 @@ import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { it } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -711,7 +712,7 @@ apiDescribe('Queries', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it.skipEmulator.skipEnterprise(
     'can catch error message for missing index with error handler',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
@@ -986,7 +987,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('can use IN filters', async () => {
+  it.skipEnterprise('can use IN filters', async () => {
     const testDocs = {
       a: { zip: 98101 },
       b: { zip: 91102 },
@@ -1145,7 +1146,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('can use array-contains-any filters', async () => {
+  it.skipEnterprise('can use array-contains-any filters', async () => {
     const testDocs = {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },

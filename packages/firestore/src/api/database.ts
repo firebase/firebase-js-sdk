@@ -302,6 +302,7 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._databaseId,
     firestore._app?.options.appId || '',
     firestore._persistenceKey,
+    firestore._app?.options.apiKey,
     settings
   );
   if (!firestore._componentsProvider) {

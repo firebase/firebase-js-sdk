@@ -70,6 +70,23 @@ if (typeof process === 'undefined') {
       )
     )
     .pipe(
+      replace(
+        /**
+         * This regex is designed to match the Firebase import in our
+         * integration tests.
+         */
+        /\s+from '\.(\.\/util)?\/pipeline_export';/,
+        ` from '${resolve(__dirname, './pipeline_export')}';
+        
+if (typeof process === 'undefined') {
+  process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
+} else {
+  process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
+}
+`
+      )
+    )
+    .pipe(
       /**
        * Fixing the project.json require to properly reference the file
        */
