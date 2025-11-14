@@ -167,7 +167,9 @@ describe('ImagenModel', () => {
         task: request.Task.PREDICT,
         apiSettings: match.any,
         stream: false,
-        singleRequestOptions
+        singleRequestOptions: {
+          timeout: singleRequestOptions.timeout
+        }
       },
       match.any
     );
