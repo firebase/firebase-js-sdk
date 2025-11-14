@@ -19,7 +19,7 @@
  * Returns a rollup plugin to replace any `declare module X { Y }` code blocks with `Y`.
  * This was developed to support the generation of `global_index.d.ts`
  * used for the Google3 import of `firebase/firestore`
- * 
+ *
  * @param fileName perform the replace in this file
  * @param moduleName search for and replace this module declaration
  */
@@ -82,7 +82,7 @@ function findDeclareModuleBlock(inputString, moduleName) {
 
   // Construct the RegExp object dynamically. It searches for:
   // 'declare module ' + single quote + escaped module name + single quote + space + '{'
-  const searchRegex = new RegExp(`declare module '${escapedModuleName}' \{`);
+  const searchRegex = new RegExp(`declare module '${escapedModuleName}' {`);
   const match = inputString.match(searchRegex);
 
   if (!match || match.index === undefined) {
