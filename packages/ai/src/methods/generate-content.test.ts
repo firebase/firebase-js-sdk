@@ -26,6 +26,7 @@ import {
 import * as request from '../requests/request';
 import {
   generateContent,
+  generateContentStream,
   templateGenerateContent,
   templateGenerateContentStream
 } from './generate-content';
@@ -35,6 +36,7 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  InferenceSource,
   Language,
   Outcome
 } from '../types';
@@ -548,8 +550,7 @@ describe('generateContent()', () => {
       );
     });
   });
-  // TODO: define a similar test for generateContentStream
-  it('on-device', async () => {
+  it('generateContent on-device', async () => {
     const chromeAdapter = fakeChromeAdapter;
     const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
     const mockResponse = getMockResponse(
@@ -566,8 +567,34 @@ describe('generateContent()', () => {
       chromeAdapter
     );
     expect(result.response.text()).to.include('Mountain View, California');
+    expect(result.response.inferenceSource).to.equal(InferenceSource.ON_DEVICE);
     expect(isAvailableStub).to.be.called;
     expect(generateContentStub).to.be.calledWith(fakeRequestParams);
+  });
+  it('generateContentStream on-device', async () => {
+    const chromeAdapter = fakeChromeAdapter;
+    const isAvailableStub = stub(chromeAdapter, 'isAvailable').resolves(true);
+    const mockResponse = getMockResponseStreaming(
+      'vertexAI',
+      'streaming-success-basic-reply-short.txt'
+    );
+    const generateContentStreamStub = stub(
+      chromeAdapter,
+      'generateContentStream'
+    ).resolves(mockResponse as Response);
+    const result = await generateContentStream(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams,
+      chromeAdapter
+    );
+    const aggregatedResponse = await result.response;
+    expect(aggregatedResponse.text()).to.include('Cheyenne');
+    expect(aggregatedResponse.inferenceSource).to.equal(
+      InferenceSource.ON_DEVICE
+    );
+    expect(isAvailableStub).to.be.called;
+    expect(generateContentStreamStub).to.be.calledWith(fakeRequestParams);
   });
 });
 
