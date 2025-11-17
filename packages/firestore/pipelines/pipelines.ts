@@ -47,7 +47,9 @@ export type {
   SnapshotMetadata,
   Bytes,
   SnapshotListenOptions,
-  Unsubscribe
+  Unsubscribe,
+  DocumentChangeType,
+  ListenSource
 } from '../src/api';
 
 export * from '../src/api_pipelines';

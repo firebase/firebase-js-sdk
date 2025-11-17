@@ -2581,14 +2581,14 @@ export class Field extends Expression implements Selectable {
    * @private
    */
   constructor(
-    readonly fieldPath: InternalFieldPath,
+    readonly _fieldPath: InternalFieldPath,
     readonly _methodName: string | undefined
   ) {
     super();
   }
 
   get fieldName(): string {
-    return this.fieldPath.canonicalString();
+    return this._fieldPath.canonicalString();
   }
 
   get alias(): string {
@@ -2605,7 +2605,7 @@ export class Field extends Expression implements Selectable {
    */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     return {
-      fieldReferenceValue: this.fieldPath.canonicalString()
+      fieldReferenceValue: this._fieldPath.canonicalString()
     };
   }
 

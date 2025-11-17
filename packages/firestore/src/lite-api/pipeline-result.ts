@@ -105,6 +105,9 @@ export class PipelineResult {
   private readonly _createTime: Timestamp | undefined;
   private readonly _updateTime: Timestamp | undefined;
 
+  readonly _metadata: SnapshotMetadata | undefined;
+  readonly _listenOptions: ListenOptions | undefined;
+
   /**
    * @internal
    * @private
@@ -128,6 +131,8 @@ export class PipelineResult {
    * this document.
    * @param createTime The time when the document was created if the result is a document, undefined otherwise.
    * @param updateTime The time when the document was last updated if the result is a document, undefined otherwise.
+   * @param metadata
+   * @param listenOptions
    */
   constructor(
     userDataWriter: AbstractUserDataWriter,
@@ -135,14 +140,16 @@ export class PipelineResult {
     fields?: ObjectValue,
     createTime?: Timestamp,
     updateTime?: Timestamp,
-    readonly metadata?: SnapshotMetadata,
-    readonly listenOptions?: ListenOptions
+    metadata?: SnapshotMetadata,
+    listenOptions?: ListenOptions
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
     this._createTime = createTime;
     this._updateTime = updateTime;
     this._fields = fields ?? ObjectValue.empty();
+    this._metadata = metadata;
+    this._listenOptions = listenOptions;
   }
 
   /**
@@ -234,7 +241,7 @@ export class PipelineResult {
   data(): DocumentData {
     return this._userDataWriter.convertValue(
       this._fields.value,
-      this.listenOptions?.serverTimestampBehavior
+      this._listenOptions?.serverTimestampBehavior
     ) as DocumentData;
   }
 
@@ -274,7 +281,7 @@ export class PipelineResult {
     if (value !== null) {
       return this._userDataWriter.convertValue(
         value,
-        this.listenOptions?.serverTimestampBehavior
+        this._listenOptions?.serverTimestampBehavior
       );
     }
   }

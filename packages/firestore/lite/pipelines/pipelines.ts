@@ -194,3 +194,5 @@ export {
   AggregateFunction,
   TimeGranularity
 } from '../../src/lite-api/expressions';
+
+export { Stage } from '../../src/lite-api/stage';

@@ -317,7 +317,7 @@ export class CoreField implements EvaluableExpr {
       });
     }
     // Return 'UNSET' if the field doesn't exist, otherwise the Value.
-    const result = input.data.field(this.expr.fieldPath);
+    const result = input.data.field(this.expr._fieldPath);
 
     function getServerTimestampValue(
       context: EvaluationContext,

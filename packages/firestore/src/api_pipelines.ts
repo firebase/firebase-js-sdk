@@ -25,9 +25,11 @@ export {
   pipelineResultEqual
 } from './lite-api/pipeline-result';
 
-export { RealtimePipelineSnapshot } from './api/snapshot';
+export { RealtimePipelineSnapshot, ResultChange } from './api/snapshot';
 
 export { Pipeline } from './api/pipeline';
+
+export { Stage } from './lite-api/stage';
 
 export { RealtimePipeline } from './api/realtime_pipeline';
 
@@ -35,6 +37,8 @@ export { RealtimePipeline } from './api/realtime_pipeline';
 // internally the name has to be onPipelineSnapshot to avoid
 // name collisions.
 import { onPipelineSnapshot as onSnapshot } from './api/reference_impl';
+
+export { PipelineListenOptions } from './api/reference_impl';
 
 export { execute } from './api/pipeline_impl';
 
