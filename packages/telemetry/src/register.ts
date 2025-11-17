@@ -43,9 +43,9 @@ export function registerTelemetry(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
-        const installationsProvider = container
-          .getProvider('installations-internal')
-          .getImmediate();
+        const installationsProvider = container.getProvider(
+          'installations-internal'
+        );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
         const dynamicLogAttributeProviders = [
           new InstallationIdProvider(installationsProvider)

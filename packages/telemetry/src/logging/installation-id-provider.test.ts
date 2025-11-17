@@ -29,7 +29,12 @@ describe('InstallationIdProvider', () => {
       }
     } as unknown as _FirebaseInstallationsInternal;
 
-    const provider = new InstallationIdProvider(mockInstallations);
+    const mockProvider = {
+      getImmediate: () => mockInstallations,
+      get: async () => mockInstallations
+    } as any;
+
+    const provider = new InstallationIdProvider(mockProvider);
 
     const attr1 = await provider.getAttribute();
     expect(attr1).to.deep.equal(['user.id', 'iid-123']);
@@ -50,7 +55,12 @@ describe('InstallationIdProvider', () => {
       }
     } as unknown as _FirebaseInstallationsInternal;
 
-    const provider = new InstallationIdProvider(mockInstallations);
+    const mockProvider = {
+      getImmediate: () => mockInstallations,
+      get: async () => mockInstallations
+    } as any;
+
+    const provider = new InstallationIdProvider(mockProvider);
 
     const attr1 = await provider.getAttribute();
     expect(attr1).to.be.null;

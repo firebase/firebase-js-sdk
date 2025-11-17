@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { Provider } from '@firebase/component';
 import { DynamicLogAttributeProvider, LogEntryAttribute } from '../types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
@@ -24,16 +25,30 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
  * @internal
  */
 export class InstallationIdProvider implements DynamicLogAttributeProvider {
+  private installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
 
-  constructor(private installationsProvider: _FirebaseInstallationsInternal) {}
+  constructor(installationsProvider: Provider<'installations-internal'>) {
+    this.installations = installationsProvider?.getImmediate({
+      optional: true
+    });
+    if (!this.installations) {
+      void installationsProvider
+        ?.get()
+        .then(installations => (this.installations = installations))
+        .catch();
+    }
+  }
 
   async getAttribute(): Promise<LogEntryAttribute | null> {
+    if (!this.installations) {
+      return null;
+    }
     if (this._iid) {
       return ['user.id', this._iid];
     }
 
-    const iid = await this.installationsProvider.getId();
+    const iid = await this.installations.getId();
     if (!iid) {
       return null;
     }
