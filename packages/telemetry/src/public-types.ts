@@ -46,4 +46,11 @@ export interface TelemetryOptions {
    * By default, data will be sent to Firebase.
    */
   endpointUrl?: string;
+
+  /**
+   * The version of the application. This should be a unique string that identifies the snapshot of
+   * code to be deployed, such as "1.0.2". If not specified, other default locations will be checked
+   * for an identifier. Setting a value here takes precedent over any other values.
+   */
+  appVersion?: string;
 }

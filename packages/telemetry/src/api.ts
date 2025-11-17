@@ -54,7 +54,13 @@ export function getTelemetry(
     TELEMETRY_TYPE
   );
   const identifier = options?.endpointUrl || '';
-  return telemetryProvider.getImmediate({ identifier });
+  const telemetry: TelemetryService = telemetryProvider.getImmediate({
+    identifier
+  });
+  if (options) {
+    telemetry.options = options;
+  }
+  return telemetry;
 }
 
 /**
@@ -72,20 +78,27 @@ export function captureError(
   attributes?: AnyValueMap
 ): void {
   const logger = telemetry.loggerProvider.getLogger('error-logger');
+  const customAttributes = attributes || {};
 
+  // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  const traceAttributes = {} as AnyValueMap;
   if (telemetry.app.options.projectId && activeSpanContext?.traceId) {
-    traceAttributes[
+    customAttributes[
       'logging.googleapis.com/trace'
     ] = `projects/${telemetry.app.options.projectId}/traces/${activeSpanContext.traceId}`;
     if (activeSpanContext?.spanId) {
-      traceAttributes['logging.googleapis.com/spanId'] =
+      customAttributes['logging.googleapis.com/spanId'] =
         activeSpanContext.spanId;
     }
   }
 
-  const customAttributes = attributes || {};
+  // Add app version metadata
+  let appVersion = 'unset';
+  // TODO: implement app version fallback logic
+  if ((telemetry as TelemetryService).options?.appVersion) {
+    appVersion = (telemetry as TelemetryService).options!.appVersion!;
+  }
+  customAttributes['app.version'] = appVersion;
 
   if (error instanceof Error) {
     logger.emit({
@@ -94,7 +107,6 @@ export function captureError(
       attributes: {
         'error.type': error.name || 'Error',
         'error.stack': error.stack || 'No stack trace available',
-        ...traceAttributes,
         ...customAttributes
       }
     });
@@ -102,19 +114,13 @@ export function captureError(
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
       body: error,
-      attributes: {
-        ...traceAttributes,
-        ...customAttributes
-      }
+      attributes: customAttributes
     });
   } else {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
       body: `Unknown error type: ${typeof error}`,
-      attributes: {
-        ...traceAttributes,
-        ...customAttributes
-      }
+      attributes: customAttributes
     });
   }
 }
