@@ -52,6 +52,13 @@ export function toInteger(value: number): ProtoValue {
  * The return value is an IntegerValue if it can safely represent the value,
  * otherwise a DoubleValue is returned.
  */
-export function toNumber(serializer: Serializer, value: number): ProtoValue {
+export function toNumber(
+  serializer: Serializer,
+  value: number,
+  options?: { preferIntegers: boolean }
+): ProtoValue {
+  if (Number.isInteger(value) && options?.preferIntegers) {
+    return toInteger(value);
+  }
   return isSafeInteger(value) ? toInteger(value) : toDouble(serializer, value);
 }

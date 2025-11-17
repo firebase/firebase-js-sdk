@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+import { RealtimePipeline } from '../api/realtime_pipeline';
+import { SnapshotMetadata } from '../api/snapshot';
+import { Document } from '../model/document';
 import { ObjectValue } from '../model/object_value';
 import { isOptionalEqual } from '../util/misc';
 
@@ -95,7 +98,7 @@ export class PipelineSnapshot {
  * <p>If the PipelineResult represents a non-document result, `ref` will return a undefined
  * value.
  */
-export class PipelineResult<AppModelType = DocumentData> {
+export class PipelineResult {
   private readonly _userDataWriter: AbstractUserDataWriter;
 
   private readonly _createTime: Timestamp | undefined;
@@ -114,6 +117,7 @@ export class PipelineResult<AppModelType = DocumentData> {
   readonly _fields: ObjectValue;
 
   /**
+   * @hideconstructor
    * @private
    * @internal
    *
@@ -126,16 +130,41 @@ export class PipelineResult<AppModelType = DocumentData> {
    */
   constructor(
     userDataWriter: AbstractUserDataWriter,
-    fields: ObjectValue,
     ref?: DocumentReference,
+    fields?: ObjectValue,
     createTime?: Timestamp,
-    updateTime?: Timestamp
+    updateTime?: Timestamp,
+    readonly metadata?: SnapshotMetadata
   ) {
     this._ref = ref;
     this._userDataWriter = userDataWriter;
     this._createTime = createTime;
     this._updateTime = updateTime;
-    this._fields = fields;
+    this._fields = fields ?? ObjectValue.empty();
+  }
+
+  /**
+   * @private
+   * @internal
+   * @param userDataWriter
+   * @param doc
+   * @param ref
+   * @param metadata
+   */
+  static fromDocument(
+    userDataWriter: AbstractUserDataWriter,
+    doc: Document,
+    ref?: DocumentReference,
+    metadata?: SnapshotMetadata
+  ): PipelineResult {
+    return new PipelineResult(
+      userDataWriter,
+      ref,
+      doc.data,
+      doc.createTime.toTimestamp(),
+      doc.version.toTimestamp(),
+      metadata
+    );
   }
 
   /**
@@ -198,10 +227,10 @@ export class PipelineResult<AppModelType = DocumentData> {
    * });
    * ```
    */
-  data(): AppModelType {
+  data(): DocumentData {
     return this._userDataWriter.convertValue(
       this._fields.value
-    ) as AppModelType;
+    ) as DocumentData;
   }
 
   /**
@@ -254,5 +283,18 @@ export function pipelineResultEqual(
   return (
     isOptionalEqual(left._ref, right._ref, refEqual) &&
     isOptionalEqual(left._fields, right._fields, (l, r) => l.isEqual(r))
+  );
+}
+
+export function toPipelineResult(
+  doc: Document,
+  pipeline: RealtimePipeline
+): PipelineResult {
+  return PipelineResult.fromDocument(
+    pipeline._userDataWriter,
+    doc,
+    doc.key.path
+      ? new DocumentReference(pipeline._db, null, doc.key)
+      : undefined
   );
 }

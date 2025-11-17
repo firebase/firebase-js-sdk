@@ -43,6 +43,7 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
@@ -497,9 +498,13 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
           countZ: count()
         });
 
-        await expect(promise).to.eventually.be.rejectedWith(
-          /maximum number of aggregations/
-        );
+        if (USE_EMULATOR) {
+          await expect(promise).to.eventually.be.rejected;
+        } else {
+          await expect(promise).to.eventually.be.rejectedWith(
+            /maximum number of aggregations/
+          );
+        }
       });
     }
   );
