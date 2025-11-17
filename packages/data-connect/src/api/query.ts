@@ -25,6 +25,7 @@ import {
   SerializedRef
 } from './Reference';
 
+
 /**
  * QueryRef object
  */

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { CacheProvider } from './CacheProvider';
+import { InternalCacheProvider } from './CacheProvider';
 import { EntityDataObject } from './EntityDataObject';
 import { ResultTree } from './ResultTree';
 export const BDO_OBJECT_STORE_NAME = 'data-connect-bdos';
 export const SRT_OBJECT_STORE_NAME = 'data-connect-srts';
-export class IndexedDBCacheProvider implements CacheProvider {
+export class IndexedDBCacheProvider implements InternalCacheProvider {
   private bdos = new Map<string, EntityDataObject>();
   private resultTrees = new Map<string, ResultTree>();
   private idbManager: IndexedDbManager;
@@ -29,6 +29,8 @@ export class IndexedDBCacheProvider implements CacheProvider {
     return typeof window !== 'undefined' && 'indexedDB' in window;
   }
 
+  // TODO: Figure out how to deal with caching across tabs.
+  // We could use the web locks api
   constructor(private cacheId: string) {
     if (!this.isIdbAvailable()) {
       return;

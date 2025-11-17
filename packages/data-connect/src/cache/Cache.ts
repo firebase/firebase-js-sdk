@@ -16,23 +16,21 @@
  */
 
 import {
-  isIndexedDBAvailable,
   generateSHA256HashBrowser
 } from '@firebase/util';
 
 import {
-  CacheProviderImpl,
-  PublicIndexedDbProvider,
+  CacheProvider,
   type ConnectorConfig
 } from '../api/DataConnect';
 import { DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 import { logDebug } from '../logger';
 
-import { CacheProvider } from './CacheProvider';
-import { EntityDataObject } from './EntityDataObject';
+import { InternalCacheProvider } from './CacheProvider';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 import { IndexedDBCacheProvider } from './IndexedDBCacheProvider';
+import { InMemoryCacheProvider } from './InMemoryCacheProvider';
 import { ResultTree } from './ResultTree';
 import { ResultTreeProcessor } from './ResultTreeProcessor';
 
@@ -41,12 +39,17 @@ export const Persistent = 'persistent';
 
 export type DataConnectStorage = typeof Memory | typeof Persistent;
 
-/**
- * CacheSettings
- */
+export const StorageType = {
+  PERSISTENT: 'PERSISTENT',
+  MEMORY: 'MEMORY'
+};
+
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
+
+
 export interface CacheSettings {
-  storage: CacheProviderImpl;
-  maxSizeBytes: number;
+    maxSizeBytes?: number;
+    cacheProvider?: CacheProvider<StorageType>;
 }
 
 /**
@@ -56,15 +59,8 @@ export interface ServerValues {
   ttl: number;
 }
 
-/**
- * Requirements:
- * 1. Wait until first token comes back to create cache provider. Maybe you have an async initialize function?
- * 2. When user requests data from the cache, await that cache provider to make sure everything has been initialized
- */
-
-// TODO: Figure out how to deal with caching across tabs.
 export class DataConnectCache {
-  private cacheProvider: CacheProvider | null = null;
+  private cacheProvider: InternalCacheProvider | null = null;
   private uid: string | null = null;
   constructor(
     private authProvider: AuthTokenProvider,
@@ -84,7 +80,7 @@ export class DataConnectCache {
 
   async getIdentifier(uid: string): Promise<string> {
     const identifier = `${
-      this.cacheSettings?.storage instanceof InMemoryCacheProvider
+      this.cacheSettings?.cacheProvider instanceof IndexedDBStub
         ? 'persistent'
         : 'memory'
     }-${this.projectId}-${this.connectorConfig.service}-${
@@ -95,6 +91,7 @@ export class DataConnectCache {
   }
 
   setAuthProvider(_authTokenProvider: AuthTokenProvider): void {
+    // TODO: There's a chance for a race condition here
     this.authProvider.addTokenChangeListener(async _ => {
       await this.cacheProvider?.close();
       this.uid = this.authProvider.getAuth().getUid();
@@ -103,22 +100,15 @@ export class DataConnectCache {
     });
   }
 
-  initializeNewProviders(identifier: string): CacheProvider {
-    let cacheProvider: CacheProvider;
-    const isPersistenceEnabled =
-      this.cacheSettings?.storage instanceof PublicIndexedDbProvider;
+  initializeNewProviders(identifier: string): InternalCacheProvider {
+    let cacheProvider: InternalCacheProvider;
     if (this.cacheSettings) {
-      cacheProvider = isPersistenceEnabled
-        ? new IndexedDBCacheProvider(identifier)
-        : new InMemoryCacheProvider(identifier);
-    } else if (!isIndexedDBAvailable()) {
+      cacheProvider = this.cacheSettings.cacheProvider?.initialize(identifier);
+    } else {
       logDebug(
         'IndexedDB is not available. Using In-Memory Cache Provider instead.'
       );
       cacheProvider = new InMemoryCacheProvider(identifier);
-    } else {
-      logDebug('Initializing IndexedDB Cache Provider.');
-      cacheProvider = new IndexedDBCacheProvider(identifier);
     }
     return cacheProvider;
   }
@@ -150,7 +140,7 @@ export class DataConnectCache {
     const processor = new ResultTreeProcessor();
     const acc = new ImpactedQueryRefsAccumulator();
     const cacheProvider = this.cacheProvider;
-    const { data, stubDataObject } = processor.dehydrateResults(
+    const { data, stubDataObject } = await processor.dehydrateResults(
       serverValues,
       cacheProvider,
       acc
@@ -164,35 +154,16 @@ export class DataConnectCache {
   }
 }
 
-export class InMemoryCacheProvider implements CacheProvider {
-  private bdos = new Map<string, EntityDataObject>();
-  private resultTrees = new Map<string, ResultTree>();
-  constructor(private _keyId: string) {}
+export class IndexedDBStub implements CacheProvider<'PERSISTENT'> {
+  type: 'PERSISTENT' = 'PERSISTENT';
+  initialize(cacheId: string): InternalCacheProvider {
+    return new IndexedDBCacheProvider(cacheId);
+  }
+}
 
-  setResultTree(queryId: string, rt: ResultTree): Promise<void> {
-    this.resultTrees.set(queryId, rt);
-    return Promise.resolve();
-  }
-  // TODO: Should this be in the cache provider? This seems common along all CacheProviders.
-  async getResultTree(queryId: string): Promise<ResultTree | undefined> {
-    return this.resultTrees.get(queryId);
-  }
-  createGlobalId(): string {
-    return crypto.randomUUID();
-  }
-  updateBackingData(backingData: EntityDataObject): Promise<void> {
-    this.bdos.set(backingData.globalID, backingData);
-    return Promise.resolve();
-  }
-  async getBdo(globalId: string): Promise<EntityDataObject> {
-    if (!this.bdos.has(globalId)) {
-      this.bdos.set(globalId, new EntityDataObject(globalId));
-    }
-    // Because of the above, we can guarantee that there will be a BDO at the globalId.
-    return this.bdos.get(globalId)!;
-  }
-  close(): Promise<void> {
-    // TODO: Noop
-    return Promise.resolve();
+export class PersistentStub implements CacheProvider<'MEMORY'> {
+  type: 'MEMORY' = 'MEMORY';
+  initialize(cacheId: string): InternalCacheProvider {
+    return new InMemoryCacheProvider(cacheId);
   }
 }

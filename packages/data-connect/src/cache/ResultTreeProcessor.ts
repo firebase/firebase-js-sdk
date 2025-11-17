@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { CacheProvider } from './CacheProvider';
-import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
+import { InternalCacheProvider } from './CacheProvider';
 import { EntityNode } from './EntityNode';
+import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 
 interface DehydratedResults {
   stubDataObject: EntityNode;
@@ -28,12 +28,13 @@ export class ResultTreeProcessor {
   hydrateResults(rootStubObject: EntityNode): string {
     return JSON.stringify(rootStubObject.toJson());
   }
-  dehydrateResults(
+  async dehydrateResults(
     json: object,
-    cacheProvider: CacheProvider,
+    cacheProvider: InternalCacheProvider,
     acc: ImpactedQueryRefsAccumulator
-  ): DehydratedResults {
-    const stubDataObject = new EntityNode(json, cacheProvider, acc);
+  ): Promise< DehydratedResults> {
+    const stubDataObject = new EntityNode(acc);
+    await stubDataObject.loadData(json, cacheProvider);
     return {
       stubDataObject,
       data: JSON.stringify(stubDataObject.toStorableJson())

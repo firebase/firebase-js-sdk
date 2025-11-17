@@ -25,9 +25,6 @@ export {
 export {
   ExecuteQueryOptions,
   QueryFetchPolicy,
-  PreferCache,
-  CacheOnly,
-  ServerOnly
 } from '../core/query/queryOptions';
 export * from './DataConnect';
 export * from './Reference';

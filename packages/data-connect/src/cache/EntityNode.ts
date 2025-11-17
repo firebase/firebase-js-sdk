@@ -17,15 +17,18 @@
 
 import { DataConnectError } from '../core/error';
 
-import { CacheProvider } from './CacheProvider';
+import { InternalCacheProvider } from './CacheProvider';
 import {
   EntityDataObject,
   BackingDataObjectJson,
   FDCScalarValue
 } from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
+export const IndexedDb = 'indexeddb' as const;
+export const InMemoryProvider= 'inmemory' as const;
 
-export const GLOBAL_ID_KEY = 'cacheId';
+
+export const GLOBAL_ID_KEY = '_id';
 export class EntityNode {
   entityData?: EntityDataObject;
   scalars: { [key: string]: FDCScalarValue } = {};
@@ -35,22 +38,16 @@ export class EntityNode {
   } = {};
   globalId?: string;
   impactedQueryRefs = new Set<string>();
+  constructor(private acc = new ImpactedQueryRefsAccumulator()) {
+  }
 
-  constructor();
-  constructor(
-    values: FDCScalarValue,
-    cacheProvider: CacheProvider,
-    acc: ImpactedQueryRefsAccumulator
-  );
-  constructor(
+  async loadData(
     values?: FDCScalarValue,
-    cacheProvider?: CacheProvider,
-    private acc?: ImpactedQueryRefsAccumulator
-  ) {
+    cacheProvider?: InternalCacheProvider,
+  ): Promise<void> {
     if (
-      typeof values === 'undefined' &&
-      typeof cacheProvider === 'undefined' &&
-      typeof acc === 'undefined'
+      values === undefined &&
+      cacheProvider === undefined 
     ) {
       return;
     }
@@ -69,7 +66,7 @@ export class EntityNode {
       typeof values[GLOBAL_ID_KEY] === 'string'
     ) {
       this.globalId = values[GLOBAL_ID_KEY];
-      this.entityData = cacheProvider.getBdo(this.globalId);
+      this.entityData = await cacheProvider.getBdo(this.globalId);
     }
     for (const key in values) {
       if (values.hasOwnProperty(key)) {
@@ -85,7 +82,9 @@ export class EntityNode {
                 if (Array.isArray(value)) {
                   // TODO: What if it's an array of arrays?
                 } else {
-                  objArray.push(new EntityNode(value, cacheProvider, this.acc));
+                  const entityNode =  new EntityNode( this.acc);
+                  await entityNode.loadData(value, cacheProvider);
+                  objArray.push(entityNode);
                 }
               } else {
                 scalarArray.push(value);
@@ -118,10 +117,9 @@ export class EntityNode {
               continue;
             }
             const stubDataObject = new EntityNode(
-              values[key],
-              cacheProvider,
               this.acc
             );
+            await stubDataObject.loadData(values[key], cacheProvider);
             this.references[key] = stubDataObject;
           }
         } else {
@@ -139,14 +137,16 @@ export class EntityNode {
       }
     }
     if (this.entityData) {
-      cacheProvider.updateBackingData(this.entityData);
+      await cacheProvider.updateBackingData(this.entityData);
     }
   }
+  
   toJson(): object {
     const resultObject: object = {};
-    for (const key in this.entityData) {
-      if (this.entityData.hasOwnProperty(key)) {
-        resultObject[key] = this.entityData[key];
+    const entityDataMap = this.entityData?.getMap();
+    for (const key in entityDataMap) {
+      if (entityDataMap?.hasOwnProperty(key)) {
+        resultObject[key] = entityDataMap[key];
       }
     }
     // Scalars should never have stubdataobjects

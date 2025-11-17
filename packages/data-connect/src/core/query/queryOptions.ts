@@ -15,14 +15,17 @@
  * limitations under the License.
  */
 
-export type QueryFetchPolicy =
-  | typeof PreferCache
-  | typeof CacheOnly
-  | typeof ServerOnly;
+export const QueryFetchPolicy = {
+  PREFER_CACHE: 'PREFER_CACHE',
+  CACHE_ONLY: 'CACHE_ONLY',
+  SERVER_ONLY: 'SERVER_ONLY'
+};
 
-export const PreferCache = 'preferCache';
-export const CacheOnly = 'cacheOnly';
-export const ServerOnly = 'serverOnly';
+/*
+ * Represents policy for how executeQuery fetches data
+ *
+ */
+export type QueryFetchPolicy = (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
 
 export interface ExecuteQueryOptions {
   fetchPolicy: QueryFetchPolicy;

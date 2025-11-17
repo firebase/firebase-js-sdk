@@ -33,7 +33,7 @@ import { DataConnectTransport } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
-import { ExecuteQueryOptions, ServerOnly } from './queryOptions';
+import { ExecuteQueryOptions, QueryFetchPolicy } from './queryOptions';
 import { OnErrorSubscription, OnResultSubscription } from './subscribe';
 
 function getRefSerializer<Data, Variables>(
@@ -68,14 +68,20 @@ export class QueryManager {
     private cache: DataConnectCache,
     private dc: DataConnect
   ) {}
+  private queue: Array<Promise<unknown>> = [];
+  async waitForQueuedWrites(): Promise<void> {
+    for (const promise of this.queue) {
+      await promise;
+    }
+    this.queue = [];
+  }
 
   updateSSR(updatedData: QueryResult<unknown, unknown>): void {
     // What about two different values overriding each other?
-    this.updateCache(updatedData)
-      .then(async result => {
-        await this.publishCacheResultsToSubscribers(result);
-      })
-      .catch(() => {});
+    this.queue.push(this.updateCache(updatedData)
+      .then(async result =>
+        this.publishCacheResultsToSubscribers(result)
+      ));
   }
 
   updateCache<Data, Variables>(
@@ -157,7 +163,7 @@ export class QueryManager {
     // TODO: It seems like the cache isn't loading the data correctly.
     // TODO: It seems like cache loading is async. That needs to be fixed.
     if (
-      options?.fetchPolicy !== ServerOnly &&
+      options?.fetchPolicy !== QueryFetchPolicy.SERVER_ONLY &&
       (await this.cache.containsResultTree(key)) &&
       !(await this.cache.getResultTree(key)).isStale()
     ) {
@@ -171,10 +177,17 @@ export class QueryManager {
         fetchTime: new Date().toISOString()
       };
       (await this.cache.getResultTree(key)).updateAccessed();
+      logDebug(
+          `Cache found for query ${
+            queryRef.name
+          } with variables ${JSON.stringify(
+            queryRef.variables
+          )}. Calling executeQuery`
+        );
 
       return result;
     } else {
-      if (options?.fetchPolicy === ServerOnly) {
+      if (options?.fetchPolicy === QueryFetchPolicy.SERVER_ONLY) {
         logDebug(`Skipping cache for fetch policy "serverOnly"`);
       } else {
         logDebug(

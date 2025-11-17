@@ -33,10 +33,10 @@ import {
 import {
   CacheSettings,
   DataConnectCache,
-  InMemoryCacheProvider
+  IndexedDBStub,
+  PersistentStub,
 } from '../cache/Cache';
-import { CacheProvider } from '../cache/CacheProvider';
-import { IndexedDBCacheProvider } from '../cache/IndexedDBCacheProvider';
+import { InternalCacheProvider } from '../cache/CacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -55,6 +55,8 @@ import { RESTTransport } from '../network/transport/rest';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
+
+
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -276,28 +278,6 @@ export function connectDataConnectEmulator(
   dc.enableEmulator({ host, port, sslEnabled });
 }
 
-export type CacheProviderImpl =
-  | PublicIndexedDbProvider
-  | PublicEphemeralDbProvider;
-
-export class PublicIndexedDbProvider {
-  /**
-   * @internal
-   */
-  initializeProvider(cacheId: string): CacheProvider {
-    return new IndexedDBCacheProvider(cacheId);
-  }
-}
-
-export class PublicEphemeralDbProvider {
-  /**
-   * @internal
-   */
-  initializeProvider(cacheId: string): CacheProvider {
-    return new InMemoryCacheProvider(cacheId);
-  }
-}
-
 export interface DataConnectSettings {
   cacheSettings?: CacheSettings;
 }
@@ -408,3 +388,26 @@ export function terminate(dataConnect: DataConnect): Promise<void> {
   return dataConnect._delete();
   // TODO(mtewani): Stop pending tasks
 }
+export const StorageType = {
+  PERSISTENT: 'PERSISTENT',
+  MEMORY: 'MEMORY'
+};
+
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
+
+
+export interface CacheProvider<T extends StorageType> {
+  type: T
+  /**
+   * @internal
+   */
+  initialize(cacheId: string): InternalCacheProvider;
+}
+
+export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
+  return new IndexedDBStub();
+}
+export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'> {
+  return new PersistentStub();
+}
+

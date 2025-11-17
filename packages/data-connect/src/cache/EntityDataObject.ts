@@ -25,30 +25,47 @@ export type FDCScalarValue =
   | FDCScalarValue[];
 
 export interface BackingDataObjectJson {
-  map: Map<string, FDCScalarValue>;
+  map: {
+    [key: string]: FDCScalarValue
+  };
   queriesReferenced: Set<string>;
   globalID: string;
 }
 
 export class EntityDataObject {
+  getMap(): typeof this.map {
+    return this.map;
+  }
+  getStorableMap(map: { [key: string]: FDCScalarValue }): {
+    [key: string]: FDCScalarValue;
+  } {
+    const newMap: { [key: string]: FDCScalarValue } =
+      {};
+    for (const key in map) {
+      if (map.hasOwnProperty(key)) {
+        newMap[key] = map[key];
+      }
+    }
+    return newMap;
+  }
   toStorableJson(): BackingDataObjectJson {
     return {
       globalID: this.globalID,
-      map: this.map,
+      map: this.getStorableMap(this.map),
       queriesReferenced: this.queriesReferenced
     };
   }
   static fromStorableJson(json: BackingDataObjectJson): EntityDataObject {
     const bdo = new EntityDataObject(json.globalID);
-    bdo.map = new Map<string, FDCScalarValue>(json.map);
+    bdo.map = json.map;
     bdo.queriesReferenced = json.queriesReferenced;
     return bdo;
   }
-  private map = new Map<string, FDCScalarValue>();
+  private map: {[key:string]: FDCScalarValue} = {};
   private queriesReferenced = new Set<string>();
   constructor(public readonly globalID: string) {}
   updateServerValue(key: string, value: FDCScalarValue): string[] {
-    this.map.set(key, value);
+    this.map[key] = value;
     return Array.from(this.queriesReferenced);
   }
   // TODO(mtewani): Add a way to track what fields are associated with each query during runtime.
