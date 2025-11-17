@@ -20,7 +20,7 @@ import { Telemetry, TelemetryOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 export class TelemetryService implements Telemetry, _FirebaseService {
-  _options?: TelemetryOptions;
+  private _options?: TelemetryOptions;
 
   constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
 

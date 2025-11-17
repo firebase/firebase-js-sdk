@@ -229,11 +229,12 @@ describe('Top level API', () => {
     });
 
     it('should use explicit app version when provided', () => {
-      const telemetry = {
-        ...fakeTelemetry,
-        options: {
-          appVersion: '1.0.0'
-        }
+      const telemetry = new TelemetryService(
+        fakeTelemetry.app,
+        fakeTelemetry.loggerProvider
+      );
+      telemetry.options = {
+        appVersion: '1.0.0'
       };
 
       captureError(telemetry, 'a string error');
