@@ -100,12 +100,6 @@ export function captureError(
   }
   customAttributes['app.version'] = appVersion;
 
-  // Set firebase installation ID ("FID") if available, which
-  // represents the "user" who experienced the error.
-  if (telemetry.fid) {
-    customAttributes['user.id'] = telemetry.fid;
-  }
-
   if (error instanceof Error) {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,

@@ -33,13 +33,6 @@ export interface Telemetry {
 
   /** The {@link LoggerProvider} this {@link Telemetry} instance uses. */
   loggerProvider: LoggerProvider;
-
-  /**
-   * The Firebase Installation ID.
-   *
-   * @internal
-   */
-  fid?: string;
 }
 
 /**
