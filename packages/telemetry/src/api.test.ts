@@ -124,7 +124,8 @@ describe('Top level API', () => {
       expect(log.body).to.equal('This is a test error');
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
-        'error.stack': '...stack trace...'
+        'error.stack': '...stack trace...',
+        'app.version': 'unset'
       });
     });
 
@@ -140,7 +141,8 @@ describe('Top level API', () => {
       expect(log.body).to.equal('error with no stack');
       expect(log.attributes).to.deep.equal({
         'error.type': 'Error',
-        'error.stack': 'No stack trace available'
+        'error.stack': 'No stack trace available',
+        'app.version': 'unset'
       });
     });
 
@@ -151,7 +153,9 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
-      expect(log.attributes).to.deep.equal({});
+      expect(log.attributes).to.deep.equal({
+        'app.version': 'unset'
+      });
     });
 
     it('should capture an unknown error type correctly', () => {
@@ -161,7 +165,9 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
-      expect(log.attributes).to.deep.equal({});
+      expect(log.attributes).to.deep.equal({
+        'app.version': 'unset'
+      });
     });
 
     it('should propagate trace context', async () => {
@@ -187,6 +193,7 @@ describe('Top level API', () => {
       expect(emittedLogs[0].attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
+        'app.version': 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`
       });
@@ -211,12 +218,31 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
+        'app.version': 'unset',
         strAttr: 'string attribute',
         mapAttr: {
           boolAttr: true,
           numAttr: 2
         },
         arrAttr: [1, 2, 3]
+      });
+    });
+
+    it('should use explicit app version when provided', () => {
+      const telemetry = new TelemetryService(
+        fakeTelemetry.app,
+        fakeTelemetry.loggerProvider
+      );
+      telemetry.options = {
+        appVersion: '1.0.0'
+      };
+
+      captureError(telemetry, 'a string error');
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).to.deep.equal({
+        'app.version': '1.0.0'
       });
     });
   });
