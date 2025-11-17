@@ -199,7 +199,9 @@ export function concat(fieldName: string, second: Expression | unknown, ...other
 export function conditional(condition: BooleanExpression, thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
 // @beta
-export function constant(value: number): Expression;
+export function constant(value: number, options?: {
+    preferIntegers: boolean;
+}): Expression;
 
 // @beta
 export function constant(value: string): Expression;
@@ -673,7 +675,11 @@ export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[], _methodName: string | undefined);
     // (undocumented)
     readonly expressionType: ExpressionType;
-    }
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly params: Expression[];
+}
 
 // @beta
 export function greaterThan(left: Expression, right: Expression): BooleanExpression;
@@ -937,76 +943,81 @@ export class Ordering {
 // @beta
 export class Pipeline {
     /* Excluded from this release type: _db */
+    /* Excluded from this release type: userDataReader */
+    /* Excluded from this release type: _userDataWriter */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     addFields(options: AddFieldsStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     aggregate(options: AggregateStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     distinct(options: DistinctStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     findNearest(options: FindNearestStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     limit(limit: number): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     limit(options: LimitStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     offset(offset: number): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     offset(options: OffsetStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     rawStage(name: string, params: unknown[], options?: {
         [key: string]: Expression | unknown;
     }): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     removeFields(fieldValue: Field | string, ...additionalFields: Array<Field | string>): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     removeFields(options: RemoveFieldsStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     replaceWith(fieldName: string): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     replaceWith(expr: Expression): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     sample(documents: number): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     sample(options: SampleStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     select(options: SelectStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     sort(options: SortStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
+    // (undocumented)
+    readonly stages: Stage[];
+    /* Excluded from this release type: __constructor */
     union(other: Pipeline): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     union(options: UnionStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     unnest(selectable: Selectable, indexField?: string): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     unnest(options: UnnestStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     where(condition: BooleanExpression): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: __constructor */
     where(options: WhereStageOptions): Pipeline;
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
-export class PipelineResult<AppModelType = DocumentData> {
+export class PipelineResult {
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get createTime(): Timestamp | undefined;
-    data(): AppModelType;
+    // Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
+    data(): DocumentData;
     get(fieldPath: string | FieldPath | Field): any;
     get id(): string | undefined;
     get ref(): DocumentReference | undefined;
@@ -1026,7 +1037,7 @@ export class PipelineSource<PipelineType> {
     collection(options: CollectionStageOptions): PipelineType;
     collectionGroup(collectionId: string): PipelineType;
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
-    createFrom(query: Query): Pipeline;
+    createFrom(query: Query): PipelineType;
     database(): PipelineType;
     database(options: DatabaseStageOptions): PipelineType;
     documents(docs: Array<string | DocumentReference>): PipelineType;
@@ -1136,6 +1147,16 @@ export function sqrt(expression: Expression): FunctionExpression;
 
 // @beta
 export function sqrt(fieldName: string): FunctionExpression;
+
+// @beta (undocumented)
+export abstract class Stage {
+    /* Excluded from this release type: optionsProto */
+    constructor(options: StageOptions);
+    // (undocumented)
+    protected knownOptions: Record<string, unknown>;
+    // (undocumented)
+    protected rawOptions?: Record<string, unknown>;
+}
 
 // @public
 export interface StageOptions {
@@ -1347,15 +1368,15 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 // /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:110:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
 // /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:115:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
 // /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:772:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1090:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:3254:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5774:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5784:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5908:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5918:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6715:5 - (ae-incompatible-release-tags) The symbol "other" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6815:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6857:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1092:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:3255:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5776:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5786:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5910:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5920:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6726:5 - (ae-incompatible-release-tags) The symbol "other" is marked as @public, but its signature references "Pipeline" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6826:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6868:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

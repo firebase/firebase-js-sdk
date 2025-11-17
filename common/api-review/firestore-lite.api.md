@@ -400,6 +400,13 @@ export interface Settings {
 export function snapshotEqual<AppModelType, DbModelType extends DocumentData>(left: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>, right: DocumentSnapshot<AppModelType, DbModelType> | QuerySnapshot<AppModelType, DbModelType>): boolean;
 
 // @public
+export class SnapshotMetadata {
+    readonly fromCache: boolean;
+    readonly hasPendingWrites: boolean;
+    isEqual(other: SnapshotMetadata): boolean;
+}
+
+// @public
 export function startAfter<AppModelType, DbModelType extends DocumentData>(snapshot: DocumentSnapshot<AppModelType, DbModelType>): QueryStartAtConstraint;
 
 // @public
