@@ -30,8 +30,10 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from './fetch-transport';
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider, DynamicLogAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
+import { ExportResult } from '@opentelemetry/core';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -41,7 +43,8 @@ import { FirebaseApp } from '@firebase/app';
 export function createLoggerProvider(
   app: FirebaseApp,
   endpointUrl: string,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
+  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+  dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
 ): LoggerProvider {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
@@ -64,9 +67,46 @@ export function createLoggerProvider(
 
   return new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)],
+    processors: [
+      new BatchLogRecordProcessor(
+        new AsyncAttributeLogExporter(logExporter, dynamicLogAttributeProviders)
+      )
+    ],
     logRecordLimits: {}
   });
+}
+
+/** A log exporter that appends log entries with resolved async attributes before exporting. */
+class AsyncAttributeLogExporter implements LogRecordExporter {
+  private readonly _delegate: LogRecordExporter;
+
+  constructor(
+    exporter: OTLPLogExporter,
+    private dynamicLogAttributeProviders: DynamicLogAttributeProvider[]
+  ) {
+    this._delegate = exporter;
+  }
+
+  async export(
+    logs: ReadableLogRecord[],
+    resultCallback: (result: ExportResult) => void
+  ): Promise<void> {
+    void Promise.all(
+      this.dynamicLogAttributeProviders.map(async provider => {
+        const attribute = await provider.getAttribute();
+        if (attribute) {
+          logs.forEach(log => {
+            log.attributes[attribute[0]] = attribute[1];
+          });
+        }
+      })
+    );
+    void this._delegate.export(logs, resultCallback);
+  }
+
+  shutdown(): Promise<void> {
+    return this._delegate.shutdown();
+  }
 }
 
 /** OTLP exporter that uses custom FetchTransport. */

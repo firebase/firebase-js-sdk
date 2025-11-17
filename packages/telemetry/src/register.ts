@@ -25,6 +25,7 @@ import { AppCheckProvider } from './logging/appcheck-provider';
 // This needs to be in the same file that calls `getProvider()` on the component
 // or it will get tree-shaken out.
 import '@firebase/installations';
+import { InstallationIdProvider } from './logging/installation-id-provider';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -41,15 +42,21 @@ export function registerTelemetry(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
-        const installationsProvider = container.getProvider('installations-internal').getImmediate();
+        const installationsProvider = container
+          .getProvider('installations-internal')
+          .getImmediate();
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
+        const dynamicLogAttributeProviders = [
+          new InstallationIdProvider(installationsProvider)
+        ];
         const loggerProvider = createLoggerProvider(
           app,
           endpointUrl,
-          dynamicHeaderProviders
+          dynamicHeaderProviders,
+          dynamicLogAttributeProviders
         );
 
-        return new TelemetryService(app, installationsProvider, loggerProvider);
+        return new TelemetryService(app, loggerProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

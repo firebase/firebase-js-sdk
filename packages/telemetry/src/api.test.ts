@@ -274,10 +274,11 @@ function getFakeApp(): FirebaseApp {
   _registerComponent(
     new Component(
       'installations-internal',
-      () => ({
+      () =>
+      ({
         getId: async () => 'FID',
         getToken: async () => 'authToken'
-      }) as _FirebaseInstallationsInternal,
+      } as _FirebaseInstallationsInternal),
       ComponentType.PUBLIC
     )
   );
