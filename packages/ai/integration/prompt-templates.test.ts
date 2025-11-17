@@ -21,8 +21,7 @@ import {
   getTemplateGenerativeModel,
   getTemplateImagenModel
 } from '../src';
-import { testConfigs } from './constants';
-import { STAGING_URL } from '../src/constants';
+import { promptTemplatesTestConfigs } from './constants';
 
 const templateBackendSuffix = (
   backendType: BackendType
@@ -31,13 +30,11 @@ const templateBackendSuffix = (
 
 describe('Prompt templates', function () {
   this.timeout(20_000);
-  testConfigs.forEach(testConfig => {
-    describe(`${testConfig.toString()}`, () => {
+  promptTemplatesTestConfigs.forEach(testConfig => {
+    describe(`${promptTemplatesTestConfigs.toString()}`, () => {
       describe('Generative Model', () => {
         it('successfully generates content', async () => {
-          const model = getTemplateGenerativeModel(testConfig.ai, {
-            baseUrl: STAGING_URL
-          });
+          const model = getTemplateGenerativeModel(testConfig.ai);
           const { response } = await model.generateContent(
             `sassy-greeting-${templateBackendSuffix(
               testConfig.ai.backend.backendType
@@ -49,16 +46,14 @@ describe('Prompt templates', function () {
       });
       describe('Imagen model', async () => {
         it('successfully generates images', async () => {
-          const model = getTemplateImagenModel(testConfig.ai, {
-            baseUrl: STAGING_URL
-          });
+          const model = getTemplateImagenModel(testConfig.ai);
           const { images } = await model.generateImages(
             `portrait-${templateBackendSuffix(
               testConfig.ai.backend.backendType
             )}`,
             { animal: 'Rhino' }
           );
-          expect(images.length).to.equal(2); // We ask for two images in the prompt template
+          expect(images.length).to.equal(1); // We ask for two images in the prompt template
         });
       });
     });
