@@ -31,7 +31,7 @@ const templateBackendSuffix = (
 describe('Prompt templates', function () {
   this.timeout(20_000);
   promptTemplatesTestConfigs.forEach(testConfig => {
-    describe(`${promptTemplatesTestConfigs.toString()}`, () => {
+    describe(`${testConfig.toString()}`, () => {
       describe('Generative Model', () => {
         it('successfully generates content', async () => {
           const model = getTemplateGenerativeModel(testConfig.ai);
@@ -53,7 +53,7 @@ describe('Prompt templates', function () {
             )}`,
             { animal: 'Rhino' }
           );
-          expect(images.length).to.equal(1); // We ask for two images in the prompt template
+          expect(images.length).to.equal(1); // The template is configured to generate one image.
         });
       });
     });
