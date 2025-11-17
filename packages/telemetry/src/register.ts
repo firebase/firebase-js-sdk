@@ -22,10 +22,11 @@ import { name, version } from '../package.json';
 import { TelemetryService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
-// This needs to be in the same file that calls `getProvider()` on the component
-// or it will get tree-shaken out.
-import '@firebase/installations';
 import { InstallationIdProvider } from './logging/installation-id-provider';
+
+// We only import types from this package elsewhere in the `telemetry` package, so this
+// explicit import is needed here to prevent this module from being tree-shaken out.
+import '@firebase/installations';
 
 export function registerTelemetry(): void {
   _registerComponent(
