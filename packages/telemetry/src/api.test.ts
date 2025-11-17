@@ -269,17 +269,10 @@ function getFakeApp(): FirebaseApp {
     new Component(
       'installations-internal',
       () =>
-<<<<<<< HEAD
-      ({
-        getId: async () => 'FID',
-        getToken: async () => 'authToken'
-      } as _FirebaseInstallationsInternal),
-=======
         ({
           getId: async () => 'iid',
           getToken: async () => 'authToken'
-        } as _FirebaseInstallationsInternal),
->>>>>>> e66c193d1 (Fix tests)
+      } as _FirebaseInstallationsInternal),
       ComponentType.PUBLIC
     )
   );
