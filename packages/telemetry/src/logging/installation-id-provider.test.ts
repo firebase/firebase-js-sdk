@@ -20,27 +20,27 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { expect } from 'chai';
 
 describe('InstallationIdProvider', () => {
-  it('should cache the FID after the first call', async () => {
+  it('should cache the installation id after the first call', async () => {
     let callCount = 0;
     const mockInstallations = {
       getId: async () => {
         callCount++;
-        return 'fid-123';
+        return 'iid-123';
       }
     } as unknown as _FirebaseInstallationsInternal;
 
     const provider = new InstallationIdProvider(mockInstallations);
 
     const attr1 = await provider.getAttribute();
-    expect(attr1).to.deep.equal(['user.id', 'fid-123']);
+    expect(attr1).to.deep.equal(['user.id', 'iid-123']);
     expect(callCount).to.equal(1);
 
     const attr2 = await provider.getAttribute();
-    expect(attr2).to.deep.equal(['user.id', 'fid-123']);
+    expect(attr2).to.deep.equal(['user.id', 'iid-123']);
     expect(callCount).to.equal(1); // Should still be 1
   });
 
-  it('should not cache if FID is null', async () => {
+  it('should not cache if installation id is null', async () => {
     let callCount = 0;
     let returnValue: string | null = null;
     const mockInstallations = {
@@ -56,14 +56,14 @@ describe('InstallationIdProvider', () => {
     expect(attr1).to.be.null;
     expect(callCount).to.equal(1);
 
-    returnValue = 'fid-456';
+    returnValue = 'iid-456';
     const attr2 = await provider.getAttribute();
-    expect(attr2).to.deep.equal(['user.id', 'fid-456']);
+    expect(attr2).to.deep.equal(['user.id', 'iid-456']);
     expect(callCount).to.equal(2);
 
     // Should cache now
     const attr3 = await provider.getAttribute();
-    expect(attr3).to.deep.equal(['user.id', 'fid-456']);
+    expect(attr3).to.deep.equal(['user.id', 'iid-456']);
     expect(callCount).to.equal(2);
   });
 });

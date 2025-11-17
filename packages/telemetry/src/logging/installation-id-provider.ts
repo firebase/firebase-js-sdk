@@ -19,26 +19,26 @@ import { DynamicLogAttributeProvider, LogEntryAttribute } from '../types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 /**
- * An implementation of DynamicHeaderProvider that can be used to provide App Check token headers.
+ * Allows logging to include the client's installation ID.
  *
  * @internal
  */
 export class InstallationIdProvider implements DynamicLogAttributeProvider {
-  private _fid: string | undefined;
+  private _iid: string | undefined;
 
   constructor(private installationsProvider: _FirebaseInstallationsInternal) {}
 
   async getAttribute(): Promise<LogEntryAttribute | null> {
-    if (this._fid) {
-      return ['user.id', this._fid];
+    if (this._iid) {
+      return ['user.id', this._iid];
     }
 
-    const fid = await this.installationsProvider.getId();
-    if (!fid) {
+    const iid = await this.installationsProvider.getId();
+    if (!iid) {
       return null;
     }
 
-    this._fid = fid;
-    return ['user.id', fid];
+    this._iid = iid;
+    return ['user.id', iid];
   }
 }
