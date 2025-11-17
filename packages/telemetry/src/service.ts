@@ -22,7 +22,7 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 export class TelemetryService implements Telemetry, _FirebaseService {
   private _options?: TelemetryOptions;
 
-  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) { }
+  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
 
   _delete(): Promise<void> {
     return Promise.resolve();
