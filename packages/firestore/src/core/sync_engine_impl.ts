@@ -1565,6 +1565,7 @@ export async function syncEngineApplyTargetState(
               break;
             case 'database':
             case 'unknown':
+            default:
               logWarn('');
               changes = documentMap();
               break;

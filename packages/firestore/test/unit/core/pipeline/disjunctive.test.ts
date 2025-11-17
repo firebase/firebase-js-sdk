@@ -36,10 +36,7 @@ import {
 } from '../../../../lite/pipelines/pipelines';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  constantArray,
-  runPipeline
-} from '../../../util/pipelines';
+import { constantArray, runPipeline } from '../../../util/pipelines';
 
 import { and, or, not } from './util';
 
@@ -592,7 +589,7 @@ describe('Disjunctive Queries', () => {
     const doc1 = doc('users/a', 1000, { field: [null, 42] });
     const doc2 = doc('users/b', 1000, { field: [101, null] });
     const doc3 = doc('users/c', 1000, { field: ['foo', 'bar'] });
-    const doc4 = doc('users/c', 1000, { not_field: ['foo', 'bar'] });
+    const doc4 = doc('users/c', 1000, { notField: ['foo', 'bar'] });
 
     const pipeline = db
       .pipeline()

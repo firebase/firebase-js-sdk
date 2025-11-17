@@ -189,7 +189,7 @@ class MemoryRemoteDocumentCacheImpl implements MemoryRemoteDocumentCache {
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
     let collectionPath: ResourcePath;
-    let matcher: (doc: Document) => Boolean;
+    let matcher: (doc: Document) => boolean;
     if (isPipeline(query)) {
       // Documents are ordered by key, so we can use a prefix scan to narrow down
       // the documents we need to match the query against.

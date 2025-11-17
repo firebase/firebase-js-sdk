@@ -56,7 +56,8 @@ import {
   localStoreReleaseTarget,
   localStoreSaveBundle,
   localStoreSaveNamedQuery,
-  newLocalStore
+  newLocalStore,
+  QueryResult
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
@@ -731,7 +732,7 @@ function genericLocalStoreTests(
     localStore: LocalStore,
     query: Query,
     usePreviousResult: boolean
-  ) {
+  ): Promise<QueryResult> {
     return prodLocalStoreExecuteQuery(
       localStore,
       options.convertToPipeline

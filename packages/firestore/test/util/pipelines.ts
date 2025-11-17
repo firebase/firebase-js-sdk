@@ -17,7 +17,7 @@ import {
   UserDataSource
 } from '../../src/lite-api/user_data_reader';
 
-import { firestore, newTestFirestore } from './api_helpers';
+import { firestore } from './api_helpers';
 import { testUserDataReader } from './helpers';
 
 export function canonifyPipeline(p: LitePipeline): string {
@@ -34,8 +34,6 @@ export function runPipeline(
 ): PipelineInputOutput[] {
   return runCorePipeline(toCorePipeline(p), inputs);
 }
-
-const db = newTestFirestore();
 
 export function constantArray(...values: unknown[]): Constant {
   const constant = new Constant(values, 'constantArray');

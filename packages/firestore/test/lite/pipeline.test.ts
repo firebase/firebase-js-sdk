@@ -29,9 +29,7 @@ import {
 import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
 import { vector } from '../../src/lite-api/field_value_impl';
 import { GeoPoint } from '../../src/lite-api/geo_point';
-import {
-  PipelineSnapshot
-} from '../../src/lite-api/pipeline-result';
+import { PipelineSnapshot } from '../../src/lite-api/pipeline-result';
 import { execute } from '../../src/lite-api/pipeline_impl';
 import {
   DocumentData,
@@ -143,8 +141,6 @@ import {
 } from './pipeline_export';
 
 use(chaiAsPromised);
-
-const timestampDeltaMS = 1000;
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();

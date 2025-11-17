@@ -27,10 +27,7 @@ import {
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  constantMap,
-  runPipeline
-} from '../../../util/pipelines';
+import { constantMap, runPipeline } from '../../../util/pipelines';
 
 import { not } from './util';
 

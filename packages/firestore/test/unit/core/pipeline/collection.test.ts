@@ -26,10 +26,7 @@ import {
 import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
-
+import { runPipeline } from '../../../util/pipelines';
 
 const db = newTestFirestore();
 
@@ -49,7 +46,7 @@ describe('collection stage', () => {
 
   it('emptyCollection_otherParents_returnsNoResults', () => {
     const doc1 = doc('users/bob/addresses/doc1', 1000, { city: 'New York' });
-    const doc2 = doc('users/bob/inventories/doc1', 1000, { item_id: 42 });
+    const doc2 = doc('users/bob/inventories/doc1', 1000, { itemId: 42 });
 
     expect(
       runPipeline(db.pipeline().collection('/users/bob/games'), [doc1, doc2])

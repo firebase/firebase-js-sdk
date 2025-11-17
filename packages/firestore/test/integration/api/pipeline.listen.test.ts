@@ -23,7 +23,6 @@ import {
   field,
   greaterThanOrEqual
 } from '../../../src/lite-api/expressions';
-import { PipelineResult } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
@@ -61,41 +60,6 @@ apiDescribe('RealtimePipelines', persistence => {
     }
     return randomCol;
   }
-
-  function expectResults(result: PipelineResult[], ...docs: string[]): void;
-  function expectResults(
-    result: PipelineResult[],
-    ...data: DocumentData[]
-  ): void;
-
-  function expectResults(
-    result: PipelineResult[],
-    ...data: DocumentData[] | string[]
-  ): void {
-    expect(result.length).to.equal(data.length);
-
-    if (data.length > 0) {
-      if (typeof data[0] === 'string') {
-        const actualIds = result.map(result => result.ref?.id);
-        expect(actualIds).to.deep.equal(data);
-      } else {
-        result.forEach(r => {
-          expect(r.data()).to.deep.equal(data.shift());
-        });
-      }
-    }
-  }
-
-  // async function compareQueryAndPipeline(query: Query): Promise<QuerySnapshot> {
-  //   const queryResults = await getDocs(query);
-  //   const pipeline = query.pipeline();
-  //   const pipelineResults = await pipeline.execute();
-  //
-  //   expect(queryResults.docs.map(s => s._fieldsProto)).to.deep.equal(
-  //     pipelineResults.map(r => r._fieldsProto)
-  //   );
-  //   return queryResults;
-  // }
 
   // TODO(pipeline): move this to a util file
   async function setupBookDocs(): Promise<CollectionReference<DocumentData>> {
@@ -231,7 +195,7 @@ apiDescribe('RealtimePipelines', persistence => {
   it('basic listen with where() works', async () => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
-    const unsubscribe = _onRealtimePipelineSnapshot(
+    _onRealtimePipelineSnapshot(
       firestore
         .realtimePipeline()
         .collection(randomCol.path)
@@ -240,7 +204,6 @@ apiDescribe('RealtimePipelines', persistence => {
     );
     let snapshot = await storeEvent.awaitEvent();
 
-    console.log('snapshot', toDataArray(snapshot));
     expect(toDataArray(snapshot)).to.deep.equal([
       {
         title: "The Hitchhiker's Guide to the Galaxy",
@@ -309,7 +272,7 @@ apiDescribe('RealtimePipelines', persistence => {
   it('listen with where/sort/limit works', async () => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
 
-    const unsubscribe = _onRealtimePipelineSnapshot(
+    _onRealtimePipelineSnapshot(
       firestore
         .realtimePipeline()
         .collection(randomCol.path)
@@ -541,7 +504,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
     await disableNetwork(firestore);
 
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       rating: serverTimestamp()
     });
 
@@ -573,7 +536,7 @@ apiDescribe('RealtimePipelines', persistence => {
     await disableNetwork(firestore);
 
     const now = constant(Timestamp.fromDate(new Date()));
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       rating: serverTimestamp()
     });
 
@@ -606,7 +569,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
     await disableNetwork(firestore);
 
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       rating: serverTimestamp()
     });
 
@@ -637,7 +600,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
     await disableNetwork(firestore);
 
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       title: serverTimestamp()
     });
 
@@ -663,7 +626,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
     await disableNetwork(firestore);
 
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       rating: serverTimestamp()
     });
 
@@ -693,7 +656,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const storeEvent = new EventsAccumulator<RealtimePipelineSnapshot>();
     await disableNetwork(firestore);
 
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       title: serverTimestamp()
     });
 
@@ -717,7 +680,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const storeEvent2 = new EventsAccumulator<RealtimePipelineSnapshot>();
     await disableNetwork(firestore);
 
-    updateDoc(doc(randomCol, 'book1'), {
+    void updateDoc(doc(randomCol, 'book1'), {
       title: serverTimestamp()
     });
 
@@ -741,6 +704,7 @@ apiDescribe('RealtimePipelines', persistence => {
 
     let snapshot1 = await storeEvent1.awaitEvent();
     let result1 = snapshot1.results[0];
+
     expect(snapshot1.metadata.fromCache).to.be.true;
     expect(result1.data()!['title']).to.equal(
       "The Hitchhiker's Guide to the Galaxy"

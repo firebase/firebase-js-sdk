@@ -17,15 +17,10 @@
 
 import { expect } from 'chai';
 
-import {
-  constant,
-  field
-} from '../../../../lite/pipelines/pipelines';
+import { constant, field } from '../../../../lite/pipelines/pipelines';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
+import { runPipeline } from '../../../util/pipelines';
 
 import { and } from './util';
 

@@ -28,10 +28,7 @@ import {
 } from '../../../../lite/pipelines/pipelines';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
-
+import { runPipeline } from '../../../util/pipelines';
 
 const db = newTestFirestore();
 

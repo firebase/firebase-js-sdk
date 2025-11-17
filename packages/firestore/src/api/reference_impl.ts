@@ -35,7 +35,6 @@ import {
   firestoreClientListen,
   firestoreClientWrite
 } from '../core/firestore_client';
-import { CorePipeline } from '../core/pipeline';
 import { toCorePipeline } from '../core/pipeline-util';
 import { Query as InternalQuery, newQueryForPath } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
@@ -1147,15 +1146,11 @@ export function onPipelineSnapshot(
     args[currArg + 2] = userObserver.complete?.bind(userObserver);
   }
 
-  let observer: PartialObserver<ViewSnapshot>;
-  let firestore: Firestore;
-  let internalQuery: CorePipeline;
-
   // RealtimePipeline
-  firestore = cast(reference._db, Firestore);
-  internalQuery = toCorePipeline(reference, internalOptions);
-  observer = {
-    next: snapshot => {
+  const firestore = cast(reference._db, Firestore);
+  const internalQuery = toCorePipeline(reference, internalOptions);
+  const observer = {
+    next: (snapshot: ViewSnapshot) => {
       if (args[currArg]) {
         (args[currArg] as NextFn<RealtimePipelineSnapshot>)(
           new RealtimePipelineSnapshot(

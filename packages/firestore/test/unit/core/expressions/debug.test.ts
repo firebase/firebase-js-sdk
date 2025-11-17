@@ -25,10 +25,7 @@ import {
   isError,
   not
 } from '../../../../src/lite-api/expressions';
-import {
-  FALSE_VALUE,
-  TRUE_VALUE
-} from '../../../../src/model/values';
+import { FALSE_VALUE, TRUE_VALUE } from '../../../../src/model/values';
 import { constantArray, constantMap } from '../../../util/pipelines';
 
 import {

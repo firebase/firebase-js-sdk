@@ -26,10 +26,7 @@ import {
 import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
-
+import { runPipeline } from '../../../util/pipelines';
 
 const db = newTestFirestore();
 
@@ -288,7 +285,7 @@ describe('collection group stage', () => {
   it('sort_onValues has dense semantics', () => {
     const doc1 = doc('users/bob', 1000, { score: 90 });
     const doc2 = doc('users/alice', 1000, { score: 50 });
-    const doc3 = doc('users/charlie', 1000, { number: 97 });
+    const doc3 = doc('users/charlie', 1000, { num: 97 });
 
     const pipeline = db
       .pipeline()

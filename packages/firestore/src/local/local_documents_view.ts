@@ -697,6 +697,7 @@ export class LocalDocumentsView {
       case 'database':
         return this.documentOverlayCache.getAllOverlays(txn, largestBatchId);
       case 'unknown':
+      default:
         throw new FirestoreError(
           'invalid-argument',
           `Failed to get overlays for pipeline: ${canonifyPipeline(pipeline)}`

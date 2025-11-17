@@ -17,10 +17,7 @@
 
 import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
-import {
-  CorePipeline,
-  getPipelineDocuments
-} from '../core/pipeline';
+import { CorePipeline, getPipelineDocuments } from '../core/pipeline';
 import {
   canonifyTargetOrPipeline,
   isPipeline,
@@ -28,10 +25,7 @@ import {
   TargetOrPipeline,
   targetOrPipelineEqual
 } from '../core/pipeline-util';
-import {
-  newQueryForPath,
-  queryToTarget
-} from '../core/query';
+import { newQueryForPath, queryToTarget } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { BatchId, TargetId } from '../core/types';

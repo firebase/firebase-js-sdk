@@ -56,7 +56,7 @@ import {
 } from '../model/values';
 import { ArrayValue, Value, MapValue } from '../protos/firestore_proto_api';
 import { fromTimestamp, toName, toVersion } from '../remote/serializer';
-import { hardAssert } from '../util/assert';
+import { fail, hardAssert } from '../util/assert';
 import { logWarn } from '../util/log';
 import { objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
@@ -551,6 +551,9 @@ function strictArrayValueEquals(left: ArrayValue, right: ArrayValue): Equality {
         foundNull = true;
         break;
       }
+      default:
+        fail(0xae41, { leftValue, rightValue });
+        break;
     }
   }
 
@@ -583,6 +586,9 @@ function strictObjectValueEquals(left: MapValue, right: MapValue): Equality {
         case 'NULL': {
           foundNull = true;
         }
+        default:
+          fail(0xae43, { leftMap, rightMap });
+          break;
       }
     }
   }
@@ -603,10 +609,6 @@ function valueEquals(left: Value, right: Value): boolean {
 }
 
 export class CoreAdd extends BigIntOrDoubleArithmetics {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   bigIntArith(
     left: { integerValue: number | string },
     right: {
@@ -965,6 +967,9 @@ export class CoreEqAny implements EvaluableExpr {
         return EvaluateResult.newError();
       case 'UNSET':
         return EvaluateResult.newError();
+      default:
+        fail(0xae42, { type: searchValue.type });
+        break;
     }
 
     const arrayExpr = this.expr.params[1];
@@ -993,6 +998,9 @@ export class CoreEqAny implements EvaluableExpr {
         }
         case 'NULL':
           foundNull = true;
+        default:
+          fail(0xae40, { value: searchValue.value, candidate });
+          break;
       }
     }
 
@@ -1291,6 +1299,8 @@ abstract class ComparisonBase implements EvaluableExpr {
         return EvaluateResult.newError();
       case 'UNSET':
         return EvaluateResult.newError();
+      default:
+        break;
     }
 
     const right = toEvaluable(this.expr.params[1]).evaluate(context, input);
@@ -1299,6 +1309,8 @@ abstract class ComparisonBase implements EvaluableExpr {
         return EvaluateResult.newError();
       case 'UNSET':
         return EvaluateResult.newError();
+      default:
+        break;
     }
 
     if (left.isNull() || right.isNull()) {
@@ -1329,6 +1341,9 @@ export class CoreEq extends ComparisonBase {
         return EvaluateResult.newValue(FALSE_VALUE);
       case 'NULL':
         return EvaluateResult.newNull();
+      default:
+        fail(0xae47, { left, right });
+        break;
     }
   }
 }
@@ -1346,6 +1361,9 @@ export class CoreNeq extends ComparisonBase {
         return EvaluateResult.newValue(TRUE_VALUE);
       case 'NULL':
         return EvaluateResult.newNull();
+      default:
+        fail(0xae46, { left, right });
+        break;
     }
   }
 }
@@ -1563,6 +1581,9 @@ export class CoreArrayContainsAll implements EvaluableExpr {
             foundNull = true;
             foundNullAtLeastOnce = true;
           }
+          default:
+            fail(0xae45, { value, search });
+            break;
         }
 
         if (found) {
@@ -1657,6 +1678,9 @@ export class CoreArrayContainsAny implements EvaluableExpr {
           }
           case 'NULL':
             foundNull = true;
+          default:
+            fail(0xae40, { value, search });
+            break;
         }
       }
     }
@@ -1783,7 +1807,7 @@ export class CoreReplaceAll implements EvaluableExpr {
   }
 }
 
-function getUnicodePointCount(str: string) {
+function getUnicodePointCount(str: string): number | undefined {
   let count = 0;
   for (let i = 0; i < str.length; i++) {
     const codePoint = str.codePointAt(i);
@@ -1861,7 +1885,7 @@ export class CoreCharLength implements EvaluableExpr {
   }
 }
 
-function getUtf8ByteLength(str: string) {
+function getUtf8ByteLength(str: string): number | undefined {
   let byteLength = 0;
   for (let i = 0; i < str.length; i++) {
     const codePoint = str.codePointAt(i);
@@ -2034,10 +2058,6 @@ function likeToRegex(like: string): string {
 }
 
 export class CoreLike extends StringSearchFunctionBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   performSearch(value: string, search: string): EvaluateResult {
     try {
       const regexPattern = likeToRegex(search);
@@ -2053,10 +2073,6 @@ export class CoreLike extends StringSearchFunctionBase {
 }
 
 export class CoreRegexContains extends StringSearchFunctionBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   performSearch(value: string, search: string): EvaluateResult {
     try {
       const regex = RE2JS.compile(search);
@@ -2073,10 +2089,6 @@ export class CoreRegexContains extends StringSearchFunctionBase {
 }
 
 export class CoreRegexMatch extends StringSearchFunctionBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   performSearch(value: string, search: string): EvaluateResult {
     try {
       // Use matches() for full string match semantics
@@ -2093,30 +2105,18 @@ export class CoreRegexMatch extends StringSearchFunctionBase {
 }
 
 export class CoreStrContains extends StringSearchFunctionBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   performSearch(value: string, search: string): EvaluateResult {
     return EvaluateResult.newValue({ booleanValue: value.includes(search) });
   }
 }
 
 export class CoreStartsWith extends StringSearchFunctionBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   performSearch(value: string, search: string): EvaluateResult {
     return EvaluateResult.newValue({ booleanValue: value.startsWith(search) });
   }
 }
 
 export class CoreEndsWith extends StringSearchFunctionBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   performSearch(value: string, search: string): EvaluateResult {
     return EvaluateResult.newValue({ booleanValue: value.endsWith(search) });
   }
@@ -2369,24 +2369,24 @@ abstract class DistanceBase implements EvaluableExpr {
 }
 
 export class CoreCosineDistance extends DistanceBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   calculateDistance(
     vec1: ArrayValue | undefined,
     vec2: ArrayValue | undefined
   ): number | undefined {
     const values1 = vec1?.values ?? [];
     const values2 = vec2?.values ?? [];
-    if (values1.length === 0) {return undefined;} // Distance undefined for empty vectors
+    if (values1.length === 0) {
+      return undefined;
+    } // Distance undefined for empty vectors
 
     let dotProduct = 0;
     let magnitude1 = 0;
     let magnitude2 = 0;
     for (let i = 0; i < values1.length; i++) {
       // Error if any element is not a number
-      if (!isNumber(values1[i]) || !isNumber(values2[i])) {return undefined;}
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) {
+        return undefined;
+      }
       const val1 = asDouble(values1[i] as { doubleValue: number | string });
       const val2 = asDouble(values2[i] as { doubleValue: number | string });
       dotProduct += val1 * val2;
@@ -2406,22 +2406,22 @@ export class CoreCosineDistance extends DistanceBase {
 }
 
 export class CoreDotProduct extends DistanceBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   calculateDistance(
     vec1: ArrayValue | undefined,
     vec2: ArrayValue | undefined
   ): number | undefined {
     const values1 = vec1?.values ?? [];
     const values2 = vec2?.values ?? [];
-    if (values1.length === 0) {return 0.0;} // Dot product of empty vectors is 0
+    if (values1.length === 0) {
+      return 0.0;
+    } // Dot product of empty vectors is 0
 
     let dotProduct = 0;
     for (let i = 0; i < values1.length; i++) {
       // Error if any element is not a number
-      if (!isNumber(values1[i]) || !isNumber(values2[i])) {return undefined;}
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) {
+        return undefined;
+      }
       const val1 = asDouble(values1[i] as { doubleValue: number | string });
       const val2 = asDouble(values2[i] as { doubleValue: number | string });
       dotProduct += val1 * val2;
@@ -2432,22 +2432,22 @@ export class CoreDotProduct extends DistanceBase {
 }
 
 export class CoreEuclideanDistance extends DistanceBase {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   calculateDistance(
     vec1: ArrayValue | undefined,
     vec2: ArrayValue | undefined
   ): number | undefined {
     const values1 = vec1?.values ?? [];
     const values2 = vec2?.values ?? [];
-    if (values1.length === 0) {return 0.0;} // Distance between empty vectors is 0
+    if (values1.length === 0) {
+      return 0.0;
+    } // Distance between empty vectors is 0
 
     let euclideanDistanceSq = 0;
     for (let i = 0; i < values1.length; i++) {
       // Error if any element is not a number
-      if (!isNumber(values1[i]) || !isNumber(values2[i])) {return undefined;}
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) {
+        return undefined;
+      }
       const val1 = asDouble(values1[i] as { doubleValue: number | string });
       const val2 = asDouble(values2[i] as { doubleValue: number | string });
       euclideanDistanceSq += Math.pow(val1 - val2, 2);
@@ -2526,7 +2526,7 @@ function isSecondsInBounds(seconds: bigint): boolean {
   return seconds >= TIMESTAMP_MIN_SECONDS && seconds <= TIMESTAMP_MAX_SECONDS;
 }
 
-function isTimestampInBounds(seconds: number, nanos: number) {
+function isTimestampInBounds(seconds: number, nanos: number): boolean {
   const sBig = BigInt(seconds);
   if (sBig < TIMESTAMP_MIN_SECONDS || sBig > TIMESTAMP_MAX_SECONDS) {
     return false;
@@ -2536,8 +2536,12 @@ function isTimestampInBounds(seconds: number, nanos: number) {
     return false;
   }
   // Additional check for min/max boundaries
-  if (sBig === TIMESTAMP_MIN_SECONDS && nanos !== 0) {return false;} // Min timestamp has 0 nanos
-  if (sBig === TIMESTAMP_MAX_SECONDS && nanos > 999_999_999) {return false;} // Max timestamp allows up to 999_999_999 nanos
+  if (sBig === TIMESTAMP_MIN_SECONDS && nanos !== 0) {
+    return false;
+  } // Min timestamp has 0 nanos
+  if (sBig === TIMESTAMP_MAX_SECONDS && nanos > 999_999_999) {
+    return false;
+  } // Max timestamp allows up to 999_999_999 nanos
 
   return true;
 }
@@ -2597,10 +2601,6 @@ abstract class UnixToTimestamp implements EvaluableExpr {
 }
 
 export class CoreUnixMicrosToTimestamp extends UnixToTimestamp {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   toTimestamp(value: bigint): EvaluateResult {
     if (!isMicrosInBounds(value)) {
       return EvaluateResult.newError();
@@ -2625,10 +2625,6 @@ export class CoreUnixMicrosToTimestamp extends UnixToTimestamp {
 }
 
 export class CoreUnixMillisToTimestamp extends UnixToTimestamp {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   toTimestamp(value: bigint): EvaluateResult {
     if (!isMillisInBounds(value)) {
       return EvaluateResult.newError();
@@ -2652,10 +2648,6 @@ export class CoreUnixMillisToTimestamp extends UnixToTimestamp {
 }
 
 export class CoreUnixSecondsToTimestamp extends UnixToTimestamp {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   toTimestamp(value: bigint): EvaluateResult {
     if (!isSecondsInBounds(value)) {
       return EvaluateResult.newError();
@@ -2705,10 +2697,6 @@ abstract class TimestampToUnix implements EvaluableExpr {
 }
 
 export class CoreTimestampToUnixMicros extends TimestampToUnix {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   toUnix(timestamp: Timestamp): EvaluateResult {
     const micros = timestampToMicros(timestamp);
     // Check if the resulting micros are within representable bounds
@@ -2720,10 +2708,6 @@ export class CoreTimestampToUnixMicros extends TimestampToUnix {
 }
 
 export class CoreTimestampToUnixMillis extends TimestampToUnix {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   toUnix(timestamp: Timestamp): EvaluateResult {
     const micros = timestampToMicros(timestamp);
     // Perform division, truncating towards zero (default JS BigInt division)
@@ -2740,10 +2724,6 @@ export class CoreTimestampToUnixMillis extends TimestampToUnix {
 }
 
 export class CoreTimestampToUnixSeconds extends TimestampToUnix {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   toUnix(timestamp: Timestamp): EvaluateResult {
     // Seconds are directly available
     const seconds = BigInt(timestamp.seconds);
@@ -2947,20 +2927,12 @@ abstract class TimestampArithmetic implements EvaluableExpr {
 }
 
 export class CoreTimestampAdd extends TimestampArithmetic {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   newMicros(initialMicros: bigint, microsToAdd: bigint): bigint {
     return initialMicros + microsToAdd;
   }
 }
 
 export class CoreTimestampSub extends TimestampArithmetic {
-  constructor(expr: FunctionExpression) {
-    super(expr);
-  }
-
   newMicros(initialMicros: bigint, microsToSub: bigint): bigint {
     return initialMicros - microsToSub;
   }

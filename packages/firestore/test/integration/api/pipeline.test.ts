@@ -150,7 +150,6 @@ use(chaiAsPromised);
 
 setLogLevel('debug');
 
-const timestampDeltaMS = 1000;
 const testUnsupportedFeatures = false;
 
 apiDescribe.skipClassic('Pipelines', persistence => {

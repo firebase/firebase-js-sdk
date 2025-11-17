@@ -17,16 +17,10 @@
 
 import { expect } from 'chai';
 
-import {
-  field
-} from '../../../../lite/pipelines/pipelines';
+import { field } from '../../../../lite/pipelines/pipelines';
 import { doc as docRef } from '../../../../src';
 import { newTestFirestore } from '../../../util/api_helpers';
-import {
-  canonifyPipeline,
-  pipelineEq
-} from '../../../util/pipelines';
-
+import { canonifyPipeline, pipelineEq } from '../../../util/pipelines';
 
 const db = newTestFirestore();
 describe('Pipeline Canonify', () => {

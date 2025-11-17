@@ -28,9 +28,7 @@ import {
 import { MutableDocument } from '../../../../src/model/document';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
+import { runPipeline } from '../../../util/pipelines';
 
 import { or } from './util';
 
@@ -47,14 +45,14 @@ describe('Complex Queries', () => {
   function seedDatabase(
     numOfDocuments: number,
     numOfFields: number,
-    valueSupplier: () => any
+    valueSupplier: () => unknown
   ): MutableDocument[] {
     const documents = [];
     for (let i = 0; i < numOfDocuments; i++) {
       const docData = {};
       for (let j = 1; j <= numOfFields; j++) {
         // @ts-ignore
-        docData[`field_${j}`] = valueSupplier();
+        docData[`field${j}`] = valueSupplier();
       }
       const newDoc = doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, docData);
       documents.push(newDoc);
@@ -74,7 +72,7 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(constant(1).equal(1));
     for (let i = 1; i <= numOfFields; i++) {
-      pipeline = pipeline.where(field(`field_${i}`).greaterThan(constant(0)));
+      pipeline = pipeline.where(field(`field${i}`).greaterThan(constant(0)));
     }
 
     expect(runPipeline(pipeline, documents)).to.have.deep.members(documents);
@@ -86,14 +84,14 @@ describe('Complex Queries', () => {
     const documents = seedDatabase(numOfDocuments, 1, () => valueCounter++);
     // Add one more document not matching 'in' condition
     documents.push(
-      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field_1: 3001 })
+      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field1: 3001 })
     );
 
     const pipeline = db
       .pipeline()
       .collection(`/${COLLECTION_ID}`)
       .where(
-        field('field_1').equalAny(
+        field('field1').equalAny(
           Array.from({ length: 3000 }, (_, i) => constant(i + 1))
         )
       );
@@ -114,13 +112,13 @@ describe('Complex Queries', () => {
     );
     // Add one more document not matching 'in' condition
     documents.push(
-      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field_1: 3001 })
+      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field1: 3001 })
     );
 
     const conditions = [];
     for (let i = 1; i <= numOfFields; i++) {
       conditions.push(
-        field(`field_${i}`).equalAny(
+        field(`field${i}`).equalAny(
           Array.from({ length: 3000 }, (_, j) => constant(j + 1))
         )
       );
@@ -142,7 +140,7 @@ describe('Complex Queries', () => {
     const documents = seedDatabase(numOfDocuments, 1, () => valueCounter++);
     // Add one more document matching 'notEqualAny' condition
     const doc1 = doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, {
-      field_1: 3001
+      field1: 3001
     });
     documents.push(doc1);
 
@@ -150,7 +148,7 @@ describe('Complex Queries', () => {
       .pipeline()
       .collection(`/${COLLECTION_ID}`)
       .where(
-        field('field_1').notEqualAny(
+        field('field1').notEqualAny(
           Array.from({ length: 3000 }, (_, i) => constant(i + 1))
         )
       );
@@ -169,14 +167,14 @@ describe('Complex Queries', () => {
     );
     // Add one more document matching 'notEqualAny' condition
     const doc1 = doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, {
-      field_1: 3001
+      field1: 3001
     });
     documents.push(doc1);
 
     const conditions = [];
     for (let i = 1; i <= numOfFields; i++) {
       conditions.push(
-        field(`field_${i}`).notEqualAny(
+        field(`field${i}`).notEqualAny(
           Array.from({ length: 3000 }, (_, j) => constant(j + 1))
         )
       );
@@ -196,7 +194,7 @@ describe('Complex Queries', () => {
     const documents = seedDatabase(numOfDocuments, 1, () => [valueCounter++]);
     // Add one more document not matching 'arrayContainsAny' condition
     documents.push(
-      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field_1: [3001] })
+      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field1: [3001] })
     );
 
     const pipeline = db
@@ -204,7 +202,7 @@ describe('Complex Queries', () => {
       .collection(`/${COLLECTION_ID}`)
       .where(
         arrayContainsAny(
-          field('field_1'),
+          field('field1'),
           Array.from({ length: 3000 }, (_, i) => constant(i + 1))
         )
       );
@@ -223,14 +221,14 @@ describe('Complex Queries', () => {
     ]);
     // Add one more document not matching 'arrayContainsAny' condition
     documents.push(
-      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field_1: [3001] })
+      doc(`${COLLECTION_ID}/${docIdCounter}`, 1000, { field1: [3001] })
     );
 
     const conditions = [];
     for (let i = 1; i <= numOfFields; i++) {
       conditions.push(
         arrayContainsAny(
-          field(`field_${i}`),
+          field(`field${i}`),
           Array.from({ length: 3000 }, (_, j) => constant(j + 1))
         )
       );
@@ -251,10 +249,10 @@ describe('Complex Queries', () => {
     const numOfDocuments = 100;
     // Passing a constant value here to reduce the complexity on result assertion.
     const documents = seedDatabase(numOfDocuments, numOfFields, () => 10);
-    // sort(field_1, field_2...)
+    // sort(field1, field2...)
     const sortFields = [];
     for (let i = 1; i <= numOfFields; i++) {
-      sortFields.push(field('field_' + i).ascending());
+      sortFields.push(field('field' + i).ascending());
     }
     // add __name__ as the last field in sort.
     sortFields.push(field('__name__').ascending());
@@ -273,7 +271,7 @@ describe('Complex Queries', () => {
     const documents = seedDatabase(numOfDocuments, numOfFields, () => 0);
 
     const depth = 31;
-    let addFunc = add(field('field_1'), constant(1));
+    let addFunc = add(field('field1'), constant(1));
     for (let i = 1; i < depth; i++) {
       addFunc = add(addFunc, constant(1));
     }
@@ -299,7 +297,7 @@ describe('Complex Queries', () => {
     const orConditions = [];
     for (let i = 1; i <= numOfFields; i++) {
       orConditions.push(
-        field(`field_${i}`).lessThanOrEqual(constant(valueCounter))
+        field(`field${i}`).lessThanOrEqual(constant(valueCounter))
       );
     }
 
@@ -324,9 +322,9 @@ describe('Complex Queries', () => {
     const andConditions1 = [];
     const andConditions2 = [];
     for (let i = 1; i <= numOfFields; i++) {
-      andConditions1.push(field(`field_${i}`).greaterThan(constant(0)));
+      andConditions1.push(field(`field${i}`).greaterThan(constant(0)));
       andConditions2.push(
-        field(`field_${i}`).lessThan(constant(Number.MAX_SAFE_INTEGER))
+        field(`field${i}`).lessThan(constant(Number.MAX_SAFE_INTEGER))
       );
     }
 

@@ -27,9 +27,7 @@ import {
 import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
+import { runPipeline } from '../../../util/pipelines';
 
 import { not } from './util';
 
@@ -229,8 +227,8 @@ describe('Sort Tests', () => {
     const doc1 = doc('users/a', 1000, { name: 'alice', age: 75.5 });
     const doc2 = doc('users/b', 1000, { name: 'bob' });
     const doc3 = doc('users/c', 1000, { age: 100 });
-    const doc4 = doc('users/d', 1000, { other_name: 'diane' });
-    const doc5 = doc('users/e', 1000, { other_age: 10 });
+    const doc4 = doc('users/d', 1000, { otherName: 'diane' });
+    const doc5 = doc('users/e', 1000, { otherAge: 10 });
 
     const pipeline = db
       .pipeline()

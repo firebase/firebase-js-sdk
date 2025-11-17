@@ -84,7 +84,9 @@ import {
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
-function results(outputs: RealtimePipelineSnapshot | QuerySnapshot) {
+function results(
+  outputs: RealtimePipelineSnapshot | QuerySnapshot
+): PipelineResult[] | Array<QueryDocumentSnapshot<DocumentData, DocumentData>> {
   if (outputs instanceof RealtimePipelineSnapshot) {
     return outputs.results;
   } else {
@@ -92,7 +94,9 @@ function results(outputs: RealtimePipelineSnapshot | QuerySnapshot) {
   }
 }
 
-function getChanges(outputs: RealtimePipelineSnapshot | QuerySnapshot) {
+function getChanges(
+  outputs: RealtimePipelineSnapshot | QuerySnapshot
+): ResultChange[] | Array<DocumentChange<DocumentData, DocumentData>> {
   if (outputs instanceof RealtimePipelineSnapshot) {
     return outputs.resultChanges();
   } else {
@@ -901,7 +905,7 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
         pipelineMode,
         coll,
         { includeMetadataChanges: true },
-        (snapshot: { empty: any; metadata: { fromCache: any } }) => {
+        (snapshot: { empty: boolean; metadata: { fromCache: boolean } }) => {
           if (!snapshot.empty && !snapshot.metadata.fromCache) {
             deferred.resolve();
           }
@@ -1488,7 +1492,7 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
         const unsubscribe = onSnapshot(
           pipelineMode,
           query1,
-          (snapshot: { size: any }) => {
+          (snapshot: { size: number }) => {
             expect(snapshot.size).to.equal(1);
             deferred.resolve();
           }

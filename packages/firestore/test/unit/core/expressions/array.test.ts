@@ -43,7 +43,6 @@ import {
   expectEqualToConstant
 } from './utils';
 
-
 describe('Array Expressions', () => {
   describe('arrayContainsAll', () => {
     it('containsAll', () => {

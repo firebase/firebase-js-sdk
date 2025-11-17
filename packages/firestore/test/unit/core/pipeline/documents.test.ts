@@ -17,17 +17,12 @@
 
 import { expect } from 'chai';
 
-import {
-  field
-} from '../../../../lite/pipelines/pipelines';
+import { field } from '../../../../lite/pipelines/pipelines';
 import { doc as docRef } from '../../../../src';
 import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
-import {
-  runPipeline
-} from '../../../util/pipelines';
-
+import { runPipeline } from '../../../util/pipelines';
 
 const db = newTestFirestore();
 

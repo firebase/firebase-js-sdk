@@ -944,7 +944,7 @@ describe('Null Semantics', () => {
       .database()
       .where(isError(not(field('a').equal(true))));
 
-    expect(runPipeline(pipeline, [])).to.deep.equal([]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([]);
   });
 
   // ===================================================================

@@ -64,7 +64,6 @@ import {
   USE_EMULATOR
 } from './settings';
 
-
 /* eslint-disable no-restricted-globals */
 
 export interface PersistenceMode {
@@ -292,14 +291,14 @@ export const apiPipelineDescribe = apiPipelineDescribeInternal.bind(
   null,
   describe
 ) as ApiPipelineDescribe;
-// eslint-disable-next-line no-restricted-properties
 apiPipelineDescribe.skip = apiPipelineDescribeInternal.bind(
   null,
+  // eslint-disable-next-line no-restricted-properties
   describe.skip
 );
-// eslint-disable-next-line no-restricted-properties
 apiPipelineDescribe.only = apiPipelineDescribeInternal.bind(
   null,
+  // eslint-disable-next-line no-restricted-properties
   describe.only
 );
 
@@ -754,7 +753,9 @@ function getDocsFromPipeline(
 export function getDocs(
   pipelineMode: PipelineMode,
   queryOrPipeline: Query | RealtimePipeline
-) {
+):
+  | Promise<QuerySnapshot<DocumentData, DocumentData>>
+  | Promise<RealtimePipelineSnapshot> {
   if (pipelineMode === 'query-to-pipeline') {
     if (queryOrPipeline instanceof Query) {
       const ppl = queryOrPipeline.firestore
@@ -812,13 +813,21 @@ export function onSnapshot(
           ppl._userDataWriter,
           ppl.stages
         ),
-        options as any,
-        obs as any
+        options as SnapshotListenOptions,
+        obs as {}
       );
     } else {
-      return onPipelineSnapshot(queryOrPipeline, options as any, obs as any);
+      return onPipelineSnapshot(
+        queryOrPipeline,
+        options as SnapshotListenOptions,
+        obs as {}
+      );
     }
   }
 
-  return onSnapshotProd(queryOrPipeline as Query, options as any, obs as any);
+  return onSnapshotProd(
+    queryOrPipeline as Query,
+    options as SnapshotListenOptions,
+    obs as {}
+  );
 }
