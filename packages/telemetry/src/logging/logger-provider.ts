@@ -33,7 +33,6 @@ import { FetchTransport } from './fetch-transport';
 import { DynamicHeaderProvider, DynamicLogAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
-import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 /**
  * Create a logger provider for the current execution environment.

@@ -42,7 +42,6 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
 const API_KEY = 'my-api-key';
-const FID = 'fid-1234';
 
 const emittedLogs: LogRecord[] = [];
 
@@ -70,8 +69,7 @@ const fakeTelemetry: Telemetry = {
       appId: APP_ID
     }
   },
-  loggerProvider: fakeLoggerProvider,
-  fid: FID
+  loggerProvider: fakeLoggerProvider
 };
 
 describe('Top level API', () => {
@@ -127,7 +125,6 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('This is a test error');
       expect(log.attributes).to.deep.equal({
-        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset'
@@ -145,7 +142,6 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('error with no stack');
       expect(log.attributes).to.deep.equal({
-        'user.id': FID,
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
         'app.version': 'unset'
@@ -197,7 +193,6 @@ describe('Top level API', () => {
       await provider.shutdown();
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset',
@@ -223,7 +218,6 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        'user.id': FID,
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         'app.version': 'unset',
@@ -275,10 +269,17 @@ function getFakeApp(): FirebaseApp {
     new Component(
       'installations-internal',
       () =>
+<<<<<<< HEAD
       ({
         getId: async () => 'FID',
         getToken: async () => 'authToken'
       } as _FirebaseInstallationsInternal),
+=======
+        ({
+          getId: async () => 'iid',
+          getToken: async () => 'authToken'
+        } as _FirebaseInstallationsInternal),
+>>>>>>> e66c193d1 (Fix tests)
       ComponentType.PUBLIC
     )
   );
