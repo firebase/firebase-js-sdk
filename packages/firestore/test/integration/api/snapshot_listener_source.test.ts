@@ -48,7 +48,7 @@ import {
 import { firestore } from '../../util/api_helpers';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 
-apiPipelineDescribe.only(
+apiPipelineDescribe(
   'Snapshot Listener source options ',
   (persistence, pipelineMode) => {
     // eslint-disable-next-line no-restricted-properties
