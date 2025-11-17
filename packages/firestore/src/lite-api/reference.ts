@@ -627,6 +627,12 @@ export function doc<AppModelType, DbModelType extends DocumentData>(
   path?: string,
   ...pathSegments: string[]
 ): DocumentReference<AppModelType, DbModelType> {
+  if (parent === undefined) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      'Function doc() cannot be called with an undefined first argument.'
+    );
+  }
   parent = getModularInstance(parent);
 
   // We allow omission of 'pathString' but explicitly prohibit passing in both
@@ -651,7 +657,7 @@ export function doc<AppModelType, DbModelType extends DocumentData>(
     ) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Expected first argument to collection() to be a CollectionReference, ' +
+        'Expected first argument to doc() to be a CollectionReference, ' +
           'a DocumentReference or FirebaseFirestore'
       );
     }
