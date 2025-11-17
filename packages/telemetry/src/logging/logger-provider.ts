@@ -90,7 +90,7 @@ class AsyncAttributeLogExporter implements LogRecordExporter {
     logs: ReadableLogRecord[],
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
-    void Promise.all(
+    await Promise.all(
       this.dynamicLogAttributeProviders.map(async provider => {
         const attribute = await provider.getAttribute();
         if (attribute) {
@@ -100,7 +100,7 @@ class AsyncAttributeLogExporter implements LogRecordExporter {
         }
       })
     );
-    void this._delegate.export(logs, resultCallback);
+    this._delegate.export(logs, resultCallback);
   }
 
   shutdown(): Promise<void> {
