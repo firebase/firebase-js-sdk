@@ -23,6 +23,7 @@ export interface Telemetry {
 
 // @public
 export interface TelemetryOptions {
+    appVersion?: string;
     endpointUrl?: string;
 }
 
