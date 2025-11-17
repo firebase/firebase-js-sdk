@@ -37,9 +37,11 @@ import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { captureError, flush, getTelemetry } from './api';
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
+const API_KEY = 'my-api-key';
 
 const emittedLogs: LogRecord[] = [];
 
@@ -265,6 +267,17 @@ function getFakeApp(): FirebaseApp {
   registerTelemetry();
   _registerComponent(
     new Component(
+      'installations-internal',
+      () =>
+        ({
+          getId: async () => 'iid',
+          getToken: async () => 'authToken'
+        } as _FirebaseInstallationsInternal),
+      ComponentType.PUBLIC
+    )
+  );
+  _registerComponent(
+    new Component(
       'app-check-internal',
       () => {
         return {} as FirebaseAppCheckInternal;
@@ -272,7 +285,11 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({});
+  const app = initializeApp({
+    projectId: PROJECT_ID,
+    appId: APP_ID,
+    apiKey: API_KEY
+  });
   _addOrOverwriteComponent(
     app,
     //@ts-ignore

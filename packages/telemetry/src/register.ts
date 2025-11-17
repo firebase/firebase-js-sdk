@@ -22,6 +22,11 @@ import { name, version } from '../package.json';
 import { TelemetryService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
+import { InstallationIdProvider } from './logging/installation-id-provider';
+
+// We only import types from this package elsewhere in the `telemetry` package, so this
+// explicit import is needed here to prevent this module from being tree-shaken out.
+import '@firebase/installations';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -38,11 +43,18 @@ export function registerTelemetry(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
+        const installationsProvider = container.getProvider(
+          'installations-internal'
+        );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
+        const dynamicLogAttributeProviders = [
+          new InstallationIdProvider(installationsProvider)
+        ];
         const loggerProvider = createLoggerProvider(
           app,
           endpointUrl,
-          dynamicHeaderProviders
+          dynamicHeaderProviders,
+          dynamicLogAttributeProviders
         );
 
         return new TelemetryService(app, loggerProvider);

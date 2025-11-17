@@ -15,12 +15,38 @@
  * limitations under the License.
  */
 
+type KeyValuePair = [key: string, value: string];
+
+/**
+ * A type for Cloud Logging log entry attributes
+ *
+ * @internal
+ */
+export type LogEntryAttribute = KeyValuePair;
+
+/**
+ * An interface for classes that provide dynamic log entry attributes.
+ *
+ * Classes that implement this interface can be used to supply custom headers for logging.
+ *
+ * @internal
+ */
+export interface DynamicLogAttributeProvider {
+  /**
+   * Returns a record of attributes to be added to a log entry.
+   *
+   * @returns A {@link Promise} that resolves to a {@link LogEntryAttribute} key-value pair,
+   * or null if no attribute is to be added.
+   */
+  getAttribute(): Promise<LogEntryAttribute | null>;
+}
+
 /**
  * A type for HTTP Headers
  *
  * @internal
  */
-export type HttpHeader = [key: string, value: string];
+export type HttpHeader = KeyValuePair;
 
 /**
  * An interface for classes that provide dynamic headers.
@@ -33,8 +59,8 @@ export interface DynamicHeaderProvider {
   /**
    * Returns a record of headers to be added to a request.
    *
-   * @returns A {@link Promise} that resolves to a {@link Record<string, string>} of header
-   * key-value pairs, or null if no headers are to be added.
+   * @returns A {@link Promise} that resolves to a {@link HttpHeader} key-value pair,
+   * or null if no header is to be added.
    */
   getHeader(): Promise<HttpHeader | null>;
 }
