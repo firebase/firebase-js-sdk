@@ -19,11 +19,9 @@ import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import {
   constant,
-  Constant,
   equal,
   field,
-  greaterThanOrEqual,
-  isNull
+  greaterThanOrEqual
 } from '../../../src/lite-api/expressions';
 import { PipelineResult } from '../../../src/lite-api/pipeline-result';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -557,7 +555,7 @@ apiDescribe('RealtimePipelines', persistence => {
     );
 
     let snapshot = await storeEvent.awaitEvent();
-    let result = snapshot.results[0];
+    const result = snapshot.results[0];
     expect(snapshot.metadata.fromCache).to.be.true;
     expect(result.data()!['rating']).to.be.an.instanceof(Timestamp);
 
@@ -588,7 +586,7 @@ apiDescribe('RealtimePipelines', persistence => {
       storeEvent.storeEvent
     );
 
-    let snapshot = await storeEvent.awaitEvent();
+    const snapshot = await storeEvent.awaitEvent();
     expect(snapshot.metadata.fromCache).to.be.true;
     expect(snapshot.results.length).to.equal(1);
     expect(snapshot.results[0].data()!['title']).to.equal(
@@ -622,7 +620,7 @@ apiDescribe('RealtimePipelines', persistence => {
     );
 
     let snapshot = await storeEvent.awaitEvent();
-    let result = snapshot.results[0];
+    const result = snapshot.results[0];
     expect(snapshot.metadata.fromCache).to.be.true;
     expect(result.data()!['rating']).to.equal(4.2);
 
@@ -678,7 +676,7 @@ apiDescribe('RealtimePipelines', persistence => {
     );
 
     let snapshot = await storeEvent.awaitEvent();
-    let result = snapshot.results[0];
+    const result = snapshot.results[0];
     expect(snapshot.metadata.fromCache).to.be.true;
     expect(result.data()!['rating']).to.be.null;
 
@@ -703,7 +701,7 @@ apiDescribe('RealtimePipelines', persistence => {
       firestore
         .realtimePipeline()
         .collection(randomCol.path)
-        .where(isNull('title')),
+        .where(equal('title', null)),
       storeEvent.storeEvent
     );
 
@@ -726,7 +724,7 @@ apiDescribe('RealtimePipelines', persistence => {
     const pipeline = firestore
       .realtimePipeline()
       .collection(randomCol.path)
-      .where(field('title').isNotNull())
+      .where(field('title').notEqual(null))
       .limit(1);
 
     const unsubscribe1 = _onRealtimePipelineSnapshot(

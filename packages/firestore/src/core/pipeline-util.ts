@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { VectorValue } from '../api';
 import { RealtimePipeline } from '../api/realtime_pipeline';
 import { Firestore } from '../lite-api/database';
 import {
@@ -27,13 +28,9 @@ import {
   Ordering,
   lessThan,
   greaterThan,
-  lessThanOrEqual,
-  greaterThanOrEqual,
-  equal,
   field,
   FunctionExpression,
-  ListOfExprs,
-  AggregateFunction
+  ListOfExprs
 } from '../lite-api/expressions';
 import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
 import { doc, DocumentReference } from '../lite-api/reference';
@@ -45,10 +42,8 @@ import {
   DatabaseSource,
   Distinct,
   DocumentsSource,
-  FindNearest,
   Limit,
   Offset,
-  Select,
   Sort,
   Stage,
   Where
@@ -59,14 +54,10 @@ import {
   ResourcePath,
   UPDATE_TIME_NAME
 } from '../model/path';
-import {
-  isNanValue,
-  isNullValue,
-  VECTOR_MAP_VECTORS_KEY
-} from '../model/values';
-import { debugAssert, fail } from '../util/assert';
+import { fail } from '../util/assert';
 
 import { Bound } from './bound';
+import { ListenOptions } from './event_manager';
 import {
   CompositeFilter as CompositeFilterInternal,
   CompositeOperator,
@@ -92,8 +83,6 @@ import {
   targetEquals,
   targetIsPipelineTarget
 } from './target';
-import { VectorValue } from '../api';
-import { ListenOptions } from './event_manager';
 
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 

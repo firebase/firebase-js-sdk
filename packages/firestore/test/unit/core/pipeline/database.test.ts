@@ -18,37 +18,17 @@
 import { expect } from 'chai';
 
 import {
-  and as apiAnd,
-  Field,
-  like,
-  arrayContainsAny,
-  add,
   constant,
-  field,
-  or as apiOr,
-  not as apiNot,
-  divide,
-  BooleanExpression as BooleanExpr,
-  exists,
-  regexMatch,
-  xor as ApiXor,
-  arrayContains,
-  Expression as Expr,
-  arrayContainsAll
+  field
 } from '../../../../lite/pipelines/pipelines';
 import { doc as docRef } from '../../../../src';
-import { MutableDocument } from '../../../../src/model/document';
-import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
+import { DOCUMENT_KEY_NAME } from '../../../../src/model/path';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
 import {
-  canonifyPipeline,
-  constantArray,
-  constantMap,
-  pipelineEq,
   runPipeline
 } from '../../../util/pipelines';
-import { and, or, not, xor } from './util';
+
 
 const db = newTestFirestore();
 

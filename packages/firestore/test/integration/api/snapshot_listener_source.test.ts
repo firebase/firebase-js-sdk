@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -37,7 +38,6 @@ import {
   where
 } from '../util/firebase_export';
 import {
-  apiDescribe,
   apiPipelineDescribe,
   toDataArray,
   getDocs,
@@ -45,8 +45,6 @@ import {
   withTestCollection,
   withTestDocAndInitialData
 } from '../util/helpers';
-import { firestore } from '../../util/api_helpers';
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 
 apiPipelineDescribe(
   'Snapshot Listener source options ',

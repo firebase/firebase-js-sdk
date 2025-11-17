@@ -1,3 +1,5 @@
+import { RealtimePipeline } from '../../src/api/realtime_pipeline';
+import { ExpUserDataWriter } from '../../src/api/user_data_writer';
 import {
   canonifyPipeline as canonifyCorePipeline,
   pipelineEq as corePipelineEq,
@@ -9,16 +11,14 @@ import {
 } from '../../src/core/pipeline_run';
 import { Constant } from '../../src/lite-api/expressions';
 import { Pipeline as LitePipeline } from '../../src/lite-api/pipeline';
+import { Stage } from '../../src/lite-api/stage';
 import {
   newUserDataReader,
   UserDataSource
 } from '../../src/lite-api/user_data_reader';
-import { testUserDataReader } from './helpers';
+
 import { firestore, newTestFirestore } from './api_helpers';
-import { Stage } from '../../src/lite-api/stage';
-import { Pipeline } from '../../src/api/pipeline';
-import { RealtimePipeline } from '../../src/api/realtime_pipeline';
-import { ExpUserDataWriter } from '../../src/api/user_data_writer';
+import { testUserDataReader } from './helpers';
 
 export function canonifyPipeline(p: LitePipeline): string {
   return canonifyCorePipeline(toCorePipeline(p));

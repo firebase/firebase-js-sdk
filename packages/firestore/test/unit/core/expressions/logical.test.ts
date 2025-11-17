@@ -18,15 +18,6 @@
 import { expect } from 'chai';
 
 import {
-  ComparisonValueTestData,
-  errorExpr,
-  errorFilterCondition,
-  evaluateToValue,
-  expectEqualToConstant,
-  falseExpr,
-  trueExpr
-} from './utils';
-import {
   and,
   constant,
   not,
@@ -37,18 +28,24 @@ import {
   logicalMinimum,
   conditional as cond,
   add,
-  Constant,
   equal,
   notEqual
 } from '../../../../src/lite-api/expressions';
 import {
   FALSE_VALUE,
   MIN_VALUE,
-  TRUE_VALUE,
-  valueEquals
+  TRUE_VALUE
 } from '../../../../src/model/values';
 import { constantArray, constantMap } from '../../../util/pipelines';
-import { canonifyExpr } from '../../../../src/core/pipeline-util';
+
+import {
+  errorExpr,
+  errorFilterCondition,
+  evaluateToValue,
+  expectEqualToConstant,
+  falseExpr,
+  trueExpr
+} from './utils';
 
 describe('Logical Functions', () => {
   describe('and', () => {

@@ -17,6 +17,8 @@
 
 import { expect } from 'chai';
 
+import { VectorValue } from '../../../../src';
+import { EvaluateResult } from '../../../../src/core/expressions';
 import {
   constant,
   cosineDistance,
@@ -24,9 +26,8 @@ import {
   euclideanDistance,
   vectorLength
 } from '../../../../src/lite-api/expressions';
-import { VectorValue } from '../../../../src';
-import { EvaluateResult } from '../../../../src/core/expressions';
 import { constantArray } from '../../../util/pipelines';
+
 import {
   evaluateToResult,
   evaluateToValue,

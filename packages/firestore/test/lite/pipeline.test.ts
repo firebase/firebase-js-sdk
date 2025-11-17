@@ -30,7 +30,6 @@ import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path
 import { vector } from '../../src/lite-api/field_value_impl';
 import { GeoPoint } from '../../src/lite-api/geo_point';
 import {
-  pipelineResultEqual,
   PipelineSnapshot
 } from '../../src/lite-api/pipeline-result';
 import { execute } from '../../src/lite-api/pipeline_impl';
@@ -61,8 +60,6 @@ import {
   average,
   substring,
   count,
-  mapMerge,
-  mapRemove,
   ifError,
   isAbsent,
   isError,
@@ -115,7 +112,6 @@ import {
   BooleanExpression,
   AggregateFunction,
   stringConcat,
-  arrayContainsAll,
   arrayLength,
   charLength,
   divide,

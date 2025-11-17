@@ -17,6 +17,7 @@
 
 import { RealtimePipeline } from '../api/realtime_pipeline';
 import { SnapshotMetadata } from '../api/snapshot';
+import { ListenOptions } from '../core/event_manager';
 import { Document } from '../model/document';
 import { ObjectValue } from '../model/object_value';
 import { isOptionalEqual } from '../util/misc';
@@ -28,7 +29,6 @@ import { DocumentData, DocumentReference, refEqual } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
-import { ListenOptions } from '../core/event_manager';
 
 /**
  * @beta

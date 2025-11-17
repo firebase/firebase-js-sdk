@@ -35,7 +35,8 @@ import {
   firestoreClientListen,
   firestoreClientWrite
 } from '../core/firestore_client';
-import { QueryOrPipeline, toCorePipeline } from '../core/pipeline-util';
+import { CorePipeline } from '../core/pipeline';
+import { toCorePipeline } from '../core/pipeline-util';
 import { Query as InternalQuery, newQueryForPath } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
@@ -66,6 +67,7 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { RealtimePipeline } from './realtime_pipeline';
 import {
   DocumentSnapshot,
   FirestoreDataConverter,
@@ -74,8 +76,6 @@ import {
   SnapshotMetadata
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
-import { RealtimePipeline } from './realtime_pipeline';
-import { CorePipeline } from '../core/pipeline';
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link

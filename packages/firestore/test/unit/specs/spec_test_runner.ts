@@ -43,7 +43,6 @@ import {
 } from '../../../src/core/event_manager';
 import { CorePipeline } from '../../../src/core/pipeline';
 import {
-  canonifyPipeline,
   canonifyQueryOrPipeline,
   pipelineEq,
   QueryOrPipeline,
@@ -53,11 +52,9 @@ import {
   toPipelineStages
 } from '../../../src/core/pipeline-util';
 import {
-  canonifyQuery,
   LimitType,
   newQueryForCollectionGroup,
   Query,
-  queryEquals,
   QueryImpl,
   queryToTarget,
   queryWithAddedFilter,
@@ -94,6 +91,7 @@ import {
   DbPrimaryClientKey,
   DbPrimaryClientStore
 } from '../../../src/local/indexeddb_sentinels';
+import { fromPipelineTarget } from '../../../src/local/local_serializer';
 import { LocalStore } from '../../../src/local/local_store';
 import { localStoreConfigureFieldIndexes } from '../../../src/local/local_store_impl';
 import { LruGarbageCollector } from '../../../src/local/lru_garbage_collector';
@@ -168,6 +166,7 @@ import {
   validateFirestoreError,
   version
 } from '../../util/helpers';
+import { pipelineFromStages } from '../../util/pipelines';
 import { encodeWatchChange } from '../../util/spec_test_helpers';
 import {
   FakeDocument,
@@ -196,8 +195,6 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
-import { pipelineFromStages } from '../../util/pipelines';
-import { fromPipelineTarget } from '../../../src/local/local_serializer';
 
 use(chaiExclude);
 
@@ -976,7 +973,7 @@ abstract class TestRunner {
         expectedEvents.length,
         'Number of expected and actual events mismatch'
       );
-      let actualEventsSorted: QueryEvent[] = this.eventList.sort((a, b) =>
+      const actualEventsSorted: QueryEvent[] = this.eventList.sort((a, b) =>
         primitiveComparator(
           canonifyQueryOrPipeline(a.query),
           canonifyQueryOrPipeline(b.query)

@@ -17,9 +17,10 @@
 
 import { expect } from 'chai';
 
+import { EvaluateResult } from '../../../../src/core/expressions';
 import { constant, mapGet } from '../../../../src/lite-api/expressions';
 import { constantMap } from '../../../util/pipelines';
-import { EvaluateResult } from '../../../../src/core/expressions';
+
 import {
   evaluateToResult,
   evaluateToValue,

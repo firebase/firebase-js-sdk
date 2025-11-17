@@ -82,10 +82,10 @@ import {
   setMutation,
   version
 } from '../../util/helpers';
+import { pipelineFromStages } from '../../util/pipelines';
 
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestIndexManager } from './test_index_manager';
-import { pipelineFromStages } from '../../util/pipelines';
 
 const TEST_TARGET_ID = 1;
 

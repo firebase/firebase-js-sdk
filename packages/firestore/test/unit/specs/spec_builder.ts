@@ -62,6 +62,7 @@ import { ObjectMap } from '../../../src/util/obj_map';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { firestore, newTestFirestore } from '../../util/api_helpers';
 import { deletedDoc, TestSnapshotVersion } from '../../util/helpers';
+import { pipelineFromStages } from '../../util/pipelines';
 
 import { RpcError } from './spec_rpc_error';
 import {
@@ -78,7 +79,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { pipelineFromStages } from '../../util/pipelines';
 
 const userDataWriter = new ExpUserDataWriter(firestore());
 

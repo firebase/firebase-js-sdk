@@ -17,11 +17,12 @@
 
 import { expect } from 'chai';
 
-import { constant, field } from '../../../../src/lite-api/expressions';
-import { canonifyExpr } from '../../../../src/core/pipeline-util';
-import { FALSE_VALUE, TRUE_VALUE } from '../../../../src/model/values';
 import { EvaluateResult } from '../../../../src/core/expressions';
+import { canonifyExpr } from '../../../../src/core/pipeline-util';
+import { constant, field } from '../../../../src/lite-api/expressions';
+import { FALSE_VALUE, TRUE_VALUE } from '../../../../src/model/values';
 import { constantArray, constantMap } from '../../../util/pipelines';
+
 import {
   ComparisonValueTestData,
   ERROR_VALUE,

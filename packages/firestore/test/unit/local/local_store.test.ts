@@ -123,11 +123,11 @@ import {
   unknownDoc,
   version
 } from '../../util/helpers';
+import { pipelineFromStages } from '../../util/pipelines';
 
 import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { JSON_SERIALIZER } from './persistence_test_helpers';
-import { pipelineFromStages } from '../../util/pipelines';
 
 export interface LocalStoreComponents {
   queryEngine: CountingQueryEngine;

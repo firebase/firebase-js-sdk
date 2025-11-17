@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { EvaluateResult } from '../../../../src/core/expressions';
 import {
   add,
   arrayContains,
@@ -54,7 +55,7 @@ import {
   unixSecondsToTimestamp,
   vectorLength
 } from '../../../../src/lite-api/expressions';
-import { EvaluateResult } from '../../../../src/core/expressions';
+
 import {
   ERROR_VALUE,
   errorExpr,

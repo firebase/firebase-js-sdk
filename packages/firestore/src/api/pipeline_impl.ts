@@ -23,17 +23,17 @@ import {
   NextFn,
   PartialObserver
 } from '../api/observer';
+import { ListenerDataSource } from '../core/event_manager';
 import {
   firestoreClientExecutePipeline,
   firestoreClientListen
 } from '../core/firestore_client';
-import { ListenerDataSource } from '../core/event_manager';
 import { toCorePipeline } from '../core/pipeline-util';
-import { ViewSnapshot } from '../core/view_snapshot';
 import {
   StructuredPipeline,
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
+import { ViewSnapshot } from '../core/view_snapshot';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';

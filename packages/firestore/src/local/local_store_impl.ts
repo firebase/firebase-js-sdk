@@ -19,11 +19,8 @@ import { User } from '../auth/user';
 import { BundleConverter, BundledDocuments, NamedQuery } from '../core/bundle';
 import {
   CorePipeline,
-  getPipelineDocuments,
-  getPipelineFlavor,
-  getPipelineSourceType
+  getPipelineDocuments
 } from '../core/pipeline';
-
 import {
   canonifyTargetOrPipeline,
   isPipeline,
@@ -31,10 +28,8 @@ import {
   TargetOrPipeline,
   targetOrPipelineEqual
 } from '../core/pipeline-util';
-
 import {
   newQueryForPath,
-  queryCollectionGroup,
   queryToTarget
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -1321,7 +1316,7 @@ function setMaxReadTime(
 ): void {
   changedDocs.forEach((_, doc) => {
     const collectionGroup = doc.key.getCollectionGroup();
-    let readTime =
+    const readTime =
       localStoreImpl.collectionGroupReadTime.get(collectionGroup) ||
       SnapshotVersion.min();
     if (doc.readTime.compareTo(readTime) > 0) {

@@ -17,10 +17,11 @@
 
 import { expect } from 'chai';
 
-import { field } from '../../../../src/lite-api/expressions';
-import { evaluateToResult, evaluateToValue } from './utils';
 import { EvaluateResult } from '../../../../src/core/expressions';
+import { field } from '../../../../src/lite-api/expressions';
 import { TRUE_VALUE } from '../../../../src/model/values';
+
+import { evaluateToResult, evaluateToValue } from './utils';
 
 describe('Field expression', () => {
   it('can get field', () => {

@@ -17,7 +17,14 @@
 
 import { expect } from 'chai';
 
-import { newTestFirestore } from '../../../util/api_helpers';
+import {
+  Bytes,
+  doc as docRef,
+  GeoPoint,
+  Timestamp,
+  VectorValue
+} from '../../../../src';
+import { EvaluateResult, toEvaluable } from '../../../../src/core/expressions';
 import {
   BooleanExpression,
   Constant,
@@ -29,19 +36,12 @@ import {
   newUserDataReader,
   UserDataSource
 } from '../../../../src/lite-api/user_data_reader';
-import { typeOrder, valueEquals } from '../../../../src/model/values';
-import {
-  Bytes,
-  doc as docRef,
-  GeoPoint,
-  Timestamp,
-  VectorValue
-} from '../../../../src';
-import { constantArray, constantMap } from '../../../util/pipelines';
 import { JsonObject, ObjectValue } from '../../../../src/model/object_value';
+import { typeOrder, valueEquals } from '../../../../src/model/values';
 import { Value } from '../../../../src/protos/firestore_proto_api';
-import { EvaluateResult, toEvaluable } from '../../../../src/core/expressions';
+import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
+import { constantArray, constantMap } from '../../../util/pipelines';
 
 const db = newTestFirestore();
 // Represents an evaluation error (e.g., field not found, type mismatch)
@@ -335,7 +335,7 @@ export function expectEqualToConstant(
   expectedExpression: Expression,
   message?: string
 ) {
-  let expected = expectedExpression as Constant;
+  const expected = expectedExpression as Constant;
   const reader = newUserDataReader(db);
   expected._readUserData(
     reader.createContext(UserDataSource.Argument, 'expectEqual')

@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { Bytes } from '../../../../src';
 import {
   byteLength,
   charLength,
@@ -31,8 +32,8 @@ import {
   stringConcat,
   stringContains
 } from '../../../../src/lite-api/expressions';
-import { Bytes } from '../../../../src';
 import { FALSE_VALUE, TRUE_VALUE } from '../../../../src/model/values';
+
 import { evaluateToValue, expectEqualToConstant } from './utils';
 
 describe('String Functions', () => {

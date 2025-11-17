@@ -18,7 +18,6 @@
 import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
-import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
 import {
   RealtimePipelineSnapshot,
   ResultChange
@@ -82,7 +81,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { onSnapshot as onPipelineSnapshot } from '../util/pipeline_export';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 

@@ -19,7 +19,6 @@ import {
   Constant,
   Expression,
   FunctionExpression,
-  AggregateFunction,
   ListOfExprs,
   BooleanConstant
 } from '../lite-api/expressions';
@@ -29,6 +28,11 @@ import {
   DOCUMENT_KEY_NAME,
   UPDATE_TIME_NAME
 } from '../model/path';
+import {
+  getLocalWriteTime,
+  getPreviousValue,
+  isServerTimestamp
+} from '../model/server_timestamps';
 import {
   FALSE_VALUE,
   getVectorValue,
@@ -58,11 +62,6 @@ import { objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';
 
 import { EvaluationContext, PipelineInputOutput } from './pipeline_run';
-import {
-  getLocalWriteTime,
-  getPreviousValue,
-  isServerTimestamp
-} from '../model/server_timestamps';
 import { SnapshotVersion } from './snapshot_version';
 
 export type EvaluateResultType =
@@ -2380,14 +2379,14 @@ export class CoreCosineDistance extends DistanceBase {
   ): number | undefined {
     const values1 = vec1?.values ?? [];
     const values2 = vec2?.values ?? [];
-    if (values1.length === 0) return undefined; // Distance undefined for empty vectors
+    if (values1.length === 0) {return undefined;} // Distance undefined for empty vectors
 
     let dotProduct = 0;
     let magnitude1 = 0;
     let magnitude2 = 0;
     for (let i = 0; i < values1.length; i++) {
       // Error if any element is not a number
-      if (!isNumber(values1[i]) || !isNumber(values2[i])) return undefined;
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) {return undefined;}
       const val1 = asDouble(values1[i] as { doubleValue: number | string });
       const val2 = asDouble(values2[i] as { doubleValue: number | string });
       dotProduct += val1 * val2;
@@ -2417,12 +2416,12 @@ export class CoreDotProduct extends DistanceBase {
   ): number | undefined {
     const values1 = vec1?.values ?? [];
     const values2 = vec2?.values ?? [];
-    if (values1.length === 0) return 0.0; // Dot product of empty vectors is 0
+    if (values1.length === 0) {return 0.0;} // Dot product of empty vectors is 0
 
     let dotProduct = 0;
     for (let i = 0; i < values1.length; i++) {
       // Error if any element is not a number
-      if (!isNumber(values1[i]) || !isNumber(values2[i])) return undefined;
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) {return undefined;}
       const val1 = asDouble(values1[i] as { doubleValue: number | string });
       const val2 = asDouble(values2[i] as { doubleValue: number | string });
       dotProduct += val1 * val2;
@@ -2443,12 +2442,12 @@ export class CoreEuclideanDistance extends DistanceBase {
   ): number | undefined {
     const values1 = vec1?.values ?? [];
     const values2 = vec2?.values ?? [];
-    if (values1.length === 0) return 0.0; // Distance between empty vectors is 0
+    if (values1.length === 0) {return 0.0;} // Distance between empty vectors is 0
 
     let euclideanDistanceSq = 0;
     for (let i = 0; i < values1.length; i++) {
       // Error if any element is not a number
-      if (!isNumber(values1[i]) || !isNumber(values2[i])) return undefined;
+      if (!isNumber(values1[i]) || !isNumber(values2[i])) {return undefined;}
       const val1 = asDouble(values1[i] as { doubleValue: number | string });
       const val2 = asDouble(values2[i] as { doubleValue: number | string });
       euclideanDistanceSq += Math.pow(val1 - val2, 2);
@@ -2537,8 +2536,8 @@ function isTimestampInBounds(seconds: number, nanos: number) {
     return false;
   }
   // Additional check for min/max boundaries
-  if (sBig === TIMESTAMP_MIN_SECONDS && nanos !== 0) return false; // Min timestamp has 0 nanos
-  if (sBig === TIMESTAMP_MAX_SECONDS && nanos > 999_999_999) return false; // Max timestamp allows up to 999_999_999 nanos
+  if (sBig === TIMESTAMP_MIN_SECONDS && nanos !== 0) {return false;} // Min timestamp has 0 nanos
+  if (sBig === TIMESTAMP_MAX_SECONDS && nanos > 999_999_999) {return false;} // Max timestamp allows up to 999_999_999 nanos
 
   return true;
 }

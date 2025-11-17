@@ -20,7 +20,6 @@ import { toPipelineStages } from '../core/pipeline-util';
 import { Code, FirestoreError } from '../util/error';
 import { isString } from '../util/types';
 
-import { Pipeline } from './pipeline';
 import {
   CollectionReference,
   DocumentReference,

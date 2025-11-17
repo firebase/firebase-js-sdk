@@ -24,7 +24,6 @@ import {
 } from '../api/credentials';
 import { RealtimePipeline } from '../api/realtime_pipeline';
 import { User } from '../auth/user';
-import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreConfigureFieldIndexes,

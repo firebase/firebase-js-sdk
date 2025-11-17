@@ -16,6 +16,8 @@
  */
 
 import { expect } from 'chai';
+
+import { EvaluateResult } from '../../../../src/core/expressions';
 import {
   add,
   constant,
@@ -24,7 +26,7 @@ import {
   multiply,
   subtract
 } from '../../../../src/lite-api/expressions';
-import { EvaluateResult } from '../../../../src/core/expressions';
+
 import {
   evaluateToResult,
   evaluateToValue,

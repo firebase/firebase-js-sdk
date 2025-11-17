@@ -16,6 +16,8 @@
  */
 
 import { expect } from 'chai';
+
+import { Timestamp } from '../../../../src';
 import {
   constant,
   subtract,
@@ -26,7 +28,7 @@ import {
   unixMillisToTimestamp,
   unixSecondsToTimestamp
 } from '../../../../src/lite-api/expressions';
-import { Timestamp } from '../../../../src';
+
 import { evaluateToValue, expectEqualToConstant } from './utils';
 
 describe('Timestamp Functions', () => {

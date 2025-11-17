@@ -16,13 +16,10 @@
  */
 
 import { expect } from 'chai';
+
+import { VectorValue } from '../../../../src';
+import { EvaluateResult } from '../../../../src/core/expressions';
 import {
-  evaluateToResult,
-  evaluateToValue,
-  expectEqualToConstant
-} from './utils';
-import {
-  array,
   arrayContains,
   arrayContainsAll,
   arrayContainsAny,
@@ -33,14 +30,19 @@ import {
   field,
   not
 } from '../../../../src/lite-api/expressions';
-import { constantArray, constantMap } from '../../../util/pipelines';
 import {
   FALSE_VALUE,
   MIN_VALUE,
   TRUE_VALUE
 } from '../../../../src/model/values';
-import { EvaluateResult } from '../../../../src/core/expressions';
-import { VectorValue } from '../../../../src';
+import { constantArray, constantMap } from '../../../util/pipelines';
+
+import {
+  evaluateToResult,
+  evaluateToValue,
+  expectEqualToConstant
+} from './utils';
+
 
 describe('Array Expressions', () => {
   describe('arrayContainsAll', () => {

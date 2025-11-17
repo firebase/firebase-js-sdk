@@ -37,9 +37,9 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { Code } from '../util/error';
 
 import { toEvaluable, valueOrUndefined } from './expressions';
+import { CorePipeline } from './pipeline';
 import { isPipeline, QueryOrPipeline } from './pipeline-util';
 import { queryMatches } from './query';
-import { CorePipeline } from './pipeline';
 
 export type PipelineInputOutput = MutableDocument;
 

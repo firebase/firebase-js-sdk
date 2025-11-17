@@ -16,8 +16,8 @@
  */
 
 import { BundleLoader } from '../core/bundle_impl';
-import { createBundleReaderSync } from '../core/firestore_client';
 import { ListenOptions } from '../core/event_manager';
+import { createBundleReaderSync } from '../core/firestore_client';
 import { CorePipeline } from '../core/pipeline';
 import { isPipeline } from '../core/pipeline-util';
 import { newPipelineComparator } from '../core/pipeline_run';
@@ -379,7 +379,7 @@ export class SnapshotMetadata {
 }
 
 /**
- * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
+ * The type of `DocumentChange` may be 'added', 'removed', or 'modified'.
  */
 export type DocumentChangeType = 'added' | 'removed' | 'modified';
 

@@ -17,12 +17,7 @@
 
 import { expect } from 'chai';
 
-import {
-  ComparisonValueTestData,
-  errorExpr,
-  evaluateToValue,
-  UNSET_VALUE
-} from './utils';
+import { canonifyExpr } from '../../../../src/core/pipeline-util';
 import {
   constant,
   exists,
@@ -30,13 +25,18 @@ import {
   isError,
   not
 } from '../../../../src/lite-api/expressions';
-import { canonifyExpr } from '../../../../src/core/pipeline-util';
 import {
   FALSE_VALUE,
-  isNullValue,
   TRUE_VALUE
 } from '../../../../src/model/values';
 import { constantArray, constantMap } from '../../../util/pipelines';
+
+import {
+  ComparisonValueTestData,
+  errorExpr,
+  evaluateToValue,
+  UNSET_VALUE
+} from './utils';
 
 describe('Debugging Functions', () => {
   describe('exists', () => {

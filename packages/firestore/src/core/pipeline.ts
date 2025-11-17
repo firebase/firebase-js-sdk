@@ -27,8 +27,8 @@ import { ResourcePath } from '../model/path';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { debugAssert } from '../util/assert';
 
-import { PipelineFlavor, PipelineSourceType } from './pipeline-util';
 import { ListenOptions } from './event_manager';
+import { PipelineFlavor, PipelineSourceType } from './pipeline-util';
 
 export class CorePipeline {
   isCorePipeline = true;

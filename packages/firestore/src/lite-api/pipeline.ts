@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ParseContext } from '../api/parse_context';
 import {
   Pipeline as ProtoPipeline,
   Stage as ProtoStage
@@ -87,7 +88,6 @@ import {
 } from './stage_options';
 import { UserDataReader, UserDataSource } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
-import { ParseContext } from '../api/parse_context';
 
 /**
  * @private

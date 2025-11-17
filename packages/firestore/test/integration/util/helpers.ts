@@ -18,11 +18,13 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
-import { describe } from '../../util/mocha_extensions';
-
+import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
+import { onPipelineSnapshot } from '../../../src/api/reference_impl';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
+import { describe } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise'; // Added import
+
 import {
   _AutoId,
   clearIndexedDbPersistence,
@@ -61,8 +63,7 @@ import {
   TARGET_DB_ID,
   USE_EMULATOR
 } from './settings';
-import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
-import { onPipelineSnapshot } from '../../../src/api/reference_impl';
+
 
 /* eslint-disable no-restricted-globals */
 
