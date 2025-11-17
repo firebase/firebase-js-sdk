@@ -55,6 +55,11 @@ export class RemoteEvent {
      */
     readonly documentUpdates: MutableDocumentMap,
     /**
+     * A set of which augmented documents (pipeline) have changed or been deleted, along with the
+     * doc's new values (if not deleted).
+     */
+    readonly augmentedDocumentUpdates: MutableDocumentMap,
+    /**
      * A set of which document updates are due only to limbo resolution targets.
      */
     readonly resolvedLimboDocuments: DocumentKeySet
@@ -85,6 +90,7 @@ export class RemoteEvent {
       SnapshotVersion.min(),
       targetChanges,
       new SortedMap<TargetId, TargetPurpose>(primitiveComparator),
+      mutableDocumentMap(),
       mutableDocumentMap(),
       documentKeySet()
     );

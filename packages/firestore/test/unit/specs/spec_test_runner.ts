@@ -31,22 +31,34 @@ import { User } from '../../../src/auth/user';
 import { ComponentConfiguration } from '../../../src/core/component_provider';
 import { DatabaseInfo } from '../../../src/core/database_info';
 import {
+  addSnapshotsInSyncListener,
   EventManager,
   eventManagerListen,
   eventManagerUnlisten,
+  ListenerDataSource as Source,
+  ListenOptions,
   Observer,
   QueryListener,
-  removeSnapshotsInSyncListener,
-  addSnapshotsInSyncListener,
-  ListenOptions,
-  ListenerDataSource as Source
+  removeSnapshotsInSyncListener
 } from '../../../src/core/event_manager';
+import { CorePipeline } from '../../../src/core/pipeline';
+import {
+  canonifyPipeline,
+  canonifyQueryOrPipeline,
+  pipelineEq,
+  QueryOrPipeline,
+  queryOrPipelineEqual,
+  TargetOrPipeline,
+  toCorePipeline,
+  toPipelineStages
+} from '../../../src/core/pipeline-util';
 import {
   canonifyQuery,
   LimitType,
   newQueryForCollectionGroup,
   Query,
   queryEquals,
+  QueryImpl,
   queryToTarget,
   queryWithAddedFilter,
   queryWithAddedOrderBy,
@@ -57,14 +69,15 @@ import { SyncEngine } from '../../../src/core/sync_engine';
 import {
   syncEngineGetActiveLimboDocumentResolutions,
   syncEngineGetEnqueuedLimboDocumentResolutions,
-  syncEngineRegisterPendingWritesCallback,
   syncEngineListen,
   syncEngineLoadBundle,
+  syncEngineRegisterPendingWritesCallback,
   syncEngineUnlisten,
   syncEngineWrite,
   triggerRemoteStoreListen,
   triggerRemoteStoreUnlisten
 } from '../../../src/core/sync_engine_impl';
+import { targetIsPipelineTarget } from '../../../src/core/target';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -101,13 +114,13 @@ import { newTextEncoder } from '../../../src/platform/text_serializer';
 import * as api from '../../../src/protos/firestore_proto_api';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import {
-  RemoteStore,
   fillWritePipeline,
+  outstandingWrites,
+  RemoteStore,
   remoteStoreDisableNetwork,
-  remoteStoreShutdown,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange,
-  outstandingWrites
+  remoteStoreShutdown
 } from '../../../src/remote/remote_store';
 import { mapCodeFromRpcCode } from '../../../src/remote/rpc_error';
 import {
@@ -138,6 +151,7 @@ import { primitiveComparator } from '../../../src/util/misc';
 import { forEach, objectSize } from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
+import { newTestFirestore } from '../../util/api_helpers';
 import {
   byteStringFromString,
   deletedDoc,
@@ -182,6 +196,8 @@ import {
   QueryEvent,
   SharedWriteTracker
 } from './spec_test_components';
+import { pipelineFromStages } from '../../util/pipelines';
+import { fromPipelineTarget } from '../../../src/local/local_serializer';
 
 use(chaiExclude);
 
@@ -238,9 +254,9 @@ abstract class TestRunner {
   private snapshotsInSyncEvents = 0;
 
   protected document = new FakeDocument();
-  private queryListeners = new ObjectMap<Query, QueryListener>(
-    q => canonifyQuery(q),
-    queryEquals
+  private queryListeners = new ObjectMap<QueryOrPipeline, QueryListener>(
+    canonifyQueryOrPipeline,
+    queryOrPipelineEqual
   );
 
   private expectedActiveLimboDocs: DocumentKey[];
@@ -260,6 +276,8 @@ abstract class TestRunner {
   private numClients: number;
   private maxConcurrentLimboResolutions?: number;
   private databaseInfo: DatabaseInfo;
+
+  private convertToPipeline: boolean;
 
   protected user = User.UNAUTHENTICATED;
   protected clientId: ClientId;
@@ -301,6 +319,7 @@ abstract class TestRunner {
     this.useEagerGCForMemory = config.useEagerGCForMemory;
     this.numClients = config.numClients;
     this.maxConcurrentLimboResolutions = config.maxConcurrentLimboResolutions;
+    this.convertToPipeline = config.convertToPipeline ?? false;
     this.expectedActiveLimboDocs = [];
     this.expectedEnqueuedLimboDocs = [];
     this.expectedActiveTargets = new Map<TargetId, ActiveTargetSpec>();
@@ -487,7 +506,16 @@ abstract class TestRunner {
     let targetFailed = false;
 
     const querySpec = listenSpec.query;
-    const query = parseQuery(querySpec);
+    const query =
+      querySpec instanceof CorePipeline
+        ? querySpec
+        : this.convertToPipeline
+        ? toCorePipeline(
+            pipelineFromStages(
+              toPipelineStages(parseQuery(querySpec), newTestFirestore())
+            )
+          )
+        : parseQuery(querySpec);
 
     const aggregator = new EventAggregator(query, e => {
       if (e.error) {
@@ -540,7 +568,16 @@ abstract class TestRunner {
     // TODO(dimond): make sure correct target IDs are assigned
     // let targetId = listenSpec[0];
     const querySpec = listenSpec[1];
-    const query = parseQuery(querySpec);
+    const query =
+      querySpec instanceof CorePipeline
+        ? querySpec
+        : this.convertToPipeline
+        ? toCorePipeline(
+            pipelineFromStages(
+              toPipelineStages(parseQuery(querySpec), newTestFirestore())
+            )
+          )
+        : parseQuery(querySpec);
     const eventEmitter = this.queryListeners.get(query);
     debugAssert(!!eventEmitter, 'There must be a query to unlisten too!');
     this.queryListeners.delete(query);
@@ -939,15 +976,48 @@ abstract class TestRunner {
         expectedEvents.length,
         'Number of expected and actual events mismatch'
       );
-      const actualEventsSorted = this.eventList.sort((a, b) =>
-        primitiveComparator(canonifyQuery(a.query), canonifyQuery(b.query))
-      );
-      const expectedEventsSorted = expectedEvents.sort((a, b) =>
+      let actualEventsSorted: QueryEvent[] = this.eventList.sort((a, b) =>
         primitiveComparator(
-          canonifyQuery(parseQuery(a.query)),
-          canonifyQuery(parseQuery(b.query))
+          canonifyQueryOrPipeline(a.query),
+          canonifyQueryOrPipeline(b.query)
         )
       );
+
+      let expectedEventsSorted: SnapshotEvent[] = [];
+      if (this.convertToPipeline) {
+        expectedEventsSorted = expectedEvents.sort((a, b) =>
+          primitiveComparator(
+            canonifyQueryOrPipeline(
+              toCorePipeline(
+                pipelineFromStages(
+                  toPipelineStages(
+                    parseQuery(a.query as SpecQuery),
+                    newTestFirestore()
+                  )
+                )
+              )
+            ),
+            canonifyQueryOrPipeline(
+              toCorePipeline(
+                pipelineFromStages(
+                  toPipelineStages(
+                    parseQuery(b.query as SpecQuery),
+                    newTestFirestore()
+                  )
+                )
+              )
+            )
+          )
+        );
+      } else {
+        expectedEventsSorted = expectedEvents.sort((a, b) =>
+          primitiveComparator(
+            canonifyQueryOrPipeline(parseQuery(a.query as SpecQuery)),
+            canonifyQueryOrPipeline(parseQuery(b.query as SpecQuery))
+          )
+        );
+      }
+
       for (let i = 0; i < expectedEventsSorted.length; i++) {
         const actual = actualEventsSorted[i];
         const expected = expectedEventsSorted[i];
@@ -956,7 +1026,7 @@ abstract class TestRunner {
     } else {
       expect(this.eventList.length).to.equal(
         0,
-        'Unexpected events: ' + JSON.stringify(this.eventList)
+        'Unexpected events: ' + JSON.stringify(this.eventList, null, 2)
       );
     }
   }
@@ -1150,7 +1220,7 @@ abstract class TestRunner {
         actualTargets[targetId];
 
       let targetData = new TargetData(
-        queryToTarget(parseQuery(expected.queries[0])),
+        this.specToTarget(expected.queries[0]),
         targetId,
         expected.targetPurpose ?? TargetPurpose.Listen,
         ARBITRARY_SEQUENCE_NUMBER
@@ -1174,8 +1244,55 @@ abstract class TestRunner {
         toListenRequestLabels(this.serializer, targetData) ?? undefined;
       expect(actualLabels).to.deep.equal(expectedLabels);
 
-      const expectedTarget = toTarget(this.serializer, targetData);
-      expect(actualTarget.query).to.deep.equal(expectedTarget.query);
+      let expectedTarget: api.Target;
+      if (
+        (this.convertToPipeline || targetIsPipelineTarget(targetData.target)) &&
+        targetData.purpose !== TargetPurpose.LimboResolution
+      ) {
+        expectedTarget = toTarget(
+          this.serializer,
+          new TargetData(
+            targetData.target,
+            targetData.targetId,
+            targetData.purpose,
+            targetData.sequenceNumber,
+            targetData.snapshotVersion,
+            targetData.lastLimboFreeSnapshotVersion,
+            targetData.resumeToken
+          )
+        );
+        const actualPipeline = fromPipelineTarget(
+          actualTarget.pipelineQuery!,
+          this.serializer
+        );
+
+        if (targetIsPipelineTarget(targetData.target)) {
+          expect(queryOrPipelineEqual(actualPipeline, targetData.target)).to.be
+            .true;
+        } else {
+          const expectedQuery = new QueryImpl(
+            targetData.target.path,
+            targetData.target.collectionGroup,
+            targetData.target.orderBy,
+            targetData.target.filters,
+            targetData.target.limit,
+            LimitType.First,
+            targetData.target.startAt,
+            targetData.target.endAt
+          );
+          const expectedPipeline = toCorePipeline(
+            pipelineFromStages(
+              toPipelineStages(expectedQuery, newTestFirestore())
+            )
+          );
+          expect(queryOrPipelineEqual(actualPipeline, expectedPipeline)).to.be
+            .true;
+        }
+      } else {
+        expectedTarget = toTarget(this.serializer, targetData);
+        expect(actualTarget.query).to.deep.equal(expectedTarget.query);
+      }
+
       expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
       expect(actualTarget.resumeToken).to.equal(
@@ -1198,12 +1315,32 @@ abstract class TestRunner {
     );
   }
 
+  private specToTarget(spec: SpecQuery | CorePipeline): TargetOrPipeline {
+    if (spec instanceof CorePipeline) {
+      return spec;
+    }
+    return queryToTarget(parseQuery(spec));
+  }
+
   private validateWatchExpectation(
     expected: SnapshotEvent,
     actual: QueryEvent
   ): void {
-    const expectedQuery = parseQuery(expected.query);
-    expect(actual.query).to.deep.equal(expectedQuery);
+    if (this.convertToPipeline) {
+      expect(
+        pipelineEq(
+          toCorePipeline(
+            pipelineFromStages(
+              toPipelineStages(parseQuery(expected.query), newTestFirestore())
+            )
+          ),
+          actual.query as CorePipeline
+        )
+      );
+    } else {
+      expect(parseQuery(expected.query)).to.deep.equal(actual.query);
+    }
+
     if (expected.errorCode) {
       validateFirestoreError(
         mapCodeFromRpcCode(expected.errorCode),
@@ -1383,7 +1520,7 @@ export async function runSpec(
     });
   } catch (err) {
     console.warn(
-      `Spec test failed at step ${count}: ${JSON.stringify(lastStep)}`
+      `Spec test failed at step ${count}: ${JSON.stringify(lastStep, null, 2)}`
     );
     throw err;
   } finally {
@@ -1410,6 +1547,8 @@ export interface SpecConfig {
    * default value.
    */
   maxConcurrentLimboResolutions?: number;
+
+  convertToPipeline?: boolean;
 }
 
 /**
@@ -1561,12 +1700,12 @@ export interface SpecStep {
 
 export interface SpecUserListen {
   targetId: TargetId;
-  query: string | SpecQuery;
+  query: string | SpecQuery | CorePipeline;
   options?: ListenOptions;
 }
 
 /** [<target-id>, <query-path>] */
-export type SpecUserUnlisten = [TargetId, string | SpecQuery];
+export type SpecUserUnlisten = [TargetId, string | SpecQuery | CorePipeline];
 
 /** [<key>, <value>] */
 export type SpecUserSet = [string, JsonObject<unknown>];

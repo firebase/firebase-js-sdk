@@ -16,6 +16,20 @@
  */
 
 import {
+  CorePipeline,
+  getPipelineCollection,
+  getPipelineCollectionGroup,
+  getPipelineDocuments,
+  getPipelineSourceType
+} from '../core/pipeline';
+import {
+  asCollectionPipelineAtPath,
+  canonifyPipeline,
+  isPipeline,
+  QueryOrPipeline
+} from '../core/pipeline-util';
+import { pipelineMatches } from '../core/pipeline_run';
+import {
   asCollectionQueryAtPath,
   isCollectionGroupQuery,
   isDocumentQuery,
@@ -51,6 +65,7 @@ import {
 import { Overlay } from '../model/overlay';
 import { ResourcePath } from '../model/path';
 import { debugAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 import { SortedMap } from '../util/sorted_map';
 
 import { DocumentOverlayCache } from './document_overlay_cache';
@@ -361,11 +376,18 @@ export class LocalDocumentsView {
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query,
+    query: QueryOrPipeline,
     offset: IndexOffset,
     context?: QueryContext
   ): PersistencePromise<DocumentMap> {
-    if (isDocumentQuery(query)) {
+    if (isPipeline(query)) {
+      return this.getDocumentsMatchingPipeline(
+        transaction,
+        query,
+        offset,
+        context
+      );
+    } else if (isDocumentQuery(query)) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
     } else if (isCollectionGroupQuery(query)) {
       return this.getDocumentsMatchingCollectionGroupQuery(
@@ -532,36 +554,153 @@ export class LocalDocumentsView {
         );
       })
       .next(remoteDocuments => {
-        // As documents might match the query because of their overlay we need to
-        // include documents for all overlays in the initial document set.
-        overlays.forEach((_, overlay) => {
-          const key = overlay.getKey();
-          if (remoteDocuments.get(key) === null) {
-            remoteDocuments = remoteDocuments.insert(
-              key,
-              MutableDocument.newInvalidDocument(key)
-            );
-          }
-        });
-
-        // Apply the overlays and match against the query.
-        let results = documentMap();
-        remoteDocuments.forEach((key, document) => {
-          const overlay = overlays.get(key);
-          if (overlay !== undefined) {
-            mutationApplyToLocalView(
-              overlay.mutation,
-              document,
-              FieldMask.empty(),
-              Timestamp.now()
-            );
-          }
-          // Finally, insert the documents that still match the query
-          if (queryMatches(query, document)) {
-            results = results.insert(key, document);
-          }
-        });
-        return results;
+        return this.retrieveMatchingLocalDocuments(
+          overlays,
+          remoteDocuments,
+          doc => queryMatches(query, doc)
+        );
       });
+  }
+
+  private getDocumentsMatchingPipeline(
+    txn: PersistenceTransaction,
+    pipeline: CorePipeline,
+    offset: IndexOffset,
+    context?: QueryContext
+  ): PersistencePromise<DocumentMap> {
+    if (getPipelineSourceType(pipeline) === 'collection_group') {
+      const collectionId = getPipelineCollectionGroup(pipeline)!;
+      let results = documentMap();
+      return this.indexManager
+        .getCollectionParents(txn, collectionId)
+        .next(parents => {
+          // Perform a collection query against each parent that contains the
+          // collectionId and aggregate the results.
+          return PersistencePromise.forEach(parents, (parent: ResourcePath) => {
+            const collectionPipeline = asCollectionPipelineAtPath(
+              pipeline,
+              parent.child(collectionId)
+            );
+            return this.getDocumentsMatchingPipeline(
+              txn,
+              collectionPipeline,
+              offset,
+              context
+            ).next(r => {
+              r.forEach((key, doc) => {
+                results = results.insert(key, doc);
+              });
+            });
+          }).next(() => results);
+        });
+    } else {
+      // Query the remote documents and overlay mutations.
+      let overlays: OverlayMap;
+      return this.getOverlaysForPipeline(txn, pipeline, offset.largestBatchId)
+        .next(result => {
+          overlays = result;
+          switch (getPipelineSourceType(pipeline)) {
+            case 'collection':
+              return this.remoteDocumentCache.getDocumentsMatchingQuery(
+                txn,
+                pipeline,
+                offset,
+                overlays,
+                context
+              );
+            case 'documents':
+              let keys = documentKeySet();
+              for (const key of getPipelineDocuments(pipeline)!) {
+                keys = keys.add(DocumentKey.fromPath(key));
+              }
+              return this.remoteDocumentCache.getEntries(txn, keys);
+            case 'database':
+              return this.remoteDocumentCache.getAllEntries(txn);
+            default:
+              throw new FirestoreError(
+                'invalid-argument',
+                `Invalid pipeline source to execute offline: ${canonifyPipeline(
+                  pipeline
+                )}`
+              );
+          }
+        })
+        .next(remoteDocuments => {
+          return this.retrieveMatchingLocalDocuments(
+            overlays,
+            remoteDocuments,
+            doc => pipelineMatches(pipeline, doc as MutableDocument)
+          );
+        });
+    }
+  }
+
+  private retrieveMatchingLocalDocuments(
+    overlays: OverlayMap,
+    remoteDocuments: MutableDocumentMap,
+    matcher: (d: Document) => boolean
+  ): DocumentMap {
+    // As documents might match the query because of their overlay we need to
+    // include documents for all overlays in the initial document set.
+    overlays.forEach((_, overlay) => {
+      const key = overlay.getKey();
+      if (remoteDocuments.get(key) === null) {
+        remoteDocuments = remoteDocuments.insert(
+          key,
+          MutableDocument.newInvalidDocument(key)
+        );
+      }
+    });
+
+    // Apply the overlays and match against the query.
+    let results = documentMap();
+    remoteDocuments.forEach((key, document) => {
+      const overlay = overlays.get(key);
+      if (overlay !== undefined) {
+        mutationApplyToLocalView(
+          overlay.mutation,
+          document,
+          FieldMask.empty(),
+          Timestamp.now()
+        );
+      }
+      // Finally, insert the documents that still match the query
+      if (matcher(document)) {
+        results = results.insert(key, document);
+      }
+    });
+    return results;
+  }
+
+  private getOverlaysForPipeline(
+    txn: PersistenceTransaction,
+    pipeline: CorePipeline,
+    largestBatchId: number
+  ): PersistencePromise<OverlayMap> {
+    switch (getPipelineSourceType(pipeline)) {
+      case 'collection':
+        return this.documentOverlayCache.getOverlaysForCollection(
+          txn,
+          ResourcePath.fromString(getPipelineCollection(pipeline)!),
+          largestBatchId
+        );
+      case 'collection_group':
+        throw new FirestoreError(
+          'invalid-argument',
+          `Unexpected collection group pipeline: ${canonifyPipeline(pipeline)}`
+        );
+      case 'documents':
+        return this.documentOverlayCache.getOverlays(
+          txn,
+          getPipelineDocuments(pipeline)!.map(key => DocumentKey.fromPath(key))
+        );
+      case 'database':
+        return this.documentOverlayCache.getAllOverlays(txn, largestBatchId);
+      case 'unknown':
+        throw new FirestoreError(
+          'invalid-argument',
+          `Failed to get overlays for pipeline: ${canonifyPipeline(pipeline)}`
+        );
+    }
   }
 }
