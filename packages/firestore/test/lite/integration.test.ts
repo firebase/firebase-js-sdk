@@ -285,10 +285,16 @@ describe('doc', () => {
 
   it('validates path', () => {
     return withTestDb(db => {
-      expect(() => doc(undefined, 'coll/doc')).to.throw(
-        'Function doc() cannot be called with an undefined first argument.'
+      expect(() =>
+        // @ts-ignore
+        doc(undefined, 'coll/doc')
+      ).to.throw(
+        'Function doc() cannot be called with an empty first argument.'
       );
-      expect(() => doc({}, 'coll/doc')).to.throw(
+      expect(() =>
+        // @ts-ignore
+        doc({}, 'coll/doc')
+      ).to.throw(
         'Expected first argument to doc() to be a CollectionReference, a DocumentReference or FirebaseFirestore'
       );
       expect(() => doc(db, 'coll')).to.throw(
