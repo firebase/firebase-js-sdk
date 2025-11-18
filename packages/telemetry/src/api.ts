@@ -26,6 +26,7 @@ import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
+import { getAppVersion } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -97,12 +98,7 @@ export function captureError(
   }
 
   // Add app version metadata
-  let appVersion = 'unset';
-  // TODO: implement app version fallback logic
-  if ((telemetry as TelemetryService).options?.appVersion) {
-    appVersion = (telemetry as TelemetryService).options!.appVersion!;
-  }
-  customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] = appVersion;
+  customAttributes['app.version'] = getAppVersion(telemetry);
 
   // Add session ID metadata
   if (
