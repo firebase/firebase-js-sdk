@@ -289,7 +289,7 @@ describe('doc', () => {
         // @ts-ignore
         doc(undefined, 'coll/doc')
       ).to.throw(
-        'Function doc() cannot be called with an empty first argument.'
+        'Function doc() cannot be called with an undefined first argument.'
       );
       expect(() =>
         // @ts-ignore
