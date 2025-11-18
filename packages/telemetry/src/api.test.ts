@@ -35,6 +35,7 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { captureError, flush, getTelemetry } from './api';
+import { LOG_ENTRY_ATTRIBUTE_KEYS, TELEMETRY_SESSION_ID_KEY } from './constants';
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -127,7 +128,7 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        'app.version': 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
       });
     });
 
@@ -144,7 +145,7 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
-        'app.version': 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
       });
     });
 
@@ -156,7 +157,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
       expect(log.attributes).to.deep.equal({
-        'app.version': 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
       });
     });
 
@@ -168,7 +169,7 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
       expect(log.attributes).to.deep.equal({
-        'app.version': 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
       });
     });
 
@@ -195,7 +196,7 @@ describe('Top level API', () => {
       expect(emittedLogs[0].attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        'app.version': 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`
       });
@@ -220,7 +221,7 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        'app.version': 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
           boolAttr: true,
@@ -244,7 +245,111 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        'app.version': '1.0.0'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0'
+      });
+    });
+
+    describe('Session Metadata', () => {
+      let originalSessionStorage: Storage | undefined;
+      let originalCrypto: Crypto | undefined;
+
+      beforeEach(() => {
+        // @ts-ignore
+        originalSessionStorage = global.sessionStorage;
+        // @ts-ignore
+        originalCrypto = global.crypto;
+      });
+
+      afterEach(() => {
+        Object.defineProperty(global, 'sessionStorage', {
+          value: originalSessionStorage,
+          writable: true
+        });
+        Object.defineProperty(global, 'crypto', {
+          value: originalCrypto,
+          writable: true
+        });
+      });
+
+      it('should generate and store a new session ID if none exists', () => {
+        const sessionStorageMock = {
+          getItem: () => null,
+          setItem: (_: string, __: string) => { }
+        };
+        sessionStorageMock.setItem = (
+          key: string,
+          value: string
+        ) => {
+          // @ts-ignore
+          sessionStorageMock[key] = value;
+        };
+        const cryptoMock = {
+          randomUUID: () => 'new-session-id'
+        };
+
+        Object.defineProperty(global, 'sessionStorage', {
+          value: sessionStorageMock,
+          writable: true
+        });
+        Object.defineProperty(global, 'crypto', {
+          value: cryptoMock,
+          writable: true
+        });
+
+        captureError(fakeTelemetry, 'error');
+
+        expect(emittedLogs.length).to.equal(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal('new-session-id');
+        // @ts-ignore
+        expect(sessionStorageMock[TELEMETRY_SESSION_ID_KEY]).to.equal(
+          'new-session-id'
+        );
+      });
+
+      it('should retrieve existing session ID from sessionStorage', () => {
+        const sessionStorageMock = {
+          getItem: () => 'existing-session-id',
+          setItem: () => { }
+        };
+        const cryptoMock = {
+          randomUUID: () => 'new-session-id'
+        };
+
+        Object.defineProperty(global, 'sessionStorage', {
+          value: sessionStorageMock,
+          writable: true
+        });
+        Object.defineProperty(global, 'crypto', {
+          value: cryptoMock,
+          writable: true
+        });
+
+        captureError(fakeTelemetry, 'error');
+
+        expect(emittedLogs.length).to.equal(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal('existing-session-id');
+      });
+
+      it('should handle errors when accessing sessionStorage', () => {
+        const sessionStorageMock = {
+          getItem: () => {
+            throw new Error('SecurityError');
+          },
+          setItem: () => { }
+        };
+
+        Object.defineProperty(global, 'sessionStorage', {
+          value: sessionStorageMock,
+          writable: true
+        });
+
+        captureError(fakeTelemetry, 'error');
+
+        expect(emittedLogs.length).to.equal(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be.undefined;
       });
     });
   });

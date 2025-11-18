@@ -17,3 +17,13 @@
 
 /** Type constant for Firebase Telemetry. */
 export const TELEMETRY_TYPE = 'telemetry';
+
+/** Key for storing the session ID in sessionStorage. */
+export const TELEMETRY_SESSION_ID_KEY = 'firebasetelemetry.sessionid';
+
+/** Keys for attributes in log entries. */
+export const LOG_ENTRY_ATTRIBUTE_KEYS = {
+  USER_ID: 'user.id',
+  SESSION_ID: 'session.id',
+  APP_VERSION: 'app.version',
+};
