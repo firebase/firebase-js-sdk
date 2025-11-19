@@ -66,7 +66,7 @@ describe('Prompt templates', function () {
               testConfig.ai.backend.backendType
             )}`,
             { animal: 'Rhino' },
-            { timeout: 100}
+            { timeout: 100 }
           );
           expect(images.length).to.equal(2); // We ask for two images in the prompt template
         });

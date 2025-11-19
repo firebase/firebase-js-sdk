@@ -531,9 +531,7 @@ describe('request methods', () => {
       await clock.tickAsync(0);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith(
-        'AbortError',
-      );
+      await expect(requestPromise).to.be.rejectedWith('AbortError');
     });
 
     it('should abort fetch if timeout expires during request', async () => {
@@ -564,7 +562,9 @@ describe('request methods', () => {
 
       expect(internalSignal?.aborted).to.be.true;
       expect((internalSignal?.reason as Error).name).to.equal('AbortError');
-      expect((internalSignal?.reason as Error).message).to.equal('Timeout has expired.');
+      expect((internalSignal?.reason as Error).message).to.equal(
+        'Timeout has expired.'
+      );
     });
 
     it('should succeed and clear timeout if fetch completes before timeout', async () => {
@@ -648,7 +648,10 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration / 2);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith('AbortError', abortReason);
+      await expect(requestPromise).to.be.rejectedWith(
+        'AbortError',
+        abortReason
+      );
     });
 
     it('should use timeout reason if it occurs before external signal abort', async () => {
