@@ -320,7 +320,7 @@ describe('Top level API', () => {
         );
       });
 
-      it('should handle errors when accessing sessionStorage', () => {
+      it('should handle errors when sessionStorage.getItem throws', () => {
         const sessionStorageMock: Partial<Storage> = {
           getItem: () => {
             throw new Error('SecurityError');
@@ -339,6 +339,26 @@ describe('Top level API', () => {
         const log = emittedLogs[0];
         expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
           .undefined;
+      });
+
+      it('should handle errors when sessionStorage.setItem throws', () => {
+        const sessionStorageMock: Partial<Storage> = {
+          getItem: () => null, // Emulate no existing session ID
+          setItem: () => {
+            throw new Error('SecurityError');
+          }
+        };
+
+        Object.defineProperty(global, 'sessionStorage', {
+          value: sessionStorageMock,
+          writable: true
+        });
+
+        captureError(fakeTelemetry, 'error');
+
+        expect(emittedLogs.length).to.equal(1);
+        const log = emittedLogs[0];
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be.undefined;
       });
     });
   });
