@@ -46,6 +46,7 @@ import { _FirebaseInstallationsInternal } from '@firebase/installations';
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
 const API_KEY = 'my-api-key';
+const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
 const emittedLogs: LogRecord[] = [];
 
@@ -78,15 +79,51 @@ const fakeTelemetry: Telemetry = {
 
 describe('Top level API', () => {
   let app: FirebaseApp;
+  let originalSessionStorage: Storage | undefined;
+  let originalCrypto: Crypto | undefined;
+  let storage: Record<string, string> = {};
 
   beforeEach(() => {
     // Clear the logs before each test.
     emittedLogs.length = 0;
     app = getFakeApp();
+    storage = {};
+
+    // @ts-ignore
+    originalSessionStorage = global.sessionStorage;
+    // @ts-ignore
+    originalCrypto = global.crypto;
+
+    const sessionStorageMock: Partial<Storage> = {
+      getItem: (key: string) => storage[key] || null,
+      setItem: (key: string, value: string) => {
+        storage[key] = value;
+      }
+    };
+    const cryptoMock: Partial<Crypto> = {
+      randomUUID: () => MOCK_SESSION_ID
+    };
+
+    Object.defineProperty(global, 'sessionStorage', {
+      value: sessionStorageMock,
+      writable: true
+    });
+    Object.defineProperty(global, 'crypto', {
+      value: cryptoMock,
+      writable: true
+    });
   });
 
   afterEach(async () => {
     await deleteApp(app);
+    Object.defineProperty(global, 'sessionStorage', {
+      value: originalSessionStorage,
+      writable: true
+    });
+    Object.defineProperty(global, 'crypto', {
+      value: originalCrypto,
+      writable: true
+    });
   });
 
   describe('getTelemetry()', () => {
@@ -131,7 +168,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -148,7 +186,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -160,7 +199,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -172,7 +212,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -201,7 +242,8 @@ describe('Top level API', () => {
         'error.stack': '...stack trace...',
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
-        'logging.googleapis.com/spanId': `my-span`
+        'logging.googleapis.com/spanId': `my-span`,
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -230,7 +272,8 @@ describe('Top level API', () => {
           boolAttr: true,
           numAttr: 2
         },
-        arrAttr: [1, 2, 3]
+        arrAttr: [1, 2, 3],
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -248,80 +291,25 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
     describe('Session Metadata', () => {
-      let originalSessionStorage: Storage | undefined;
-      let originalCrypto: Crypto | undefined;
-
-      beforeEach(() => {
-        // @ts-ignore
-        originalSessionStorage = global.sessionStorage;
-        // @ts-ignore
-        originalCrypto = global.crypto;
-      });
-
-      afterEach(() => {
-        Object.defineProperty(global, 'sessionStorage', {
-          value: originalSessionStorage,
-          writable: true
-        });
-        Object.defineProperty(global, 'crypto', {
-          value: originalCrypto,
-          writable: true
-        });
-      });
-
       it('should generate and store a new session ID if none exists', () => {
-        const storage: Record<string, string> = {};
-        const sessionStorageMock = {
-          getItem: (key: string) => storage[key] || null,
-          setItem: (key: string, value: string) => {
-            storage[key] = value;
-          }
-        };
-        const cryptoMock = {
-          randomUUID: () => 'new-session-id'
-        };
-
-        Object.defineProperty(global, 'sessionStorage', {
-          value: sessionStorageMock,
-          writable: true
-        });
-        Object.defineProperty(global, 'crypto', {
-          value: cryptoMock,
-          writable: true
-        });
-
         captureError(fakeTelemetry, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
         expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
-          'new-session-id'
+          MOCK_SESSION_ID
         );
-        expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal('new-session-id');
+        expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
       });
 
       it('should retrieve existing session ID from sessionStorage', () => {
-        const sessionStorageMock = {
-          getItem: () => 'existing-session-id',
-          setItem: () => {}
-        };
-        const cryptoMock = {
-          randomUUID: () => 'new-session-id'
-        };
-
-        Object.defineProperty(global, 'sessionStorage', {
-          value: sessionStorageMock,
-          writable: true
-        });
-        Object.defineProperty(global, 'crypto', {
-          value: cryptoMock,
-          writable: true
-        });
+        storage[TELEMETRY_SESSION_ID_KEY] = 'existing-session-id';
 
         captureError(fakeTelemetry, 'error');
 
@@ -333,7 +321,7 @@ describe('Top level API', () => {
       });
 
       it('should handle errors when accessing sessionStorage', () => {
-        const sessionStorageMock = {
+        const sessionStorageMock: Partial<Storage> = {
           getItem: () => {
             throw new Error('SecurityError');
           },
