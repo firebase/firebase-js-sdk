@@ -25,7 +25,6 @@ import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
-import { AIError } from '../errors';
 
 use(sinonChai);
 use(chaiAsPromised);
