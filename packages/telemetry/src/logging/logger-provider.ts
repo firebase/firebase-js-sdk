@@ -61,61 +61,26 @@ export function createLoggerProvider(
         ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
       }
     },
-    dynamicHeaderProviders
+    dynamicHeaderProviders,
+    dynamicLogAttributeProviders
   );
 
   return new LoggerProvider({
     resource,
-    processors: [
-      new BatchLogRecordProcessor(
-        new AsyncAttributeLogExporter(logExporter, dynamicLogAttributeProviders)
-      )
-    ],
+    processors: [new BatchLogRecordProcessor(logExporter)],
     logRecordLimits: {}
   });
 }
 
-/** A log exporter that appends log entries with resolved async attributes before exporting. */
-class AsyncAttributeLogExporter implements LogRecordExporter {
-  private readonly _delegate: LogRecordExporter;
-
-  constructor(
-    exporter: OTLPLogExporter,
-    private dynamicLogAttributeProviders: DynamicLogAttributeProvider[]
-  ) {
-    this._delegate = exporter;
-  }
-
-  async export(
-    logs: ReadableLogRecord[],
-    resultCallback: (result: ExportResult) => void
-  ): Promise<void> {
-    await Promise.all(
-      this.dynamicLogAttributeProviders.map(async provider => {
-        const attribute = await provider.getAttribute();
-        if (attribute) {
-          logs.forEach(log => {
-            log.attributes[attribute[0]] = attribute[1];
-          });
-        }
-      })
-    );
-    this._delegate.export(logs, resultCallback);
-  }
-
-  shutdown(): Promise<void> {
-    return this._delegate.shutdown();
-  }
-}
-
-/** OTLP exporter that uses custom FetchTransport. */
+/** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
 class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
   implements LogRecordExporter
 {
   constructor(
     config: OTLPExporterConfigBase = {},
-    dynamicHeaderProviders: DynamicHeaderProvider[] = []
+    dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+    private dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -132,5 +97,25 @@ class OTLPLogExporter
         })
       )
     );
+  }
+
+  override async export(
+    logs: ReadableLogRecord[],
+    resultCallback: (result: ExportResult) => void
+  ): Promise<void> {
+    const attributes = await Promise.all(
+      this.dynamicLogAttributeProviders.map(provider => provider.getAttribute())
+    );
+
+    const attributesToApply = Object.fromEntries(
+      attributes.filter((attr): attr is [string, string] => attr != null)
+    );
+
+    if (Object.keys(attributesToApply).length > 0) {
+      logs.forEach(log => {
+        Object.assign(log.attributes, attributesToApply);
+      });
+    }
+    super.export(logs, resultCallback);
   }
 }
