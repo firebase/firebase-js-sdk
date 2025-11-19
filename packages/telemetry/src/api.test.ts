@@ -358,7 +358,8 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be.undefined;
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+          .undefined;
       });
     });
   });
