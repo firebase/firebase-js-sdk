@@ -18,6 +18,7 @@
 import { Provider } from '@firebase/component';
 import { DynamicLogAttributeProvider, LogEntryAttribute } from '../types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * Allows logging to include the client's installation ID.
@@ -45,7 +46,7 @@ export class InstallationIdProvider implements DynamicLogAttributeProvider {
       return null;
     }
     if (this._iid) {
-      return ['user.id', this._iid];
+      return [LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, this._iid];
     }
 
     const iid = await this.installations.getId();
@@ -54,6 +55,6 @@ export class InstallationIdProvider implements DynamicLogAttributeProvider {
     }
 
     this._iid = iid;
-    return ['user.id', iid];
+    return [LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, iid];
   }
 }
