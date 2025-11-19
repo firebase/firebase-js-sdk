@@ -18,7 +18,7 @@
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { restore, stub } from 'sinon';
+import { restore, stub, match } from 'sinon';
 import { AI } from '../public-types';
 import { VertexAIBackend } from '../backend';
 import { TemplateImagenModel } from './template-imagen-model';
@@ -86,6 +86,62 @@ describe('TemplateImagenModel', () => {
           singleRequestOptions: { timeout: 5000 }
         },
         JSON.stringify({ inputs: TEMPLATE_VARS })
+      );
+    });
+
+    it('singleRequestOptions overrides requestOptions', async () => {
+      const mockPrediction = {
+        'bytesBase64Encoded':
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        'mimeType': 'image/png'
+      };
+      const makeRequestStub = stub(request, 'makeRequest').resolves({
+        json: () => Promise.resolve({ predictions: [mockPrediction] })
+      } as Response);
+      const model = new TemplateImagenModel(fakeAI, { timeout: 1000 });
+      const singleRequestOptions = { timeout: 2000 };
+
+      await model.generateImages(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        singleRequestOptions
+      );
+
+      expect(makeRequestStub).to.have.been.calledOnceWith(
+        match({
+          singleRequestOptions: { timeout: 2000 }
+        }),
+        match.any
+      );
+    });
+
+    it('singleRequestOptions is merged with requestOptions', async () => {
+      const mockPrediction = {
+        'bytesBase64Encoded':
+          'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        'mimeType': 'image/png'
+      };
+      const makeRequestStub = stub(request, 'makeRequest').resolves({
+        json: () => Promise.resolve({ predictions: [mockPrediction] })
+      } as Response);
+      const abortController = new AbortController();
+      const model = new TemplateImagenModel(fakeAI, { timeout: 1000 });
+      const singleRequestOptions = { signal: abortController.signal };
+
+      await model.generateImages(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        singleRequestOptions
+      );
+
+      expect(makeRequestStub).to.have.been.calledOnceWith(
+        match({
+          singleRequestOptions: {
+            timeout: 1000,
+            signal: abortController.signal
+          }
+        }),
+        match.any
       );
     });
 

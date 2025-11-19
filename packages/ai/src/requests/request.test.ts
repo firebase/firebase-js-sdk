@@ -532,8 +532,7 @@ describe('request methods', () => {
       controller.abort(abortReason);
 
       await expect(requestPromise).to.be.rejectedWith(
-        AIError,
-        `AI: Error fetching from https://firebasevertexai.googleapis.com/v1beta/projects/my-project/locations/us-central1/models/model-name:generateContent: ${abortReason} (AI/error)`
+        'AbortError',
       );
     });
 
@@ -555,8 +554,8 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration + 100);
 
       await expect(requestPromise).to.be.rejectedWith(
-        AIError,
-        /Timeout has expired/
+        'AbortError',
+        'Timeout has expired'
       );
 
       expect(fetchStub).to.have.been.calledOnce;
@@ -564,7 +563,8 @@ describe('request methods', () => {
       const internalSignal = fetchOptions.signal;
 
       expect(internalSignal?.aborted).to.be.true;
-      expect(internalSignal?.reason).to.equal('Timeout has expired.');
+      expect((internalSignal?.reason as Error).name).to.equal('AbortError');
+      expect((internalSignal?.reason as Error).message).to.equal('Timeout has expired.');
     });
 
     it('should succeed and clear timeout if fetch completes before timeout', async () => {
@@ -574,6 +574,7 @@ describe('request methods', () => {
       });
       const fetchPromise = Promise.resolve(mockResponse);
       fetchStub.resolves(fetchPromise);
+      const clearTimeoutStub = stub(globalThis, 'clearTimeout');
 
       const requestPromise = makeRequest(
         {
@@ -591,7 +592,7 @@ describe('request methods', () => {
 
       const response = await requestPromise;
       expect(response.ok).to.be.true;
-
+      expect(clearTimeoutStub).to.have.been.calledOnce;
       expect(fetchStub).to.have.been.calledOnce;
     });
 
@@ -647,7 +648,7 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration / 2);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith(AIError, abortReason);
+      await expect(requestPromise).to.be.rejectedWith('AbortError', abortReason);
     });
 
     it('should use timeout reason if it occurs before external signal abort', async () => {
@@ -677,8 +678,8 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration + 1);
 
       await expect(requestPromise).to.be.rejectedWith(
-        AIError,
-        /Timeout has expired/
+        'AbortError',
+        'Timeout has expired'
       );
     });
 
@@ -796,10 +797,7 @@ describe('request methods', () => {
       // Tick the clock just enough to trigger a timeout(0)
       await clock.tickAsync(1);
 
-      await expect(requestPromise).to.be.rejectedWith(
-        AIError,
-        /Timeout has expired/
-      );
+      await expect(requestPromise).to.be.rejectedWith('AbortError');
     });
 
     it('should not error if signal is aborted after completion', async () => {

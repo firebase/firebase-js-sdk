@@ -1338,8 +1338,9 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: object, // anything!
+    singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
 }
 
@@ -1348,7 +1349,7 @@ export class TemplateImagenModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateImages(templateId: string, templateVariables: object): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
 }
 

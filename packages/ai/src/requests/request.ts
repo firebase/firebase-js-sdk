@@ -189,7 +189,7 @@ export async function makeRequest(
       : DEFAULT_FETCH_TIMEOUT_MS;
   const internalAbortController = new AbortController();
   const fetchTimeoutId = setTimeout(() => {
-    internalAbortController.abort(TIMEOUT_EXPIRED_MESSAGE);
+    internalAbortController.abort(new DOMException(TIMEOUT_EXPIRED_MESSAGE, ABORT_ERROR_NAME));
     logger.debug(
       `Aborting request to ${url} due to timeout (${timeoutMillis}ms)`
     );
@@ -198,7 +198,7 @@ export async function makeRequest(
   const externalAbortListener = (): void => {
     logger.debug(`Aborting request to ${url} due to external abort signal.`);
     // If this listener was invoked, an external signal was aborted, so externalSignal must be defined.
-    internalAbortController.abort(externalSignal!.reason);
+    internalAbortController.abort(new DOMException(externalSignal!.reason, ABORT_ERROR_NAME));
   };
 
   if (externalSignal) {
@@ -280,7 +280,8 @@ export async function makeRequest(
     if (
       (e as AIError).code !== AIErrorCode.FETCH_ERROR &&
       (e as AIError).code !== AIErrorCode.API_NOT_ENABLED &&
-      e instanceof Error
+      e instanceof Error &&
+      (e as DOMException).name !== ABORT_ERROR_NAME
     ) {
       err = new AIError(
         AIErrorCode.ERROR,

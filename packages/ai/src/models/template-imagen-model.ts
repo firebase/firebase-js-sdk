@@ -19,7 +19,8 @@ import { RequestOptions } from '../types';
 import {
   AI,
   ImagenGenerationResponse,
-  ImagenInlineImage
+  ImagenInlineImage,
+  SingleRequestOptions
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { makeRequest, ServerPromptTemplateTask } from '../requests/request';
@@ -64,7 +65,8 @@ export class TemplateImagenModel {
    */
   async generateImages(
     templateId: string,
-    templateVariables: object
+    templateVariables: object,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<ImagenGenerationResponse<ImagenInlineImage>> {
     const response = await makeRequest(
       {
@@ -72,7 +74,10 @@ export class TemplateImagenModel {
         templateId,
         apiSettings: this._apiSettings,
         stream: false,
-        singleRequestOptions: this.requestOptions // TODO: Add singleRequestOptions parameter and merge both request options here.
+        singleRequestOptions: {
+          ...this.requestOptions,
+          ...singleRequestOptions
+        }
       },
       JSON.stringify({ inputs: templateVariables })
     );
