@@ -272,16 +272,12 @@ describe('Top level API', () => {
       });
 
       it('should generate and store a new session ID if none exists', () => {
+        const storage: Record<string, string> = {};
         const sessionStorageMock = {
-          getItem: () => null,
-          setItem: (_: string, __: string) => { }
-        };
-        sessionStorageMock.setItem = (
-          key: string,
-          value: string
-        ) => {
-          // @ts-ignore
-          sessionStorageMock[key] = value;
+          getItem: (key: string) => storage[key] || null,
+          setItem: (key: string, value: string) => {
+            storage[key] = value;
+          }
         };
         const cryptoMock = {
           randomUUID: () => 'new-session-id'
@@ -301,8 +297,7 @@ describe('Top level API', () => {
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
         expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal('new-session-id');
-        // @ts-ignore
-        expect(sessionStorageMock[TELEMETRY_SESSION_ID_KEY]).to.equal(
+        expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal(
           'new-session-id'
         );
       });
