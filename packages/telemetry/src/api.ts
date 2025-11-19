@@ -101,7 +101,7 @@ export function captureError(
   customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] = appVersion;
 
   // Add session ID metadata
-  if (typeof sessionStorage !== 'undefined') {
+  if (typeof sessionStorage !== 'undefined' && typeof crypto?.randomUUID === 'function') {
     try {
       let sessionId = sessionStorage.getItem(TELEMETRY_SESSION_ID_KEY);
       if (!sessionId) {
