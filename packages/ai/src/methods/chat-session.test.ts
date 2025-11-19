@@ -25,6 +25,7 @@ import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import { AIError } from '../errors';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -231,7 +232,9 @@ describe('ChatSession', () => {
       try {
         // This will throw since generateContentStream will reject immediately.
         await chatSession.sendMessageStream('hello');
-      } catch (_) {}
+      } catch (e) {
+        expect((e as unknown as any).name).to.equal('foo');
+      }
 
       expect(consoleStub).to.not.have.been.called;
     });
