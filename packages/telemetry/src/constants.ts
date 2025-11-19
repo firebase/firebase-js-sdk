@@ -25,5 +25,5 @@ export const TELEMETRY_SESSION_ID_KEY = 'firebasetelemetry.sessionid';
 export const LOG_ENTRY_ATTRIBUTE_KEYS = {
   USER_ID: 'user.id',
   SESSION_ID: 'session.id',
-  APP_VERSION: 'app.version',
+  APP_VERSION: 'app.version'
 };

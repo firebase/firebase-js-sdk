@@ -35,7 +35,10 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { captureError, flush, getTelemetry } from './api';
-import { LOG_ENTRY_ATTRIBUTE_KEYS, TELEMETRY_SESSION_ID_KEY } from './constants';
+import {
+  LOG_ENTRY_ATTRIBUTE_KEYS,
+  TELEMETRY_SESSION_ID_KEY
+} from './constants';
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
@@ -296,16 +299,16 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal('new-session-id');
-        expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal(
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
           'new-session-id'
         );
+        expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal('new-session-id');
       });
 
       it('should retrieve existing session ID from sessionStorage', () => {
         const sessionStorageMock = {
           getItem: () => 'existing-session-id',
-          setItem: () => { }
+          setItem: () => {}
         };
         const cryptoMock = {
           randomUUID: () => 'new-session-id'
@@ -324,7 +327,9 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal('existing-session-id');
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+          'existing-session-id'
+        );
       });
 
       it('should handle errors when accessing sessionStorage', () => {
@@ -332,7 +337,7 @@ describe('Top level API', () => {
           getItem: () => {
             throw new Error('SecurityError');
           },
-          setItem: () => { }
+          setItem: () => {}
         };
 
         Object.defineProperty(global, 'sessionStorage', {
@@ -344,7 +349,8 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be.undefined;
+        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+          .undefined;
       });
     });
   });

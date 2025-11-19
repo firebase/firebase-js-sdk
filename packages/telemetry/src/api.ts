@@ -16,7 +16,11 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { LOG_ENTRY_ATTRIBUTE_KEYS, TELEMETRY_SESSION_ID_KEY, TELEMETRY_TYPE } from './constants';
+import {
+  LOG_ENTRY_ATTRIBUTE_KEYS,
+  TELEMETRY_SESSION_ID_KEY,
+  TELEMETRY_TYPE
+} from './constants';
 import { Telemetry, TelemetryOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
@@ -101,7 +105,10 @@ export function captureError(
   customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] = appVersion;
 
   // Add session ID metadata
-  if (typeof sessionStorage !== 'undefined' && typeof crypto?.randomUUID === 'function') {
+  if (
+    typeof sessionStorage !== 'undefined' &&
+    typeof crypto?.randomUUID === 'function'
+  ) {
     try {
       let sessionId = sessionStorage.getItem(TELEMETRY_SESSION_ID_KEY);
       if (!sessionId) {
