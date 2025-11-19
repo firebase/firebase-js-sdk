@@ -187,6 +187,7 @@ export async function makeRequest(
     requestUrlParams.singleRequestOptions.timeout >= 0
       ? requestUrlParams.singleRequestOptions.timeout
       : DEFAULT_FETCH_TIMEOUT_MS;
+
   const internalAbortController = new AbortController();
   const fetchTimeoutId = setTimeout(() => {
     internalAbortController.abort(
@@ -197,31 +198,25 @@ export async function makeRequest(
     );
   }, timeoutMillis);
 
-  const externalAbortListener = (): void => {
-    logger.debug(`Aborting request to ${url} due to external abort signal.`);
-    // If this listener was invoked, an external signal was aborted, so externalSignal must be defined.
-    internalAbortController.abort(
-      new DOMException(externalSignal!.reason, ABORT_ERROR_NAME)
+  const combinedSignal = AbortSignal.any(
+    externalSignal
+      ? [externalSignal, internalAbortController.signal]
+      : [internalAbortController.signal]
+  );
+
+  if (externalSignal && externalSignal.aborted) {
+    clearTimeout(fetchTimeoutId);
+    throw new DOMException(
+      externalSignal.reason ?? 'Aborted externally before fetch',
+      ABORT_ERROR_NAME
     );
-  };
-
-  if (externalSignal) {
-    if (externalSignal.aborted) {
-      clearTimeout(fetchTimeoutId);
-      throw new DOMException(
-        externalSignal.reason ?? 'Aborted externally before fetch',
-        ABORT_ERROR_NAME
-      );
-    }
-
-    externalSignal.addEventListener('abort', externalAbortListener);
   }
 
   try {
     const fetchOptions: RequestInit = {
       method: 'POST',
       headers: await getHeaders(url),
-      signal: internalAbortController.signal,
+      signal: combinedSignal,
       body
     };
 
@@ -297,9 +292,6 @@ export async function makeRequest(
     throw err;
   } finally {
     clearTimeout(fetchTimeoutId);
-    if (externalSignal) {
-      externalSignal.removeEventListener('abort', externalAbortListener);
-    }
   }
   return response;
 }
