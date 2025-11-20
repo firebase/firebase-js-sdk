@@ -47,7 +47,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
+    plugins: [...buildPlugins, replaceSource('./auto-constants.mjs')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -83,7 +83,7 @@ const nodeBuilds = [
     plugins: [
       ...buildPlugins,
       emitModulePackageFile(),
-      replaceSource('../auto-constants.js')
+      replaceSource('../auto-constants.mjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -116,7 +116,7 @@ const reactBuilds = [
           }
         ]
       }),
-      replaceSource('../auto-constants.js')
+      replaceSource('../auto-constants.mjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -166,7 +166,7 @@ const angularBuilds = [
           }
         ]
       }),
-      replaceSource('../auto-constants.js')
+      replaceSource('../auto-constants.mjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -195,6 +195,14 @@ const autoinitBuild = [
     output: {
       file: './dist/auto-constants.js',
       format: 'cjs'
+    },
+    plugins: buildPlugins
+  },
+  {
+    input: './src/auto-constants.ts',
+    output: {
+      file: './dist/auto-constants.mjs',
+      format: 'es'
     },
     plugins: buildPlugins
   }
