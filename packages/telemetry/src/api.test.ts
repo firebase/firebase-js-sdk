@@ -42,6 +42,7 @@ import {
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { AUTO_CONSTANTS } from './auto-constants';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -278,6 +279,7 @@ describe('Top level API', () => {
     });
 
     it('should use explicit app version when provided', () => {
+      AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
       const telemetry = new TelemetryService(
         fakeTelemetry.app,
         fakeTelemetry.loggerProvider
@@ -292,6 +294,19 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should use auto constants if available', () => {
+      AUTO_CONSTANTS.appVersion = '1.2.3';
+
+      captureError(fakeTelemetry, 'a string error');
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).to.deep.equal({
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });

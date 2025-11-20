@@ -17,14 +17,25 @@
 
 import json from '@rollup/plugin-json';
 import copy from 'rollup-plugin-copy';
+import replacePlugin from '@rollup/plugin-replace';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
 import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_package_file';
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const deps = [
+  ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
+  './auto-constants'
+];
+
+function replaceSource(path) {
+  return replacePlugin({
+    './src/auto-constants': `'${path}'`,
+    '../auto-constants': `'${path}'`,
+    delimiters: ["'", "'"],
+    preventAssignment: true
+  });
+}
 
 const buildPlugins = [typescriptPlugin({ typescript }), json()];
 
@@ -36,7 +47,7 @@ const browserBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSource('./auto-constants.mjs')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -46,7 +57,7 @@ const browserBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -59,7 +70,7 @@ const nodeBuilds = [
       format: 'cjs',
       sourcemap: true
     },
-    plugins: buildPlugins,
+    plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -69,7 +80,11 @@ const nodeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...buildPlugins, emitModulePackageFile()],
+    plugins: [
+      ...buildPlugins,
+      emitModulePackageFile(),
+      replaceSource('../auto-constants.mjs')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -100,7 +115,8 @@ const reactBuilds = [
             dest: 'dist'
           }
         ]
-      })
+      }),
+      replaceSource('../auto-constants.mjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -117,7 +133,8 @@ const reactBuilds = [
         typescript,
         tsconfig: 'tsconfig.react.json'
       }),
-      json()
+      json(),
+      replaceSource('../auto-constants.js')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -148,7 +165,8 @@ const angularBuilds = [
             dest: 'dist'
           }
         ]
-      })
+      }),
+      replaceSource('../auto-constants.mjs')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -164,9 +182,29 @@ const angularBuilds = [
         typescript,
         tsconfig: 'tsconfig.angular.json'
       }),
-      json()
+      json(),
+      replaceSource('../auto-constants.js')
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+const autoinitBuild = [
+  {
+    input: './src/auto-constants.ts',
+    output: {
+      file: './dist/auto-constants.js',
+      format: 'cjs'
+    },
+    plugins: buildPlugins
+  },
+  {
+    input: './src/auto-constants.ts',
+    output: {
+      file: './dist/auto-constants.mjs',
+      format: 'es'
+    },
+    plugins: buildPlugins
   }
 ];
 
@@ -174,5 +212,6 @@ export default [
   ...browserBuilds,
   ...nodeBuilds,
   ...reactBuilds,
-  ...angularBuilds
+  ...angularBuilds,
+  ...autoinitBuild
 ];
