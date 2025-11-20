@@ -42,7 +42,7 @@ import {
 import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { AUTO_CONSTANTS } from './constants/auto-constants';
+import { AUTO_CONSTANTS } from './auto-constants';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';

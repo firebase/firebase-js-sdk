@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import * as constants from './constants/auto-constants';
+import * as constants from './auto-constants';
+import { TELEMETRY_SESSION_ID_KEY } from './constants';
 import { Telemetry } from './public-types';
 import { TelemetryService } from './service';
 
@@ -26,4 +27,22 @@ export function getAppVersion(telemetry: Telemetry): string {
     return constants.AUTO_CONSTANTS.appVersion;
   }
   return 'unset';
+}
+
+export function getSessionId(): string | undefined {
+  if (
+    typeof sessionStorage !== 'undefined' &&
+    typeof crypto?.randomUUID === 'function'
+  ) {
+    try {
+      let sessionId = sessionStorage.getItem(TELEMETRY_SESSION_ID_KEY);
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        sessionStorage.setItem(TELEMETRY_SESSION_ID_KEY, sessionId);
+      }
+      return sessionId;
+    } catch (e) {
+      // Ignore errors accessing sessionStorage (e.g. security restrictions)
+    }
+  }
 }

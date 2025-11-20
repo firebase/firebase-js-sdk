@@ -16,17 +16,13 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import {
-  LOG_ENTRY_ATTRIBUTE_KEYS,
-  TELEMETRY_SESSION_ID_KEY,
-  TELEMETRY_TYPE
-} from './constants';
+import { LOG_ENTRY_ATTRIBUTE_KEYS, TELEMETRY_TYPE } from './constants';
 import { Telemetry, TelemetryOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
-import { getAppVersion } from './helpers';
+import { getAppVersion, getSessionId } from './helpers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -101,20 +97,9 @@ export function captureError(
   customAttributes['app.version'] = getAppVersion(telemetry);
 
   // Add session ID metadata
-  if (
-    typeof sessionStorage !== 'undefined' &&
-    typeof crypto?.randomUUID === 'function'
-  ) {
-    try {
-      let sessionId = sessionStorage.getItem(TELEMETRY_SESSION_ID_KEY);
-      if (!sessionId) {
-        sessionId = crypto.randomUUID();
-        sessionStorage.setItem(TELEMETRY_SESSION_ID_KEY, sessionId);
-      }
-      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-    } catch (e) {
-      // Ignore errors accessing sessionStorage (e.g. security restrictions)
-    }
+  const sessionId = getSessionId();
+  if (sessionId) {
+    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
   }
 
   if (error instanceof Error) {

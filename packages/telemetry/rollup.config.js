@@ -25,13 +25,13 @@ import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_pa
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
-  './constants/auto-constants'
+  './auto-constants'
 ];
 
 function replaceSource(path) {
   return replacePlugin({
-    './src/constants/auto-constants': `'${path}'`,
-    '../constants/auto-constants': `'${path}'`,
+    './src/auto-constants': `'${path}'`,
+    '../auto-constants': `'${path}'`,
     delimiters: ["'", "'"],
     preventAssignment: true
   });
@@ -191,7 +191,7 @@ const angularBuilds = [
 
 const autoinitBuild = [
   {
-    input: './src/constants/auto-constants.ts',
+    input: './src/auto-constants.ts',
     output: {
       file: './dist/auto-constants.js',
       format: 'cjs'
