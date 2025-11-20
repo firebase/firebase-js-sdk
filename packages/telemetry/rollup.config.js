@@ -25,7 +25,7 @@ import { emitModulePackageFile } from '../../scripts/build/rollup_emit_module_pa
 
 const deps = [
   ...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies)),
-  './constants/auto-constants',
+  './constants/auto-constants'
 ];
 
 function replaceSource(path) {
@@ -37,10 +37,7 @@ function replaceSource(path) {
   });
 }
 
-const buildPlugins = [
-  typescriptPlugin({ typescript }),
-  json(),
-];
+const buildPlugins = [typescriptPlugin({ typescript }), json()];
 
 const browserBuilds = [
   {
@@ -83,7 +80,11 @@ const nodeBuilds = [
       format: 'es',
       sourcemap: true
     },
-    plugins: [...buildPlugins, emitModulePackageFile(), replaceSource('../auto-constants.js')],
+    plugins: [
+      ...buildPlugins,
+      emitModulePackageFile(),
+      replaceSource('../auto-constants.js')
+    ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
@@ -196,7 +197,7 @@ const autoinitBuild = [
       format: 'cjs'
     },
     plugins: buildPlugins
-  },
+  }
 ];
 
 export default [
