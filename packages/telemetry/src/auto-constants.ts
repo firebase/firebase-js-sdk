@@ -15,5 +15,10 @@
  * limitations under the License.
  */
 
+/**
+ * A map of constants intended to be optionally overwritten during the application build process.
+ * The supported keys are:
+ * - appVersion: string indicating the version of source code being deployed (eg. git commit hash)
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const AUTO_CONSTANTS: any = {};
