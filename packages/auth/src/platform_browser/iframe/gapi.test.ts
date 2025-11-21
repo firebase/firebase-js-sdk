@@ -26,6 +26,7 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import { _window } from '../auth_window';
 import * as js from '../load_js';
 import { _loadGapi, _resetLoader } from './gapi';
+import { unwrapResourceUrl } from 'safevalues';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -41,7 +42,7 @@ describe('platform_browser/iframe/gapi', () => {
 
   beforeEach(async () => {
     loadJsStub = sinon.stub(js, '_loadJS').callsFake(url => {
-      onJsLoad(url.split('onload=')[1]);
+      onJsLoad(unwrapResourceUrl(url).split('onload=')[1]);
       return Promise.resolve(new Event('load'));
     });
 

@@ -25,6 +25,7 @@ import {
   RecaptchaAuthProvider,
   EnforcementState
 } from '../../api';
+import { appendParams, unwrapResourceUrl } from 'safevalues';
 
 import { Auth } from '../../model/public_types';
 import { AuthInternal } from '../../model/auth';
@@ -142,8 +143,8 @@ export class RecaptchaEnterpriseVerifier {
               return;
             }
             let url = jsHelpers._recaptchaEnterpriseScriptUrl();
-            if (url.length !== 0) {
-              url += siteKey;
+            if (unwrapResourceUrl(url).toString().length !== 0) {
+              url = appendParams(url, new Map([['render', siteKey]]));
             }
             jsHelpers
               ._loadJS(url)

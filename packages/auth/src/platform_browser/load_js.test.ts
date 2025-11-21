@@ -26,6 +26,8 @@ import {
 } from './load_js';
 import { _createError } from '../core/util/assert';
 import { AuthErrorCode } from '../core/errors';
+import { TrustedResourceUrl, trustedResourceUrl, unwrapResourceUrl } from 'safevalues';
+import { setScriptSrc } from 'safevalues/dom';
 
 use(sinonChai);
 
@@ -41,10 +43,10 @@ describe('platform-browser/load_js', () => {
   describe('_loadJS', () => {
     it('sets the appropriate properties', () => {
       _setExternalJSProvider({
-        loadJS(url: string): Promise<Event> {
+        loadJS(url: TrustedResourceUrl): Promise<Event> {
           return new Promise((resolve, reject) => {
             const el = document.createElement('script');
-            el.setAttribute('src', url);
+            setScriptSrc(el, url);
             el.onload = resolve;
             el.onerror = e => {
               const error = _createError(AuthErrorCode.INTERNAL_ERROR);
@@ -55,20 +57,18 @@ describe('platform-browser/load_js', () => {
             el.charset = 'UTF-8';
           });
         },
-        gapiScript: 'https://gapiScript',
-        recaptchaV2Script: 'https://recaptchaV2Script',
-        recaptchaEnterpriseScript: 'https://recaptchaEnterpriseScript'
+        gapiScript: trustedResourceUrl`https://gapiScript`,
+        recaptchaV2Script: trustedResourceUrl`https://recaptchaV2Script`,
+        recaptchaEnterpriseScript: trustedResourceUrl`https://recaptchaEnterpriseScript`
       });
       const el = document.createElement('script');
       sinon.stub(el); // Prevent actually setting the src attribute
       sinon.stub(document, 'createElement').returns(el);
 
+      const testUrl = trustedResourceUrl`http://localhost/url`;
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      _loadJS('http://localhost/url');
-      expect(el.setAttribute).to.have.been.calledWith(
-        'src',
-        'http://localhost/url'
-      );
+      _loadJS(testUrl);
+      expect(el.src).to.eq(unwrapResourceUrl(testUrl));
       expect(el.type).to.eq('text/javascript');
       expect(el.charset).to.eq('UTF-8');
     });
