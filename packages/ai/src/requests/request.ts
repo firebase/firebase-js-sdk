@@ -27,8 +27,8 @@ import {
 import { logger } from '../logger';
 import { BackendType } from '../public-types';
 
-const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
-const ABORT_ERROR_NAME = 'AbortError';
+export const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
+export const ABORT_ERROR_NAME = 'AbortError';
 
 export const enum Task {
   GENERATE_CONTENT = 'generateContent',

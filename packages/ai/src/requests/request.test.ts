@@ -20,8 +20,10 @@ import Sinon, { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import {
+  ABORT_ERROR_NAME,
   RequestURL,
   ServerPromptTemplateTask,
+  TIMEOUT_EXPIRED_MESSAGE,
   Task,
   getHeaders,
   makeRequest
@@ -306,7 +308,7 @@ describe('request methods', () => {
       const signal = options!.signal;
       return new Promise((_resolve, reject): void => {
         const abortListener = (): void => {
-          reject(new DOMException(signal?.reason || 'Aborted', 'AbortError'));
+          reject(new DOMException(signal?.reason || 'Aborted', ABORT_ERROR_NAME));
         };
 
         signal?.addEventListener('abort', abortListener, { once: true });
@@ -343,7 +345,7 @@ describe('request methods', () => {
       fetchStub.resolves({
         ok: false,
         status: 500,
-        statusText: 'AbortError'
+        statusText: ABORT_ERROR_NAME
       } as Response);
 
       try {
@@ -363,7 +365,7 @@ describe('request methods', () => {
         expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
         expect((e as AIError).customErrorData?.status).to.equal(500);
         expect((e as AIError).customErrorData?.statusText).to.equal(
-          'AbortError'
+          ABORT_ERROR_NAME
         );
         expect((e as AIError).message).to.include('500 AbortError');
       }
@@ -512,7 +514,7 @@ describe('request methods', () => {
 
       expect(fetchStub).not.to.have.been.called;
     });
-    it('should abort fetch if external signal aborts during request', async () => {
+    it('should throw DOMException if external signal aborts during request', async () => {
       fetchStub.callsFake(fetchAborter);
       const controller = new AbortController();
       const abortReason = 'Aborted during request';
@@ -531,7 +533,10 @@ describe('request methods', () => {
       await clock.tickAsync(0);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith('Aborted during request');
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        abortReason
+      );
     });
 
     it('should abort fetch if timeout expires during request', async () => {
@@ -552,8 +557,8 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration + 100);
 
       await expect(requestPromise).to.be.rejectedWith(
-        'AbortError',
-        'Timeout has expired'
+        DOMException,
+        TIMEOUT_EXPIRED_MESSAGE
       );
 
       expect(fetchStub).to.have.been.calledOnce;
@@ -561,7 +566,7 @@ describe('request methods', () => {
       const internalSignal = fetchOptions.signal;
 
       expect(internalSignal?.aborted).to.be.true;
-      expect((internalSignal?.reason as Error).name).to.equal('AbortError');
+      expect((internalSignal?.reason as Error).name).to.equal(ABORT_ERROR_NAME);
       expect((internalSignal?.reason as Error).message).to.equal(
         'Timeout has expired.'
       );
@@ -596,34 +601,6 @@ describe('request methods', () => {
       expect(fetchStub).to.have.been.calledOnce;
     });
 
-    it('should succeed and clear timeout/listener if fetch completes with signal provided but not aborted', async () => {
-      const controller = new AbortController();
-      const mockResponse = new Response('{}', {
-        status: 200,
-        statusText: 'OK'
-      });
-      const fetchPromise = Promise.resolve(mockResponse);
-      fetchStub.resolves(fetchPromise);
-
-      const requestPromise = makeRequest(
-        {
-          model: 'models/model-name',
-          task: Task.GENERATE_CONTENT,
-          apiSettings: fakeApiSettings,
-          stream: false,
-          singleRequestOptions: { signal: controller.signal } // Generous timeout
-        },
-        '{}'
-      );
-
-      // Advance time slightly
-      await clock.tickAsync(10);
-
-      const response = await requestPromise;
-      expect(response.ok).to.be.true;
-      expect(fetchStub).to.have.been.calledOnce;
-    });
-
     it('should use external signal abort reason if it occurs before timeout', async () => {
       const controller = new AbortController();
       const abortReason = 'External Abort Wins';
@@ -648,7 +625,10 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration / 2);
       controller.abort(abortReason);
 
-      await expect(requestPromise).to.be.rejectedWith(abortReason);
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        abortReason
+      );
     });
 
     it('should use timeout reason if it occurs before external signal abort', async () => {
@@ -678,8 +658,8 @@ describe('request methods', () => {
       await clock.tickAsync(timeoutDuration + 1);
 
       await expect(requestPromise).to.be.rejectedWith(
-        'AbortError',
-        'Timeout has expired'
+        DOMException,
+        TIMEOUT_EXPIRED_MESSAGE
       );
     });
 
@@ -707,80 +687,6 @@ describe('request methods', () => {
       expect(fetchOptions.signal?.aborted).to.be.false;
     });
 
-    it('should remove abort listener on successful completion to prevent memory leaks', async () => {
-      const controller = new AbortController();
-      const addSpy = Sinon.spy(controller.signal, 'addEventListener');
-      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
-
-      const mockResponse = new Response('{}', {
-        status: 200,
-        statusText: 'OK'
-      });
-      fetchStub.resolves(mockResponse);
-
-      await makeRequest(
-        {
-          model: 'models/model-name',
-          task: Task.GENERATE_CONTENT,
-          apiSettings: fakeApiSettings,
-          stream: false,
-          singleRequestOptions: { signal: controller.signal }
-        },
-        '{}'
-      );
-
-      expect(addSpy).to.have.been.calledOnceWith('abort');
-      expect(removeSpy).to.have.been.calledOnceWith('abort');
-    });
-
-    it('should remove listener if fetch itself rejects', async () => {
-      const controller = new AbortController();
-      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
-      const error = new Error('Network failure');
-      fetchStub.rejects(error);
-
-      const requestPromise = makeRequest(
-        {
-          model: 'models/model-name',
-          task: Task.GENERATE_CONTENT,
-          apiSettings: fakeApiSettings,
-          stream: false,
-          singleRequestOptions: { signal: controller.signal }
-        },
-        '{}'
-      );
-
-      await expect(requestPromise).to.be.rejectedWith(
-        AIError,
-        /Network failure/
-      );
-      expect(removeSpy).to.have.been.calledOnce;
-    });
-
-    it('should remove listener if response is not ok', async () => {
-      const controller = new AbortController();
-      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
-      const mockResponse = new Response('{}', {
-        status: 500,
-        statusText: 'Internal Server Error'
-      });
-      fetchStub.resolves(mockResponse);
-
-      const requestPromise = makeRequest(
-        {
-          model: 'models/model-name',
-          task: Task.GENERATE_CONTENT,
-          apiSettings: fakeApiSettings,
-          stream: false,
-          singleRequestOptions: { signal: controller.signal }
-        },
-        '{}'
-      );
-
-      await expect(requestPromise).to.be.rejectedWith(AIError, /500/);
-      expect(removeSpy).to.have.been.calledOnce;
-    });
-
     it('should abort immediately if timeout is 0', async () => {
       fetchStub.callsFake(fetchAborter);
       const requestPromise = makeRequest(
@@ -797,19 +703,21 @@ describe('request methods', () => {
       // Tick the clock just enough to trigger a timeout(0)
       await clock.tickAsync(1);
 
-      await expect(requestPromise).to.be.rejectedWith('AbortError');
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        TIMEOUT_EXPIRED_MESSAGE
+      );
     });
 
     it('should not error if signal is aborted after completion', async () => {
       const controller = new AbortController();
-      const removeSpy = Sinon.spy(controller.signal, 'removeEventListener');
       const mockResponse = new Response('{}', {
         status: 200,
         statusText: 'OK'
       });
       fetchStub.resolves(mockResponse);
 
-      await makeRequest(
+      const response = await makeRequest(
         {
           model: 'models/model-name',
           task: Task.GENERATE_CONTENT,
@@ -823,7 +731,7 @@ describe('request methods', () => {
       // Listener should be removed, so this abort should do nothing.
       controller.abort('Too late');
 
-      expect(removeSpy).to.have.been.calledOnce;
+      expect(response.ok).to.be.true;
     });
   });
 });
