@@ -308,7 +308,9 @@ describe('request methods', () => {
       const signal = options!.signal;
       return new Promise((_resolve, reject): void => {
         const abortListener = (): void => {
-          reject(new DOMException(signal?.reason || 'Aborted', ABORT_ERROR_NAME));
+          reject(
+            new DOMException(signal?.reason || 'Aborted', ABORT_ERROR_NAME)
+          );
         };
 
         signal?.addEventListener('abort', abortListener, { once: true });

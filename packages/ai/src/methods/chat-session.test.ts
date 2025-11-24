@@ -25,6 +25,7 @@ import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import { logger } from '../logger';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -219,6 +220,70 @@ describe('ChatSession', () => {
         'undefined'
       );
       clock.restore();
+    });
+    it('logs error and rejects user promise when response aggregation fails', async () => {
+      const loggerStub = stub(logger, 'error');
+      const error = new Error('Aggregation failed');
+
+      // Simulate stream returning, but the response promise failing (e.g. parsing error)
+      stub(generateContentMethods, 'generateContentStream').resolves({
+        stream: (async function* () {})(),
+        response: Promise.reject(error)
+      } as unknown as GenerateContentStreamResult);
+
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const initialHistoryLength = (await chatSession.getHistory()).length;
+
+      // Immediate call resolves with the stream object
+      const result = await chatSession.sendMessageStream('hello');
+
+      // User's response promise should reject
+      await expect(result.response).to.be.rejectedWith(error);
+
+      // Wait for the internal _sendPromise chain to settle
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(loggerStub).to.have.been.calledWith(error);
+
+      // History should NOT have been updated (no response appended)
+      const finalHistory = await chatSession.getHistory();
+      expect(finalHistory.length).to.equal(initialHistoryLength);
+    });
+    it('logs error but resolves user promise when history appending logic fails', async () => {
+      const loggerStub = stub(logger, 'error');
+
+      // Simulate a response that is technically valid enough to resolve aggregation,
+      // but malformed in a way that causes the history update logic to throw.
+      // Passing `null` as a candidate causes `{ ...response.candidates[0].content }` to throw.
+      const malformedResponse = {
+        candidates: [null]
+      };
+
+      stub(generateContentMethods, 'generateContentStream').resolves({
+        stream: (async function* () {})(),
+        response: Promise.resolve(malformedResponse)
+      } as unknown as GenerateContentStreamResult);
+
+      const chatSession = new ChatSession(fakeApiSettings, 'a-model');
+      const initialHistoryLength = (await chatSession.getHistory()).length;
+
+      const result = await chatSession.sendMessageStream('hello');
+
+      // The user's response promise SHOULD resolve, because aggregation succeeded.
+      // The error is purely internal side-effect (history update).
+      await expect(result.response).to.eventually.equal(malformedResponse);
+
+      // Wait for internal chain
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(loggerStub).to.have.been.called;
+      const errorArg = loggerStub.firstCall.args[0];
+      expect(errorArg).to.be.instanceOf(TypeError);
+
+      // The user message WAS added before the crash, but the response wasn't.
+      const finalHistory = await chatSession.getHistory();
+      expect(finalHistory.length).to.equal(initialHistoryLength + 1);
+      expect(finalHistory[finalHistory.length - 1].role).to.equal('user');
     });
     it('error from stream promise should not be logged', async () => {
       const consoleStub = stub(console, 'error');
