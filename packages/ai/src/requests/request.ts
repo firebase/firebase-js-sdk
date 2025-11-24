@@ -198,6 +198,8 @@ export async function makeRequest(
     );
   }, timeoutMillis);
 
+  // Used to abort the fetch if either the user-defined `externalSignal` is aborted, or if the
+  // internal signal (triggered by timeouts) is aborted.
   const combinedSignal = AbortSignal.any(
     externalSignal
       ? [externalSignal, internalAbortController.signal]
@@ -291,6 +293,9 @@ export async function makeRequest(
 
     throw err;
   } finally {
+    // When doing streaming requests, this will clear the timeout once the stream begins.
+    // If a timeout it 3000ms, and the stream starts after 300ms and ends after 5000ms, the
+    // timeout will be cleared after 300ms, so it won't abort the request.
     clearTimeout(fetchTimeoutId);
   }
   return response;

@@ -34,7 +34,11 @@ import { logger } from '../logger';
 import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**
- * Do not log a message for this error.
+ * Used to break the internal promise chain when an error is already handled
+ * by the user, preventing duplicate console logs.
+ *
+ * TODO: Refactor to use `Promise.allSettled` to decouple the internal
+ * sequencing chain from user error handling.
  */
 const SILENT_ERROR = 'SILENT_ERROR';
 
@@ -47,6 +51,11 @@ const SILENT_ERROR = 'SILENT_ERROR';
 export class ChatSession {
   private _apiSettings: ApiSettings;
   private _history: Content[] = [];
+
+  /**
+   * Ensures sequential execution of chat messages to maintain history order.
+   * Each call waits for the previous one to settle before proceeding.
+   */
   private _sendPromise: Promise<void> = Promise.resolve();
 
   constructor(
@@ -92,7 +101,7 @@ export class ChatSession {
       contents: [...this._history, newContent]
     };
     let finalResult = {} as GenerateContentResult;
-    // Add onto the chain.
+
     this._sendPromise = this._sendPromise
       .then(() =>
         generateContent(
@@ -100,7 +109,6 @@ export class ChatSession {
           this.model,
           generateContentRequest,
           this.chromeAdapter,
-          // Merge requestOptions
           {
             ...this.requestOptions,
             ...singleRequestOptions
@@ -108,6 +116,9 @@ export class ChatSession {
         )
       )
       .then(result => {
+        // TODO: Make this update atomic. If creating `responseContent` throws,
+        // history will contain the user message but not the response, causing
+        // validation errors on the next request.
         if (
           result.response.candidates &&
           result.response.candidates.length > 0
@@ -115,7 +126,6 @@ export class ChatSession {
           this._history.push(newContent);
           const responseContent: Content = {
             parts: result.response.candidates?.[0].content.parts || [],
-            // Response seems to come back without a role set.
             role: result.response.candidates?.[0].content.role || 'model'
           };
           this._history.push(responseContent);
@@ -157,35 +167,30 @@ export class ChatSession {
       this.model,
       generateContentRequest,
       this.chromeAdapter,
-      // Merge requestOptions
       {
         ...this.requestOptions,
         ...singleRequestOptions
       }
     );
 
-    // Add onto the chain.
+    // We hook into the chain to update history, but we don't block the
+    // return of `streamPromise` to the user.
     this._sendPromise = this._sendPromise
       .then(() => streamPromise)
-      .then(streamResult => streamResult.response)
       .catch(_ignored => {
+        // If the initial fetch fails, the user's `streamPromise` rejects.
+        // We swallow the error here to prevent double logging in the final catch.
         throw new Error(SILENT_ERROR);
       })
-      // We want to log errors that the user cannot catch.
-      // The user can catch all errors that are thrown from the `streamPromise` and the
-      // `streamResult.response`, since these are returned to the user in the `GenerateContentResult`.
-      // The user cannot catch errors that are thrown in the following `then` block, which appends
-      // the model's response to the chat history.
-      //
-      // To prevent us from logging errors that the user *can* catch, we re-throw them as
-      // SILENT_ERROR, then in the final `catch` block below, we only log errors that are not
-      // SILENT_ERROR. There is currently no way for these errors to be propagated to the user,
-      // so we log them to try to make up for this.
+      .then(streamResult => streamResult.response)
       .then(response => {
+        // This runs after the stream completes. Runtime errors here cannot be
+        // caught by the user because their promise has likely already resolved.
+        // TODO: Move response validation logic upstream to `stream-reader` so
+        // errors propagate to the user's `result.response` promise.
         if (response.candidates && response.candidates.length > 0) {
           this._history.push(newContent);
           const responseContent = { ...response.candidates[0].content };
-          // Response seems to come back without a role set.
           if (!responseContent.role) {
             responseContent.role = 'model';
           }
@@ -200,7 +205,8 @@ export class ChatSession {
         }
       })
       .catch(e => {
-        if (e.message !== SILENT_ERROR) {
+        // Filter out errors already handled by the user or initiated by them.
+        if (e.message !== SILENT_ERROR && e.name !== 'AbortError') {
           logger.error(e);
         }
       });
