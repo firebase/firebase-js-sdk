@@ -18,10 +18,6 @@
 import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
-import {
-  RealtimePipelineSnapshot,
-  ResultChange
-} from '../../../src/api/snapshot';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { it } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise';
@@ -63,7 +59,8 @@ import {
   updateDoc,
   where,
   writeBatch,
-  WriteBatch
+  WriteBatch,
+  QueryDocumentSnapshot
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -81,6 +78,11 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import {
+  RealtimePipelineSnapshot,
+  PipelineResult,
+  ResultChange
+} from '../util/pipeline_export';
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 

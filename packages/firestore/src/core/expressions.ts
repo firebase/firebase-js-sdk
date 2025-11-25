@@ -20,7 +20,10 @@ import {
   Expression,
   FunctionExpression,
   ListOfExprs,
-  BooleanConstant
+  BooleanConstant,
+  BooleanExpression,
+  BooleanFunctionExpression,
+  BooleanField
 } from '../lite-api/expressions';
 import { Timestamp } from '../lite-api/timestamp';
 import {
@@ -153,140 +156,162 @@ export interface EvaluableExpr {
   ): EvaluateResult;
 }
 
-export function toEvaluable<T extends Expression>(expr: T): EvaluableExpr {
+/**
+ * @internal
+ *
+ * Unwraps a wrapped expression type, like BooleanExpression.
+ *
+ * @param expr The expression to unwrap.
+ * @return The inner expression of a wrapped expression, otherwise
+ * returns the input itself.
+ */
+export function unwrapExpression(expr: BooleanConstant): Constant;
+export function unwrapExpression(
+  expr: BooleanFunctionExpression
+): FunctionExpression;
+export function unwrapExpression(expr: BooleanField): Field;
+export function unwrapExpression(expr: Expression): Expression;
+export function unwrapExpression(expr: Expression): Expression {
+  if (expr instanceof BooleanExpression) {
+    return expr._expr;
+  }
+
+  return expr;
+}
+
+export function toEvaluable(expr: Expression): EvaluableExpr {
+  expr = unwrapExpression(expr);
+
   if (expr instanceof Field) {
     return new CoreField(expr);
   } else if (expr instanceof Constant) {
     return new CoreConstant(expr);
-  } else if (expr instanceof BooleanConstant) {
-    return new CoreBooleanConstant(expr);
   } else if (expr instanceof ListOfExprs) {
     return new CoreListOfExprs(expr);
-  } else if (expr.expressionType === 'Function') {
-    const functionExpr = expr as unknown as FunctionExpression;
+  } else if (expr instanceof FunctionExpression) {
     // TODO(pipeline): We should define all supported function names as constants somewhere instead of magic strings.
-    if (functionExpr.name === 'add') {
-      return new CoreAdd(functionExpr);
-    } else if (functionExpr.name === 'subtract') {
-      return new CoreSubtract(functionExpr);
-    } else if (functionExpr.name === 'multiply') {
-      return new CoreMultiply(functionExpr);
-    } else if (functionExpr.name === 'divide') {
-      return new CoreDivide(functionExpr);
-    } else if (functionExpr.name === 'mod') {
-      return new CoreMod(functionExpr);
-    } else if (functionExpr.name === 'and') {
-      return new CoreAnd(functionExpr);
-    } else if (functionExpr.name === 'equal') {
-      return new CoreEq(functionExpr);
-    } else if (functionExpr.name === 'not_equal') {
-      return new CoreNeq(functionExpr);
-    } else if (functionExpr.name === 'less_than') {
-      return new CoreLt(functionExpr);
-    } else if (functionExpr.name === 'less_than_or_equal') {
-      return new CoreLte(functionExpr);
-    } else if (functionExpr.name === 'greater_than') {
-      return new CoreGt(functionExpr);
-    } else if (functionExpr.name === 'greater_than_or_equal') {
-      return new CoreGte(functionExpr);
-    } else if (functionExpr.name === 'array_concat') {
-      return new CoreArrayConcat(functionExpr);
-    } else if (functionExpr.name === 'array_reverse') {
-      return new CoreArrayReverse(functionExpr);
-    } else if (functionExpr.name === 'array_contains') {
-      return new CoreArrayContains(functionExpr);
-    } else if (functionExpr.name === 'array_contains_all') {
-      return new CoreArrayContainsAll(functionExpr);
-    } else if (functionExpr.name === 'array_contains_any') {
-      return new CoreArrayContainsAny(functionExpr);
-    } else if (functionExpr.name === 'array_length') {
-      return new CoreArrayLength(functionExpr);
-    } else if (functionExpr.name === 'array_element') {
-      return new CoreArrayElement(functionExpr);
-    } else if (functionExpr.name === 'equal_any') {
-      return new CoreEqAny(functionExpr);
-    } else if (functionExpr.name === 'not_equal_any') {
-      return new CoreNotEqAny(functionExpr);
-    } else if (functionExpr.name === 'is_nan') {
-      return new CoreIsNan(functionExpr);
-    } else if (functionExpr.name === 'is_not_nan') {
-      return new CoreIsNotNan(functionExpr);
-    } else if (functionExpr.name === 'is_null') {
-      return new CoreIsNull(functionExpr);
-    } else if (functionExpr.name === 'is_not_null') {
-      return new CoreIsNotNull(functionExpr);
-    } else if (functionExpr.name === 'is_error') {
-      return new CoreIsError(functionExpr);
-    } else if (functionExpr.name === 'exists') {
-      return new CoreExists(functionExpr);
-    } else if (functionExpr.name === 'not') {
-      return new CoreNot(functionExpr);
-    } else if (functionExpr.name === 'or') {
-      return new CoreOr(functionExpr);
-    } else if (functionExpr.name === 'xor') {
-      return new CoreXor(functionExpr);
-    } else if (functionExpr.name === 'conditional') {
-      return new CoreCond(functionExpr);
-    } else if (functionExpr.name === 'maximum') {
-      return new CoreLogicalMaximum(functionExpr);
-    } else if (functionExpr.name === 'minimum') {
-      return new CoreLogicalMinimum(functionExpr);
-    } else if (functionExpr.name === 'reverse') {
-      return new CoreReverse(functionExpr);
-    } else if (functionExpr.name === 'replace_first') {
-      return new CoreReplaceFirst(functionExpr);
-    } else if (functionExpr.name === 'replace_all') {
-      return new CoreReplaceAll(functionExpr);
-    } else if (functionExpr.name === 'char_length') {
-      return new CoreCharLength(functionExpr);
-    } else if (functionExpr.name === 'byte_length') {
-      return new CoreByteLength(functionExpr);
-    } else if (functionExpr.name === 'like') {
-      return new CoreLike(functionExpr);
-    } else if (functionExpr.name === 'regex_contains') {
-      return new CoreRegexContains(functionExpr);
-    } else if (functionExpr.name === 'regex_match') {
-      return new CoreRegexMatch(functionExpr);
-    } else if (functionExpr.name === 'string_contains') {
-      return new CoreStrContains(functionExpr);
-    } else if (functionExpr.name === 'starts_with') {
-      return new CoreStartsWith(functionExpr);
-    } else if (functionExpr.name === 'ends_with') {
-      return new CoreEndsWith(functionExpr);
-    } else if (functionExpr.name === 'to_lower') {
-      return new CoreToLower(functionExpr);
-    } else if (functionExpr.name === 'to_upper') {
-      return new CoreToUpper(functionExpr);
-    } else if (functionExpr.name === 'trim') {
-      return new CoreTrim(functionExpr);
-    } else if (functionExpr.name === 'string_concat') {
-      return new CoreStrConcat(functionExpr);
-    } else if (functionExpr.name === 'map_get') {
-      return new CoreMapGet(functionExpr);
-    } else if (functionExpr.name === 'cosine_distance') {
-      return new CoreCosineDistance(functionExpr);
-    } else if (functionExpr.name === 'dot_product') {
-      return new CoreDotProduct(functionExpr);
-    } else if (functionExpr.name === 'euclidean_distance') {
-      return new CoreEuclideanDistance(functionExpr);
-    } else if (functionExpr.name === 'vector_length') {
-      return new CoreVectorLength(functionExpr);
-    } else if (functionExpr.name === 'unix_micros_to_timestamp') {
-      return new CoreUnixMicrosToTimestamp(functionExpr);
-    } else if (functionExpr.name === 'timestamp_to_unix_micros') {
-      return new CoreTimestampToUnixMicros(functionExpr);
-    } else if (functionExpr.name === 'unix_millis_to_timestamp') {
-      return new CoreUnixMillisToTimestamp(functionExpr);
-    } else if (functionExpr.name === 'timestamp_to_unix_millis') {
-      return new CoreTimestampToUnixMillis(functionExpr);
-    } else if (functionExpr.name === 'unix_seconds_to_timestamp') {
-      return new CoreUnixSecondsToTimestamp(functionExpr);
-    } else if (functionExpr.name === 'timestamp_to_unix_seconds') {
-      return new CoreTimestampToUnixSeconds(functionExpr);
-    } else if (functionExpr.name === 'timestamp_add') {
-      return new CoreTimestampAdd(functionExpr);
-    } else if (functionExpr.name === 'timestamp_subtract') {
-      return new CoreTimestampSub(functionExpr);
+    if (expr.name === 'add') {
+      return new CoreAdd(expr);
+    } else if (expr.name === 'subtract') {
+      return new CoreSubtract(expr);
+    } else if (expr.name === 'multiply') {
+      return new CoreMultiply(expr);
+    } else if (expr.name === 'divide') {
+      return new CoreDivide(expr);
+    } else if (expr.name === 'mod') {
+      return new CoreMod(expr);
+    } else if (expr.name === 'and') {
+      return new CoreAnd(expr);
+    } else if (expr.name === 'equal') {
+      return new CoreEq(expr);
+    } else if (expr.name === 'not_equal') {
+      return new CoreNeq(expr);
+    } else if (expr.name === 'less_than') {
+      return new CoreLt(expr);
+    } else if (expr.name === 'less_than_or_equal') {
+      return new CoreLte(expr);
+    } else if (expr.name === 'greater_than') {
+      return new CoreGt(expr);
+    } else if (expr.name === 'greater_than_or_equal') {
+      return new CoreGte(expr);
+    } else if (expr.name === 'array_concat') {
+      return new CoreArrayConcat(expr);
+    } else if (expr.name === 'array_reverse') {
+      return new CoreArrayReverse(expr);
+    } else if (expr.name === 'array_contains') {
+      return new CoreArrayContains(expr);
+    } else if (expr.name === 'array_contains_all') {
+      return new CoreArrayContainsAll(expr);
+    } else if (expr.name === 'array_contains_any') {
+      return new CoreArrayContainsAny(expr);
+    } else if (expr.name === 'array_length') {
+      return new CoreArrayLength(expr);
+    } else if (expr.name === 'array_element') {
+      return new CoreArrayElement(expr);
+    } else if (expr.name === 'equal_any') {
+      return new CoreEqAny(expr);
+    } else if (expr.name === 'not_equal_any') {
+      return new CoreNotEqAny(expr);
+    } else if (expr.name === 'is_nan') {
+      return new CoreIsNan(expr);
+    } else if (expr.name === 'is_not_nan') {
+      return new CoreIsNotNan(expr);
+    } else if (expr.name === 'is_null') {
+      return new CoreIsNull(expr);
+    } else if (expr.name === 'is_not_null') {
+      return new CoreIsNotNull(expr);
+    } else if (expr.name === 'is_error') {
+      return new CoreIsError(expr);
+    } else if (expr.name === 'exists') {
+      return new CoreExists(expr);
+    } else if (expr.name === 'not') {
+      return new CoreNot(expr);
+    } else if (expr.name === 'or') {
+      return new CoreOr(expr);
+    } else if (expr.name === 'xor') {
+      return new CoreXor(expr);
+    } else if (expr.name === 'conditional') {
+      return new CoreCond(expr);
+    } else if (expr.name === 'maximum') {
+      return new CoreLogicalMaximum(expr);
+    } else if (expr.name === 'minimum') {
+      return new CoreLogicalMinimum(expr);
+    } else if (expr.name === 'reverse') {
+      return new CoreReverse(expr);
+    } else if (expr.name === 'replace_first') {
+      return new CoreReplaceFirst(expr);
+    } else if (expr.name === 'replace_all') {
+      return new CoreReplaceAll(expr);
+    } else if (expr.name === 'char_length') {
+      return new CoreCharLength(expr);
+    } else if (expr.name === 'byte_length') {
+      return new CoreByteLength(expr);
+    } else if (expr.name === 'like') {
+      return new CoreLike(expr);
+    } else if (expr.name === 'regex_contains') {
+      return new CoreRegexContains(expr);
+    } else if (expr.name === 'regex_match') {
+      return new CoreRegexMatch(expr);
+    } else if (expr.name === 'string_contains') {
+      return new CoreStrContains(expr);
+    } else if (expr.name === 'starts_with') {
+      return new CoreStartsWith(expr);
+    } else if (expr.name === 'ends_with') {
+      return new CoreEndsWith(expr);
+    } else if (expr.name === 'to_lower') {
+      return new CoreToLower(expr);
+    } else if (expr.name === 'to_upper') {
+      return new CoreToUpper(expr);
+    } else if (expr.name === 'trim') {
+      return new CoreTrim(expr);
+    } else if (expr.name === 'string_concat') {
+      return new CoreStrConcat(expr);
+    } else if (expr.name === 'map_get') {
+      return new CoreMapGet(expr);
+    } else if (expr.name === 'cosine_distance') {
+      return new CoreCosineDistance(expr);
+    } else if (expr.name === 'dot_product') {
+      return new CoreDotProduct(expr);
+    } else if (expr.name === 'euclidean_distance') {
+      return new CoreEuclideanDistance(expr);
+    } else if (expr.name === 'vector_length') {
+      return new CoreVectorLength(expr);
+    } else if (expr.name === 'unix_micros_to_timestamp') {
+      return new CoreUnixMicrosToTimestamp(expr);
+    } else if (expr.name === 'timestamp_to_unix_micros') {
+      return new CoreTimestampToUnixMicros(expr);
+    } else if (expr.name === 'unix_millis_to_timestamp') {
+      return new CoreUnixMillisToTimestamp(expr);
+    } else if (expr.name === 'timestamp_to_unix_millis') {
+      return new CoreTimestampToUnixMillis(expr);
+    } else if (expr.name === 'unix_seconds_to_timestamp') {
+      return new CoreUnixSecondsToTimestamp(expr);
+    } else if (expr.name === 'timestamp_to_unix_seconds') {
+      return new CoreTimestampToUnixSeconds(expr);
+    } else if (expr.name === 'timestamp_add') {
+      return new CoreTimestampAdd(expr);
+    } else if (expr.name === 'timestamp_subtract') {
+      return new CoreTimestampSub(expr);
     }
   }
 
@@ -364,13 +389,17 @@ export class CoreConstant implements EvaluableExpr {
 }
 
 export class CoreBooleanConstant implements EvaluableExpr {
-  constructor(private expr: BooleanConstant) {}
+  private expr: Constant;
+
+  constructor(expr: BooleanConstant) {
+    this.expr = unwrapExpression(expr);
+  }
 
   evaluate(
     context: EvaluationContext,
     input: PipelineInputOutput
   ): EvaluateResult {
-    return EvaluateResult.newValue(this.expr._internalConstant._getValue());
+    return EvaluateResult.newValue(this.expr._getValue());
   }
 }
 
@@ -414,7 +443,7 @@ export const LongMaxValue = BigInt('0x7fffffffffffffff');
 export const LongMinValue = -BigInt('0x8000000000000000');
 
 abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
-  protected constructor(protected expr: FunctionExpression) {}
+  constructor(protected expr: FunctionExpression) {}
 
   abstract bigIntArith(
     left: { integerValue: number | string },
@@ -587,7 +616,6 @@ function strictObjectValueEquals(left: MapValue, right: MapValue): Equality {
           foundNull = true;
         }
         default:
-          fail(0xae43, { leftMap, rightMap });
           break;
       }
     }
@@ -968,7 +996,6 @@ export class CoreEqAny implements EvaluableExpr {
       case 'UNSET':
         return EvaluateResult.newError();
       default:
-        fail(0xae42, { type: searchValue.type });
         break;
     }
 
@@ -1966,7 +1993,7 @@ export class CoreByteLength implements EvaluableExpr {
 }
 
 abstract class StringSearchFunctionBase implements EvaluableExpr {
-  protected constructor(readonly expr: FunctionExpression) {}
+  constructor(readonly expr: FunctionExpression) {}
 
   abstract performSearch(value: string, search: string): EvaluateResult;
 
@@ -2296,7 +2323,7 @@ export class CoreMapGet implements EvaluableExpr {
 }
 
 abstract class DistanceBase implements EvaluableExpr {
-  protected constructor(private expr: FunctionExpression) {}
+  constructor(private expr: FunctionExpression) {}
 
   abstract calculateDistance(
     vec1: ArrayValue | undefined,

@@ -13,7 +13,11 @@
 // limitations under the License.
 
 import { FirestoreError } from '../api';
-import { Field, Ordering } from '../lite-api/expressions';
+import {
+  BooleanFunctionExpression,
+  Field,
+  Ordering
+} from '../lite-api/expressions';
 import {
   CollectionGroupSource,
   CollectionSource,
@@ -90,11 +94,13 @@ export function pipelineMatchesAllDocuments(pipeline: CorePipeline): boolean {
     if (stage instanceof Limit || stage instanceof Offset) {
       return false;
     }
+    // Check if it's the special 'exists(__name__)' case
     if (stage instanceof Where) {
       if (
-        stage.condition.name === 'exists' &&
-        stage.condition.params[0] instanceof Field &&
-        stage.condition.params[0].fieldName === DOCUMENT_KEY_NAME
+        stage.condition instanceof BooleanFunctionExpression &&
+        stage.condition._expr.name === 'exists' &&
+        stage.condition._expr.params[0] instanceof Field &&
+        stage.condition._expr.params[0].fieldName === DOCUMENT_KEY_NAME
       ) {
         continue;
       }

@@ -334,7 +334,7 @@ export function expectEqualToConstant(
   evaluated: Value,
   expectedExpression: Expression,
   message?: string
-): Assertion {
+): Chai.Assertion {
   const expected = expectedExpression as Constant;
   const reader = newUserDataReader(db);
   expected._readUserData(

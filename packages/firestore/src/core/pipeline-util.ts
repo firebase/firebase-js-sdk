@@ -58,6 +58,7 @@ import { fail } from '../util/assert';
 
 import { Bound } from './bound';
 import { ListenOptions } from './event_manager';
+import { unwrapExpression } from './expressions';
 import {
   CompositeFilter as CompositeFilterInternal,
   CompositeOperator,
@@ -325,6 +326,8 @@ function canonifyConstantValue(value: unknown): string {
 }
 
 export function canonifyExpr(expr: Expression): string {
+  expr = unwrapExpression(expr);
+
   if (expr instanceof Field) {
     return `fld(${expr.fieldName})`;
   }

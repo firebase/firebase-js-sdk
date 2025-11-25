@@ -23,8 +23,8 @@ import {
   field,
   or as apiOr,
   divide,
-  BooleanExpression as BooleanExpr,
-  xor as ApiXor
+  xor as ApiXor,
+  not
 } from '../../../../lite/pipelines/pipelines';
 import { newTestFirestore } from '../../../util/api_helpers';
 import { doc } from '../../../util/helpers';
@@ -96,9 +96,9 @@ describe('Error Handling', () => {
       .database()
       .where(
         ApiXor(
-          field('a') as unknown as BooleanExpr,
-          field('b') as unknown as BooleanExpr,
-          field('c') as unknown as BooleanExpr
+          field('a').asBoolean(),
+          field('b').asBoolean(),
+          field('c').asBoolean()
         )
       );
 
@@ -115,7 +115,7 @@ describe('Error Handling', () => {
     const pipeline = db
       .pipeline()
       .database()
-      .where(new BooleanExpr('not', [field('a')]));
+      .where(not(field('a').asBoolean()));
 
     expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
   });

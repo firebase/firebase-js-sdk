@@ -24,6 +24,7 @@ import {
   arrayContainsAll,
   arrayContainsAny,
   arrayLength,
+  BooleanFunctionExpression,
   byteLength,
   charLength,
   constant,
@@ -139,7 +140,7 @@ describe('Unary Function Input Mirroring', () => {
 describe('Binary Function Input Mirroring', () => {
   // List of functions to test (builders accepting two Expression args)
   const binaryFunctionBuilders: Array<
-    (v1: Expression, v2: Expression) => FunctionExpression
+    (v1: Expression, v2: Expression) => Expression
   > = [
     // Arithmetic (Variadic, base is binary)
     add,
@@ -267,7 +268,15 @@ describe('Binary Function Input Mirroring', () => {
   ];
 
   binaryFunctionBuilders.forEach(builder => {
-    const funcName = builder(constant('dummy'), constant('dummy')).name;
+    const exprInstance = builder(constant('dummy'), constant('dummy'));
+    let funcName: string;
+    if (exprInstance instanceof FunctionExpression) {
+      funcName = exprInstance.name;
+    } else if (exprInstance instanceof BooleanFunctionExpression) {
+      funcName = (exprInstance._expr as FunctionExpression).name;
+    } else {
+      throw new Error('Type not supported.');
+    }
 
     it(`mirrors input for ${funcName}()`, () => {
       testCases.forEach(testCase => {
