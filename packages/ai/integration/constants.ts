@@ -94,6 +94,22 @@ export const liveTestConfigs: readonly TestConfig[] = backends.flatMap(
   }
 );
 
+/**
+ * Test configurations used for server prompt templates integration tests.
+ * Server prompt templates don't define the model name from the client, so these test configs
+ * do not define a model string.
+ * These tests should only run once per backend, rather than once per backend *per model*.
+ */
+export const promptTemplatesTestConfigs: readonly TestConfig[] =
+  backends.flatMap(backend => {
+    const ai = getAI(app, { backend });
+    return {
+      ai,
+      model: '', // Unused by prompt templates tests
+      toString: () => formatConfigAsString({ ai, model: '' }).trim()
+    };
+  });
+
 export const TINY_IMG_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';
 export const IMAGE_MIME_TYPE = 'image/png';
