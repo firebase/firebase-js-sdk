@@ -1847,24 +1847,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * returned if this expression produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchExpr: BooleanExpression): BooleanExpression;
-
-  /**
-   * @beta
-   *
-   * Creates an expression that returns the result of the `catchExpr` argument
-   * if there is an error, else return the result of this expression.
-   *
-   * ```typescript
-   * // Returns the first item in the title field arrays, or returns
-   * // the entire title field if the array is empty or the field is another type.
-   * field("title").arrayGet(0).ifError(field("title"));
-   * ```
-   *
-   * @param catchExpr The catch expression that will be evaluated and
-   * returned if this expression produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
-   */
   ifError(catchExpr: Expression): FunctionExpression;
 
   /**
@@ -3076,12 +3058,70 @@ export abstract class BooleanExpression extends Expression {
    * produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifErrorX(catchValue: BooleanExpression): BooleanExpression {
-    return new FunctionExpression(
+  ifError(catchValue: BooleanExpression): BooleanExpression;
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error
+   * // but always returns a boolean expression.
+   * constant(50).divide('length').gt(1).ifError(false);
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: boolean): BooleanExpression;
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error.
+   * constant(50).divide('length').gt(1).ifError(constant(0));
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: Expression): FunctionExpression;
+
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error.
+   * constant(50).divide('length').gt(1).ifError(0);
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: unknown): FunctionExpression;
+  ifError(catchValue: unknown): unknown {
+    const normalizedCatchValue = valueToDefaultExpr(catchValue);
+    const expr = new FunctionExpression(
       'if_error',
-      [this, catchValue],
+      [this, normalizedCatchValue],
       'ifError'
-    ).asBoolean();
+    );
+
+    return normalizedCatchValue instanceof BooleanExpression
+      ? expr.asBoolean()
+      : expr;
   }
 
   /**
