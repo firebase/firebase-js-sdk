@@ -190,8 +190,8 @@
     {
       "id": "grepString",
       "type": "promptString",
-      "description": "Enter grep pattern (e.g., 'Google AI gemini-2.0-flash')",
-      "default": "Google AI gemini-2.0-flash"
+      "description": "Enter grep pattern (e.g., 'Google AI gemini-2.0-flash generateContent')",
+      "default": ""
     }
   ]
 }
