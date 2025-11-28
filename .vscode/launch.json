@@ -37,7 +37,8 @@
         "src/index.node.ts",
         "--timeout",
         "5000",
-        "integration/**/*.test.ts"
+        "integration/**/*.test.ts",
+        "--grep", "${input:grepString}",
       ],
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
@@ -183,6 +184,14 @@
       "program": "${workspaceRoot}/node_modules/.bin/karma",
       "cwd": "${workspaceRoot}/packages/firestore",
       "args": ["start", "--auto-watch", "--integration", "--browsers", "Chrome"]
+    }
+  ],
+  "inputs": [
+    {
+      "id": "grepString",
+      "type": "promptString",
+      "description": "Enter grep pattern (e.g., 'Google AI gemini-2.0-flash')",
+      "default": "Google AI gemini-2.0-flash"
     }
   ]
 }
