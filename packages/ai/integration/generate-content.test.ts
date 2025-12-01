@@ -217,7 +217,6 @@ describe('Generate Content', function () {
           expect(usageMetadata).to.exist;
           // usageMetaData.toolUsePromptTokenCount does not exist in Gemini 2.0 flash responses.
           if (!model.model.includes('gemini-2.0-flash')) {
-            
             expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
             expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
           }
