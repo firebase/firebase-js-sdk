@@ -37,7 +37,7 @@ import {
   cheapestModel,
   defaultAIInstance,
   defaultGenerativeModel,
-  testConfigs,
+  testConfigs
 } from './constants';
 import { TIMEOUT_EXPIRED_MESSAGE } from '../src/requests/request';
 import { isNode } from '@firebase/util';
