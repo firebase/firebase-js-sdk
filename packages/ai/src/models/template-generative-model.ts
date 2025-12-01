@@ -66,7 +66,7 @@ export class TemplateGenerativeModel {
    */
   async generateContent(
     templateId: string,
-    templateVariables: object, // anything!
+    templateVariables: object,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
