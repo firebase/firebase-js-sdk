@@ -37,7 +37,7 @@
         "src/index.node.ts",
         "--timeout",
         "5000",
-        "integration/**/prompt-templates.test.ts"
+        "integration/**/*.test.ts"
       ],
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"

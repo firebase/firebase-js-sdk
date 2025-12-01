@@ -35,25 +35,16 @@ describe('Prompt templates', function () {
     describe(`${testConfig.toString()}`, () => {
       describe('Generative Model', () => {
         it('successfully generates content', async () => {
-          const a = new AbortController();
           const model = getTemplateGenerativeModel(testConfig.ai, {
             baseUrl: STAGING_URL
           });
-          // a.abort();
-          try {
-            await model.generateContent(
-              `sassy-greeting-${templateBackendSuffix(
-                testConfig.ai.backend.backendType
-              )}`,
-              { name: 'John' },
-              { signal: a.signal, timeout: 100 }
-            );
-          } catch (e) {
-            console.error(e);
-            if ((e as DOMException).name === 'AbortError') {
-              console.log(1);
-            }
-          }
+          const { response } = await model.generateContent(
+            `sassy-greeting-${templateBackendSuffix(
+              testConfig.ai.backend.backendType
+            )}`,
+            { name: 'John' }
+          );
+          expect(response.text()).to.contain('John'); // Template asks to address directly by name
         });
       });
       describe('Imagen model', async () => {
@@ -65,8 +56,7 @@ describe('Prompt templates', function () {
             `portrait-${templateBackendSuffix(
               testConfig.ai.backend.backendType
             )}`,
-            { animal: 'Rhino' },
-            { timeout: 100 }
+            { animal: 'Rhino' }
           );
           expect(images.length).to.equal(2); // We ask for two images in the prompt template
         });

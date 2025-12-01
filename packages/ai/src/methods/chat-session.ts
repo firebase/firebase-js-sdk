@@ -36,9 +36,6 @@ import { ChromeAdapter } from '../types/chrome-adapter';
 /**
  * Used to break the internal promise chain when an error is already handled
  * by the user, preventing duplicate console logs.
- *
- * TODO: Refactor to use `Promise.allSettled` to decouple the internal
- * sequencing chain from user error handling.
  */
 const SILENT_ERROR = 'SILENT_ERROR';
 
