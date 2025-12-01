@@ -74,7 +74,7 @@ export async function generateContentStream(
     callResult.response,
     apiSettings,
     callResult.inferenceSource
-  ); // TODO: Map streaming responses
+  );
 }
 
 async function generateContentOnCloud(
