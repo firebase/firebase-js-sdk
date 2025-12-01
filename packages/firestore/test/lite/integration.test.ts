@@ -285,6 +285,12 @@ describe('doc', () => {
 
   it('validates path', () => {
     return withTestDb(db => {
+      expect(() =>
+        // @ts-expect-error
+        doc({}, 'coll/doc')
+      ).to.throw(
+        'Expected first argument to doc() to be a CollectionReference, a DocumentReference or FirebaseFirestore'
+      );
       expect(() => doc(db, 'coll')).to.throw(
         'Invalid document reference. Document references must have an even ' +
           'number of segments, but coll has 1.'

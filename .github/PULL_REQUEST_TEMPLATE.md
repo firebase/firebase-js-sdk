@@ -14,6 +14,6 @@ Before you file this pull request, please read these guidelines:
 
 ### API Changes
 
-  * At this time we cannot accept changes that affect the public API.  If you'd like to help 
-    us make Firebase APIs better, please propose your change in an issue so that we 
-    can discuss it together.
+  * Changes that affect the public API will require internal review. Before making a
+    PR that changes the public API, we would suggest first proposing your change in an
+    issue so that we can discuss it together.
