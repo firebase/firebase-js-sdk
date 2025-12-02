@@ -10,6 +10,10 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # FirebaseErrorHandler class
+A custom ErrorHandler that captures uncaught errors and sends them to Firebase Telemetry.
+
+This should be provided in your application's root module.
+
 <b>Signature:</b>
 
 ```typescript
@@ -62,4 +66,45 @@ handleError(error: unknown): void;
 <b>Returns:</b>
 
 void
+
+### Example 1
+
+Basic usage:
+
+```typescript
+import { ErrorHandler } from '@angular/core';
+import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
+
+@NgModule({
+  // ...
+  providers: [
+    { provide: ErrorHandler, useClass: FirebaseErrorHandler }
+  ],
+  // ...
+})
+export class AppModule { }
+
+```
+
+### Example 2
+
+Providing telemetry options:
+
+```typescript
+import { ErrorHandler } from '@angular/core';
+import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
+
+@NgModule({
+  // ...
+  providers: [
+    {
+      provide: ErrorHandler,
+      useFactory: () => new FirebaseErrorHandler({ appVersion: '1.2.3' })
+    }
+  ],
+  // ...
+})
+export class AppModule { }
+
+```
 
