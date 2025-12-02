@@ -34,6 +34,7 @@ export * from '../public-types';
  * This should be provided in your application's root module.
  *
  * @example
+ * Basic usage:
  * ```typescript
  * import { ErrorHandler } from '@angular/core';
  * import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
@@ -48,7 +49,27 @@ export * from '../public-types';
  * export class AppModule { }
  * ```
  *
- * @param telemetryOptions - {@link TelemetryOptions} that configure the Telemetry instance.
+ * @example
+ * Providing telemetry options:
+ * ```typescript
+ * import { ErrorHandler } from '@angular/core';
+ * import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
+ *
+ * @NgModule({
+ *   // ...
+ *   providers: [
+ *     {
+ *       provide: ErrorHandler,
+ *       useFactory: () => new FirebaseErrorHandler({ appVersion: '1.2.3' })
+ *     }
+ *   ],
+ *   // ...
+ * })
+ * export class AppModule { }
+ * ```
+ *
+ * @param telemetryOptions - Optional. {@link TelemetryOptions} that configure the Telemetry instance.
+ * To provide these options, you must use a `useFactory` provider as shown in the example above.
  *
  * @public
  */
