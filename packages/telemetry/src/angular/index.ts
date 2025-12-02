@@ -28,6 +28,30 @@ registerTelemetry();
 
 export * from '../public-types';
 
+/**
+ * A custom ErrorHandler that captures uncaught errors and sends them to Firebase Telemetry.
+ *
+ * This should be provided in your application's root module.
+ *
+ * @example
+ * ```typescript
+ * import { ErrorHandler } from '@angular/core';
+ * import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
+ *
+ * @NgModule({
+ *   // ...
+ *   providers: [
+ *     { provide: ErrorHandler, useClass: FirebaseErrorHandler }
+ *   ],
+ *   // ...
+ * })
+ * export class AppModule { }
+ * ```
+ *
+ * @param telemetryOptions - {@link TelemetryOptions} that configure the Telemetry instance.
+ *
+ * @public
+ */
 export class FirebaseErrorHandler implements ErrorHandler {
   private readonly router = inject(Router);
 
