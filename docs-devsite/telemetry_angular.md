@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Class | Description |
 |  --- | --- |
-|  [FirebaseErrorHandler](./telemetry_angular.firebaseerrorhandler.md#firebaseerrorhandler_class) |  |
+|  [FirebaseErrorHandler](./telemetry_angular.firebaseerrorhandler.md#firebaseerrorhandler_class) | A custom ErrorHandler that captures uncaught errors and sends them to Firebase Telemetry.<!-- -->This should be provided in your application's root module. |
 
 ## Interfaces
 
