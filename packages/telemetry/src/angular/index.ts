@@ -22,7 +22,7 @@ import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { registerTelemetry } from '../register';
 import { captureError, getTelemetry } from '../api';
 import { TelemetryOptions } from '../public-types';
-import { getApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app';
 
 registerTelemetry();
 
@@ -42,7 +42,10 @@ export * from '../public-types';
  * @NgModule({
  *   // ...
  *   providers: [
- *     { provide: ErrorHandler, useClass: FirebaseErrorHandler }
+ *     {
+ *       provide: ErrorHandler,
+ *       useFactory: () => new FirebaseErrorHandler(firebaseApp)
+ *     }
  *   ],
  *   // ...
  * })
@@ -60,7 +63,7 @@ export * from '../public-types';
  *   providers: [
  *     {
  *       provide: ErrorHandler,
- *       useFactory: () => new FirebaseErrorHandler({ appVersion: '1.2.3' })
+ *       useFactory: () => new FirebaseErrorHandler(firebaseApp, { appVersion: '1.2.3' })
  *     }
  *   ],
  *   // ...
@@ -68,6 +71,7 @@ export * from '../public-types';
  * export class AppModule { }
  * ```
  *
+ * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
  * @param telemetryOptions - Optional. {@link TelemetryOptions} that configure the Telemetry instance.
  * To provide these options, you must use a `useFactory` provider as shown in the example above.
  *
@@ -76,10 +80,13 @@ export * from '../public-types';
 export class FirebaseErrorHandler implements ErrorHandler {
   private readonly router = inject(Router);
 
-  constructor(private telemetryOptions?: TelemetryOptions) {}
+  constructor(
+    private app: FirebaseApp,
+    private telemetryOptions?: TelemetryOptions
+  ) {}
 
   handleError(error: unknown): void {
-    const telemetry = getTelemetry(getApp(), this.telemetryOptions);
+    const telemetry = getTelemetry(this.app, this.telemetryOptions);
 
     const attributes = {
       'angular_route_path': this.getSafeRoutePath(this.router)

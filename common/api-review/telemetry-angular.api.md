@@ -10,7 +10,7 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
 export class FirebaseErrorHandler implements ErrorHandler {
-    constructor(telemetryOptions?: TelemetryOptions | undefined);
+    constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions | undefined);
     // (undocumented)
     handleError(error: unknown): void;
     }
