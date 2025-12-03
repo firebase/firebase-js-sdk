@@ -75,7 +75,7 @@ describe('FirebaseErrorHandler', () => {
     const testInjector = TestBed.inject(Injector);
     errorHandler = runInInjectionContext(
       testInjector,
-      () => new FirebaseErrorHandler()
+      () => new FirebaseErrorHandler(app)
     );
     router = TestBed.inject(Router);
   });

@@ -25,7 +25,7 @@ export declare class FirebaseErrorHandler implements ErrorHandler
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(telemetryOptions)](./telemetry_angular.firebaseerrorhandler.md#firebaseerrorhandlerconstructor) |  | Constructs a new instance of the <code>FirebaseErrorHandler</code> class |
+|  [(constructor)(app, telemetryOptions)](./telemetry_angular.firebaseerrorhandler.md#firebaseerrorhandlerconstructor) |  | Constructs a new instance of the <code>FirebaseErrorHandler</code> class |
 
 ## Methods
 
@@ -40,13 +40,14 @@ Constructs a new instance of the `FirebaseErrorHandler` class
 <b>Signature:</b>
 
 ```typescript
-constructor(telemetryOptions?: TelemetryOptions | undefined);
+constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions | undefined);
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
+|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
 |  telemetryOptions | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) \| undefined |  |
 
 ## FirebaseErrorHandler.handleError()
@@ -78,7 +79,10 @@ import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
 @NgModule({
   // ...
   providers: [
-    { provide: ErrorHandler, useClass: FirebaseErrorHandler }
+    {
+      provide: ErrorHandler,
+      useFactory: () => new FirebaseErrorHandler(firebaseApp)
+    }
   ],
   // ...
 })
@@ -99,7 +103,7 @@ import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
   providers: [
     {
       provide: ErrorHandler,
-      useFactory: () => new FirebaseErrorHandler({ appVersion: '1.2.3' })
+      useFactory: () => new FirebaseErrorHandler(firebaseApp, { appVersion: '1.2.3' })
     }
   ],
   // ...
