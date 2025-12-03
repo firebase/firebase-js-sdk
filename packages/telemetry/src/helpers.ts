@@ -15,11 +15,18 @@
  * limitations under the License.
  */
 
+import { LoggerProvider, SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
-import { TELEMETRY_SESSION_ID_KEY } from './constants';
+import {
+  LOG_ENTRY_ATTRIBUTE_KEYS,
+  TELEMETRY_SESSION_ID_KEY
+} from './constants';
 import { Telemetry } from './public-types';
 import { TelemetryService } from './service';
 
+/**
+ * Returns the app version from the provided Telemetry instance, if available.
+ */
 export function getAppVersion(telemetry: Telemetry): string {
   if ((telemetry as TelemetryService).options?.appVersion) {
     return (telemetry as TelemetryService).options!.appVersion!;
@@ -29,18 +36,39 @@ export function getAppVersion(telemetry: Telemetry): string {
   return 'unset';
 }
 
+/**
+ * Returns the session ID stored in sessionStorage, if available.
+ */
 export function getSessionId(): string | undefined {
-  if (
-    typeof sessionStorage !== 'undefined' &&
-    typeof crypto?.randomUUID === 'function'
-  ) {
+  if (typeof sessionStorage !== 'undefined') {
     try {
-      let sessionId = sessionStorage.getItem(TELEMETRY_SESSION_ID_KEY);
-      if (!sessionId) {
-        sessionId = crypto.randomUUID();
-        sessionStorage.setItem(TELEMETRY_SESSION_ID_KEY, sessionId);
-      }
-      return sessionId;
+      return sessionStorage.getItem(TELEMETRY_SESSION_ID_KEY) || undefined;
+    } catch (e) {
+      // Ignore errors accessing sessionStorage (e.g. security restrictions)
+    }
+  }
+}
+
+/**
+ * Generate a new session UUID. We record it in two places:
+ * 1. The client browser's sessionStorage (if available)
+ * 2. In Cloud Logging as its own log entry
+ */
+export function startNewSession(loggerProvider: LoggerProvider): void {
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      const sessionId = crypto.randomUUID();
+      sessionStorage.setItem(TELEMETRY_SESSION_ID_KEY, sessionId);
+
+      // Emit session creation log
+      const logger = loggerProvider.getLogger('session-logger');
+      logger.emit({
+        severityNumber: SeverityNumber.DEBUG,
+        body: 'Session created',
+        attributes: {
+          [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId
+        }
+      });
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
     }

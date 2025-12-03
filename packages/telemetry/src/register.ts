@@ -17,16 +17,17 @@
 
 import { _registerComponent, registerVersion } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
-import { TELEMETRY_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { TelemetryService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { InstallationIdProvider } from './logging/installation-id-provider';
+import { TELEMETRY_TYPE } from './constants';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
 import '@firebase/installations';
+import { getSessionId, startNewSession } from './helpers';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -56,6 +57,11 @@ export function registerTelemetry(): void {
           dynamicHeaderProviders,
           dynamicLogAttributeProviders
         );
+
+        // Immediately track this as a new client session (if one doesn't exist yet)
+        if (!getSessionId()) {
+          startNewSession(loggerProvider);
+        }
 
         return new TelemetryService(app, loggerProvider);
       },
