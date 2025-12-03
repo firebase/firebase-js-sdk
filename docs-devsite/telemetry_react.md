@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [FirebaseTelemetry({ firebaseOptions, telemetryOptions })](./telemetry_react.md#firebasetelemetry_f37eb31) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
+|  [FirebaseTelemetry({ firebaseApp, telemetryOptions })](./telemetry_react.md#firebasetelemetry_10424e8) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
 
 ## Interfaces
 
@@ -24,9 +24,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [Telemetry](./telemetry_react.telemetry.md#telemetry_interface) | An instance of the Firebase Telemetry SDK.<!-- -->Do not create this instance directly. Instead, use [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
 |  [TelemetryOptions](./telemetry_react.telemetryoptions.md#telemetryoptions_interface) | Options for initialized the Telemetry service using [getTelemetry()](./telemetry_.md#gettelemetry_448bdc6)<!-- -->. |
 
-## function({ firebaseOptions, telemetryOptions }, ...)
+## function({ firebaseApp, telemetryOptions }, ...)
 
-### FirebaseTelemetry({ firebaseOptions, telemetryOptions }) {:#firebasetelemetry_f37eb31}
+### FirebaseTelemetry({ firebaseApp, telemetryOptions }) {:#firebasetelemetry_10424e8}
 
 Registers event listeners for uncaught errors.
 
@@ -35,8 +35,8 @@ This should be installed near the root of your application. Caught errors, inclu
 <b>Signature:</b>
 
 ```typescript
-export declare function FirebaseTelemetry({ firebaseOptions, telemetryOptions }: {
-    firebaseOptions?: FirebaseOptions;
+export declare function FirebaseTelemetry({ firebaseApp, telemetryOptions }: {
+    firebaseApp: FirebaseApp;
     telemetryOptions?: TelemetryOptions;
 }): null;
 ```
@@ -45,7 +45,7 @@ export declare function FirebaseTelemetry({ firebaseOptions, telemetryOptions }:
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  { firebaseOptions, telemetryOptions } | { firebaseOptions?: [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface)<!-- -->; telemetryOptions?: [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface)<!-- -->; } |  |
+|  { firebaseApp, telemetryOptions } | { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; telemetryOptions?: [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface)<!-- -->; } |  |
 
 <b>Returns:</b>
 
@@ -58,7 +58,7 @@ The default [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance 
 
 ```html
 <body>
- <FirebaseTelemetry firebaseOptions={options} />
+ <FirebaseTelemetry firebaseApp={app} />
  ... my app ...
 </body>
 

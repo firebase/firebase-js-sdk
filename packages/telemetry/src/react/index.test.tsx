@@ -33,8 +33,6 @@ use(chaiAsPromised);
 describe('FirebaseTelemetry', () => {
   let getTelemetryStub: sinon.SinonStub;
   let captureErrorStub: sinon.SinonStub;
-  let initializeAppStub: sinon.SinonStub;
-  let getAppStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeTelemetry: Telemetry;
 
@@ -42,36 +40,23 @@ describe('FirebaseTelemetry', () => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
     fakeTelemetry = {} as Telemetry;
 
-    initializeAppStub = stub(app, 'initializeApp').returns(fakeApp);
     getTelemetryStub = stub(telemetry, 'getTelemetry').returns(fakeTelemetry);
     captureErrorStub = stub(telemetry, 'captureError');
-    getAppStub = stub(app, 'getApp').returns(fakeApp);
   });
 
   afterEach(() => {
     restore();
   });
 
-  it('gets telemetry with the default app if no firebaseOptions are provided', () => {
-    render(<FirebaseTelemetry />);
-    expect(initializeAppStub).not.to.have.been.called;
-  });
-
-  it('initializes a new app and gets telemetry if firebaseOptions are provided', () => {
-    const firebaseOptions = { apiKey: 'test' };
-    render(<FirebaseTelemetry firebaseOptions={firebaseOptions} />);
-    expect(initializeAppStub).to.have.been.calledWith(firebaseOptions);
-  });
-
   it('captures window errors', done => {
-    render(<FirebaseTelemetry />);
+    render(<FirebaseTelemetry firebaseApp={fakeApp} />);
     const error = new Error('test error');
     window.onerror = () => {
       // Prevent error from bubbling up to test suite
     };
     window.addEventListener('error', (event: ErrorEvent) => {
       // Registers another listener (sequential) to confirm behaviour.
-      expect(getTelemetryStub).to.have.been.called;
+      expect(getTelemetryStub).to.have.been.calledWith(fakeApp);
       expect(captureErrorStub).to.have.been.calledWith(fakeTelemetry, error);
       done();
     });
@@ -79,26 +64,14 @@ describe('FirebaseTelemetry', () => {
   });
 
   it('captures unhandled promise rejections', () => {
-    render(<FirebaseTelemetry />);
+    render(<FirebaseTelemetry firebaseApp={fakeApp} />);
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
     promise.catch(() => {});
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );
-    expect(getTelemetryStub).to.have.been.called;
+    expect(getTelemetryStub).to.have.been.calledWith(fakeApp);
     expect(captureErrorStub).to.have.been.calledWith(fakeTelemetry, reason);
-  });
-
-  it('fails silently when getTelemetry fails', () => {
-    const error = new Error('getTelemetry failed');
-    initializeAppStub.throws(error);
-    const consoleWarnStub = stub(console, 'warn');
-
-    expect(() => render(<FirebaseTelemetry firebaseOptions={{}}/>)).not.to.throw();
-    expect(consoleWarnStub).to.have.been.calledWith(
-      'Firebase Telemetry was not initialized:\n',
-      error
-    );
   });
 });

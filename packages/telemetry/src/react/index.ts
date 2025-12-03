@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions, getApp, initializeApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app';
 import { registerTelemetry } from '../register';
 import { captureError, getTelemetry } from '../api';
 import { TelemetryOptions } from '../public-types';
@@ -34,22 +34,22 @@ export * from '../public-types';
  * @example
  * ```html
  * <body>
- *  <FirebaseTelemetry firebaseOptions={options} />
+ *  <FirebaseTelemetry firebaseApp={app} />
  *  ... my app ...
  * </body>
  * ```
  *
- * @param firebaseOptions - Options to run {@link @firebase/app#initializeApp}. If this is not provided, initializeApp needs to be called explicitly elsewhere in your application.
+ * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
  * @param telemetryOptions - {@link TelemetryOptions} that configure the Telemetry instance.
  * @returns The default {@link Telemetry} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
 export function FirebaseTelemetry({
-  firebaseOptions,
+  firebaseApp,
   telemetryOptions
 }: {
-  firebaseOptions?: FirebaseOptions;
+  firebaseApp: FirebaseApp;
   telemetryOptions?: TelemetryOptions;
 }): null {
   useEffect(() => {
@@ -58,17 +58,22 @@ export function FirebaseTelemetry({
     }
 
     const errorListener = (event: ErrorEvent): void => {
-      captureError(getTelemetry(getApp(), telemetryOptions), event.error, {});
+      captureError(
+        getTelemetry(firebaseApp, telemetryOptions),
+        event.error,
+        {}
+      );
     };
 
     const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
-      captureError(getTelemetry(getApp(), telemetryOptions), event.reason, {});
+      captureError(
+        getTelemetry(firebaseApp, telemetryOptions),
+        event.reason,
+        {}
+      );
     };
 
     try {
-      if (firebaseOptions) {
-        initializeApp(firebaseOptions);
-      }
       window.addEventListener('error', errorListener);
       window.addEventListener('unhandledrejection', unhandledRejectionListener);
     } catch (error) {
@@ -82,7 +87,7 @@ export function FirebaseTelemetry({
         unhandledRejectionListener
       );
     };
-  }, []);
+  }, [firebaseApp, telemetryOptions]);
 
   return null;
 }
