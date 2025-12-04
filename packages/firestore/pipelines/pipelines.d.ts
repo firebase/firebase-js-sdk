@@ -16,7 +16,7 @@
  */
 import { PipelineSource, Pipeline } from '../dist/pipelines';
 
-// Augument the Firestore and Query classes with the pipeline() method.
+// Augment the Firestore and Query classes with the pipeline() method.
 // This is stripped from dist/lite/pipelines.d.ts during the build
 // so it needs to be re-added here.
 declare module '@firebase/firestore' {
