@@ -1,6 +1,6 @@
-  /**
-   * @beta
-   * @license
+/**
+ * @beta
+ * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,12 +30,12 @@ import { Pipeline } from './pipeline';
 import { CollectionReference, DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
 
-  /**
-   * @beta
-   * Options defining how a Stage is evaluated.
+/**
+ * @beta
+ * Options defining how a Stage is evaluated.
  */
 export interface StageOptions {
-    /**
+  /**
    * @beta
    * An escape hatch to set options not known at SDK build time. These values
    * will be passed directly to the Firestore backend and not used by the SDK.
@@ -57,18 +57,18 @@ export interface StageOptions {
     [name: string]: unknown;
   };
 }
-  /**
-   * @beta
-   * Options defining how a CollectionStage is evaluated. See {@link PipelineSource.collection}.
+/**
+ * @beta
+ * Options defining how a CollectionStage is evaluated. See {@link PipelineSource.collection}.
  */
 export type CollectionStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * Name or reference to the collection that will be used as the Pipeline source.
    */
   collection: string | CollectionReference;
 
-    /**
+  /**
    * @beta
    * Specifies the name of an index to be used for a query, overriding the query optimizer's default choice.
    * This can be useful for performance tuning in specific scenarios where the default index selection
@@ -79,22 +79,22 @@ export type CollectionStageOptions = StageOptions & {
   forceIndex?: string;
 };
 
-  /**
-   * @beta
-   * Defines the configuration options for a {@link CollectionGroupStage} within a pipeline.
+/**
+ * @beta
+ * Defines the configuration options for a {@link CollectionGroupStage} within a pipeline.
  * This type extends {@link StageOptions} and provides specific settings for how a collection group
  * is identified and processed during pipeline execution.
  *
  * @see {@link PipelineSource.collectionGroup} to create a collection group stage.
  */
 export type CollectionGroupStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * ID of the collection group to use as the Pipeline source.
    */
   collectionId: string;
 
-    /**
+  /**
    * @beta
    * Specifies the name of an index to be used for a query, overriding the query optimizer's default choice.
    * This can be useful for performance tuning in specific scenarios where the default index selection
@@ -104,17 +104,17 @@ export type CollectionGroupStageOptions = StageOptions & {
    */
   forceIndex?: string;
 };
-  /**
-   * @beta
-   * Options defining how a DatabaseStage is evaluated. See {@link PipelineSource.database}.
+/**
+ * @beta
+ * Options defining how a DatabaseStage is evaluated. See {@link PipelineSource.database}.
  */
 export type DatabaseStageOptions = StageOptions & {};
-  /**
-   * @beta
-   * Options defining how a DocumentsStage is evaluated. See {@link PipelineSource.documents}.
+/**
+ * @beta
+ * Options defining how a DocumentsStage is evaluated. See {@link PipelineSource.documents}.
  */
 export type DocumentsStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline.
    * The converters for these DocumentReferences will be ignored and not have an effect on this pipeline.
@@ -122,80 +122,80 @@ export type DocumentsStageOptions = StageOptions & {
    */
   docs: Array<string | DocumentReference>;
 };
-  /**
-   * @beta
-   * Options defining how an AddFieldsStage is evaluated. See {@link Pipeline.addFields}.
+/**
+ * @beta
+ * Options defining how an AddFieldsStage is evaluated. See {@link Pipeline.addFields}.
  */
 export type AddFieldsStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    *  The fields to add to each document, specified as a {@link Selectable}.
    *  At least one field is required.
    */
   fields: Selectable[];
 };
-  /**
-   * @beta
-   * Options defining how a RemoveFieldsStage is evaluated. See {@link Pipeline.removeFields}.
+/**
+ * @beta
+ * Options defining how a RemoveFieldsStage is evaluated. See {@link Pipeline.removeFields}.
  */
 export type RemoveFieldsStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The fields to remove from each document.
    */
   fields: Array<Field | string>;
 };
-  /**
-   * @beta
-   * Options defining how a SelectStage is evaluated. See {@link Pipeline.select}.
+/**
+ * @beta
+ * Options defining how a SelectStage is evaluated. See {@link Pipeline.select}.
  */
 export type SelectStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The fields to include in the output documents, specified as {@link Selectable} expression
    * or as a string value indicating the field name.
    */
   selections: Array<Selectable | string>;
 };
-  /**
-   * @beta
-   * Options defining how a WhereStage is evaluated. See {@link Pipeline.where}.
+/**
+ * @beta
+ * Options defining how a WhereStage is evaluated. See {@link Pipeline.where}.
  */
 export type WhereStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The {@link BooleanExpression} to apply as a filter for each input document to this stage.
    */
   condition: BooleanExpression;
 };
-  /**
-   * @beta
-   * Options defining how an OffsetStage is evaluated. See {@link Pipeline.offset}.
+/**
+ * @beta
+ * Options defining how an OffsetStage is evaluated. See {@link Pipeline.offset}.
  */
 export type OffsetStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The number of documents to skip.
    */
   offset: number;
 };
-  /**
-   * @beta
-   * Options defining how a LimitStage is evaluated. See {@link Pipeline.limit}.
+/**
+ * @beta
+ * Options defining how a LimitStage is evaluated. See {@link Pipeline.limit}.
  */
 export type LimitStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The maximum number of documents to return.
    */
   limit: number;
 };
-  /**
-   * @beta
-   * Options defining how a DistinctStage is evaluated. See {@link Pipeline.distinct}.
+/**
+ * @beta
+ * Options defining how a DistinctStage is evaluated. See {@link Pipeline.distinct}.
  */
 export type DistinctStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The {@link Selectable} expressions or field names to consider when determining
    * distinct value combinations (groups).
@@ -203,42 +203,42 @@ export type DistinctStageOptions = StageOptions & {
   groups: Array<string | Selectable>;
 };
 
-  /**
-   * @beta
-   * Options defining how an AggregateStage is evaluated. See {@link Pipeline.aggregate}.
+/**
+ * @beta
+ * Options defining how an AggregateStage is evaluated. See {@link Pipeline.aggregate}.
  */
 export type AggregateStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The {@link AliasedAggregate} values specifying aggregate operations to
    * perform on the input documents.
    */
   accumulators: AliasedAggregate[];
-    /**
+  /**
    * @beta
    * The {@link Selectable} expressions or field names to consider when determining
    * distinct value combinations (groups), which will be aggregated over.
    */
   groups?: Array<string | Selectable>;
 };
-  /**
-   * @beta
-   * Options defining how a FindNearestStage is evaluated. See {@link Pipeline.findNearest}.
+/**
+ * @beta
+ * Options defining how a FindNearestStage is evaluated. See {@link Pipeline.findNearest}.
  */
 export type FindNearestStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * Specifies the field to be used. This can be a string representing the field path
    * (e.g., 'fieldName', 'nested.fieldName') or an object of type {@link Field}
    * representing a more complex field expression.
    */
   field: Field | string;
-    /**
+  /**
    * @beta
    * Specifies the query vector value, to which the vector distance will be computed.
    */
   vectorValue: VectorValue | number[];
-    /**
+  /**
    * @beta
    * Specifies the method used to compute the distance between vectors.
    *
@@ -248,12 +248,12 @@ export type FindNearestStageOptions = StageOptions & {
    * - `'dot_product'`: Dot product.
    */
   distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
-    /**
+  /**
    * @beta
    * The maximum number of documents to return from the FindNearest stage.
    */
   limit?: number;
-    /**
+  /**
    * @beta
    * If set, specifies the field on the output documents that will contain
    * the computed vector distance for the document. If not set, the computed
@@ -261,21 +261,21 @@ export type FindNearestStageOptions = StageOptions & {
    */
   distanceField?: string;
 };
-  /**
-   * @beta
-   * Options defining how a ReplaceWithStage is evaluated. See {@link Pipeline.replaceWith}.
+/**
+ * @beta
+ * Options defining how a ReplaceWithStage is evaluated. See {@link Pipeline.replaceWith}.
  */
 export type ReplaceWithStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * The name of a field that contains a map or an {@link Expression} that
    * evaluates to a map.
    */
   map: Expression | string;
 };
-  /**
-   * @beta
-   * Defines the options for evaluating a sample stage within a pipeline.
+/**
+ * @beta
+ * Defines the options for evaluating a sample stage within a pipeline.
  * This type combines common {@link StageOptions} with a specific configuration
  * where only one of the defined sampling methods can be applied.
  *
@@ -283,60 +283,60 @@ export type ReplaceWithStageOptions = StageOptions & {
  */
 export type SampleStageOptions = StageOptions &
   OneOf<{
-      /**
-   * @beta
-   * If set, specifies the sample rate as a percentage of the
+    /**
+     * @beta
+     * If set, specifies the sample rate as a percentage of the
      * input documents.
      *
      * Cannot be set when `documents: number` is set.
      */
     percentage: number;
-      /**
-   * @beta
-   * If set, specifies the sample rate as a total number of
+    /**
+     * @beta
+     * If set, specifies the sample rate as a total number of
      * documents to sample from the input documents.
      *
      * Cannot be set when `percentage: number` is set.
      */
     documents: number;
   }>;
-  /**
-   * @beta
-   * Options defining how a UnionStage is evaluated. See {@link Pipeline.union}.
+/**
+ * @beta
+ * Options defining how a UnionStage is evaluated. See {@link Pipeline.union}.
  */
 export type UnionStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * Specifies the other Pipeline to union with.
    */
   other: Pipeline;
 };
 
-  /**
-   * @beta
-   * Represents the specific options available for configuring an `UnnestStage` within a pipeline.
+/**
+ * @beta
+ * Represents the specific options available for configuring an `UnnestStage` within a pipeline.
  */
 export type UnnestStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * A `Selectable` object that defines an array expression to be un-nested
    * and the alias for the un-nested field.
    */
   selectable: Selectable;
-    /**
+  /**
    * @beta
    * If set, specifies the field on the output documents that will contain the
    * offset (starting at zero) that the element is from the original array.
    */
   indexField?: string;
 };
-  /**
-   * @beta
-   * @beta
+/**
+ * @beta
+ * @beta
  * Options defining how a SortStage is evaluated. See {@link Pipeline.sort}.
  */
 export type SortStageOptions = StageOptions & {
-    /**
+  /**
    * @beta
    * Orderings specify how the input documents are sorted.
    * One or more ordering are required.
