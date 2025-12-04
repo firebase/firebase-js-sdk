@@ -22,6 +22,9 @@ import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 
 import { Firestore } from './database';
 
+/**
+ * @beta
+ */
 export class Pipeline extends LitePipeline {
   /**
    * @internal

@@ -54,7 +54,7 @@ declare module './database' {
 
 /**
  * @beta
- * Executes this pipeline and returns a Promise to represent the asynchronous operation.
+ * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
@@ -88,6 +88,41 @@ declare module './database' {
  * @return A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
+/**
+ * @beta
+ * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ *
+ * The returned Promise can be used to track the progress of the pipeline execution
+ * and retrieve the results (or handle any errors) asynchronously.
+ *
+ * The pipeline results are returned as a {@link PipelineSnapshot} that contains
+ * a list of {@link PipelineResult} objects. Each {@link PipelineResult} typically
+ * represents a single key/value map that has passed through all the
+ * stages of the pipeline, however this might differ depending on the stages involved in the
+ * pipeline. For example:
+ *
+ * <ul>
+ *   <li>If there are no stages or only transformation stages, each {@link PipelineResult}
+ *       represents a single document.</li>
+ *   <li>If there is an aggregation, only a single {@link PipelineResult} is returned,
+ *       representing the aggregated results over the entire dataset .</li>
+ *   <li>If there is an aggregation stage with grouping, each {@link PipelineResult} represents a
+ *       distinct group and its associated aggregated values.</li>
+ * </ul>
+ *
+ * <p>Example:
+ *
+ * ```typescript
+ * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
+ *     .where(gt(field("rating"), 4.5))
+ *     .select("title", "author", "rating"));
+ *
+ * const results: PipelineResults = snapshot.results;
+ * ```
+ *
+ * @param options Specifies the pipeline to execute and other options for execute.
+ * @return A Promise representing the asynchronous pipeline execution.
+ */
 export function execute(
   options: PipelineExecuteOptions
 ): Promise<PipelineSnapshot>;

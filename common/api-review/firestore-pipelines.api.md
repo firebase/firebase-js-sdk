@@ -18,7 +18,7 @@ export function add(first: Expression, second: Expression | unknown): FunctionEx
 // @beta
 export function add(fieldName: string, second: Expression | unknown): FunctionExpression;
 
-// @public
+// @beta
 export type AddFieldsStageOptions = StageOptions & {
     fields: Selectable[];
 };
@@ -31,7 +31,7 @@ export class AggregateFunction {
     exprType: ExpressionType;
     }
 
-// @public
+// @beta
 export type AggregateStageOptions = StageOptions & {
     accumulators: AliasedAggregate[];
     groups?: Array<string | Selectable>;
@@ -171,7 +171,7 @@ export function charLength(fieldName: string): FunctionExpression;
 // @beta
 export function charLength(stringExpression: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type CollectionGroupStageOptions = StageOptions & {
     collectionId: string;
     forceIndex?: string;
@@ -183,7 +183,7 @@ export function collectionId(fieldName: string): FunctionExpression;
 // @beta
 export function collectionId(expression: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type CollectionStageOptions = StageOptions & {
     collection: string | Query;
     forceIndex?: string;
@@ -268,7 +268,7 @@ export function countIf(booleanExpr: BooleanExpression): AggregateFunction;
 // @beta
 export function currentTimestamp(): FunctionExpression;
 
-// @public
+// @beta
 export type DatabaseStageOptions = StageOptions & {};
 
 // @beta
@@ -277,7 +277,7 @@ export function descending(expr: Expression): Ordering;
 // @beta
 export function descending(fieldName: string): Ordering;
 
-// @public
+// @beta
 export type DistinctStageOptions = StageOptions & {
     groups: Array<string | Selectable>;
 };
@@ -300,7 +300,7 @@ export function documentId(documentPath: string | DocumentReference): FunctionEx
 // @beta
 export function documentId(documentPathExpr: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
@@ -368,9 +368,7 @@ export function euclideanDistance(vectorExpression: Expression, otherVectorExpre
 // @beta
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot>;
 
-// Warning: (ae-incompatible-release-tags) The symbol "execute" is marked as @public, but its signature references "PipelineSnapshot" which is marked as @beta
-//
-// @public (undocumented)
+// @beta
 export function execute(options: PipelineExecuteOptions): Promise<PipelineSnapshot>;
 
 // @beta
@@ -652,12 +650,11 @@ export class Field extends Expression implements Selectable {
 export function field(name: string): Field;
 
 // Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
 //
-// @public (undocumented)
+// @beta
 export function field(path: FieldPath): Field;
 
-// @public
+// @beta
 export type FindNearestStageOptions = StageOptions & {
     field: Field | string;
     vectorValue: VectorValue | number[];
@@ -790,7 +787,7 @@ export function like(stringExpression: Expression, pattern: string): BooleanExpr
 // @beta
 export function like(stringExpression: Expression, pattern: Expression): BooleanExpression;
 
-// @public
+// @beta
 export type LimitStageOptions = StageOptions & {
     limit: number;
 };
@@ -915,12 +912,12 @@ export function notEqualAny(element: Expression, arrayExpression: Expression): B
 // @beta
 export function notEqualAny(fieldName: string, arrayExpression: Expression): BooleanExpression;
 
-// @public
+// @beta
 export type OffsetStageOptions = StageOptions & {
     offset: number;
 };
 
-// @public
+// @beta
 export type OneOf<T> = {
     [K in keyof T]: Pick<T, K> & {
         [P in Exclude<keyof T, K>]?: undefined;
@@ -939,22 +936,16 @@ export class Ordering {
     readonly expr: Expression;
 }
 
-// @public (undocumented)
+// @beta (undocumented)
 export class Pipeline {
-    // Warning: (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    //
     // (undocumented)
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     // (undocumented)
     addFields(options: AddFieldsStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "aggregate" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
-    //
     // (undocumented)
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     // (undocumented)
     aggregate(options: AggregateStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "distinct" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    //
     // (undocumented)
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     // (undocumented)
@@ -971,16 +962,12 @@ export class Pipeline {
     offset(options: OffsetStageOptions): Pipeline;
     // (undocumented)
     rawStage(name: string, params: unknown[], options?: { [key: string]: Expression | unknown; }): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "removeFields" is marked as @public, but its signature references "Field" which is marked as @beta
-    //
     // (undocumented)
     removeFields(fieldValue: Field | string, ...additionalFields: Array<Field | string>): Pipeline;
     // (undocumented)
     removeFields(options: RemoveFieldsStageOptions): Pipeline;
     // (undocumented)
     replaceWith(fieldName: string): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "replaceWith" is marked as @public, but its signature references "Expression" which is marked as @beta
-    //
     // (undocumented)
     replaceWith(expr: Expression): Pipeline;
     // (undocumented)
@@ -989,41 +976,29 @@ export class Pipeline {
     sample(documents: number): Pipeline;
     // (undocumented)
     sample(options: SampleStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    //
     // (undocumented)
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     // (undocumented)
     select(options: SelectStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
-    //
     // (undocumented)
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
     // (undocumented)
-    stages: any;
-    // (undocumented)
     union(other: Pipeline): Pipeline;
     // (undocumented)
     union(options: UnionStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "unnest" is marked as @public, but its signature references "Selectable" which is marked as @beta
-    //
     // (undocumented)
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     unnest(options: UnnestStageOptions): Pipeline;
-    // (undocumented)
-    userDataReader: any;
-    // Warning: (ae-incompatible-release-tags) The symbol "where" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-    //
     // (undocumented)
     where(condition: BooleanExpression): Pipeline;
     // (undocumented)
     where(options: WhereStageOptions): Pipeline;
 }
 
-// @public
+// @beta
 export interface PipelineExecuteOptions {
     indexMode?: 'recommended';
     pipeline: Pipeline;
@@ -1047,9 +1022,7 @@ export class PipelineResult<AppModelType = DocumentData> {
     get updateTime(): Timestamp | undefined;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "pipelineResultEqual" is marked as @public, but its signature references "PipelineResult" which is marked as @beta
-//
-// @public (undocumented)
+// @beta
 export function pipelineResultEqual(left: PipelineResult, right: PipelineResult): boolean;
 
 // @beta
@@ -1108,12 +1081,12 @@ export function regexMatch(stringExpression: Expression, pattern: string): Boole
 // @beta
 export function regexMatch(stringExpression: Expression, pattern: Expression): BooleanExpression;
 
-// @public
+// @beta
 export type RemoveFieldsStageOptions = StageOptions & {
     fields: Array<Field | string>;
 };
 
-// @public
+// @beta
 export type ReplaceWithStageOptions = StageOptions & {
     map: Expression | string;
 };
@@ -1136,7 +1109,7 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 // @beta
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
 
-// @public
+// @beta
 export type SampleStageOptions = StageOptions & OneOf<{
     percentage: number;
     documents: number;
@@ -1148,12 +1121,12 @@ export interface Selectable {
     selectable: true;
 }
 
-// @public
+// @beta
 export type SelectStageOptions = StageOptions & {
     selections: Array<Selectable | string>;
 };
 
-// @public
+// @beta
 export type SortStageOptions = StageOptions & {
     orderings: Ordering[];
 };
@@ -1176,7 +1149,7 @@ export function sqrt(expression: Expression): FunctionExpression;
 // @beta
 export function sqrt(fieldName: string): FunctionExpression;
 
-// @public
+// @beta
 export interface StageOptions {
     rawOptions?: {
         [name: string]: unknown;
@@ -1249,7 +1222,7 @@ export function sum(expression: Expression): AggregateFunction;
 // @beta
 export function sum(fieldName: string): AggregateFunction;
 
-// @public (undocumented)
+// @beta
 export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
 
 // @beta
@@ -1288,28 +1261,16 @@ export function timestampToUnixSeconds(expr: Expression): FunctionExpression;
 // @beta
 export function timestampToUnixSeconds(fieldName: string): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(fieldName: string, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(fieldName: string, granularity: Expression, timezone?: string | Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(timestampExpression: Expression, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
 
 // @beta
@@ -1336,7 +1297,7 @@ export function type(fieldName: string): FunctionExpression;
 // @beta
 export function type(expression: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type UnionStageOptions = StageOptions & {
     other: Pipeline;
 };
@@ -1359,7 +1320,7 @@ export function unixSecondsToTimestamp(expr: Expression): FunctionExpression;
 // @beta
 export function unixSecondsToTimestamp(fieldName: string): FunctionExpression;
 
-// @public
+// @beta
 export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
@@ -1371,7 +1332,7 @@ export function vectorLength(vectorExpression: Expression): FunctionExpression;
 // @beta
 export function vectorLength(fieldName: string): FunctionExpression;
 
-// @public
+// @beta
 export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
@@ -1382,19 +1343,7 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:68:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:107:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:112:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:769:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:1086:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:3251:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:4566:59 - (ae-incompatible-release-tags) The symbol "__index" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5012:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5022:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5146:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5156:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:6053:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:6095:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:779:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
 
 // (No @packageDocumentation comment for this package)
 

@@ -1,5 +1,6 @@
-/**
- * @license
+  /**
+   * @beta
+   * @license
  * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,21 +18,25 @@
 
 import type { Pipeline } from './pipeline';
 
-/**
- * Options defining Pipeline execution.
+  /**
+   * @beta
+   * Options defining Pipeline execution.
  */
 export interface PipelineExecuteOptions {
-  /**
+    /**
+   * @beta
    * Pipeline to be evaluated.
    */
   pipeline: Pipeline;
 
-  /**
+    /**
+   * @beta
    * Specify the index mode.
    */
   indexMode?: 'recommended';
 
-  /**
+    /**
+   * @beta
    * An escape hatch to set options not known at SDK build time. These values
    * will be passed directly to the Firestore backend and not used by the SDK.
    *

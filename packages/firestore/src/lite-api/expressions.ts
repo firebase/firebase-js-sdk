@@ -2357,6 +2357,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 }
 
+/**
+ * @beta
+ * Specify time granularity for expressions.
+ */
 export type TimeGranularity =
   | 'microsecond'
   | 'millisecond'
@@ -2635,6 +2639,14 @@ export class Field extends Expression implements Selectable {
  * @return A new {@code Field} instance representing the specified field.
  */
 export function field(name: string): Field;
+
+/**
+ * @beta
+ * Creates a {@code Field} instance representing the field at the given path.
+ *
+ * @param path A FieldPath specifying the field.
+ * @return A new {@code Field} instance representing the specified field.
+ */
 export function field(path: FieldPath): Field;
 export function field(nameOrPath: string | FieldPath): Field {
   return _field(nameOrPath, 'field');
@@ -7770,6 +7782,7 @@ export function split(
 }
 
 /**
+ * @beta
  * Creates an expression that truncates a timestamp to a specified granularity.
  *
  * @example
@@ -7791,6 +7804,7 @@ export function timestampTruncate(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that truncates a timestamp to a specified granularity.
  *
  * @example
@@ -7812,6 +7826,7 @@ export function timestampTruncate(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that truncates a timestamp to a specified granularity.
  *
  * @example
@@ -7833,6 +7848,7 @@ export function timestampTruncate(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that truncates a timestamp to a specified granularity.
  *
  * @example

@@ -257,6 +257,12 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 }
 
+/**
+ * @beta
+ * Test equality of two PipelineResults.
+ * @param left
+ * @param right
+ */
 export function pipelineResultEqual(
   left: PipelineResult,
   right: PipelineResult

@@ -18,7 +18,7 @@ export function add(first: Expression, second: Expression | unknown): FunctionEx
 // @beta
 export function add(fieldName: string, second: Expression | unknown): FunctionExpression;
 
-// @public
+// @beta
 export type AddFieldsStageOptions = StageOptions & {
     fields: Selectable[];
 };
@@ -31,7 +31,7 @@ export class AggregateFunction {
     exprType: ExpressionType;
     }
 
-// @public
+// @beta
 export type AggregateStageOptions = StageOptions & {
     accumulators: AliasedAggregate[];
     groups?: Array<string | Selectable>;
@@ -171,7 +171,7 @@ export function charLength(fieldName: string): FunctionExpression;
 // @beta
 export function charLength(stringExpression: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type CollectionGroupStageOptions = StageOptions & {
     collectionId: string;
     forceIndex?: string;
@@ -183,7 +183,7 @@ export function collectionId(fieldName: string): FunctionExpression;
 // @beta
 export function collectionId(expression: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type CollectionStageOptions = StageOptions & {
     collection: string | Query;
     forceIndex?: string;
@@ -268,7 +268,7 @@ export function countIf(booleanExpr: BooleanExpression): AggregateFunction;
 // @beta
 export function currentTimestamp(): FunctionExpression;
 
-// @public
+// @beta
 export type DatabaseStageOptions = StageOptions & {};
 
 // @beta
@@ -277,7 +277,7 @@ export function descending(expr: Expression): Ordering;
 // @beta
 export function descending(fieldName: string): Ordering;
 
-// @public
+// @beta
 export type DistinctStageOptions = StageOptions & {
     groups: Array<string | Selectable>;
 };
@@ -300,7 +300,7 @@ export function documentId(documentPath: string | DocumentReference): FunctionEx
 // @beta
 export function documentId(documentPathExpr: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
 };
@@ -647,12 +647,11 @@ export class Field extends Expression implements Selectable {
 export function field(name: string): Field;
 
 // Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
-// Warning: (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
 //
-// @public (undocumented)
+// @beta
 export function field(path: FieldPath): Field;
 
-// @public
+// @beta
 export type FindNearestStageOptions = StageOptions & {
     field: Field | string;
     vectorValue: VectorValue | number[];
@@ -785,7 +784,7 @@ export function like(stringExpression: Expression, pattern: string): BooleanExpr
 // @beta
 export function like(stringExpression: Expression, pattern: Expression): BooleanExpression;
 
-// @public
+// @beta
 export type LimitStageOptions = StageOptions & {
     limit: number;
 };
@@ -910,12 +909,12 @@ export function notEqualAny(element: Expression, arrayExpression: Expression): B
 // @beta
 export function notEqualAny(fieldName: string, arrayExpression: Expression): BooleanExpression;
 
-// @public
+// @beta
 export type OffsetStageOptions = StageOptions & {
     offset: number;
 };
 
-// @public
+// @beta
 export type OneOf<T> = {
     [K in keyof T]: Pick<T, K> & {
         [P in Exclude<keyof T, K>]?: undefined;
@@ -937,64 +936,40 @@ export class Ordering {
 // @beta
 export class Pipeline {
     /* Excluded from this release type: _db */
+    /* Excluded from this release type: userDataReader */
+    /* Excluded from this release type: _userDataWriter */
+    /* Excluded from this release type: stages */
+    /* Excluded from this release type: __constructor */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     addFields(options: AddFieldsStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     aggregate(options: AggregateStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     distinct(options: DistinctStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     findNearest(options: FindNearestStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     limit(limit: number): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     limit(options: LimitStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     offset(offset: number): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     offset(options: OffsetStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     rawStage(name: string, params: unknown[], options?: {
         [key: string]: Expression | unknown;
     }): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     removeFields(fieldValue: Field | string, ...additionalFields: Array<Field | string>): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     removeFields(options: RemoveFieldsStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     replaceWith(fieldName: string): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     replaceWith(expr: Expression): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     sample(documents: number): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     sample(options: SampleStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     select(options: SelectStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     sort(options: SortStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     union(other: Pipeline): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     union(options: UnionStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     unnest(selectable: Selectable, indexField?: string): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     unnest(options: UnnestStageOptions): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     where(condition: BooleanExpression): Pipeline;
-    /* Excluded from this release type: _userDataWriter */
     where(options: WhereStageOptions): Pipeline;
 }
 
@@ -1069,12 +1044,12 @@ export function regexMatch(stringExpression: Expression, pattern: string): Boole
 // @beta
 export function regexMatch(stringExpression: Expression, pattern: Expression): BooleanExpression;
 
-// @public
+// @beta
 export type RemoveFieldsStageOptions = StageOptions & {
     fields: Array<Field | string>;
 };
 
-// @public
+// @beta
 export type ReplaceWithStageOptions = StageOptions & {
     map: Expression | string;
 };
@@ -1097,7 +1072,7 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 // @beta
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
 
-// @public
+// @beta
 export type SampleStageOptions = StageOptions & OneOf<{
     percentage: number;
     documents: number;
@@ -1109,12 +1084,12 @@ export interface Selectable {
     selectable: true;
 }
 
-// @public
+// @beta
 export type SelectStageOptions = StageOptions & {
     selections: Array<Selectable | string>;
 };
 
-// @public
+// @beta
 export type SortStageOptions = StageOptions & {
     orderings: Ordering[];
 };
@@ -1137,7 +1112,7 @@ export function sqrt(expression: Expression): FunctionExpression;
 // @beta
 export function sqrt(fieldName: string): FunctionExpression;
 
-// @public
+// @beta
 export interface StageOptions {
     rawOptions?: {
         [name: string]: unknown;
@@ -1210,7 +1185,7 @@ export function sum(expression: Expression): AggregateFunction;
 // @beta
 export function sum(fieldName: string): AggregateFunction;
 
-// @public (undocumented)
+// @beta
 export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
 
 // @beta
@@ -1249,28 +1224,16 @@ export function timestampToUnixSeconds(expr: Expression): FunctionExpression;
 // @beta
 export function timestampToUnixSeconds(fieldName: string): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(fieldName: string, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(fieldName: string, granularity: Expression, timezone?: string | Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(timestampExpression: Expression, granularity: TimeGranularity, timezone?: string | Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "timestampTruncate" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
 
 // @beta
@@ -1297,7 +1260,7 @@ export function type(fieldName: string): FunctionExpression;
 // @beta
 export function type(expression: Expression): FunctionExpression;
 
-// @public
+// @beta
 export type UnionStageOptions = StageOptions & {
     other: Pipeline;
 };
@@ -1320,7 +1283,7 @@ export function unixSecondsToTimestamp(expr: Expression): FunctionExpression;
 // @beta
 export function unixSecondsToTimestamp(fieldName: string): FunctionExpression;
 
-// @public
+// @beta
 export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
@@ -1332,7 +1295,7 @@ export function vectorLength(vectorExpression: Expression): FunctionExpression;
 // @beta
 export function vectorLength(fieldName: string): FunctionExpression;
 
-// @public
+// @beta
 export type WhereStageOptions = StageOptions & {
     condition: BooleanExpression;
 };
@@ -1343,19 +1306,7 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:71:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:110:5 - (ae-incompatible-release-tags) The symbol "accumulators" is marked as @public, but its signature references "AliasedAggregate" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:115:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:772:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1090:5 - (ae-incompatible-release-tags) The symbol "groups" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:3254:5 - (ae-incompatible-release-tags) The symbol "field" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5774:5 - (ae-incompatible-release-tags) The symbol "fields" is marked as @public, but its signature references "Field" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5784:5 - (ae-incompatible-release-tags) The symbol "map" is marked as @public, but its signature references "Expression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5908:5 - (ae-incompatible-release-tags) The symbol "selections" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:5918:5 - (ae-incompatible-release-tags) The symbol "orderings" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6715:5 - (ae-incompatible-release-tags) The symbol "other" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6815:5 - (ae-incompatible-release-tags) The symbol "selectable" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6857:5 - (ae-incompatible-release-tags) The symbol "condition" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:782:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
 
 // (No @packageDocumentation comment for this package)
 
