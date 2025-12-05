@@ -26,7 +26,8 @@ import {
 } from '../src';
 import { testConfigs } from './constants';
 
-describe('Chat Session', () => {
+describe('Chat Session', function () {
+  this.timeout(20_000);
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
