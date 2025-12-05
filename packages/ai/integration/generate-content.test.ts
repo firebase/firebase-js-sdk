@@ -172,6 +172,58 @@ describe('Generate Content', function () {
         });
       });
 
+      it('generateContent: google maps grounding', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: {} }],
+          toolConfig: {
+            retrievalConfig: {
+              // Optionally provide the relevant location context (this is in Los Angeles)
+              latLng: {
+                latitude: 34.050481,
+                longitude: -118.248526,
+              },
+            },
+          },
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee in Arlington, MA?'
+          //'Where is the closest starbucks?'
+        );
+        const response = result.response;
+        const trimmedText = response.text().trim();
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        console.error("DEDB grounding medataData: ", JSON.stringify(groundingMetadata));
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          console.log("Grounding Chunk: ", JSON.stringify(groundingChunk));
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          //expect(groundingChunk.maps!.text).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+          // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
+        });
+      });
+
+
       describe('URL Context', async () => {
         // URL Context is not supported in Google AI for gemini-2.0-flash
         if (

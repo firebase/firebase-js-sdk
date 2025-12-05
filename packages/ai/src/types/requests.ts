@@ -259,6 +259,7 @@ export interface RequestOptions {
  */
 export type Tool =
   | FunctionDeclarationsTool
+  | GoogleMapsTool
   | GoogleSearchTool
   | CodeExecutionTool
   | URLContextTool;
@@ -316,6 +317,10 @@ export interface GoogleSearchTool {
   googleSearch: GoogleSearch;
 }
 
+export interface GoogleMapsTool {
+  googleMaps: GoogleMaps;
+}
+
 /**
  * A tool that enables the model to use code execution.
  *
@@ -337,6 +342,20 @@ export interface CodeExecutionTool {
  * @public
  */
 export interface GoogleSearch {}
+
+/**
+ * Specifies the Google Maps configuration.
+ *
+ * @remarks Currently, this is an empty object, but it's reserved for future configuration options.
+ *
+ * @public
+ */
+export interface GoogleMaps {
+  /*
+   *  If true, include the widget context token in the response.
+   */
+  enableWidget?: boolean;
+}
 
 /**
  * A tool that allows you to provide additional context to the models in the form of public web
@@ -380,11 +399,45 @@ export interface FunctionDeclarationsTool {
 }
 
 /**
+ * An object that represents a latitude/longitude pair.
+ * @public
+ */
+interface LatLng {
+  /**
+   * The latitude in degrees. It must be in the range [-90.0, +90.0].
+   */
+  latitude?: number;
+
+  /**
+   * The longitude in degrees. It must be in the range [-180.0, +180.0].
+   */
+  longitude?: number;
+}
+
+/**
+ * Represents the JSON structure for google.cloud.aiplatform.master.RetrievalConfig.
+ * Configuration for retrieval.
+ * @public
+ */
+interface RetrievalConfig {
+  /**
+   * The location of the user.
+   */
+  latLng?: LatLng;
+
+  /**
+   * The language code of the user.
+   */
+  languageCode?: string;
+}
+
+/**
  * Tool config. This config is shared for all tools provided in the request.
  * @public
  */
 export interface ToolConfig {
   functionCallingConfig?: FunctionCallingConfig;
+  retrievalConfig?: RetrievalConfig;
 }
 
 /**

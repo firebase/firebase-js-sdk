@@ -284,6 +284,11 @@ export interface GroundingChunk {
    * Contains details if the grounding chunk is from a web source.
    */
   web?: WebGroundingChunk;
+
+  /**
+   * Contains details if the grounding chunk is from a Google Maps source.
+   */
+  maps?: GoogleMapsGroundChunk;
 }
 
 /**
@@ -303,6 +308,42 @@ export interface WebGroundingChunk {
    * The title of the retrieved web page.
    */
   title?: string;
+  /**
+   * The domain of the original URI from which the content was retrieved.
+   *
+   * This property is only supported in the Vertex AI Gemini API ({@link VertexAIBackend}).
+   * When using the Gemini Developer API ({@link GoogleAIBackend}), this property will be
+   * `undefined`.
+   */
+  domain?: string;
+}
+
+/**
+ * A grounding chunk from Google Maps.
+ *
+ * Important: If using Grounding with Google Search, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ *
+ * @public
+ */
+export interface GoogleMapsGroundChunk {
+  /**
+   * The URI of the place.
+   */
+  uri?: string;
+  /**
+   * The title of the place.
+   */
+  title?: string;
+  /**
+   * The text of the place answer.
+   */
+  text?: string;
+  /**
+   * This Place's resource name, in `places/{place_id}` format. This can be used to look up the
+   * place in the Google Maps API
+   */
+  placeId?: string;
   /**
    * The domain of the original URI from which the content was retrieved.
    *

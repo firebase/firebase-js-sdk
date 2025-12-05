@@ -643,6 +643,27 @@ export interface GoogleAIGenerateContentResponse {
 }
 
 // @public
+export interface GoogleMaps {
+    // (undocumented)
+    enableWidget?: boolean;
+}
+
+// @public
+export interface GoogleMapsGroundChunk {
+    domain?: string;
+    placeId?: string;
+    text?: string;
+    title?: string;
+    uri?: string;
+}
+
+// @public (undocumented)
+export interface GoogleMapsTool {
+    // (undocumented)
+    googleMaps: GoogleMaps;
+}
+
+// @public
 export interface GoogleSearch {
 }
 
@@ -653,6 +674,7 @@ export interface GoogleSearchTool {
 
 // @public
 export interface GroundingChunk {
+    maps?: GoogleMapsGroundChunk;
     web?: WebGroundingChunk;
 }
 
@@ -1377,12 +1399,16 @@ export interface ThinkingConfig {
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
 //
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
+export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+    // Warning: (ae-forgotten-export) The symbol "RetrievalConfig" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
 }
 
 // @beta
