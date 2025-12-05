@@ -731,6 +731,7 @@ apiDescribe('Queries', persistence => {
           err => {
             expect(err.code).to.equal('failed-precondition');
             expect(err.message).to.exist;
+            // @ts-ignore internal API usage
             if (coll.firestore._databaseId.isDefaultDatabase) {
               expect(err.message).to.match(
                 /index.*https:\/\/console\.firebase\.google\.com/

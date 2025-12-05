@@ -11,7 +11,7 @@
     "compile": "tsc --emitDeclarationOnly --declaration -p tsconfig.json",
     "prebuild": "tsc --emitDeclarationOnly --declaration -p tsconfig.json; yarn api-report",
     "build": "run-p --npm-path npm build:lite build:main",
-    "build:release": "yarn build && yarn typings:public",
+    "build:release": "yarn build",
     "build:scripts": "tsc -moduleResolution node --module commonjs scripts/*.ts && ls scripts/*.js | xargs -I % sh -c 'terser %  -o %'",
     "build:deps": "lerna run --scope @firebase/firestore --include-dependencies build",
     "build:main": "rollup -c rollup.config.js",
@@ -57,7 +57,6 @@
     "api-report:api-json": "rm -rf temp && api-extractor run --local --verbose",
     "api-report": "run-s --npm-path npm api-report:main api-report:pipelines api-report:lite api-report:lite:pipelines && yarn api-report:api-json",
     "doc": "api-documenter markdown --input temp --output docs",
-    "typings:public": "node ../../scripts/build/use_typings.js ./dist/index.d.ts",
     "assertion-id:check": "ts-node scripts/assertion-id-tool.ts --dir=src --check",
     "assertion-id:new": "ts-node scripts/assertion-id-tool.ts --dir=src --new",
     "assertion-id:list": "ts-node scripts/assertion-id-tool.ts --dir=src --list",
@@ -173,7 +172,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/firestore/src/index.d.ts",
+  "typings": "dist/index.d.ts",
   "nyc": {
     "extension": [
       ".ts"

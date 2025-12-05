@@ -54,6 +54,7 @@ apiDescribe('console support', persistence => {
           count: count(),
           avg: average('foo')
         });
+        // @ts-ignore internal API usage
         expect(doc._fieldsProto()).to.deep.equal({
           'count': {
             'integerValue': '2'

@@ -161,6 +161,7 @@ apiDescribe('Count queries', persistence => {
         );
         // TODO(b/316359394) Remove the special logic for non-default databases
         // once cl/582465034 is rolled out to production.
+        // @ts-ignore internal API usage
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getCountFromServer(query_)
@@ -373,6 +374,7 @@ apiDescribe('Aggregation queries', persistence => {
         );
         // TODO(b/316359394) Remove the special logic for non-default databases
         // once cl/582465034 is rolled out to production.
+        // @ts-ignore internal API usage
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getAggregateFromServer(query_, {

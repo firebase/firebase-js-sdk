@@ -46,6 +46,7 @@ import {
   Query,
   getDocsFromServer,
   getDocsFromCache,
+  // @ts-ignore internal API usage
   _AutoId
 } from './firebase_export';
 import {

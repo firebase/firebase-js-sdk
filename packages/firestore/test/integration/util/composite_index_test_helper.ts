@@ -40,7 +40,9 @@ import {
   deleteDoc as deleteDocument,
   doc,
   and,
+  // @ts-ignore internal API usage
   _AutoId,
+  // @ts-ignore internal API usage
   _FieldPath,
   newTestFirestore,
   newTestApp,
