@@ -55,7 +55,10 @@ export function getSessionId(): string | undefined {
  * 2. In Cloud Logging as its own log entry
  */
 export function startNewSession(loggerProvider: LoggerProvider): void {
-  if (typeof sessionStorage !== 'undefined') {
+  if (
+    typeof sessionStorage !== 'undefined' &&
+    typeof crypto?.randomUUID === 'function'
+  ) {
     try {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(TELEMETRY_SESSION_ID_KEY, sessionId);
