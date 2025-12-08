@@ -15,6 +15,18 @@
  * limitations under the License.
  */
 
+import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { Telemetry } from './public-types';
+
+/**
+ * An internal interface for the Telemetry service.
+ *
+ * @internal
+ */
+export interface TelemetryInternal extends Telemetry {
+  loggerProvider: LoggerProvider;
+}
+
 type KeyValuePair = [key: string, value: string];
 
 /**

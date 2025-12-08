@@ -23,6 +23,7 @@ import {
 } from './constants';
 import { Telemetry } from './public-types';
 import { TelemetryService } from './service';
+import { TelemetryInternal } from './types';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -55,7 +56,8 @@ export function getSessionId(): string | undefined {
  * 2. In Cloud Logging as its own log entry
  */
 export function startNewSession(telemetry: Telemetry): void {
-  const { loggerProvider } = telemetry;
+  // Cast to TelemetryInternal to access internal loggerProvider
+  const { loggerProvider } = telemetry as TelemetryInternal;
   if (
     typeof sessionStorage !== 'undefined' &&
     typeof crypto?.randomUUID === 'function'

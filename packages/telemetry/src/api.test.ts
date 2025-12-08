@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Telemetry } from './public-types';
 import { trace } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
 import {
@@ -43,6 +42,7 @@ import { TelemetryService } from './service';
 import { registerTelemetry } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
+import { TelemetryInternal } from './types';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -66,7 +66,7 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
-const fakeTelemetry: Telemetry = {
+const fakeTelemetry: TelemetryInternal = {
   app: {
     name: 'DEFAULT',
     automaticDataCollectionEnabled: true,
@@ -307,7 +307,7 @@ describe('Top level API', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
       const telemetry = new TelemetryService(
         fakeTelemetry.app,
-        fakeTelemetry.loggerProvider
+        fakeLoggerProvider
       );
       telemetry.options = {
         appVersion: '1.0.0'
