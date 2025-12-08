@@ -70,7 +70,11 @@ export async function generateContentStream(
     () =>
       generateContentStreamOnCloud(apiSettings, model, params, requestOptions)
   );
-  return processStream(callResult.response, apiSettings); // TODO: Map streaming responses
+  return processStream(
+    callResult.response,
+    apiSettings,
+    callResult.inferenceSource
+  );
 }
 
 async function generateContentOnCloud(
