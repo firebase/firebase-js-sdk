@@ -53,24 +53,18 @@ export function FirebaseTelemetry({
   telemetryOptions?: TelemetryOptions;
 }): null {
   useEffect(() => {
+    const telemetry = getTelemetry(firebaseApp, telemetryOptions);
+
     if (typeof window === 'undefined') {
       return;
     }
 
     const errorListener = (event: ErrorEvent): void => {
-      captureError(
-        getTelemetry(firebaseApp, telemetryOptions),
-        event.error,
-        {}
-      );
+      captureError(telemetry, event.error, {});
     };
 
     const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
-      captureError(
-        getTelemetry(firebaseApp, telemetryOptions),
-        event.reason,
-        {}
-      );
+      captureError(telemetry, event.reason, {});
     };
 
     try {
