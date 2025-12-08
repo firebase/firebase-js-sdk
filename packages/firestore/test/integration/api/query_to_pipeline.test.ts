@@ -52,8 +52,6 @@ import { execute, PipelineSnapshot } from '../util/pipeline_export';
 
 use(chaiAsPromised);
 
-setLogLevel('debug');
-
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
 apiDescribe.skipClassic('Query to Pipeline', persistence => {

@@ -147,8 +147,6 @@ import {
 
 use(chaiAsPromised);
 
-setLogLevel('debug');
-
 const timestampDeltaMS = 1000;
 
 apiDescribe.skipClassic('Pipelines', persistence => {
