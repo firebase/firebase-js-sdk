@@ -94,7 +94,8 @@ export function captureError(
   }
 
   // Add app version metadata
-  customAttributes['app.version'] = getAppVersion(telemetry);
+  customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] =
+    getAppVersion(telemetry);
 
   // Add session ID metadata
   const sessionId = getSessionId();

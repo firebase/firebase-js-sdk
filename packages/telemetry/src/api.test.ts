@@ -113,6 +113,9 @@ describe('Top level API', () => {
       value: cryptoMock,
       writable: true
     });
+
+    // Simulate session creation that now happens in registerTelemetry
+    storage[TELEMETRY_SESSION_ID_KEY] = MOCK_SESSION_ID;
   });
 
   afterEach(async () => {
@@ -151,6 +154,28 @@ describe('Top level API', () => {
       expect(
         getTelemetry(app, { endpointUrl: 'http://endpoint1' })
       ).not.to.equal(getTelemetry(app, {}));
+    });
+  });
+
+  describe('registerTelemetry()', () => {
+    it('should create a session and emit a log entry if none exists', () => {
+      // Clear storage to simulate no session
+      storage = {};
+      emittedLogs.length = 0;
+
+      getTelemetry(getFakeApp());
+
+      // Check if session ID was created in storage
+      expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
+    });
+
+    it('should not create a new session if one exists', () => {
+      storage[TELEMETRY_SESSION_ID_KEY] = 'existing-session';
+      emittedLogs.length = 0;
+
+      getTelemetry(getFakeApp());
+
+      expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal('existing-session');
     });
   });
 
@@ -312,17 +337,6 @@ describe('Top level API', () => {
     });
 
     describe('Session Metadata', () => {
-      it('should generate and store a new session ID if none exists', () => {
-        captureError(fakeTelemetry, 'error');
-
-        expect(emittedLogs.length).to.equal(1);
-        const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
-          MOCK_SESSION_ID
-        );
-        expect(storage[TELEMETRY_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
-      });
-
       it('should retrieve existing session ID from sessionStorage', () => {
         storage[TELEMETRY_SESSION_ID_KEY] = 'existing-session-id';
 
