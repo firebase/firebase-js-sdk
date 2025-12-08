@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
+import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { Telemetry } from './public-types';
 import { startNewSession } from './helpers';
 import {
