@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { LoggerProvider, SeverityNumber } from '@opentelemetry/api-logs';
+import { SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
 import {
   LOG_ENTRY_ATTRIBUTE_KEYS,
@@ -54,7 +54,8 @@ export function getSessionId(): string | undefined {
  * 1. The client browser's sessionStorage (if available)
  * 2. In Cloud Logging as its own log entry
  */
-export function startNewSession(loggerProvider: LoggerProvider): void {
+export function startNewSession(telemetry: Telemetry): void {
+  const { loggerProvider } = telemetry;
   if (
     typeof sessionStorage !== 'undefined' &&
     typeof crypto?.randomUUID === 'function'
@@ -69,7 +70,8 @@ export function startNewSession(loggerProvider: LoggerProvider): void {
         severityNumber: SeverityNumber.DEBUG,
         body: 'Session created',
         attributes: {
-          [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId
+          [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
+          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(telemetry)
         }
       });
     } catch (e) {

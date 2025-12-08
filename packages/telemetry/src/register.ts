@@ -58,12 +58,14 @@ export function registerTelemetry(): void {
           dynamicLogAttributeProviders
         );
 
+        const telemetryService = new TelemetryService(app, loggerProvider);
+
         // Immediately track this as a new client session (if one doesn't exist yet)
         if (!getSessionId()) {
-          startNewSession(loggerProvider);
+          startNewSession(telemetryService);
         }
 
-        return new TelemetryService(app, loggerProvider);
+        return telemetryService;
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
