@@ -21,7 +21,7 @@ import { ErrorHandler, inject } from '@angular/core';
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { registerTelemetry } from '../register';
 import { captureError, getTelemetry } from '../api';
-import { TelemetryOptions } from '../public-types';
+import { Telemetry, TelemetryOptions } from '../public-types';
 import { FirebaseApp } from '@firebase/app';
 
 registerTelemetry();
@@ -79,20 +79,21 @@ export * from '../public-types';
  */
 export class FirebaseErrorHandler implements ErrorHandler {
   private readonly router = inject(Router);
+  private readonly telemetry: Telemetry;
 
   constructor(
-    private app: FirebaseApp,
-    private telemetryOptions?: TelemetryOptions
-  ) {}
+    app: FirebaseApp,
+    telemetryOptions?: TelemetryOptions
+  ) {
+    this.telemetry = getTelemetry(app, telemetryOptions);
+  }
 
   handleError(error: unknown): void {
-    const telemetry = getTelemetry(this.app, this.telemetryOptions);
-
     const attributes = {
       'angular_route_path': this.getSafeRoutePath(this.router)
     };
 
-    captureError(telemetry, error, attributes);
+    captureError(this.telemetry, error, attributes);
   }
 
   /**
