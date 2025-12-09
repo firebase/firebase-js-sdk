@@ -16,11 +16,13 @@
  */
 
 import {
-  generateSHA256HashBrowser
+  generateSHA256HashBrowser,
+  isIndexedDBAvailable
 } from '@firebase/util';
 
 import {
   CacheProvider,
+  CacheSettings,
   type ConnectorConfig
 } from '../api/DataConnect';
 import { DataConnectError } from '../core/error';
@@ -39,18 +41,6 @@ export const Persistent = 'persistent';
 
 export type DataConnectStorage = typeof Memory | typeof Persistent;
 
-export const StorageType = {
-  PERSISTENT: 'PERSISTENT',
-  MEMORY: 'MEMORY'
-};
-
-export type StorageType = (typeof StorageType)[keyof typeof StorageType];
-
-
-export interface CacheSettings {
-    maxSizeBytes?: number;
-    cacheProvider?: CacheProvider<StorageType>;
-}
 
 /**
  * ServerValues
@@ -69,6 +59,16 @@ export class DataConnectCache {
     private host: string,
     private cacheSettings?: CacheSettings
   ) {
+    this.authProvider.addTokenChangeListener(async _ => {
+      const newUid = this.authProvider.getAuth().getUid();
+      // We should only close if the token changes and so does the new UID
+      if(this.uid !== newUid) {
+        await this.cacheProvider?.close();
+        this.uid = newUid;
+        const identifier = await this.getIdentifier(this.uid);
+        this.cacheProvider = this.initializeNewProviders(identifier);
+      }
+    });
   }
 
   async initialize(): Promise<void> {
@@ -90,20 +90,10 @@ export class DataConnectCache {
     return sha256;
   }
 
-  setAuthProvider(_authTokenProvider: AuthTokenProvider): void {
-    // TODO: There's a chance for a race condition here
-    this.authProvider.addTokenChangeListener(async _ => {
-      await this.cacheProvider?.close();
-      this.uid = this.authProvider.getAuth().getUid();
-      const identifier = await this.getIdentifier(this.uid);
-      this.cacheProvider = this.initializeNewProviders(identifier);
-    });
-  }
-
   initializeNewProviders(identifier: string): InternalCacheProvider {
     let cacheProvider: InternalCacheProvider;
     if (this.cacheSettings) {
-      cacheProvider = this.cacheSettings.cacheProvider?.initialize(identifier);
+      cacheProvider = (this.cacheSettings.cacheProvider?.type === 'MEMORY' || !isIndexedDBAvailable()) ? new InMemoryCacheProvider(identifier) : new IndexedDBCacheProvider(identifier);
     } else {
       logDebug(
         'IndexedDB is not available. Using In-Memory Cache Provider instead.'
@@ -156,14 +146,8 @@ export class DataConnectCache {
 
 export class IndexedDBStub implements CacheProvider<'PERSISTENT'> {
   type: 'PERSISTENT' = 'PERSISTENT';
-  initialize(cacheId: string): InternalCacheProvider {
-    return new IndexedDBCacheProvider(cacheId);
-  }
 }
 
-export class PersistentStub implements CacheProvider<'MEMORY'> {
+export class MemoryStub implements CacheProvider<'MEMORY'> {
   type: 'MEMORY' = 'MEMORY';
-  initialize(cacheId: string): InternalCacheProvider {
-    return new InMemoryCacheProvider(cacheId);
-  }
 }

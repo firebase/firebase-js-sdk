@@ -34,18 +34,6 @@ export interface Movie_Key {
   __typename?: 'Movie_Key';
 }
 
-interface ListMoviesRef {
-  /* Allow users to create refs without passing in DataConnect */
-  (): QueryRef<ListMoviesData, undefined>;
-  /* Allow users to pass in custom DataConnect instances */
-  (dc: DataConnect): QueryRef<ListMoviesData, undefined>;
-  operationName: string;
-}
-export const listMoviesRef: ListMoviesRef;
-
-export function listMovies(): QueryPromise<ListMoviesData, undefined>;
-export function listMovies(dc: DataConnect): QueryPromise<ListMoviesData, undefined>;
-
 interface CreateMovieRef {
   /* Allow users to create refs without passing in DataConnect */
   (vars: CreateMovieVariables): MutationRef<CreateMovieData, CreateMovieVariables>;
@@ -57,4 +45,16 @@ export const createMovieRef: CreateMovieRef;
 
 export function createMovie(vars: CreateMovieVariables): MutationPromise<CreateMovieData, CreateMovieVariables>;
 export function createMovie(dc: DataConnect, vars: CreateMovieVariables): MutationPromise<CreateMovieData, CreateMovieVariables>;
+
+interface ListMoviesRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (): QueryRef<ListMoviesData, undefined>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect): QueryRef<ListMoviesData, undefined>;
+  operationName: string;
+}
+export const listMoviesRef: ListMoviesRef;
+
+export function listMovies(): QueryPromise<ListMoviesData, undefined>;
+export function listMovies(dc: DataConnect): QueryPromise<ListMoviesData, undefined>;
 

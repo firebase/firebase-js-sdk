@@ -16,3 +16,5 @@
  */
 
 export * from './core/query/subscribe';
+export { IndexedDBStub, MemoryStub as PersistentStub  } from './cache/Cache';
+export { makeMemoryCacheProvider } from './api/DataConnect';

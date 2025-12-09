@@ -80,7 +80,7 @@ export class EntityNode {
             for (const value of values[key]) {
               if (typeof value === 'object') {
                 if (Array.isArray(value)) {
-                  // TODO: What if it's an array of arrays?
+                  // Note: we don't support sparse arrays.
                 } else {
                   const entityNode =  new EntityNode( this.acc);
                   await entityNode.loadData(value, cacheProvider);
@@ -197,9 +197,9 @@ export class EntityNode {
     sdo.acc = new ImpactedQueryRefsAccumulator();
     sdo.globalId = obj.globalID;
     sdo.impactedQueryRefs = new Set<string>();
-    sdo.scalars = this.parseMap(obj.scalars);
-    sdo.references = this.parseMap(obj.references) as typeof sdo.references;
-    sdo.objectLists = this.parseMap(
+    sdo.scalars = EntityNode.parseMap(obj.scalars);
+    sdo.references = EntityNode.parseMap(obj.references) as typeof sdo.references;
+    sdo.objectLists = EntityNode.parseMap(
       obj.objectLists,
       true
     ) as typeof sdo.objectLists;

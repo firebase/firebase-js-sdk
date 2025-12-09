@@ -43,4 +43,8 @@ extend type Movie {
     """
     distinct: Boolean = false
   ): Int! @fdc_generated(from: "Movie.title", purpose: QUERY_COUNT)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "Movie.id", purpose: GLOBAL_ID)
 }

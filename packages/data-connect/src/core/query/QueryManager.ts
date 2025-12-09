@@ -77,16 +77,16 @@ export class QueryManager {
   }
 
   updateSSR(updatedData: QueryResult<unknown, unknown>): void {
-    // What about two different values overriding each other?
     this.queue.push(this.updateCache(updatedData)
       .then(async result =>
         this.publishCacheResultsToSubscribers(result)
       ));
   }
 
-  updateCache<Data, Variables>(
+  async updateCache<Data, Variables>(
     result: QueryResult<Data, Variables>
   ): Promise<string[]> {
+    await this.waitForQueuedWrites();
     return this.cache.update(
       encoderImpl({
         name: result.ref.name,
@@ -149,6 +149,7 @@ export class QueryManager {
     queryRef: QueryRef<Data, Variables>,
     options?: ExecuteQueryOptions
   ): Promise<QueryResult<Data, Variables>> {
+    await this.waitForQueuedWrites();
     if (queryRef.refType !== QUERY_STR) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,

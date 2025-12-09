@@ -17,16 +17,10 @@
 
 export * from '../network';
 export {
-  CacheSettings,
-  DataConnectStorage,
-  Memory,
-  Persistent
-} from '../cache/Cache';
-export {
   ExecuteQueryOptions,
   QueryFetchPolicy,
 } from '../core/query/queryOptions';
-export * from './DataConnect';
+export { CacheSettings, validateDCOptions, ConnectorConfig, DataConnect, DataConnectOptions, DataConnectSettings, StorageType, TransportOptions, areTransportOptionsEqual, connectDataConnectEmulator, getDataConnect, parseOptions, terminate } from './DataConnect';
 export * from './Reference';
 export * from './Mutation';
 export * from './query';

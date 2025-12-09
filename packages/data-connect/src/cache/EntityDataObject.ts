@@ -33,7 +33,7 @@ export interface BackingDataObjectJson {
 }
 
 export class EntityDataObject {
-  getMap(): typeof this.map {
+  getMap(): { [key: string]: FDCScalarValue } {
     return this.map;
   }
   getStorableMap(map: { [key: string]: FDCScalarValue }): {

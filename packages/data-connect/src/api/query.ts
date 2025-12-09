@@ -99,10 +99,6 @@ export function queryRef<Data, Variables>(
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
   if (initialCache !== undefined) {
-    /**
-     * TODO(mtewani):
-     * 1. Check whether the cache should be updated based on when the data was fetched
-     */
     dcInstance._queryManager.updateSSR(initialCache);
   }
   return {

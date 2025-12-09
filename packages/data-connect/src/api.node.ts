@@ -16,3 +16,4 @@
  */
 
 export { subscribe } from './api.browser';
+export { makeMemoryCacheProvider, CacheProvider } from './api/DataConnect';

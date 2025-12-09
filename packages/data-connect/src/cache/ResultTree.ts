@@ -33,7 +33,7 @@ export class ResultTree {
     private rootStub: EntityNode,
     private ttlInMs: number = 300_000,
     private readonly cachedAt: Date,
-    private lastAccessed: Date
+    private _lastAccessed: Date
   ) {}
   isStale(): boolean {
     return (
@@ -44,7 +44,10 @@ export class ResultTree {
     this.ttlInMs = ttlInMs;
   }
   updateAccessed(): void {
-    this.lastAccessed = new Date();
+    this._lastAccessed = new Date();
+  }
+  get lastAccessed(): Date {
+    return this._lastAccessed;
   }
   getRootStub(): EntityNode {
     return this.rootStub;

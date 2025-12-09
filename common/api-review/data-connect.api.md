@@ -12,14 +12,11 @@ import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
 // @public (undocumented)
-export const CacheOnly = "cacheOnly";
-
-// @public
 export interface CacheSettings {
     // (undocumented)
-    maxSizeBytes: number;
+    cacheProvider?: IndexedDBStub<StorageType>;
     // (undocumented)
-    storage: DataConnectStorage;
+    maxSizeBytes?: number;
 }
 
 // @public
@@ -126,9 +123,6 @@ export interface DataConnectSettings {
     cacheSettings?: CacheSettings;
 }
 
-// @public (undocumented)
-export type DataConnectStorage = typeof Memory | typeof Persistent;
-
 // @public
 export interface DataConnectSubscription<Data, Variables> {
     // (undocumented)
@@ -167,7 +161,13 @@ export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfi
 export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig, settings: DataConnectSettings): DataConnect;
 
 // @public (undocumented)
-export const Memory = "memory";
+export class IndexedDBStub {
+    // (undocumented)
+    type: 'PERSISTENT';
+}
+
+// @public (undocumented)
+export function makeMemoryCacheProvider(): IndexedDBStub<'MEMORY'>;
 
 // @public (undocumented)
 export const MUTATION_STR = "mutation";
@@ -226,16 +226,23 @@ export interface OpResult<Data> {
 }
 
 // @public (undocumented)
-export const Persistent = "persistent";
-
-// @public (undocumented)
-export const PreferCache = "preferCache";
+export class PersistentStub {
+    // (undocumented)
+    type: 'MEMORY';
+}
 
 // @public (undocumented)
 export const QUERY_STR = "query";
 
+// @public
+export const QueryFetchPolicy: {
+    PREFER_CACHE: string;
+    CACHE_ONLY: string;
+    SERVER_ONLY: string;
+};
+
 // @public (undocumented)
-export type QueryFetchPolicy = typeof PreferCache | typeof CacheOnly | typeof ServerOnly;
+export type QueryFetchPolicy = (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
 
 // @public
 export interface QueryPromise<Data, Variables> extends Promise<QueryResult<Data, Variables>> {
@@ -284,9 +291,6 @@ export interface SerializedRef<Data, Variables> extends OpResult<Data> {
 }
 
 // @public (undocumented)
-export const ServerOnly = "serverOnly";
-
-// @public (undocumented)
 export function setLogLevel(logLevel: LogLevelString): void;
 
 // @public (undocumented)
@@ -294,6 +298,14 @@ export const SOURCE_CACHE = "CACHE";
 
 // @public (undocumented)
 export const SOURCE_SERVER = "SERVER";
+
+// @public (undocumented)
+export const StorageType: {
+    MEMORY: string;
+};
+
+// @public (undocumented)
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 // @public
 export function subscribe<Data, Variables>(queryRefOrSerializedResult: QueryRef<Data, Variables> | SerializedRef<Data, Variables>, observer: SubscriptionOptions<Data, Variables>): QueryUnsubscribe;

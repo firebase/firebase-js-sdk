@@ -31,12 +31,10 @@ import {
 } from '@firebase/util';
 
 import {
-  CacheSettings,
   DataConnectCache,
   IndexedDBStub,
-  PersistentStub,
+  MemoryStub,
 } from '../cache/Cache';
-import { InternalCacheProvider } from '../cache/CacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -188,10 +186,9 @@ export class DataConnect {
       this._authTokenProvider,
       this.app.options.projectId,
       connectorConfig,
-      this._transportOptions.host || PROD_HOST,
+      this._transportOptions?.host || PROD_HOST,
       this.dataConnectOptions.cacheSettings
     );
-    this.cache.setAuthProvider(this._authTokenProvider);
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
         this.app,
@@ -315,7 +312,7 @@ export function getDataConnect(
 export function getDataConnect(
   appOrConnectorConfig: FirebaseApp | ConnectorConfig,
   settingsOrConnectorConfig?: ConnectorConfig | DataConnectSettings,
-  settings?: DataConnectSettings
+  settings?: DataConnectSettings // TODO: This doesn't serialize well because it has a function.
 ): DataConnect {
   let app: FirebaseApp;
   let connectorConfig: ConnectorConfig;
@@ -389,25 +386,25 @@ export function terminate(dataConnect: DataConnect): Promise<void> {
   // TODO(mtewani): Stop pending tasks
 }
 export const StorageType = {
-  PERSISTENT: 'PERSISTENT',
+  // PERSISTENT: 'PERSISTENT',
   MEMORY: 'MEMORY'
 };
 
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 
+export interface CacheSettings {
+  maxSizeBytes?: number;
+  cacheProvider?: CacheProvider<StorageType>;
+}
 export interface CacheProvider<T extends StorageType> {
   type: T
-  /**
-   * @internal
-   */
-  initialize(cacheId: string): InternalCacheProvider;
 }
 
 export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
   return new IndexedDBStub();
 }
 export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'> {
-  return new PersistentStub();
+  return new MemoryStub();
 }
 
