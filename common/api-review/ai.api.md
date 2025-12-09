@@ -680,6 +680,7 @@ export interface GroundingChunk {
 
 // @public
 export interface GroundingMetadata {
+    googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)

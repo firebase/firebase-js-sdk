@@ -212,10 +212,16 @@ export interface Citation {
 /**
  * Metadata returned when grounding is enabled.
  *
- * Currently, only Grounding with Google Search is supported (see {@link GoogleSearchTool}).
+ * Currently, only Grounding with Google Search and Google Maps is supported
+ * (see {@link GoogleSearchTool} and {@link GoogleMapsTool}, respectively).
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
  * "Grounding with Google Search" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-search | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * Important: If using Grounding with Google Maps, you are required to comply with the
+ * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
  * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
  * section within the Service Specific Terms).
  *
@@ -247,6 +253,12 @@ export interface GroundingMetadata {
    * @deprecated Use {@link GroundingSupport} instead.
    */
   retrievalQueries?: string[];
+  /**
+   * Resource name of the Google Maps widget context token that can be used with the
+   * `PlacesContextElement` widget in order to render contextual data. Only populated in the case
+   * that grounding with Google Maps is enabled.
+   */
+  googleMapsWidgetContextToken?: string;
 }
 
 /**
