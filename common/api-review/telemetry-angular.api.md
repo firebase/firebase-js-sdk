@@ -6,7 +6,6 @@
 
 import { ErrorHandler } from '@angular/core';
 import { FirebaseApp } from '@firebase/app';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
 export class FirebaseErrorHandler implements ErrorHandler {
@@ -18,7 +17,6 @@ export class FirebaseErrorHandler implements ErrorHandler {
 // @public
 export interface Telemetry {
     app: FirebaseApp;
-    loggerProvider: LoggerProvider;
 }
 
 // @public
