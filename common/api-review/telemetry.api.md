@@ -7,7 +7,6 @@
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
 export function captureError(telemetry: Telemetry, error: unknown, attributes?: AnyValueMap): void;
@@ -26,7 +25,6 @@ export function nextOnRequestError(telemetryOptions?: TelemetryOptions): Instrum
 // @public
 export interface Telemetry {
     app: FirebaseApp;
-    loggerProvider: LoggerProvider;
 }
 
 // @public

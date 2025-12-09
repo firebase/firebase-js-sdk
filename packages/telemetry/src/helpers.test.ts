@@ -18,7 +18,6 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import { Telemetry } from './public-types';
 import { startNewSession } from './helpers';
 import {
   LOG_ENTRY_ATTRIBUTE_KEYS,
@@ -26,6 +25,7 @@ import {
 } from './constants';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { TelemetryService } from './service';
+import { TelemetryInternal } from './types';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -47,7 +47,7 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
-  const fakeTelemetry: Telemetry = {
+  const fakeTelemetry: TelemetryInternal = {
     app: {
       name: 'DEFAULT',
       automaticDataCollectionEnabled: true,
@@ -124,7 +124,7 @@ describe('helpers', () => {
     it('should log app version from telemetry options', () => {
       const telemetryWithVersion = new TelemetryService(
         fakeTelemetry.app,
-        fakeTelemetry.loggerProvider
+        fakeLoggerProvider
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 

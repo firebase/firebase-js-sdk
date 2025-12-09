@@ -23,6 +23,7 @@ import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
 import { getAppVersion, getSessionId } from './helpers';
+import { TelemetryInternal } from './types';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -78,7 +79,10 @@ export function captureError(
   error: unknown,
   attributes?: AnyValueMap
 ): void {
-  const logger = telemetry.loggerProvider.getLogger('error-logger');
+  // Cast to TelemetryInternal to access internal loggerProvider
+  const logger = (telemetry as TelemetryInternal).loggerProvider.getLogger(
+    'error-logger'
+  );
   const customAttributes = attributes || {};
 
   // Add trace metadata
@@ -137,7 +141,10 @@ export function captureError(
  * @returns a promise which is resolved when all flushes are complete
  */
 export function flush(telemetry: Telemetry): Promise<void> {
-  return telemetry.loggerProvider.forceFlush().catch(err => {
-    console.error('Error flushing logs from Firebase Telemetry:', err);
-  });
+  // Cast to TelemetryInternal to access internal loggerProvider
+  return (telemetry as TelemetryInternal).loggerProvider
+    .forceFlush()
+    .catch(err => {
+      console.error('Error flushing logs from Firebase Telemetry:', err);
+    });
 }

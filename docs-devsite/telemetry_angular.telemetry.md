@@ -25,7 +25,6 @@ export interface Telemetry
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [app](./telemetry_angular.telemetry.md#telemetryapp) | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance is associated with. |
-|  [loggerProvider](./telemetry_angular.telemetry.md#telemetryloggerprovider) | LoggerProvider | The  this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance uses. |
 
 ## Telemetry.app
 
@@ -35,14 +34,4 @@ The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) this [Telemetry](.
 
 ```typescript
 app: FirebaseApp;
-```
-
-## Telemetry.loggerProvider
-
-The  this [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance uses.
-
-<b>Signature:</b>
-
-```typescript
-loggerProvider: LoggerProvider;
 ```

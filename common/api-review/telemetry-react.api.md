@@ -5,7 +5,6 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
-import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
 // @public
 export function FirebaseTelemetry({ firebaseApp, telemetryOptions }: {
@@ -16,7 +15,6 @@ export function FirebaseTelemetry({ firebaseApp, telemetryOptions }: {
 // @public
 export interface Telemetry {
     app: FirebaseApp;
-    loggerProvider: LoggerProvider;
 }
 
 // @public
