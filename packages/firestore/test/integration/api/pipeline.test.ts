@@ -108,7 +108,6 @@ import {
   AggregateFunction,
   arrayGet,
   ascending,
-  BooleanExpression,
   byteLength,
   FunctionExpression,
   timestampAdd,
@@ -2830,11 +2829,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(
-              new BooleanExpression('and', [
+              new FunctionExpression('and', [
                 field('rating').greaterThan(0),
                 field('title').charLength().lessThan(5),
                 field('tags').arrayContains('propaganda')
-              ])
+              ]).asBoolean()
             )
             .select('title')
         );
@@ -2849,10 +2848,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection(randomCol.path)
             .where(
-              new BooleanExpression('array_contains_any', [
+              new FunctionExpression('array_contains_any', [
                 field('tags'),
                 array(['politics'])
-              ])
+              ]).asBoolean()
             )
             .select('title')
         );

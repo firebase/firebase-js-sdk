@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirestoreError } from '../api';
 import { ParseContext } from '../api/parse_context';
 import {
   DOCUMENT_KEY_NAME,
@@ -172,6 +173,29 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Wraps the expression in a [BooleanExpression].
+   *
+   * @return A [BooleanExpression] representing the same expression.
+   */
+  asBoolean(): BooleanExpression {
+    if (this instanceof BooleanExpression) {
+      return this;
+    } else if (this instanceof Constant) {
+      return new BooleanConstant(this);
+    } else if (this instanceof Field) {
+      return new BooleanField(this);
+    } else if (this instanceof FunctionExpression) {
+      return new BooleanFunctionExpression(this);
+    } else {
+      throw new FirestoreError(
+        'invalid-argument',
+        `Conversion of type ${typeof this} to BooleanExpression not supported.`
+      );
+    }
+  }
+
+  /**
+   * @beta
    * Creates an expression that subtracts another expression from this expression.
    *
    * ```typescript
@@ -324,11 +348,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   equal(value: unknown): BooleanExpression;
   equal(other: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'equal',
       [this, valueToDefaultExpr(other)],
       'equal'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -359,11 +383,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   notEqual(value: unknown): BooleanExpression;
   notEqual(other: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'not_equal',
       [this, valueToDefaultExpr(other)],
       'notEqual'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -394,11 +418,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   lessThan(value: unknown): BooleanExpression;
   lessThan(other: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'less_than',
       [this, valueToDefaultExpr(other)],
       'lessThan'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -430,11 +454,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   lessThanOrEqual(value: unknown): BooleanExpression;
   lessThanOrEqual(other: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'less_than_or_equal',
       [this, valueToDefaultExpr(other)],
       'lessThanOrEqual'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -465,11 +489,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   greaterThan(value: unknown): BooleanExpression;
   greaterThan(other: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'greater_than',
       [this, valueToDefaultExpr(other)],
       'greaterThan'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -502,11 +526,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   greaterThanOrEqual(value: unknown): BooleanExpression;
   greaterThanOrEqual(other: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'greater_than_or_equal',
       [this, valueToDefaultExpr(other)],
       'greaterThanOrEqual'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -562,11 +586,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   arrayContains(value: unknown): BooleanExpression;
   arrayContains(element: unknown): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'array_contains',
       [this, valueToDefaultExpr(element)],
       'arrayContains'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -600,11 +624,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     const normalizedExpr = Array.isArray(values)
       ? new ListOfExprs(values.map(valueToDefaultExpr), 'arrayContainsAll')
       : values;
-    return new BooleanExpression(
+    return new FunctionExpression(
       'array_contains_all',
       [this, normalizedExpr],
       'arrayContainsAll'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -641,11 +665,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     const normalizedExpr = Array.isArray(values)
       ? new ListOfExprs(values.map(valueToDefaultExpr), 'arrayContainsAny')
       : values;
-    return new BooleanExpression(
+    return new FunctionExpression(
       'array_contains_any',
       [this, normalizedExpr],
       'arrayContainsAny'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -711,7 +735,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     const exprOthers = Array.isArray(others)
       ? new ListOfExprs(others.map(valueToDefaultExpr), 'equalAny')
       : others;
-    return new BooleanExpression('equal_any', [this, exprOthers], 'equalAny');
+    return new FunctionExpression(
+      'equal_any',
+      [this, exprOthers],
+      'equalAny'
+    ).asBoolean();
   }
 
   /**
@@ -746,11 +774,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     const exprOthers = Array.isArray(others)
       ? new ListOfExprs(others.map(valueToDefaultExpr), 'notEqualAny')
       : others;
-    return new BooleanExpression(
+    return new FunctionExpression(
       'not_equal_any',
       [this, exprOthers],
       'notEqualAny'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -765,7 +793,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new `Expr` representing the 'exists' check.
    */
   exists(): BooleanExpression {
-    return new BooleanExpression('exists', [this], 'exists');
+    return new FunctionExpression('exists', [this], 'exists').asBoolean();
   }
 
   /**
@@ -811,11 +839,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   like(pattern: Expression): BooleanExpression;
   like(stringOrExpr: string | Expression): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'like',
       [this, valueToDefaultExpr(stringOrExpr)],
       'like'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -848,11 +876,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   regexContains(pattern: Expression): BooleanExpression;
   regexContains(stringOrExpr: string | Expression): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'regex_contains',
       [this, valueToDefaultExpr(stringOrExpr)],
       'regexContains'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -883,11 +911,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   regexMatch(pattern: Expression): BooleanExpression;
   regexMatch(stringOrExpr: string | Expression): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'regex_match',
       [this, valueToDefaultExpr(stringOrExpr)],
       'regexMatch'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -918,11 +946,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   stringContains(expr: Expression): BooleanExpression;
   stringContains(stringOrExpr: string | Expression): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'string_contains',
       [this, valueToDefaultExpr(stringOrExpr)],
       'stringContains'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -954,11 +982,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   startsWith(prefix: Expression): BooleanExpression;
   startsWith(stringOrExpr: string | Expression): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'starts_with',
       [this, valueToDefaultExpr(stringOrExpr)],
       'startsWith'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -990,11 +1018,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   endsWith(suffix: Expression): BooleanExpression;
   endsWith(stringOrExpr: string | Expression): BooleanExpression {
-    return new BooleanExpression(
+    return new FunctionExpression(
       'ends_with',
       [this, valueToDefaultExpr(stringOrExpr)],
       'endsWith'
-    );
+    ).asBoolean();
   }
 
   /**
@@ -1800,7 +1828,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new {@code BooleanExpr} representing the 'isError' check.
    */
   isError(): BooleanExpression {
-    return new BooleanExpression('is_error', [this], 'isError');
+    return new FunctionExpression('is_error', [this], 'isError').asBoolean();
   }
 
   /**
@@ -1838,12 +1866,16 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
   ifError(catchValue: unknown): FunctionExpression;
-  ifError(catchValue: unknown): FunctionExpression {
-    return new FunctionExpression(
+  ifError(catchValue: unknown): FunctionExpression | BooleanExpression {
+    const result = new FunctionExpression(
       'if_error',
       [this, valueToDefaultExpr(catchValue)],
       'ifError'
     );
+
+    return catchValue instanceof BooleanExpression
+      ? result.asBoolean()
+      : result;
   }
 
   /**
@@ -1860,7 +1892,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @return A new {@code BooleanExpr} representing the 'isAbsent' check.
    */
   isAbsent(): BooleanExpression {
-    return new BooleanExpression('is_absent', [this], 'isAbsent');
+    return new FunctionExpression('is_absent', [this], 'isAbsent').asBoolean();
   }
 
   /**
@@ -2852,10 +2884,11 @@ export function _constant(
   value: unknown,
   methodName: string | undefined
 ): Constant | BooleanExpression {
+  const c = new Constant(value, methodName);
   if (typeof value === 'boolean') {
-    return new BooleanConstant(value, methodName);
+    return new BooleanConstant(c);
   } else {
-    return new Constant(value, methodName);
+    return c;
   }
 }
 
@@ -2946,8 +2979,12 @@ export class FunctionExpression extends Expression {
  *
  * An interface that represents a filter condition.
  */
-export class BooleanExpression extends FunctionExpression {
-  filterable: true = true;
+export abstract class BooleanExpression extends Expression {
+  abstract get _expr(): Expression;
+
+  get _methodName(): string | undefined {
+    return this._expr._methodName;
+  }
 
   /**
    * @beta
@@ -2977,7 +3014,7 @@ export class BooleanExpression extends FunctionExpression {
    * @return A new {@code Expr} representing the negated filter condition.
    */
   not(): BooleanExpression {
-    return new BooleanExpression('not', [this], 'not');
+    return new FunctionExpression('not', [this], 'not').asBoolean();
   }
 
   /**
@@ -3019,26 +3056,70 @@ export class BooleanExpression extends FunctionExpression {
    * produces an error.
    * @return A new {@code Expr} representing the 'ifError' operation.
    */
-  ifError(catchValue: BooleanExpression): BooleanExpression {
-    return new BooleanExpression('if_error', [this, catchValue], 'ifError');
-  }
-}
+  ifError(catchValue: BooleanExpression): BooleanExpression;
 
-/**
- * @private
- * @internal
- *
- * To return a BooleanExpr as a constant, we need to break the pattern that expects a BooleanExpr to be a
- * "pipeline function". Instead of building on serialization logic built into BooleanExpr,
- * we override methods with those of an internally kept Constant value.
- */
-export class BooleanConstant extends BooleanExpression {
-  private readonly _internalConstant: Constant;
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error
+   * // but always returns a boolean expression.
+   * constant(50).divide('length').gt(1).ifError(false);
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: boolean): BooleanExpression;
 
-  constructor(value: boolean, readonly _methodName?: string) {
-    super('', []);
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error.
+   * constant(50).divide('length').gt(1).ifError(constant(0));
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: Expression): FunctionExpression;
 
-    this._internalConstant = new Constant(value, _methodName);
+  /**
+   * @beta
+   *
+   * Creates an expression that returns the `catch` argument if there is an
+   * error, else return the result of this expression.
+   *
+   * ```typescript
+   * // Create an expression that protects against a divide by zero error.
+   * constant(50).divide('length').gt(1).ifError(0);
+   * ```
+   *
+   * @param catchValue The value that will be returned if this expression
+   * produces an error.
+   * @return A new {@code Expr} representing the 'ifError' operation.
+   */
+  ifError(catchValue: unknown): FunctionExpression;
+  ifError(catchValue: unknown): unknown {
+    const normalizedCatchValue = valueToDefaultExpr(catchValue);
+    const expr = new FunctionExpression(
+      'if_error',
+      [this, normalizedCatchValue],
+      'ifError'
+    );
+
+    return normalizedCatchValue instanceof BooleanExpression
+      ? expr.asBoolean()
+      : expr;
   }
 
   /**
@@ -3046,7 +3127,7 @@ export class BooleanConstant extends BooleanExpression {
    * @internal
    */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
-    return this._internalConstant._toProto(serializer);
+    return this._expr._toProto(serializer);
   }
 
   /**
@@ -3054,7 +3135,28 @@ export class BooleanConstant extends BooleanExpression {
    * @internal
    */
   _readUserData(context: ParseContext): void {
-    return this._internalConstant._readUserData(context);
+    this._expr._readUserData(context);
+  }
+}
+
+export class BooleanFunctionExpression extends BooleanExpression {
+  readonly expressionType: ExpressionType = 'Function';
+  constructor(readonly _expr: FunctionExpression) {
+    super();
+  }
+}
+
+export class BooleanConstant extends BooleanExpression {
+  readonly expressionType: ExpressionType = 'Constant';
+  constructor(readonly _expr: Constant) {
+    super();
+  }
+}
+
+export class BooleanField extends BooleanExpression {
+  readonly expressionType: ExpressionType = 'Field';
+  constructor(readonly _expr: Field) {
+    super();
   }
 }
 
@@ -3177,7 +3279,7 @@ export function arrayGet(
  * @return A new {@code Expr} representing the 'isError' check.
  */
 export function isError(value: Expression): BooleanExpression {
-  return value.isError();
+  return value.isError().asBoolean();
 }
 
 /**
@@ -3247,15 +3349,16 @@ export function ifError(
   tryExpr: Expression,
   catchValue: unknown
 ): FunctionExpression;
+
 export function ifError(
   tryExpr: Expression,
   catchValue: unknown
-): FunctionExpression {
+): FunctionExpression | BooleanExpression {
   if (
     tryExpr instanceof BooleanExpression &&
     catchValue instanceof BooleanExpression
   ) {
-    return tryExpr.ifError(catchValue);
+    return tryExpr.ifError(catchValue).asBoolean();
   } else {
     return tryExpr.ifError(valueToDefaultExpr(catchValue));
   }
@@ -4507,7 +4610,7 @@ export function arrayConcat(
 export function arrayContains(
   array: Expression,
   element: Expression
-): FunctionExpression;
+): BooleanExpression;
 
 /**
  * @beta
@@ -4526,7 +4629,7 @@ export function arrayContains(
 export function arrayContains(
   array: Expression,
   element: unknown
-): FunctionExpression;
+): BooleanExpression;
 
 /**
  * @beta
@@ -4545,7 +4648,7 @@ export function arrayContains(
 export function arrayContains(
   fieldName: string,
   element: Expression
-): FunctionExpression;
+): BooleanExpression;
 
 /**
  * @beta
@@ -4978,11 +5081,11 @@ export function xor(
   second: BooleanExpression,
   ...additionalConditions: BooleanExpression[]
 ): BooleanExpression {
-  return new BooleanExpression(
+  return new FunctionExpression(
     'xor',
     [first, second, ...additionalConditions],
     'xor'
-  );
+  ).asBoolean();
 }
 
 /**
@@ -7008,7 +7111,11 @@ export function and(
   second: BooleanExpression,
   ...more: BooleanExpression[]
 ): BooleanExpression {
-  return new BooleanExpression('and', [first, second, ...more], 'and');
+  return new FunctionExpression(
+    'and',
+    [first, second, ...more],
+    'and'
+  ).asBoolean();
 }
 
 /**
@@ -7032,7 +7139,11 @@ export function or(
   second: BooleanExpression,
   ...more: BooleanExpression[]
 ): BooleanExpression {
-  return new BooleanExpression('or', [first, second, ...more], 'xor');
+  return new FunctionExpression(
+    'or',
+    [first, second, ...more],
+    'xor'
+  ).asBoolean();
 }
 
 /**

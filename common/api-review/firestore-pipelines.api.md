@@ -72,13 +72,13 @@ export function arrayConcat(firstArray: Expression, secondArray: Expression | un
 export function arrayConcat(firstArrayField: string, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
 
 // @beta
-export function arrayContains(array: Expression, element: Expression): FunctionExpression;
+export function arrayContains(array: Expression, element: Expression): BooleanExpression;
 
 // @beta
-export function arrayContains(array: Expression, element: unknown): FunctionExpression;
+export function arrayContains(array: Expression, element: unknown): BooleanExpression;
 
 // @beta
-export function arrayContains(fieldName: string, element: Expression): FunctionExpression;
+export function arrayContains(fieldName: string, element: Expression): BooleanExpression;
 
 // @beta
 export function arrayContains(fieldName: string, element: unknown): BooleanExpression;
@@ -144,12 +144,13 @@ export function average(expression: Expression): AggregateFunction;
 export function average(fieldName: string): AggregateFunction;
 
 // @beta
-export class BooleanExpression extends FunctionExpression {
+export abstract class BooleanExpression extends Expression {
     conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression;
     countIf(): AggregateFunction;
-    // (undocumented)
-    filterable: true;
     ifError(catchValue: BooleanExpression): BooleanExpression;
+    ifError(catchValue: boolean): BooleanExpression;
+    ifError(catchValue: Expression): FunctionExpression;
+    ifError(catchValue: unknown): FunctionExpression;
     not(): BooleanExpression;
 }
 
@@ -414,6 +415,8 @@ export abstract class Expression {
     arraySum(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     as(name: string): AliasedExpression;
+    /* Excluded from this release type: _readUserData */
+    asBoolean(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     ascending(): Ordering;
     /* Excluded from this release type: _readUserData */
@@ -1343,7 +1346,7 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:779:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:827:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
 
 // (No @packageDocumentation comment for this package)
 
