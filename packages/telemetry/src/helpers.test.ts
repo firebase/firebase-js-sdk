@@ -18,7 +18,8 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import { startNewSession } from './helpers';
+import { isNode } from '@firebase/util';
+import { registerListeners, startNewSession } from './helpers';
 import {
   LOG_ENTRY_ATTRIBUTE_KEYS,
   TELEMETRY_SESSION_ID_KEY
@@ -34,6 +35,7 @@ describe('helpers', () => {
   let originalCrypto: Crypto | undefined;
   let storage: Record<string, string> = {};
   let emittedLogs: LogRecord[] = [];
+  let flushed = false;
 
   const fakeLoggerProvider = {
     getLogger: (): Logger => {
@@ -43,7 +45,10 @@ describe('helpers', () => {
         }
       };
     },
-    forceFlush: () => Promise.resolve(),
+    forceFlush: () => {
+      flushed = true;
+      return Promise.resolve();
+    },
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
@@ -61,6 +66,7 @@ describe('helpers', () => {
 
   beforeEach(() => {
     emittedLogs = [];
+    flushed = false;
     storage = {};
     // @ts-ignore
     originalSessionStorage = global.sessionStorage;
@@ -96,6 +102,12 @@ describe('helpers', () => {
       value: originalCrypto,
       writable: true
     });
+    if (!isNode()) {
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        writable: true
+      });
+    }
     delete AUTO_CONSTANTS.appVersion;
   });
 
@@ -135,5 +147,37 @@ describe('helpers', () => {
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9'
       });
     });
+  });
+
+  describe('registerListeners', () => {
+    if (isNode()) {
+      it('should do nothing in node', () => {
+        registerListeners(fakeTelemetry);
+      });
+    } else {
+      it('should flush logs when the visibility changes to hidden', () => {
+        registerListeners(fakeTelemetry);
+
+        expect(flushed).to.be.false;
+
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'hidden',
+          writable: true
+        });
+        window.dispatchEvent(new Event('visibilitychange'));
+
+        expect(flushed).to.be.true;
+      });
+
+      it('should flush logs when the pagehide event fires', () => {
+        registerListeners(fakeTelemetry);
+
+        expect(flushed).to.be.false;
+
+        window.dispatchEvent(new Event('pagehide'));
+
+        expect(flushed).to.be.true;
+      });
+    }
   });
 });

@@ -23,11 +23,11 @@ import { createLoggerProvider } from './logging/logger-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { InstallationIdProvider } from './logging/installation-id-provider';
 import { TELEMETRY_TYPE } from './constants';
+import { getSessionId, registerListeners, startNewSession } from './helpers';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
 import '@firebase/installations';
-import { getSessionId, startNewSession } from './helpers';
 
 export function registerTelemetry(): void {
   _registerComponent(
@@ -64,6 +64,9 @@ export function registerTelemetry(): void {
         if (!getSessionId()) {
           startNewSession(telemetryService);
         }
+
+        // Register relevant event listeners
+        registerListeners(telemetryService);
 
         return telemetryService;
       },
