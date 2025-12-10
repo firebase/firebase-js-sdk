@@ -9,7 +9,7 @@ import { FirebaseApp } from '@firebase/app';
 
 // @public
 export class FirebaseErrorHandler implements ErrorHandler {
-    constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions | undefined);
+    constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions);
     // (undocumented)
     handleError(error: unknown): void;
     }

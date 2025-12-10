@@ -81,3 +81,33 @@ export function startNewSession(telemetry: Telemetry): void {
     }
   }
 }
+
+/**
+ * Registers event listeners to flush logs when the page is hidden.
+ */
+export function registerListeners(telemetry: Telemetry): void {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    window.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'hidden') {
+        await flush(telemetry);
+      }
+    });
+  }
+}
+
+/**
+ * Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
+ *
+ * @public
+ *
+ * @param telemetry - The {@link Telemetry} instance.
+ * @returns a promise which is resolved when all flushes are complete
+ */
+export function flush(telemetry: Telemetry): Promise<void> {
+  // Cast to TelemetryInternal to access internal loggerProvider
+  return (telemetry as TelemetryInternal).loggerProvider
+    .forceFlush()
+    .catch(err => {
+      console.error('Error flushing logs from Firebase Telemetry:', err);
+    });
+}
