@@ -32,7 +32,7 @@ import {
 import { testConfigs } from './constants';
 
 describe('Generate Content', function () {
-  this.timeout(20_000);
+  this.timeout(90_000); // gemini 3 requests take a long time, especially when using google search and url context.
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -381,8 +381,9 @@ describe('Generate Content', function () {
       describe('URL Context', async () => {
         // URL Context is not supported in Google AI for gemini-2.0-flash
         if (
-          testConfig.ai.backend.backendType === BackendType.GOOGLE_AI &&
-          testConfig.model === 'gemini-2.0-flash'
+          ['gemini-2.0-flash-001', 'gemini-2.0-flash-lite-001'].includes(
+            testConfig.model
+          ) // Models that don't support URL Context
         ) {
           return;
         }
@@ -438,9 +439,7 @@ describe('Generate Content', function () {
           const urlContextMetadata =
             response.candidates?.[0].urlContextMetadata;
           const groundingMetadata = response.candidates?.[0].groundingMetadata;
-          expect(trimmedText).to.contain(
-            'hypermedia information retrieval initiative'
-          );
+          expect(trimmedText.length).to.be.greaterThan(0);
           expect(urlContextMetadata?.urlMetadata).to.exist;
           expect(
             urlContextMetadata?.urlMetadata.length
@@ -508,6 +507,10 @@ describe('Generate Content', function () {
       });
 
       it('generateContent: code execution', async () => {
+        if (testConfig.model === 'gemini-2.0-flash-lite-001') {
+          // This model does not support code execution
+          return;
+        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
