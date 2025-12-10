@@ -83,7 +83,8 @@ export function startNewSession(telemetry: Telemetry): void {
 }
 
 /**
- * Registers event listeners to flush logs when the page is hidden.
+ * Registers event listeners to flush logs when the page is hidden. In some cases multiple listeners
+ * may trigger at the same time, but flushing only occurs once per batch.
  */
 export function registerListeners(telemetry: Telemetry): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -91,6 +92,9 @@ export function registerListeners(telemetry: Telemetry): void {
       if (document.visibilityState === 'hidden') {
         await flush(telemetry);
       }
+    });
+    window.addEventListener('pagehide', async () => {
+      await flush(telemetry);
     });
   }
 }

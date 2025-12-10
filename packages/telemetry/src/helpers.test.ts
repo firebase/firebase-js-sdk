@@ -66,6 +66,7 @@ describe('helpers', () => {
 
   beforeEach(() => {
     emittedLogs = [];
+    flushed = false;
     storage = {};
     // @ts-ignore
     originalSessionStorage = global.sessionStorage;
@@ -154,7 +155,7 @@ describe('helpers', () => {
         registerListeners(fakeTelemetry);
       });
     } else {
-      it('should flush logs when the page is hidden', () => {
+      it('should flush logs when the visibility changes to hidden', () => {
         registerListeners(fakeTelemetry);
 
         expect(flushed).to.be.false;
@@ -164,6 +165,16 @@ describe('helpers', () => {
           writable: true
         });
         window.dispatchEvent(new Event('visibilitychange'));
+
+        expect(flushed).to.be.true;
+      });
+
+      it('should flush logs when the pagehide event fires', () => {
+        registerListeners(fakeTelemetry);
+
+        expect(flushed).to.be.false;
+
+        window.dispatchEvent(new Event('pagehide'));
 
         expect(flushed).to.be.true;
       });
