@@ -112,7 +112,6 @@ import {
   ascending,
   descending,
   FunctionExpression,
-  BooleanExpression,
   AggregateFunction,
   stringConcat,
   arrayContainsAll,
