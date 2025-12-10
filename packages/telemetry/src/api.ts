@@ -22,7 +22,7 @@ import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { TelemetryService } from './service';
-import { getAppVersion, getSessionId } from './helpers';
+import { flush, getAppVersion, getSessionId } from './helpers';
 import { TelemetryInternal } from './types';
 
 declare module '@firebase/component' {
@@ -132,19 +132,4 @@ export function captureError(
   }
 }
 
-/**
- * Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
- *
- * @public
- *
- * @param telemetry - The {@link Telemetry} instance.
- * @returns a promise which is resolved when all flushes are complete
- */
-export function flush(telemetry: Telemetry): Promise<void> {
-  // Cast to TelemetryInternal to access internal loggerProvider
-  return (telemetry as TelemetryInternal).loggerProvider
-    .forceFlush()
-    .catch(err => {
-      console.error('Error flushing logs from Firebase Telemetry:', err);
-    });
-}
+export { flush };

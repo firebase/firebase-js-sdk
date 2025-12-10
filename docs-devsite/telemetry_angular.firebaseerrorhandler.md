@@ -40,7 +40,7 @@ Constructs a new instance of the `FirebaseErrorHandler` class
 <b>Signature:</b>
 
 ```typescript
-constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions | undefined);
+constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions);
 ```
 
 #### Parameters
@@ -48,7 +48,7 @@ constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions | undefined);
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) |  |
-|  telemetryOptions | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) \| undefined |  |
+|  telemetryOptions | [TelemetryOptions](./telemetry_.telemetryoptions.md#telemetryoptions_interface) |  |
 
 ## FirebaseErrorHandler.handleError()
 
