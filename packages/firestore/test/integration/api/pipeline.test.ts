@@ -33,7 +33,6 @@ import {
   DocumentData,
   Firestore,
   setDoc,
-  setLogLevel,
   collection,
   documentId as documentIdFieldPath,
   writeBatch,

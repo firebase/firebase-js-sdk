@@ -23,7 +23,6 @@ import {
   doc,
   DocumentData,
   setDoc,
-  setLogLevel,
   query,
   where,
   FieldPath,
