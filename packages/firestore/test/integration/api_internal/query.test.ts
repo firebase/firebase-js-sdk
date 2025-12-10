@@ -46,7 +46,7 @@ apiDescribe('Queries', persistence => {
   // Firestore emulator once the emulator is improved to include a bloom filter
   // in the existence filter messages that it sends.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it.only)(
+  (USE_EMULATOR ? it.skip : it)(
     'resuming a query should use bloom filter to avoid full requery',
     async () => {
       // Prepare the names and contents of the 100 documents to create.
