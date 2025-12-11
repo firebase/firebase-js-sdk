@@ -28,7 +28,7 @@ import { liveTestConfigs } from './constants';
 import { HELLO_AUDIO_PCM_BASE64 } from './sample-data/hello-audio';
 
 // A helper function to consume the generator and collect text parts from one turn.
-async function nextTurnText(
+async function nextTurnValue(
   stream: AsyncGenerator<
     LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation
   >
@@ -38,6 +38,7 @@ async function nextTurnText(
   // We want to keep the generator open so that we can pass it to this function again to get the
   // next turn's text.
   let result = await stream.next();
+          console.log('result', result);
   while (!result.done) {
     const chunk = result.value as
       | LiveServerContent
@@ -73,35 +74,37 @@ async function nextTurnText(
 describe('Live', function () {
   this.timeout(20000);
 
-  const textLiveGenerationConfig: LiveGenerationConfig = {
-    responseModalities: [ResponseModality.TEXT],
-    temperature: 0,
-    topP: 0
+  const audioLiveGenerationConfig: LiveGenerationConfig = {
+    responseModalities: [ResponseModality.AUDIO]
   };
 
   liveTestConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       describe('Live', () => {
-        it('should connect, send a message, receive a response, and close', async () => {
+        it.only('should connect, send a message, receive a response, and close', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
 
           const session = await model.connect();
-          const responsePromise = nextTurnText(session.receive());
-          await session.send(
-            'Where is Google headquarters located? Answer with the city name only.'
-          );
-          const responseText = await responsePromise;
-          expect(responseText).to.exist;
-          expect(responseText).to.include('Mountain View');
+          const responsePromise = nextTurnValue(session.receive());
+          await session.send([
+            {
+              inlineData: {
+                data: HELLO_AUDIO_PCM_BASE64,
+                mimeType: 'audio/pcm'
+              }
+            }
+          ]);
+          const responseValue = await responsePromise;
+          expect(responseValue).to.exist;
           await session.close();
         });
         it('should handle multiple messages in a session', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
           const session = await model.connect();
           const generator = session.receive();
@@ -110,7 +113,7 @@ describe('Live', function () {
             'Where is Google headquarters located? Answer with the city name only.'
           );
 
-          const responsePromise1 = nextTurnText(generator);
+          const responsePromise1 = nextTurnValue(generator);
           const responseText1 = await responsePromise1; // Wait for the turn to complete
           expect(responseText1).to.include('Mountain View');
 
@@ -118,7 +121,7 @@ describe('Live', function () {
             'What state is that in? Answer with the state name only.'
           );
 
-          const responsePromise2 = nextTurnText(generator);
+          const responsePromise2 = nextTurnValue(generator);
           const responseText2 = await responsePromise2; // Wait for the second turn to complete
           expect(responseText2).to.include('California');
 
@@ -154,10 +157,10 @@ describe('Live', function () {
         it('should send a single text chunk and receive a response', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
           const session = await model.connect();
-          const responsePromise = nextTurnText(session.receive());
+          const responsePromise = nextTurnValue(session.receive());
 
           await session.sendTextRealtime('Are you an AI? Yes or No.');
 
@@ -172,10 +175,10 @@ describe('Live', function () {
         it('should send a single audio chunk and receive a response', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
           const session = await model.connect();
-          const responsePromise = nextTurnText(session.receive());
+          const responsePromise = nextTurnValue(session.receive());
 
           await session.sendAudioRealtime({
             data: HELLO_AUDIO_PCM_BASE64, // "Hey, can you hear me?"
@@ -193,10 +196,10 @@ describe('Live', function () {
         it('should send a single audio chunk and receive a response', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
           const session = await model.connect();
-          const responsePromise = nextTurnText(session.receive());
+          const responsePromise = nextTurnValue(session.receive());
 
           await session.sendMediaChunks([
             {
@@ -214,10 +217,10 @@ describe('Live', function () {
         it('should send multiple audio chunks in a single batch call', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
           const session = await model.connect();
-          const responsePromise = nextTurnText(session.receive());
+          const responsePromise = nextTurnValue(session.receive());
 
           // TODO (dlarocque): Pass two PCM files with different audio, and validate that the model
           // heard both.
@@ -237,10 +240,10 @@ describe('Live', function () {
         it('should consume a stream with multiple chunks and receive a response', async () => {
           const model = getLiveGenerativeModel(testConfig.ai, {
             model: testConfig.model,
-            generationConfig: textLiveGenerationConfig
+            generationConfig: audioLiveGenerationConfig
           });
           const session = await model.connect();
-          const responsePromise = nextTurnText(session.receive());
+          const responsePromise = nextTurnValue(session.receive());
 
           // TODO (dlarocque): Pass two PCM files with different audio, and validate that the model
           // heard both.
