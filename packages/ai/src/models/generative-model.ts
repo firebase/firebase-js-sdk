@@ -176,7 +176,7 @@ function validateGenerationConfig(generationConfig: GenerationConfig): void {
   if (
     // != allows for null and undefined. 0 is considered "set" by the model
     generationConfig.thinkingConfig?.thinkingBudget != null &&
-    generationConfig.thinkingConfig.thinkingLevel
+    generationConfig.thinkingConfig?.thinkingLevel
   ) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
