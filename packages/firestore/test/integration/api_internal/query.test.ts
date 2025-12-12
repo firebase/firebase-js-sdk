@@ -39,9 +39,9 @@ import {
 import { USE_EMULATOR } from '../util/settings';
 import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
-apiDescribe('Queries', persistence => {
-  addEqualityMatcher();
+addEqualityMatcher();
 
+apiDescribe('Queries', persistence => {
   // TODO(b/291365820): Stop skipping this test when running against the
   // Firestore emulator once the emulator is improved to include a bloom filter
   // in the existence filter messages that it sends.
