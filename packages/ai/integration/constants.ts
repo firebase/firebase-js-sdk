@@ -43,8 +43,16 @@ function formatConfigAsString(config: { ai: AI; model: string }): string {
 }
 
 const backends: readonly Backend[] = [
-  // new GoogleAIBackend(),
+  new GoogleAIBackend(),
   new VertexAIBackend('global')
+];
+
+/**
+ * Vertex Live API only works on us-central1 at the moment.
+ */
+const liveBackends: readonly Backend[] = [
+  new GoogleAIBackend(),
+  new VertexAIBackend('us-central1')
 ];
 
 const backendNames: Map<BackendType, string> = new Map([
@@ -78,7 +86,7 @@ export const testConfigs: readonly TestConfig[] = backends.flatMap(backend => {
 /**
  * Test configurations used for the Live API integration tests.
  */
-export const liveTestConfigs: readonly TestConfig[] = backends.flatMap(
+export const liveTestConfigs: readonly TestConfig[] = liveBackends.flatMap(
   backend => {
     const testConfigs: TestConfig[] = [];
     liveModelNames.get(backend.backendType)!.forEach(modelName => {
