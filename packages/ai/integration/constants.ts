@@ -65,7 +65,10 @@ const modelNames: readonly string[] = ['gemini-2.0-flash', 'gemini-2.5-flash'];
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
   [BackendType.GOOGLE_AI, ['gemini-2.5-flash-native-audio-preview-09-2025']],
-  [BackendType.VERTEX_AI, ['gemini-live-2.5-flash-preview-native-audio-09-2025']]
+  [
+    BackendType.VERTEX_AI,
+    ['gemini-live-2.5-flash-preview-native-audio-09-2025']
+  ]
 ]);
 
 /**
