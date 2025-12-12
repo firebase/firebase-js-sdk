@@ -187,6 +187,7 @@ export class ChatSession {
         // errors propagate to the user's `result.response` promise.
         if (response.candidates && response.candidates.length > 0) {
           this._history.push(newContent);
+          // TODO: Validate that `response.candidates[0].content` is not null.
           const responseContent = { ...response.candidates[0].content };
           if (!responseContent.role) {
             responseContent.role = 'model';

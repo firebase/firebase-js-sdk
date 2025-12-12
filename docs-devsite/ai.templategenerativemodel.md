@@ -85,8 +85,7 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(templateId: string, templateVariables: object, // anything!
-    singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
