@@ -437,7 +437,7 @@ export type Language = (typeof Language)[keyof typeof Language];
  * A preset that controls the model's "thinking" process. Use
  * `ThinkingLevel.LOW` for faster responses on less complex tasks, and
  * `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
- * 
+ *
  * @public
  */
 export const ThinkingLevel = {
@@ -451,7 +451,7 @@ export const ThinkingLevel = {
  * A preset that controls the model's "thinking" process. Use
  * `ThinkingLevel.LOW` for faster responses on less complex tasks, and
  * `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
- * 
+ *
  * @public
  */
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];

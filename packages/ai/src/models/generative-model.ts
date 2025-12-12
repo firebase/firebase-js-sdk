@@ -41,9 +41,10 @@ import {
   formatGenerateContentInput,
   formatSystemInstruction
 } from '../requests/request-helpers';
-import { AI } from '../public-types';
+import { AI, AIErrorCode } from '../public-types';
 import { AIModel } from './ai-model';
 import { ChromeAdapter } from '../types/chrome-adapter';
+import { AIError } from '../errors';
 
 /**
  * Class for generative model APIs.
@@ -65,6 +66,7 @@ export class GenerativeModel extends AIModel {
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
+    validateGenerationConfig(this.generationConfig);
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;
     this.toolConfig = modelParams.toolConfig;
@@ -162,6 +164,23 @@ export class GenerativeModel extends AIModel {
       this.model,
       formattedParams,
       this.chromeAdapter
+    );
+  }
+}
+
+/**
+ * Client-side validation of some common `GenerationConfig` pitfalls, in order
+ * to save the developer a wasted request.
+ */
+function validateGenerationConfig(generationConfig: GenerationConfig): void {
+  if (
+    // != allows for null and undefined. 0 is considered "set" by the model
+    generationConfig.thinkingConfig?.thinkingBudget != null &&
+    generationConfig.thinkingConfig.thinkingLevel
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `Cannot set both thinkingBudget and thinkingLevel in a config.`
     );
   }
 }

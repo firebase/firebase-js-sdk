@@ -21,7 +21,8 @@ import {
   AI,
   InferenceMode,
   AIErrorCode,
-  ChromeAdapter
+  ChromeAdapter,
+  ThinkingLevel
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -53,6 +54,20 @@ const fakeAI: AI = {
 };
 
 describe('GenerativeModel', () => {
+  it('throws if generationConfig is invalid', () => {
+    expect(
+      () =>
+        new GenerativeModel(fakeAI, {
+          model: 'my-model',
+          generationConfig: {
+            thinkingConfig: {
+              thinkingBudget: 1000,
+              thinkingLevel: ThinkingLevel.LOW
+            }
+          }
+        })
+    ).to.throw(AIErrorCode.UNSUPPORTED);
+  });
   it('passes params through to generateContent', async () => {
     const genModel = new GenerativeModel(
       fakeAI,

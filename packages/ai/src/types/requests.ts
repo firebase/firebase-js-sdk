@@ -437,28 +437,39 @@ export interface ThinkingConfig {
   /**
    * The thinking budget, in tokens.
    *
+   * @remarks
    * This parameter sets an upper limit on the number of tokens the model can use for its internal
    * "thinking" process. A higher budget may result in higher quality responses for complex tasks
    * but can also increase latency and cost.
    *
    * The range of supported thinking budget values depends on the model.
-   * 
-   * - To use the default thinking budget or thinking level for a model, leave
-   * this value undefined.
-   * 
-   * - To disable thinking, when supported by the model, set this value to `0`.
-   * 
-   * - To use dynamic thinking, allowing the model to decide on the thinking
-   * budget based on the task, set this value to `-1`.
+   *
+   * <ul>
+   * <li>To use the default thinking budget or thinking level for a model, leave
+   * this value undefined.</li>
+   *
+   * <li>To disable thinking, when supported by the model, set this value
+   * to `0`.</li>
+   *
+   * <li>To use dynamic thinking, allowing the model to decide on the thinking
+   * budget based on the task, set this value to `-1`.</li>
+   * </ul>
    *
    * An error will be thrown if you set a thinking budget for a model that does not support this
    * feature or if the specified budget is not within the model's supported range.
+   *
+   * The model will also error if `thinkingLevel` and `thinkingBudget` are
+   * both set.
    */
   thinkingBudget?: number;
 
   /**
    * If not specified, Gemini will use the model's default dynamic thinking level.
-   * 
+   *
+   * @remarks
+   * Note: The model will error if `thinkingLevel` and `thinkingBudget` are
+   * both set.
+   *
    * Important: Gemini 2.5 series models do not support thinking levels; use
    * `thinkingBudget` to set a thinking budget instead.
    */
