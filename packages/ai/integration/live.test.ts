@@ -72,7 +72,11 @@ async function nextTurnData(
                 hasAudioData = true;
               }
             } else {
-              throw Error(`Expected TextPart but got ${JSON.stringify(part)}`);
+              throw Error(
+                `Expected TextPart or InlineDataPart but got ${JSON.stringify(
+                  part
+                )}`
+              );
             }
           });
         }
@@ -116,8 +120,7 @@ describe('Live', function () {
           );
           const responseData = await responsePromise;
           expect(responseData).to.exist;
-          expect(responseData.hasAudioData).to.be
-            .true;
+          expect(responseData.hasAudioData).to.be.true;
           await session.close();
         });
         it('should handle multiple messages in a session', async () => {
@@ -134,8 +137,7 @@ describe('Live', function () {
 
           const responsePromise1 = nextTurnData(generator);
           const responseData1 = await responsePromise1; // Wait for the turn to complete
-          expect(responseData1.hasAudioData).to.be
-            .true;
+          expect(responseData1.hasAudioData).to.be.true;
 
           await session.send(
             'What state is that in? Answer with the state name only.'
@@ -143,8 +145,7 @@ describe('Live', function () {
 
           const responsePromise2 = nextTurnData(generator);
           const responseData2 = await responsePromise2; // Wait for the second turn to complete
-          expect(responseData2.hasAudioData).to.be
-            .true;
+          expect(responseData2.hasAudioData).to.be.true;
 
           await session.close();
         });
@@ -187,8 +188,7 @@ describe('Live', function () {
           await session.sendTextRealtime('Are you an AI? Yes or No.');
 
           const responseData = await responsePromise;
-          expect(responseData.hasAudioData).to.be
-            .true;
+          expect(responseData.hasAudioData).to.be.true;
 
           await session.close();
         });
@@ -209,8 +209,7 @@ describe('Live', function () {
           });
 
           const responseData = await responsePromise;
-          expect(responseData.hasAudioData).to.be
-            .true;
+          expect(responseData.hasAudioData).to.be.true;
 
           await session.close();
         });
@@ -233,8 +232,7 @@ describe('Live', function () {
           ]);
 
           const responseData = await responsePromise;
-          expect(responseData.hasAudioData).to.be
-            .true;
+          expect(responseData.hasAudioData).to.be.true;
 
           await session.close();
         });
@@ -434,8 +432,8 @@ describe('Live', function () {
           // Send a message that should trigger a function call to fetchWeather
           await session.send('Whats the weather on June 15, 2025 in Toronto?');
 
-          const finalresponseData = await streamPromise;
-          expect(finalresponseData).to.include('22'); // Should include the result of our function call
+          const finalResponseData = await streamPromise;
+          expect(finalResponseData).to.include('22'); // Should include the result of our function call
 
           await session.close();
         });
