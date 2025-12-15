@@ -52,7 +52,14 @@ const backendNames: Map<BackendType, string> = new Map([
   [BackendType.VERTEX_AI, 'Vertex AI']
 ]);
 
-const modelNames: readonly string[] = ['gemini-2.0-flash', 'gemini-2.5-flash'];
+const modelNames: readonly string[] = [
+  'gemini-2.0-flash-001',
+  'gemini-2.0-flash-lite-001',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-pro',
+  'gemini-3-pro-preview'
+];
 
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
