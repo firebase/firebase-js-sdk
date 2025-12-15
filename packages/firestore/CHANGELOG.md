@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.9.3
+
+### Patch Changes
+
+- [`5940794`](https://github.com/firebase/firebase-js-sdk/commit/59407948daf848fea069b776a55bef62bbcd602f) [#9386](https://github.com/firebase/firebase-js-sdk/pull/9386) (fixes [#9378](https://github.com/firebase/firebase-js-sdk/issues/9378)) - Fix: Corrected misleading error message when doc() is called with undefined.
+
 ## 4.9.2
 
 ### Patch Changes

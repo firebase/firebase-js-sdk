@@ -1,5 +1,21 @@
 # firebase
 
+## 12.7.0
+
+### Minor Changes
+
+- Update root "firebase" package as a "minor" release due to bumps in:
+  @firebase/auth.
+
+### Patch Changes
+
+- Updated dependencies [[`1e406a2`](https://github.com/firebase/firebase-js-sdk/commit/1e406a2b7140b014edac26f0e5179878bb3d821f), [`bc2b2cd`](https://github.com/firebase/firebase-js-sdk/commit/bc2b2cdeae920ff22aca3414c2a1b79d4a3b1351), [`5c7430d`](https://github.com/firebase/firebase-js-sdk/commit/5c7430deabb20ddce2a26ea9a565323d2a0f612e), [`5940794`](https://github.com/firebase/firebase-js-sdk/commit/59407948daf848fea069b776a55bef62bbcd602f)]:
+  - @firebase/auth@1.12.0
+  - @firebase/ai@2.6.1
+  - @firebase/firestore@4.9.3
+  - @firebase/auth-compat@0.6.2
+  - @firebase/firestore-compat@0.4.3
+
 ## 12.6.0
 
 ### Minor Changes
