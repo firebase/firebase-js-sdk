@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CrashlyticsOptions interface
-Options for initialized the Telemetry service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->.
+Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->.
 
 <b>Signature:</b>
 
