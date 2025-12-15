@@ -28,7 +28,9 @@ export function registerCrashlytics(): void {
       CRASHLYTICS_TYPE,
       (container, { instanceIdentifier }) => {
         if (instanceIdentifier === undefined) {
-          throw new Error('CrashlyticsService instance identifier is undefined');
+          throw new Error(
+            'CrashlyticsService instance identifier is undefined'
+          );
         }
 
         // TODO: change to default endpoint once it exists

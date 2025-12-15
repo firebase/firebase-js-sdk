@@ -71,12 +71,16 @@ describe('nextOnRequestError', () => {
     await nextOnRequestError()(error, errorRequest, errorContext);
 
     expect(getCrashlyticsStub).to.have.been.calledOnceWith(fakeApp);
-    expect(captureErrorStub).to.have.been.calledOnceWith(fakeCrashlytics, error, {
-      'nextjs_path': '/test-path?some=param',
-      'nextjs_method': 'GET',
-      'nextjs_router_kind': 'Pages Router',
-      'nextjs_route_path': '/test-path',
-      'nextjs_route_type': 'render'
-    });
+    expect(captureErrorStub).to.have.been.calledOnceWith(
+      fakeCrashlytics,
+      error,
+      {
+        'nextjs_path': '/test-path?some=param',
+        'nextjs_method': 'GET',
+        'nextjs_router_kind': 'Pages Router',
+        'nextjs_route_path': '/test-path',
+        'nextjs_route_type': 'render'
+      }
+    );
   });
 });

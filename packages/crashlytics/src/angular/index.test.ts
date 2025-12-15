@@ -61,7 +61,9 @@ describe('FirebaseErrorHandler', () => {
     fakeCrashlytics = {} as Crashlytics;
 
     captureErrorStub = stub(crashlytics, 'captureError');
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(fakeCrashlytics);
+    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
+      fakeCrashlytics
+    );
 
     TestBed.configureTestingModule({
       imports: [
@@ -91,9 +93,13 @@ describe('FirebaseErrorHandler', () => {
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
     expect(getCrashlyticsStub).to.have.been.called;
-    expect(captureErrorStub).to.have.been.calledWith(fakeCrashlytics, testError, {
-      'angular_route_path': '/static-route'
-    });
+    expect(captureErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      testError,
+      {
+        'angular_route_path': '/static-route'
+      }
+    );
   });
 
   it('should remove dynamic content from route', async () => {
@@ -102,9 +108,13 @@ describe('FirebaseErrorHandler', () => {
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
     expect(captureErrorStub).to.have.been.called;
-    expect(captureErrorStub).to.have.been.calledWith(fakeCrashlytics, testError, {
-      // eslint-disable-next-line camelcase
-      angular_route_path: '/dynamic/:id/route'
-    });
+    expect(captureErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      testError,
+      {
+        // eslint-disable-next-line camelcase
+        angular_route_path: '/dynamic/:id/route'
+      }
+    );
   });
 });
