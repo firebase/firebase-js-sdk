@@ -32,7 +32,7 @@ export interface Crashlytics {
 }
 
 /**
- * Options for initialized the Telemetry service using {@link getCrashlytics | getCrashlytics()}.
+ * Options for initializing the Crashlytics service using {@link getCrashlytics | getCrashlytics()}.
  *
  * @public
  */
