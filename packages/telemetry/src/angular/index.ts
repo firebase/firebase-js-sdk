@@ -37,7 +37,7 @@ export * from '../public-types';
  * Basic usage:
  * ```typescript
  * import { ErrorHandler } from '@angular/core';
- * import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
+ * import { FirebaseErrorHandler } from 'firebase/telemetry-angular';
  *
  * @NgModule({
  *   // ...
@@ -56,7 +56,7 @@ export * from '../public-types';
  * Providing telemetry options:
  * ```typescript
  * import { ErrorHandler } from '@angular/core';
- * import { FirebaseErrorHandler } from '@firebase/telemetry-angular';
+ * import { FirebaseErrorHandler } from 'firebase/telemetry-angular';
  *
  * @NgModule({
  *   // ...
