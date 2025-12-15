@@ -61,7 +61,7 @@ const PREFERRED_PARAMS = [
   'remoteConfig',
   'storage',
   'ai',
-  'telemetry'
+  'crashlytics'
 ];
 
 let authApiReportOriginal: string;
