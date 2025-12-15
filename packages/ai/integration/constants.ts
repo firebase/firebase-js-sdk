@@ -52,12 +52,19 @@ const backendNames: Map<BackendType, string> = new Map([
   [BackendType.VERTEX_AI, 'Vertex AI']
 ]);
 
-const modelNames: readonly string[] = ['gemini-2.0-flash', 'gemini-2.5-flash'];
+const modelNames: readonly string[] = [
+  'gemini-2.0-flash-001',
+  'gemini-2.0-flash-lite-001',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-pro',
+  'gemini-3-pro-preview'
+];
 
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
   [BackendType.GOOGLE_AI, ['gemini-live-2.5-flash-preview']],
-  [BackendType.VERTEX_AI, ['gemini-2.0-flash-exp']]
+  [BackendType.VERTEX_AI, ['gemini-2.0-flash-live-preview-04-09']]
 ]);
 
 /**
@@ -93,6 +100,22 @@ export const liveTestConfigs: readonly TestConfig[] = backends.flatMap(
     return testConfigs;
   }
 );
+
+/**
+ * Test configurations used for server prompt templates integration tests.
+ * Server prompt templates don't define the model name from the client, so these test configs
+ * do not define a model string.
+ * These tests should only run once per backend, rather than once per backend *per model*.
+ */
+export const promptTemplatesTestConfigs: readonly TestConfig[] =
+  backends.flatMap(backend => {
+    const ai = getAI(app, { backend });
+    return {
+      ai,
+      model: '', // Unused by prompt templates tests
+      toString: () => formatConfigAsString({ ai, model: '' }).trim()
+    };
+  });
 
 export const TINY_IMG_BASE64 =
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCNdjYAAAAAIAAeIhvDMAAAAASUVORK5CYII=';

@@ -52,7 +52,13 @@ let totpTimestamp: Date;
 let emulatorUrl: string | null;
 let mfaUser: MultiFactorUser | null;
 
-describe(' Integration tests: Mfa enrollment using totp', () => {
+/**
+ * TOTP tests disabled until they can be rewritten without requiring a
+ * permanent account.
+ */
+
+// eslint-disable-next-line no-restricted-properties
+describe.skip(' Integration tests: Mfa enrollment using totp', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     if (!emulatorUrl) {
@@ -122,7 +128,8 @@ describe(' Integration tests: Mfa enrollment using totp', () => {
   });
 });
 
-describe('Integration tests: sign-in for mfa-enrolled users', () => {
+// eslint-disable-next-line no-restricted-properties
+describe.skip('Integration tests: sign-in for mfa-enrolled users', () => {
   beforeEach(async () => {
     emulatorUrl = getEmulatorUrl();
     mfaUser = null;
