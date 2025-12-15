@@ -22,5 +22,5 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [Crashlytics](./crashlytics_angular.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initialized the Telemetry service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_angular.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
 

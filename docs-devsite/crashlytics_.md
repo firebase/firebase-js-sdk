@@ -19,7 +19,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [getCrashlytics(app, options)](./crashlytics_.md#getcrashlytics_a9d22a1) | Returns the default [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function(crashlytics, ...)</b> |
 |  [captureError(crashlytics, error, attributes)](./crashlytics_.md#captureerror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
-|  [flush(crashlytics)](./crashlytics_.md#flush_16fdf66) | Flushes all enqueued telemetry data immediately, instead of waiting for default batching. |
+|  [flush(crashlytics)](./crashlytics_.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
 |  <b>function(crashlyticsOptions, ...)</b> |
 |  [nextOnRequestError(crashlyticsOptions)](./crashlytics_.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
 
@@ -28,7 +28,7 @@ https://github.com/firebase/firebase-js-sdk
 |  Interface | Description |
 |  --- | --- |
 |  [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | An instance of the Firebase Crashlytics SDK.<!-- -->Do not create this instance directly. Instead, use [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
-|  [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initialized the Telemetry service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
+|  [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface) | Options for initializing the Crashlytics service using [getCrashlytics()](./crashlytics_.md#getcrashlytics_a9d22a1)<!-- -->. |
 
 ## Namespaces
 
@@ -95,7 +95,7 @@ void
 
 ### flush(crashlytics) {:#flush_16fdf66}
 
-Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
+Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching.
 
 <b>Signature:</b>
 
@@ -144,7 +144,7 @@ A request error handler for use in Next.js' instrumentation file
 
 ```javascript
 // In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
-import { nextOnRequestError } from 'firebase/crashlytics'
+import { nextOnRequestError } from 'firebase/telemetry'
 export const onRequestError = nextOnRequestError();
 
 ```

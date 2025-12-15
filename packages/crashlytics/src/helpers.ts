@@ -100,7 +100,7 @@ export function registerListeners(crashlytics: Crashlytics): void {
 }
 
 /**
- * Flushes all enqueued telemetry data immediately, instead of waiting for default batching.
+ * Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching.
  *
  * @public
  *
