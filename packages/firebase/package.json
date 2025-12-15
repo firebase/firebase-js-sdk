@@ -239,17 +239,17 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./telemetry": {
-      "types": "./telemetry/dist/telemetry/index.d.ts",
+    "./crashlytics": {
+      "types": "./crashlytics/dist/crashlytics/index.d.ts",
       "node": {
-        "require": "./telemetry/dist/index.cjs.js",
-        "import": "./telemetry/dist/index.mjs"
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/index.mjs"
       },
       "browser": {
-        "require": "./telemetry/dist/index.cjs.js",
-        "import": "./telemetry/dist/esm/index.esm.js"
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/esm/index.esm.js"
       },
-      "default": "./telemetry/dist/esm/index.esm.js"
+      "default": "./crashlytics/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -430,7 +430,7 @@
     "@firebase/messaging-compat": "0.2.23",
     "@firebase/storage": "0.14.0",
     "@firebase/storage-compat": "0.4.0",
-    "@firebase/telemetry": "0.0.1",
+    "@firebase/crashlytics": "0.0.1",
     "@firebase/performance": "0.7.9",
     "@firebase/performance-compat": "0.2.22",
     "@firebase/remote-config": "0.7.0",
@@ -470,7 +470,7 @@
     "storage",
     "performance",
     "remote-config",
-    "telemetry",
+    "crashlytics",
     "messaging",
     "messaging/sw",
     "database",
