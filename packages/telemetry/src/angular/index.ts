@@ -81,10 +81,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
   private readonly router = inject(Router);
   private readonly telemetry: Telemetry;
 
-  constructor(
-    app: FirebaseApp,
-    telemetryOptions?: TelemetryOptions
-  ) {
+  constructor(app: FirebaseApp, telemetryOptions?: TelemetryOptions) {
     this.telemetry = getTelemetry(app, telemetryOptions);
   }
 

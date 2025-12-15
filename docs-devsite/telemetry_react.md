@@ -56,11 +56,35 @@ The default [Telemetry](./telemetry_.telemetry.md#telemetry_interface) instance 
 ### Example
 
 
-```html
-<body>
- <FirebaseTelemetry firebaseApp={app} />
- ... my app ...
-</body>
+```tsx
+import { useEffect, useState } from "react";
+import { FirebaseTelemetry } from "@firebase/telemetry/react";
+import { FirebaseApp, initializeApp } from "@firebase/app";
+
+export default function MyApp() {
+  const [app, setApp] = useState<FirebaseApp | null>(null);
+
+  useEffect(() => {
+    if (getApps().length === 0) {
+      const newApp = initializeApp({...});
+      setApp(newApp);
+    } else {
+      setApp(getApp());
+    }
+  }, []);
+
+  return (
+    <>
+      {app && (
+        <FirebaseTelemetry
+          firebaseApp={app}
+          telemetryOptions={{...}}
+        />
+      )}
+      ...
+    </>
+  );
+}
 
 ```
 
