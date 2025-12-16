@@ -317,7 +317,26 @@ export interface GoogleSearchTool {
   googleSearch: GoogleSearch;
 }
 
+/**
+ * A tool that allows a Gemini model to connect to Google Maps to access and incorporate
+ * location-based information into its responses.
+ *
+ * Important: If using Grounding with Google Maps, you are required to comply with the
+ * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * @public
+ */
 export interface GoogleMapsTool {
+  /**
+   * Specifies the Google Maps configuration.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Maps"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * section within the Service Specific Terms).
+   */
   googleMaps: GoogleMaps;
 }
 
@@ -345,8 +364,6 @@ export interface GoogleSearch {}
 
 /**
  * Specifies the Google Maps configuration.
- *
- * @remarks Currently, this is an empty object, but it's reserved for future configuration options.
  *
  * @public
  */
@@ -415,8 +432,8 @@ interface LatLng {
 }
 
 /**
- * Represents the JSON structure for google.cloud.aiplatform.master.RetrievalConfig.
- * Configuration for retrieval.
+ *
+ * RetrievalConfig
  * @public
  */
 interface RetrievalConfig {
