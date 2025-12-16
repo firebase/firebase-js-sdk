@@ -25,8 +25,7 @@ import {
 } from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 export const IndexedDb = 'indexeddb' as const;
-export const InMemoryProvider= 'inmemory' as const;
-
+export const InMemoryProvider = 'inmemory' as const;
 
 export const GLOBAL_ID_KEY = '_id';
 export class EntityNode {
@@ -38,18 +37,14 @@ export class EntityNode {
   } = {};
   globalId?: string;
   impactedQueryRefs = new Set<string>();
-  constructor(private acc = new ImpactedQueryRefsAccumulator()) {
-  }
+  constructor(private acc = new ImpactedQueryRefsAccumulator()) {}
 
   async loadData(
     queryId: string,
     values?: FDCScalarValue,
-    cacheProvider?: InternalCacheProvider,
+    cacheProvider?: InternalCacheProvider
   ): Promise<void> {
-    if (
-      values === undefined &&
-      cacheProvider === undefined 
-    ) {
+    if (values === undefined && cacheProvider === undefined) {
       return;
     }
     if (typeof values !== 'object' || Array.isArray(values)) {
@@ -61,7 +56,6 @@ export class EntityNode {
     if (values === null) {
       return;
     }
-
 
     if (
       values.hasOwnProperty(GLOBAL_ID_KEY) &&
@@ -85,7 +79,7 @@ export class EntityNode {
                 if (Array.isArray(value)) {
                   // Note: we don't support sparse arrays.
                 } else {
-                  const entityNode =  new EntityNode(this.acc);
+                  const entityNode = new EntityNode(this.acc);
                   await entityNode.loadData(queryId, value, cacheProvider);
                   objArray.push(entityNode);
                 }
@@ -120,9 +114,7 @@ export class EntityNode {
               this.scalars[key] = null;
               continue;
             }
-            const stubDataObject = new EntityNode(
-              this.acc
-            );
+            const stubDataObject = new EntityNode(this.acc);
             await stubDataObject.loadData(queryId, values[key], cacheProvider);
             this.references[key] = stubDataObject;
           }
@@ -145,7 +137,7 @@ export class EntityNode {
       await cacheProvider.updateBackingData(this.entityData);
     }
   }
-  
+
   toJson(): object {
     const resultObject: object = {};
     const entityDataMap = this.entityData?.getMap();
@@ -203,7 +195,9 @@ export class EntityNode {
     sdo.globalId = obj.globalID;
     sdo.impactedQueryRefs = new Set<string>();
     sdo.scalars = EntityNode.parseMap(obj.scalars);
-    sdo.references = EntityNode.parseMap(obj.references) as typeof sdo.references;
+    sdo.references = EntityNode.parseMap(
+      obj.references
+    ) as typeof sdo.references;
     sdo.objectLists = EntityNode.parseMap(
       obj.objectLists,
       true

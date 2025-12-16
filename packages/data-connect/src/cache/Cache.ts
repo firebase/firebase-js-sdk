@@ -41,7 +41,6 @@ export const Persistent = 'persistent';
 
 export type DataConnectStorage = typeof Memory | typeof Persistent;
 
-
 /**
  * ServerValues
  */
@@ -62,7 +61,7 @@ export class DataConnectCache {
     this.authProvider.addTokenChangeListener(async _ => {
       const newUid = this.authProvider.getAuth().getUid();
       // We should only close if the token changes and so does the new UID
-      if(this.uid !== newUid) {
+      if (this.uid !== newUid) {
         await this.cacheProvider?.close();
         this.uid = newUid;
         const identifier = await this.getIdentifier(this.uid);
@@ -93,7 +92,11 @@ export class DataConnectCache {
   initializeNewProviders(identifier: string): InternalCacheProvider {
     let cacheProvider: InternalCacheProvider;
     if (this.cacheSettings) {
-      cacheProvider = (this.cacheSettings.cacheProvider?.type === 'MEMORY' || !isIndexedDBAvailable()) ? new InMemoryCacheProvider(identifier) : new IndexedDBCacheProvider(identifier);
+      cacheProvider =
+        this.cacheSettings.cacheProvider?.type === 'MEMORY' ||
+        !isIndexedDBAvailable()
+          ? new InMemoryCacheProvider(identifier)
+          : new IndexedDBCacheProvider(identifier);
     } else {
       logDebug(
         'IndexedDB is not available. Using In-Memory Cache Provider instead.'

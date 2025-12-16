@@ -30,11 +30,7 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 
-import {
-  DataConnectCache,
-  IndexedDBStub,
-  MemoryStub,
-} from '../cache/Cache';
+import { DataConnectCache, IndexedDBStub, MemoryStub } from '../cache/Cache';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -53,8 +49,6 @@ import { RESTTransport } from '../network/transport/rest';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
-
-
 
 /**
  * Connector Config for calling Data Connect backend.
@@ -391,12 +385,11 @@ export const StorageType = {
 
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
-
 export interface CacheSettings {
   cacheProvider?: CacheProvider<StorageType>;
 }
 export interface CacheProvider<T extends StorageType> {
-  type: T
+  type: T;
 }
 
 export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
@@ -405,4 +398,3 @@ export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
 export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'> {
   return new MemoryStub();
 }
-

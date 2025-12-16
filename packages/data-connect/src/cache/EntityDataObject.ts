@@ -26,7 +26,7 @@ export type FDCScalarValue =
 
 export interface BackingDataObjectJson {
   map: {
-    [key: string]: FDCScalarValue
+    [key: string]: FDCScalarValue;
   };
   queriesReferenced: Set<string>;
   globalID: string;
@@ -39,8 +39,7 @@ export class EntityDataObject {
   getStorableMap(map: { [key: string]: FDCScalarValue }): {
     [key: string]: FDCScalarValue;
   } {
-    const newMap: { [key: string]: FDCScalarValue } =
-      {};
+    const newMap: { [key: string]: FDCScalarValue } = {};
     for (const key in map) {
       if (map.hasOwnProperty(key)) {
         newMap[key] = map[key];
@@ -61,10 +60,14 @@ export class EntityDataObject {
     bdo.queriesReferenced = json.queriesReferenced;
     return bdo;
   }
-  private map: {[key:string]: FDCScalarValue} = {};
+  private map: { [key: string]: FDCScalarValue } = {};
   private queriesReferenced = new Set<string>();
   constructor(public readonly globalID: string) {}
-  updateServerValue(key: string, value: FDCScalarValue, requestedFrom: string): string[] {
+  updateServerValue(
+    key: string,
+    value: FDCScalarValue,
+    requestedFrom: string
+  ): string[] {
     this.map[key] = value;
     this.queriesReferenced.add(requestedFrom);
     return Array.from(this.queriesReferenced);

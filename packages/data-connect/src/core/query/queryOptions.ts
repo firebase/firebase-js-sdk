@@ -25,7 +25,8 @@ export const QueryFetchPolicy = {
  * Represents policy for how executeQuery fetches data
  *
  */
-export type QueryFetchPolicy = (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
+export type QueryFetchPolicy =
+  (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
 
 export interface ExecuteQueryOptions {
   fetchPolicy: QueryFetchPolicy;

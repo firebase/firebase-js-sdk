@@ -33,7 +33,7 @@ export class ResultTreeProcessor {
     cacheProvider: InternalCacheProvider,
     acc: ImpactedQueryRefsAccumulator,
     queryId: string
-  ): Promise< DehydratedResults> {
+  ): Promise<DehydratedResults> {
     const stubDataObject = new EntityNode(acc);
     await stubDataObject.loadData(queryId, json, cacheProvider);
     return {

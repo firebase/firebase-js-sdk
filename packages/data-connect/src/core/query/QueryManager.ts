@@ -77,10 +77,11 @@ export class QueryManager {
   }
 
   updateSSR(updatedData: QueryResult<unknown, unknown>): void {
-    this.queue.push(this.updateCache(updatedData)
-      .then(async result =>
+    this.queue.push(
+      this.updateCache(updatedData).then(async result =>
         this.publishCacheResultsToSubscribers(result)
-      ));
+      )
+    );
   }
 
   async updateCache<Data, Variables>(
@@ -111,7 +112,12 @@ export class QueryManager {
     const unsubscribe = (): void => {
       if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
-        this.callbacks.set(key, callbackList.filter(callback => callback.userCallback !== onResultCallback));
+        this.callbacks.set(
+          key,
+          callbackList.filter(
+            callback => callback.userCallback !== onResultCallback
+          )
+        );
       }
     };
 
@@ -169,16 +175,14 @@ export class QueryManager {
         ref: queryRef,
         data: cacheResult,
         toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
-        fetchTime: resultTree.cachedAt.toString(),
+        fetchTime: resultTree.cachedAt.toString()
       };
       (await this.cache.getResultTree(key)).updateAccessed();
       logDebug(
-          `Cache found for query ${
-            queryRef.name
-          } with variables ${JSON.stringify(
-            queryRef.variables
-          )}. Calling executeQuery`
-        );
+        `Cache found for query ${queryRef.name} with variables ${JSON.stringify(
+          queryRef.variables
+        )}. Calling executeQuery`
+      );
 
       return result;
     } else {
