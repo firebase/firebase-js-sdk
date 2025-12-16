@@ -31,10 +31,11 @@ export class ResultTreeProcessor {
   async dehydrateResults(
     json: object,
     cacheProvider: InternalCacheProvider,
-    acc: ImpactedQueryRefsAccumulator
+    acc: ImpactedQueryRefsAccumulator,
+    queryId: string
   ): Promise< DehydratedResults> {
     const stubDataObject = new EntityNode(acc);
-    await stubDataObject.loadData(json, cacheProvider);
+    await stubDataObject.loadData(queryId, json, cacheProvider);
     return {
       stubDataObject,
       data: JSON.stringify(stubDataObject.toStorableJson())

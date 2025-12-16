@@ -64,19 +64,10 @@ export class EntityDataObject {
   private map: {[key:string]: FDCScalarValue} = {};
   private queriesReferenced = new Set<string>();
   constructor(public readonly globalID: string) {}
-  updateServerValue(key: string, value: FDCScalarValue): string[] {
+  updateServerValue(key: string, value: FDCScalarValue, requestedFrom: string): string[] {
     this.map[key] = value;
+    this.queriesReferenced.add(requestedFrom);
     return Array.from(this.queriesReferenced);
   }
   // TODO(mtewani): Add a way to track what fields are associated with each query during runtime.
-  // private queryToFields = new Map<string, string[]>();
-  track(queryId: string): void {
-    this.queriesReferenced.add(queryId);
-    // if(!this.queryToFields.has(queryId)) {
-    //   this.queryToFields.set(queryId, []);
-    // }
-    // if(!this.queryToFields.get(queryId).includes(key)) {
-    //   this.queryToFields.get(queryId).push(key);
-    // }
-  }
 }

@@ -19,7 +19,7 @@ export const QueryFetchPolicy = {
   PREFER_CACHE: 'PREFER_CACHE',
   CACHE_ONLY: 'CACHE_ONLY',
   SERVER_ONLY: 'SERVER_ONLY'
-};
+} as const;
 
 /*
  * Represents policy for how executeQuery fetches data

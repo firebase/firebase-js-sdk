@@ -52,7 +52,7 @@ function getRefSerializer<Data, Variables>(
           ...queryRef.dataConnect.getSettings()
         }
       },
-      fetchTime: Date.now().toLocaleString(),
+      fetchTime: Date.now().toLocaleString(), // TODO: Fix the fetch time here.
       source
     };
   };
@@ -109,17 +109,13 @@ export class QueryManager {
       refType: QUERY_STR
     });
     const unsubscribe = (): void => {
-      if (!this.callbacks.has(key)) {
+      if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
-        callbackList.forEach(subscription => {
-          subscription.unsubscribe();
-        });
-        this.callbacks.set(key, []);
+        this.callbacks.set(key, callbackList.filter(callback => callback.userCallback !== onResultCallback));
       }
     };
 
     if (initialCache) {
-      // TODO: The type might be wrong here
       this.updateSSR(initialCache as QueryResult<Data, Variables>);
     }
 
@@ -161,21 +157,19 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    // TODO: It seems like the cache isn't loading the data correctly.
-    // TODO: It seems like cache loading is async. That needs to be fixed.
     if (
       options?.fetchPolicy !== QueryFetchPolicy.SERVER_ONLY &&
       (await this.cache.containsResultTree(key)) &&
       !(await this.cache.getResultTree(key)).isStale()
     ) {
       const cacheResult: Data = JSON.parse(await this.cache.getResultJSON(key));
+      const resultTree = await this.cache.getResultTree(key);
       const result: QueryResult<Data, Variables> = {
-        ...cacheResult,
         source: SOURCE_CACHE,
         ref: queryRef,
         data: cacheResult,
         toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
-        fetchTime: new Date().toISOString()
+        fetchTime: resultTree.cachedAt.toString(),
       };
       (await this.cache.getResultTree(key)).updateAccessed();
       logDebug(
@@ -207,18 +201,13 @@ export class QueryManager {
       );
       const fetchTime = new Date().toString();
       const result: QueryResult<Data, Variables> = {
-        ...res,
+        data: res.data,
         source: SOURCE_SERVER,
         ref: queryRef,
         toJSON: getRefSerializer(queryRef, res.data, SOURCE_SERVER),
         fetchTime
       };
-      const subscribers = this.callbacks.get(key);
-      if (subscribers !== undefined) {
-        subscribers.forEach(subscription => {
-          subscription.userCallback(result);
-        });
-      }
+
       if (await this.cache.containsResultTree(key)) {
         (await this.cache.getResultTree(key)).updateAccessed();
       }

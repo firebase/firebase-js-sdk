@@ -386,7 +386,6 @@ export function terminate(dataConnect: DataConnect): Promise<void> {
   // TODO(mtewani): Stop pending tasks
 }
 export const StorageType = {
-  // PERSISTENT: 'PERSISTENT',
   MEMORY: 'MEMORY'
 };
 
@@ -394,7 +393,6 @@ export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 
 export interface CacheSettings {
-  maxSizeBytes?: number;
   cacheProvider?: CacheProvider<StorageType>;
 }
 export interface CacheProvider<T extends StorageType> {

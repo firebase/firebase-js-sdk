@@ -42,6 +42,7 @@ export class EntityNode {
   }
 
   async loadData(
+    queryId: string,
     values?: FDCScalarValue,
     cacheProvider?: InternalCacheProvider,
   ): Promise<void> {
@@ -61,11 +62,13 @@ export class EntityNode {
       return;
     }
 
+
     if (
       values.hasOwnProperty(GLOBAL_ID_KEY) &&
       typeof values[GLOBAL_ID_KEY] === 'string'
     ) {
       this.globalId = values[GLOBAL_ID_KEY];
+      // TODO: Add current query id to BDO
       this.entityData = await cacheProvider.getBdo(this.globalId);
     }
     for (const key in values) {
@@ -82,8 +85,8 @@ export class EntityNode {
                 if (Array.isArray(value)) {
                   // Note: we don't support sparse arrays.
                 } else {
-                  const entityNode =  new EntityNode( this.acc);
-                  await entityNode.loadData(value, cacheProvider);
+                  const entityNode =  new EntityNode(this.acc);
+                  await entityNode.loadData(queryId, value, cacheProvider);
                   objArray.push(entityNode);
                 }
               } else {
@@ -100,7 +103,8 @@ export class EntityNode {
               if (this.entityData) {
                 const impactedRefs = this.entityData.updateServerValue(
                   key,
-                  scalarArray
+                  scalarArray,
+                  queryId
                 );
                 this.acc.add(impactedRefs);
               } else {
@@ -119,7 +123,7 @@ export class EntityNode {
             const stubDataObject = new EntityNode(
               this.acc
             );
-            await stubDataObject.loadData(values[key], cacheProvider);
+            await stubDataObject.loadData(queryId, values[key], cacheProvider);
             this.references[key] = stubDataObject;
           }
         } else {
@@ -127,7 +131,8 @@ export class EntityNode {
             // TODO: Track only the fields we need for the BDO
             const impactedRefs = this.entityData.updateServerValue(
               key,
-              values[key]
+              values[key],
+              queryId
             );
             this.acc.add(impactedRefs);
           } else {

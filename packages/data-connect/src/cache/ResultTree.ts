@@ -31,8 +31,8 @@ export class ResultTree {
   constructor(
     public readonly data: string,
     private rootStub: EntityNode,
-    private ttlInMs: number = 300_000,
-    private readonly cachedAt: Date,
+    private ttlInMs: number = 30000,
+    public readonly cachedAt: Date,
     private _lastAccessed: Date
   ) {}
   isStale(): boolean {

@@ -133,9 +133,12 @@ export class DataConnectCache {
     const { data, stubDataObject } = await processor.dehydrateResults(
       serverValues,
       cacheProvider,
-      acc
+      acc,
+      queryId
     );
     const now = new Date();
+    // TODO: Check if ttl actually gets passed.
+    // TODO: Check API Proposal fields.
     await cacheProvider.setResultTree(
       queryId,
       new ResultTree(data, stubDataObject, serverValues.ttl, now, now)

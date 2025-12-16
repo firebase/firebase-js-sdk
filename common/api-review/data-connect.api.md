@@ -15,8 +15,6 @@ import { Provider } from '@firebase/component';
 export interface CacheSettings {
     // (undocumented)
     cacheProvider?: IndexedDBStub<StorageType>;
-    // (undocumented)
-    maxSizeBytes?: number;
 }
 
 // @public
@@ -236,9 +234,9 @@ export const QUERY_STR = "query";
 
 // @public
 export const QueryFetchPolicy: {
-    PREFER_CACHE: string;
-    CACHE_ONLY: string;
-    SERVER_ONLY: string;
+    readonly PREFER_CACHE: "PREFER_CACHE";
+    readonly CACHE_ONLY: "CACHE_ONLY";
+    readonly SERVER_ONLY: "SERVER_ONLY";
 };
 
 // @public (undocumented)
