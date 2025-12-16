@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@firebase/app": "0.14.6",
-    "@firebase/firestore": "4.9.2"
+    "@firebase/firestore": "4.9.3"
   },
   "devDependencies": {
     "@types/mocha": "9.1.1",

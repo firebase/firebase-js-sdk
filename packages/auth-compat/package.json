@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-compat",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "FirebaseAuth compatibility package that uses API style compatible with Firebase@8 and prior versions",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -49,7 +49,7 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/auth": "1.11.1",
+    "@firebase/auth": "1.12.0",
     "@firebase/auth-types": "0.13.0",
     "@firebase/component": "0.7.0",
     "@firebase/util": "1.13.0",
