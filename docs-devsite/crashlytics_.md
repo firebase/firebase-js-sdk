@@ -108,8 +108,8 @@ export declare function recordError(crashlytics: Crashlytics, error: unknown, at
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
-|  error | unknown | The caught exception, typically an  |
-|  attributes | AnyValueMap | = Optional, arbitrary attributes to attach to the error log |
+|  error | unknown | The caught exception, typically an Error object |
+|  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the error log |
 
 <b>Returns:</b>
 
