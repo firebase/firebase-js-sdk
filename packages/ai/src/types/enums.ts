@@ -444,43 +444,43 @@ export const AspectRatio = {
   /**
    * Square (1:1) aspect ratio.
    */
-  SQUARE_1x1: '1:1',
+  'SQUARE_1x1': '1:1',
   /**
    * Portrait (2:3) aspect ratio.
    */
-  PORTRAIT_2x3: '2:3',
+  'PORTRAIT_2x3': '2:3',
   /**
    * Landscape (3:2) aspect ratio.
    */
-  LANDSCAPE_3x2: '3:2',
+  'LANDSCAPE_3x2': '3:2',
   /**
    * Portrait (3:4) aspect ratio.
    */
-  PORTRAIT_3x4: '3:4',
+  'PORTRAIT_3x4': '3:4',
   /**
    * Landscape (4:3) aspect ratio.
    */
-  LANDSCAPE_4x3: '4:3',
+  'LANDSCAPE_4x3': '4:3',
   /**
    * Portrait (4:5) aspect ratio.
    */
-  PORTRAIT_4x5: '4:5',
+  'PORTRAIT_4x5': '4:5',
   /**
    * Landscape (5:4) aspect ratio.
    */
-  LANDSCAPE_5x4: '5:4',
+  'LANDSCAPE_5x4': '5:4',
   /**
    * Portrait (9:16) aspect ratio.
    */
-  PORTRAIT_9x16: '9:16',
+  'PORTRAIT_9x16': '9:16',
   /**
    * Landscape (16:9) aspect ratio.
    */
-  LANDSCAPE_16x9: '16:9',
+  'LANDSCAPE_16x9': '16:9',
   /**
    * Landscape (21:9) aspect ratio.
    */
-  LANDSCAPE_21x9: '21:9'
+  'LANDSCAPE_21x9': '21:9'
 } as const;
 
 /**
