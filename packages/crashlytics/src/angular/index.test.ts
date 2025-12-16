@@ -53,14 +53,14 @@ describe('FirebaseErrorHandler', () => {
 
   let fakeCrashlytics: Crashlytics;
 
-  let captureErrorStub: sinon.SinonStub;
+  let recordErrorStub: sinon.SinonStub;
   let getCrashlyticsStub: sinon.SinonStub;
 
   beforeEach(() => {
     app = initializeApp({ projectId: 'p', appId: 'fakeapp' });
     fakeCrashlytics = {} as Crashlytics;
 
-    captureErrorStub = stub(crashlytics, 'captureError');
+    recordErrorStub = stub(crashlytics, 'recordError');
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics
     );
@@ -93,7 +93,7 @@ describe('FirebaseErrorHandler', () => {
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
     expect(getCrashlyticsStub).to.have.been.called;
-    expect(captureErrorStub).to.have.been.calledWith(
+    expect(recordErrorStub).to.have.been.calledWith(
       fakeCrashlytics,
       testError,
       {
@@ -107,8 +107,8 @@ describe('FirebaseErrorHandler', () => {
 
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
-    expect(captureErrorStub).to.have.been.called;
-    expect(captureErrorStub).to.have.been.calledWith(
+    expect(recordErrorStub).to.have.been.called;
+    expect(recordErrorStub).to.have.been.calledWith(
       fakeCrashlytics,
       testError,
       {

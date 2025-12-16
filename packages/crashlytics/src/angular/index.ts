@@ -20,7 +20,7 @@ import { ErrorHandler, inject } from '@angular/core';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { registerCrashlytics } from '../register';
-import { captureError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics } from '../api';
 import { Crashlytics, CrashlyticsOptions } from '../public-types';
 import { FirebaseApp } from '@firebase/app';
 
@@ -90,7 +90,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
       'angular_route_path': this.getSafeRoutePath(this.router)
     };
 
-    captureError(this.crashlytics, error, attributes);
+    recordError(this.crashlytics, error, attributes);
   }
 
   /**
