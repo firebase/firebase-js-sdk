@@ -12,13 +12,17 @@ The SDK is composed of several key components that work together to provide the 
 *   **Core**:
     *   **Event Manager**: Acts as a central hub for all eventing in the SDK. It is responsible for routing events between the API Layer and Sync Engine. It manages query listeners and is responsible for raising snapshot events, as well as handling connectivity changes and some query failures.
     *   **Sync Engine**: The central controller of the SDK. It acts as the glue between the Event Manager, Local Store, and Remote Store. Its responsibilities include:
-        *   Coordinating client requests and remote events.
-        *   Managing a view for each query, which represents the unified view between the local and remote data stores.
+        *   Coordinating and translating client requests and remote events from the backend.
+        *   Initiating responses to user code from both remote events (backend updates) and local events (e.g. garbage collection).
+        *   Managing a "view" for each query, which represents the unified view between the local and remote data stores. The Sync Engine builds the user-facing "View" using the formula: `View = Remote Document + Overlay`. A **Remote Document** is the authoritative state from the backend. An **Overlay** is A computed "delta" representing pending local mutations. Overlays are calculated immediately when a mutation is applied and persisted separately. This allows for zero-latency "Optimistic Updates."
+        *   Deciding whether a document is in a "limbo" state (e.g. its state is unknown) and needs to be fetched from the backend.
         *   Notifying the Remote Store when the Local Store has new mutations that need to be sent to the backend.
 *   **Local Store**: A container for the components that manage persisted and in-memory data.
-    *   **Remote Table**: A cache of the most recent version of documents as known by the Firestore backend.
+    *   **Remote Table**: A cache of the most recent version of documents as known by the Firestore backend (A.K.A. Remote Documents).
     *   **Mutation Queue**: A queue of all the user-initiated writes (set, update, delete) that have not yet been acknowledged by the Firestore backend.
     *   **Local View**: A cache that represents the user's current view of the data, combining the Remote Table with the Mutation Queue.
+    *   **Query Engine**: Determines the most efficient strategy (Index vs. Scan) to identify documents matching a query in the local cache.
+    *   **Overlays**: A performance-optimizing cache that stores the calculated effect of pending mutations from the Mutation Queue on documents. Instead of re-applying mutations every time a document is read, the SDK computes this "overlay" once and caches it, allowing the Local View to be constructed more efficiently.
 *   **Remote Store**: The component responsible for all network communication with the Firestore backend. It manages the gRPC streams for reading and writing data, and it abstracts away the complexities of the network protocol from the rest of the SDK.
 *   **Persistence Layer**: The underlying storage mechanism used by the Local Store to persist data on the client. In the browser, this is implemented using IndexedDB.
 
@@ -77,7 +81,7 @@ Here's a step-by-step walkthrough of how data flows through the SDK for a write 
 1.  **API Layer**: A user attaches a listener to a query (e.g., `onSnapshot`).
 2.  **Event Manager**: The Event Manager creates a listener and passes it to the Sync Engine.
 3.  **Sync Engine**: The Sync Engine creates a "view" for the query.
-4.  **Local View (in Local Store)**: The Sync Engine asks the Local Store for the current documents matching the query. This includes any optimistic local changes from the **Mutation Queue**.
+4.  **Local View (in Local Store)**: The Sync Engine asks the Query Engine in the Local Store to execute the query. The Query Engine selects a strategy (e.g., Index Scan or Timestamp Optimization) to find matching keys. The Local Store then constructs the documents by applying cached Overlays on top of Remote Documents.
 5.  **API Layer**: The initial data from the Local View is sent back to the user's `onSnapshot` callback. This provides a fast, initial result.
 6.  **Remote Store**: Simultaneously, the Sync Engine instructs the Remote Store to listen to the query on the Firestore backend.
 7.  **Backend**: The backend returns the initial matching documents for the query.

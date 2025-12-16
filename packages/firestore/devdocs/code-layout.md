@@ -6,7 +6,12 @@ This document explains the code layout in this repository. It is closely related
     *   `api/`: Implements the **API Layer** for the main SDK.
     *   `lite-api/`: Contains the entry point of for the lite SDK.
     *   `core/`: Contains logic for the **Sync Engine** and **Event Manager**.
-    *   `local/`: Contains the logic the **Local Store**, which includes the **Mutation Queue**, **Remote Table**, **Local View**, and the **Persistence Layer**.
+    *   `local/`: Contains the logic the **Local Store**, which includes the **Mutation Queue**, **Remote Table**, **Local View**, **Overlays**, and the **Persistence Layer**
+        *   `local_store.ts`: The main entry point for persistence operations.
+        *   `query_engine.ts`: Implements the strategy selection logic (Scan vs. Index).
+        *   `index_backfiller.ts`: The background task that updates Client-Side Indexes.
+        *   `remote_document_cache.ts`: Manages the `remote_documents` table (base truth).
+        *   `overlay_cache.ts`: Manages pending mutation queue.
     *   `remote/`: Contains the logic for the **Remote Store**, handling all network communication.
     *   `model/`: Defines the internal data models used throughout the SDK, such as `Document`, `DocumentKey`, and `Mutation`. These models are used to represent Firestore data and operations in a structured way.
     *   `platform/`: Contains platform-specific code to abstract away the differences between the Node.js and browser environments. This includes things like networking, storage, and timers. This allows the core logic of the SDK to be platform-agnostic.
