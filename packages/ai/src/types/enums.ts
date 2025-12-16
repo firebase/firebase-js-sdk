@@ -488,3 +488,19 @@ export const AspectRatio = {
  * @public
  */
 export type AspectRatio = (typeof AspectRatio)[keyof typeof AspectRatio];
+
+/**
+ * Specifies the size of generated images.
+ * @public
+ */
+export const ImageSize = {
+  'SIZE_1K': '1K',
+  'SIZE_2K': '2K',
+  'SIZE_4K': '4K',
+} as const;
+
+/**
+ * Specifies the size of generated images.
+ * @public
+ */
+export type ImageSize = (typeof ImageSize)[keyof typeof ImageSize];

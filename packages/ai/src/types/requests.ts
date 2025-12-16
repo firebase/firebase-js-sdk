@@ -27,6 +27,7 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  ImageSize,
   InferenceMode,
   ResponseModality
 } from './enums';
@@ -457,6 +458,11 @@ export interface ImageConfig {
    * The aspect ratio of the generated images.
    */
   aspectRatio?: AspectRatio;
+
+  /**
+   * The size of generated images..
+   */
+  imageSize?: ImageSize;
 }
 
 /**
