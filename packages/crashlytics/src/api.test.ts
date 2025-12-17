@@ -33,7 +33,7 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { captureError, flush, getCrashlytics } from './api';
+import { recordError, flush, getCrashlytics } from './api';
 import {
   LOG_ENTRY_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
@@ -181,13 +181,13 @@ describe('Top level API', () => {
     });
   });
 
-  describe('captureError()', () => {
+  describe('recordError()', () => {
     it('should capture an Error object correctly', () => {
       const error = new Error('This is a test error');
       error.stack = '...stack trace...';
       error.name = 'TestError';
 
-      captureError(fakeCrashlytics, error);
+      recordError(fakeCrashlytics, error);
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -205,7 +205,7 @@ describe('Top level API', () => {
       const error = new Error('error with no stack');
       error.stack = undefined;
 
-      captureError(fakeCrashlytics, error);
+      recordError(fakeCrashlytics, error);
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -220,7 +220,7 @@ describe('Top level API', () => {
     });
 
     it('should capture a string error correctly', () => {
-      captureError(fakeCrashlytics, 'a string error');
+      recordError(fakeCrashlytics, 'a string error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -233,7 +233,7 @@ describe('Top level API', () => {
     });
 
     it('should capture an unknown error type correctly', () => {
-      captureError(fakeCrashlytics, 12345);
+      recordError(fakeCrashlytics, 12345);
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -259,7 +259,7 @@ describe('Top level API', () => {
         span.spanContext().traceId = 'my-trace';
         span.spanContext().spanId = 'my-span';
 
-        captureError(fakeCrashlytics, error);
+        recordError(fakeCrashlytics, error);
         span.end();
       });
 
@@ -280,7 +280,7 @@ describe('Top level API', () => {
       error.stack = '...stack trace...';
       error.name = 'TestError';
 
-      captureError(fakeCrashlytics, error, {
+      recordError(fakeCrashlytics, error, {
         strAttr: 'string attribute',
         mapAttr: {
           boolAttr: true,
@@ -315,7 +315,7 @@ describe('Top level API', () => {
         appVersion: '1.0.0'
       };
 
-      captureError(crashlytics, 'a string error');
+      recordError(crashlytics, 'a string error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -328,7 +328,7 @@ describe('Top level API', () => {
     it('should use auto constants if available', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3';
 
-      captureError(fakeCrashlytics, 'a string error');
+      recordError(fakeCrashlytics, 'a string error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
@@ -342,7 +342,7 @@ describe('Top level API', () => {
       it('should retrieve existing session ID from sessionStorage', () => {
         storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session-id';
 
-        captureError(fakeCrashlytics, 'error');
+        recordError(fakeCrashlytics, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
@@ -364,7 +364,7 @@ describe('Top level API', () => {
           writable: true
         });
 
-        captureError(fakeCrashlytics, 'error');
+        recordError(fakeCrashlytics, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
@@ -385,7 +385,7 @@ describe('Top level API', () => {
           writable: true
         });
 
-        captureError(fakeCrashlytics, 'error');
+        recordError(fakeCrashlytics, 'error');
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
@@ -397,8 +397,8 @@ describe('Top level API', () => {
 
   describe('flush()', () => {
     it('should flush logs correctly', async () => {
-      captureError(fakeCrashlytics, 'error1');
-      captureError(fakeCrashlytics, 'error2');
+      recordError(fakeCrashlytics, 'error1');
+      recordError(fakeCrashlytics, 'error2');
 
       expect(emittedLogs.length).to.equal(2);
 

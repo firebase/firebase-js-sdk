@@ -16,7 +16,7 @@
  */
 
 import { getApp } from '@firebase/app';
-import { captureError, getCrashlytics } from './api';
+import { recordError, getCrashlytics } from './api';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
@@ -52,6 +52,6 @@ export function nextOnRequestError(
       'nextjs_route_type': errorContext.routeType
     };
 
-    captureError(crashlytics, error, attributes);
+    recordError(crashlytics, error, attributes);
   };
 }

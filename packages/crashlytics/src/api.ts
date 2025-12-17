@@ -71,10 +71,10 @@ export function getCrashlytics(
  * @public
  *
  * @param crashlytics - The {@link Crashlytics} instance.
- * @param error - The caught exception, typically an {@link Error}
- * @param attributes = Optional, arbitrary attributes to attach to the error log
+ * @param error - The caught exception, typically an Error object
+ * @param attributes - Optional, arbitrary attributes to attach to the error log
  */
-export function captureError(
+export function recordError(
   crashlytics: Crashlytics,
   error: unknown,
   attributes?: AnyValueMap

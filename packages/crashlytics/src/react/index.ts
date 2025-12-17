@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { captureError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import { useEffect } from 'react';
 
@@ -84,11 +84,11 @@ export function FirebaseCrashlytics({
     }
 
     const errorListener = (event: ErrorEvent): void => {
-      captureError(crashlytics, event.error, {});
+      recordError(crashlytics, event.error, {});
     };
 
     const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
-      captureError(crashlytics, event.reason, {});
+      recordError(crashlytics, event.reason, {});
     };
 
     try {
