@@ -79,22 +79,15 @@ When a user calls `unsubscribe()`, data is **not** immediately deleted.
 
 ## Phase 6: Garbage Collection (The "Death" of a Query)
 
-Since data persists after `unsubscribe()`, the SDK must actively manage disk usage. This is handled by the **LruGarbageCollector**.
+Since data persists after `unsubscribe()`, the SDK must actively manage disk usage.
 
-### Sequence Numbers
-Every transaction (write, listen, update) increments a global `last_sequence_number` in the `target_globals` table.
-*   **Active Targets**: When a query is listened to, its `target` entry is updated with the current global sequence number.
-*   **Inactive Targets**: Old queries retain older sequence numbers.
+*   **Eager GC**: If persistence is disabled, data is cleared from memory immediately when the listener count hits 0.
+*   **LRU GC**: If persistence is enabled, the data remains on disk for offline availability.
 
-### The GC Process
-When the SDK detects memory/disk pressure (or periodically):
-1.  **Reference Delegate**: Scans the `target_documents` reverse index.
-2.  **Orphan Check**: It identifies documents that belong *only* to Targets that are:
-    *   Inactive (0 listeners).
-    *   Old (Sequence number is below the GC threshold).
-3.  **Purge**:
-    *   The document is deleted from `remote_documents`.
-    *   The `Target` metadata is eventually removed from the `targets` table.
+The **LruGarbageCollector** runs periodically to keep the cache within the configured size (default 40MB/100MB). It uses a "Sequence Number" system to track when data was last used.
+
+For a detailed walkthrough of the algorithm, Sequence Numbers, and Orphaned Documents, see **[Garbage Collection](./garbage-collection.md)**.
+
 
 ## Debugging Tips
 

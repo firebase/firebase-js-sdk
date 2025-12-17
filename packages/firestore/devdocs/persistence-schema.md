@@ -33,7 +33,10 @@ While the Android/iOS SDKs use SQLite, the JS SDK uses IndexedDB Object Stores. 
 
 ### `target_documents` (The Index)
 *   **Concept**: A reverse index mapping `TargetID` $\leftrightarrow$ `DocumentKey`.
-*   **Purpose**: Optimization. When a query is executed locally, the SDK uses this index to quickly identify which documents belong to a specific TargetID without scanning the entire `remote_documents` table.
+*   **Purpose**:
+    1.  **Query Execution**: Quickly identify documents for a query.
+    2.  **Garbage Collection**: Acts as a reference counter. If a document has entries here with active TargetIDs, it cannot be collected.
+*   **Sentinel Rows**: A row with `TargetID = 0` indicates the document exists in the cache but may not be attached to any active listener. These are primary candidates for Garbage Collection.
 *   **Maintenance**: This is updated whenever a remote snapshot adds/removes a document from a query view.
 
 ## Metadata & Garbage Collection Stores

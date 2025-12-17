@@ -44,7 +44,8 @@ To navigate the internals of the SDK, use the following guide:
 *   **[Query Lifecycle](./query-lifecycle.md)**: The state machine of a query. **Read this** to understand how querying and offline capabilities work.
 
 ### Subsystem Deep Dives
-*   **[Persistence Schema](./persistence-schema.md)**: A reference guide for the IndexedDB tables (e.g., `remote_documents`, `mutation_queues`).
+*   **[Persistence Schema](./persistence-schema.md)**: A reference guide for the IndexedDB tables.
+*   **[Garbage Collection](./garbage-collection.md)**: Details the LRU algorithm, Sequence Numbers, and how the SDK manages cache size.
 *   **[Query Execution](./query-execution.md)**: Details on the algorithms used by the Local Store to execute queries (Index Scans vs. Full Collection Scans).
 *   **[Bundles](./bundles.md)**: How the SDK loads and processes data bundles.
 
