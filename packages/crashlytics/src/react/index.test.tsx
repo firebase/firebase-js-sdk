@@ -32,7 +32,7 @@ use(chaiAsPromised);
 
 describe('FirebaseCrashlytics', () => {
   let getCrashlyticsStub: sinon.SinonStub;
-  let captureErrorStub: sinon.SinonStub;
+  let recordErrorStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
 
@@ -40,8 +40,10 @@ describe('FirebaseCrashlytics', () => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
     fakeCrashlytics = {} as Crashlytics;
 
-    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(fakeCrashlytics);
-    captureErrorStub = stub(crashlytics, 'captureError');
+    getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
+      fakeCrashlytics
+    );
+    recordErrorStub = stub(crashlytics, 'recordError');
   });
 
   afterEach(() => {
@@ -57,7 +59,7 @@ describe('FirebaseCrashlytics', () => {
     window.addEventListener('error', (event: ErrorEvent) => {
       // Registers another listener (sequential) to confirm behaviour.
       expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-      expect(captureErrorStub).to.have.been.calledWith(fakeCrashlytics, error);
+      expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, error);
       done();
     });
     window.dispatchEvent(new ErrorEvent('error', { error }));
@@ -72,6 +74,6 @@ describe('FirebaseCrashlytics', () => {
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(captureErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
   });
 });

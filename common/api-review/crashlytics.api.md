@@ -9,9 +9,6 @@ import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
 
 // @public
-export function captureError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
-
-// @public
 export interface Crashlytics {
     app: FirebaseApp;
 }
@@ -32,6 +29,9 @@ export { Instrumentation }
 
 // @public
 export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Instrumentation.onRequestError;
+
+// @public
+export function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
 
 
 // (No @packageDocumentation comment for this package)

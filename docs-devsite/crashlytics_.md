@@ -18,8 +18,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(app, ...)</b> |
 |  [getCrashlytics(app, options)](./crashlytics_.md#getcrashlytics_a9d22a1) | Returns the default [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance that is associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes a new instance with the default settings. |
 |  <b>function(crashlytics, ...)</b> |
-|  [captureError(crashlytics, error, attributes)](./crashlytics_.md#captureerror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
 |  [flush(crashlytics)](./crashlytics_.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
+|  [recordError(crashlytics, error, attributes)](./crashlytics_.md#recorderror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
 |  <b>function(crashlyticsOptions, ...)</b> |
 |  [nextOnRequestError(crashlyticsOptions)](./crashlytics_.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
 
@@ -71,28 +71,6 @@ const crashlytics = getCrashlytics(app);
 
 ## function(crashlytics, ...)
 
-### captureError(crashlytics, error, attributes) {:#captureerror_6824e74}
-
-Enqueues an error to be uploaded to the Firebase Crashlytics API.
-
-<b>Signature:</b>
-
-```typescript
-export declare function captureError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
-|  error | unknown | The caught exception, typically an  |
-|  attributes | AnyValueMap | = Optional, arbitrary attributes to attach to the error log |
-
-<b>Returns:</b>
-
-void
-
 ### flush(crashlytics) {:#flush_16fdf66}
 
 Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching.
@@ -114,6 +92,28 @@ export declare function flush(crashlytics: Crashlytics): Promise<void>;
 Promise&lt;void&gt;
 
 a promise which is resolved when all flushes are complete
+
+### recordError(crashlytics, error, attributes) {:#recorderror_6824e74}
+
+Enqueues an error to be uploaded to the Firebase Crashlytics API.
+
+<b>Signature:</b>
+
+```typescript
+export declare function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
+|  error | unknown | The caught exception, typically an Error object |
+|  attributes | AnyValueMap | Optional, arbitrary attributes to attach to the error log |
+
+<b>Returns:</b>
+
+void
 
 ## function(crashlyticsOptions, ...)
 

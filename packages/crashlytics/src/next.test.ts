@@ -30,7 +30,7 @@ use(chaiAsPromised);
 
 describe('nextOnRequestError', () => {
   let getCrashlyticsStub: sinon.SinonStub;
-  let captureErrorStub: sinon.SinonStub;
+  let recordErrorStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
 
@@ -42,7 +42,7 @@ describe('nextOnRequestError', () => {
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics
     );
-    captureErrorStub = stub(crashlytics, 'captureError');
+    recordErrorStub = stub(crashlytics, 'recordError');
   });
 
   afterEach(() => {
@@ -71,7 +71,7 @@ describe('nextOnRequestError', () => {
     await nextOnRequestError()(error, errorRequest, errorContext);
 
     expect(getCrashlyticsStub).to.have.been.calledOnceWith(fakeApp);
-    expect(captureErrorStub).to.have.been.calledOnceWith(
+    expect(recordErrorStub).to.have.been.calledOnceWith(
       fakeCrashlytics,
       error,
       {
