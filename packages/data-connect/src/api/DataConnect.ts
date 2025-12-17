@@ -331,6 +331,7 @@ export function getDataConnect(
   };
   const provider = _getProvider(app, 'data-connect');
   // TODO: Deal with the parsing of these options properly.
+  // TODO: We shouldn't include cacheSettings as options to be stored.
   const identifier = JSON.stringify(dcOptions);
   if (provider.isInitialized(identifier)) {
     const dcInstance = provider.getImmediate({ identifier });
