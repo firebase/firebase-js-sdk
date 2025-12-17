@@ -25,6 +25,7 @@ The primary goals of this SDK are:
 *   **Overlay**: The computed result of applying a Mutation to a Document. We store these to show "Optimistic Updates" instantly without modifying the underlying "Remote Document" until the server confirms the write.
 *   **Limbo**: A state where a document exists locally and matches a query, but the server hasn't explicitly confirmed it belongs to the current snapshot version. The SDK must perform "Limbo Resolution" to ensure these documents are valid.
 
+For a detailed explanation of how these concepts interact during execution, see the [Query Lifecycle](./query-lifecycle.md) documentation.
 
 ## Artifacts
 
@@ -33,23 +34,22 @@ The Firestore JavaScript SDK is divided into two main packages:
 *   `@firebase/firestore`: The main, full-featured SDK that provides streaming and offline support.
 *   `@firebase/firestore/lite`: A much lighter-weight (AKA "lite") version of the SDK for applications that do not require streaming or offline support.
 
-For a detailed explanation of the architecture, components, and data flow, please see the [Architecture documentation](./architecture.md). Related, for a deailed overview of the source code layout, please see [Code layout](./code-layout.md).
 
+## Documentation Map
 
-## Build
+To navigate the internals of the SDK, use the following guide:
 
-TODO: Add critical information about the build process including optimizations for code size, etc.
+### Core Concepts
+*   **[Architecture](./architecture.md)**: The high-level block diagram of the system (API -> Core -> Local -> Remote).
+*   **[Query Lifecycle](./query-lifecycle.md)**: The state machine of a query. **Read this** to understand how querying and offline capabilities work.
 
-For information on how the artifacts are built, please see the [Build documentation](./build.md) file.
+### Subsystem Deep Dives
+*   **[Persistence Schema](./persistence-schema.md)**: A reference guide for the IndexedDB tables (e.g., `remote_documents`, `mutation_queues`).
+*   **[Query Execution](./query-execution.md)**: Details on the algorithms used by the Local Store to execute queries (Index Scans vs. Full Collection Scans).
+*   **[Bundles](./bundles.md)**: How the SDK loads and processes data bundles.
 
-## Testing
-
-TODO: Add critical information about the tests harness, organization, spec tests, etc.
-
-For information on how the tests are setup and organized [Testing documentation](./testing.md) file.
-
-## Developer Workflow
-
-TODO: Add list of common commands here.
-
-For information on the developer workflow, including how to build, test, and format the code, please see the [CONTRIBUTING.md](../CONTRIBUTING.md) file.
+### Developer Guides
+*   **[Code Layout](./code-layout.md)**: Maps the architectural components to specific source files and directories.
+*   **[Build Process](./build.md)**: How to build the artifacts.
+*   **[Testing](./testing.md)**: How to run unit and integration tests.
+*   **[Contributing](../CONTRIBUTING.md)**: How to run unit and integration tests.

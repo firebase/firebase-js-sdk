@@ -1,6 +1,6 @@
 # Query Execution & Indexing
 
-This document details how the Firestore SDK executes queries against the local cache. Understanding this is crucial for debugging performance issues and understanding offline behavior.
+*Note: This document details the internal algorithms used during **View Calculation** of the [Query Lifecycle](./query-lifecycle.md). It focuses on the performance and mechanics of the **Local Store**.*
 
 ## The Query Engine
 

@@ -3,19 +3,26 @@
 This document explains the code layout in this repository. It is closely related to the [architecture](./architecture.md).
 
 *   `src/`: Contains the source code for the main `@firebase/firestore` package.
-    *   `api/`: Implements the **API Layer** for the main SDK.
-    *   `lite-api/`: Contains the entry point of for the lite SDK.
-    *   `core/`: Contains logic for the **Sync Engine** and **Event Manager**.
-    *   `local/`: Contains the logic the **Local Store**, which includes the **Mutation Queue**, **Remote Table**, **Local View**, **Overlays**, and the **Persistence Layer**
-        *   `local_store.ts`: The main entry point for persistence operations.
-        *   `query_engine.ts`: Implements the strategy selection logic (Scan vs. Index).
-        *   `index_backfiller.ts`: The background task that updates Client-Side Indexes.
-        *   `remote_document_cache.ts`: Manages the `remote_documents` table (base truth).
-        *   `overlay_cache.ts`: Manages pending mutation queue.
-    *   `remote/`: Contains the logic for the **Remote Store**, handling all network communication.
-    *   `model/`: Defines the internal data models used throughout the SDK, such as `Document`, `DocumentKey`, and `Mutation`. These models are used to represent Firestore data and operations in a structured way.
-    *   `platform/`: Contains platform-specific code to abstract away the differences between the Node.js and browser environments. This includes things like networking, storage, and timers. This allows the core logic of the SDK to be platform-agnostic.
-    *   `protos/`: Contains the Protocol Buffer (`.proto`) definitions that describe the gRPC API surface of the Firestore backend. These files are used to generate the client-side networking code.
+    *   `api/`: **API Surface**. Implements the public API (e.g., `doc`, `collection`, `onSnapshot`).
+        *   `database.ts`: The entry point for the `Firestore` class.
+        *   `reference.ts`: Implements `DocumentReference` and `CollectionReference`.
+    *   `core/`: **Sync Engine**. Contains the high-level orchestration logic.
+        *   `sync_engine.ts`: The central coordinator. It manages the "User World" <-> "System World" bridge, `TargetID` allocation, and the main async queue.
+        *   `event_manager.ts`: Handles `QueryListener` registration, fan-out (deduplication of identical queries), and raising snapshot events to the user.
+        *   `query.ts`: Defines the internal `Query` and `Target` models.
+        *   `firestore_client.ts`: The initialization logic that wires up the components.
+    *   `local/`: **Storage and Query Execution**. Manages persistence, caching, and local execution.
+        *   `local_store.ts`: The main interface for the Core layer to interact with storage. It coordinates the components below.
+        *   `indexeddb_persistence.ts`: The implementation of the [Persistence Schema](./persistence-schema.md) using IndexedDB.
+        *   `local_documents_view.ts`: Implements the logic to assemble the user-facing view (`RemoteDoc` + `Mutation`).
+        *   `query_engine.ts`: The optimizer that decides how to scan the cache.
+        *   `lru_garbage_collector.ts` & `reference_delegate.ts`: Implements the Sequence Number logic to clean up old data.
+    *   `remote/`: **Network**. Handles gRPC/REST communication.
+        *   `remote_store.ts`: Manages the "Watch Stream" (listening to queries) and the "Commit Stream" (sending mutations).
+        *   `connection.ts`: Abstracts the underlying networking transport.
+        *   `serializer.ts`: Converts between internal model objects and the Protobuf format used by the backend.
+    *   `model/`: Defines the immutable data structures used throughout the SDK (e.g., `DocumentKey`, `FieldPath`, `Mutation`).
+    *   `util/`: General purpose utilities (AsyncQueue, Assertions, Types).
 *   `lite/`: Defines the entrypoint code for the `@firebase/firestore/lite` package.
 *   `test/`: Contains all unit and integration tests for the SDK. The tests are organized by component and feature, and they are essential for ensuring the quality and correctness of the code.
 *   `scripts/`: Contains a collection of build and maintenance scripts used for tasks such as bundling the code, running tests, and generating documentation.

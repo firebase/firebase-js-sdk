@@ -11,18 +11,20 @@ The SDK is composed of several key components that work together to provide the 
 *   **API Layer**: The public-facing API surface that developers use to interact with the SDK. This layer is responsible for translating the public API calls into the internal data models and passing them to the appropriate core components.
 *   **Core**:
     *   **Event Manager**: Acts as a central hub for all eventing in the SDK. It is responsible for routing events between the API Layer and Sync Engine. It manages query listeners and is responsible for raising snapshot events, as well as handling connectivity changes and some query failures.
-    *   **Sync Engine**: The central controller of the SDK. It acts as the glue between the Event Manager, Local Store, and Remote Store. Its responsibilities include:
-        *   Coordinating and translating client requests and remote events from the backend.
-        *   Initiating responses to user code from both remote events (backend updates) and local events (e.g. garbage collection).
-        *   Managing a "view" for each query, which represents the unified view between the local and remote data stores. The Sync Engine builds the user-facing "View" using the formula: `View = Remote Document + Overlay`. A **Remote Document** is the authoritative state from the backend. An **Overlay** is A computed "delta" representing pending local mutations. Overlays are calculated immediately when a mutation is applied and persisted separately. This allows for zero-latency "Optimistic Updates."
-        *   Deciding whether a document is in a "limbo" state (e.g. its state is unknown) and needs to be fetched from the backend.
-        *   Notifying the Remote Store when the Local Store has new mutations that need to be sent to the backend.
+*   **Sync Engine**: The central controller of the SDK. It acts as the glue between the Event Manager, Local Store, and Remote Store.
+    *   **Coordinator**: It bridges the **User World** (Query) and **System World** (Target), converting public API calls into internal `TargetIDs`.
+    *   **View Construction**: It manages the user-facing view using the formula: `View = Remote Document + Overlay`.
+        *   **Remote Document**: The authoritative state from the backend.
+        *   **Overlay**: A computed delta representing pending local mutations.
+    *   **Limbo Resolution**: It detects "Limbo" documents (local matches not confirmed by server) and initiates resolution flows to verify their existence.
+    *   **Lifecycle Management**: It controls the [Query Lifecycle](./query-lifecycle.md), managing the initialization of streams, the persistence of data, and garbage collection eligibility.
 *   **Local Store**: A container for the components that manage persisted and in-memory data.
     *   **Remote Table**: A cache of the most recent version of documents as known by the Firestore backend (A.K.A. Remote Documents).
     *   **Mutation Queue**: A queue of all the user-initiated writes (set, update, delete) that have not yet been acknowledged by the Firestore backend.
     *   **Local View**: A cache that represents the user's current view of the data, combining the Remote Table with the Mutation Queue.
     *   **Query Engine**: Determines the most efficient strategy (Index vs. Scan) to identify documents matching a query in the local cache.
     *   **Overlays**: A performance-optimizing cache that stores the calculated effect of pending mutations from the Mutation Queue on documents. Instead of re-applying mutations every time a document is read, the SDK computes this "overlay" once and caches it, allowing the Local View to be constructed more efficiently.
+    * For a detailed breakdown of the IndexedDB structure and tables, see [Persistence Schema](./persistence-schema.md).
 *   **Remote Store**: The component responsible for all network communication with the Firestore backend. It manages the gRPC streams for reading and writing data, and it abstracts away the complexities of the network protocol from the rest of the SDK.
 *   **Persistence Layer**: The underlying storage mechanism used by the Local Store to persist data on the client. In the browser, this is implemented using IndexedDB.
 
@@ -89,3 +91,5 @@ Here's a step-by-step walkthrough of how data flows through the SDK for a write 
 9.  **Sync Engine**: The Sync Engine is notified of the updated documents. It re-calculates the query view by combining the new data from the Remote Table with any applicable pending mutations from the **Mutation Queue**.
 10. **API Layer**: If the query results have changed after this reconciliation, the new results are sent to the user's `onSnapshot` callback. This is why a listener may fire twice initially.
 11. **Real-time Updates**: From now on, any changes on the backend that affect the query are pushed to the Remote Store, which updates the Remote Table, triggering the Sync Engine to re-calculate the view and notify the listener.
+
+**Note on Query Lifecycle:** The steps above describe the "Happy Path" of a query starting up. For details on how queries are deduplicated, how the data persists after a listener is removed, and how Garbage Collection eventually cleans it up, see the [Query Lifecycle](query-lifecycle.md).
