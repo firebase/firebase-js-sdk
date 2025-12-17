@@ -41,7 +41,7 @@ When a query runs (initially or after a remote update), the **Local Store** perf
     *   *Deep Dive*: For details on Index Scans, Full Scans, and Optimization strategies, see [Query Execution & Indexing](./query-execution.md).
 2.  **Base State**: The store retrieves the confirmed server state from the `remote_documents` table.
 3.  **Overlay Application**:
-    *   The store checks the `mutation_queues` for any pending writes associated with these keys.
+    *   The store checks the `mutation_queue` for any pending writes associated with these keys.
     *   These mutations are converted into **Overlays**.
     *   The Overlay is applied on top of the Remote Document.
 4.  **Projection**: The final composed documents are sent to the Event Manager.
@@ -94,5 +94,5 @@ For a detailed walkthrough of the algorithm, Sequence Numbers, and Orphaned Docu
 If you are debugging a **"Zombie Document"** (data appearing that should be gone) or **"Missing Data"**:
 
 1.  **Check `targets`**: Is there an active target (valid `resumeToken`) covering that document?
-2.  **Check `mutation_queues`**: Is there a pending mutation (BatchID) that hasn't been acknowledged? This creates an Overlay that persists even if the remote doc is deleted.
+2.  **Check `mutation_queue`**: Is there a pending mutation (BatchID) that hasn't been acknowledged? This creates an Overlay that persists even if the remote doc is deleted.
 3.  **Check `target_documents`**: Is the document explicitly linked to a TargetID that you thought was closed?
