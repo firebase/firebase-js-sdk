@@ -89,8 +89,6 @@ describe('FirebaseErrorHandler', () => {
   });
 
   it('should log the error to the console', async () => {
-    await router.navigate(['/static-route']);
-
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
     expect(getCrashlyticsStub).to.have.been.called;
