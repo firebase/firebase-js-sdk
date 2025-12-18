@@ -70,6 +70,8 @@
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
   },
   "peerDependencies": {
+    "@angular/core": ">= 14.0.0",
+    "@angular/router": ">= 14.0.0",
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
     "@types/react": "17.x || 18.x || 19.x",
