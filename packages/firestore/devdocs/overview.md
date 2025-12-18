@@ -56,4 +56,5 @@ To navigate the internals of the SDK, use the following guide:
 *   **[Code Layout](./code-layout.md)**: Maps the architectural components to specific source files and directories.
 *   **[Build Process](./build.md)**: How to build the artifacts.
 *   **[Testing](./testing.md)**: How to run unit and integration tests.
+*   **[Spec Tests](./spec-tests.md)**: Deep dive into the cross-platform JSON test suite.
 *   **[Contributing](../CONTRIBUTING.md)**: How to run unit and integration tests.
