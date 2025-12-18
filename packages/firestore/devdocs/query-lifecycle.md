@@ -59,13 +59,16 @@ As the **Remote Store** receives snapshot events from the backend, the Sync Engi
 4.  If the view changes, Event Manager fires the user callback.
 
 ### The Limbo State
-Limbo occurs when the local cache believes a document matches a query, but the server snapshot says otherwise (or is silent about it).
+Limbo occurs when the local cache holds a document that the server implies should not be there (usually detected via an **Existence Filter Mismatch**).
 
-1.  **Detection**: During snapshot processing, the Sync Engine notices a locally matching document is missing from the server's update. The document enters **Limbo**.
-2.  **Resolution**: The Sync Engine implicitly spins up a secondary "Limbo Resolution" listener specifically for that document's key.
-3.  **Verification**:
-    *   If the server confirms the document exists: It is updated in `remote_documents` and stays in the view.
-    *   If the server returns "Not Found" or the document no longer matches: It is removed from the local cache and the view.
+1.  **Detection**: The Sync Engine compares the server's count of matching documents against the local count. If they disagree, it initiates the resolution process.
+2.  **Resolution**: The SDK uses **Bloom Filters** to identify exactly which local documents are stale. These documents enter "Limbo."
+3.  **Verification**: The Sync Engine spins up a targeted listener for the Limbo documents.
+    *   If the server returns the document: It is updated.
+    *   If the server returns "Not Found": It is removed from the view.
+
+*For a detailed explanation of Resume Tokens, Bloom Filters, and the mechanics of this process, see **[Limbo Resolution](./limbo-resolution.md)**.*
+
 
 ## Phase 5: Teardown (Stop Listening)
 

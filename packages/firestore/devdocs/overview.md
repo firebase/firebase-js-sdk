@@ -49,6 +49,7 @@ To navigate the internals of the SDK, use the following guide:
 *   **[Garbage Collection](./garbage-collection.md)**: Details the LRU algorithm, Sequence Numbers, and how the SDK manages cache size.
 *   **[Query Execution](./query-execution.md)**: Details on the algorithms used by the Local Store to execute queries (Index Scans vs. Full Collection Scans).
 *   **[Transactions](./transactions.md)**: How the SDK implements Optimistic Concurrency Control, retries, and the online-only write pipeline.
+*   **[Limbo Resolution](./limbo-resolution.md)**: How the SDK detects and cleans up stale data using Existence Filters and Bloom Filters.
 *   **[Bundles](./bundles.md)**: How the SDK loads and processes data bundles.
 
 ### Developer Guides
