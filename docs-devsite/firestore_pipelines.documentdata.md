@@ -9,12 +9,11 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# firestore package
-Cloud Firestore
+# DocumentData interface
+Document data (for use with [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->) consists of fields mapped to values.
 
-|  Entry Point | Description |
-|  --- | --- |
-|  [/](./firestore_.md#@firebase/firestore) |  |
-|  [/lite](./firestore_lite.md#@firebase/firestore/lite) |  |
-|  [/pipelines](./firestore_pipelines.md#@firebase/firestore/pipelines) |  |
+<b>Signature:</b>
 
+```typescript
+export declare interface DocumentData 
+```
