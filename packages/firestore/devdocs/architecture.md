@@ -60,8 +60,11 @@ All data modifications—creates, updates, and deletes—are treated as "writes.
 
 *   **One-Time Writes**: When a user performs a write (create, update, or delete), the operation is not sent directly to the backend. Instead, it's treated as a "mutation" and added to the local **Mutation Queue**. The SDK "optimistically" assumes the write will succeed on the backend and immediately reflects the change in the local view of the data, making the change visible to local queries. The SDK then works to synchronize this queue with the backend. This design is crucial for supporting offline functionality, as pending writes can be retried automatically when network connectivity is restored.
 
-*   **Transactions**: For grouping multiple write operations into a single atomic unit, the SDK provides `runTransaction`. Unlike standard writes, transactions do not use the optimistic, offline-capable write pipeline. Instead, they are sent directly to the backend, which requires an active internet connection. This ensures atomicity but means transactions do not benefit from the offline capabilities of the standard write pipeline.
-
+*   **Transactions**: For grouping multiple write operations into a single atomic unit, the SDK provides `runTransaction`. Unlike standard writes, transactions do not use the optimistic, offline-capable write pipeline (Mutation Queue). Instead, they use an **Optimistic Concurrency Control** mechanism dependent on the backend.
+    *   They are **Online-only**: Reads and writes communicate directly with the backend via RPCs.
+    *   They are **Atomic**: All operations succeed or fail together.
+    *   They are **Retriable**: The SDK automatically retries the transaction if the underlying data changes on the server during execution.
+    *   For implementation details, see [Transactions](./transactions.md).
 
 # Data Flow
 
