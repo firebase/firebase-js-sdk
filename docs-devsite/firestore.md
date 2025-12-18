@@ -16,5 +16,6 @@ Cloud Firestore
 |  --- | --- |
 |  [/](./firestore_.md#@firebase/firestore) |  |
 |  [/lite](./firestore_lite.md#@firebase/firestore/lite) |  |
+|  [/lite/pipelines](./firestore_lite_pipelines.md#@firebase/firestore/lite/pipelines) |  |
 |  [/pipelines](./firestore_pipelines.md#@firebase/firestore/pipelines) |  |
 
