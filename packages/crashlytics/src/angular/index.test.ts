@@ -37,6 +37,7 @@ import {
   BrowserTestingModule,
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
+import { CrashlyticsService } from '../service';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -93,28 +94,28 @@ describe('FirebaseErrorHandler', () => {
     const testError = new Error('Test error message');
     errorHandler.handleError(testError);
     expect(getCrashlyticsStub).to.have.been.called;
-    expect(recordErrorStub).to.have.been.calledWith(
-      fakeCrashlytics,
-      testError,
-      {
-        'angular_route_path': '/static-route'
-      }
-    );
+    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, testError);
   });
 
-  it('should remove dynamic content from route', async () => {
-    await router.navigate(['/dynamic/my-name/route']);
+  describe('frameworkAttributesProvider', () => {
+    it('should report framework attributes', async () => {
+      await router.navigate(['/static-route']);
 
-    const testError = new Error('Test error message');
-    errorHandler.handleError(testError);
-    expect(recordErrorStub).to.have.been.called;
-    expect(recordErrorStub).to.have.been.calledWith(
-      fakeCrashlytics,
-      testError,
-      {
-        // eslint-disable-next-line camelcase
-        angular_route_path: '/dynamic/:id/route'
-      }
-    );
+      expect(
+        (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
+      ).to.deep.equal({
+        'angular_route_path': '/static-route'
+      });
+    });
+
+    it('should remove dynamic content from route', async () => {
+      await router.navigate(['/dynamic/my-name/route']);
+
+      expect(
+        (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
+      ).to.deep.equal({
+        'angular_route_path': '/dynamic/:id/route'
+      });
+    });
   });
 });
