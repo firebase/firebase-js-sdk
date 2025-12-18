@@ -85,6 +85,14 @@ export function recordError(
   );
   const customAttributes = attributes || {};
 
+  // Add framework-specific metadata
+  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
+    .frameworkAttributesProvider;
+  if (frameworkAttributesProvider) {
+    const frameworkAttributes = frameworkAttributesProvider();
+    Object.assign(customAttributes, frameworkAttributes);
+  }
+
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
   if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
