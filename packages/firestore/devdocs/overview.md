@@ -1,6 +1,6 @@
 # Firestore JavaScript SDK Overview
 
-This document is the starting point for navigating the Firestore JavaScript SDK codebase documentation. It provides a high-level overview of the SDK, how it is built, tested, and the developer workflow.
+This document is the starting point for navigating the Firestore JavaScript SDK codebase documentation. It provides a high-level overview of the SDK, how it is architected, works with the backend, and how to contribute to it.
 
 All contributors are expected to be familiar with the [prerequisites](./prerequisites.md) before working in this codebase.
 
@@ -26,19 +26,19 @@ Firestore is designed to help developers build responsive front-end applications
 
 *This means the "Happy Path" handles latency automatically. You don't write special code to manage loading states for every interaction; the SDK provides instant feedback by default.*
 
-
-
 ## Operational Modes
 
 At a high level, all interactions with Firestore can be categorized as either reading or writing data. The SDK provides different mechanisms for these operations, each with distinct guarantees and performance characteristics.
 
 ### Read Operations
 
-There are two fundamental ways to read data from Firestore:
+There are three fundamental ways to read data from Firestore:
 
 *   **One-Time Reads**: This is for fetching a snapshot of data at a specific moment. It's a simple request-response model. You ask for a document or the results of a query, and the server sends back the data as it exists at that instant.
 
 *   **Real-Time Listeners**: This allows you to subscribe to a document or a query. The server first sends you the initial data and then continues to push updates to your client in real time as the data changes. This is the foundation of Firestore's real-time capabilities.
+
+*   **Data Bundles**: Designed for Server-Side Rendering (SSR) or bulk data loading. The SDK ingests a serialized "bundle" of documents and queries, populating the local cache *before* any listeners are attached. This allows the application to start with immediate data availability without waiting for the initial network roundtrip. See [Bundles](./bundles.md).
 
 ### Write Operations
 
