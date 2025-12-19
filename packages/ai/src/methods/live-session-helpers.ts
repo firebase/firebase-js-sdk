@@ -29,6 +29,7 @@ import { Deferred } from '@firebase/util';
 
 const SERVER_INPUT_SAMPLE_RATE = 16_000;
 const SERVER_OUTPUT_SAMPLE_RATE = 24_000;
+const VIDEO_FRAME_RATE = 1; // Backend requires 1 FPS.
 
 const AUDIO_PROCESSOR_NAME = 'audio-processor';
 
@@ -159,6 +160,8 @@ export class AudioConversationRunner {
     private readonly deps: RunnerDependencies
   ) {
     this.liveSession.inConversation = true;
+    // For backward compatibility.
+    this.liveSession.inConversation = true;
 
     // Start listening for messages from the server.
     this.receiveLoopPromise = this.runReceiveLoop().finally(() =>
@@ -213,6 +216,7 @@ export class AudioConversationRunner {
     if (this.deps.audioContext.state !== 'closed') {
       void this.deps.audioContext.close();
     }
+    this.liveSession.inConversation = false;
     this.liveSession.inConversation = false;
   }
 
@@ -492,6 +496,251 @@ export async function startAudioConversation(
     throw new AIError(
       AIErrorCode.ERROR,
       `Failed to initialize audio recording: ${(e as Error).message}`
+    );
+  }
+}
+
+/**
+ * A controller for managing an active video recording session.
+ *
+ * @beta
+ */
+export interface VideoRecordingController {
+  /**
+   * Stops the video recording, closes the media connection, and
+   * cleans up resources. Returns a promise that resolves when cleanup is complete.
+   */
+  stop: () => Promise<void>;
+}
+
+/**
+ * Options for `startVideoRecording`.
+ *
+ * @beta
+ */
+export interface StartVideoRecordingOptions {
+  /**
+   * Specifies the source of the video stream. Can be either the user's camera or their screen (screen, window, or a tab). Is `'camera'` by default.
+   */
+  videoSource?: 'camera' | 'screen';
+}
+
+/**
+ * Encapsulates the core logic of a video recording session, managing the
+ * capture loop and resource cleanup.
+ * @internal
+ */
+class VideoRecordingRunner {
+  private isStopped = false;
+  private readonly mediaStream: MediaStream;
+  private readonly videoElement: HTMLVideoElement;
+  private readonly canvasElement: HTMLCanvasElement;
+  private readonly intervalId: number;
+
+  constructor(
+    private readonly liveSession: LiveSession,
+    mediaStream: MediaStream,
+    videoElement: HTMLVideoElement
+  ) {
+    this.mediaStream = mediaStream;
+    this.videoElement = videoElement;
+    this.liveSession.inVideoRecording = true;
+
+    this.canvasElement = document.createElement('canvas');
+
+    // Start a loop to capture and send a frame every second (1 FPS),
+    // adhering to the backend's requirement.
+    this.intervalId = setInterval(() => {
+      this.captureAndSendFrame();
+    }, 1000 / VIDEO_FRAME_RATE) as unknown as number; // The Node setInterval returns a Timeout, but we're using the browser API which returns number.
+  }
+
+  /**
+   * Captures a single frame from the video stream, encodes it as a JPEG,
+   * and sends it to the LiveSession.
+   */
+  private captureAndSendFrame(): void {
+    if (this.isStopped) {
+      return;
+    }
+    // readyState < 2 means the video is not yet ready to play or has not loaded metadata.
+    // videoWidth === 0 is another check to ensure dimensions are available.
+    if (
+      this.videoElement.readyState < 2 ||
+      this.videoElement.videoWidth === 0
+    ) {
+      return;
+    }
+    this.canvasElement.width = this.videoElement.videoWidth;
+    this.canvasElement.height = this.videoElement.videoHeight;
+    const context = this.canvasElement.getContext('2d');
+    if (!context) {
+      // This should realistically never happen in a supported browser environment.
+      logger.error(
+        'Could not get 2D context from canvas to capture video frame.'
+      );
+      return;
+    }
+    context.drawImage(this.videoElement, 0, 0);
+
+    // Convert the canvas content to a base64 JPEG. The '0.8' is a quality setting,
+    // balancing file size and image quality.
+    const dataUrl = this.canvasElement.toDataURL('image/jpeg', 0.8);
+    // The data URL includes a prefix like "data:image/jpeg;base64," which must be removed.
+    const base64Data = dataUrl.split(',')[1];
+    if (!base64Data) {
+      logger.warn('Failed to extract base64 data from captured video frame.');
+      return;
+    }
+    const blob: GenerativeContentBlob = {
+      mimeType: 'image/jpeg',
+      data: base64Data
+    };
+    // Send the frame to the server. We use 'void' as this is a fire-and-forget
+    // operation within the loop. Errors at the session level should be handled by the user.
+    void this.liveSession.sendVideoRealtime(blob);
+  }
+
+  /**
+   * Stops the video capture loop and cleans up all associated resources.
+   */
+  async stop(): Promise<void> {
+    if (this.isStopped) {
+      return;
+    }
+    this.isStopped = true;
+    clearInterval(this.intervalId);
+
+    // Stop all tracks on the media stream (e.g., camera light turns off, screen sharing UI disappears).
+    this.mediaStream.getTracks().forEach(track => track.stop());
+
+    // Clean up in-memory video element to release resources.
+    this.videoElement.srcObject = null;
+
+    // Reset the session flag to allow a new recording to start on the same session.
+    this.liveSession.inVideoRecording = false;
+  }
+}
+
+/**
+ * Starts a real-time, unidirectional video stream to the model. This helper function manages
+ * the complexities of video source access, frame capture, and encoding.
+ *
+ * @remarks
+ * Important: This function must be called in response to a user gesture
+ * (e.g., a button click) to comply with browser security policies for
+ * accessing camera or screen content. The backend requires video frames to be
+ * sent at 1 FPS as individual JPEGs. This helper enforces that constraint.
+ *
+ * @example
+ * ```javascript
+ * const liveSession = await model.connect();
+ * let videoController;
+ *
+ * // This function must be called from within a click handler.
+ * async function startRecording() {
+ *   try {
+ *     videoController = await startVideoRecording(liveSession, {
+ *       videoSource: 'screen' // or 'camera'
+ *     });
+ *   } catch (e) {
+ *     // Handle AI-specific errors, DOMExceptions for permissions, etc.
+ *     console.error("Failed to start video recording:", e);
+ *   }
+ * }
+ *
+ * // To stop the recording later:
+ * // if (videoController) {
+ * //   await videoController.stop();
+ * // }
+ * ```
+ *
+ * @param liveSession - An active {@link LiveSession} instance.
+ * @param options - Configuration options for the video recording.
+ * @returns A `Promise` that resolves with a `VideoRecordingController`.
+ * @throws `AIError` if the environment is unsupported, a recording is active, or the session is closed.
+ * @throws `DOMException` if issues occur with media access (e.g., permissions denied).
+ *
+ * @beta
+ */
+export async function startVideoRecording(
+  liveSession: LiveSession,
+  options: StartVideoRecordingOptions = {}
+): Promise<VideoRecordingController> {
+  if (liveSession.isClosed) {
+    throw new AIError(
+      AIErrorCode.SESSION_CLOSED,
+      'Cannot start video recording on a closed LiveSession.'
+    );
+  }
+
+  if (liveSession.inVideoRecording) {
+    throw new AIError(
+      AIErrorCode.REQUEST_ERROR,
+      'A video recording is already in progress for this session.'
+    );
+  }
+
+  // Check for necessary browser API support.
+  if (
+    typeof navigator === 'undefined' ||
+    !navigator.mediaDevices ||
+    typeof document === 'undefined' // Used for creating in-memory elements
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      'Video recording is not supported in this environment. It requires a browser with MediaDevices and DOM support.'
+    );
+  }
+
+  let mediaStream: MediaStream | undefined;
+  try {
+    const videoSource = options.videoSource ?? 'camera';
+
+    // The browser will prompt the user for permission and to select a source.
+    // This can throw DOMExceptions for permission denial, hardware issues, etc.
+    if (videoSource === 'camera') {
+      mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    } else {
+      mediaStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true
+      });
+    }
+
+    // Create and configure the video element in memory.
+    const videoElement = document.createElement('video');
+    videoElement.srcObject = mediaStream;
+    videoElement.muted = true;
+
+    // Await the play() promise. This is required to handle potential
+    // playback errors and to satisfy browser autoplay policies, although
+    // the user gesture requirement for this function should prevent most issues.
+    await videoElement.play();
+
+    // All async setup is successful; now create the runner to manage the loop.
+    const runner = new VideoRecordingRunner(
+      liveSession,
+      mediaStream,
+      videoElement
+    );
+    return { stop: () => runner.stop() };
+  } catch (e) {
+    // If we successfully acquired a media stream but a subsequent step failed
+    // (e.g., videoElement.play()), we must clean up the stream.
+    if (mediaStream) {
+      mediaStream.getTracks().forEach(track => track.stop());
+    }
+
+    // Re-throw specific, known error types that the user might want to handle differently,
+    // such as permission errors from `getUserMedia`.
+    if (e instanceof AIError || e instanceof DOMException) {
+      throw e;
+    }
+
+    // Wrap any other unexpected errors in a standard AIError for consistency.
+    throw new AIError(
+      AIErrorCode.ERROR,
+      `Failed to initialize video recording: ${(e as Error).message}`
     );
   }
 }

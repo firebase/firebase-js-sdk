@@ -59,7 +59,10 @@ export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
 export {
   startAudioConversation,
   AudioConversationController,
-  StartAudioConversationOptions
+  StartAudioConversationOptions,
+  startVideoRecording,
+  StartVideoRecordingOptions,
+  VideoRecordingController
 } from './methods/live-session-helpers';
 
 declare module '@firebase/component' {
