@@ -12,6 +12,7 @@ The SDK is composed of several key components that work together to provide the 
 *   **Core**:
     *   **Event Manager**: Acts as a central hub for all eventing in the SDK. It is responsible for routing events between the API Layer and Sync Engine. It manages query listeners and is responsible for raising snapshot events, as well as handling connectivity changes and some query failures.
 *   **Sync Engine**: The central controller of the SDK. It acts as the glue between the Event Manager, Local Store, and Remote Store.
+    *   **Target**: The backend protocol's internal representation of a recurring Query. While a `Query` is a user-intent (e.g., "users where age > 18"), a `Target` is the allocated stream ID (`TargetID`) that the Watch implementation uses to track that query's state over the network. The **Coordinator** maps ephemeral user Queries to stable system Targets.
     *   **Coordinator**: It bridges the **User World** (Query) and **System World** (Target), converting public API calls into internal `TargetIDs`.
     *   **View Construction**: It manages the user-facing view using the formula: `View = Remote Document + Overlay`.
         *   **Remote Document**: The authoritative state from the backend.

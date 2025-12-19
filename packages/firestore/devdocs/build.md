@@ -1,3 +1,5 @@
 # Build Process
 
-This document provides a detailed explanation of the Firestore JavaScript SDK build process for the main and lite packages.
+> **Note**: This documentation is currently under construction and will be updated soon.
+
+For current build instructions, test commands, and setup, please go to [CONTRIBUTING.md](../CONTRIBUTING.md).

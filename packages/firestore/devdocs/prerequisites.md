@@ -23,7 +23,7 @@ Before contributing to this codebase, you should have a strong understanding of 
 
 ### Domain Knowledge
 
-*   **[Google Cloud Firestore](https://firebase.google.com/docs/firestore):** A deep understanding of Firestore's data model (documents, collections, subcollections), query language, and security rules is fundamental.
+*   **[Google Cloud Firestore](https://firebase.google.com/docs/firestore):** A general understanding of Firestore's data model (documents, collections, subcollections), query language, and security rules is fundamental.
 *   **Databases:** A general understanding of databases, including key-value stores and relational databases, is helpful for understanding Firestore's design and trade-offs.
 *   **Modern Web Application Architecture:** Familiarity with modern web application architecture and also server-side rendering (SSR), is beneficial for understanding how the SDK is used in practice.
 *   **[Firebase](https://firebase.google.com/docs):** Familiarity with the Firebase platform is required, especially Firebase Auth and Firebase Functions.

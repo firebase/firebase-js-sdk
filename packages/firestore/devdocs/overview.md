@@ -16,11 +16,21 @@ The primary goals of this SDK are:
 *   Offer a lightweight version for applications that do not require advanced features.
 *   Maintain API and architectural symmetry with the [Firestore Android SDK](https://github.com/firebase/firebase-android-sdk) and [Firestore iOS SDK](https://github.com/firebase/firebase-ios-sdk). This consistency simplifies maintenance and makes it easier to port features between platforms. The public API is intentionally consistent across platforms, even if it means being less idiomatic, to allow developers to more easily port their application code.
 
+## Designed for Flicker-Free Responsiveness
+
+Firestore is designed to help developers build responsive front-end applications that eliminate UI flicker.
+
+1.  **Immediate Cache Results**: The SDK returns query results from the local cache immediately, while fetching the latest data from the server in the background.
+2.  **Optimistic Updates**: Writes are applied to the local cache *instantly*, allowing the UI to update without waiting for network confirmation.
+3.  **Background Synchronization**: The SDK handles the network communication to commit these changes to the backend asynchronously.
+
+*This means the "Happy Path" handles latency automatically. You don't write special code to manage loading states for every interaction; the SDK provides instant feedback by default.*
+
 
 ## Key Concepts & Vocabulary
 
 *   **Query**: The client-side representation of a data request (filters, order bys).
-*   **Target**: The backend's representation of a Query. The SDK allocates a unique integer `TargetID` for every unique query to manage the real-time stream.
+
 *   **Mutation**: A user-initiated change (Set, Update, Delete). Mutations are queued locally and sent to the backend.
 *   **Overlay**: The computed result of applying a Mutation to a Document. We store these to show "Optimistic Updates" instantly without modifying the underlying "Remote Document" until the server confirms the write.
 *   **Limbo**: A state where a document exists locally and matches a query, but the server hasn't explicitly confirmed it belongs to the current snapshot version. The SDK must perform "Limbo Resolution" to ensure these documents are valid.
@@ -38,6 +48,9 @@ The Firestore JavaScript SDK is divided into two main packages:
 ## Documentation Map
 
 To navigate the internals of the SDK, use the following guide:
+
+### Getting Started (Build & Run)
+*   **[Start Here: Build & Run](../CONTRIBUTING.md)**: How to set up the repo, build the SDK, and run tests.
 
 ### Core Concepts
 *   **[Architecture](./architecture.md)**: The high-level block diagram of the system (API -> Core -> Local -> Remote).
@@ -57,4 +70,3 @@ To navigate the internals of the SDK, use the following guide:
 *   **[Build Process](./build.md)**: How to build the artifacts.
 *   **[Testing](./testing.md)**: How to run unit and integration tests.
 *   **[Spec Tests](./spec-tests.md)**: Deep dive into the cross-platform JSON test suite.
-*   **[Contributing](../CONTRIBUTING.md)**: How to run unit and integration tests.

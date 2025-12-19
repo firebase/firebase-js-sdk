@@ -1,4 +1,4 @@
-# Build Process
+# Testing Strategy
 
 This document provides a detailed explanation of the Firestore JavaScript SDK testing strategy, tech stack, and patterns and practices.
 
@@ -27,21 +27,5 @@ The Firestore JS SDK employs a three-tiered testing strategy to ensure reliabili
 *   **Purpose**: Verifying that the client protocol actually matches what the real backend server expects.
 *   **Behavior**: These tests create real writes and listeners. They are slower and subject to network timing, but essential for catching protocol drifts.
 
-## Running Tests
-
-### Unit & Spec Tests
-Run via Karma.
-```bash
-yarn test
-```
-
-### Integration Tests
-Requires the Firebase Emulator Suite running.
-```bash
-# Start emulators
-yarn emulators:start
-
-# In another terminal, run integration tests
-yarn test:integration
-```
+> **Note**: For instructions on how to run these tests, see **[CONTRIBUTING.md](../CONTRIBUTING.md)**.
 
