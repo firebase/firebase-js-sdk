@@ -27,6 +27,31 @@ Firestore is designed to help developers build responsive front-end applications
 *This means the "Happy Path" handles latency automatically. You don't write special code to manage loading states for every interaction; the SDK provides instant feedback by default.*
 
 
+
+## Operational Modes
+
+At a high level, all interactions with Firestore can be categorized as either reading or writing data. The SDK provides different mechanisms for these operations, each with distinct guarantees and performance characteristics.
+
+### Read Operations
+
+There are two fundamental ways to read data from Firestore:
+
+*   **One-Time Reads**: This is for fetching a snapshot of data at a specific moment. It's a simple request-response model. You ask for a document or the results of a query, and the server sends back the data as it exists at that instant.
+
+*   **Real-Time Listeners**: This allows you to subscribe to a document or a query. The server first sends you the initial data and then continues to push updates to your client in real time as the data changes. This is the foundation of Firestore's real-time capabilities.
+
+### Write Operations
+
+All data modifications—creates, updates, and deletes—are treated as "writes." The SDK is designed to make writes atomic and resilient. There are two fundamental ways to write data to Firestore:
+
+*   **One-Time Writes**: When a user performs a write (create, update, or delete), the operation is not sent directly to the backend. Instead, it's treated as a "mutation" and added to the local **Mutation Queue**. The SDK "optimistically" assumes the write will succeed on the backend and immediately reflects the change in the local view of the data, making the change visible to local queries. The SDK then works to synchronize this queue with the backend. This design is crucial for supporting offline functionality, as pending writes can be retried automatically when network connectivity is restored.
+
+*   **Transactions**: For grouping multiple write operations into a single atomic unit, the SDK provides `runTransaction`. Unlike standard writes, transactions do not use the optimistic, offline-capable write pipeline (Mutation Queue). Instead, they use an **Optimistic Concurrency Control** mechanism dependent on the backend.
+    *   They are **Online-only**: Reads and writes communicate directly with the backend via RPCs.
+    *   They are **Atomic**: All operations succeed or fail together.
+    *   They are **Retriable**: The SDK automatically retries the transaction if the underlying data changes on the server during execution.
+    *   For implementation details, see [Transactions](./transactions.md).
+
 ## Key Concepts & Vocabulary
 
 *   **Query**: The client-side representation of a data request (filters, order bys).

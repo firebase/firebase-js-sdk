@@ -40,32 +40,6 @@ The architecture and systems within the SDK map closely to the directory structu
 
 For a more detailed explanation of the contents of each directory, see the [Code Layout](./code-layout.md) documentation.
 
-## Overview of features
-
-At a high level, all interactions with Firestore can be categorized as either reading or writing data. The SDK provides different mechanisms for these operations, each with distinct guarantees and performance characteristics. There is also a special case of writing data called transactions detailed below.
-
-
-### Read Operations
-
-There are two fundamental ways to read data from Firestore:
-
-*   **One-Time Reads**: This is for fetching a snapshot of data at a specific moment. It's a simple request-response model. You ask for a document or the results of a query, and the server sends back the data as it exists at that instant.
-
-*   **Real-Time Listeners**: This allows you to subscribe to a document or a query. The server first sends you the initial data and then continues to push updates to your client in real time as the data changes. This is the foundation of Firestore's real-time capabilities.
-
-When a query is executed, the SDK immediately returns data from the local cache, which includes any pending optimistic writes from the **Mutation Queue**. This provides a fast, responsive experience. At the same time, the SDK sends the query to the Firestore backend to fetch the latest version of the documents. When the fresh documents arrive from the backend, the SDK takes these server-authoritative documents and re-applies any pending mutations from the local queue on top of them. It then re-runs the original query against this newly merged data. If the documents still match the query's criteria, they are delivered to the query listener again. This is a common occurrence and means a listener could see an event for the same document twice: first with the cached, optimistic data, and a second time after the backend data is reconciled.
-
-### Write Operations
-
-All data modifications—creates, updates, and deletes—are treated as "writes." The SDK is designed to make writes atomic and resilient.  There are two fundamental ways to write data to Firestore:
-
-*   **One-Time Writes**: When a user performs a write (create, update, or delete), the operation is not sent directly to the backend. Instead, it's treated as a "mutation" and added to the local **Mutation Queue**. The SDK "optimistically" assumes the write will succeed on the backend and immediately reflects the change in the local view of the data, making the change visible to local queries. The SDK then works to synchronize this queue with the backend. This design is crucial for supporting offline functionality, as pending writes can be retried automatically when network connectivity is restored.
-
-*   **Transactions**: For grouping multiple write operations into a single atomic unit, the SDK provides `runTransaction`. Unlike standard writes, transactions do not use the optimistic, offline-capable write pipeline (Mutation Queue). Instead, they use an **Optimistic Concurrency Control** mechanism dependent on the backend.
-    *   They are **Online-only**: Reads and writes communicate directly with the backend via RPCs.
-    *   They are **Atomic**: All operations succeed or fail together.
-    *   They are **Retriable**: The SDK automatically retries the transaction if the underlying data changes on the server during execution.
-    *   For implementation details, see [Transactions](./transactions.md).
 
 # Data Flow
 
