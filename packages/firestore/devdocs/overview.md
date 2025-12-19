@@ -83,6 +83,7 @@ To navigate the internals of the SDK, use the following guide:
 *   **[Write Lifecycle](./write-lifecycle.md)**: How writes work (Mutations, Batches, Overlays).
 
 ### Subsystem Deep Dives
+*   **[Watch System](./watch.md)**: Explains some of the backend architecture and its guarantees.
 *   **[Query Execution](./query-execution.md)**: Details on the algorithms used by the Local Store to execute queries (Index Scans vs. Full Collection Scans).
 *   **[Garbage Collection](./garbage-collection.md)**: Details the LRU algorithm, Sequence Numbers, and how the SDK manages cache size.
 *   **[Persistence Schema](./persistence-schema.md)**: A reference guide for the IndexedDB tables.
