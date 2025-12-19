@@ -16,7 +16,7 @@ It is critical to distinguish how the Client-Side SDKs (JS, Android, iOS) handle
     1.  **No Locks**: The SDK reads documents without acquiring a server-side lock.
     2.  **Preconditions**: When committing, the SDK sends the writes along with a **Precondition** (usually the `updateTime` of the document version that was read).
     3.  **Verification**: The backend verifies that the documents have not changed since they were read. If they have, the transaction fails.
-    4.  **Retry**: The SDK automatically retries the transaction function (up to 5 times) with exponential backoff.
+    4.  **Retry**: The SDK automatically retries the transaction function with exponential backoff.
 
 ### Why Optimistic?
 Mobile and Web clients have unreliable network connectivity. If a client acquired a Pessimistic Lock and then lost connectivity, that lock would block all other writers to that document until it timed out. Optimistic concurrency ensures that a single flaky client cannot paralyze the system for others.
@@ -30,7 +30,7 @@ The `runTransaction` function accepts an `updateFunction`. This function is exec
 
 ### 2. Reads (`get`)
 When a user reads a document inside a transaction:
-*   **Bypasses Cache**: The SDK does *not* look in `remote_documents` or `mutation_queue`. It forces a network fetch.
+*   **Bypasses Cache**: The SDK does *not* look in `remoteDocuments` (cache) or `mutationQueue` (local writes). It forces a network fetch.
 *   **RPC**: It uses the `BatchGetDocuments` RPC.
 *   **No Transaction ID**: Unlike server SDKs, the `BatchGetDocuments` request does **not** include a Transaction ID. It is a standard read.
 *   **Versioning**: The SDK records the `updateTime` and `key` of every document read. These will be used later for verification.
@@ -55,12 +55,13 @@ When the `updateFunction` completes successfully, the SDK attempts to commit.
 
 Transactions utilize a dedicated pathway in the `RemoteStore`/`Datastore` layer.
 
-1.  **API Layer**: `runTransaction` is called.
-2.  **Core**: `TransactionRunner` manages the retry loop and backoff.
+
+1.  **API Layer**: The user calls `runTransaction`.
+2.  **Core**: The **Transaction Runner** manages the retry loop and backoff.
 3.  **Remote Store**:
-    *   Standard queries use `WatchStream` (long-lived connection).
-    *   Standard writes use `CommitStream` (requires `mutation_queue` persistence).
-    *   **Transactions** use direct Unary RPCs (`BatchGetDocuments` and `Commit`) via the underlying `Datastore` helper.
+    *   Standard queries use the **Watch Stream** (long-lived connection).
+    *   Standard writes use the **Write Stream** (requires the local Mutation Queue).
+    *   **Transactions** use direct **Unary RPCs** (`BatchGetDocuments` and `Commit`) via the underlying Datastore layer.
 
 > [!WARNING]
 > **Consistency Warning**: Transactions use a different endpoint (`runTransaction`) than the standard `Listen` (Watch) system. As a result, they **do not** guarantee consistency with the Watch stream. A write committed via Watch might not be immediately visible to a transaction, and vice versa, due to the distributed nature of the backend.
