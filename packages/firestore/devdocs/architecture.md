@@ -42,7 +42,7 @@ For a more detailed explanation of the contents of each directory, see the [Code
 
 ## Overview of features
 
-At a high level, all interactions with Firestore can be categorized as either reading or writing data. The SDK provides different mechanisms for these operations, each with distinct guarantees and performance characteristics. There is also a special case of writing data called tansactions detailed below.
+At a high level, all interactions with Firestore can be categorized as either reading or writing data. The SDK provides different mechanisms for these operations, each with distinct guarantees and performance characteristics. There is also a special case of writing data called transactions detailed below.
 
 
 ### Read Operations
