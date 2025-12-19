@@ -62,6 +62,9 @@ Transactions utilize a dedicated pathway in the `RemoteStore`/`Datastore` layer.
     *   Standard writes use `CommitStream` (requires `mutation_queue` persistence).
     *   **Transactions** use direct Unary RPCs (`BatchGetDocuments` and `Commit`) via the underlying `Datastore` helper.
 
+> [!WARNING]
+> **Consistency Warning**: Transactions use a different endpoint (`runTransaction`) than the standard `Listen` (Watch) system. As a result, they **do not** guarantee consistency with the Watch stream. A write committed via Watch might not be immediately visible to a transaction, and vice versa, due to the distributed nature of the backend.
+
 ## Constraints
 
 *   **Online Only**: Because they bypass the local cache and require server-side verification, transactions require an active network connection. They will fail if the client is offline.

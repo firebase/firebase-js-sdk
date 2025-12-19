@@ -26,7 +26,10 @@ The SDK is composed of several key components that work together to provide the 
     *   **Query Engine**: Determines the most efficient strategy (Index vs. Scan) to identify documents matching a query in the local cache.
     *   **Overlays**: A performance-optimizing cache that stores the calculated effect of pending mutations from the Mutation Queue on documents. Instead of re-applying mutations every time a document is read, the SDK computes this "overlay" once and caches it, allowing the Local View to be constructed more efficiently.
     * For a detailed breakdown of the IndexedDB structure and tables, see [Persistence Schema](./persistence-schema.md).
-*   **Remote Store**: The component responsible for all network communication with the Firestore backend. It manages the gRPC streams for reading and writing data, and it abstracts away the complexities of the network protocol from the rest of the SDK.
+*   **Remote Store**: The component responsible for all network communication with the Firestore backend.
+    *   It manages the **Watch Stream** (see **[The Watch System](./watch.md)**) for reading and listening to data.
+    *   It manages the gRPC streams for writing data.
+    *   It abstracts away the complexities of the network protocol from the rest of the SDK.
 *   **Persistence Layer**: The underlying storage mechanism used by the Local Store to persist data on the client. In the browser, this is implemented using IndexedDB.
 
 The architecture and systems within the SDK map closely to the directory structure, which helps developers navigate the codebase. Here is a mapping of the core components to their corresponding directories.

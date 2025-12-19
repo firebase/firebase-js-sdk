@@ -32,7 +32,12 @@ To support efficient querying without blocking the main thread, the SDK utilizes
 
 ## Composite Queries (OR / IN)
 
-Queries using `OR` or `IN` are not executed as a single monolithic scan. The SDK transforms these into **Disjunctive Normal Form (DNF)**—essentially breaking them into multiple sub-queries.
+Queries using `OR` or `IN` are not executed as a single monolithic scan.
+
+> [!NOTE]
+> **Scalability & Watch**: While functionality exists to run these queries against the backend, the SDK implements **Disjunctive Normal Form (DNF)** transformation primarily to enable efficient **local** execution using simpler indexes (as seen in `IndexedDbIndexManager`). This allows the SDK to support complex queries offline or against the cache without requiring full table scans. [See Watch System](./watch.md) for more on the backend interaction.
+
+The SDK transforms these into **Disjunctive Normal Form (DNF)**—essentially breaking them into multiple sub-queries.
 
 *   **Execution**: Each sub-query is executed independently using the strategies above (Index vs. Scan).
 *   **Union**: The resulting sets of document keys are unioned together in memory to produce the final result.
