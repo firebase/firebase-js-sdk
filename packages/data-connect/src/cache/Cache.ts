@@ -45,7 +45,7 @@ export type DataConnectStorage = typeof Memory | typeof Persistent;
  * ServerValues
  */
 export interface ServerValues {
-  ttl: number;
+  ttl?: number;
 }
 
 export class DataConnectCache {

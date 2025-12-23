@@ -23,7 +23,7 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
-import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport } from '.';
+import { CallerSdkType, CallerSdkTypeEnum, DataConnectResponse, DataConnectTransport } from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
@@ -137,9 +137,9 @@ export class RESTTransport implements DataConnectTransport {
   }
 
   withRetry<T>(
-    promiseFactory: () => Promise<{ data: T; errors: Error[] }>,
+    promiseFactory: () => Promise<DataConnectResponse<T>>,
     retry = false
-  ): Promise<{ data: T; errors: Error[] }> {
+  ): Promise<DataConnectResponse<T>> {
     let isNewToken = false;
     return this.getWithAuth(retry)
       .then(res => {
@@ -167,7 +167,7 @@ export class RESTTransport implements DataConnectTransport {
   invokeQuery: <T, U>(
     queryName: string,
     body?: U
-  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<DataConnectResponse<T>> = <T, U = unknown>(
     queryName: string,
     body: U
   ) => {
@@ -196,7 +196,7 @@ export class RESTTransport implements DataConnectTransport {
   invokeMutation: <T, U>(
     queryName: string,
     body?: U
-  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<DataConnectResponse<T>> = <T, U = unknown>(
     mutationName: string,
     body: U
   ) => {

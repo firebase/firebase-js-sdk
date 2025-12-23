@@ -29,7 +29,7 @@ import {
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { logDebug } from '../../logger';
-import { DataConnectTransport } from '../../network';
+import { DataConnectExtension, DataConnectResponse, DataConnectTransport } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
@@ -215,9 +215,10 @@ export class QueryManager {
       if (await this.cache.containsResultTree(key)) {
         (await this.cache.getResultTree(key)).updateAccessed();
       }
+      const parsedData = parseEntityIds(res);
       const impactedQueries = await this.cache.update(
         key,
-        result.data as ServerValues
+        parsedData as ServerValues
       );
       await this.publishCacheResultsToSubscribers(impactedQueries);
       return result;
@@ -265,4 +266,41 @@ export class QueryManager {
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
   }
+}
+
+// TODO: Move into its own file
+export function parseEntityIds<T>(data: DataConnectResponse<T>): DataConnectResponse<T> {
+  // Iterate through extensions.dataConnect
+  const dataConnectExtensions = data.extensions.dataConnect;
+  const dataCopy = Object.assign(data);
+  if(!dataConnectExtensions) {
+    return dataCopy;
+  }
+  for (const extension of dataConnectExtensions) {
+    const { path } = extension;
+    populatePath(path, dataCopy.data, extension);
+  }
+  return dataCopy;
+}
+
+interface ObjectWithId {
+  _id: string;
+}
+
+// mutates the object to update the path
+export function populatePath(path: Array<string | number>, toUpdate: object, extension: DataConnectExtension): void {
+  let curObj: object = toUpdate;
+  for(const slice of path){
+    curObj = curObj[slice];
+  }
+  if('entityId' in extension) {
+    (curObj as ObjectWithId)._id = extension.entityId;
+  } else {
+    const entityArr = extension.entityIds;
+    for (let i = 0; i < entityArr.length; i++) {
+      const entityId = entityArr[i];
+      curObj[i]._id = entityId;
+    }
+  }
+  
 }
