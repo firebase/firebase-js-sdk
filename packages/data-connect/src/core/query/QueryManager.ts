@@ -287,6 +287,8 @@ interface ObjectWithId {
   _id: string;
 }
 
+
+// TODO: Only enable this if clientCache.includeEntityId is true
 // mutates the object to update the path
 export function populatePath(path: Array<string | number>, toUpdate: object, extension: DataConnectExtension): void {
   let curObj: object = toUpdate;
