@@ -43,7 +43,7 @@ export type DataConnectStorage = typeof Memory | typeof Persistent;
  * ServerValues
  */
 export interface ServerValues {
-  ttl?: number;
+  maxAge?: number;
 }
 
 export class DataConnectCache {
@@ -127,11 +127,11 @@ export class DataConnectCache {
       queryId
     );
     const now = new Date();
-    // TODO: Check if ttl actually gets passed.
+    // TODO: Check if maxAge actually gets passed.
     // TODO: Check API Proposal fields.
     await cacheProvider.setResultTree(
       queryId,
-      new ResultTree(data, stubDataObject, serverValues.ttl, now, now)
+      new ResultTree(data, stubDataObject, serverValues.maxAge || this.cacheSettings.maxAge, now, now)
     );
     return acc.consumeEvents();
   }

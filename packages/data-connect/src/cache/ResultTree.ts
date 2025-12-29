@@ -22,7 +22,7 @@ export class ResultTree {
     const rt = new ResultTree(
       value.data,
       EntityNode.fromStorableJson(value.rootStub),
-      value.ttlInMs,
+      value.maxAge,
       value.cachedAt,
       value.lastAccessed
     );
@@ -31,17 +31,17 @@ export class ResultTree {
   constructor(
     public readonly data: string,
     private rootStub: EntityNode,
-    private ttlInMs: number = 30000,
+    private maxAge: number = 30000,
     public readonly cachedAt: Date,
     private _lastAccessed: Date
   ) {}
   isStale(): boolean {
     return (
-      Date.now() - new Date(this.cachedAt.getTime()).getTime() > this.ttlInMs
+      Date.now() - new Date(this.cachedAt.getTime()).getTime() > this.maxAge
     );
   }
-  updateTtl(ttlInMs: number): void {
-    this.ttlInMs = ttlInMs;
+  updateMaxAge(maxAgeInMs: number): void {
+    this.maxAge = maxAgeInMs;
   }
   updateAccessed(): void {
     this._lastAccessed = new Date();
@@ -56,7 +56,7 @@ export class ResultTree {
 
 interface ResultTreeJson {
   rootStub: StubDataObjectJson;
-  ttlInMs: number;
+  maxAge: number;
   cachedAt: Date;
   lastAccessed: Date;
   data: string;

@@ -403,6 +403,7 @@ export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 export interface CacheSettings {
   cacheProvider?: CacheProvider<StorageType>;
+  maxAge?: number;
 }
 export interface CacheProvider<T extends StorageType> {
   type: T;
