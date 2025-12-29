@@ -185,6 +185,7 @@ export class QueryManager {
           queryRef.variables
         )}. Calling executeQuery`
       );
+      await this.publishCacheResultsToSubscribers([key]);
 
       return result;
     } else {

@@ -42,9 +42,9 @@ export class EntityNode {
   async loadData(
     queryId: string,
     values?: FDCScalarValue,
-    cacheProvider?: InternalCacheProvider
+    cacheProvider?: InternalCacheProvider // TODO: Look into why null is being passed in here.
   ): Promise<void> {
-    if (values === undefined && cacheProvider === undefined) {
+    if (values === undefined || !cacheProvider) {
       return;
     }
     if (typeof values !== 'object' || Array.isArray(values)) {

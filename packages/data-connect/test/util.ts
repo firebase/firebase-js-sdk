@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { initializeApp } from '@firebase/app';
-
 import {
   connectDataConnectEmulator,
   ConnectorConfig,
@@ -37,10 +35,6 @@ export function getConnectionConfig(): ConnectorConfig {
     service: SERVICE_NAME
   };
 }
-
-export const app = initializeApp({
-  projectId: PROJECT_ID
-});
 
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {

@@ -17,7 +17,6 @@
 
 import {
   generateSHA256HashBrowser,
-  isIndexedDBAvailable
 } from '@firebase/util';
 
 import {
@@ -27,7 +26,6 @@ import {
 } from '../api/DataConnect';
 import { DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
-import { logDebug } from '../logger';
 
 import { InternalCacheProvider } from './CacheProvider';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
@@ -90,20 +88,8 @@ export class DataConnectCache {
   }
 
   initializeNewProviders(identifier: string): InternalCacheProvider {
-    let cacheProvider: InternalCacheProvider;
-    if (this.cacheSettings) {
-      cacheProvider =
-        this.cacheSettings.cacheProvider?.type === 'MEMORY' ||
-        !isIndexedDBAvailable()
-          ? new InMemoryCacheProvider(identifier)
-          : new IndexedDBCacheProvider(identifier);
-    } else {
-      logDebug(
-        'IndexedDB is not available. Using In-Memory Cache Provider instead.'
-      );
-      cacheProvider = new InMemoryCacheProvider(identifier);
-    }
-    return cacheProvider;
+    // TODO: What about if no cacheSettings is provided?
+    return this.cacheSettings.cacheProvider.initialize(identifier);
   }
 
   async containsResultTree(queryId: string): Promise<boolean> {
@@ -130,6 +116,7 @@ export class DataConnectCache {
     return processor.hydrateResults(resultTree.getRootStub());
   }
   async update(queryId: string, serverValues: ServerValues): Promise<string[]> {
+    await this.initialize();
     const processor = new ResultTreeProcessor();
     const acc = new ImpactedQueryRefsAccumulator();
     const cacheProvider = this.cacheProvider;
