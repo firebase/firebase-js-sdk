@@ -163,8 +163,10 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
+    const cachingEnabled = !!this.cache.cacheSettings;
     if (
       options?.fetchPolicy !== QueryFetchPolicy.SERVER_ONLY &&
+      cachingEnabled &&
       (await this.cache.containsResultTree(key)) &&
       !(await this.cache.getResultTree(key)).isStale()
     ) {
@@ -212,15 +214,17 @@ export class QueryManager {
         fetchTime
       };
 
-      if (await this.cache.containsResultTree(key)) {
+      if (cachingEnabled && await this.cache.containsResultTree(key)) {
         (await this.cache.getResultTree(key)).updateAccessed();
       }
-      const parsedData = parseEntityIds(res);
-      const impactedQueries = await this.cache.update(
-        key,
-        parsedData as ServerValues
-      );
-      await this.publishCacheResultsToSubscribers(impactedQueries);
+      if(cachingEnabled) {
+        const parsedData = parseEntityIds(res);
+        const impactedQueries = await this.cache.update(
+          key,
+          parsedData as ServerValues
+        );
+        await this.publishCacheResultsToSubscribers(impactedQueries);
+      }
       return result;
     } catch (err) {
       this.callbacks.get(key)?.forEach(subscription => {

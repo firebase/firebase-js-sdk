@@ -56,7 +56,7 @@ export class DataConnectCache {
     private projectId: string,
     private connectorConfig: ConnectorConfig,
     private host: string,
-    private cacheSettings?: CacheSettings
+    public readonly cacheSettings?: CacheSettings
   ) {
     this.authProvider.addTokenChangeListener(async _ => {
       const newUid = this.authProvider.getAuth().getUid();
@@ -152,8 +152,14 @@ export class DataConnectCache {
 
 export class IndexedDBStub implements CacheProvider<'PERSISTENT'> {
   type: 'PERSISTENT' = 'PERSISTENT';
+  initialize(cacheId: string): IndexedDBCacheProvider {
+    return new IndexedDBCacheProvider(cacheId);
+  }
 }
 
 export class MemoryStub implements CacheProvider<'MEMORY'> {
   type: 'MEMORY' = 'MEMORY';
+  initialize(cacheId: string): InMemoryCacheProvider {
+    return new InMemoryCacheProvider(cacheId);
+  }
 }

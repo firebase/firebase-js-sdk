@@ -31,6 +31,7 @@ import {
 } from '@firebase/util';
 
 import { DataConnectCache, IndexedDBStub, MemoryStub } from '../cache/Cache';
+import { InternalCacheProvider } from '../cache/CacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
 import {
@@ -306,7 +307,7 @@ export function getDataConnect(
 export function getDataConnect(
   appOrConnectorConfig: FirebaseApp | ConnectorConfig,
   settingsOrConnectorConfig?: ConnectorConfig | DataConnectSettings,
-  settings?: DataConnectSettings // TODO: This doesn't serialize well because it has a function.
+  settings?: DataConnectSettings
 ): DataConnect {
   let app: FirebaseApp;
   let connectorConfig: ConnectorConfig;
@@ -324,15 +325,18 @@ export function getDataConnect(
   if (!app || Object.keys(app).length === 0) {
     app = getApp();
   }
-  const dcOptions: DataConnectOptions = {
-    ...realSettings,
+
+  // Options to store in Firebase Component Provider.
+  const serializedOptions = {
     ...connectorConfig,
     projectId: app.options.projectId
   };
+
+  // We should sort the keys before initialization.
+  const sortedSerialized = Object.fromEntries(Object.entries(serializedOptions).sort());
+
   const provider = _getProvider(app, 'data-connect');
-  // TODO: Deal with the parsing of these options properly.
-  // TODO: We shouldn't include cacheSettings as options to be stored.
-  const identifier = JSON.stringify(dcOptions);
+  const identifier = JSON.stringify(sortedSerialized);
   if (provider.isInitialized(identifier)) {
     const dcInstance = provider.getImmediate({ identifier });
     const options = provider.getOptions(identifier);
@@ -348,7 +352,7 @@ export function getDataConnect(
   // Initialize with options.
   return provider.initialize({
     instanceIdentifier: identifier,
-    options: dcOptions
+    options: Object.fromEntries(Object.entries(realSettings).sort())
   });
 }
 
@@ -391,6 +395,7 @@ export interface CacheSettings {
 }
 export interface CacheProvider<T extends StorageType> {
   type: T;
+  initialize(cacheId: string): InternalCacheProvider;
 }
 
 export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
