@@ -16,7 +16,10 @@
  */
 
 import { initializeApp } from '@firebase/app';
-import { FirebaseAuthInternal, FirebaseAuthTokenData } from '@firebase/auth-interop-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthTokenData
+} from '@firebase/auth-interop-types';
 import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';

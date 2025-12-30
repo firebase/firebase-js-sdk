@@ -116,7 +116,11 @@ export class EntityNode {
               continue;
             }
             const stubDataObject = new EntityNode(this.acc);
-            await stubDataObject.loadData(queryId, (values as Record<string, FDCScalarValue>)[key], cacheProvider);
+            await stubDataObject.loadData(
+              queryId,
+              (values as Record<string, FDCScalarValue>)[key],
+              cacheProvider
+            );
             this.references[key] = stubDataObject;
           }
         } else {
@@ -168,15 +172,31 @@ export class EntityNode {
     return resultObject;
   }
   static parseMap(
-    map: Record<string, EntityNode | EntityNode[] | FDCScalarValue | StubDataObjectJson | StubDataObjectJson[]>,
+    map: Record<
+      string,
+      | EntityNode
+      | EntityNode[]
+      | FDCScalarValue
+      | StubDataObjectJson
+      | StubDataObjectJson[]
+    >,
     isSdo = false
-  ): Record<string, EntityNode | EntityNode[] | FDCScalarValue | StubDataObjectJson | StubDataObjectJson[]> {
+  ): Record<
+    string,
+    | EntityNode
+    | EntityNode[]
+    | FDCScalarValue
+    | StubDataObjectJson
+    | StubDataObjectJson[]
+  > {
     const newMap: typeof map = {};
     for (const key in map) {
       if (map.hasOwnProperty(key)) {
         if (Array.isArray(map[key])) {
           newMap[key] = map[key].map(value =>
-            isSdo ? EntityNode.fromStorableJson(value as StubDataObjectJson) : value
+            isSdo
+              ? EntityNode.fromStorableJson(value as StubDataObjectJson)
+              : value
           ) as EntityNode[] | FDCScalarValue[];
         } else {
           newMap[key] = isSdo
@@ -195,7 +215,10 @@ export class EntityNode {
     sdo.acc = new ImpactedQueryRefsAccumulator();
     sdo.globalId = obj.globalID;
     sdo.impactedQueryRefs = new Set<string>();
-    sdo.scalars = EntityNode.parseMap(obj.scalars) as Record<string, FDCScalarValue>;
+    sdo.scalars = EntityNode.parseMap(obj.scalars) as Record<
+      string,
+      FDCScalarValue
+    >;
     sdo.references = EntityNode.parseMap(
       obj.references
     ) as typeof sdo.references;

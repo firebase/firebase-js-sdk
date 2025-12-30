@@ -23,7 +23,7 @@ import { validateArgs } from '../../src/util/validateArgs';
 describe('Utils', () => {
   let app: FirebaseApp;
   beforeEach(() => {
-    app = initializeApp({ projectId: 'p'});
+    app = initializeApp({ projectId: 'p' });
   });
   afterEach(async () => {
     await deleteApp(app);

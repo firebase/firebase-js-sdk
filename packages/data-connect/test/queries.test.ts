@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -85,13 +86,18 @@ interface PostVariables {
 }
 describe('DataConnect Tests', async () => {
   let dc: DataConnect;
+  let app: FirebaseApp;
   const TEST_ID = crypto.randomUUID();
   beforeEach(async () => {
+    app = initializeApp({
+      projectId: PROJECT_ID
+    });
     dc = initDatabase();
     await seedDatabase(dc, TEST_ID);
   });
   afterEach(async () => {
     await deleteDatabase(dc);
+    await deleteApp(app);
     await terminate(dc);
   });
   function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
@@ -108,18 +114,17 @@ describe('DataConnect Tests', async () => {
   });
   it(`instantly executes a query if one hasn't been subscribed to`, async () => {
     const taskListQuery = getPostsRef();
-    let unsubscribe: null | (() => void) = null;
     const promise = new Promise<QueryResult<PostListResponse, PostVariables>>(
       (resolve, reject) => {
-        unsubscribe = subscribe(taskListQuery, {
+        const unsubscribe = subscribe(taskListQuery, {
           onNext: res => {
-            unsubscribe?.();
+            unsubscribe();
             resolve(res);
           },
           onErr: () => {
-            unsubscribe?.();
+            unsubscribe();
             reject(res);
-          }
+          },
         });
       }
     );

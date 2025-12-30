@@ -26,7 +26,12 @@ import {
 import { SDK_VERSION } from '../core/version';
 import { logError } from '../logger';
 
-import { CallerSdkType, CallerSdkTypeEnum, DataConnectExtensions, DataConnectResponse } from './transport';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectExtensions,
+  DataConnectResponse
+} from './transport';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
@@ -107,9 +112,7 @@ export async function dcFetch<T, U>(
   }
   const message = getErrorMessage(jsonResponse);
   if (response.status >= 400) {
-    logError(
-      'Error while performing request: ' + JSON.stringify(jsonResponse)
-    );
+    logError('Error while performing request: ' + JSON.stringify(jsonResponse));
     if (response.status === 401) {
       throw new DataConnectError(Code.UNAUTHORIZED, message);
     }
@@ -122,7 +125,9 @@ export async function dcFetch<T, U>(
       data: jsonResponse.data as Record<string, unknown>
     };
     throw new DataConnectOperationError(
-      'DataConnect error while performing request: ' + stringified, failureResponse);
+      'DataConnect error while performing request: ' + stringified,
+      failureResponse
+    );
   }
   return jsonResponse as DataConnectResponse<T>;
 }

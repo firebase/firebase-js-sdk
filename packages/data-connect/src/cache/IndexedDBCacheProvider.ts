@@ -110,23 +110,23 @@ class IndexedDbManager {
     this.dbPromise = this.dbDeferred.promise;
   }
   open(version: number): void {
-      // TODO: See when, or if ever, cacheId is null
-      const request = indexedDB.open(`${dbName}-${this.cacheId}`, version);
-      request.onupgradeneeded = event => {
-        // TODO: Handle what happens if the version changes.
-        const db = (event.target as IDBOpenDBRequest).result;
-        db.createObjectStore(BDO_OBJECT_STORE_NAME);
-        db.createObjectStore(SRT_OBJECT_STORE_NAME);
-        this.dbDeferred.resolve(db);
-      };
-      request.onsuccess = async event => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        this.dbDeferred.resolve(db);
-      };
-      request.onerror = error => {
-        // TODO(mtewani): Use proper error.
-        this.dbDeferred.reject(error);
-      };
+    // TODO: See when, or if ever, cacheId is null
+    const request = indexedDB.open(`${dbName}-${this.cacheId}`, version);
+    request.onupgradeneeded = event => {
+      // TODO: Handle what happens if the version changes.
+      const db = (event.target as IDBOpenDBRequest).result;
+      db.createObjectStore(BDO_OBJECT_STORE_NAME);
+      db.createObjectStore(SRT_OBJECT_STORE_NAME);
+      this.dbDeferred.resolve(db);
+    };
+    request.onsuccess = async event => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      this.dbDeferred.resolve(db);
+    };
+    request.onerror = error => {
+      // TODO(mtewani): Use proper error.
+      this.dbDeferred.reject(error);
+    };
   }
   async updateBdo(backingData: EntityDataObject): Promise<void> {
     const db = await this.dbPromise;

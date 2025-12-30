@@ -23,7 +23,12 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
-import { CallerSdkType, CallerSdkTypeEnum, DataConnectResponse, DataConnectTransport } from '.';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectResponse,
+  DataConnectTransport
+} from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';

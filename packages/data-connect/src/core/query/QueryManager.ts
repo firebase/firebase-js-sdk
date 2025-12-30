@@ -24,17 +24,25 @@ import {
   SerializedRef,
   SOURCE_SERVER,
   DataSource,
-  SOURCE_CACHE,
+  SOURCE_CACHE
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { logDebug } from '../../logger';
-import { DataConnectExtension, DataConnectResponse, DataConnectTransport } from '../../network';
+import {
+  DataConnectExtension,
+  DataConnectResponse,
+  DataConnectTransport
+} from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
 import { ExecuteQueryOptions, QueryFetchPolicy } from './queryOptions';
-import { OnCompleteSubscription, OnErrorSubscription, OnResultSubscription } from './subscribe';
+import {
+  OnCompleteSubscription,
+  OnErrorSubscription,
+  OnResultSubscription
+} from './subscribe';
 
 function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -67,7 +75,7 @@ export class QueryManager {
   constructor(
     private transport: DataConnectTransport,
     private dc: DataConnect,
-    private cache?: DataConnectCache,
+    private cache?: DataConnectCache
   ) {}
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
@@ -90,7 +98,7 @@ export class QueryManager {
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
 
-    if(this.cache) {
+    if (this.cache) {
       return this.cache.update(
         encoderImpl({
           name: result.ref.name,
@@ -122,15 +130,13 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    
+
     const unsubscribe = (): void => {
       if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
         this.callbacks.set(
           key,
-          callbackList.filter(
-            callback => callback !== subscription
-          )
+          callbackList.filter(callback => callback !== subscription)
         );
         onCompleteCallback?.();
       }
@@ -159,7 +165,9 @@ export class QueryManager {
     if (!this.callbacks.has(key)) {
       this.callbacks.set(key, []);
     }
-    this.callbacks.get(key)!.push(subscription as DataConnectSubscription<unknown, unknown>);
+    this.callbacks
+      .get(key)!
+      .push(subscription as DataConnectSubscription<unknown, unknown>);
 
     return unsubscribe;
   }
@@ -180,10 +188,19 @@ export class QueryManager {
       refType: QUERY_STR
     });
     const cachingEnabled = this.cache && !!this.cache?.cacheSettings;
-    if(!cachingEnabled) {
-      const cachedData = this.subscriptionCache.get(key) as QueryResult<Data, Variables>;
-      if(cachedData) {
-        this.publishDataToSubscribers(key, cachedData);
+    if (!cachingEnabled) {
+      const cachedData = this.subscriptionCache.get(key) as QueryResult<
+        Data,
+        Variables
+      >;
+      if (cachedData) {
+        this.publishDataToSubscribers(key, {
+          data: cachedData.data,
+          fetchTime: cachedData.fetchTime,
+          ref: cachedData.ref,
+          source: SOURCE_CACHE,
+          toJSON: getRefSerializer(cachedData.ref, cachedData.data, SOURCE_CACHE)
+        });
         return cachedData;
       }
     }
@@ -193,7 +210,9 @@ export class QueryManager {
       (await this.cache!.containsResultTree(key)) &&
       !(await this.cache!.getResultTree(key))!.isStale()
     ) {
-      const cacheResult: Data = JSON.parse(await this.cache!.getResultJSON(key));
+      const cacheResult: Data = JSON.parse(
+        await this.cache!.getResultJSON(key)
+      );
       const resultTree = await this.cache!.getResultTree(key);
       const result: QueryResult<Data, Variables> = {
         source: SOURCE_CACHE,
@@ -238,16 +257,19 @@ export class QueryManager {
         fetchTime
       };
 
-      if (cachingEnabled && await this.cache!.containsResultTree(key)) {
+      if (cachingEnabled && (await this.cache!.containsResultTree(key))) {
         (await this.cache!.getResultTree(key))!.updateAccessed();
       }
-      if(cachingEnabled) {
+      if (cachingEnabled) {
         const parsedData = parseEntityIds(res);
         const impactedQueries = await this.cache!.update(
           key,
           parsedData as unknown as ServerValues
         );
         await this.publishCacheResultsToSubscribers(impactedQueries);
+      } else {
+        this.subscriptionCache.set(key, result);
+        this.publishDataToSubscribers(key, result);
       }
       return result;
     } catch (err: unknown) {
@@ -259,7 +281,10 @@ export class QueryManager {
       throw err;
     }
   }
-  publishDataToSubscribers(key: string, queryResult: QueryResult<unknown, unknown>): void {
+  publishDataToSubscribers(
+    key: string,
+    queryResult: QueryResult<unknown, unknown>
+  ): void {
     if (!this.callbacks.has(key)) {
       return;
     }
@@ -271,7 +296,7 @@ export class QueryManager {
   async publishCacheResultsToSubscribers(
     impactedQueries: string[]
   ): Promise<void> {
-    if(!this.cache) {
+    if (!this.cache) {
       return;
     }
     for (const query of impactedQueries) {
@@ -307,11 +332,13 @@ export class QueryManager {
 }
 
 // TODO: Move into its own file
-export function parseEntityIds<T>(data: DataConnectResponse<T>): DataConnectResponse<T> {
+export function parseEntityIds<T>(
+  data: DataConnectResponse<T>
+): DataConnectResponse<T> {
   // Iterate through extensions.dataConnect
   const dataConnectExtensions = data.extensions.dataConnect;
   const dataCopy = Object.assign(data);
-  if(!dataConnectExtensions) {
+  if (!dataConnectExtensions) {
     return dataCopy;
   }
   for (const extension of dataConnectExtensions) {
@@ -321,15 +348,18 @@ export function parseEntityIds<T>(data: DataConnectResponse<T>): DataConnectResp
   return dataCopy;
 }
 
-
 // TODO: Only enable this if clientCache.includeEntityId is true
 // mutates the object to update the path
-export function populatePath(path: Array<string | number>, toUpdate: Record<string | number, unknown>, extension: DataConnectExtension): void {
+export function populatePath(
+  path: Array<string | number>,
+  toUpdate: Record<string | number, unknown>,
+  extension: DataConnectExtension
+): void {
   let curObj: Record<string | number, unknown> = toUpdate;
-  for(const slice of path){
+  for (const slice of path) {
     curObj = curObj[slice] as Record<string, unknown>; // TODO: This type can be fixed
   }
-  if('entityId' in extension) {
+  if ('entityId' in extension) {
     curObj['_id'] = extension.entityId;
   } else {
     const entityArr = extension.entityIds;

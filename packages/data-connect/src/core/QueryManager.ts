@@ -16,9 +16,6 @@
  */
 
 import {
-  OnCompleteSubscription,
-  OnErrorSubscription,
-  OnResultSubscription,
   QueryPromise,
   QueryRef,
   QueryResult
@@ -38,6 +35,7 @@ import { encoderImpl } from '../util/encoder';
 import { setIfNotExists } from '../util/map';
 
 import { Code, DataConnectError } from './error';
+import { OnCompleteSubscription, OnErrorSubscription, OnResultSubscription } from './query/subscribe';
 
 /**
  * Representation of user provided subscription options.

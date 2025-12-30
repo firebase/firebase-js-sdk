@@ -182,7 +182,7 @@ export class DataConnect {
       service: this.dataConnectOptions.service,
       location: this.dataConnectOptions.location
     };
-    if(this.dataConnectOptions.cacheSettings) {
+    if (this.dataConnectOptions.cacheSettings) {
       this.cache = new DataConnectCache(
         this._authTokenProvider,
         this.app.options.projectId!,
@@ -191,7 +191,7 @@ export class DataConnect {
         this.dataConnectOptions.cacheSettings
       );
     }
-    
+
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
         this.app,
@@ -341,7 +341,9 @@ export function getDataConnect(
   };
 
   // We should sort the keys before initialization.
-  const sortedSerialized = Object.fromEntries(Object.entries(serializedOptions).sort());
+  const sortedSerialized = Object.fromEntries(
+    Object.entries(serializedOptions).sort()
+  );
 
   const provider = _getProvider(app, 'data-connect');
   const identifier = JSON.stringify(sortedSerialized);
@@ -361,10 +363,12 @@ export function getDataConnect(
   // Initialize with options.
   return provider.initialize({
     instanceIdentifier: identifier,
-    options: Object.fromEntries(Object.entries({
-    ...realSettings,
-    ...sortedSerialized
-  }).sort())
+    options: Object.fromEntries(
+      Object.entries({
+        ...realSettings,
+        ...sortedSerialized
+      }).sort()
+    )
   });
 }
 

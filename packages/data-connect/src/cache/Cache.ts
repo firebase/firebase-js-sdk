@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  generateSHA256HashBrowser,
-} from '@firebase/util';
+import { generateSHA256HashBrowser } from '@firebase/util';
 
 import {
   CacheProvider,
@@ -118,16 +116,23 @@ export class DataConnectCache {
     const processor = new ResultTreeProcessor();
     const acc = new ImpactedQueryRefsAccumulator();
     const cacheProvider = this.cacheProvider;
-    const { data, entityNode: stubDataObject } = await processor.dehydrateResults(
-      serverValues,
-      cacheProvider!,
-      acc,
-      queryId
-    );
+    const { data, entityNode: stubDataObject } =
+      await processor.dehydrateResults(
+        serverValues,
+        cacheProvider!,
+        acc,
+        queryId
+      );
     const now = new Date();
     await cacheProvider!.setResultTree(
       queryId,
-      new ResultTree(data, stubDataObject, serverValues.maxAge || this.cacheSettings.maxAge, now, now)
+      new ResultTree(
+        data,
+        stubDataObject,
+        serverValues.maxAge || this.cacheSettings.maxAge,
+        now,
+        now
+      )
     );
     return acc.consumeEvents();
   }
