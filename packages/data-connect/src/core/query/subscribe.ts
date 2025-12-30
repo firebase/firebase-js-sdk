@@ -99,7 +99,7 @@ export function subscribe<Data, Variables>(
     | SubscriptionOptions<Data, Variables>
     | OnResultSubscription<Data, Variables>,
   onError?: OnErrorSubscription,
-  onComplete?: OnCompleteSubscription
+  onComplete?: OnCompleteSubscription // TODO: This is a regression. Fix it.
 ): QueryUnsubscribe {
   let ref: QueryRef<Data, Variables>;
   let initialCache: OpResult<Data> | undefined;
@@ -130,6 +130,7 @@ export function subscribe<Data, Variables>(
   return ref.dataConnect._queryManager.addSubscription(
     ref,
     onResult,
+    onComplete,
     onError,
     initialCache
   );

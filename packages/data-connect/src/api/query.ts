@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { DataConnectError } from '../core/error';
 import { ExecuteQueryOptions } from '../core/query/queryOptions';
 
 import { DataConnect, getDataConnect } from './DataConnect';
@@ -26,20 +25,6 @@ import {
   SerializedRef
 } from './Reference';
 
-/**
- * Signature for `OnResultSubscription` for `subscribe`
- */
-export type OnResultSubscription<Data, Variables> = (
-  res: QueryResult<Data, Variables>
-) => void;
-/**
- * Signature for `OnErrorSubscription` for `subscribe`
- */
-export type OnErrorSubscription = (err?: DataConnectError) => void;
-/**
- * Signature for unsubscribe from `subscribe`
- */
-export type QueryUnsubscribe = () => void;
 
 /**
  * QueryRef object

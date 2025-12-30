@@ -24,7 +24,7 @@ import {
   SerializedRef,
   SOURCE_SERVER,
   DataSource,
-  SOURCE_CACHE
+  SOURCE_CACHE,
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
@@ -34,7 +34,7 @@ import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
 import { ExecuteQueryOptions, QueryFetchPolicy } from './queryOptions';
-import { OnErrorSubscription, OnResultSubscription } from './subscribe';
+import { OnCompleteSubscription, OnErrorSubscription, OnResultSubscription } from './subscribe';
 
 function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -63,10 +63,11 @@ export class QueryManager {
     string,
     Array<DataConnectSubscription<unknown, unknown>>
   >();
+  private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
   constructor(
     private transport: DataConnectTransport,
-    private cache: DataConnectCache,
-    private dc: DataConnect
+    private dc: DataConnect,
+    private cache?: DataConnectCache,
   ) {}
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
@@ -88,19 +89,31 @@ export class QueryManager {
     result: QueryResult<Data, Variables>
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
-    return this.cache.update(
-      encoderImpl({
+
+    if(this.cache) {
+      return this.cache.update(
+        encoderImpl({
+          name: result.ref.name,
+          variables: result.ref.variables,
+          refType: QUERY_STR
+        }),
+        result.data as ServerValues
+      );
+    } else {
+      const key = encoderImpl({
         name: result.ref.name,
         variables: result.ref.variables,
         refType: QUERY_STR
-      }),
-      result.data as ServerValues
-    );
+      });
+      this.subscriptionCache.set(key, result);
+    }
+    return [];
   }
 
   addSubscription<Data, Variables>(
     queryRef: OperationRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
+    onCompleteCallback?: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
     initialCache?: OpResult<Data>
   ): () => void {
@@ -109,16 +122,23 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
+    
     const unsubscribe = (): void => {
       if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
         this.callbacks.set(
           key,
           callbackList.filter(
-            callback => callback.userCallback !== onResultCallback
+            callback => callback !== subscription
           )
         );
+        onCompleteCallback?.();
       }
+    };
+    const subscription: DataConnectSubscription<Data, Variables> = {
+      userCallback: onResultCallback,
+      errCallback: onErrorCallback,
+      unsubscribe
     };
 
     if (initialCache) {
@@ -139,11 +159,7 @@ export class QueryManager {
     if (!this.callbacks.has(key)) {
       this.callbacks.set(key, []);
     }
-    this.callbacks.get(key)!.push({
-      userCallback: onResultCallback,
-      errCallback: onErrorCallback,
-      unsubscribe
-    });
+    this.callbacks.get(key)!.push(subscription as DataConnectSubscription<unknown, unknown>);
 
     return unsubscribe;
   }
@@ -163,23 +179,30 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    const cachingEnabled = !!this.cache.cacheSettings;
+    const cachingEnabled = this.cache && !!this.cache?.cacheSettings;
+    if(!cachingEnabled) {
+      const cachedData = this.subscriptionCache.get(key) as QueryResult<Data, Variables>;
+      if(cachedData) {
+        this.publishDataToSubscribers(key, cachedData);
+        return cachedData;
+      }
+    }
     if (
       options?.fetchPolicy !== QueryFetchPolicy.SERVER_ONLY &&
       cachingEnabled &&
-      (await this.cache.containsResultTree(key)) &&
-      !(await this.cache.getResultTree(key)).isStale()
+      (await this.cache!.containsResultTree(key)) &&
+      !(await this.cache!.getResultTree(key))!.isStale()
     ) {
-      const cacheResult: Data = JSON.parse(await this.cache.getResultJSON(key));
-      const resultTree = await this.cache.getResultTree(key);
+      const cacheResult: Data = JSON.parse(await this.cache!.getResultJSON(key));
+      const resultTree = await this.cache!.getResultTree(key);
       const result: QueryResult<Data, Variables> = {
         source: SOURCE_CACHE,
         ref: queryRef,
         data: cacheResult,
         toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
-        fetchTime: resultTree.cachedAt.toString()
+        fetchTime: resultTree!.cachedAt.toString()
       };
-      (await this.cache.getResultTree(key)).updateAccessed();
+      (await this.cache!.getResultTree(key))!.updateAccessed();
       logDebug(
         `Cache found for query ${queryRef.name} with variables ${JSON.stringify(
           queryRef.variables
@@ -215,36 +238,48 @@ export class QueryManager {
         fetchTime
       };
 
-      if (cachingEnabled && await this.cache.containsResultTree(key)) {
-        (await this.cache.getResultTree(key)).updateAccessed();
+      if (cachingEnabled && await this.cache!.containsResultTree(key)) {
+        (await this.cache!.getResultTree(key))!.updateAccessed();
       }
       if(cachingEnabled) {
         const parsedData = parseEntityIds(res);
-        const impactedQueries = await this.cache.update(
+        const impactedQueries = await this.cache!.update(
           key,
-          parsedData as ServerValues
+          parsedData as unknown as ServerValues
         );
         await this.publishCacheResultsToSubscribers(impactedQueries);
       }
       return result;
-    } catch (err) {
+    } catch (err: unknown) {
       this.callbacks.get(key)?.forEach(subscription => {
         if (subscription.errCallback) {
-          subscription.errCallback(err);
+          subscription.errCallback(err as DataConnectError);
         }
       });
       throw err;
     }
   }
+  publishDataToSubscribers(key: string, queryResult: QueryResult<unknown, unknown>): void {
+    if (!this.callbacks.has(key)) {
+      return;
+    }
+    const subscribers = this.callbacks.get(key);
+    subscribers!.forEach(callback => {
+      callback.userCallback(queryResult);
+    });
+  }
   async publishCacheResultsToSubscribers(
     impactedQueries: string[]
   ): Promise<void> {
+    if(!this.cache) {
+      return;
+    }
     for (const query of impactedQueries) {
       const callbacks = this.callbacks.get(query);
       if (!callbacks) {
         continue;
       }
-      const newJson = (await this.cache.getResultTree(query))
+      const newJson = (await this.cache.getResultTree(query))!
         .getRootStub()
         .toJson();
       const { name, variables } = decoderImpl(query) as QueryRef<
@@ -257,14 +292,12 @@ export class QueryManager {
         name,
         variables
       };
-
-      callbacks.forEach(callback => {
-        callback.userCallback({
-          data: newJson,
-          fetchTime: new Date().toISOString(),
-          source: SOURCE_CACHE,
-          ref: queryRef
-        } as QueryResult<unknown, unknown>);
+      this.publishDataToSubscribers(query, {
+        data: newJson,
+        fetchTime: new Date().toISOString(),
+        ref: queryRef,
+        source: SOURCE_CACHE,
+        toJSON: getRefSerializer(queryRef, newJson, SOURCE_CACHE)
       });
     }
   }
@@ -288,26 +321,21 @@ export function parseEntityIds<T>(data: DataConnectResponse<T>): DataConnectResp
   return dataCopy;
 }
 
-interface ObjectWithId {
-  _id: string;
-}
-
 
 // TODO: Only enable this if clientCache.includeEntityId is true
 // mutates the object to update the path
-export function populatePath(path: Array<string | number>, toUpdate: object, extension: DataConnectExtension): void {
-  let curObj: object = toUpdate;
+export function populatePath(path: Array<string | number>, toUpdate: Record<string | number, unknown>, extension: DataConnectExtension): void {
+  let curObj: Record<string | number, unknown> = toUpdate;
   for(const slice of path){
-    curObj = curObj[slice];
+    curObj = curObj[slice] as Record<string, unknown>; // TODO: This type can be fixed
   }
   if('entityId' in extension) {
-    (curObj as ObjectWithId)._id = extension.entityId;
+    curObj['_id'] = extension.entityId;
   } else {
     const entityArr = extension.entityIds;
     for (let i = 0; i < entityArr.length; i++) {
       const entityId = entityArr[i];
-      curObj[i]._id = entityId;
+      (curObj[i] as Record<string, unknown>)._id = entityId;
     }
   }
-  
 }

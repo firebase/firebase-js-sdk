@@ -30,7 +30,7 @@ export const InMemoryProvider = 'inmemory' as const;
 export const GLOBAL_ID_KEY = '_id';
 export class EntityNode {
   entityData?: EntityDataObject;
-  scalars: { [key: string]: FDCScalarValue } = {};
+  scalars: Record<string, FDCScalarValue> = {};
   references: { [key: string]: EntityNode } = {};
   objectLists: {
     [key: string]: EntityNode[];
@@ -58,6 +58,7 @@ export class EntityNode {
     }
 
     if (
+      typeof values === 'object' &&
       values.hasOwnProperty(GLOBAL_ID_KEY) &&
       typeof values[GLOBAL_ID_KEY] === 'string'
     ) {
@@ -115,7 +116,7 @@ export class EntityNode {
               continue;
             }
             const stubDataObject = new EntityNode(this.acc);
-            await stubDataObject.loadData(queryId, values[key], cacheProvider);
+            await stubDataObject.loadData(queryId, (values as Record<string, FDCScalarValue>)[key], cacheProvider);
             this.references[key] = stubDataObject;
           }
         } else {
@@ -123,12 +124,12 @@ export class EntityNode {
             // TODO: Track only the fields we need for the BDO
             const impactedRefs = this.entityData.updateServerValue(
               key,
-              values[key],
+              values[key] as FDCScalarValue,
               queryId
             );
             this.acc.add(impactedRefs);
           } else {
-            this.scalars[key] = values[key];
+            this.scalars[key] = values[key] as FDCScalarValue;
           }
         }
       }
@@ -139,7 +140,7 @@ export class EntityNode {
   }
 
   toJson(): object {
-    const resultObject: object = {};
+    const resultObject: Record<string, unknown> = {};
     const entityDataMap = this.entityData?.getMap();
     for (const key in entityDataMap) {
       if (entityDataMap?.hasOwnProperty(key)) {
@@ -167,16 +168,16 @@ export class EntityNode {
     return resultObject;
   }
   static parseMap(
-    map: { [key: string]: EntityNode | EntityNode[] | FDCScalarValue },
+    map: Record<string, EntityNode | EntityNode[] | FDCScalarValue | StubDataObjectJson | StubDataObjectJson[]>,
     isSdo = false
-  ): typeof map {
+  ): Record<string, EntityNode | EntityNode[] | FDCScalarValue | StubDataObjectJson | StubDataObjectJson[]> {
     const newMap: typeof map = {};
     for (const key in map) {
       if (map.hasOwnProperty(key)) {
         if (Array.isArray(map[key])) {
           newMap[key] = map[key].map(value =>
-            isSdo ? EntityNode.fromStorableJson(value) : value
-          );
+            isSdo ? EntityNode.fromStorableJson(value as StubDataObjectJson) : value
+          ) as EntityNode[] | FDCScalarValue[];
         } else {
           newMap[key] = isSdo
             ? EntityNode.fromStorableJson(map[key] as StubDataObjectJson)
@@ -194,7 +195,7 @@ export class EntityNode {
     sdo.acc = new ImpactedQueryRefsAccumulator();
     sdo.globalId = obj.globalID;
     sdo.impactedQueryRefs = new Set<string>();
-    sdo.scalars = EntityNode.parseMap(obj.scalars);
+    sdo.scalars = EntityNode.parseMap(obj.scalars) as Record<string, FDCScalarValue>;
     sdo.references = EntityNode.parseMap(
       obj.references
     ) as typeof sdo.references;
@@ -240,7 +241,7 @@ export class EntityNode {
 
 export interface StubDataObjectJson {
   backingData?: BackingDataObjectJson;
-  globalID: string;
+  globalID?: string;
   scalars: { [key: string]: FDCScalarValue };
   references: { [key: string]: StubDataObjectJson };
   objectLists: {

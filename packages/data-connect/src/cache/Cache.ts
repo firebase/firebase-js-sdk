@@ -42,7 +42,7 @@ export type DataConnectStorage = typeof Memory | typeof Persistent;
 /**
  * ServerValues
  */
-export interface ServerValues {
+export interface ServerValues extends Record<string, unknown> {
   maxAge?: number;
 }
 
@@ -54,7 +54,7 @@ export class DataConnectCache {
     private projectId: string,
     private connectorConfig: ConnectorConfig,
     private host: string,
-    public readonly cacheSettings?: CacheSettings
+    public readonly cacheSettings: CacheSettings
   ) {
     this.authProvider.addTokenChangeListener(async _ => {
       const newUid = this.authProvider.getAuth().getUid();
@@ -75,38 +75,36 @@ export class DataConnectCache {
     }
   }
 
-  async getIdentifier(uid: string): Promise<string> {
+  async getIdentifier(uid: string | null): Promise<string> {
     const identifier = `${
       this.cacheSettings?.cacheProvider instanceof IndexedDBStub
         ? 'persistent'
         : 'memory'
     }-${this.projectId}-${this.connectorConfig.service}-${
       this.connectorConfig.connector
-    }-${this.connectorConfig.location}-${uid}-${this.host}`;
+    }-${this.connectorConfig.location}-${uid}-${this.host}`; // TODO: Check if null is the right identifier here.
     const sha256 = await generateSHA256HashBrowser(identifier);
     return sha256;
   }
 
   initializeNewProviders(identifier: string): InternalCacheProvider {
-    // TODO: What about if no cacheSettings is provided?
     return this.cacheSettings.cacheProvider.initialize(identifier);
   }
 
   async containsResultTree(queryId: string): Promise<boolean> {
     await this.initialize();
-    const resultTree = await this.cacheProvider.getResultTree(queryId);
+    const resultTree = await this.cacheProvider!.getResultTree(queryId);
     return resultTree !== undefined;
   }
-  async getResultTree(queryId: string): Promise<ResultTree> {
+  async getResultTree(queryId: string): Promise<ResultTree | undefined> {
     await this.initialize();
-    const cacheProvider = this.cacheProvider;
-    return cacheProvider.getResultTree(queryId);
+    return this.cacheProvider!.getResultTree(queryId);
   }
   async getResultJSON(queryId: string): Promise<string> {
     await this.initialize();
     const processor = new ResultTreeProcessor();
     const cacheProvider = this.cacheProvider;
-    const resultTree = await cacheProvider.getResultTree(queryId);
+    const resultTree = await cacheProvider!.getResultTree(queryId);
     if (!resultTree) {
       throw new DataConnectError(
         'invalid-argument',
@@ -120,16 +118,14 @@ export class DataConnectCache {
     const processor = new ResultTreeProcessor();
     const acc = new ImpactedQueryRefsAccumulator();
     const cacheProvider = this.cacheProvider;
-    const { data, stubDataObject } = await processor.dehydrateResults(
+    const { data, entityNode: stubDataObject } = await processor.dehydrateResults(
       serverValues,
-      cacheProvider,
+      cacheProvider!,
       acc,
       queryId
     );
     const now = new Date();
-    // TODO: Check if maxAge actually gets passed.
-    // TODO: Check API Proposal fields.
-    await cacheProvider.setResultTree(
+    await cacheProvider!.setResultTree(
       queryId,
       new ResultTree(data, stubDataObject, serverValues.maxAge || this.cacheSettings.maxAge, now, now)
     );

@@ -21,7 +21,7 @@ export type FDCScalarValue =
   | boolean
   | undefined
   | null
-  | object
+  | Record<string, unknown>
   | FDCScalarValue[];
 
 export interface BackingDataObjectJson {

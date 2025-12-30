@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { initializeApp } from '@firebase/app';
 import { FirebaseAuthInternal, FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { expect } from 'chai';
 import * as chai from 'chai';
@@ -85,6 +86,11 @@ function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
   });
 }
 describe('Queries', () => {
+  beforeEach(() => {
+    initializeApp({
+      projectId: 'p'
+    });
+  });
   afterEach(() => {
     fakeFetchImpl.resetHistory();
   });

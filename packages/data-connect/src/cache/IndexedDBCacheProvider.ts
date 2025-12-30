@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { Deferred } from '@firebase/util';
+
 import { InternalCacheProvider } from './CacheProvider';
 import { EntityDataObject } from './EntityDataObject';
 import { ResultTree } from './ResultTree';
@@ -23,7 +25,7 @@ export const SRT_OBJECT_STORE_NAME = 'data-connect-srts';
 export class IndexedDBCacheProvider implements InternalCacheProvider {
   private bdos = new Map<string, EntityDataObject>();
   private resultTrees = new Map<string, ResultTree>();
-  private idbManager: IndexedDbManager;
+  private idbManager?: IndexedDbManager;
   private initialized = false;
   isIdbAvailable(): boolean {
     return typeof window !== 'undefined' && 'indexedDB' in window;
@@ -40,7 +42,7 @@ export class IndexedDBCacheProvider implements InternalCacheProvider {
   }
   async initialize(): Promise<void> {
     // load BDOs
-    if (this.initialized) {
+    if (this.initialized || !this.idbManager) {
       return;
     }
     const db = await this.idbManager.dbPromise;
@@ -55,7 +57,7 @@ export class IndexedDBCacheProvider implements InternalCacheProvider {
       return;
     }
     await this.initialize();
-    void this.idbManager.updateBdo(backingData);
+    void this.idbManager!.updateBdo(backingData);
   }
   async commitResultTreeChanges(
     queryId: string,
@@ -65,7 +67,7 @@ export class IndexedDBCacheProvider implements InternalCacheProvider {
       return;
     }
     await this.initialize();
-    void this.idbManager.updateResultTree(rt, queryId);
+    void this.idbManager!.updateResultTree(rt, queryId);
   }
   async setResultTree(queryId: string, rt: ResultTree): Promise<void> {
     this.resultTrees.set(queryId, rt);
@@ -94,17 +96,20 @@ export class IndexedDBCacheProvider implements InternalCacheProvider {
     await this.commitBdoChanges(backingData);
   }
   async close(): Promise<void> {
-    await this.idbManager.close();
+    await this.idbManager?.close();
   }
 }
 
 const dbName = 'data-connect';
 class IndexedDbManager {
+  dbDeferred: Deferred<IDBDatabase>;
   dbPromise: Promise<IDBDatabase>;
   alreadyRead = false;
-  constructor(private cacheId: string) {}
+  constructor(private cacheId: string) {
+    this.dbDeferred = new Deferred();
+    this.dbPromise = this.dbDeferred.promise;
+  }
   open(version: number): void {
-    this.dbPromise = new Promise((dbResolve, dbReject) => {
       // TODO: See when, or if ever, cacheId is null
       const request = indexedDB.open(`${dbName}-${this.cacheId}`, version);
       request.onupgradeneeded = event => {
@@ -112,21 +117,20 @@ class IndexedDbManager {
         const db = (event.target as IDBOpenDBRequest).result;
         db.createObjectStore(BDO_OBJECT_STORE_NAME);
         db.createObjectStore(SRT_OBJECT_STORE_NAME);
-        dbResolve(db);
+        this.dbDeferred.resolve(db);
       };
       request.onsuccess = async event => {
         const db = (event.target as IDBOpenDBRequest).result;
-        dbResolve(db);
+        this.dbDeferred.resolve(db);
       };
       request.onerror = error => {
         // TODO(mtewani): Use proper error.
-        dbReject(error);
+        this.dbDeferred.reject(error);
       };
-    });
   }
   async updateBdo(backingData: EntityDataObject): Promise<void> {
     const db = await this.dbPromise;
-    db.transaction([BDO_OBJECT_STORE_NAME], 'readwrite')
+    db?.transaction([BDO_OBJECT_STORE_NAME], 'readwrite')
       .objectStore(BDO_OBJECT_STORE_NAME)
       .put(backingData, backingData.globalID);
   }

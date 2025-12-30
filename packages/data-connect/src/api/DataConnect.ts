@@ -109,7 +109,7 @@ export class DataConnect {
   _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
-  private cache: DataConnectCache;
+  private cache?: DataConnectCache;
   // @internal
   constructor(
     public readonly app: FirebaseApp,
@@ -172,25 +172,26 @@ export class DataConnect {
       this._transportClass = RESTTransport;
     }
 
-    if (this._authProvider) {
-      this._authTokenProvider = new FirebaseAuthProvider(
-        this.app.name,
-        this.app.options,
-        this._authProvider
-      );
-    }
+    this._authTokenProvider = new FirebaseAuthProvider(
+      this.app.name,
+      this.app.options,
+      this._authProvider
+    );
     const connectorConfig: ConnectorConfig = {
       connector: this.dataConnectOptions.connector,
       service: this.dataConnectOptions.service,
       location: this.dataConnectOptions.location
     };
-    this.cache = new DataConnectCache(
-      this._authTokenProvider,
-      this.app.options.projectId,
-      connectorConfig,
-      this._transportOptions?.host || PROD_HOST,
-      this.dataConnectOptions.cacheSettings
-    );
+    if(this.dataConnectOptions.cacheSettings) {
+      this.cache = new DataConnectCache(
+        this._authTokenProvider,
+        this.app.options.projectId!,
+        connectorConfig,
+        this._transportOptions?.host || PROD_HOST,
+        this.dataConnectOptions.cacheSettings
+      );
+    }
+    
     if (this._appCheckProvider) {
       this._appCheckTokenProvider = new AppCheckTokenProvider(
         this.app,
@@ -216,7 +217,7 @@ export class DataConnect {
       );
     }
 
-    this._queryManager = new QueryManager(this._transport, this.cache, this);
+    this._queryManager = new QueryManager(this._transport, this, this.cache);
     this._mutationManager = new MutationManager(this._transport);
     this._initialized = true;
   }
@@ -405,7 +406,7 @@ export const StorageType = {
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 export interface CacheSettings {
-  cacheProvider?: CacheProvider<StorageType>;
+  cacheProvider: CacheProvider<StorageType>; // TODO: Modify the API proposal to make this required.
   maxAge?: number;
 }
 export interface CacheProvider<T extends StorageType> {

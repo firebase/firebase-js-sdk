@@ -20,7 +20,7 @@ import { EntityNode } from './EntityNode';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 
 interface DehydratedResults {
-  stubDataObject: EntityNode;
+  entityNode: EntityNode;
   data: string;
 }
 
@@ -29,16 +29,16 @@ export class ResultTreeProcessor {
     return JSON.stringify(rootStubObject.toJson());
   }
   async dehydrateResults(
-    json: object,
+    json: Record<string, unknown>,
     cacheProvider: InternalCacheProvider,
     acc: ImpactedQueryRefsAccumulator,
     queryId: string
   ): Promise<DehydratedResults> {
-    const stubDataObject = new EntityNode(acc);
-    await stubDataObject.loadData(queryId, json, cacheProvider);
+    const entityNode = new EntityNode(acc);
+    await entityNode.loadData(queryId, json, cacheProvider);
     return {
-      stubDataObject,
-      data: JSON.stringify(stubDataObject.toStorableJson())
+      entityNode,
+      data: JSON.stringify(entityNode.toStorableJson())
     };
   }
 }

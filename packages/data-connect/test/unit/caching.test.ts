@@ -19,13 +19,11 @@ describe('caching', () => {
     it('should resolve from cache with an interdependent query', async () => {
         interface Q1Data {
             movies: Array<{
-                _id: string,
                 title: string
             }>
         }
         interface Q2Data {
             movies: Array<{
-                _id: string,
                 title: string
                 genre: string
             }>
@@ -76,7 +74,6 @@ describe('caching', () => {
             data: {
                 movies: [
                     {
-                        _id: 'matrix',
                         title: 'the matrix',
                     }
                 ]
@@ -118,8 +115,101 @@ describe('caching', () => {
             } as QueryResult<Q2Data, undefined>,
         ]);
     });
+    it('should not resolve from cache when caching is disabled', async () => {
+        const dcWithoutCache = getDataConnect({
+            connector: 'a',
+            location: 'b',
+            service: 'c'
+        });
+        interface Q1Data {
+            movies: Array<{
+                title: string
+            }>
+        }
+        interface Q2Data {
+            movies: Array<{
+                title: string
+                genre: string
+            }>
+        }
 
+        const q1MovieData = {
+            movies: [
+                {
+                    title: 'matrix',
+                }
+            ]
+        };
+        const q2MovieData = {
+            movies: [
+                {
+                    title: 'matrix',
+                    genre: 'sci-fi'
+                }
+            ]
+        };
+        const date = new Date().toISOString();
+        const q1 = queryRef<Q1Data>(dcWithoutCache, 'q1');
+        await updateCacheData(dcWithoutCache, {
+            data: q1MovieData,
+            fetchTime: date,
+            ref: q1,
+            source: 'CACHE',
+        });
+        const q2 = queryRef<Q2Data>(dcWithoutCache, 'q2');
+        await updateCacheData(dcWithoutCache, {
+            data: q2MovieData,
+            fetchTime: date,
+            ref: q2,
+            source: 'CACHE'
+        });
+
+        const events: Array<Pick<QueryResult<Q2Data, undefined>, 'data' | 'source'>> = [];
+        subscribe(q2, (event) => {
+            events.push({
+                data: event.data,
+                source: event.source
+            });
+        });
+
+        const expected = {
+            data: {
+                movies: [
+                    {
+                        title: 'matrix',
+                    }
+                ]
+            },
+            extensions: {
+                dataConnect: [{
+                    path: ['movies', 0],
+                    entityId: 'matrix'
+                }]
+            }
+        };
+        stubFetch(expected);
+        const result = await executeQuery(q1, {
+            fetchPolicy: 'SERVER_ONLY'
+        });
+        expect(result.data.movies).to.deep.eq(expected.data.movies);
+        // wait for 2 seconds to make sure we don't have too many events coming in.
+        await waitFor(2000);
+
+        expect(events.length).to.eq(1);
+        expect(events).to.deep.eq([
+            {
+                data: {
+                    movies: [{
+                        genre: 'sci-fi',
+                        title: 'matrix'
+                    }]
+                },
+                source: 'CACHE'
+            } as QueryResult<Q2Data, undefined>,
+        ]);
+    });
 });
+
 
 function stubFetch(
     response: unknown
