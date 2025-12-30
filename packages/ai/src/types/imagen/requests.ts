@@ -20,7 +20,7 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
 /**
  * Parameters for configuring an {@link ImagenModel}.
  *
- * @beta
+ * @public
  */
 export interface ImagenModelParams {
   /**
@@ -49,7 +49,7 @@ export interface ImagenModelParams {
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images-imagen | documentation} for
  * more details.
  *
- * @beta
+ * @public
  */
 export interface ImagenGenerationConfig {
   /**
@@ -108,7 +108,7 @@ export interface ImagenGenerationConfig {
  * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
- * @beta
+ * @public
  */
 export const ImagenSafetyFilterLevel = {
   /**
@@ -142,7 +142,7 @@ export const ImagenSafetyFilterLevel = {
  * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
- * @beta
+ * @public
  */
 export type ImagenSafetyFilterLevel =
   (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
@@ -153,7 +153,7 @@ export type ImagenSafetyFilterLevel =
  * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
  * documentation for more details.
  *
- * @beta
+ * @public
  */
 export const ImagenPersonFilterLevel = {
   /**
@@ -184,7 +184,7 @@ export const ImagenPersonFilterLevel = {
  * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
  * documentation for more details.
  *
- * @beta
+ * @public
  */
 export type ImagenPersonFilterLevel =
   (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
@@ -195,7 +195,7 @@ export type ImagenPersonFilterLevel =
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details.
  *
- * @beta
+ * @public
  */
 export interface ImagenSafetySettings {
   /**
@@ -218,7 +218,7 @@ export interface ImagenSafetySettings {
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
  *
- * @beta
+ * @public
  */
 export const ImagenAspectRatio = {
   /**
@@ -252,7 +252,7 @@ export const ImagenAspectRatio = {
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
  *
- * @beta
+ * @public
  */
 export type ImagenAspectRatio =
   (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];

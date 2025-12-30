@@ -34,7 +34,7 @@ export class RESTTransport implements DataConnectTransport {
   private _project = 'p';
   private _serviceName: string;
   private _accessToken: string | null = null;
-  private _appCheckToken: string | null = null;
+  private _appCheckToken: string | null | undefined = null;
   private _lastToken: string | null = null;
   private _isUsingEmulator = false;
   constructor(

@@ -20,15 +20,18 @@ import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
-import { DataConnectOptions } from '../../src';
+import { DataConnectOptions, QueryRef, queryRef, subscribe } from '../../src';
 import {
   AuthTokenListener,
   AuthTokenProvider
 } from '../../src/core/FirebaseAuthProvider';
 import { initializeFetch } from '../../src/network/fetch';
 import { RESTTransport } from '../../src/network/transport/rest';
+import { initDatabase } from '../util';
 chai.use(chaiAsPromised);
+chai.use(sinonChai);
 const options: DataConnectOptions = {
   connector: 'c',
   location: 'l',
@@ -64,9 +67,102 @@ const fakeFetchImpl = sinon.stub().returns(
     status: 401
   } as Response)
 );
+interface PostVariables {
+  testId: string;
+}
+const TEST_ID = crypto.randomUUID();
+interface PostListResponse {
+  posts: Post[];
+}
+interface Post {
+  id: string;
+  description: string;
+}
+function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
+  const dc = initDatabase();
+  return queryRef<PostListResponse, PostVariables>(dc, 'ListPosts', {
+    testId: TEST_ID
+  });
+}
 describe('Queries', () => {
   afterEach(() => {
     fakeFetchImpl.resetHistory();
+  });
+  it('should call onComplete callback after subscribe is called', async () => {
+    const taskListQuery = getPostsRef();
+    const onCompleteUserStub = sinon.stub();
+    const unsubscribe = subscribe(taskListQuery, {
+      onNext: () => {},
+      onComplete: onCompleteUserStub
+    });
+    expect(onCompleteUserStub).to.not.have.been.called;
+    unsubscribe();
+    expect(onCompleteUserStub).to.have.been.calledOnce;
+  });
+  it('should call onErr callback after a 401 occurs', async () => {
+    const json = {};
+    const throwErrorFakeImpl = sinon.stub().returns(
+      Promise.resolve({
+        json: () => {
+          return Promise.resolve(json);
+        },
+        status: 401
+      } as Response)
+    );
+    initializeFetch(throwErrorFakeImpl);
+    const taskListQuery = getPostsRef();
+    const onErrStub = sinon.stub();
+    let unsubscribeFn: (() => void) | null = null;
+    const promise = new Promise((resolve, reject) => {
+      unsubscribeFn = subscribe(taskListQuery, {
+        onNext: () => {
+          resolve(null);
+        },
+        onComplete: () => {},
+        onErr: err => {
+          onErrStub();
+          reject(err);
+        }
+      });
+    });
+    expect(onErrStub).not.to.have.been.called;
+    await expect(promise).to.have.eventually.been.rejected;
+    expect(onErrStub).to.have.been.calledOnce;
+    unsubscribeFn!();
+  });
+  it('should call onErr callback after a graphql error occurs', async () => {
+    const json = {
+      errors: [{ something: 'abc' }]
+    };
+    const throwErrorFakeImpl = sinon.stub().returns(
+      Promise.resolve({
+        json: () => {
+          return Promise.resolve(json);
+        },
+        status: 200
+      } as Response)
+    );
+    initializeFetch(throwErrorFakeImpl);
+    const taskListQuery = getPostsRef();
+    const onErrStub = sinon.stub();
+    let unsubscribeFn: (() => void) | null = null;
+    const promise = new Promise((resolve, reject) => {
+      unsubscribeFn = subscribe(taskListQuery, {
+        onNext: () => {
+          resolve(null);
+        },
+        onComplete: () => {},
+        onErr: err => {
+          onErrStub();
+          reject(err);
+        }
+      });
+    });
+    expect(onErrStub).not.to.have.been.called;
+    await expect(promise).to.have.eventually.been.rejected;
+    expect(onErrStub).to.have.been.calledOnce;
+    unsubscribeFn!();
+    initializeFetch(globalThis.fetch);
   });
   it('[QUERY] should retry auth whenever the fetcher returns with unauthorized', async () => {
     initializeFetch(fakeFetchImpl);

@@ -93,9 +93,17 @@ export interface AudioConversationController {
 }
 
 // @public
+export interface AudioTranscriptionConfig {
+}
+
+// @public
 export abstract class Backend {
     protected constructor(type: BackendType);
     readonly backendType: BackendType;
+    // @internal (undocumented)
+    abstract _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    abstract _getTemplatePath(project: string, templateId: string): string;
 }
 
 // @public
@@ -153,6 +161,8 @@ export interface ChromeAdapter {
     generateContent(request: GenerateContentRequest): Promise<Response>;
     generateContentStream(request: GenerateContentRequest): Promise<Response>;
     isAvailable(request: GenerateContentRequest): Promise<boolean>;
+    // @internal (undocumented)
+    mode: InferenceMode;
 }
 
 // @public
@@ -256,6 +266,8 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
+    // @beta
+    inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
     thoughtSummary: () => string | undefined;
@@ -553,15 +565,25 @@ export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @beta
+// @public
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @beta
 export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): LiveGenerativeModel;
 
+// @beta
+export function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
+
+// @beta
+export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
+
 // @public
 export class GoogleAIBackend extends Backend {
     constructor();
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
 }
 
 // Warning: (ae-internal-missing-underscore) The name "GoogleAICitationMetadata" should be prefixed with an underscore because the declaration is marked as @internal
@@ -712,7 +734,7 @@ export interface HybridParams {
     onDeviceParams?: OnDeviceParams;
 }
 
-// @beta
+// @public
 export const ImagenAspectRatio: {
     readonly SQUARE: "1:1";
     readonly LANDSCAPE_3x4: "3:4";
@@ -721,16 +743,16 @@ export const ImagenAspectRatio: {
     readonly PORTRAIT_9x16: "9:16";
 };
 
-// @beta
+// @public
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @beta
+// @public
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
 }
 
-// @beta
+// @public
 export interface ImagenGenerationConfig {
     addWatermark?: boolean;
     aspectRatio?: ImagenAspectRatio;
@@ -739,13 +761,13 @@ export interface ImagenGenerationConfig {
     numberOfImages?: number;
 }
 
-// @beta
+// @public
 export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
     filteredReason?: string;
     images: T[];
 }
 
-// @beta
+// @public
 export class ImagenImageFormat {
     compressionQuality?: number;
     static jpeg(compressionQuality?: number): ImagenImageFormat;
@@ -753,13 +775,13 @@ export class ImagenImageFormat {
     static png(): ImagenImageFormat;
 }
 
-// @beta
+// @public
 export interface ImagenInlineImage {
     bytesBase64Encoded: string;
     mimeType: string;
 }
 
-// @beta
+// @public
 export class ImagenModel extends AIModel {
     constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
@@ -771,24 +793,24 @@ export class ImagenModel extends AIModel {
     safetySettings?: ImagenSafetySettings;
 }
 
-// @beta
+// @public
 export interface ImagenModelParams {
     generationConfig?: ImagenGenerationConfig;
     model: string;
     safetySettings?: ImagenSafetySettings;
 }
 
-// @beta
+// @public
 export const ImagenPersonFilterLevel: {
     readonly BLOCK_ALL: "dont_allow";
     readonly ALLOW_ADULT: "allow_adult";
     readonly ALLOW_ALL: "allow_all";
 };
 
-// @beta
+// @public
 export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
-// @beta
+// @public
 export const ImagenSafetyFilterLevel: {
     readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
     readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
@@ -796,10 +818,10 @@ export const ImagenSafetyFilterLevel: {
     readonly BLOCK_NONE: "block_none";
 };
 
-// @beta
+// @public
 export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
-// @beta
+// @public
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
@@ -815,6 +837,15 @@ export const InferenceMode: {
 
 // @beta
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
+
+// @beta
+export const InferenceSource: {
+    readonly ON_DEVICE: "on_device";
+    readonly IN_CLOUD: "in_cloud";
+};
+
+// @beta
+export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
 
 // @public
 export interface InlineDataPart {
@@ -911,7 +942,9 @@ export interface LanguageModelPromptOptions {
 // @beta
 export interface LiveGenerationConfig {
     frequencyPenalty?: number;
+    inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
+    outputAudioTranscription?: AudioTranscriptionConfig;
     presencePenalty?: number;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
@@ -964,8 +997,10 @@ export type LiveResponseType = (typeof LiveResponseType)[keyof typeof LiveRespon
 
 // @beta
 export interface LiveServerContent {
+    inputTranscription?: Transcription;
     interrupted?: boolean;
     modelTurn?: Content;
+    outputTranscription?: Transcription;
     turnComplete?: boolean;
     // (undocumented)
     type: 'serverContent';
@@ -994,9 +1029,14 @@ export class LiveSession {
     isClosed: boolean;
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+    // @deprecated
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
+    // @deprecated (undocumented)
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
+    sendTextRealtime(text: string): Promise<void>;
+    sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
 
 // @public
@@ -1288,6 +1328,25 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// @beta
+export class TemplateGenerativeModel {
+    constructor(ai: AI, requestOptions?: RequestOptions);
+    // @internal (undocumented)
+    _apiSettings: ApiSettings;
+    generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
+    requestOptions?: RequestOptions;
+}
+
+// @beta
+export class TemplateImagenModel {
+    constructor(ai: AI, requestOptions?: RequestOptions);
+    // @internal (undocumented)
+    _apiSettings: ApiSettings;
+    generateImages(templateId: string, templateVariables: object): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    requestOptions?: RequestOptions;
+}
+
 // @public
 export interface TextPart {
     // (undocumented)
@@ -1324,6 +1383,11 @@ export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTo
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+}
+
+// @beta
+export interface Transcription {
+    text?: string;
 }
 
 // @public
@@ -1381,6 +1445,10 @@ export interface UsageMetadata {
 // @public
 export class VertexAIBackend extends Backend {
     constructor(location?: string);
+    // @internal (undocumented)
+    _getModelPath(project: string, model: string): string;
+    // @internal (undocumented)
+    _getTemplatePath(project: string, templateId: string): string;
     readonly location: string;
 }
 

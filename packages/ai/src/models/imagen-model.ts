@@ -16,7 +16,7 @@
  */
 
 import { AI } from '../public-types';
-import { Task, makeRequest } from '../requests/request';
+import { makeRequest, Task } from '../requests/request';
 import { createPredictRequestBody } from '../requests/request-helpers';
 import { handlePredictResponse } from '../requests/response-helpers';
 import {
@@ -50,7 +50,7 @@ import { AIModel } from './ai-model';
  * }
  * ```
  *
- * @beta
+ * @public
  */
 export class ImagenModel extends AIModel {
   /**
@@ -99,7 +99,7 @@ export class ImagenModel extends AIModel {
    * returned object will have a `filteredReason` property.
    * If all images are filtered, the `images` array will be empty.
    *
-   * @beta
+   * @public
    */
   async generateImages(
     prompt: string
@@ -109,12 +109,14 @@ export class ImagenModel extends AIModel {
       ...this.safetySettings
     });
     const response = await makeRequest(
-      this.model,
-      Task.PREDICT,
-      this._apiSettings,
-      /* stream */ false,
-      JSON.stringify(body),
-      this.requestOptions
+      {
+        task: Task.PREDICT,
+        model: this.model,
+        apiSettings: this._apiSettings,
+        stream: false,
+        requestOptions: this.requestOptions
+      },
+      JSON.stringify(body)
     );
     return handlePredictResponse<ImagenInlineImage>(response);
   }
@@ -148,12 +150,14 @@ export class ImagenModel extends AIModel {
       ...this.safetySettings
     });
     const response = await makeRequest(
-      this.model,
-      Task.PREDICT,
-      this._apiSettings,
-      /* stream */ false,
-      JSON.stringify(body),
-      this.requestOptions
+      {
+        task: Task.PREDICT,
+        model: this.model,
+        apiSettings: this._apiSettings,
+        stream: false,
+        requestOptions: this.requestOptions
+      },
+      JSON.stringify(body)
     );
     return handlePredictResponse<ImagenGCSImage>(response);
   }

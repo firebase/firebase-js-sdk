@@ -22,6 +22,7 @@ import {
   HarmCategory,
   HarmProbability,
   HarmSeverity,
+  InferenceSource,
   Modality
 } from './enums';
 
@@ -88,6 +89,12 @@ export interface EnhancedGenerateContentResponse
    * set to `true`.
    */
   thoughtSummary: () => string | undefined;
+  /**
+   * Indicates whether inference happened on-device or in-cloud.
+   *
+   * @beta
+   */
+  inferenceSource?: InferenceSource;
 }
 
 /**
@@ -546,6 +553,29 @@ export interface LiveServerContent {
    * model was not interrupted.
    */
   interrupted?: boolean;
+  /**
+   * Transcription of the audio that was input to the model.
+   */
+  inputTranscription?: Transcription;
+  /**
+   * Transcription of the audio output from the model.
+   */
+  outputTranscription?: Transcription;
+}
+
+/**
+ * Transcription of audio. This can be returned from a {@link LiveGenerativeModel} if transcription
+ * is enabled with the `inputAudioTranscription` or `outputAudioTranscription` properties on
+ * the {@link LiveGenerationConfig}.
+ *
+ * @beta
+ */
+
+export interface Transcription {
+  /**
+   * The text transcription of the audio.
+   */
+  text?: string;
 }
 
 /**

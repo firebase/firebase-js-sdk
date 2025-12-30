@@ -1,5 +1,82 @@
 # firebase
 
+## 12.7.0
+
+### Minor Changes
+
+- Update root "firebase" package as a "minor" release due to bumps in:
+  @firebase/auth.
+
+### Patch Changes
+
+- Updated dependencies [[`1e406a2`](https://github.com/firebase/firebase-js-sdk/commit/1e406a2b7140b014edac26f0e5179878bb3d821f), [`bc2b2cd`](https://github.com/firebase/firebase-js-sdk/commit/bc2b2cdeae920ff22aca3414c2a1b79d4a3b1351), [`5c7430d`](https://github.com/firebase/firebase-js-sdk/commit/5c7430deabb20ddce2a26ea9a565323d2a0f612e), [`5940794`](https://github.com/firebase/firebase-js-sdk/commit/59407948daf848fea069b776a55bef62bbcd602f)]:
+  - @firebase/auth@1.12.0
+  - @firebase/ai@2.6.1
+  - @firebase/firestore@4.9.3
+  - @firebase/auth-compat@0.6.2
+  - @firebase/firestore-compat@0.4.3
+
+## 12.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
+### Patch Changes
+
+- Updated dependencies [[`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd), [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d)]:
+  - @firebase/app@0.14.6
+  - @firebase/ai@2.6.0
+  - @firebase/data-connect@0.3.12
+  - @firebase/app-compat@0.5.6
+
+## 12.5.0
+
+### Minor Changes
+
+- [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b) [#9291](https://github.com/firebase/firebase-js-sdk/pull/9291) - Deprecate `sendMediaChunks()` and `sendMediaStream()`. Instead, use the new methods added to the `LiveSession` class.
+  Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class.
+
+- [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd) [#9330](https://github.com/firebase/firebase-js-sdk/pull/9330) - Add support for audio transcriptions in the Live API.
+
+- [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e) [#9315](https://github.com/firebase/firebase-js-sdk/pull/9315) - Add `inferenceSource` to the response from `generateContent` and `generateContentStream`. This property indicates whether on-device or in-cloud inference was used to generate the result.
+
+### Patch Changes
+
+- [`2615081`](https://github.com/firebase/firebase-js-sdk/commit/261508183c249dcec737448dde3aad7399f4668c) [#9297](https://github.com/firebase/firebase-js-sdk/pull/9297) (fixes [#9270](https://github.com/firebase/firebase-js-sdk/issues/9270)) - Export MISSING_PASSWORD via AuthErrorCodes in @firebase/auth.
+
+- Updated dependencies [[`91c218d`](https://github.com/firebase/firebase-js-sdk/commit/91c218db2d14cb4f1b978b9073510b8bc8f91233), [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b), [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd), [`2615081`](https://github.com/firebase/firebase-js-sdk/commit/261508183c249dcec737448dde3aad7399f4668c), [`44d9891`](https://github.com/firebase/firebase-js-sdk/commit/44d9891f93298ab4bcef5170c40c235831af0276), [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e)]:
+  - @firebase/auth@1.11.1
+  - @firebase/app@0.14.5
+  - @firebase/ai@2.5.0
+  - @firebase/auth-compat@0.6.1
+  - @firebase/app-compat@0.5.5
+
+## 12.4.0
+
+### Minor Changes
+
+- [`0bb2fe6`](https://github.com/firebase/firebase-js-sdk/commit/0bb2fe636c456628feabd10387673f4980c7ba9e) [#9272](https://github.com/firebase/firebase-js-sdk/pull/9272) - Added a `sendFunctionResponses` method to `LiveSession`, allowing function responses to be sent during realtime sessions.
+  Fixed an issue where function responses during audio conversations caused the WebSocket connection to close. See [GitHub Issue #9264](https://github.com/firebase/firebase-js-sdk/issues/9264).
+
+  - **Breaking Change**: Changed the `functionCallingHandler` property in `StartAudioConversationOptions` so that it now must return a `Promise<FunctionResponse>`.
+    This breaking change is allowed in a minor release since the Live API is in Public Preview.
+
+- [`0ffcb26`](https://github.com/firebase/firebase-js-sdk/commit/0ffcb26af7c597820370fab1223da330728bbb36) [#9254](https://github.com/firebase/firebase-js-sdk/pull/9254) - Added support for the URL context tool, which allows the model to access content from provided public web URLs to inform and enhance its responses.
+
+### Patch Changes
+
+- [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca) [#9255](https://github.com/firebase/firebase-js-sdk/pull/9255) - Imagen Generation is now Generally Available (GA).
+
+- [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca) [#9255](https://github.com/firebase/firebase-js-sdk/pull/9255) - The Gemini Developer API is now Generally Available (GA).
+
+- Updated dependencies [[`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca), [`0bb2fe6`](https://github.com/firebase/firebase-js-sdk/commit/0bb2fe636c456628feabd10387673f4980c7ba9e), [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca), [`ea85128`](https://github.com/firebase/firebase-js-sdk/commit/ea8512812b994e5de081cb55a951b627fa0183b3), [`0ffcb26`](https://github.com/firebase/firebase-js-sdk/commit/0ffcb26af7c597820370fab1223da330728bbb36), [`7a7634f`](https://github.com/firebase/firebase-js-sdk/commit/7a7634f79c4cb0d9389747068b39a7968b5628a0), [`1bcf83d`](https://github.com/firebase/firebase-js-sdk/commit/1bcf83d7f0640dff67c20939fb9af7bae6a941e0)]:
+  - @firebase/app@0.14.4
+  - @firebase/ai@2.4.0
+  - @firebase/analytics@0.10.19
+  - @firebase/app-compat@0.5.4
+  - @firebase/analytics-compat@0.2.25
+
 ## 12.3.0
 
 ### Minor Changes

@@ -121,16 +121,6 @@ export interface DataConnectSettings {
     cacheSettings?: CacheSettings;
 }
 
-// @public
-export interface DataConnectSubscription<Data, Variables> {
-    // (undocumented)
-    errCallback?: (e?: DataConnectError) => void;
-    // (undocumented)
-    unsubscribe: () => void;
-    // (undocumented)
-    userCallback: OnResultSubscription<Data, Variables>;
-}
-
 // @public (undocumented)
 export type DataSource = typeof SOURCE_CACHE | typeof SOURCE_SERVER;
 

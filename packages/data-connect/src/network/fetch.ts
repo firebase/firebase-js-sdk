@@ -58,7 +58,7 @@ export async function dcFetch<T, U>(
   { signal }: AbortController,
   appId: string | null | undefined,
   accessToken: string | null,
-  appCheckToken: string | null,
+  appCheckToken: string | null | undefined,
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType,
   _isUsingEmulator: boolean

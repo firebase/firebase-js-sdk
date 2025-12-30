@@ -18,6 +18,8 @@ toc:
     path: /docs/reference/js/ai.arrayschema.md
   - title: AudioConversationController
     path: /docs/reference/js/ai.audioconversationcontroller.md
+  - title: AudioTranscriptionConfig
+    path: /docs/reference/js/ai.audiotranscriptionconfig.md
   - title: Backend
     path: /docs/reference/js/ai.backend.md
   - title: BaseParams
@@ -196,12 +198,18 @@ toc:
     path: /docs/reference/js/ai.startchatparams.md
   - title: StringSchema
     path: /docs/reference/js/ai.stringschema.md
+  - title: TemplateGenerativeModel
+    path: /docs/reference/js/ai.templategenerativemodel.md
+  - title: TemplateImagenModel
+    path: /docs/reference/js/ai.templateimagenmodel.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
   - title: ThinkingConfig
     path: /docs/reference/js/ai.thinkingconfig.md
   - title: ToolConfig
     path: /docs/reference/js/ai.toolconfig.md
+  - title: Transcription
+    path: /docs/reference/js/ai.transcription.md
   - title: URLContext
     path: /docs/reference/js/ai.urlcontext.md
   - title: URLContextMetadata

@@ -78,6 +78,63 @@ describe('ChromeAdapter', () => {
         expectedInputs: [{ type: 'image' }]
       });
     });
+    it('sets image as expected input type by default even if other onDeviceParams params are set', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.AVAILABLE)
+      } as LanguageModel;
+      const availabilityStub = stub(
+        languageModelProvider,
+        'availability'
+      ).resolves(Availability.AVAILABLE);
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE,
+        {
+          promptOptions: {}
+        }
+      );
+      await adapter.isAvailable({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'hi' }]
+          }
+        ]
+      });
+      expect(availabilityStub).to.have.been.calledWith({
+        expectedInputs: [{ type: 'image' }]
+      });
+    });
+    it('sets image as expected input type by default even if other createOptions params are set', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.AVAILABLE)
+      } as LanguageModel;
+      const availabilityStub = stub(
+        languageModelProvider,
+        'availability'
+      ).resolves(Availability.AVAILABLE);
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE,
+        {
+          createOptions: {
+            topK: 22
+          }
+        }
+      );
+      await adapter.isAvailable({
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: 'hi' }]
+          }
+        ]
+      });
+      expect(availabilityStub).to.have.been.calledWith({
+        topK: 22,
+        expectedInputs: [{ type: 'image' }]
+      });
+    });
     it('honors explicitly set expected inputs', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)

@@ -1,5 +1,19 @@
 # @firebase/auth
 
+## 1.12.0
+
+### Minor Changes
+
+- [`1e406a2`](https://github.com/firebase/firebase-js-sdk/commit/1e406a2b7140b014edac26f0e5179878bb3d821f) [#9410](https://github.com/firebase/firebase-js-sdk/pull/9410) - Upgraded react-native-async-storage peerDependency to v2+.
+
+## 1.11.1
+
+### Patch Changes
+
+- [`91c218d`](https://github.com/firebase/firebase-js-sdk/commit/91c218db2d14cb4f1b978b9073510b8bc8f91233) [#9313](https://github.com/firebase/firebase-js-sdk/pull/9313) - Expose `browserCookiePersistence` beta feature in public typings.
+
+- [`2615081`](https://github.com/firebase/firebase-js-sdk/commit/261508183c249dcec737448dde3aad7399f4668c) [#9297](https://github.com/firebase/firebase-js-sdk/pull/9297) (fixes [#9270](https://github.com/firebase/firebase-js-sdk/issues/9270)) - Export MISSING_PASSWORD via AuthErrorCodes in @firebase/auth.
+
 ## 1.11.0
 
 ### Minor Changes

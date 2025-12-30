@@ -27,7 +27,7 @@ import { ApiSettings } from '../types/internal';
 import { Task } from '../requests/request';
 import { mapCountTokensRequest } from '../googleai-mappers';
 import { GoogleAIBackend, VertexAIBackend } from '../backend';
-import { ChromeAdapterImpl } from './chrome-adapter';
+import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -52,12 +52,6 @@ const fakeRequestParams: CountTokensRequest = {
   contents: [{ parts: [{ text: 'hello' }], role: 'user' }]
 };
 
-const fakeChromeAdapter = new ChromeAdapterImpl(
-  // @ts-expect-error
-  undefined,
-  InferenceMode.PREFER_ON_DEVICE
-);
-
 describe('countTokens()', () => {
   afterEach(() => {
     restore();
@@ -77,16 +71,17 @@ describe('countTokens()', () => {
       fakeChromeAdapter
     );
     expect(result.totalTokens).to.equal(6);
-    expect(result.totalBillableCharacters).to.equal(16);
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.COUNT_TOKENS,
-      fakeApiSettings,
-      false,
+      {
+        model: 'model',
+        task: Task.COUNT_TOKENS,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('contents');
-      }),
-      undefined
+      })
     );
   });
   it('total tokens with modality details', async () => {
@@ -108,14 +103,16 @@ describe('countTokens()', () => {
     expect(result.promptTokensDetails?.[0].modality).to.equal('IMAGE');
     expect(result.promptTokensDetails?.[0].tokenCount).to.equal(1806);
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.COUNT_TOKENS,
-      fakeApiSettings,
-      false,
+      {
+        model: 'model',
+        task: Task.COUNT_TOKENS,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('contents');
-      }),
-      undefined
+      })
     );
   });
   it('total tokens no billable characters', async () => {
@@ -135,14 +132,16 @@ describe('countTokens()', () => {
     expect(result.totalTokens).to.equal(258);
     expect(result).to.not.have.property('totalBillableCharacters');
     expect(makeRequestStub).to.be.calledWith(
-      'model',
-      Task.COUNT_TOKENS,
-      fakeApiSettings,
-      false,
+      {
+        model: 'model',
+        task: Task.COUNT_TOKENS,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        requestOptions: undefined
+      },
       match((value: string) => {
         return value.includes('contents');
-      }),
-      undefined
+      })
     );
   });
   it('model not found', async () => {
@@ -187,21 +186,22 @@ describe('countTokens()', () => {
       );
 
       expect(makeRequestStub).to.be.calledWith(
-        'model',
-        Task.COUNT_TOKENS,
-        fakeGoogleAIApiSettings,
-        false,
-        JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model')),
-        undefined
+        {
+          model: 'model',
+          task: Task.COUNT_TOKENS,
+          apiSettings: fakeGoogleAIApiSettings,
+          stream: false,
+          requestOptions: undefined
+        },
+        JSON.stringify(mapCountTokensRequest(fakeRequestParams, 'model'))
       );
     });
   });
   it('throws if mode is ONLY_ON_DEVICE', async () => {
-    const chromeAdapter = new ChromeAdapterImpl(
-      // @ts-expect-error
-      undefined,
-      InferenceMode.ONLY_ON_DEVICE
-    );
+    const chromeAdapter = {
+      ...fakeChromeAdapter,
+      mode: InferenceMode.ONLY_ON_DEVICE
+    };
     await expect(
       countTokens(fakeApiSettings, 'model', fakeRequestParams, chromeAdapter)
     ).to.be.rejectedWith(

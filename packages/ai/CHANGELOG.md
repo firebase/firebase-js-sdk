@@ -1,5 +1,56 @@
 # @firebase/ai
 
+## 2.6.1
+
+### Patch Changes
+
+- [`bc2b2cd`](https://github.com/firebase/firebase-js-sdk/commit/bc2b2cdeae920ff22aca3414c2a1b79d4a3b1351) [#9399](https://github.com/firebase/firebase-js-sdk/pull/9399) - update the link /genai to /ailogic
+
+- [`5c7430d`](https://github.com/firebase/firebase-js-sdk/commit/5c7430deabb20ddce2a26ea9a565323d2a0f612e) [#9381](https://github.com/firebase/firebase-js-sdk/pull/9381) - Fix `generateContentStream` returning wrong `inferenceSource`.
+
+## 2.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
+## 2.5.0
+
+### Minor Changes
+
+- [`22e0a1a`](https://github.com/firebase/firebase-js-sdk/commit/22e0a1adbc994196690bd020472d119c1a3d200b) [#9291](https://github.com/firebase/firebase-js-sdk/pull/9291) - Deprecate `sendMediaChunks()` and `sendMediaStream()`. Instead, use the new methods added to the `LiveSession` class.
+  Add `sendTextRealtime()`, `sendAudioReatime()`, and `sendVideoRealtime()` to the `LiveSession` class.
+
+- [`bc5a7c4`](https://github.com/firebase/firebase-js-sdk/commit/bc5a7c4a74e72e9218d1435bfe50711c77b47cbd) [#9330](https://github.com/firebase/firebase-js-sdk/pull/9330) - Add support for audio transcriptions in the Live API.
+
+- [`c8263c4`](https://github.com/firebase/firebase-js-sdk/commit/c8263c471db4df1b0e23f0d2a11c69fd6b920e2e) [#9315](https://github.com/firebase/firebase-js-sdk/pull/9315) - Add `inferenceSource` to the response from `generateContent` and `generateContentStream`. This property indicates whether on-device or in-cloud inference was used to generate the result.
+
+### Patch Changes
+
+- [`44d9891`](https://github.com/firebase/firebase-js-sdk/commit/44d9891f93298ab4bcef5170c40c235831af0276) [#9314](https://github.com/firebase/firebase-js-sdk/pull/9314) - Fix logic for merging default `onDeviceParams` with user-provided `onDeviceParams`.
+
+## 2.4.0
+
+### Minor Changes
+
+- [`0bb2fe6`](https://github.com/firebase/firebase-js-sdk/commit/0bb2fe636c456628feabd10387673f4980c7ba9e) [#9272](https://github.com/firebase/firebase-js-sdk/pull/9272) - Added a `sendFunctionResponses` method to `LiveSession`, allowing function responses to be sent during realtime sessions.
+  Fixed an issue where function responses during audio conversations caused the WebSocket connection to close. See [GitHub Issue #9264](https://github.com/firebase/firebase-js-sdk/issues/9264).
+
+  - **Breaking Change**: Changed the `functionCallingHandler` property in `StartAudioConversationOptions` so that it now must return a `Promise<FunctionResponse>`.
+    This breaking change is allowed in a minor release since the Live API is in Public Preview.
+
+- [`0ffcb26`](https://github.com/firebase/firebase-js-sdk/commit/0ffcb26af7c597820370fab1223da330728bbb36) [#9254](https://github.com/firebase/firebase-js-sdk/pull/9254) - Added support for the URL context tool, which allows the model to access content from provided public web URLs to inform and enhance its responses.
+
+### Patch Changes
+
+- [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca) [#9255](https://github.com/firebase/firebase-js-sdk/pull/9255) - Imagen Generation is now Generally Available (GA).
+
+- [`2596dd1`](https://github.com/firebase/firebase-js-sdk/commit/2596dd1b5072298da8814844a312681174fc2dca) [#9255](https://github.com/firebase/firebase-js-sdk/pull/9255) - The Gemini Developer API is now Generally Available (GA).
+
+- [`ea85128`](https://github.com/firebase/firebase-js-sdk/commit/ea8512812b994e5de081cb55a951b627fa0183b3) [#9262](https://github.com/firebase/firebase-js-sdk/pull/9262) - Updated SDK to handle empty parts when streaming.
+
+- [`7a7634f`](https://github.com/firebase/firebase-js-sdk/commit/7a7634f79c4cb0d9389747068b39a7968b5628a0) [#9274](https://github.com/firebase/firebase-js-sdk/pull/9274) - Tag code execution with beta tag (public preview).
+
 ## 2.3.0
 
 ### Minor Changes
