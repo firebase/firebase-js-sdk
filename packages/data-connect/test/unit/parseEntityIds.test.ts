@@ -108,27 +108,27 @@ describe('parseEntityIds', () => {
     };
     const actual = parseEntityIds(response);
     // @ts-ignore
-    expect(actual.data.posts[0].author._id).to.eq('idForAuthorOfPost1');
+    expect(actual.posts[0].author._id).to.eq('idForAuthorOfPost1');
     // @ts-ignore
-    expect(actual.data.posts[1].author._id).to.eq('idForAuthorOfPost2');
+    expect(actual.posts[1].author._id).to.eq('idForAuthorOfPost2');
     // @ts-ignore
-    expect(actual.data.posts[0]._id).to.eq('idForPost1GoesHere');
+    expect(actual.posts[0]._id).to.eq('idForPost1GoesHere');
     // @ts-ignore
-    expect(actual.data.posts[1]._id).to.eq('idForPost2GoesHere');
+    expect(actual.posts[1]._id).to.eq('idForPost2GoesHere');
     // @ts-ignore
-    expect(actual.data.posts[0].comments_on_post[0]._id).to.eq(
+    expect(actual.posts[0].comments_on_post[0]._id).to.eq(
       'idForPost1Comment1'
     );
     // @ts-ignore
-    expect(actual.data.posts[0].comments_on_post[1]._id).to.eq(
+    expect(actual.posts[0].comments_on_post[1]._id).to.eq(
       'idForPost1Comment2'
     );
     // @ts-ignore
-    expect(actual.data.posts[1].comments_on_post[0]._id).to.eq(
+    expect(actual.posts[1].comments_on_post[0]._id).to.eq(
       'idForPost2Comment1'
     );
     // @ts-ignore
-    expect(actual.data.posts[1].comments_on_post[1]._id).to.eq(
+    expect(actual.posts[1].comments_on_post[1]._id).to.eq(
       'idForPost2Comment2'
     );
   });

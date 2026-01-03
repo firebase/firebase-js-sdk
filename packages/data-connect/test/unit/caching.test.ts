@@ -26,7 +26,8 @@ import {
   makeMemoryCacheProvider,
   queryRef,
   QueryResult,
-  subscribe
+  subscribe,
+  DataConnectExtension
 } from '../../src';
 import { initializeFetch } from '../../src/network/fetch';
 
@@ -57,7 +58,6 @@ describe('caching', () => {
     const q1MovieData = {
       movies: [
         {
-          _id: 'matrix',
           title: 'matrix'
         }
       ]
@@ -65,7 +65,6 @@ describe('caching', () => {
     const q2MovieData = {
       movies: [
         {
-          _id: 'matrix',
           title: 'matrix',
           genre: 'sci-fi'
         }
@@ -78,14 +77,25 @@ describe('caching', () => {
       fetchTime: date,
       ref: q1,
       source: 'CACHE'
-    });
+    }, [
+      {
+        path: ['movies', 0],
+        entityId: 'matrix'
+      }
+    ]
+    );
     const q2 = queryRef<Q2Data>(dc, 'q2');
     await updateCacheData(dc, {
       data: q2MovieData,
       fetchTime: date,
       ref: q2,
       source: 'CACHE'
-    });
+    }, [
+      {
+        path: ['movies', 0],
+        entityId: 'matrix'
+      }
+    ]);
 
     const events: Array<
       Pick<QueryResult<Q2Data, undefined>, 'data' | 'source'>
@@ -283,16 +293,24 @@ async function waitFor(milliseconds: number): Promise<void> {
 }
 async function updateCacheData(
   dc: DataConnect,
-  {
+    {
     data,
     fetchTime,
     ref,
     source
-  }: Omit<QueryResult<unknown, unknown>, 'toJSON'>
+  }: Omit<QueryResult<unknown, unknown>, 'toJSON'>,
+  extension?: DataConnectExtension[],
+
 ): Promise<string[]> {
   const connectorConfig = dc.getSettings();
   const projectId = dc.app.options.projectId;
   return dc._queryManager.updateCache({
+    data,
+    errors: [],
+    extensions: {
+      dataConnect: extension
+    },
+  }, {
     data,
     fetchTime,
     ref,

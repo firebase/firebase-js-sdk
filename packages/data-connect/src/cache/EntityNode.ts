@@ -41,7 +41,8 @@ export class EntityNode {
 
   async loadData(
     queryId: string,
-    values?: FDCScalarValue,
+    values: FDCScalarValue,
+    entityIds: Record<string, unknown> | undefined,
     cacheProvider?: InternalCacheProvider // TODO: Look into why null is being passed in here.
   ): Promise<void> {
     if (values === undefined || !cacheProvider) {
@@ -59,29 +60,29 @@ export class EntityNode {
 
     if (
       typeof values === 'object' &&
-      values.hasOwnProperty(GLOBAL_ID_KEY) &&
-      typeof values[GLOBAL_ID_KEY] === 'string'
+      entityIds &&
+      entityIds[GLOBAL_ID_KEY] &&
+      typeof entityIds[GLOBAL_ID_KEY] === 'string'
     ) {
-      this.globalId = values[GLOBAL_ID_KEY];
+      this.globalId = entityIds[GLOBAL_ID_KEY];
       // TODO: Add current query id to BDO
       this.entityData = await cacheProvider.getBdo(this.globalId);
+    } else {
     }
     for (const key in values) {
       if (values.hasOwnProperty(key)) {
-        if (key === GLOBAL_ID_KEY) {
-          continue;
-        }
         if (typeof values[key] === 'object') {
+          const ids: Record<string, unknown> | undefined = entityIds && entityIds[key] as (Record<string, unknown>);
           if (Array.isArray(values[key])) {
             const objArray: EntityNode[] = [];
             const scalarArray: Array<NonNullable<FDCScalarValue>> = [];
-            for (const value of values[key]) {
+            for (const [index, value] of values[key].entries()) {
               if (typeof value === 'object') {
                 if (Array.isArray(value)) {
                   // Note: we don't support sparse arrays.
                 } else {
                   const entityNode = new EntityNode(this.acc);
-                  await entityNode.loadData(queryId, value, cacheProvider);
+                  await entityNode.loadData(queryId, value, ids && ids[index] as Record<string, unknown>, cacheProvider);
                   objArray.push(entityNode);
                 }
               } else {
@@ -119,6 +120,7 @@ export class EntityNode {
             await stubDataObject.loadData(
               queryId,
               (values as Record<string, FDCScalarValue>)[key],
+              ids && ids[key] as Record<string, unknown>,
               cacheProvider
             );
             this.references[key] = stubDataObject;

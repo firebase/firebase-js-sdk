@@ -30,12 +30,13 @@ export class ResultTreeProcessor {
   }
   async dehydrateResults(
     json: Record<string, unknown>,
+    entityIds: Record<string, unknown>, // TODO: handle entity ids.
     cacheProvider: InternalCacheProvider,
     acc: ImpactedQueryRefsAccumulator,
     queryId: string
   ): Promise<DehydratedResults> {
     const entityNode = new EntityNode(acc);
-    await entityNode.loadData(queryId, json, cacheProvider);
+    await entityNode.loadData(queryId, json, entityIds, cacheProvider);
     return {
       entityNode,
       data: JSON.stringify(entityNode.toStorableJson())

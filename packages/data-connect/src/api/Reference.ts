@@ -16,6 +16,7 @@
  */
 
 import { DataConnect, DataConnectOptions } from './DataConnect';
+import { QueryResult } from './query';
 export const QUERY_STR = 'query';
 export const MUTATION_STR = 'mutation';
 export type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
@@ -28,6 +29,13 @@ export interface OpResult<Data> {
   data: Data;
   source: DataSource;
   fetchTime: string;
+}
+
+/**
+ * @internal
+ */
+export interface CachedQueryResult<Data, Variables> extends QueryResult<Data, Variables> {
+  entityIds: Record<string, unknown>;
 }
 
 export interface OperationRef<_Data, Variables> {

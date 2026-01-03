@@ -44,6 +44,7 @@ import {
   OnResultSubscription
 } from './subscribe';
 
+
 function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
   data: Data,
@@ -76,7 +77,7 @@ export class QueryManager {
     private transport: DataConnectTransport,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) {}
+  ) { }
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -85,27 +86,30 @@ export class QueryManager {
     this.queue = [];
   }
 
+  // TODO: with extensions, this result will not have entityIds.
   updateSSR(updatedData: QueryResult<unknown, unknown>): void {
-    this.queue.push(
-      this.updateCache(updatedData).then(async result =>
-        this.publishCacheResultsToSubscribers(result)
-      )
-    );
+    // this.queue.push(
+    //   this.updateCache(updatedData).then(async result =>
+    //     this.publishCacheResultsToSubscribers(result)
+    //   )
+    // );
   }
 
   async updateCache<Data, Variables>(
+    response: DataConnectResponse<Data>,
     result: QueryResult<Data, Variables>
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
-
     if (this.cache) {
+      const entityIds = parseEntityIds(response);
       return this.cache.update(
         encoderImpl({
           name: result.ref.name,
           variables: result.ref.variables,
           refType: QUERY_STR
         }),
-        result.data as ServerValues
+        result.data as ServerValues,
+        entityIds
       );
     } else {
       const key = encoderImpl({
@@ -114,8 +118,8 @@ export class QueryManager {
         refType: QUERY_STR
       });
       this.subscriptionCache.set(key, result);
+      return [key];
     }
-    return [];
   }
 
   addSubscription<Data, Variables>(
@@ -152,15 +156,14 @@ export class QueryManager {
     }
 
     logDebug(
-      `Cache not available for query ${
-        queryRef.name
+      `Cache not available for query ${queryRef.name
       } with variables ${JSON.stringify(
         queryRef.variables
       )}. Calling executeQuery.`
     );
-    const promise = this.executeQuery(queryRef as QueryRef<Data, Variables>);
+    const promise = this.maybeExecuteQuery(queryRef as QueryRef<Data, Variables>);
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => {});
+    promise.then(undefined, err => { });
 
     if (!this.callbacks.has(key)) {
       this.callbacks.set(key, []);
@@ -171,23 +174,12 @@ export class QueryManager {
 
     return unsubscribe;
   }
-  async executeQuery<Data, Variables>(
-    queryRef: QueryRef<Data, Variables>,
-    options?: ExecuteQueryOptions
-  ): Promise<QueryResult<Data, Variables>> {
-    await this.waitForQueuedWrites();
-    if (queryRef.refType !== QUERY_STR) {
-      throw new DataConnectError(
-        Code.INVALID_ARGUMENT,
-        `ExecuteQuery can only execute query operations`
-      );
-    }
+  async loadCache<Data, Variables>(queryRef: QueryRef<Data, Variables>, cachingEnabled: boolean, options?: ExecuteQueryOptions): Promise<QueryResult<Data, Variables> | null> {
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    const cachingEnabled = this.cache && !!this.cache?.cacheSettings;
     if (!cachingEnabled) {
       const cachedData = this.subscriptionCache.get(key) as QueryResult<
         Data,
@@ -227,60 +219,118 @@ export class QueryManager {
           queryRef.variables
         )}. Calling executeQuery`
       );
-      await this.publishCacheResultsToSubscribers([key]);
-
       return result;
     } else {
       if (options?.fetchPolicy === QueryFetchPolicy.SERVER_ONLY) {
         logDebug(`Skipping cache for fetch policy "serverOnly"`);
       } else {
         logDebug(
-          `No Cache found for query ${
-            queryRef.name
+          `No Cache found for query ${queryRef.name
           } with variables ${JSON.stringify(
             queryRef.variables
           )}. Calling executeQuery`
         );
       }
     }
-    try {
-      const res = await this.transport.invokeQuery<Data, Variables>(
-        queryRef.name,
-        queryRef.variables
-      );
-      const fetchTime = new Date().toString();
-      const result: QueryResult<Data, Variables> = {
-        data: res.data,
-        source: SOURCE_SERVER,
-        ref: queryRef,
-        toJSON: getRefSerializer(queryRef, res.data, SOURCE_SERVER),
-        fetchTime
-      };
-
-      if (cachingEnabled && (await this.cache!.containsResultTree(key))) {
-        (await this.cache!.getResultTree(key))!.updateAccessed();
-      }
-      if (cachingEnabled) {
-        const parsedData = parseEntityIds(res);
-        const impactedQueries = await this.cache!.update(
-          key,
-          parsedData as unknown as ServerValues
-        );
-        await this.publishCacheResultsToSubscribers(impactedQueries);
-      } else {
-        this.subscriptionCache.set(key, result);
-        this.publishDataToSubscribers(key, result);
-      }
-      return result;
-    } catch (err: unknown) {
-      this.callbacks.get(key)?.forEach(subscription => {
-        if (subscription.errCallback) {
-          subscription.errCallback(err as DataConnectError);
-        }
-      });
-      throw err;
-    }
+    return null;
   }
+  async maybeExecuteQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>, options?: ExecuteQueryOptions): Promise<QueryResult<Data, Variables>> {
+    await this.waitForQueuedWrites();
+    if (queryRef.refType !== QUERY_STR) {
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `ExecuteQuery can only execute query operations`
+      );
+    }
+    let queryResult: QueryResult<Data, Variables> | undefined;
+    const cachingEnabled = this.cache && !!this.cache.cacheSettings;
+    let shouldExecute = false;
+    const key = encoderImpl({
+      name: queryRef.name,
+      variables: queryRef.variables,
+      refType: QUERY_STR
+    });
+    if (options?.fetchPolicy === QueryFetchPolicy.SERVER_ONLY) {
+      // definitely execute query
+      // queryResult = await this.executeQuery(queryRef, options);
+      shouldExecute = true;
+    } else {
+
+      if (!cachingEnabled) {
+        // read from subscriber cache.
+        const fromSubscriberCache = await this.getFromSubscriberCache(key);
+        if (!fromSubscriberCache) {
+          shouldExecute = true;
+        }
+        queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
+      } else {
+        if (!this.cache?.containsResultTree(key)) {
+          shouldExecute = true;
+        } else {
+          queryResult = await this.getFromResultTreeCache(key, queryRef);
+        }
+      }
+    }
+    let impactedQueries: string[] = [key];
+    if (shouldExecute) {
+      try {
+        const response = await this.transport.invokeQuery<Data, Variables>(
+          queryRef.name,
+          queryRef.variables
+        );
+        queryResult = {
+          data: response.data,
+          fetchTime: new Date().toISOString(),
+          ref: queryRef,
+          source: SOURCE_SERVER,
+          toJSON: getRefSerializer(queryRef, response.data, SOURCE_SERVER)
+        };
+        impactedQueries = await this.updateCache(response, queryResult);
+      } catch (e: unknown) {
+        this.publishErrorToSubscribers(key, e);
+        throw e;
+      }
+    }
+    if (!cachingEnabled) {
+      this.subscriptionCache.set(key, queryResult!);
+      this.publishDataToSubscribers(key, queryResult!);
+    } else {
+      await this.publishCacheResultsToSubscribers(impactedQueries);
+    }
+    return queryResult!;
+  }
+  publishErrorToSubscribers(key: string, err: unknown): void {
+    this.callbacks.get(key)?.forEach(subscription => {
+      if (subscription.errCallback) {
+        subscription.errCallback(err as DataConnectError);
+      }
+    });
+  }
+  async getFromResultTreeCache<Data, Variables>(key: string, queryRef: QueryRef<Data, Variables>): Promise<QueryResult<Data, Variables>> {
+    const cacheResult: Data = JSON.parse(
+      await this.cache!.getResultJSON(key)
+    );
+    const resultTree = await this.cache!.getResultTree(key);
+    const result: QueryResult<Data, Variables> = {
+      source: SOURCE_CACHE,
+      ref: queryRef,
+      data: cacheResult,
+      toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
+      fetchTime: resultTree!.cachedAt.toString()
+    };
+    (await this.cache!.getResultTree(key))!.updateAccessed();
+    return result;
+  }
+  async getFromSubscriberCache(key: string): Promise<QueryResult<unknown, unknown> | undefined> {
+    if (!this.subscriptionCache.has(key)) {
+      return;
+    }
+    const result = this.subscriptionCache.get(key);
+    result!.source = SOURCE_CACHE;
+    result!.toJSON = getRefSerializer(result!.ref, result!.data, SOURCE_CACHE);
+    return result;
+  }
+
   publishDataToSubscribers(
     key: string,
     queryResult: QueryResult<unknown, unknown>
@@ -331,21 +381,23 @@ export class QueryManager {
   }
 }
 
-// TODO: Move into its own file
+// TODO: Move this to its own file
+// TODO: Make this return a Record<string, unknown>, and use this as a lookup table for entity ids
 export function parseEntityIds<T>(
   data: DataConnectResponse<T>
-): DataConnectResponse<T> {
+): Record<string, unknown> {
   // Iterate through extensions.dataConnect
   const dataConnectExtensions = data.extensions.dataConnect;
   const dataCopy = Object.assign(data);
   if (!dataConnectExtensions) {
     return dataCopy;
   }
+  const ret: Record<string, unknown> = {};
   for (const extension of dataConnectExtensions) {
     const { path } = extension;
-    populatePath(path, dataCopy.data, extension);
+    populatePath(path, ret, extension);
   }
-  return dataCopy;
+  return ret;
 }
 
 // TODO: Only enable this if clientCache.includeEntityId is true
@@ -357,14 +409,21 @@ export function populatePath(
 ): void {
   let curObj: Record<string | number, unknown> = toUpdate;
   for (const slice of path) {
-    curObj = curObj[slice] as Record<string, unknown>; // TODO: This type can be fixed
+    if (typeof curObj[slice] !== 'object') {
+      curObj[slice] = {};
+    }
+    curObj = curObj[slice] as Record<string, unknown>;
   }
+
   if ('entityId' in extension) {
     curObj['_id'] = extension.entityId;
   } else {
     const entityArr = extension.entityIds;
     for (let i = 0; i < entityArr.length; i++) {
       const entityId = entityArr[i];
+      if (typeof curObj[i] === 'undefined') {
+        curObj[i] = {};
+      }
       (curObj[i] as Record<string, unknown>)._id = entityId;
     }
   }
