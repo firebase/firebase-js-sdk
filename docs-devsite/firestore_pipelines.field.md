@@ -19,15 +19,6 @@ Represents a reference to a field in a Firestore document, or outputs of a  stag
 
 <p>You can create a `Field` instance using the static  method:
 
-```typescript
-// Create a Field instance for the 'name' field
-const nameField = field("name");
-
-// Create a Field instance for a nested field 'address.city'
-const cityField = field("address.city");
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -101,3 +92,16 @@ get fieldName(): string;
 ```typescript
 selectable: true;
 ```
+
+### Example
+
+
+```typescript
+// Create a Field instance for the 'name' field
+const nameField = field("name");
+
+// Create a Field instance for a nested field 'address.city'
+const cityField = field("address.city");
+
+```
+

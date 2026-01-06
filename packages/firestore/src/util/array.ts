@@ -119,7 +119,7 @@ export function diffArrays<T>(
  * @internal
  * @param left Array of objects supporting `isEqual`.
  * @param right Array of objects supporting `isEqual`.
- * @return True if arrays are equal.
+ * @returns True if arrays are equal.
  */
 export function isArrayEqual<T extends { isEqual: (t: T) => boolean }>(
   left: T[],
@@ -145,7 +145,7 @@ export function isArrayEqual<T extends { isEqual: (t: T) => boolean }>(
  * @internal
  * @param left Array of primitives.
  * @param right Array of primitives.
- * @return True if arrays are equal.
+ * @returns True if arrays are equal.
  */
 export function isPrimitiveArrayEqual<T extends number | string>(
   left: T[],

@@ -122,7 +122,7 @@ export interface IndexManager {
    *
    * @param collectionGroup The collection group to get matching field indexes
    * for.
-   * @return A collection of field indexes for the specified collection group.
+   * @returns A collection of field indexes for the specified collection group.
    */
   getFieldIndexes(
     transaction: PersistenceTransaction,

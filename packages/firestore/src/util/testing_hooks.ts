@@ -45,7 +45,7 @@ export class TestingHooks {
    *
    * @param callback the callback to invoke upon existence filter mismatch.
    *
-   * @return a function that, when called, unregisters the given callback; only
+   * @returns a function that, when called, unregisters the given callback; only
    * the first invocation of the returned function does anything; all subsequent
    * invocations do nothing.
    */

@@ -747,7 +747,7 @@ export class RawStage extends Stage {
  * Helper to read user data across a number of different formats.
  * @param name Name of the calling function. Used for error messages when invalid user data is encountered.
  * @param expressionMap
- * @return the expressionMap argument.
+ * @returns the expressionMap argument.
  * @private
  */
 function readUserDataHelper<

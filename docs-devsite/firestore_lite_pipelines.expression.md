@@ -37,349 +37,55 @@ export declare abstract class Expression
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [abs()](./firestore_lite_pipelines.expression.md#expressionabs) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value.
-```typescript
-// Compute the absolute value of the 'price' field.
-field("price").abs();
-
-```
- A new  representing the absolute value of the numeric value. |
-|  [add(second)](./firestore_lite_pipelines.expression.md#expressionadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds this expression to another expression.
-```typescript
-// Add the value of the 'quantity' field and the 'reserve' field.
-field("quantity").add(field("reserve"));
-
-```
- |
-|  [arrayConcat(secondArray, otherArrays)](./firestore_lite_pipelines.expression.md#expressionarrayconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates an array expression with one or more other arrays.
-```typescript
-// Combine the 'items' array with another array field.
-field("items").arrayConcat(field("otherItems"));
-
-```
- |
-|  [arrayContains(expression)](./firestore_lite_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific element.
-```typescript
-// Check if the 'sizes' array contains the value from the 'selectedSize' field
-field("sizes").arrayContains(field("selectedSize"));
-
-```
- |
-|  [arrayContains(value)](./firestore_lite_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific value.
-```typescript
-// Check if the 'colors' array contains "red"
-field("colors").arrayContains("red");
-
-```
- |
-|  [arrayContainsAll(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements.
-```typescript
-// Check if the 'tags' array contains both the value in field "tag1" and the literal value "tag2"
-field("tags").arrayContainsAll([field("tag1"), "tag2"]);
-
-```
- |
-|  [arrayContainsAll(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements.
-```typescript
-// Check if the 'tags' array contains both of the values from field "tag1" and the literal value "tag2"
-field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
-
-```
- |
-|  [arrayContainsAny(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements.
-```typescript
-// Check if the 'categories' array contains either values from field "cate1" or "cate2"
-field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
-
-```
- |
-|  [arrayContainsAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements.
-```typescript
-// Check if the 'groups' array contains either the value from the 'userGroup' field
-// or the value "guest"
-field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
-
-```
- |
-|  [arrayGet(offset)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
-```typescript
-// Return the value in the 'tags' field array at index `1`.
-field('tags').arrayGet(1);
-
-```
- |
-|  [arrayGet(offsetExpr)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
-```typescript
-// Return the value in the tags field array at index specified by field
-// 'favoriteTag'.
-field('tags').arrayGet(field('favoriteTag'));
-
-```
- |
-|  [arrayLength()](./firestore_lite_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array.
-```typescript
-// Get the number of items in the 'cart' array
-field("cart").arrayLength();
-
-```
- A new <code>Expr</code> representing the length of the array. |
-|  [arrayReverse()](./firestore_lite_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array.
-```typescript
-// Reverse the value of the 'myArray' field.
-field("myArray").arrayReverse();
-
-```
- A new  representing the reversed array. |
-|  [arraySum()](./firestore_lite_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array.
-```typescript
-// Compute the sum of the elements in the 'scores' field.
-field("scores").arraySum();
-
-```
- A new  representing the sum of the elements in the array. |
-|  [as(name)](./firestore_lite_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values.
-```typescript
-// Calculate the total price and assign it the alias "totalPrice" and add it to the output.
-firestore.pipeline().collection("items")
-  .addFields(field("price").multiply(field("quantity")).as("totalPrice"));
-
-```
- |
-|  [asBoolean()](./firestore_lite_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. A \[BooleanExpression\] representing the same expression. |
-|  [ascending()](./firestore_lite_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an  that sorts documents in ascending order based on this expression.
-```typescript
-// Sort documents by the 'name' field in ascending order
-pipeline().collection("users")
-  .sort(field("name").ascending());
-
-```
- A new <code>Ordering</code> for ascending sorting. |
-|  [average()](./firestore_lite_pipelines.expression.md#expressionaverage) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs.
-```typescript
-// Calculate the average age of users
-field("age").average().as("averageAge");
-
-```
- A new <code>AggregateFunction</code> representing the 'average' aggregation. |
-|  [byteLength()](./firestore_lite_pipelines.expression.md#expressionbytelength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of this string expression in bytes.
-```typescript
-// Calculate the length of the 'myString' field in bytes.
-field("myString").byteLength();
-
-```
- A new  representing the length of the string in bytes. |
-|  [ceil()](./firestore_lite_pipelines.expression.md#expressionceil) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value.
-```typescript
-// Compute the ceiling of the 'price' field.
-field("price").ceil();
-
-```
- A new  representing the ceiling of the numeric value. |
-|  [charLength()](./firestore_lite_pipelines.expression.md#expressioncharlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the character length of a string in UTF-8.
-```typescript
-// Get the character length of the 'name' field in its UTF-8 form.
-field("name").charLength();
-
-```
- A new <code>Expr</code> representing the length of the string. |
-|  [collectionId()](./firestore_lite_pipelines.expression.md#expressioncollectionid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path.
-```typescript
-// Get the collection ID from a path.
-field("__path__").collectionId();
-
-```
- A new  representing the collectionId operation. |
-|  [concat(second, others)](./firestore_lite_pipelines.expression.md#expressionconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates expression results together.
-```typescript
-// Combine the 'firstName', ' ', and 'lastName' fields into a single value.
-field("firstName").concat(constant(" "), field("lastName"));
-
-```
- |
-|  [cosineDistance(vectorExpression)](./firestore_lite_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the cosine distance between two vectors.
-```typescript
-// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
-field("userVector").cosineDistance(field("itemVector"));
-
-```
- |
-|  [cosineDistance(vector)](./firestore_lite_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between two vectors.
-```typescript
-// Calculate the Cosine distance between the 'location' field and a target location
-field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
-
-```
- |
-|  [count()](./firestore_lite_pipelines.expression.md#expressioncount) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field.
-```typescript
-// Count the total number of products
-field("productId").count().as("totalProducts");
-
-```
- A new <code>AggregateFunction</code> representing the 'count' aggregation. |
-|  [countDistinct()](./firestore_lite_pipelines.expression.md#expressioncountdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of distinct values of the expression or field.
-```typescript
-// Count the distinct number of products
-field("productId").countDistinct().as("distinctProducts");
-
-```
- A new <code>AggregateFunction</code> representing the 'count\_distinct' aggregation. |
-|  [descending()](./firestore_lite_pipelines.expression.md#expressiondescending) |  | <b><i>(Public Preview)</i></b> Creates an  that sorts documents in descending order based on this expression.
-```typescript
-// Sort documents by the 'createdAt' field in descending order
-firestore.pipeline().collection("users")
-  .sort(field("createdAt").descending());
-
-```
- A new <code>Ordering</code> for descending sorting. |
-|  [divide(divisor)](./firestore_lite_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by another expression.
-```typescript
-// Divide the 'total' field by the 'count' field
-field("total").divide(field("count"));
-
-```
- |
-|  [divide(divisor)](./firestore_lite_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by a constant value.
-```typescript
-// Divide the 'value' field by 10
-field("value").divide(10);
-
-```
- |
-|  [documentId()](./firestore_lite_pipelines.expression.md#expressiondocumentid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path.
-```typescript
-// Get the document ID from a path.
-field("__path__").documentId();
-
-```
- A new  representing the documentId operation. |
-|  [dotProduct(vectorExpression)](./firestore_lite_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors.
-```typescript
-// Calculate the dot product between a feature vector and a target vector
-field("features").dotProduct([0.5, 0.8, 0.2]);
-
-```
- |
-|  [dotProduct(vector)](./firestore_lite_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors.
-```typescript
-// Calculate the dot product between a feature vector and a target vector
-field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
-
-```
- |
-|  [endsWith(suffix)](./firestore_lite_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix.
-```typescript
-// Check if the 'filename' field ends with ".txt"
-field("filename").endsWith(".txt");
-
-```
- |
-|  [endsWith(suffix)](./firestore_lite_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix (represented as an expression).
-```typescript
-// Check if the 'url' field ends with the value of the 'extension' field
-field("url").endsWith(field("extension"));
-
-```
- |
-|  [equal(expression)](./firestore_lite_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to another expression.
-```typescript
-// Check if the 'age' field is equal to 21
-field("age").equal(21);
-
-```
- |
-|  [equal(value)](./firestore_lite_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to a constant value.
-```typescript
-// Check if the 'city' field is equal to "London"
-field("city").equal("London");
-
-```
- |
-|  [equalAny(values)](./firestore_lite_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions.
-```typescript
-// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-field("category").equalAny("Electronics", field("primaryType"));
-
-```
- |
-|  [equalAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions.
-```typescript
-// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-field("category").equalAny(array(["Electronics", field("primaryType")]));
-
-```
- |
-|  [euclideanDistance(vectorExpression)](./firestore_lite_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors.
-```typescript
-// Calculate the Euclidean distance between the 'location' field and a target location
-field("location").euclideanDistance([37.7749, -122.4194]);
-
-```
- |
-|  [euclideanDistance(vector)](./firestore_lite_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors.
-```typescript
-// Calculate the Euclidean distance between the 'location' field and a target location
-field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
-
-```
- |
-|  [exists()](./firestore_lite_pipelines.expression.md#expressionexists) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists in the document.
-```typescript
-// Check if the document has a field named "phoneNumber"
-field("phoneNumber").exists();
-
-```
- A new <code>Expr</code> representing the 'exists' check. |
-|  [exp()](./firestore_lite_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression.
-```typescript
-// Compute e to the power of the 'value' field.
-field("value").exp();
-
-```
- A new  representing the exp of the numeric value. |
-|  [floor()](./firestore_lite_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value.
-```typescript
-// Compute the floor of the 'price' field.
-field("price").floor();
-
-```
- A new  representing the floor of the numeric value. |
-|  [greaterThan(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression.
-```typescript
-// Check if the 'age' field is greater than the 'limit' field
-field("age").greaterThan(field("limit"));
-
-```
- |
-|  [greaterThan(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value.
-```typescript
-// Check if the 'price' field is greater than 100
-field("price").greaterThan(100);
-
-```
- |
-|  [greaterThanOrEqual(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression.
-```typescript
-// Check if the 'quantity' field is greater than or equal to field 'requirement' plus 1
-field("quantity").greaterThanOrEqual(field('requirement').add(1));
-
-```
- |
-|  [greaterThanOrEqual(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to a constant value.
-```typescript
-// Check if the 'score' field is greater than or equal to 80
-field("score").greaterThanOrEqual(80);
-
-```
- |
-|  [ifAbsent(elseValue)](./firestore_lite_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of the this expression evaluation.
-```typescript
-// Returns the value of the optional field 'optional_field', or returns 'default_value'
-// if the field is absent.
-field("optional_field").ifAbsent("default_value")
-
-```
- |
+|  [abs()](./firestore_lite_pipelines.expression.md#expressionabs) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
+|  [add(second)](./firestore_lite_pipelines.expression.md#expressionadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds this expression to another expression. |
+|  [arrayConcat(secondArray, otherArrays)](./firestore_lite_pipelines.expression.md#expressionarrayconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates an array expression with one or more other arrays. |
+|  [arrayContains(expression)](./firestore_lite_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific element. |
+|  [arrayContains(value)](./firestore_lite_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific value. |
+|  [arrayContainsAll(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
+|  [arrayContainsAll(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
+|  [arrayContainsAny(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayContainsAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayGet(offset)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayGet(offsetExpr)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayLength()](./firestore_lite_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
+|  [arrayReverse()](./firestore_lite_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
+|  [arraySum()](./firestore_lite_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
+|  [as(name)](./firestore_lite_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
+|  [asBoolean()](./firestore_lite_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
+|  [ascending()](./firestore_lite_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an  that sorts documents in ascending order based on this expression. |
+|  [average()](./firestore_lite_pipelines.expression.md#expressionaverage) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs. |
+|  [byteLength()](./firestore_lite_pipelines.expression.md#expressionbytelength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of this string expression in bytes. |
+|  [ceil()](./firestore_lite_pipelines.expression.md#expressionceil) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
+|  [charLength()](./firestore_lite_pipelines.expression.md#expressioncharlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the character length of a string in UTF-8. |
+|  [collectionId()](./firestore_lite_pipelines.expression.md#expressioncollectionid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path. |
+|  [concat(second, others)](./firestore_lite_pipelines.expression.md#expressionconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates expression results together. |
+|  [cosineDistance(vectorExpression)](./firestore_lite_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the cosine distance between two vectors. |
+|  [cosineDistance(vector)](./firestore_lite_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between two vectors. |
+|  [count()](./firestore_lite_pipelines.expression.md#expressioncount) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field. |
+|  [countDistinct()](./firestore_lite_pipelines.expression.md#expressioncountdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of distinct values of the expression or field. |
+|  [descending()](./firestore_lite_pipelines.expression.md#expressiondescending) |  | <b><i>(Public Preview)</i></b> Creates an  that sorts documents in descending order based on this expression. |
+|  [divide(divisor)](./firestore_lite_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by another expression. |
+|  [divide(divisor)](./firestore_lite_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by a constant value. |
+|  [documentId()](./firestore_lite_pipelines.expression.md#expressiondocumentid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
+|  [dotProduct(vectorExpression)](./firestore_lite_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors. |
+|  [dotProduct(vector)](./firestore_lite_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors. |
+|  [endsWith(suffix)](./firestore_lite_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix. |
+|  [endsWith(suffix)](./firestore_lite_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix (represented as an expression). |
+|  [equal(expression)](./firestore_lite_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to another expression. |
+|  [equal(value)](./firestore_lite_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to a constant value. |
+|  [equalAny(values)](./firestore_lite_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
+|  [equalAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
+|  [euclideanDistance(vectorExpression)](./firestore_lite_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
+|  [euclideanDistance(vector)](./firestore_lite_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
+|  [exists()](./firestore_lite_pipelines.expression.md#expressionexists) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists in the document. |
+|  [exp()](./firestore_lite_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression. |
+|  [floor()](./firestore_lite_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
+|  [greaterThan(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression. |
+|  [greaterThan(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
+|  [greaterThanOrEqual(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression. |
+|  [greaterThanOrEqual(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to a constant value. |
+|  [ifAbsent(elseValue)](./firestore_lite_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of the this expression evaluation. |
 |  [ifAbsent(elseExpression)](./firestore_lite_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation.
 ```typescript
 // Returns the value of the optional field 'optional_field', or if that is
@@ -388,470 +94,77 @@ field("optional_field").ifAbsent(field('default_field'))
 
 ```
  |
-|  [ifError(catchExpr)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression.
-```typescript
-// Returns the first item in the title field arrays, or returns
-// the entire title field if the array is empty or the field is another type.
-field("title").arrayGet(0).ifError(field("title"));
-
-```
- |
-|  [ifError(catchValue)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression.
-```typescript
-// Returns the first item in the title field arrays, or returns
-// "Default Title"
-field("title").arrayGet(0).ifError("Default Title");
-
-```
- |
-|  [isAbsent()](./firestore_lite_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>.
-```typescript
-// Check if the field `value` is absent.
-field("value").isAbsent();
-
-```
- A new  representing the 'isAbsent' check. |
-|  [isError()](./firestore_lite_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error.
-```typescript
-// Check if the result of a calculation is an error
-field("title").arrayContains(1).isError();
-
-```
- A new  representing the 'isError' check. |
-|  [join(delimiterExpression)](./firestore_lite_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string.
-```typescript
-// Join the elements of the 'tags' field with the delimiter from the 'separator' field.
-field("tags").join(field("separator"))
-
-```
- |
-|  [join(delimiter)](./firestore_lite_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string.
-```typescript
-// Join the elements of the 'tags' field with a comma and space.
-field("tags").join(", ")
-
-```
- |
-|  [length()](./firestore_lite_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes.
-```typescript
-// Get the length of the 'name' field.
-field("name").length();
-
-// Get the number of items in the 'cart' array.
-field("cart").length();
-
-```
- A new <code>Expr</code> representing the length of the string, array, map, vector, or bytes. |
-|  [lessThan(experession)](./firestore_lite_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than another expression.
-```typescript
-// Check if the 'age' field is less than 'limit'
-field("age").lessThan(field('limit'));
-
-```
- |
-|  [lessThan(value)](./firestore_lite_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than a constant value.
-```typescript
-// Check if the 'price' field is less than 50
-field("price").lessThan(50);
-
-```
- |
-|  [lessThanOrEqual(expression)](./firestore_lite_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to another expression.
-```typescript
-// Check if the 'quantity' field is less than or equal to 20
-field("quantity").lessThan(constant(20));
-
-```
- |
-|  [lessThanOrEqual(value)](./firestore_lite_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to a constant value.
-```typescript
-// Check if the 'score' field is less than or equal to 70
-field("score").lessThan(70);
-
-```
- |
-|  [like(pattern)](./firestore_lite_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison.
-```typescript
-// Check if the 'title' field contains the word "guide" (case-sensitive)
-field("title").like("%guide%");
-
-```
- |
-|  [like(pattern)](./firestore_lite_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison.
-```typescript
-// Check if the 'title' field contains the word "guide" (case-sensitive)
-field("title").like("%guide%");
-
-```
- |
-|  [ln()](./firestore_lite_pipelines.expression.md#expressionln) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the natural logarithm of a numeric value.
-```typescript
-// Compute the natural logarithm of the 'value' field.
-field("value").ln();
-
-```
- A new  representing the natural logarithm of the numeric value. |
-|  [log10()](./firestore_lite_pipelines.expression.md#expressionlog10) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value.
-```typescript
-// Compute the base-10 logarithm of the 'value' field.
-field("value").log10();
-
-```
- A new  representing the base-10 logarithm of the numeric value. |
-|  [logicalMaximum(second, others)](./firestore_lite_pipelines.expression.md#expressionlogicalmaximum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
-```typescript
-// Returns the larger value between the 'timestamp' field and the current timestamp.
-field("timestamp").logicalMaximum(Function.currentTimestamp());
-
-```
- |
-|  [logicalMinimum(second, others)](./firestore_lite_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering.
-```typescript
-// Returns the smaller value between the 'timestamp' field and the current timestamp.
-field("timestamp").logicalMinimum(Function.currentTimestamp());
-
-```
- |
-|  [mapGet(subfield)](./firestore_lite_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key.
-```typescript
-// Get the 'city' value from the 'address' map field
-field("address").mapGet("city");
-
-```
- |
-|  [mapMerge(secondMap, otherMaps)](./firestore_lite_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values.
-```
-// Merges the map in the settings field with, a map literal, and a map in
-// that is conditionally returned by another expression
-field('settings').mapMerge({ enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
-
-```
- |
-|  [mapRemove(key)](./firestore_lite_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression.
-```
-// Removes the key 'baz' from the input map.
-map({foo: 'bar', baz: true}).mapRemove('baz');
-
-```
- |
-|  [mapRemove(keyExpr)](./firestore_lite_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression.
-```
-// Removes the key 'baz' from the input map.
-map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
-
-```
- |
-|  [maximum()](./firestore_lite_pipelines.expression.md#expressionmaximum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
-```typescript
-// Find the highest score in a leaderboard
-field("score").maximum().as("highestScore");
-
-```
- A new <code>AggregateFunction</code> representing the 'maximum' aggregation. |
-|  [minimum()](./firestore_lite_pipelines.expression.md#expressionminimum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
-```typescript
-// Find the lowest price of all products
-field("price").minimum().as("lowestPrice");
-
-```
- A new <code>AggregateFunction</code> representing the 'minimum' aggregation. |
-|  [mod(expression)](./firestore_lite_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression.
-```typescript
-// Calculate the remainder of dividing the 'value' field by the 'divisor' field
-field("value").mod(field("divisor"));
-
-```
- |
-|  [mod(value)](./firestore_lite_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
-```typescript
-// Calculate the remainder of dividing the 'value' field by 10
-field("value").mod(10);
-
-```
- |
-|  [multiply(second)](./firestore_lite_pipelines.expression.md#expressionmultiply) |  | <b><i>(Public Preview)</i></b> Creates an expression that multiplies this expression by another expression.
-```typescript
-// Multiply the 'quantity' field by the 'price' field
-field("quantity").multiply(field("price"));
-
-```
- |
-|  [notEqual(expression)](./firestore_lite_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to another expression.
-```typescript
-// Check if the 'status' field is not equal to "completed"
-field("status").notEqual("completed");
-
-```
- |
-|  [notEqual(value)](./firestore_lite_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to a constant value.
-```typescript
-// Check if the 'country' field is not equal to "USA"
-field("country").notEqual("USA");
-
-```
- |
-|  [notEqualAny(values)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the provided values or expressions.
-```typescript
-// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-field("status").notEqualAny(["pending", field("rejectedStatus")]);
-
-```
- |
-|  [notEqualAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
-```typescript
-// Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
-field("status").notEqualAny(field('rejectedStatuses'));
-
-```
- |
-|  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of another expression.
-```typescript
-// Raise the value of the 'base' field to the power of the 'exponent' field.
-field("base").pow(field("exponent"));
-
-```
- |
-|  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value.
-```typescript
-// Raise the value of the 'base' field to the power of 2.
-field("base").pow(2);
-
-```
- |
-|  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring.
-```typescript
-// Check if the 'description' field contains "example" (case-insensitive)
-field("description").regexContains("(?i)example");
-
-```
- |
-|  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring.
-```typescript
-// Check if the 'description' field contains the regular expression stored in field 'regex'
-field("description").regexContains(field("regex"));
-
-```
- |
-|  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression.
-```typescript
-// Check if the 'email' field matches a valid email pattern
-field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
-
-```
- |
-|  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression.
-```typescript
-// Check if the 'email' field matches a regular expression stored in field 'regex'
-field("email").regexMatch(field("regex"));
-
-```
- |
-|  [reverse()](./firestore_lite_pipelines.expression.md#expressionreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses this string expression.
-```typescript
-// Reverse the value of the 'myString' field.
-field("myString").reverse();
-
-```
- A new  representing the reversed string. |
-|  [round()](./firestore_lite_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number.
-```typescript
-// Round the value of the 'price' field.
-field("price").round();
-
-```
- A new <code>Expr</code> representing the rounded value. |
-|  [round(decimalPlaces)](./firestore_lite_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places.
-```typescript
-// Round the value of the 'price' field to two decimal places.
-field("price").round(2);
-
-```
- |
-|  [round(decimalPlaces)](./firestore_lite_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places.
-```typescript
-// Round the value of the 'price' field to two decimal places.
-field("price").round(constant(2));
-
-```
- |
+|  [ifError(catchExpr)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
+|  [ifError(catchValue)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [isAbsent()](./firestore_lite_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
+|  [isError()](./firestore_lite_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
+|  [join(delimiterExpression)](./firestore_lite_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
+|  [join(delimiter)](./firestore_lite_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
+|  [length()](./firestore_lite_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
+|  [lessThan(experession)](./firestore_lite_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than another expression. |
+|  [lessThan(value)](./firestore_lite_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than a constant value. |
+|  [lessThanOrEqual(expression)](./firestore_lite_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to another expression. |
+|  [lessThanOrEqual(value)](./firestore_lite_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to a constant value. |
+|  [like(pattern)](./firestore_lite_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison. |
+|  [like(pattern)](./firestore_lite_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison. |
+|  [ln()](./firestore_lite_pipelines.expression.md#expressionln) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the natural logarithm of a numeric value. |
+|  [log10()](./firestore_lite_pipelines.expression.md#expressionlog10) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
+|  [logicalMaximum(second, others)](./firestore_lite_pipelines.expression.md#expressionlogicalmaximum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
+|  [logicalMinimum(second, others)](./firestore_lite_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
+|  [mapGet(subfield)](./firestore_lite_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
+|  [mapMerge(secondMap, otherMaps)](./firestore_lite_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
+|  [mapRemove(key)](./firestore_lite_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
+|  [mapRemove(keyExpr)](./firestore_lite_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
+|  [maximum()](./firestore_lite_pipelines.expression.md#expressionmaximum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
+|  [minimum()](./firestore_lite_pipelines.expression.md#expressionminimum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
+|  [mod(expression)](./firestore_lite_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression. |
+|  [mod(value)](./firestore_lite_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value. |
+|  [multiply(second)](./firestore_lite_pipelines.expression.md#expressionmultiply) |  | <b><i>(Public Preview)</i></b> Creates an expression that multiplies this expression by another expression. |
+|  [notEqual(expression)](./firestore_lite_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to another expression. |
+|  [notEqual(value)](./firestore_lite_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to a constant value. |
+|  [notEqualAny(values)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
+|  [notEqualAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
+|  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of another expression. |
+|  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value. |
+|  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
+|  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
+|  [reverse()](./firestore_lite_pipelines.expression.md#expressionreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses this string expression. |
+|  [round()](./firestore_lite_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
+|  [round(decimalPlaces)](./firestore_lite_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [round(decimalPlaces)](./firestore_lite_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
 |  [split(delimiter)](./firestore_lite_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
 |  [split(delimiter)](./firestore_lite_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
-|  [sqrt()](./firestore_lite_pipelines.expression.md#expressionsqrt) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value.
-```typescript
-// Compute the square root of the 'value' field.
-field("value").sqrt();
-
-```
- A new  representing the square root of the numeric value. |
-|  [startsWith(prefix)](./firestore_lite_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix.
-```typescript
-// Check if the 'name' field starts with "Mr."
-field("name").startsWith("Mr.");
-
-```
- |
-|  [startsWith(prefix)](./firestore_lite_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix (represented as an expression).
-```typescript
-// Check if the 'fullName' field starts with the value of the 'firstName' field
-field("fullName").startsWith(field("firstName"));
-
-```
- |
-|  [stringConcat(secondString, otherStrings)](./firestore_lite_pipelines.expression.md#expressionstringconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string expressions together.
-```typescript
-// Combine the 'firstName', " ", and 'lastName' fields into a single string
-field("firstName").stringConcat(constant(" "), field("lastName"));
-
-```
- |
-|  [stringContains(substring)](./firestore_lite_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified substring.
-```typescript
-// Check if the 'description' field contains "example".
-field("description").stringContains("example");
-
-```
- |
-|  [stringContains(expr)](./firestore_lite_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains the string represented by another expression.
-```typescript
-// Check if the 'description' field contains the value of the 'keyword' field.
-field("description").stringContains(field("keyword"));
-
-```
- |
-|  [stringReverse()](./firestore_lite_pipelines.expression.md#expressionstringreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses a string.
-```typescript
-// Reverse the value of the 'myString' field.
-field("myString").stringReverse();
-
-```
- A new  representing the reversed string. |
+|  [sqrt()](./firestore_lite_pipelines.expression.md#expressionsqrt) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
+|  [startsWith(prefix)](./firestore_lite_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix. |
+|  [startsWith(prefix)](./firestore_lite_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix (represented as an expression). |
+|  [stringConcat(secondString, otherStrings)](./firestore_lite_pipelines.expression.md#expressionstringconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string expressions together. |
+|  [stringContains(substring)](./firestore_lite_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified substring. |
+|  [stringContains(expr)](./firestore_lite_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains the string represented by another expression. |
+|  [stringReverse()](./firestore_lite_pipelines.expression.md#expressionstringreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses a string. |
 |  [substring(position, length)](./firestore_lite_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
 |  [substring(position, length)](./firestore_lite_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
-|  [subtract(subtrahend)](./firestore_lite_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts another expression from this expression.
-```typescript
-// Subtract the 'discount' field from the 'price' field
-field("price").subtract(field("discount"));
-
-```
- |
-|  [subtract(subtrahend)](./firestore_lite_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from this expression.
-```typescript
-// Subtract 20 from the value of the 'total' field
-field("total").subtract(20);
-
-```
- |
-|  [sum()](./firestore_lite_pipelines.expression.md#expressionsum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs.
-```typescript
-// Calculate the total revenue from a set of orders
-field("orderAmount").sum().as("totalRevenue");
-
-```
- A new <code>AggregateFunction</code> representing the 'sum' aggregation. |
-|  [timestampAdd(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression.
-```typescript
-// Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
-field("timestamp").timestampAdd(field("unit"), field("amount"));
-
-```
- |
-|  [timestampAdd(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression.
-```typescript
-// Add 1 day to the 'timestamp' field.
-field("timestamp").timestampAdd("day", 1);
-
-```
- |
-|  [timestampSubtract(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression.
-```typescript
-// Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
-field("timestamp").timestampSubtract(field("unit"), field("amount"));
-
-```
- |
-|  [timestampSubtract(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression.
-```typescript
-// Subtract 1 day from the 'timestamp' field.
-field("timestamp").timestampSubtract("day", 1);
-
-```
- |
-|  [timestampToUnixMicros()](./firestore_lite_pipelines.expression.md#expressiontimestamptounixmicros) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
-```typescript
-// Convert the 'timestamp' field to microseconds since epoch.
-field("timestamp").timestampToUnixMicros();
-
-```
- A new  representing the number of microseconds since epoch. |
-|  [timestampToUnixMillis()](./firestore_lite_pipelines.expression.md#expressiontimestamptounixmillis) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
-```typescript
-// Convert the 'timestamp' field to milliseconds since epoch.
-field("timestamp").timestampToUnixMillis();
-
-```
- A new  representing the number of milliseconds since epoch. |
-|  [timestampToUnixSeconds()](./firestore_lite_pipelines.expression.md#expressiontimestamptounixseconds) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
-```typescript
-// Convert the 'timestamp' field to seconds since epoch.
-field("timestamp").timestampToUnixSeconds();
-
-```
- A new  representing the number of seconds since epoch. |
+|  [subtract(subtrahend)](./firestore_lite_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts another expression from this expression. |
+|  [subtract(subtrahend)](./firestore_lite_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from this expression. |
+|  [sum()](./firestore_lite_pipelines.expression.md#expressionsum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs. |
+|  [timestampAdd(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression. |
+|  [timestampAdd(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression. |
+|  [timestampSubtract(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression. |
+|  [timestampSubtract(unit, amount)](./firestore_lite_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression. |
+|  [timestampToUnixMicros()](./firestore_lite_pipelines.expression.md#expressiontimestamptounixmicros) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixMillis()](./firestore_lite_pipelines.expression.md#expressiontimestamptounixmillis) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixSeconds()](./firestore_lite_pipelines.expression.md#expressiontimestamptounixseconds) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
 |  [timestampTruncate(granularity, timezone)](./firestore_lite_pipelines.expression.md#expressiontimestamptruncate) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
 |  [timestampTruncate(granularity, timezone)](./firestore_lite_pipelines.expression.md#expressiontimestamptruncate) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
-|  [toLower()](./firestore_lite_pipelines.expression.md#expressiontolower) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to lowercase.
-```typescript
-// Convert the 'name' field to lowercase
-field("name").toLower();
-
-```
- A new <code>Expr</code> representing the lowercase string. |
-|  [toUpper()](./firestore_lite_pipelines.expression.md#expressiontoupper) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to uppercase.
-```typescript
-// Convert the 'title' field to uppercase
-field("title").toUpper();
-
-```
- A new <code>Expr</code> representing the uppercase string. |
-|  [trim(valueToTrim)](./firestore_lite_pipelines.expression.md#expressiontrim) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array.
-```typescript
-// Trim whitespace from the 'userInput' field
-field("userInput").trim();
-
-// Trim quotes from the 'userInput' field
-field("userInput").trim('"');
-
-```
- |
+|  [toLower()](./firestore_lite_pipelines.expression.md#expressiontolower) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to lowercase. |
+|  [toUpper()](./firestore_lite_pipelines.expression.md#expressiontoupper) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to uppercase. |
+|  [trim(valueToTrim)](./firestore_lite_pipelines.expression.md#expressiontrim) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array. |
 |  [type()](./firestore_lite_pipelines.expression.md#expressiontype) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of this expression's result, as a string. |
-|  [unixMicrosToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixmicrostotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
-```typescript
-// Interpret the 'microseconds' field as microseconds since epoch.
-field("microseconds").unixMicrosToTimestamp();
-
-```
- A new  representing the timestamp. |
-|  [unixMillisToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixmillistotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
-```typescript
-// Interpret the 'milliseconds' field as milliseconds since epoch.
-field("milliseconds").unixMillisToTimestamp();
-
-```
- A new  representing the timestamp. |
-|  [unixSecondsToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixsecondstotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
-```typescript
-// Interpret the 'seconds' field as seconds since epoch.
-field("seconds").unixSecondsToTimestamp();
-
-```
- A new  representing the timestamp. |
-|  [vectorLength()](./firestore_lite_pipelines.expression.md#expressionvectorlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression.
-```typescript
-// Get the vector length (dimension) of the field 'embedding'.
-field("embedding").vectorLength();
-
-```
- A new  representing the length of the vector. |
+|  [unixMicrosToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixmicrostotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixMillisToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixmillistotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixSecondsToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixsecondstotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [vectorLength()](./firestore_lite_pipelines.expression.md#expressionvectorlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression. |
 
 ## Expression.expressionType
 
@@ -871,13 +184,6 @@ abstract readonly expressionType: ExpressionType;
 
 Creates an expression that computes the absolute value of a numeric value.
 
-```typescript
-// Compute the absolute value of the 'price' field.
-field("price").abs();
-
-```
- A new  representing the absolute value of the numeric value.
-
 <b>Signature:</b>
 
 ```typescript
@@ -887,18 +193,23 @@ abs(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the absolute value of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute the absolute value of the 'price' field.
+field("price").abs();
+
+```
+
 ## Expression.add()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that adds this expression to another expression.
-
-```typescript
-// Add the value of the 'quantity' field and the 'reserve' field.
-field("quantity").add(field("reserve"));
-
-```
 
 <b>Signature:</b>
 
@@ -916,18 +227,23 @@ add(second: Expression | unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the addition operation.
+
+### Example
+
+
+```typescript
+// Add the value of the 'quantity' field and the 'reserve' field.
+field("quantity").add(field("reserve"));
+
+```
+
 ## Expression.arrayConcat()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that concatenates an array expression with one or more other arrays.
-
-```typescript
-// Combine the 'items' array with another array field.
-field("items").arrayConcat(field("otherItems"));
-
-```
 
 <b>Signature:</b>
 
@@ -940,11 +256,22 @@ arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expressio
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  secondArray | [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown\[\] | Second array expression or array literal to concatenate. |
-|  otherArrays | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown\[\]&gt; | Optional additional array expressions or array literals to concatenate.  A new <code>Expr</code> representing the concatenated array. |
+|  otherArrays | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown\[\]&gt; | Optional additional array expressions or array literals to concatenate. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the concatenated array.
+
+### Example
+
+
+```typescript
+// Combine the 'items' array with another array field.
+field("items").arrayConcat(field("otherItems"));
+
+```
 
 ## Expression.arrayContains()
 
@@ -952,12 +279,6 @@ arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expressio
 > 
 
 Creates an expression that checks if an array contains a specific element.
-
-```typescript
-// Check if the 'sizes' array contains the value from the 'selectedSize' field
-field("sizes").arrayContains(field("selectedSize"));
-
-```
 
 <b>Signature:</b>
 
@@ -969,11 +290,22 @@ arrayContains(expression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The element to search for in the array.  A new <code>Expr</code> representing the 'array\_contains' comparison. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The element to search for in the array. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'array\_contains' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'sizes' array contains the value from the 'selectedSize' field
+field("sizes").arrayContains(field("selectedSize"));
+
+```
 
 ## Expression.arrayContains()
 
@@ -981,12 +313,6 @@ arrayContains(expression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if an array contains a specific value.
-
-```typescript
-// Check if the 'colors' array contains "red"
-field("colors").arrayContains("red");
-
-```
 
 <b>Signature:</b>
 
@@ -998,11 +324,22 @@ arrayContains(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The element to search for in the array.  A new <code>Expr</code> representing the 'array\_contains' comparison. |
+|  value | unknown | The element to search for in the array. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'array\_contains' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'colors' array contains "red"
+field("colors").arrayContains("red");
+
+```
 
 ## Expression.arrayContainsAll()
 
@@ -1010,12 +347,6 @@ arrayContains(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that checks if an array contains all the specified elements.
-
-```typescript
-// Check if the 'tags' array contains both the value in field "tag1" and the literal value "tag2"
-field("tags").arrayContainsAll([field("tag1"), "tag2"]);
-
-```
 
 <b>Signature:</b>
 
@@ -1027,11 +358,22 @@ arrayContainsAll(values: Array<Expression | unknown>): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The elements to check for in the array.  A new <code>Expr</code> representing the 'array\_contains\_all' comparison. |
+|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The elements to check for in the array. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'array\_contains\_all' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'tags' array contains both the value in field "tag1" and the literal value "tag2"
+field("tags").arrayContainsAll([field("tag1"), "tag2"]);
+
+```
 
 ## Expression.arrayContainsAll()
 
@@ -1039,12 +381,6 @@ arrayContainsAll(values: Array<Expression | unknown>): BooleanExpression;
 > 
 
 Creates an expression that checks if an array contains all the specified elements.
-
-```typescript
-// Check if the 'tags' array contains both of the values from field "tag1" and the literal value "tag2"
-field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
-
-```
 
 <b>Signature:</b>
 
@@ -1056,11 +392,22 @@ arrayContainsAll(arrayExpression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The elements to check for in the array.  A new <code>Expr</code> representing the 'array\_contains\_all' comparison. |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The elements to check for in the array. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'array\_contains\_all' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'tags' array contains both of the values from field "tag1" and the literal value "tag2"
+field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
+
+```
 
 ## Expression.arrayContainsAny()
 
@@ -1068,12 +415,6 @@ arrayContainsAll(arrayExpression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if an array contains any of the specified elements.
-
-```typescript
-// Check if the 'categories' array contains either values from field "cate1" or "cate2"
-field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
-
-```
 
 <b>Signature:</b>
 
@@ -1085,11 +426,22 @@ arrayContainsAny(values: Array<Expression | unknown>): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The elements to check for in the array.  A new <code>Expr</code> representing the 'array\_contains\_any' comparison. |
+|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The elements to check for in the array. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'array\_contains\_any' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'categories' array contains either values from field "cate1" or "cate2"
+field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
+
+```
 
 ## Expression.arrayContainsAny()
 
@@ -1097,13 +449,6 @@ arrayContainsAny(values: Array<Expression | unknown>): BooleanExpression;
 > 
 
 Creates an expression that checks if an array contains any of the specified elements.
-
-```typescript
-// Check if the 'groups' array contains either the value from the 'userGroup' field
-// or the value "guest"
-field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
-
-```
 
 <b>Signature:</b>
 
@@ -1115,11 +460,23 @@ arrayContainsAny(arrayExpression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The elements to check for in the array.  A new <code>Expr</code> representing the 'array\_contains\_any' comparison. |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The elements to check for in the array. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'array\_contains\_any' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'groups' array contains either the value from the 'userGroup' field
+// or the value "guest"
+field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
+
+```
 
 ## Expression.arrayGet()
 
@@ -1127,12 +484,6 @@ arrayContainsAny(arrayExpression: Expression): BooleanExpression;
 > 
 
 Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
-
-```typescript
-// Return the value in the 'tags' field array at index `1`.
-field('tags').arrayGet(1);
-
-```
 
 <b>Signature:</b>
 
@@ -1144,11 +495,22 @@ arrayGet(offset: number): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  offset | number | The index of the element to return.  A new Expr representing the 'arrayGet' operation. |
+|  offset | number | The index of the element to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new Expr representing the 'arrayGet' operation.
+
+### Example
+
+
+```typescript
+// Return the value in the 'tags' field array at index `1`.
+field('tags').arrayGet(1);
+
+```
 
 ## Expression.arrayGet()
 
@@ -1156,13 +518,6 @@ arrayGet(offset: number): FunctionExpression;
 > 
 
 Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
-
-```typescript
-// Return the value in the tags field array at index specified by field
-// 'favoriteTag'.
-field('tags').arrayGet(field('favoriteTag'));
-
-```
 
 <b>Signature:</b>
 
@@ -1174,11 +529,23 @@ arrayGet(offsetExpr: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  offsetExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An Expr evaluating to the index of the element to return.  A new Expr representing the 'arrayGet' operation. |
+|  offsetExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An Expr evaluating to the index of the element to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new Expr representing the 'arrayGet' operation.
+
+### Example
+
+
+```typescript
+// Return the value in the tags field array at index specified by field
+// 'favoriteTag'.
+field('tags').arrayGet(field('favoriteTag'));
+
+```
 
 ## Expression.arrayLength()
 
@@ -1186,13 +553,6 @@ arrayGet(offsetExpr: Expression): FunctionExpression;
 > 
 
 Creates an expression that calculates the length of an array.
-
-```typescript
-// Get the number of items in the 'cart' array
-field("cart").arrayLength();
-
-```
- A new `Expr` representing the length of the array.
 
 <b>Signature:</b>
 
@@ -1203,19 +563,23 @@ arrayLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the length of the array.
+
+### Example
+
+
+```typescript
+// Get the number of items in the 'cart' array
+field("cart").arrayLength();
+
+```
+
 ## Expression.arrayReverse()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that reverses an array.
-
-```typescript
-// Reverse the value of the 'myArray' field.
-field("myArray").arrayReverse();
-
-```
- A new  representing the reversed array.
 
 <b>Signature:</b>
 
@@ -1226,19 +590,23 @@ arrayReverse(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the reversed array.
+
+### Example
+
+
+```typescript
+// Reverse the value of the 'myArray' field.
+field("myArray").arrayReverse();
+
+```
+
 ## Expression.arraySum()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that computes the sum of the elements in an array.
-
-```typescript
-// Compute the sum of the elements in the 'scores' field.
-field("scores").arraySum();
-
-```
- A new  representing the sum of the elements in the array.
 
 <b>Signature:</b>
 
@@ -1249,6 +617,17 @@ arraySum(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the sum of the elements in the array.
+
+### Example
+
+
+```typescript
+// Compute the sum of the elements in the 'scores' field.
+field("scores").arraySum();
+
+```
+
 ## Expression.as()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -1257,13 +636,6 @@ arraySum(): FunctionExpression;
 Assigns an alias to this expression.
 
 Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values.
-
-```typescript
-// Calculate the total price and assign it the alias "totalPrice" and add it to the output.
-firestore.pipeline().collection("items")
-  .addFields(field("price").multiply(field("quantity")).as("totalPrice"));
-
-```
 
 <b>Signature:</b>
 
@@ -1275,11 +647,23 @@ as(name: string): AliasedExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | string | The alias to assign to this expression.  A new  that wraps this expression and associates it with the provided alias. |
+|  name | string | The alias to assign to this expression. |
 
 <b>Returns:</b>
 
 [AliasedExpression](./firestore_lite_pipelines.aliasedexpression.md#aliasedexpression_class)
+
+A new  that wraps this expression and associates it with the provided alias.
+
+### Example
+
+
+```typescript
+// Calculate the total price and assign it the alias "totalPrice" and add it to the output.
+firestore.pipeline().collection("items")
+  .addFields(field("price").multiply(field("quantity")).as("totalPrice"));
+
+```
 
 ## Expression.asBoolean()
 
@@ -1287,8 +671,6 @@ as(name: string): AliasedExpression;
 > 
 
 Wraps the expression in a \[BooleanExpression\].
-
- A \[BooleanExpression\] representing the same expression.
 
 <b>Signature:</b>
 
@@ -1299,20 +681,14 @@ asBoolean(): BooleanExpression;
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
 
+A \[BooleanExpression\] representing the same expression.
+
 ## Expression.ascending()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an  that sorts documents in ascending order based on this expression.
-
-```typescript
-// Sort documents by the 'name' field in ascending order
-pipeline().collection("users")
-  .sort(field("name").ascending());
-
-```
- A new `Ordering` for ascending sorting.
 
 <b>Signature:</b>
 
@@ -1323,19 +699,24 @@ ascending(): Ordering;
 
 [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class)
 
+A new `Ordering` for ascending sorting.
+
+### Example
+
+
+```typescript
+// Sort documents by the 'name' field in ascending order
+pipeline().collection("users")
+  .sort(field("name").ascending());
+
+```
+
 ## Expression.average()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs.
-
-```typescript
-// Calculate the average age of users
-field("age").average().as("averageAge");
-
-```
- A new `AggregateFunction` representing the 'average' aggregation.
 
 <b>Signature:</b>
 
@@ -1346,19 +727,23 @@ average(): AggregateFunction;
 
 [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class)
 
+A new `AggregateFunction` representing the 'average' aggregation.
+
+### Example
+
+
+```typescript
+// Calculate the average age of users
+field("age").average().as("averageAge");
+
+```
+
 ## Expression.byteLength()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that calculates the length of this string expression in bytes.
-
-```typescript
-// Calculate the length of the 'myString' field in bytes.
-field("myString").byteLength();
-
-```
- A new  representing the length of the string in bytes.
 
 <b>Signature:</b>
 
@@ -1369,19 +754,23 @@ byteLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the length of the string in bytes.
+
+### Example
+
+
+```typescript
+// Calculate the length of the 'myString' field in bytes.
+field("myString").byteLength();
+
+```
+
 ## Expression.ceil()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that computes the ceiling of a numeric value.
-
-```typescript
-// Compute the ceiling of the 'price' field.
-field("price").ceil();
-
-```
- A new  representing the ceiling of the numeric value.
 
 <b>Signature:</b>
 
@@ -1392,19 +781,23 @@ ceil(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the ceiling of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute the ceiling of the 'price' field.
+field("price").ceil();
+
+```
+
 ## Expression.charLength()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that calculates the character length of a string in UTF-8.
-
-```typescript
-// Get the character length of the 'name' field in its UTF-8 form.
-field("name").charLength();
-
-```
- A new `Expr` representing the length of the string.
 
 <b>Signature:</b>
 
@@ -1415,19 +808,23 @@ charLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the length of the string.
+
+### Example
+
+
+```typescript
+// Get the character length of the 'name' field in its UTF-8 form.
+field("name").charLength();
+
+```
+
 ## Expression.collectionId()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that returns the collection ID from a path.
-
-```typescript
-// Get the collection ID from a path.
-field("__path__").collectionId();
-
-```
- A new  representing the collectionId operation.
 
 <b>Signature:</b>
 
@@ -1438,18 +835,23 @@ collectionId(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the collectionId operation.
+
+### Example
+
+
+```typescript
+// Get the collection ID from a path.
+field("__path__").collectionId();
+
+```
+
 ## Expression.concat()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that concatenates expression results together.
-
-```typescript
-// Combine the 'firstName', ' ', and 'lastName' fields into a single value.
-field("firstName").concat(constant(" "), field("lastName"));
-
-```
 
 <b>Signature:</b>
 
@@ -1462,11 +864,22 @@ concat(second: Expression | unknown, ...others: Array<Expression | unknown>): Fu
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  second | [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown | The additional expression or literal to concatenate. |
-|  others | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional expressions or literals to concatenate.  A new <code>Expr</code> representing the concatenated value. |
+|  others | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional expressions or literals to concatenate. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the concatenated value.
+
+### Example
+
+
+```typescript
+// Combine the 'firstName', ' ', and 'lastName' fields into a single value.
+field("firstName").concat(constant(" "), field("lastName"));
+
+```
 
 ## Expression.cosineDistance()
 
@@ -1474,12 +887,6 @@ concat(second: Expression | unknown, ...others: Array<Expression | unknown>): Fu
 > 
 
 Calculates the cosine distance between two vectors.
-
-```typescript
-// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
-field("userVector").cosineDistance(field("itemVector"));
-
-```
 
 <b>Signature:</b>
 
@@ -1491,11 +898,22 @@ cosineDistance(vectorExpression: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The other vector (represented as an Expr) to compare against.  A new <code>Expr</code> representing the cosine distance between the two vectors. |
+|  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The other vector (represented as an Expr) to compare against. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the cosine distance between the two vectors.
+
+### Example
+
+
+```typescript
+// Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
+field("userVector").cosineDistance(field("itemVector"));
+
+```
 
 ## Expression.cosineDistance()
 
@@ -1503,12 +921,6 @@ cosineDistance(vectorExpression: Expression): FunctionExpression;
 > 
 
 Calculates the Cosine distance between two vectors.
-
-```typescript
-// Calculate the Cosine distance between the 'location' field and a target location
-field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
-
-```
 
 <b>Signature:</b>
 
@@ -1520,11 +932,22 @@ cosineDistance(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against.  A new <code>Expr</code> representing the Cosine\* distance between the two vectors. |
+|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the Cosine\* distance between the two vectors.
+
+### Example
+
+
+```typescript
+// Calculate the Cosine distance between the 'location' field and a target location
+field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
+
+```
 
 ## Expression.count()
 
@@ -1532,13 +955,6 @@ cosineDistance(vector: VectorValue | number[]): FunctionExpression;
 > 
 
 Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field.
-
-```typescript
-// Count the total number of products
-field("productId").count().as("totalProducts");
-
-```
- A new `AggregateFunction` representing the 'count' aggregation.
 
 <b>Signature:</b>
 
@@ -1549,19 +965,23 @@ count(): AggregateFunction;
 
 [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class)
 
+A new `AggregateFunction` representing the 'count' aggregation.
+
+### Example
+
+
+```typescript
+// Count the total number of products
+field("productId").count().as("totalProducts");
+
+```
+
 ## Expression.countDistinct()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an aggregation that counts the number of distinct values of the expression or field.
-
-```typescript
-// Count the distinct number of products
-field("productId").countDistinct().as("distinctProducts");
-
-```
- A new `AggregateFunction` representing the 'count\_distinct' aggregation.
 
 <b>Signature:</b>
 
@@ -1572,20 +992,23 @@ countDistinct(): AggregateFunction;
 
 [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class)
 
+A new `AggregateFunction` representing the 'count\_distinct' aggregation.
+
+### Example
+
+
+```typescript
+// Count the distinct number of products
+field("productId").countDistinct().as("distinctProducts");
+
+```
+
 ## Expression.descending()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an  that sorts documents in descending order based on this expression.
-
-```typescript
-// Sort documents by the 'createdAt' field in descending order
-firestore.pipeline().collection("users")
-  .sort(field("createdAt").descending());
-
-```
- A new `Ordering` for descending sorting.
 
 <b>Signature:</b>
 
@@ -1596,18 +1019,24 @@ descending(): Ordering;
 
 [Ordering](./firestore_lite_pipelines.ordering.md#ordering_class)
 
+A new `Ordering` for descending sorting.
+
+### Example
+
+
+```typescript
+// Sort documents by the 'createdAt' field in descending order
+firestore.pipeline().collection("users")
+  .sort(field("createdAt").descending());
+
+```
+
 ## Expression.divide()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that divides this expression by another expression.
-
-```typescript
-// Divide the 'total' field by the 'count' field
-field("total").divide(field("count"));
-
-```
 
 <b>Signature:</b>
 
@@ -1619,11 +1048,22 @@ divide(divisor: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  divisor | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to divide by.  A new <code>Expr</code> representing the division operation. |
+|  divisor | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to divide by. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the division operation.
+
+### Example
+
+
+```typescript
+// Divide the 'total' field by the 'count' field
+field("total").divide(field("count"));
+
+```
 
 ## Expression.divide()
 
@@ -1631,12 +1071,6 @@ divide(divisor: Expression): FunctionExpression;
 > 
 
 Creates an expression that divides this expression by a constant value.
-
-```typescript
-// Divide the 'value' field by 10
-field("value").divide(10);
-
-```
 
 <b>Signature:</b>
 
@@ -1648,11 +1082,22 @@ divide(divisor: number): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  divisor | number | The constant value to divide by.  A new <code>Expr</code> representing the division operation. |
+|  divisor | number | The constant value to divide by. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the division operation.
+
+### Example
+
+
+```typescript
+// Divide the 'value' field by 10
+field("value").divide(10);
+
+```
 
 ## Expression.documentId()
 
@@ -1660,13 +1105,6 @@ divide(divisor: number): FunctionExpression;
 > 
 
 Creates an expression that returns the document ID from a path.
-
-```typescript
-// Get the document ID from a path.
-field("__path__").documentId();
-
-```
- A new  representing the documentId operation.
 
 <b>Signature:</b>
 
@@ -1677,18 +1115,23 @@ documentId(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the documentId operation.
+
+### Example
+
+
+```typescript
+// Get the document ID from a path.
+field("__path__").documentId();
+
+```
+
 ## Expression.dotProduct()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Calculates the dot product between two vectors.
-
-```typescript
-// Calculate the dot product between a feature vector and a target vector
-field("features").dotProduct([0.5, 0.8, 0.2]);
-
-```
 
 <b>Signature:</b>
 
@@ -1700,11 +1143,22 @@ dotProduct(vectorExpression: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The other vector (as an array of numbers) to calculate with.  A new <code>Expr</code> representing the dot product between the two vectors. |
+|  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The other vector (as an array of numbers) to calculate with. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the dot product between the two vectors.
+
+### Example
+
+
+```typescript
+// Calculate the dot product between a feature vector and a target vector
+field("features").dotProduct([0.5, 0.8, 0.2]);
+
+```
 
 ## Expression.dotProduct()
 
@@ -1712,12 +1166,6 @@ dotProduct(vectorExpression: Expression): FunctionExpression;
 > 
 
 Calculates the dot product between two vectors.
-
-```typescript
-// Calculate the dot product between a feature vector and a target vector
-field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
-
-```
 
 <b>Signature:</b>
 
@@ -1729,11 +1177,22 @@ dotProduct(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as an array of numbers) to calculate with.  A new <code>Expr</code> representing the dot product between the two vectors. |
+|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as an array of numbers) to calculate with. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the dot product between the two vectors.
+
+### Example
+
+
+```typescript
+// Calculate the dot product between a feature vector and a target vector
+field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
+
+```
 
 ## Expression.endsWith()
 
@@ -1741,12 +1200,6 @@ dotProduct(vector: VectorValue | number[]): FunctionExpression;
 > 
 
 Creates an expression that checks if a string ends with a given postfix.
-
-```typescript
-// Check if the 'filename' field ends with ".txt"
-field("filename").endsWith(".txt");
-
-```
 
 <b>Signature:</b>
 
@@ -1758,11 +1211,22 @@ endsWith(suffix: string): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  suffix | string | The postfix to check for.  A new <code>Expr</code> representing the 'ends with' comparison. |
+|  suffix | string | The postfix to check for. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'ends with' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'filename' field ends with ".txt"
+field("filename").endsWith(".txt");
+
+```
 
 ## Expression.endsWith()
 
@@ -1770,12 +1234,6 @@ endsWith(suffix: string): BooleanExpression;
 > 
 
 Creates an expression that checks if a string ends with a given postfix (represented as an expression).
-
-```typescript
-// Check if the 'url' field ends with the value of the 'extension' field
-field("url").endsWith(field("extension"));
-
-```
 
 <b>Signature:</b>
 
@@ -1787,11 +1245,22 @@ endsWith(suffix: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  suffix | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The postfix expression to check for.  A new <code>Expr</code> representing the 'ends with' comparison. |
+|  suffix | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The postfix expression to check for. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'ends with' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'url' field ends with the value of the 'extension' field
+field("url").endsWith(field("extension"));
+
+```
 
 ## Expression.equal()
 
@@ -1799,12 +1268,6 @@ endsWith(suffix: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is equal to another expression.
-
-```typescript
-// Check if the 'age' field is equal to 21
-field("age").equal(21);
-
-```
 
 <b>Signature:</b>
 
@@ -1816,11 +1279,22 @@ equal(expression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for equality.  A new <code>Expr</code> representing the equality comparison. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for equality. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the equality comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'age' field is equal to 21
+field("age").equal(21);
+
+```
 
 ## Expression.equal()
 
@@ -1828,12 +1302,6 @@ equal(expression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is equal to a constant value.
-
-```typescript
-// Check if the 'city' field is equal to "London"
-field("city").equal("London");
-
-```
 
 <b>Signature:</b>
 
@@ -1845,11 +1313,22 @@ equal(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The constant value to compare for equality.  A new <code>Expr</code> representing the equality comparison. |
+|  value | unknown | The constant value to compare for equality. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the equality comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'city' field is equal to "London"
+field("city").equal("London");
+
+```
 
 ## Expression.equalAny()
 
@@ -1857,12 +1336,6 @@ equal(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is equal to any of the provided values or expressions.
-
-```typescript
-// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-field("category").equalAny("Electronics", field("primaryType"));
-
-```
 
 <b>Signature:</b>
 
@@ -1874,11 +1347,22 @@ equalAny(values: Array<Expression | unknown>): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The values or expressions to check against.  A new <code>Expr</code> representing the 'IN' comparison. |
+|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The values or expressions to check against. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'IN' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+field("category").equalAny("Electronics", field("primaryType"));
+
+```
 
 ## Expression.equalAny()
 
@@ -1886,12 +1370,6 @@ equalAny(values: Array<Expression | unknown>): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is equal to any of the provided values or expressions.
-
-```typescript
-// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-field("category").equalAny(array(["Electronics", field("primaryType")]));
-
-```
 
 <b>Signature:</b>
 
@@ -1903,11 +1381,22 @@ equalAny(arrayExpression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression that evaluates to an array of values to check against.  A new <code>Expr</code> representing the 'IN' comparison. |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression that evaluates to an array of values to check against. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'IN' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'category' field is either "Electronics" or value of field 'primaryType'
+field("category").equalAny(array(["Electronics", field("primaryType")]));
+
+```
 
 ## Expression.euclideanDistance()
 
@@ -1915,12 +1404,6 @@ equalAny(arrayExpression: Expression): BooleanExpression;
 > 
 
 Calculates the Euclidean distance between two vectors.
-
-```typescript
-// Calculate the Euclidean distance between the 'location' field and a target location
-field("location").euclideanDistance([37.7749, -122.4194]);
-
-```
 
 <b>Signature:</b>
 
@@ -1932,11 +1415,22 @@ euclideanDistance(vectorExpression: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The other vector (as an array of numbers) to calculate with.  A new <code>Expr</code> representing the Euclidean distance between the two vectors. |
+|  vectorExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The other vector (as an array of numbers) to calculate with. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the Euclidean distance between the two vectors.
+
+### Example
+
+
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+field("location").euclideanDistance([37.7749, -122.4194]);
+
+```
 
 ## Expression.euclideanDistance()
 
@@ -1944,12 +1438,6 @@ euclideanDistance(vectorExpression: Expression): FunctionExpression;
 > 
 
 Calculates the Euclidean distance between two vectors.
-
-```typescript
-// Calculate the Euclidean distance between the 'location' field and a target location
-field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
-
-```
 
 <b>Signature:</b>
 
@@ -1961,11 +1449,22 @@ euclideanDistance(vector: VectorValue | number[]): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against.  A new <code>Expr</code> representing the Euclidean distance between the two vectors. |
+|  vector | [VectorValue](./firestore_lite.vectorvalue.md#vectorvalue_class) \| number\[\] | The other vector (as a VectorValue) to compare against. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the Euclidean distance between the two vectors.
+
+### Example
+
+
+```typescript
+// Calculate the Euclidean distance between the 'location' field and a target location
+field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
+
+```
 
 ## Expression.exists()
 
@@ -1973,13 +1472,6 @@ euclideanDistance(vector: VectorValue | number[]): FunctionExpression;
 > 
 
 Creates an expression that checks if a field exists in the document.
-
-```typescript
-// Check if the document has a field named "phoneNumber"
-field("phoneNumber").exists();
-
-```
- A new `Expr` representing the 'exists' check.
 
 <b>Signature:</b>
 
@@ -1990,19 +1482,23 @@ exists(): BooleanExpression;
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
 
+A new `Expr` representing the 'exists' check.
+
+### Example
+
+
+```typescript
+// Check if the document has a field named "phoneNumber"
+field("phoneNumber").exists();
+
+```
+
 ## Expression.exp()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that computes e to the power of this expression.
-
-```typescript
-// Compute e to the power of the 'value' field.
-field("value").exp();
-
-```
- A new  representing the exp of the numeric value.
 
 <b>Signature:</b>
 
@@ -2013,19 +1509,23 @@ exp(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the exp of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute e to the power of the 'value' field.
+field("value").exp();
+
+```
+
 ## Expression.floor()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that computes the floor of a numeric value.
-
-```typescript
-// Compute the floor of the 'price' field.
-field("price").floor();
-
-```
- A new  representing the floor of the numeric value.
 
 <b>Signature:</b>
 
@@ -2036,18 +1536,23 @@ floor(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the floor of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute the floor of the 'price' field.
+field("price").floor();
+
+```
+
 ## Expression.greaterThan()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that checks if this expression is greater than another expression.
-
-```typescript
-// Check if the 'age' field is greater than the 'limit' field
-field("age").greaterThan(field("limit"));
-
-```
 
 <b>Signature:</b>
 
@@ -2059,11 +1564,22 @@ greaterThan(expression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for greater than.  A new <code>Expr</code> representing the greater than comparison. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for greater than. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the greater than comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'age' field is greater than the 'limit' field
+field("age").greaterThan(field("limit"));
+
+```
 
 ## Expression.greaterThan()
 
@@ -2071,12 +1587,6 @@ greaterThan(expression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is greater than a constant value.
-
-```typescript
-// Check if the 'price' field is greater than 100
-field("price").greaterThan(100);
-
-```
 
 <b>Signature:</b>
 
@@ -2088,11 +1598,22 @@ greaterThan(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The constant value to compare for greater than.  A new <code>Expr</code> representing the greater than comparison. |
+|  value | unknown | The constant value to compare for greater than. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the greater than comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'price' field is greater than 100
+field("price").greaterThan(100);
+
+```
 
 ## Expression.greaterThanOrEqual()
 
@@ -2100,12 +1621,6 @@ greaterThan(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is greater than or equal to another expression.
-
-```typescript
-// Check if the 'quantity' field is greater than or equal to field 'requirement' plus 1
-field("quantity").greaterThanOrEqual(field('requirement').add(1));
-
-```
 
 <b>Signature:</b>
 
@@ -2117,11 +1632,22 @@ greaterThanOrEqual(expression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for greater than or equal to.  A new <code>Expr</code> representing the greater than or equal to comparison. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for greater than or equal to. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the greater than or equal to comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'quantity' field is greater than or equal to field 'requirement' plus 1
+field("quantity").greaterThanOrEqual(field('requirement').add(1));
+
+```
 
 ## Expression.greaterThanOrEqual()
 
@@ -2129,12 +1655,6 @@ greaterThanOrEqual(expression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is greater than or equal to a constant value.
-
-```typescript
-// Check if the 'score' field is greater than or equal to 80
-field("score").greaterThanOrEqual(80);
-
-```
 
 <b>Signature:</b>
 
@@ -2146,11 +1666,22 @@ greaterThanOrEqual(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The constant value to compare for greater than or equal to.  A new <code>Expr</code> representing the greater than or equal to comparison. |
+|  value | unknown | The constant value to compare for greater than or equal to. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the greater than or equal to comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'score' field is greater than or equal to 80
+field("score").greaterThanOrEqual(80);
+
+```
 
 ## Expression.ifAbsent()
 
@@ -2158,13 +1689,6 @@ greaterThanOrEqual(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else return the result of the this expression evaluation.
-
-```typescript
-// Returns the value of the optional field 'optional_field', or returns 'default_value'
-// if the field is absent.
-field("optional_field").ifAbsent("default_value")
-
-```
 
 <b>Signature:</b>
 
@@ -2176,11 +1700,23 @@ ifAbsent(elseValue: unknown): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  elseValue | unknown | The value that will be returned if this Expression evaluates to an absent value.  A new \[Expression\] representing the ifAbsent operation. |
+|  elseValue | unknown | The value that will be returned if this Expression evaluates to an absent value. |
 
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+A new \[Expression\] representing the ifAbsent operation.
+
+### Example
+
+
+```typescript
+// Returns the value of the optional field 'optional_field', or returns 'default_value'
+// if the field is absent.
+field("optional_field").ifAbsent("default_value")
+
+```
 
 ## Expression.ifAbsent()
 
@@ -2206,11 +1742,13 @@ ifAbsent(elseExpression: unknown): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  elseExpression | unknown | The Expression that will be evaluated if this Expression evaluates to an absent value.  A new \[Expression\] representing the ifAbsent operation. |
+|  elseExpression | unknown | The Expression that will be evaluated if this Expression evaluates to an absent value. |
 
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+A new \[Expression\] representing the ifAbsent operation.
 
 ## Expression.ifError()
 
@@ -2218,13 +1756,6 @@ ifAbsent(elseExpression: unknown): Expression;
 > 
 
 Creates an expression that returns the result of the `catchExpr` argument if there is an error, else return the result of this expression.
-
-```typescript
-// Returns the first item in the title field arrays, or returns
-// the entire title field if the array is empty or the field is another type.
-field("title").arrayGet(0).ifError(field("title"));
-
-```
 
 <b>Signature:</b>
 
@@ -2236,11 +1767,23 @@ ifError(catchExpr: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  catchExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The catch expression that will be evaluated and returned if this expression produces an error.  A new  representing the 'ifError' operation. |
+|  catchExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The catch expression that will be evaluated and returned if this expression produces an error. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the 'ifError' operation.
+
+### Example
+
+
+```typescript
+// Returns the first item in the title field arrays, or returns
+// the entire title field if the array is empty or the field is another type.
+field("title").arrayGet(0).ifError(field("title"));
+
+```
 
 ## Expression.ifError()
 
@@ -2248,13 +1791,6 @@ ifError(catchExpr: Expression): FunctionExpression;
 > 
 
 Creates an expression that returns the `catch` argument if there is an error, else return the result of this expression.
-
-```typescript
-// Returns the first item in the title field arrays, or returns
-// "Default Title"
-field("title").arrayGet(0).ifError("Default Title");
-
-```
 
 <b>Signature:</b>
 
@@ -2266,11 +1802,23 @@ ifError(catchValue: unknown): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  catchValue | unknown | The value that will be returned if this expression produces an error.  A new  representing the 'ifError' operation. |
+|  catchValue | unknown | The value that will be returned if this expression produces an error. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the 'ifError' operation.
+
+### Example
+
+
+```typescript
+// Returns the first item in the title field arrays, or returns
+// "Default Title"
+field("title").arrayGet(0).ifError("Default Title");
+
+```
 
 ## Expression.isAbsent()
 
@@ -2278,13 +1826,6 @@ ifError(catchValue: unknown): FunctionExpression;
 > 
 
 Creates an expression that returns `true` if the result of this expression is absent. Otherwise, returns `false` even if the value is `null`<!-- -->.
-
-```typescript
-// Check if the field `value` is absent.
-field("value").isAbsent();
-
-```
- A new  representing the 'isAbsent' check.
 
 <b>Signature:</b>
 
@@ -2295,19 +1836,24 @@ isAbsent(): BooleanExpression;
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
 
+A new  representing the 'isAbsent' check.
+
+### Example
+
+
+```typescript
+// Check if the field `value` is absent.
+field("value").isAbsent();
+@example
+
+```
+
 ## Expression.isError()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that checks if a given expression produces an error.
-
-```typescript
-// Check if the result of a calculation is an error
-field("title").arrayContains(1).isError();
-
-```
- A new  representing the 'isError' check.
 
 <b>Signature:</b>
 
@@ -2318,18 +1864,23 @@ isError(): BooleanExpression;
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
 
+A new  representing the 'isError' check.
+
+### Example
+
+
+```typescript
+// Check if the result of a calculation is an error
+field("title").arrayContains(1).isError();
+
+```
+
 ## Expression.join()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that joins the elements of an array into a string.
-
-```typescript
-// Join the elements of the 'tags' field with the delimiter from the 'separator' field.
-field("tags").join(field("separator"))
-
-```
 
 <b>Signature:</b>
 
@@ -2341,11 +1892,22 @@ join(delimiterExpression: Expression): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  delimiterExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that evaluates to the delimiter string.  A new Expression representing the join operation. |
+|  delimiterExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that evaluates to the delimiter string. |
 
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+A new Expression representing the join operation.
+
+### Example
+
+
+```typescript
+// Join the elements of the 'tags' field with the delimiter from the 'separator' field.
+field("tags").join(field("separator"))
+
+```
 
 ## Expression.join()
 
@@ -2353,12 +1915,6 @@ join(delimiterExpression: Expression): Expression;
 > 
 
 Creates an expression that joins the elements of an array field into a string.
-
-```typescript
-// Join the elements of the 'tags' field with a comma and space.
-field("tags").join(", ")
-
-```
 
 <b>Signature:</b>
 
@@ -2370,11 +1926,22 @@ join(delimiter: string): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  delimiter | string | The string to use as a delimiter.  A new Expression representing the join operation. |
+|  delimiter | string | The string to use as a delimiter. |
 
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+A new Expression representing the join operation.
+
+### Example
+
+
+```typescript
+// Join the elements of the 'tags' field with a comma and space.
+field("tags").join(", ")
+
+```
 
 ## Expression.length()
 
@@ -2382,16 +1949,6 @@ join(delimiter: string): Expression;
 > 
 
 Creates an expression that calculates the length of a string, array, map, vector, or bytes.
-
-```typescript
-// Get the length of the 'name' field.
-field("name").length();
-
-// Get the number of items in the 'cart' array.
-field("cart").length();
-
-```
- A new `Expr` representing the length of the string, array, map, vector, or bytes.
 
 <b>Signature:</b>
 
@@ -2402,18 +1959,26 @@ length(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the length of the string, array, map, vector, or bytes.
+
+### Example
+
+
+```typescript
+// Get the length of the 'name' field.
+field("name").length();
+
+// Get the number of items in the 'cart' array.
+field("cart").length();
+
+```
+
 ## Expression.lessThan()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that checks if this expression is less than another expression.
-
-```typescript
-// Check if the 'age' field is less than 'limit'
-field("age").lessThan(field('limit'));
-
-```
 
 <b>Signature:</b>
 
@@ -2425,11 +1990,22 @@ lessThan(experession: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  experession | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for less than.  A new <code>Expr</code> representing the less than comparison. |
+|  experession | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for less than. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the less than comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'age' field is less than 'limit'
+field("age").lessThan(field('limit'));
+
+```
 
 ## Expression.lessThan()
 
@@ -2437,12 +2013,6 @@ lessThan(experession: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is less than a constant value.
-
-```typescript
-// Check if the 'price' field is less than 50
-field("price").lessThan(50);
-
-```
 
 <b>Signature:</b>
 
@@ -2454,11 +2024,22 @@ lessThan(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The constant value to compare for less than.  A new <code>Expr</code> representing the less than comparison. |
+|  value | unknown | The constant value to compare for less than. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the less than comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'price' field is less than 50
+field("price").lessThan(50);
+
+```
 
 ## Expression.lessThanOrEqual()
 
@@ -2466,12 +2047,6 @@ lessThan(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is less than or equal to another expression.
-
-```typescript
-// Check if the 'quantity' field is less than or equal to 20
-field("quantity").lessThan(constant(20));
-
-```
 
 <b>Signature:</b>
 
@@ -2483,11 +2058,22 @@ lessThanOrEqual(expression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for less than or equal to.  A new <code>Expr</code> representing the less than or equal to comparison. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for less than or equal to. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the less than or equal to comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'quantity' field is less than or equal to 20
+field("quantity").lessThan(constant(20));
+
+```
 
 ## Expression.lessThanOrEqual()
 
@@ -2495,12 +2081,6 @@ lessThanOrEqual(expression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is less than or equal to a constant value.
-
-```typescript
-// Check if the 'score' field is less than or equal to 70
-field("score").lessThan(70);
-
-```
 
 <b>Signature:</b>
 
@@ -2512,11 +2092,22 @@ lessThanOrEqual(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The constant value to compare for less than or equal to.  A new <code>Expr</code> representing the less than or equal to comparison. |
+|  value | unknown | The constant value to compare for less than or equal to. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the less than or equal to comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'score' field is less than or equal to 70
+field("score").lessThan(70);
+
+```
 
 ## Expression.like()
 
@@ -2524,12 +2115,6 @@ lessThanOrEqual(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that performs a case-sensitive string comparison.
-
-```typescript
-// Check if the 'title' field contains the word "guide" (case-sensitive)
-field("title").like("%guide%");
-
-```
 
 <b>Signature:</b>
 
@@ -2541,11 +2126,22 @@ like(pattern: string): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  pattern | string | The pattern to search for. You can use "%" as a wildcard character.  A new <code>Expr</code> representing the 'like' comparison. |
+|  pattern | string | The pattern to search for. You can use "%" as a wildcard character. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'like' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'title' field contains the word "guide" (case-sensitive)
+field("title").like("%guide%");
+
+```
 
 ## Expression.like()
 
@@ -2553,12 +2149,6 @@ like(pattern: string): BooleanExpression;
 > 
 
 Creates an expression that performs a case-sensitive string comparison.
-
-```typescript
-// Check if the 'title' field contains the word "guide" (case-sensitive)
-field("title").like("%guide%");
-
-```
 
 <b>Signature:</b>
 
@@ -2570,11 +2160,22 @@ like(pattern: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  pattern | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The pattern to search for. You can use "%" as a wildcard character.  A new <code>Expr</code> representing the 'like' comparison. |
+|  pattern | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The pattern to search for. You can use "%" as a wildcard character. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'like' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'title' field contains the word "guide" (case-sensitive)
+field("title").like("%guide%");
+
+```
 
 ## Expression.ln()
 
@@ -2582,13 +2183,6 @@ like(pattern: Expression): BooleanExpression;
 > 
 
 Creates an expression that computes the natural logarithm of a numeric value.
-
-```typescript
-// Compute the natural logarithm of the 'value' field.
-field("value").ln();
-
-```
- A new  representing the natural logarithm of the numeric value.
 
 <b>Signature:</b>
 
@@ -2599,19 +2193,23 @@ ln(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the natural logarithm of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute the natural logarithm of the 'value' field.
+field("value").ln();
+
+```
+
 ## Expression.log10()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that computes the base-10 logarithm of a numeric value.
-
-```typescript
-// Compute the base-10 logarithm of the 'value' field.
-field("value").log10();
-
-```
- A new  representing the base-10 logarithm of the numeric value.
 
 <b>Signature:</b>
 
@@ -2622,18 +2220,23 @@ log10(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the base-10 logarithm of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute the base-10 logarithm of the 'value' field.
+field("value").log10();
+
+```
+
 ## Expression.logicalMaximum()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
-
-```typescript
-// Returns the larger value between the 'timestamp' field and the current timestamp.
-field("timestamp").logicalMaximum(Function.currentTimestamp());
-
-```
 
 <b>Signature:</b>
 
@@ -2646,11 +2249,22 @@ logicalMaximum(second: Expression | unknown, ...others: Array<Expression | unkno
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  second | [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown | The second expression or literal to compare with. |
-|  others | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional expressions or literals to compare with.  A new  representing the logical maximum operation. |
+|  others | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional expressions or literals to compare with. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the logical maximum operation.
+
+### Example
+
+
+```typescript
+// Returns the larger value between the 'timestamp' field and the current timestamp.
+field("timestamp").logicalMaximum(Function.currentTimestamp());
+
+```
 
 ## Expression.logicalMinimum()
 
@@ -2658,12 +2272,6 @@ logicalMaximum(second: Expression | unknown, ...others: Array<Expression | unkno
 > 
 
 Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering.
-
-```typescript
-// Returns the smaller value between the 'timestamp' field and the current timestamp.
-field("timestamp").logicalMinimum(Function.currentTimestamp());
-
-```
 
 <b>Signature:</b>
 
@@ -2676,11 +2284,22 @@ logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unkno
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  second | [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown | The second expression or literal to compare with. |
-|  others | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional expressions or literals to compare with.  A new  representing the logical minimum operation. |
+|  others | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional expressions or literals to compare with. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the logical minimum operation.
+
+### Example
+
+
+```typescript
+// Returns the smaller value between the 'timestamp' field and the current timestamp.
+field("timestamp").logicalMinimum(Function.currentTimestamp());
+
+```
 
 ## Expression.mapGet()
 
@@ -2688,12 +2307,6 @@ logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unkno
 > 
 
 Accesses a value from a map (object) field using the provided key.
-
-```typescript
-// Get the 'city' value from the 'address' map field
-field("address").mapGet("city");
-
-```
 
 <b>Signature:</b>
 
@@ -2705,11 +2318,22 @@ mapGet(subfield: string): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subfield | string | The key to access in the map.  A new <code>Expr</code> representing the value associated with the given key in the map. |
+|  subfield | string | The key to access in the map. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the value associated with the given key in the map.
+
+### Example
+
+
+```typescript
+// Get the 'city' value from the 'address' map field
+field("address").mapGet("city");
+
+```
 
 ## Expression.mapMerge()
 
@@ -2717,13 +2341,6 @@ mapGet(subfield: string): FunctionExpression;
 > 
 
 Creates an expression that merges multiple map values.
-
-```
-// Merges the map in the settings field with, a map literal, and a map in
-// that is conditionally returned by another expression
-field('settings').mapMerge({ enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
-
-```
 
 <b>Signature:</b>
 
@@ -2744,18 +2361,22 @@ mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Re
 
 A new  representing the 'mapMerge' operation.
 
+### Example
+
+
+```
+// Merges the map in the settings field with, a map literal, and a map in
+// that is conditionally returned by another expression
+field('settings').mapMerge({ enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
+
+```
+
 ## Expression.mapRemove()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that removes a key from the map produced by evaluating this expression.
-
-```
-// Removes the key 'baz' from the input map.
-map({foo: 'bar', baz: true}).mapRemove('baz');
-
-```
 
 <b>Signature:</b>
 
@@ -2775,18 +2396,21 @@ mapRemove(key: string): FunctionExpression;
 
 A new  representing the 'mapRemove' operation.
 
+### Example
+
+
+```
+// Removes the key 'baz' from the input map.
+map({foo: 'bar', baz: true}).mapRemove('baz');
+
+```
+
 ## Expression.mapRemove()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that removes a key from the map produced by evaluating this expression.
-
-```
-// Removes the key 'baz' from the input map.
-map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
-
-```
 
 <b>Signature:</b>
 
@@ -2806,19 +2430,22 @@ mapRemove(keyExpr: Expression): FunctionExpression;
 
 A new  representing the 'mapRemove' operation.
 
+### Example
+
+
+```
+// Removes the key 'baz' from the input map.
+map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
+@example
+
+```
+
 ## Expression.maximum()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
-
-```typescript
-// Find the highest score in a leaderboard
-field("score").maximum().as("highestScore");
-
-```
- A new `AggregateFunction` representing the 'maximum' aggregation.
 
 <b>Signature:</b>
 
@@ -2829,19 +2456,23 @@ maximum(): AggregateFunction;
 
 [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class)
 
+A new `AggregateFunction` representing the 'maximum' aggregation.
+
+### Example
+
+
+```typescript
+// Find the highest score in a leaderboard
+field("score").maximum().as("highestScore");
+
+```
+
 ## Expression.minimum()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
-
-```typescript
-// Find the lowest price of all products
-field("price").minimum().as("lowestPrice");
-
-```
- A new `AggregateFunction` representing the 'minimum' aggregation.
 
 <b>Signature:</b>
 
@@ -2852,18 +2483,23 @@ minimum(): AggregateFunction;
 
 [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class)
 
+A new `AggregateFunction` representing the 'minimum' aggregation.
+
+### Example
+
+
+```typescript
+// Find the lowest price of all products
+field("price").minimum().as("lowestPrice");
+
+```
+
 ## Expression.mod()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression.
-
-```typescript
-// Calculate the remainder of dividing the 'value' field by the 'divisor' field
-field("value").mod(field("divisor"));
-
-```
 
 <b>Signature:</b>
 
@@ -2875,11 +2511,22 @@ mod(expression: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to divide by.  A new <code>Expr</code> representing the modulo operation. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to divide by. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the modulo operation.
+
+### Example
+
+
+```typescript
+// Calculate the remainder of dividing the 'value' field by the 'divisor' field
+field("value").mod(field("divisor"));
+
+```
 
 ## Expression.mod()
 
@@ -2887,12 +2534,6 @@ mod(expression: Expression): FunctionExpression;
 > 
 
 Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
-
-```typescript
-// Calculate the remainder of dividing the 'value' field by 10
-field("value").mod(10);
-
-```
 
 <b>Signature:</b>
 
@@ -2904,11 +2545,22 @@ mod(value: number): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | number | The constant value to divide by.  A new <code>Expr</code> representing the modulo operation. |
+|  value | number | The constant value to divide by. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the modulo operation.
+
+### Example
+
+
+```typescript
+// Calculate the remainder of dividing the 'value' field by 10
+field("value").mod(10);
+
+```
 
 ## Expression.multiply()
 
@@ -2916,12 +2568,6 @@ mod(value: number): FunctionExpression;
 > 
 
 Creates an expression that multiplies this expression by another expression.
-
-```typescript
-// Multiply the 'quantity' field by the 'price' field
-field("quantity").multiply(field("price"));
-
-```
 
 <b>Signature:</b>
 
@@ -2939,18 +2585,23 @@ multiply(second: Expression | number): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the multiplication operation.
+
+### Example
+
+
+```typescript
+// Multiply the 'quantity' field by the 'price' field
+field("quantity").multiply(field("price"));
+
+```
+
 ## Expression.notEqual()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that checks if this expression is not equal to another expression.
-
-```typescript
-// Check if the 'status' field is not equal to "completed"
-field("status").notEqual("completed");
-
-```
 
 <b>Signature:</b>
 
@@ -2962,11 +2613,22 @@ notEqual(expression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for inequality.  A new <code>Expr</code> representing the inequality comparison. |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to compare for inequality. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the inequality comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'status' field is not equal to "completed"
+field("status").notEqual("completed");
+
+```
 
 ## Expression.notEqual()
 
@@ -2974,12 +2636,6 @@ notEqual(expression: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is not equal to a constant value.
-
-```typescript
-// Check if the 'country' field is not equal to "USA"
-field("country").notEqual("USA");
-
-```
 
 <b>Signature:</b>
 
@@ -2991,11 +2647,22 @@ notEqual(value: unknown): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  value | unknown | The constant value to compare for inequality.  A new <code>Expr</code> representing the inequality comparison. |
+|  value | unknown | The constant value to compare for inequality. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the inequality comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'country' field is not equal to "USA"
+field("country").notEqual("USA");
+
+```
 
 ## Expression.notEqualAny()
 
@@ -3003,12 +2670,6 @@ notEqual(value: unknown): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is not equal to any of the provided values or expressions.
-
-```typescript
-// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
-field("status").notEqualAny(["pending", field("rejectedStatus")]);
-
-```
 
 <b>Signature:</b>
 
@@ -3020,11 +2681,22 @@ notEqualAny(values: Array<Expression | unknown>): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The values or expressions to check against.  A new <code>Expr</code> representing the 'notEqualAny' comparison. |
+|  values | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown&gt; | The values or expressions to check against. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'notEqualAny' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
+field("status").notEqualAny(["pending", field("rejectedStatus")]);
+
+```
 
 ## Expression.notEqualAny()
 
@@ -3032,12 +2704,6 @@ notEqualAny(values: Array<Expression | unknown>): BooleanExpression;
 > 
 
 Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
-
-```typescript
-// Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
-field("status").notEqualAny(field('rejectedStatuses'));
-
-```
 
 <b>Signature:</b>
 
@@ -3049,11 +2715,22 @@ notEqualAny(arrayExpression: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The values or expressions to check against.  A new <code>Expr</code> representing the 'notEqualAny' comparison. |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The values or expressions to check against. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'notEqualAny' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
+field("status").notEqualAny(field('rejectedStatuses'));
+
+```
 
 ## Expression.pow()
 
@@ -3061,12 +2738,6 @@ notEqualAny(arrayExpression: Expression): BooleanExpression;
 > 
 
 Creates an expression that returns the value of this expression raised to the power of another expression.
-
-```typescript
-// Raise the value of the 'base' field to the power of the 'exponent' field.
-field("base").pow(field("exponent"));
-
-```
 
 <b>Signature:</b>
 
@@ -3078,11 +2749,22 @@ pow(exponent: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  exponent | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to raise this expression to the power of.  A new <code>Expr</code> representing the power operation. |
+|  exponent | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to raise this expression to the power of. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the power operation.
+
+### Example
+
+
+```typescript
+// Raise the value of the 'base' field to the power of the 'exponent' field.
+field("base").pow(field("exponent"));
+
+```
 
 ## Expression.pow()
 
@@ -3090,12 +2772,6 @@ pow(exponent: Expression): FunctionExpression;
 > 
 
 Creates an expression that returns the value of this expression raised to the power of a constant value.
-
-```typescript
-// Raise the value of the 'base' field to the power of 2.
-field("base").pow(2);
-
-```
 
 <b>Signature:</b>
 
@@ -3107,11 +2783,22 @@ pow(exponent: number): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  exponent | number | The constant value to raise this expression to the power of.  A new <code>Expr</code> representing the power operation. |
+|  exponent | number | The constant value to raise this expression to the power of. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the power operation.
+
+### Example
+
+
+```typescript
+// Raise the value of the 'base' field to the power of 2.
+field("base").pow(2);
+
+```
 
 ## Expression.regexContains()
 
@@ -3119,12 +2806,6 @@ pow(exponent: number): FunctionExpression;
 > 
 
 Creates an expression that checks if a string contains a specified regular expression as a substring.
-
-```typescript
-// Check if the 'description' field contains "example" (case-insensitive)
-field("description").regexContains("(?i)example");
-
-```
 
 <b>Signature:</b>
 
@@ -3136,11 +2817,22 @@ regexContains(pattern: string): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  pattern | string | The regular expression to use for the search.  A new <code>Expr</code> representing the 'contains' comparison. |
+|  pattern | string | The regular expression to use for the search. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'contains' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'description' field contains "example" (case-insensitive)
+field("description").regexContains("(?i)example");
+
+```
 
 ## Expression.regexContains()
 
@@ -3148,12 +2840,6 @@ regexContains(pattern: string): BooleanExpression;
 > 
 
 Creates an expression that checks if a string contains a specified regular expression as a substring.
-
-```typescript
-// Check if the 'description' field contains the regular expression stored in field 'regex'
-field("description").regexContains(field("regex"));
-
-```
 
 <b>Signature:</b>
 
@@ -3165,11 +2851,22 @@ regexContains(pattern: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  pattern | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The regular expression to use for the search.  A new <code>Expr</code> representing the 'contains' comparison. |
+|  pattern | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The regular expression to use for the search. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'contains' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'description' field contains the regular expression stored in field 'regex'
+field("description").regexContains(field("regex"));
+
+```
 
 ## Expression.regexMatch()
 
@@ -3177,12 +2874,6 @@ regexContains(pattern: Expression): BooleanExpression;
 > 
 
 Creates an expression that checks if a string matches a specified regular expression.
-
-```typescript
-// Check if the 'email' field matches a valid email pattern
-field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
-
-```
 
 <b>Signature:</b>
 
@@ -3194,11 +2885,22 @@ regexMatch(pattern: string): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  pattern | string | The regular expression to use for the match.  A new <code>Expr</code> representing the regular expression match. |
+|  pattern | string | The regular expression to use for the match. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the regular expression match.
+
+### Example
+
+
+```typescript
+// Check if the 'email' field matches a valid email pattern
+field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
+
+```
 
 ## Expression.regexMatch()
 
@@ -3206,12 +2908,6 @@ regexMatch(pattern: string): BooleanExpression;
 > 
 
 Creates an expression that checks if a string matches a specified regular expression.
-
-```typescript
-// Check if the 'email' field matches a regular expression stored in field 'regex'
-field("email").regexMatch(field("regex"));
-
-```
 
 <b>Signature:</b>
 
@@ -3223,11 +2919,22 @@ regexMatch(pattern: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  pattern | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The regular expression to use for the match.  A new <code>Expr</code> representing the regular expression match. |
+|  pattern | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The regular expression to use for the match. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the regular expression match.
+
+### Example
+
+
+```typescript
+// Check if the 'email' field matches a regular expression stored in field 'regex'
+field("email").regexMatch(field("regex"));
+
+```
 
 ## Expression.reverse()
 
@@ -3235,13 +2942,6 @@ regexMatch(pattern: Expression): BooleanExpression;
 > 
 
 Creates an expression that reverses this string expression.
-
-```typescript
-// Reverse the value of the 'myString' field.
-field("myString").reverse();
-
-```
- A new  representing the reversed string.
 
 <b>Signature:</b>
 
@@ -3252,19 +2952,23 @@ reverse(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the reversed string.
+
+### Example
+
+
+```typescript
+// Reverse the value of the 'myString' field.
+field("myString").reverse();
+
+```
+
 ## Expression.round()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that rounds a numeric value to the nearest whole number.
-
-```typescript
-// Round the value of the 'price' field.
-field("price").round();
-
-```
- A new `Expr` representing the rounded value.
 
 <b>Signature:</b>
 
@@ -3275,18 +2979,23 @@ round(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the rounded value.
+
+### Example
+
+
+```typescript
+// Round the value of the 'price' field.
+field("price").round();
+
+```
+
 ## Expression.round()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that rounds a numeric value to the specified number of decimal places.
-
-```typescript
-// Round the value of the 'price' field to two decimal places.
-field("price").round(2);
-
-```
 
 <b>Signature:</b>
 
@@ -3298,11 +3007,22 @@ round(decimalPlaces: number): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  decimalPlaces | number | A constant specifying the rounding precision in decimal places. A new <code>Expr</code> representing the rounded value. |
+|  decimalPlaces | number | A constant specifying the rounding precision in decimal places. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the rounded value.
+
+### Example
+
+
+```typescript
+// Round the value of the 'price' field to two decimal places.
+field("price").round(2);
+
+```
 
 ## Expression.round()
 
@@ -3310,12 +3030,6 @@ round(decimalPlaces: number): FunctionExpression;
 > 
 
 Creates an expression that rounds a numeric value to the specified number of decimal places.
-
-```typescript
-// Round the value of the 'price' field to two decimal places.
-field("price").round(constant(2));
-
-```
 
 <b>Signature:</b>
 
@@ -3327,11 +3041,22 @@ round(decimalPlaces: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  decimalPlaces | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression specifying the rounding precision in decimal places. A new <code>Expr</code> representing the rounded value. |
+|  decimalPlaces | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression specifying the rounding precision in decimal places. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the rounded value.
+
+### Example
+
+
+```typescript
+// Round the value of the 'price' field to two decimal places.
+field("price").round(constant(2));
+
+```
 
 ## Expression.split()
 
@@ -3356,6 +3081,8 @@ split(delimiter: string): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the split function.
+
 ### Example
 
 
@@ -3364,7 +3091,6 @@ split(delimiter: string): FunctionExpression;
 field('scoresCsv').split(',')
 
 ```
- A new  representing the split function.
 
 ## Expression.split()
 
@@ -3389,6 +3115,8 @@ split(delimiter: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the split function.
+
 ### Example
 
 
@@ -3397,7 +3125,6 @@ split(delimiter: Expression): FunctionExpression;
 field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':'))
 
 ```
- A new  representing the split function.
 
 ## Expression.sqrt()
 
@@ -3405,13 +3132,6 @@ field('scores').split(conditional(field('format').equal('csv'), constant(','), c
 > 
 
 Creates an expression that computes the square root of a numeric value.
-
-```typescript
-// Compute the square root of the 'value' field.
-field("value").sqrt();
-
-```
- A new  representing the square root of the numeric value.
 
 <b>Signature:</b>
 
@@ -3422,18 +3142,23 @@ sqrt(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the square root of the numeric value.
+
+### Example
+
+
+```typescript
+// Compute the square root of the 'value' field.
+field("value").sqrt();
+
+```
+
 ## Expression.startsWith()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that checks if a string starts with a given prefix.
-
-```typescript
-// Check if the 'name' field starts with "Mr."
-field("name").startsWith("Mr.");
-
-```
 
 <b>Signature:</b>
 
@@ -3445,11 +3170,22 @@ startsWith(prefix: string): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  prefix | string | The prefix to check for.  A new <code>Expr</code> representing the 'starts with' comparison. |
+|  prefix | string | The prefix to check for. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'starts with' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'name' field starts with "Mr."
+field("name").startsWith("Mr.");
+
+```
 
 ## Expression.startsWith()
 
@@ -3457,12 +3193,6 @@ startsWith(prefix: string): BooleanExpression;
 > 
 
 Creates an expression that checks if a string starts with a given prefix (represented as an expression).
-
-```typescript
-// Check if the 'fullName' field starts with the value of the 'firstName' field
-field("fullName").startsWith(field("firstName"));
-
-```
 
 <b>Signature:</b>
 
@@ -3474,11 +3204,22 @@ startsWith(prefix: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  prefix | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The prefix expression to check for.  A new <code>Expr</code> representing the 'starts with' comparison. |
+|  prefix | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The prefix expression to check for. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'starts with' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'fullName' field starts with the value of the 'firstName' field
+field("fullName").startsWith(field("firstName"));
+
+```
 
 ## Expression.stringConcat()
 
@@ -3486,12 +3227,6 @@ startsWith(prefix: Expression): BooleanExpression;
 > 
 
 Creates an expression that concatenates string expressions together.
-
-```typescript
-// Combine the 'firstName', " ", and 'lastName' fields into a single string
-field("firstName").stringConcat(constant(" "), field("lastName"));
-
-```
 
 <b>Signature:</b>
 
@@ -3504,11 +3239,22 @@ stringConcat(secondString: Expression | string, ...otherStrings: Array<Expressio
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  secondString | [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| string | The additional expression or string literal to concatenate. |
-|  otherStrings | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| string&gt; | Optional additional expressions or string literals to concatenate.  A new <code>Expr</code> representing the concatenated string. |
+|  otherStrings | Array&lt;[Expression](./firestore_lite_pipelines.expression.md#expression_class) \| string&gt; | Optional additional expressions or string literals to concatenate. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the concatenated string.
+
+### Example
+
+
+```typescript
+// Combine the 'firstName', " ", and 'lastName' fields into a single string
+field("firstName").stringConcat(constant(" "), field("lastName"));
+
+```
 
 ## Expression.stringContains()
 
@@ -3516,12 +3262,6 @@ stringConcat(secondString: Expression | string, ...otherStrings: Array<Expressio
 > 
 
 Creates an expression that checks if a string contains a specified substring.
-
-```typescript
-// Check if the 'description' field contains "example".
-field("description").stringContains("example");
-
-```
 
 <b>Signature:</b>
 
@@ -3533,11 +3273,22 @@ stringContains(substring: string): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  substring | string | The substring to search for.  A new <code>Expr</code> representing the 'contains' comparison. |
+|  substring | string | The substring to search for. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'contains' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'description' field contains "example".
+field("description").stringContains("example");
+
+```
 
 ## Expression.stringContains()
 
@@ -3545,12 +3296,6 @@ stringContains(substring: string): BooleanExpression;
 > 
 
 Creates an expression that checks if a string contains the string represented by another expression.
-
-```typescript
-// Check if the 'description' field contains the value of the 'keyword' field.
-field("description").stringContains(field("keyword"));
-
-```
 
 <b>Signature:</b>
 
@@ -3562,11 +3307,22 @@ stringContains(expr: Expression): BooleanExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  expr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the substring to search for.  A new <code>Expr</code> representing the 'contains' comparison. |
+|  expr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the substring to search for. |
 
 <b>Returns:</b>
 
 [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `Expr` representing the 'contains' comparison.
+
+### Example
+
+
+```typescript
+// Check if the 'description' field contains the value of the 'keyword' field.
+field("description").stringContains(field("keyword"));
+
+```
 
 ## Expression.stringReverse()
 
@@ -3574,13 +3330,6 @@ stringContains(expr: Expression): BooleanExpression;
 > 
 
 Creates an expression that reverses a string.
-
-```typescript
-// Reverse the value of the 'myString' field.
-field("myString").stringReverse();
-
-```
- A new  representing the reversed string.
 
 <b>Signature:</b>
 
@@ -3590,6 +3339,17 @@ stringReverse(): FunctionExpression;
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the reversed string.
+
+### Example
+
+
+```typescript
+// Reverse the value of the 'myString' field.
+field("myString").stringReverse();
+
+```
 
 ## Expression.substring()
 
@@ -3646,12 +3406,6 @@ substring(position: Expression, length?: Expression): FunctionExpression;
 
 Creates an expression that subtracts another expression from this expression.
 
-```typescript
-// Subtract the 'discount' field from the 'price' field
-field("price").subtract(field("discount"));
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -3662,11 +3416,22 @@ subtract(subtrahend: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subtrahend | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to subtract from this expression.  A new <code>Expr</code> representing the subtraction operation. |
+|  subtrahend | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to subtract from this expression. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the subtraction operation.
+
+### Example
+
+
+```typescript
+// Subtract the 'discount' field from the 'price' field
+field("price").subtract(field("discount"));
+
+```
 
 ## Expression.subtract()
 
@@ -3674,12 +3439,6 @@ subtract(subtrahend: Expression): FunctionExpression;
 > 
 
 Creates an expression that subtracts a constant value from this expression.
-
-```typescript
-// Subtract 20 from the value of the 'total' field
-field("total").subtract(20);
-
-```
 
 <b>Signature:</b>
 
@@ -3691,11 +3450,22 @@ subtract(subtrahend: number): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  subtrahend | number | The constant value to subtract.  A new <code>Expr</code> representing the subtraction operation. |
+|  subtrahend | number | The constant value to subtract. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the subtraction operation.
+
+### Example
+
+
+```typescript
+// Subtract 20 from the value of the 'total' field
+field("total").subtract(20);
+
+```
 
 ## Expression.sum()
 
@@ -3703,13 +3473,6 @@ subtract(subtrahend: number): FunctionExpression;
 > 
 
 Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs.
-
-```typescript
-// Calculate the total revenue from a set of orders
-field("orderAmount").sum().as("totalRevenue");
-
-```
- A new `AggregateFunction` representing the 'sum' aggregation.
 
 <b>Signature:</b>
 
@@ -3720,18 +3483,23 @@ sum(): AggregateFunction;
 
 [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class)
 
+A new `AggregateFunction` representing the 'sum' aggregation.
+
+### Example
+
+
+```typescript
+// Calculate the total revenue from a set of orders
+field("orderAmount").sum().as("totalRevenue");
+
+```
+
 ## Expression.timestampAdd()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that adds a specified amount of time to this timestamp expression.
-
-```typescript
-// Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
-field("timestamp").timestampAdd(field("unit"), field("amount"));
-
-```
 
 <b>Signature:</b>
 
@@ -3744,11 +3512,22 @@ timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  unit | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'. |
-|  amount | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression evaluates to amount of the unit.  A new  representing the resulting timestamp. |
+|  amount | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression evaluates to amount of the unit. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the resulting timestamp.
+
+### Example
+
+
+```typescript
+// Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
+field("timestamp").timestampAdd(field("unit"), field("amount"));
+
+```
 
 ## Expression.timestampAdd()
 
@@ -3756,12 +3535,6 @@ timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
 > 
 
 Creates an expression that adds a specified amount of time to this timestamp expression.
-
-```typescript
-// Add 1 day to the 'timestamp' field.
-field("timestamp").timestampAdd("day", 1);
-
-```
 
 <b>Signature:</b>
 
@@ -3774,11 +3547,22 @@ timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to add (e.g., "day", "hour"). |
-|  amount | number | The amount of time to add.  A new  representing the resulting timestamp. |
+|  amount | number | The amount of time to add. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the resulting timestamp.
+
+### Example
+
+
+```typescript
+// Add 1 day to the 'timestamp' field.
+field("timestamp").timestampAdd("day", 1);
+
+```
 
 ## Expression.timestampSubtract()
 
@@ -3786,12 +3570,6 @@ timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' 
 > 
 
 Creates an expression that subtracts a specified amount of time from this timestamp expression.
-
-```typescript
-// Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
-field("timestamp").timestampSubtract(field("unit"), field("amount"));
-
-```
 
 <b>Signature:</b>
 
@@ -3804,11 +3582,22 @@ timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  unit | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'. |
-|  amount | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression evaluates to amount of the unit.  A new  representing the resulting timestamp. |
+|  amount | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression evaluates to amount of the unit. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the resulting timestamp.
+
+### Example
+
+
+```typescript
+// Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
+field("timestamp").timestampSubtract(field("unit"), field("amount"));
+
+```
 
 ## Expression.timestampSubtract()
 
@@ -3816,12 +3605,6 @@ timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
 > 
 
 Creates an expression that subtracts a specified amount of time from this timestamp expression.
-
-```typescript
-// Subtract 1 day from the 'timestamp' field.
-field("timestamp").timestampSubtract("day", 1);
-
-```
 
 <b>Signature:</b>
 
@@ -3834,11 +3617,22 @@ timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'h
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to subtract (e.g., "day", "hour"). |
-|  amount | number | The amount of time to subtract.  A new  representing the resulting timestamp. |
+|  amount | number | The amount of time to subtract. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the resulting timestamp.
+
+### Example
+
+
+```typescript
+// Subtract 1 day from the 'timestamp' field.
+field("timestamp").timestampSubtract("day", 1);
+
+```
 
 ## Expression.timestampToUnixMicros()
 
@@ -3846,13 +3640,6 @@ timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'h
 > 
 
 Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
-
-```typescript
-// Convert the 'timestamp' field to microseconds since epoch.
-field("timestamp").timestampToUnixMicros();
-
-```
- A new  representing the number of microseconds since epoch.
 
 <b>Signature:</b>
 
@@ -3863,19 +3650,23 @@ timestampToUnixMicros(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the number of microseconds since epoch.
+
+### Example
+
+
+```typescript
+// Convert the 'timestamp' field to microseconds since epoch.
+field("timestamp").timestampToUnixMicros();
+
+```
+
 ## Expression.timestampToUnixMillis()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
-
-```typescript
-// Convert the 'timestamp' field to milliseconds since epoch.
-field("timestamp").timestampToUnixMillis();
-
-```
- A new  representing the number of milliseconds since epoch.
 
 <b>Signature:</b>
 
@@ -3886,19 +3677,23 @@ timestampToUnixMillis(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the number of milliseconds since epoch.
+
+### Example
+
+
+```typescript
+// Convert the 'timestamp' field to milliseconds since epoch.
+field("timestamp").timestampToUnixMillis();
+
+```
+
 ## Expression.timestampToUnixSeconds()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
-
-```typescript
-// Convert the 'timestamp' field to seconds since epoch.
-field("timestamp").timestampToUnixSeconds();
-
-```
- A new  representing the number of seconds since epoch.
 
 <b>Signature:</b>
 
@@ -3908,6 +3703,17 @@ timestampToUnixSeconds(): FunctionExpression;
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the number of seconds since epoch.
+
+### Example
+
+
+```typescript
+// Convert the 'timestamp' field to seconds since epoch.
+field("timestamp").timestampToUnixSeconds();
+
+```
 
 ## Expression.timestampTruncate()
 
@@ -3927,11 +3733,13 @@ timestampTruncate(granularity: TimeGranularity, timezone?: string | Expression):
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  granularity | [TimeGranularity](./firestore_lite_pipelines.md#timegranularity) | The granularity to truncate to. |
-|  timezone | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The timezone to use for truncation. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1".  A new {<!-- -->Expression<!-- -->} representing the truncated timestamp. |
+|  timezone | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The timezone to use for truncation. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1". |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
 
 ### Example
 
@@ -3960,11 +3768,13 @@ timestampTruncate(granularity: Expression, timezone?: string | Expression): Func
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  granularity | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The granularity to truncate to. |
-|  timezone | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The timezone to use for truncation. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1".  A new {<!-- -->Expression<!-- -->} representing the truncated timestamp. |
+|  timezone | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The timezone to use for truncation. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1". |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
 
 ### Example
 
@@ -3982,13 +3792,6 @@ field('createdAt').timestampTruncate(field('granularity'))
 
 Creates an expression that converts a string to lowercase.
 
-```typescript
-// Convert the 'name' field to lowercase
-field("name").toLower();
-
-```
- A new `Expr` representing the lowercase string.
-
 <b>Signature:</b>
 
 ```typescript
@@ -3998,19 +3801,23 @@ toLower(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the lowercase string.
+
+### Example
+
+
+```typescript
+// Convert the 'name' field to lowercase
+field("name").toLower();
+
+```
+
 ## Expression.toUpper()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that converts a string to uppercase.
-
-```typescript
-// Convert the 'title' field to uppercase
-field("title").toUpper();
-
-```
- A new `Expr` representing the uppercase string.
 
 <b>Signature:</b>
 
@@ -4021,21 +3828,23 @@ toUpper(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new `Expr` representing the uppercase string.
+
+### Example
+
+
+```typescript
+// Convert the 'title' field to uppercase
+field("title").toUpper();
+
+```
+
 ## Expression.trim()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that removes leading and trailing characters from a string or byte array.
-
-```typescript
-// Trim whitespace from the 'userInput' field
-field("userInput").trim();
-
-// Trim quotes from the 'userInput' field
-field("userInput").trim('"');
-
-```
 
 <b>Signature:</b>
 
@@ -4047,11 +3856,25 @@ trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional This parameter is treated as a set of characters or bytes that will be trimmed from the input. If not specified, then whitespace will be trimmed.  A new <code>Expr</code> representing the trimmed string or byte array. |
+|  valueToTrim | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | Optional This parameter is treated as a set of characters or bytes that will be trimmed from the input. If not specified, then whitespace will be trimmed. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expr` representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the 'userInput' field
+field("userInput").trim();
+
+// Trim quotes from the 'userInput' field
+field("userInput").trim('"');
+
+```
 
 ## Expression.type()
 
@@ -4069,6 +3892,8 @@ type(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new {<!-- -->Expression<!-- -->} representing the data type.
+
 ### Example
 
 
@@ -4077,7 +3902,6 @@ type(): FunctionExpression;
 field('title').type()
 
 ```
- A new {<!-- -->Expression<!-- -->} representing the data type.
 
 ## Expression.unixMicrosToTimestamp()
 
@@ -4085,13 +3909,6 @@ field('title').type()
 > 
 
 Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
-
-```typescript
-// Interpret the 'microseconds' field as microseconds since epoch.
-field("microseconds").unixMicrosToTimestamp();
-
-```
- A new  representing the timestamp.
 
 <b>Signature:</b>
 
@@ -4102,19 +3919,23 @@ unixMicrosToTimestamp(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the timestamp.
+
+### Example
+
+
+```typescript
+// Interpret the 'microseconds' field as microseconds since epoch.
+field("microseconds").unixMicrosToTimestamp();
+
+```
+
 ## Expression.unixMillisToTimestamp()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
-
-```typescript
-// Interpret the 'milliseconds' field as milliseconds since epoch.
-field("milliseconds").unixMillisToTimestamp();
-
-```
- A new  representing the timestamp.
 
 <b>Signature:</b>
 
@@ -4125,19 +3946,23 @@ unixMillisToTimestamp(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the timestamp.
+
+### Example
+
+
+```typescript
+// Interpret the 'milliseconds' field as milliseconds since epoch.
+field("milliseconds").unixMillisToTimestamp();
+
+```
+
 ## Expression.unixSecondsToTimestamp()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
-
-```typescript
-// Interpret the 'seconds' field as seconds since epoch.
-field("seconds").unixSecondsToTimestamp();
-
-```
- A new  representing the timestamp.
 
 <b>Signature:</b>
 
@@ -4148,19 +3973,23 @@ unixSecondsToTimestamp(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new  representing the timestamp.
+
+### Example
+
+
+```typescript
+// Interpret the 'seconds' field as seconds since epoch.
+field("seconds").unixSecondsToTimestamp();
+
+```
+
 ## Expression.vectorLength()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression.
-
-```typescript
-// Get the vector length (dimension) of the field 'embedding'.
-field("embedding").vectorLength();
-
-```
- A new  representing the length of the vector.
 
 <b>Signature:</b>
 
@@ -4170,4 +3999,15 @@ vectorLength(): FunctionExpression;
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new  representing the length of the vector.
+
+### Example
+
+
+```typescript
+// Get the vector length (dimension) of the field 'embedding'.
+field("embedding").vectorLength();
+
+```
 

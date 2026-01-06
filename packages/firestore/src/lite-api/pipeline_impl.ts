@@ -72,8 +72,7 @@ declare module './database' {
  *       distinct group and its associated aggregated values.</li>
  * </ul>
  *
- * <p>Example:
- *
+ * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
  *     .where(gt(field("rating"), 4.5))
@@ -83,7 +82,7 @@ declare module './database' {
  * ```
  *
  * @param pipeline The pipeline to execute.
- * @return A Promise representing the asynchronous pipeline execution.
+ * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   const datastore = getDatastore(pipeline._db);

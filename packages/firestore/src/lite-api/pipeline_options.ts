@@ -50,6 +50,7 @@ export interface PipelineExecuteOptions {
    * Values specified in rawOptions will take precedence over any options
    * with the same name set by the SDK.
    *
+   * @example
    * Override the `example_option`:
    * ```
    *   execute({
@@ -64,6 +65,7 @@ export interface PipelineExecuteOptions {
    *   }
    * ```
    *
+   * @example
    * `rawOptions` supports dot notation, if you want to override
    * a nested option.
    * ```

@@ -84,7 +84,7 @@ declare module './database' {
  * ```
  *
  * @param pipeline The pipeline to execute.
- * @return A Promise representing the asynchronous pipeline execution.
+ * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
 /**
@@ -119,7 +119,7 @@ export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
  * ```
  *
  * @param options Specifies the pipeline to execute and other options for execute.
- * @return A Promise representing the asynchronous pipeline execution.
+ * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(
   options: PipelineExecuteOptions

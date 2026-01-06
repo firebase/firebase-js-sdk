@@ -187,7 +187,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * @param field The first field to add to the documents, specified as a {@link Selectable}.
    * @param additionalFields Optional additional fields to add to the documents, specified as {@link Selectable}s.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
   /**
@@ -216,7 +216,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   addFields(options: AddFieldsStageOptions): Pipeline;
   addFields(
@@ -269,7 +269,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * @param fieldValue The first field to remove.
    * @param additionalFields Optional additional fields to remove.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   removeFields(
     fieldValue: Field | string,
@@ -292,7 +292,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   removeFields(options: RemoveFieldsStageOptions): Pipeline;
   removeFields(
@@ -360,7 +360,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     Selectable} expression or string value representing the field name.
    * @param additionalSelections Optional additional fields to include in the output documents, specified as {@link
    *     Selectable} expressions or {@code string} values representing field names.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   select(
     selection: Selectable | string,
@@ -396,7 +396,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   select(options: SelectStageOptions): Pipeline;
   select(
@@ -464,7 +464,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param condition The {@link BooleanExpression} to apply.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   where(condition: BooleanExpression): Pipeline;
   /**
@@ -498,7 +498,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   where(options: WhereStageOptions): Pipeline;
   where(conditionOrOptions: BooleanExpression | WhereStageOptions): Pipeline {
@@ -543,7 +543,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param offset The number of documents to skip.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   offset(offset: number): Pipeline;
   /**
@@ -566,7 +566,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   offset(options: OffsetStageOptions): Pipeline;
   offset(offsetOrOptions: number | OffsetStageOptions): Pipeline {
@@ -621,7 +621,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param limit The maximum number of documents to return.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   limit(limit: number): Pipeline;
   /**
@@ -649,7 +649,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   limit(options: LimitStageOptions): Pipeline;
   limit(limitOrOptions: number | LimitStageOptions): Pipeline {
@@ -702,7 +702,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     distinct value combinations.
    * @param additionalGroups Optional additional {@link Selectable} expressions to consider when determining distinct
    *     value combinations or strings representing field names.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   distinct(
     group: string | Selectable,
@@ -733,7 +733,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   distinct(options: DistinctStageOptions): Pipeline;
   distinct(
@@ -792,7 +792,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     and providing a name for the accumulated results.
    * @param additionalAccumulators Optional additional {@link AliasedAggregate}, each wrapping an {@link AggregateFunction}
    *     and providing a name for the accumulated results.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   aggregate(
     accumulator: AliasedAggregate,
@@ -829,7 +829,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage
+   * @returns A new {@code Pipeline} object with this stage appended to the stage
    * list.
    */
   aggregate(options: AggregateStageOptions): Pipeline;
@@ -896,7 +896,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   findNearest(options: FindNearestStageOptions): Pipeline {
     // Convert user land convenience types to internal types
@@ -956,7 +956,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * @param ordering The first {@link Ordering} instance specifying the sorting criteria.
    * @param additionalOrderings Optional additional {@link Ordering} instances specifying the additional sorting criteria.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   /**
@@ -983,7 +983,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sort(options: SortStageOptions): Pipeline;
   sort(
@@ -1042,7 +1042,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param fieldName The {@link Field} field containing the nested map.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(fieldName: string): Pipeline;
   /**
@@ -1081,7 +1081,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param expr An {@link Expression} that when returned evaluates to a map.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(expr: Expression): Pipeline;
   /**
@@ -1120,7 +1120,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(options: ReplaceWithStageOptions): Pipeline;
   replaceWith(
@@ -1169,7 +1169,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param documents The number of documents to sample.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sample(documents: number): Pipeline;
 
@@ -1191,7 +1191,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .sample({ percentage: 0.5 });
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   sample(options: SampleStageOptions): Pipeline;
   sample(documentsOrOptions: number | SampleStageOptions): Pipeline {
@@ -1243,7 +1243,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param other The other {@code Pipeline} that is part of union.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   union(other: Pipeline): Pipeline;
   /**
@@ -1264,7 +1264,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   union(options: UnionStageOptions): Pipeline;
   union(otherOrOptions: Pipeline | UnionStageOptions): Pipeline {
@@ -1325,7 +1325,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * @param selectable A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents.
    * @param indexField An optional string value specifying the field path to write the offset (starting at zero) into the array the un-nested element is from
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline;
   /**
@@ -1359,7 +1359,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   unnest(options: UnnestStageOptions): Pipeline;
   unnest(
@@ -1425,7 +1425,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param name - The unique name of the raw stage to add.
    * @param params - A list of parameters to configure the raw stage's behavior.
    * @param options - An object of key value pairs that specifies optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@code Pipeline} object with this stage appended to the stage list.
    */
   rawStage(
     name: string,

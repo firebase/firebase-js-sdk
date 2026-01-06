@@ -37,14 +37,7 @@ export declare class AggregateFunction
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [as(name)](./firestore_pipelines.aggregatefunction.md#aggregatefunctionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document.
-```typescript
-// Calculate the average price of all items and assign it the alias "averagePrice".
-firestore.pipeline().collection("items")
-  .aggregate(field("price").average().as("averagePrice"));
-
-```
- |
+|  [as(name)](./firestore_pipelines.aggregatefunction.md#aggregatefunctionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document. |
 
 ## AggregateFunction.(constructor)
 
@@ -84,13 +77,6 @@ exprType: ExpressionType;
 
 Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document.
 
-```typescript
-// Calculate the average price of all items and assign it the alias "averagePrice".
-firestore.pipeline().collection("items")
-  .aggregate(field("price").average().as("averagePrice"));
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -101,9 +87,21 @@ as(name: string): AliasedAggregate;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  name | string | The alias to assign to this AggregateFunction.  A new  that wraps this AggregateFunction and associates it with the provided alias. |
+|  name | string | The alias to assign to this AggregateFunction. |
 
 <b>Returns:</b>
 
 [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class)
+
+A new  that wraps this AggregateFunction and associates it with the provided alias.
+
+### Example
+
+
+```typescript
+// Calculate the average price of all items and assign it the alias "averagePrice".
+firestore.pipeline().collection("items")
+  .aggregate(field("price").average().as("averagePrice"));
+
+```
 
