@@ -74,8 +74,7 @@ declare module './database' {
  *       distinct group and its associated aggregated values.</li>
  * </ul>
  *
- * <p>Example:
- *
+ * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
  *     .where(gt(field("rating"), 4.5))
@@ -110,8 +109,7 @@ export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
  *       distinct group and its associated aggregated values.</li>
  * </ul>
  *
- * <p>Example:
- *
+ * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
  *     .where(gt(field("rating"), 4.5))

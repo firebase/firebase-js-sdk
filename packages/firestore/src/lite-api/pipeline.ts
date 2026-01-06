@@ -107,6 +107,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *
  * Usage Examples:
  *
+ * @example
  * ```typescript
  * const db: Firestore; // Assumes a valid firestore instance.
  *
@@ -175,6 +176,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
@@ -204,6 +206,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
@@ -254,6 +257,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
@@ -277,6 +281,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
@@ -341,6 +346,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * db.pipeline().collection("books")
    *   .select(
@@ -379,6 +385,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * db.pipeline().collection("books")
    *   .select(
@@ -445,6 +452,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .where(
@@ -478,6 +486,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .where(
@@ -524,6 +533,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Retrieve the second page of 20 results
    * firestore.pipeline().collection('books')
@@ -546,6 +556,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Retrieve the second page of 20 results
    * firestore.pipeline().collection('books')
@@ -601,6 +612,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Limit the results to the top 10 highest-rated books
    * firestore.pipeline().collection('books')
@@ -628,6 +640,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Limit the results to the top 10 highest-rated books
    * firestore.pipeline().collection('books')
@@ -677,6 +690,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
@@ -710,6 +724,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
@@ -763,6 +778,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Calculate the average rating and the total number of books
    * firestore.pipeline().collection("books")
@@ -802,6 +818,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Calculate the average rating for each genre.
    * firestore.pipeline().collection("books")
@@ -926,6 +943,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Sort books by rating in descending order, and then by title in ascending order for books
    * // with the same rating
@@ -953,6 +971,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Sort books by rating in descending order, and then by title in ascending order for books
    * // with the same rating
@@ -1001,6 +1020,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Input.
    * // {
@@ -1034,6 +1054,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Input.
    * // {
@@ -1072,6 +1093,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Input.
    * // {
@@ -1139,6 +1161,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Examples:
    *
+   * @example
    * ```typescript
    * // Sample 25 books, if available.
    * firestore.pipeline().collection('books')
@@ -1212,6 +1235,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Emit documents from books collection and magazines collection.
    * firestore.pipeline().collection('books')
@@ -1232,6 +1256,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Emit documents from books collection and magazines collection.
    * firestore.pipeline().collection('books')
@@ -1283,6 +1308,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Input:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
@@ -1317,6 +1343,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Input:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
@@ -1387,6 +1414,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example (Assuming there is no 'where' stage available in SDK):
    *
+   * @example
    * ```typescript
    * // Assume we don't have a built-in 'where' stage
    * firestore.pipeline().collection('books')

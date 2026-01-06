@@ -154,6 +154,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   /**
    * Creates an expression that adds this expression to another expression.
    *
+   * @example
    * ```typescript
    * // Add the value of the 'quantity' field and the 'reserve' field.
    * field("quantity").add(field("reserve"));
@@ -198,6 +199,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that subtracts another expression from this expression.
    *
+   * @example
    * ```typescript
    * // Subtract the 'discount' field from the 'price' field
    * field("price").subtract(field("discount"));
@@ -212,6 +214,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that subtracts a constant value from this expression.
    *
+   * @example
    * ```typescript
    * // Subtract 20 from the value of the 'total' field
    * field("total").subtract(20);
@@ -233,6 +236,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that multiplies this expression by another expression.
    *
+   * @example
    * ```typescript
    * // Multiply the 'quantity' field by the 'price' field
    * field("quantity").multiply(field("price"));
@@ -254,6 +258,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that divides this expression by another expression.
    *
+   * @example
    * ```typescript
    * // Divide the 'total' field by the 'count' field
    * field("total").divide(field("count"));
@@ -268,6 +273,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that divides this expression by a constant value.
    *
+   * @example
    * ```typescript
    * // Divide the 'value' field by 10
    * field("value").divide(10);
@@ -289,6 +295,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression.
    *
+   * @example
    * ```typescript
    * // Calculate the remainder of dividing the 'value' field by the 'divisor' field
    * field("value").mod(field("divisor"));
@@ -303,6 +310,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
    *
+   * @example
    * ```typescript
    * // Calculate the remainder of dividing the 'value' field by 10
    * field("value").mod(10);
@@ -324,6 +332,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is equal to another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'age' field is equal to 21
    * field("age").equal(21);
@@ -338,6 +347,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is equal to a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'city' field is equal to "London"
    * field("city").equal("London");
@@ -359,6 +369,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is not equal to another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'status' field is not equal to "completed"
    * field("status").notEqual("completed");
@@ -373,6 +384,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is not equal to a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'country' field is not equal to "USA"
    * field("country").notEqual("USA");
@@ -394,6 +406,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is less than another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'age' field is less than 'limit'
    * field("age").lessThan(field('limit'));
@@ -408,6 +421,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is less than a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'price' field is less than 50
    * field("price").lessThan(50);
@@ -430,6 +444,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if this expression is less than or equal to another
    * expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'quantity' field is less than or equal to 20
    * field("quantity").lessThan(constant(20));
@@ -444,6 +459,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is less than or equal to a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'score' field is less than or equal to 70
    * field("score").lessThan(70);
@@ -465,6 +481,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is greater than another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'age' field is greater than the 'limit' field
    * field("age").greaterThan(field("limit"));
@@ -479,6 +496,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is greater than a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'price' field is greater than 100
    * field("price").greaterThan(100);
@@ -501,6 +519,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if this expression is greater than or equal to another
    * expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'quantity' field is greater than or equal to field 'requirement' plus 1
    * field("quantity").greaterThanOrEqual(field('requirement').add(1));
@@ -516,6 +535,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if this expression is greater than or equal to a constant
    * value.
    *
+   * @example
    * ```typescript
    * // Check if the 'score' field is greater than or equal to 80
    * field("score").greaterThanOrEqual(80);
@@ -537,6 +557,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that concatenates an array expression with one or more other arrays.
    *
+   * @example
    * ```typescript
    * // Combine the 'items' array with another array field.
    * field("items").arrayConcat(field("otherItems"));
@@ -562,6 +583,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if an array contains a specific element.
    *
+   * @example
    * ```typescript
    * // Check if the 'sizes' array contains the value from the 'selectedSize' field
    * field("sizes").arrayContains(field("selectedSize"));
@@ -576,6 +598,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if an array contains a specific value.
    *
+   * @example
    * ```typescript
    * // Check if the 'colors' array contains "red"
    * field("colors").arrayContains("red");
@@ -597,6 +620,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if an array contains all the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'tags' array contains both the value in field "tag1" and the literal value "tag2"
    * field("tags").arrayContainsAll([field("tag1"), "tag2"]);
@@ -611,6 +635,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if an array contains all the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'tags' array contains both of the values from field "tag1" and the literal value "tag2"
    * field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
@@ -635,6 +660,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if an array contains any of the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'categories' array contains either values from field "cate1" or "cate2"
    * field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
@@ -649,6 +675,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if an array contains any of the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'groups' array contains either the value from the 'userGroup' field
    * // or the value "guest"
@@ -676,6 +703,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that reverses an array.
    *
+   * @example
    * ```typescript
    * // Reverse the value of the 'myArray' field.
    * field("myArray").arrayReverse();
@@ -691,6 +719,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the length of an array.
    *
+   * @example
    * ```typescript
    * // Get the number of items in the 'cart' array
    * field("cart").arrayLength();
@@ -707,6 +736,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
    *
+   * @example
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
    * field("category").equalAny("Electronics", field("primaryType"));
@@ -722,6 +752,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
    *
+   * @example
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
    * field("category").equalAny(array(["Electronics", field("primaryType")]));
@@ -747,6 +778,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if this expression is not equal to any of the provided values or
    * expressions.
    *
+   * @example
    * ```typescript
    * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
    * field("status").notEqualAny(["pending", field("rejectedStatus")]);
@@ -761,6 +793,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
    * field("status").notEqualAny(field('rejectedStatuses'));
@@ -785,6 +818,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a field exists in the document.
    *
+   * @example
    * ```typescript
    * // Check if the document has a field named "phoneNumber"
    * field("phoneNumber").exists();
@@ -800,6 +834,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the character length of a string in UTF-8.
    *
+   * @example
    * ```typescript
    * // Get the character length of the 'name' field in its UTF-8 form.
    * field("name").charLength();
@@ -815,6 +850,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that performs a case-sensitive string comparison.
    *
+   * @example
    * ```typescript
    * // Check if the 'title' field contains the word "guide" (case-sensitive)
    * field("title").like("%guide%");
@@ -829,6 +865,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that performs a case-sensitive string comparison.
    *
+   * @example
    * ```typescript
    * // Check if the 'title' field contains the word "guide" (case-sensitive)
    * field("title").like("%guide%");
@@ -851,6 +888,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if a string contains a specified regular expression as a
    * substring.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains "example" (case-insensitive)
    * field("description").regexContains("(?i)example");
@@ -866,6 +904,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if a string contains a specified regular expression as a
    * substring.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains the regular expression stored in field 'regex'
    * field("description").regexContains(field("regex"));
@@ -887,6 +926,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a string matches a specified regular expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'email' field matches a valid email pattern
    * field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
@@ -901,6 +941,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a string matches a specified regular expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'email' field matches a regular expression stored in field 'regex'
    * field("email").regexMatch(field("regex"));
@@ -922,6 +963,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a string contains a specified substring.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains "example".
    * field("description").stringContains("example");
@@ -936,6 +978,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a string contains the string represented by another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains the value of the 'keyword' field.
    * field("description").stringContains(field("keyword"));
@@ -957,6 +1000,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a string starts with a given prefix.
    *
+   * @example
    * ```typescript
    * // Check if the 'name' field starts with "Mr."
    * field("name").startsWith("Mr.");
@@ -972,6 +1016,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if a string starts with a given prefix (represented as an
    * expression).
    *
+   * @example
    * ```typescript
    * // Check if the 'fullName' field starts with the value of the 'firstName' field
    * field("fullName").startsWith(field("firstName"));
@@ -993,6 +1038,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that checks if a string ends with a given postfix.
    *
+   * @example
    * ```typescript
    * // Check if the 'filename' field ends with ".txt"
    * field("filename").endsWith(".txt");
@@ -1008,6 +1054,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that checks if a string ends with a given postfix (represented as an
    * expression).
    *
+   * @example
    * ```typescript
    * // Check if the 'url' field ends with the value of the 'extension' field
    * field("url").endsWith(field("extension"));
@@ -1029,6 +1076,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that converts a string to lowercase.
    *
+   * @example
    * ```typescript
    * // Convert the 'name' field to lowercase
    * field("name").toLower();
@@ -1044,6 +1092,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that converts a string to uppercase.
    *
+   * @example
    * ```typescript
    * // Convert the 'title' field to uppercase
    * field("title").toUpper();
@@ -1059,6 +1108,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that removes leading and trailing characters from a string or byte array.
    *
+   * @example
    * ```typescript
    * // Trim whitespace from the 'userInput' field
    * field("userInput").trim();
@@ -1082,6 +1132,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that concatenates string expressions together.
    *
+   * @example
    * ```typescript
    * // Combine the 'firstName', " ", and 'lastName' fields into a single string
    * field("firstName").stringConcat(constant(" "), field("lastName"));
@@ -1108,6 +1159,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that concatenates expression results together.
    *
+   * @example
    * ```typescript
    * // Combine the 'firstName', ' ', and 'lastName' fields into a single value.
    * field("firstName").concat(constant(" "), field("lastName"));
@@ -1130,6 +1182,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that reverses this string expression.
    *
+   * @example
    * ```typescript
    * // Reverse the value of the 'myString' field.
    * field("myString").reverse();
@@ -1145,6 +1198,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the length of this string expression in bytes.
    *
+   * @example
    * ```typescript
    * // Calculate the length of the 'myString' field in bytes.
    * field("myString").byteLength();
@@ -1160,6 +1214,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the ceiling of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the ceiling of the 'price' field.
    * field("price").ceil();
@@ -1175,6 +1230,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the floor of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the floor of the 'price' field.
    * field("price").floor();
@@ -1190,6 +1246,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the absolute value of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the absolute value of the 'price' field.
    * field("price").abs();
@@ -1205,6 +1262,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes e to the power of this expression.
    *
+   * @example
    * ```typescript
    * // Compute e to the power of the 'value' field.
    * field("value").exp();
@@ -1220,6 +1278,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Accesses a value from a map (object) field using the provided key.
    *
+   * @example
    * ```typescript
    * // Get the 'city' value from the 'address' map field
    * field("address").mapGet("city");
@@ -1241,6 +1300,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
    * expression or field.
    *
+   * @example
    * ```typescript
    * // Count the total number of products
    * field("productId").count().as("totalProducts");
@@ -1256,6 +1316,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs.
    *
+   * @example
    * ```typescript
    * // Calculate the total revenue from a set of orders
    * field("orderAmount").sum().as("totalRevenue");
@@ -1272,6 +1333,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an aggregation that calculates the average (mean) of a numeric field across multiple
    * stage inputs.
    *
+   * @example
    * ```typescript
    * // Calculate the average age of users
    * field("age").average().as("averageAge");
@@ -1287,6 +1349,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
    *
+   * @example
    * ```typescript
    * // Find the lowest price of all products
    * field("price").minimum().as("lowestPrice");
@@ -1302,6 +1365,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
    *
+   * @example
    * ```typescript
    * // Find the highest score in a leaderboard
    * field("score").maximum().as("highestScore");
@@ -1317,6 +1381,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an aggregation that counts the number of distinct values of the expression or field.
    *
+   * @example
    * ```typescript
    * // Count the distinct number of products
    * field("productId").countDistinct().as("distinctProducts");
@@ -1332,6 +1397,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
    *
+   * @example
    * ```typescript
    * // Returns the larger value between the 'timestamp' field and the current timestamp.
    * field("timestamp").logicalMaximum(Function.currentTimestamp());
@@ -1357,6 +1423,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering.
    *
+   * @example
    * ```typescript
    * // Returns the smaller value between the 'timestamp' field and the current timestamp.
    * field("timestamp").logicalMinimum(Function.currentTimestamp());
@@ -1382,6 +1449,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression.
    *
+   * @example
    * ```typescript
    * // Get the vector length (dimension) of the field 'embedding'.
    * field("embedding").vectorLength();
@@ -1397,6 +1465,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Calculates the cosine distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
    * field("userVector").cosineDistance(field("itemVector"));
@@ -1410,6 +1479,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Calculates the Cosine distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the Cosine distance between the 'location' field and a target location
    * field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
@@ -1433,6 +1503,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Calculates the dot product between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
    * field("features").dotProduct([0.5, 0.8, 0.2]);
@@ -1447,6 +1518,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Calculates the dot product between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
    * field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
@@ -1468,6 +1540,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Calculates the Euclidean distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
    * field("location").euclideanDistance([37.7749, -122.4194]);
@@ -1482,6 +1555,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Calculates the Euclidean distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
    * field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
@@ -1506,6 +1580,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
+   * @example
    * ```typescript
    * // Interpret the 'microseconds' field as microseconds since epoch.
    * field("microseconds").unixMicrosToTimestamp();
@@ -1525,6 +1600,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
+   * @example
    * ```typescript
    * // Convert the 'timestamp' field to microseconds since epoch.
    * field("timestamp").timestampToUnixMicros();
@@ -1545,6 +1621,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
+   * @example
    * ```typescript
    * // Interpret the 'milliseconds' field as milliseconds since epoch.
    * field("milliseconds").unixMillisToTimestamp();
@@ -1564,6 +1641,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
+   * @example
    * ```typescript
    * // Convert the 'timestamp' field to milliseconds since epoch.
    * field("timestamp").timestampToUnixMillis();
@@ -1584,6 +1662,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
+   * @example
    * ```typescript
    * // Interpret the 'seconds' field as seconds since epoch.
    * field("seconds").unixSecondsToTimestamp();
@@ -1603,6 +1682,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
+   * @example
    * ```typescript
    * // Convert the 'timestamp' field to seconds since epoch.
    * field("timestamp").timestampToUnixSeconds();
@@ -1622,6 +1702,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that adds a specified amount of time to this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
    * field("timestamp").timestampAdd(field("unit"), field("amount"));
@@ -1637,6 +1718,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that adds a specified amount of time to this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Add 1 day to the 'timestamp' field.
    * field("timestamp").timestampAdd("day", 1);
@@ -1672,6 +1754,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
    * field("timestamp").timestampSubtract(field("unit"), field("amount"));
@@ -1687,6 +1770,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Subtract 1 day from the 'timestamp' field.
    * field("timestamp").timestampSubtract("day", 1);
@@ -1723,6 +1807,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * Creates an expression that returns the document ID from a path.
    *
+   * @example
    * ```typescript
    * // Get the document ID from a path.
    * field("__path__").documentId();
@@ -1797,6 +1882,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * and returns the element. If the offset exceeds the array length, an error is
    * returned. A negative offset, starts from the end.
    *
+   * @example
    * ```typescript
    * // Return the value in the tags field array at index specified by field
    * // 'favoriteTag'.
@@ -1820,6 +1906,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * Creates an expression that checks if a given expression produces an error.
    *
+   * @example
    * ```typescript
    * // Check if the result of a calculation is an error
    * field("title").arrayContains(1).isError();
@@ -1837,6 +1924,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the result of the `catchExpr` argument
    * if there is an error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // the entire title field if the array is empty or the field is another type.
@@ -1855,6 +1943,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // "Default Title"
@@ -1887,6 +1976,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Check if the field `value` is absent.
    * field("value").isAbsent();
+   * @example
    * ```
    *
    * @return A new {@code BooleanExpr} representing the 'isAbsent' check.
@@ -1917,6 +2007,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    * // Removes the key 'baz' from the input map.
    * map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
+   * @example
    * ```
    *
    * @param keyExpr An expression that produces the name of the key to remove from the input map.
@@ -1966,6 +2057,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the value of this expression raised to the power of another expression.
    *
+   * @example
    * ```typescript
    * // Raise the value of the 'base' field to the power of the 'exponent' field.
    * field("base").pow(field("exponent"));
@@ -1980,6 +2072,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the value of this expression raised to the power of a constant value.
    *
+   * @example
    * ```typescript
    * // Raise the value of the 'base' field to the power of 2.
    * field("base").pow(2);
@@ -1997,6 +2090,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that rounds a numeric value to the nearest whole number.
    *
+   * @example
    * ```typescript
    * // Round the value of the 'price' field.
    * field("price").round();
@@ -2009,6 +2103,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that rounds a numeric value to the specified number of decimal places.
    *
+   * @example
    * ```typescript
    * // Round the value of the 'price' field to two decimal places.
    * field("price").round(2);
@@ -2023,6 +2118,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that rounds a numeric value to the specified number of decimal places.
    *
+   * @example
    * ```typescript
    * // Round the value of the 'price' field to two decimal places.
    * field("price").round(constant(2));
@@ -2049,6 +2145,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the collection ID from a path.
    *
+   * @example
    * ```typescript
    * // Get the collection ID from a path.
    * field("__path__").collectionId();
@@ -2064,6 +2161,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
    *
+   * @example
    * ```typescript
    * // Get the length of the 'name' field.
    * field("name").length();
@@ -2082,6 +2180,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the natural logarithm of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the natural logarithm of the 'value' field.
    * field("value").ln();
@@ -2097,6 +2196,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the square root of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the square root of the 'value' field.
    * field("value").sqrt();
@@ -2112,6 +2212,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that reverses a string.
    *
+   * @example
    * ```typescript
    * // Reverse the value of the 'myString' field.
    * field("myString").stringReverse();
@@ -2128,6 +2229,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
    * return the result of the this expression evaluation.
    *
+   * @example
    * ```typescript
    * // Returns the value of the optional field 'optional_field', or returns 'default_value'
    * // if the field is absent.
@@ -2167,6 +2269,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that joins the elements of an array into a string.
    *
+   * @example
    * ```typescript
    * // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
    * field("tags").join(field("separator"))
@@ -2181,6 +2284,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that joins the elements of an array field into a string.
    *
+   * @example
    * ```typescript
    * // Join the elements of the 'tags' field with a comma and space.
    * field("tags").join(", ")
@@ -2203,6 +2307,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the base-10 logarithm of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the base-10 logarithm of the 'value' field.
    * field("value").log10();
@@ -2218,6 +2323,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that computes the sum of the elements in an array.
    *
+   * @example
    * ```typescript
    * // Compute the sum of the elements in the 'scores' field.
    * field("scores").arraySum();
@@ -2339,6 +2445,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an {@link Ordering} that sorts documents in ascending order based on this expression.
    *
+   * @example
    * ```typescript
    * // Sort documents by the 'name' field in ascending order
    * pipeline().collection("users")
@@ -2355,6 +2462,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an {@link Ordering} that sorts documents in descending order based on this expression.
    *
+   * @example
    * ```typescript
    * // Sort documents by the 'createdAt' field in descending order
    * firestore.pipeline().collection("users")
@@ -2374,6 +2482,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Aliases are useful for renaming fields in the output of a stage or for giving meaningful
    * names to calculated values.
    *
+   * @example
    * ```typescript
    * // Calculate the total price and assign it the alias "totalPrice" and add it to the output.
    * firestore.pipeline().collection("items")
@@ -2468,6 +2577,7 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
    * Assigns an alias to this AggregateFunction. The alias specifies the name that
    * the aggregated value will have in the output document.
    *
+   * @example
    * ```typescript
    * // Calculate the average price of all items and assign it the alias "averagePrice".
    * firestore.pipeline().collection("items")
@@ -2598,6 +2708,7 @@ class ListOfExprs extends Expression implements UserData {
  *
  * <p>You can create a `Field` instance using the static {@link #of} method:
  *
+ * @example
  * ```typescript
  * // Create a Field instance for the 'name' field
  * const nameField = field("name");
@@ -2659,6 +2770,7 @@ export class Field extends Expression implements Selectable {
  * The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field
  * (e.g., "address.city").
  *
+ * @example
  * ```typescript
  * // Create a Field instance for the 'title' field
  * const titleField = field("title");
@@ -2705,6 +2817,7 @@ export function _field(
  *
  * You can create a `Constant` instance using the static {@link #of} method:
  *
+ * @example
  * ```typescript
  * // Create a Constant instance for the number 10
  * const ten = constant(10);
@@ -2991,6 +3104,7 @@ export abstract class BooleanExpression extends Expression {
    * Creates an aggregation that finds the count of input documents satisfying
    * this boolean expression.
    *
+   * @example
    * ```typescript
    * // Find the count of documents with a score greater than 90
    * field("score").greaterThan(90).countIf().as("highestScore");
@@ -3006,6 +3120,7 @@ export abstract class BooleanExpression extends Expression {
    * @beta
    * Creates an expression that negates this boolean expression.
    *
+   * @example
    * ```typescript
    * // Find documents where the 'tags' field does not contain 'completed'
    * field("tags").arrayContains("completed").not();
@@ -3023,6 +3138,7 @@ export abstract class BooleanExpression extends Expression {
    * if `this` expression evaluates to `true`,
    * or evaluates to the 'else' expression if `this` expressions evaluates `false`.
    *
+   * @example
    * ```typescript
    * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
    * field("age").greaterThanOrEqual(18).conditional(constant("Adult"), constant("Minor"));
@@ -3046,6 +3162,7 @@ export abstract class BooleanExpression extends Expression {
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
@@ -3064,6 +3181,7 @@ export abstract class BooleanExpression extends Expression {
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
@@ -3082,6 +3200,7 @@ export abstract class BooleanExpression extends Expression {
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
    * constant(50).divide('length').gt(1).ifError(constant(0));
@@ -3099,6 +3218,7 @@ export abstract class BooleanExpression extends Expression {
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
    * constant(50).divide('length').gt(1).ifError(0);
@@ -3165,6 +3285,7 @@ export class BooleanField extends BooleanExpression {
  * Creates an aggregation that counts the number of stage inputs where the provided
  * boolean expression evaluates to true.
  *
+ * @example
  * ```typescript
  * // Count the number of documents where 'is_active' field equals true
  * countIf(field("is_active").equal(true)).as("numActiveDocuments");
@@ -3183,6 +3304,7 @@ export function countIf(booleanExpr: BooleanExpression): AggregateFunction {
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index 1.
  * arrayGet('tags', 1);
@@ -3203,6 +3325,7 @@ export function arrayGet(
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
@@ -3224,6 +3347,7 @@ export function arrayGet(
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index 1.
  * arrayGet(field('tags'), 1);
@@ -3244,6 +3368,7 @@ export function arrayGet(
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
@@ -3270,6 +3395,7 @@ export function arrayGet(
  *
  * Creates an expression that checks if a given expression produces an error.
  *
+ * @example
  * ```typescript
  * // Check if the result of a calculation is an error
  * isError(field("title").arrayContains(1));
@@ -3290,6 +3416,7 @@ export function isError(value: Expression): BooleanExpression {
  *
  * This overload is useful when a BooleanExpression is required.
  *
+ * @example
  * ```typescript
  * // Create an expression that protects against a divide by zero error
  * // but always returns a boolean expression.
@@ -3312,6 +3439,7 @@ export function ifError(
  * Creates an expression that returns the `catch` argument if there is an
  * error, else return the result of the `try` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // the entire title field if the array is empty or the field is another type.
@@ -3334,6 +3462,7 @@ export function ifError(
  * Creates an expression that returns the `catch` argument if there is an
  * error, else return the result of the `try` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // "Default Title"
@@ -3389,6 +3518,7 @@ export function isAbsent(value: Expression): BooleanExpression;
  * ```typescript
  * // Check if the field `value` is absent.
  * isAbsent("value");
+ * @example
  * ```
  *
  * @param field The field to check.
@@ -3421,6 +3551,7 @@ export function mapRemove(mapField: string, key: string): FunctionExpression;
  * ```
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), 'baz');
+ * @example
  * ```
  *
  * @param mapExpr An expression return a map value.
@@ -3452,6 +3583,7 @@ export function mapRemove(
  * ```
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
+ * @example
  * ```
  *
  * @param mapExpr An expression return a map value.
@@ -3497,6 +3629,7 @@ export function mapMerge(
  *
  * Creates an expression that merges multiple map values.
  *
+ * @example
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
@@ -3530,6 +3663,7 @@ export function mapMerge(
  *
  * Creates an expression that returns the document ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the document ID from a path.
  * documentId(myDocumentReference);
@@ -3546,6 +3680,7 @@ export function documentId(
  *
  * Creates an expression that returns the document ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the document ID from a path.
  * documentId(field("__path__"));
@@ -3640,6 +3775,7 @@ export function substring(
  *
  * Creates an expression that adds two expressions together.
  *
+ * @example
  * ```typescript
  * // Add the value of the 'quantity' field and the 'reserve' field.
  * add(field("quantity"), field("reserve"));
@@ -3660,6 +3796,7 @@ export function add(
  *
  * Creates an expression that adds a field's value to an expression.
  *
+ * @example
  * ```typescript
  * // Add the value of the 'quantity' field and the 'reserve' field.
  * add("quantity", field("reserve"));
@@ -3687,6 +3824,7 @@ export function add(
  *
  * Creates an expression that subtracts two expressions.
  *
+ * @example
  * ```typescript
  * // Subtract the 'discount' field from the 'price' field
  * subtract(field("price"), field("discount"));
@@ -3706,6 +3844,7 @@ export function subtract(
  *
  * Creates an expression that subtracts a constant value from an expression.
  *
+ * @example
  * ```typescript
  * // Subtract the constant value 2 from the 'value' field
  * subtract(field("value"), 2);
@@ -3725,6 +3864,7 @@ export function subtract(
  *
  * Creates an expression that subtracts an expression from a field's value.
  *
+ * @example
  * ```typescript
  * // Subtract the 'discount' field from the 'price' field
  * subtract("price", field("discount"));
@@ -3744,6 +3884,7 @@ export function subtract(
  *
  * Creates an expression that subtracts a constant value from a field's value.
  *
+ * @example
  * ```typescript
  * // Subtract 20 from the value of the 'total' field
  * subtract("total", 20);
@@ -3768,6 +3909,7 @@ export function subtract(
  *
  * Creates an expression that multiplies two expressions together.
  *
+ * @example
  * ```typescript
  * // Multiply the 'quantity' field by the 'price' field
  * multiply(field("quantity"), field("price"));
@@ -3788,6 +3930,7 @@ export function multiply(
  *
  * Creates an expression that multiplies a field's value by an expression.
  *
+ * @example
  * ```typescript
  * // Multiply the 'quantity' field by the 'price' field
  * multiply("quantity", field("price"));
@@ -3815,6 +3958,7 @@ export function multiply(
  *
  * Creates an expression that divides two expressions.
  *
+ * @example
  * ```typescript
  * // Divide the 'total' field by the 'count' field
  * divide(field("total"), field("count"));
@@ -3831,6 +3975,7 @@ export function divide(left: Expression, right: Expression): FunctionExpression;
  *
  * Creates an expression that divides an expression by a constant value.
  *
+ * @example
  * ```typescript
  * // Divide the 'value' field by 10
  * divide(field("value"), 10);
@@ -3850,6 +3995,7 @@ export function divide(
  *
  * Creates an expression that divides a field's value by an expression.
  *
+ * @example
  * ```typescript
  * // Divide the 'total' field by the 'count' field
  * divide("total", field("count"));
@@ -3869,6 +4015,7 @@ export function divide(
  *
  * Creates an expression that divides a field's value by a constant value.
  *
+ * @example
  * ```typescript
  * // Divide the 'value' field by 10
  * divide("value", 10);
@@ -3893,6 +4040,7 @@ export function divide(
  *
  * Creates an expression that calculates the modulo (remainder) of dividing two expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 'field2'.
  * mod(field("field1"), field("field2"));
@@ -3909,6 +4057,7 @@ export function mod(left: Expression, right: Expression): FunctionExpression;
  *
  * Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 5.
  * mod(field("field1"), 5);
@@ -3925,6 +4074,7 @@ export function mod(expression: Expression, value: unknown): FunctionExpression;
  *
  * Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 'field2'.
  * mod("field1", field("field2"));
@@ -3944,6 +4094,7 @@ export function mod(
  *
  * Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 5.
  * mod("field1", 5);
@@ -3968,6 +4119,7 @@ export function mod(
  *
  * Creates an expression that creates a Firestore map value from an input object.
  *
+ * @example
  * ```typescript
  * // Create a map from the input object and reference the 'baz' field value from the input document.
  * map({foo: 'bar', baz: Field.of('baz')}).as('data');
@@ -4021,6 +4173,7 @@ export function _mapValue(plainObject: Record<string, unknown>): MapValue {
  *
  * Creates an expression that creates a Firestore array value from an input array.
  *
+ * @example
  * ```typescript
  * // Create an array value from the input array and reference the 'baz' field value from the input document.
  * array(['bar', Field.of('baz')]).as('foo');
@@ -4048,6 +4201,7 @@ export function _array(
  *
  * Creates an expression that checks if two expressions are equal.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is equal to an expression
  * equal(field("age"), field("minAge").add(10));
@@ -4064,6 +4218,7 @@ export function equal(left: Expression, right: Expression): BooleanExpression;
  *
  * Creates an expression that checks if an expression is equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is equal to 21
  * equal(field("age"), 21);
@@ -4083,6 +4238,7 @@ export function equal(
  *
  * Creates an expression that checks if a field's value is equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is equal to the 'limit' field
  * equal("age", field("limit"));
@@ -4102,6 +4258,7 @@ export function equal(
  *
  * Creates an expression that checks if a field's value is equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'city' field is equal to string constant "London"
  * equal("city", "London");
@@ -4126,6 +4283,7 @@ export function equal(
  *
  * Creates an expression that checks if two expressions are not equal.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to field 'finalState'
  * notEqual(field("status"), field("finalState"));
@@ -4145,6 +4303,7 @@ export function notEqual(
  *
  * Creates an expression that checks if an expression is not equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to "completed"
  * notEqual(field("status"), "completed");
@@ -4164,6 +4323,7 @@ export function notEqual(
  *
  * Creates an expression that checks if a field's value is not equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to the value of 'expectedStatus'
  * notEqual("status", field("expectedStatus"));
@@ -4183,6 +4343,7 @@ export function notEqual(
  *
  * Creates an expression that checks if a field's value is not equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'country' field is not equal to "USA"
  * notEqual("country", "USA");
@@ -4207,6 +4368,7 @@ export function notEqual(
  *
  * Creates an expression that checks if the first expression is less than the second expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is less than 30
  * lessThan(field("age"), field("limit"));
@@ -4226,6 +4388,7 @@ export function lessThan(
  *
  * Creates an expression that checks if an expression is less than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is less than 30
  * lessThan(field("age"), 30);
@@ -4245,6 +4408,7 @@ export function lessThan(
  *
  * Creates an expression that checks if a field's value is less than an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is less than the 'limit' field
  * lessThan("age", field("limit"));
@@ -4264,6 +4428,7 @@ export function lessThan(
  *
  * Creates an expression that checks if a field's value is less than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'price' field is less than 50
  * lessThan("price", 50);
@@ -4289,6 +4454,7 @@ export function lessThan(
  * Creates an expression that checks if the first expression is less than or equal to the second
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to 20
  * lessThan(field("quantity"), field("limit"));
@@ -4308,6 +4474,7 @@ export function lessThanOrEqual(
  *
  * Creates an expression that checks if an expression is less than or equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to 20
  * lessThan(field("quantity"), 20);
@@ -4326,6 +4493,7 @@ export function lessThanOrEqual(
  * @beta
  * Creates an expression that checks if a field's value is less than or equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to the 'limit' field
  * lessThan("quantity", field("limit"));
@@ -4345,6 +4513,7 @@ export function lessThanOrEqual(
  *
  * Creates an expression that checks if a field's value is less than or equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'score' field is less than or equal to 70
  * lessThan("score", 70);
@@ -4373,6 +4542,7 @@ export function lessThanOrEqual(
  * Creates an expression that checks if the first expression is greater than the second
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18
  * greaterThan(field("age"), Constant(9).add(9));
@@ -4392,6 +4562,7 @@ export function greaterThan(
  *
  * Creates an expression that checks if an expression is greater than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18
  * greaterThan(field("age"), 18);
@@ -4411,6 +4582,7 @@ export function greaterThan(
  *
  * Creates an expression that checks if a field's value is greater than an expression.
  *
+ * @example
  * ```typescript
  * // Check if the value of field 'age' is greater than the value of field 'limit'
  * greaterThan("age", field("limit"));
@@ -4430,6 +4602,7 @@ export function greaterThan(
  *
  * Creates an expression that checks if a field's value is greater than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'price' field is greater than 100
  * greaterThan("price", 100);
@@ -4458,6 +4631,7 @@ export function greaterThan(
  * Creates an expression that checks if the first expression is greater than or equal to the
  * second expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is greater than or equal to the field "threshold"
  * greaterThanOrEqual(field("quantity"), field("threshold"));
@@ -4478,6 +4652,7 @@ export function greaterThanOrEqual(
  * Creates an expression that checks if an expression is greater than or equal to a constant
  * value.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is greater than or equal to 10
  * greaterThanOrEqual(field("quantity"), 10);
@@ -4497,6 +4672,7 @@ export function greaterThanOrEqual(
  *
  * Creates an expression that checks if a field's value is greater than or equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the value of field 'age' is greater than or equal to the value of field 'limit'
  * greaterThanOrEqual("age", field("limit"));
@@ -4517,6 +4693,7 @@ export function greaterThanOrEqual(
  * Creates an expression that checks if a field's value is greater than or equal to a constant
  * value.
  *
+ * @example
  * ```typescript
  * // Check if the 'score' field is greater than or equal to 80
  * greaterThanOrEqual("score", 80);
@@ -4544,6 +4721,7 @@ export function greaterThanOrEqual(
  *
  * Creates an expression that concatenates an array expression with other arrays.
  *
+ * @example
  * ```typescript
  * // Combine the 'items' array with two new item arrays
  * arrayConcat(field("items"), [field("newItems"), field("otherItems")]);
@@ -4565,6 +4743,7 @@ export function arrayConcat(
  *
  * Creates an expression that concatenates a field's array value with other arrays.
  *
+ * @example
  * ```typescript
  * // Combine the 'items' array with two new item arrays
  * arrayConcat("items", [field("newItems"), field("otherItems")]);
@@ -4598,6 +4777,7 @@ export function arrayConcat(
  *
  * Creates an expression that checks if an array expression contains a specific element.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains the value of field 'selectedColor'
  * arrayContains(field("colors"), field("selectedColor"));
@@ -4617,6 +4797,7 @@ export function arrayContains(
  *
  * Creates an expression that checks if an array expression contains a specific element.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains "red"
  * arrayContains(field("colors"), "red");
@@ -4636,6 +4817,7 @@ export function arrayContains(
  *
  * Creates an expression that checks if a field's array value contains a specific element.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains the value of field 'selectedColor'
  * arrayContains("colors", field("selectedColor"));
@@ -4655,6 +4837,7 @@ export function arrayContains(
  *
  * Creates an expression that checks if a field's array value contains a specific value.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains "red"
  * arrayContains("colors", "red");
@@ -4683,6 +4866,7 @@ export function arrayContains(
  * Creates an expression that checks if an array expression contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
  * arrayContainsAny(field("categories"), [field("cate1"), "Science"]);
@@ -4703,6 +4887,7 @@ export function arrayContainsAny(
  * Creates an expression that checks if a field's array value contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
@@ -4724,6 +4909,7 @@ export function arrayContainsAny(
  * Creates an expression that checks if an array expression contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
  * arrayContainsAny(field("categories"), array([field("cate1"), "Science"]));
@@ -4744,6 +4930,7 @@ export function arrayContainsAny(
  * Creates an expression that checks if a field's array value contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
@@ -4771,6 +4958,7 @@ export function arrayContainsAny(
  *
  * Creates an expression that checks if an array expression contains all the specified elements.
  *
+ * @example
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
  * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"]);
@@ -4791,6 +4979,7 @@ export function arrayContainsAll(
  * Creates an expression that checks if a field's array value contains all the specified values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'tags' array contains both of the values from field 'tag1', the value "SciFi", and "Adventure"
  * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
@@ -4810,6 +4999,7 @@ export function arrayContainsAll(
  *
  * Creates an expression that checks if an array expression contains all the specified elements.
  *
+ * @example
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
  * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"]);
@@ -4830,6 +5020,7 @@ export function arrayContainsAll(
  * Creates an expression that checks if a field's array value contains all the specified values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'tags' array contains both of the values from field 'tag1', the value "SciFi", and "Adventure"
  * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
@@ -4856,6 +5047,7 @@ export function arrayContainsAll(
  *
  * Creates an expression that calculates the length of an array in a specified field.
  *
+ * @example
  * ```typescript
  * // Get the number of items in field 'cart'
  * arrayLength('cart');
@@ -4871,6 +5063,7 @@ export function arrayLength(fieldName: string): FunctionExpression;
  *
  * Creates an expression that calculates the length of an array expression.
  *
+ * @example
  * ```typescript
  * // Get the number of items in the 'cart' array
  * arrayLength(field("cart"));
@@ -4890,6 +5083,7 @@ export function arrayLength(array: Expression | string): FunctionExpression {
  * Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
  * equalAny(field("category"), [constant("Electronics"), field("primaryType")]);
@@ -4909,6 +5103,7 @@ export function equalAny(
  *
  * Creates an expression that checks if an expression is equal to any of the provided values.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is set to a value in the disabledCategories field
  * equalAny(field("category"), field('disabledCategories'));
@@ -4929,6 +5124,7 @@ export function equalAny(
  * Creates an expression that checks if a field's value is equal to any of the provided values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
  * equalAny("category", [constant("Electronics"), field("primaryType")]);
@@ -4949,6 +5145,7 @@ export function equalAny(
  * Creates an expression that checks if a field's value is equal to any of the provided values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
  * equalAny("category", ["Electronics", field("primaryType")]);
@@ -4976,6 +5173,7 @@ export function equalAny(
  * Creates an expression that checks if an expression is not equal to any of the provided values
  * or expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
  * notEqualAny(field("status"), ["pending", field("rejectedStatus")]);
@@ -4996,6 +5194,7 @@ export function notEqualAny(
  * Creates an expression that checks if a field's value is not equal to any of the provided values
  * or expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
  * notEqualAny("status", [constant("pending"), field("rejectedStatus")]);
@@ -5016,6 +5215,7 @@ export function notEqualAny(
  * Creates an expression that checks if an expression is not equal to any of the provided values
  * or expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of the field 'rejectedStatus'
  * notEqualAny(field("status"), ["pending", field("rejectedStatus")]);
@@ -5035,6 +5235,7 @@ export function notEqualAny(
  *
  * Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
  * notEqualAny("status", field("rejectedStatuses"));
@@ -5062,6 +5263,7 @@ export function notEqualAny(
  *
  * Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions.
  *
+ * @example
  * ```typescript
  * // Check if only one of the conditions is true: 'age' greater than 18, 'city' is "London",
  * // or 'status' is "active".
@@ -5094,6 +5296,7 @@ export function xor(
  * Creates a conditional expression that evaluates to a 'then' expression if a condition is true
  * and an 'else' expression if the condition is false.
  *
+ * @example
  * ```typescript
  * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
  * conditional(
@@ -5122,6 +5325,7 @@ export function conditional(
  *
  * Creates an expression that negates a filter condition.
  *
+ * @example
  * ```typescript
  * // Find documents where the 'completed' field is NOT true
  * not(equal("completed", true));
@@ -5140,6 +5344,7 @@ export function not(booleanExpr: BooleanExpression): BooleanExpression {
  * Creates an expression that returns the largest value between multiple input
  * expressions or literal values. Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the largest value between the 'field1' field, the 'field2' field,
  * // and 1000
@@ -5163,6 +5368,7 @@ export function logicalMaximum(
  * Creates an expression that returns the largest value between multiple input
  * expressions or literal values. Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the largest value between the 'field1' field, the 'field2' field,
  * // and 1000.
@@ -5197,6 +5403,7 @@ export function logicalMaximum(
  * Creates an expression that returns the smallest value between multiple input
  * expressions and literal values. Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the smallest value between the 'field1' field, the 'field2' field,
  * // and 1000.
@@ -5221,6 +5428,7 @@ export function logicalMinimum(
  * and other input expressions or literal values.
  * Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the smallest value between the 'field1' field, the 'field2' field,
  * // and 1000.
@@ -5254,6 +5462,7 @@ export function logicalMinimum(
  *
  * Creates an expression that checks if a field exists.
  *
+ * @example
  * ```typescript
  * // Check if the document has a field named "phoneNumber"
  * exists(field("phoneNumber"));
@@ -5269,6 +5478,7 @@ export function exists(value: Expression): BooleanExpression;
  *
  * Creates an expression that checks if a field exists.
  *
+ * @example
  * ```typescript
  * // Check if the document has a field named "phoneNumber"
  * exists("phoneNumber");
@@ -5287,6 +5497,7 @@ export function exists(valueOrField: Expression | string): BooleanExpression {
  *
  * Creates an expression that reverses a string.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * reverse(field("myString"));
@@ -5302,6 +5513,7 @@ export function reverse(stringExpression: Expression): FunctionExpression;
  *
  * Creates an expression that reverses a string value in the specified field.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * reverse("myString");
@@ -5320,6 +5532,7 @@ export function reverse(expr: Expression | string): FunctionExpression {
  *
  * Creates an expression that calculates the byte length of a string in UTF-8, or just the length of a Blob.
  *
+ * @example
  * ```typescript
  * // Calculate the length of the 'myString' field in bytes.
  * byteLength(field("myString"));
@@ -5335,6 +5548,7 @@ export function byteLength(expr: Expression): FunctionExpression;
  *
  * Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob.
  *
+ * @example
  * ```typescript
  * // Calculate the length of the 'myString' field in bytes.
  * byteLength("myString");
@@ -5353,6 +5567,7 @@ export function byteLength(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that reverses an array.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myArray' field.
  * arrayReverse("myArray");
@@ -5367,6 +5582,7 @@ export function arrayReverse(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that reverses an array.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myArray' field.
  * arrayReverse(field("myArray"));
@@ -5384,6 +5600,7 @@ export function arrayReverse(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that computes e to the power of the expression's result.
  *
+ * @example
  * ```typescript
  * // Compute e to the power of 2.
  * exp(constant(2));
@@ -5397,6 +5614,7 @@ export function exp(expression: Expression): FunctionExpression;
  * @beta
  * Creates an expression that computes e to the power of the expression's result.
  *
+ * @example
  * ```typescript
  * // Compute e to the power of the 'value' field.
  * exp('value');
@@ -5416,6 +5634,7 @@ export function exp(
  * @beta
  * Creates an expression that computes the ceiling of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the ceiling of the 'price' field.
  * ceil("price");
@@ -5430,6 +5649,7 @@ export function ceil(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that computes the ceiling of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the ceiling of the 'price' field.
  * ceil(field("price"));
@@ -5480,6 +5700,7 @@ export function countDistinct(expr: Expression | string): AggregateFunction {
  *
  * Creates an expression that calculates the character length of a string field in UTF8.
  *
+ * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
  * strLength("name");
@@ -5495,6 +5716,7 @@ export function charLength(fieldName: string): FunctionExpression;
  *
  * Creates an expression that calculates the character length of a string expression in UTF-8.
  *
+ * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
  * strLength(field("name"));
@@ -5515,6 +5737,7 @@ export function charLength(value: Expression | string): FunctionExpression {
  * Creates an expression that performs a case-sensitive wildcard string comparison against a
  * field.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like("title", "%guide%");
@@ -5532,6 +5755,7 @@ export function like(fieldName: string, pattern: string): BooleanExpression;
  * Creates an expression that performs a case-sensitive wildcard string comparison against a
  * field.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like("title", field("pattern"));
@@ -5548,6 +5772,7 @@ export function like(fieldName: string, pattern: Expression): BooleanExpression;
  *
  * Creates an expression that performs a case-sensitive wildcard string comparison.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like(field("title"), "%guide%");
@@ -5567,6 +5792,7 @@ export function like(
  *
  * Creates an expression that performs a case-sensitive wildcard string comparison.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like(field("title"), field("pattern"));
@@ -5595,6 +5821,7 @@ export function like(
  * Creates an expression that checks if a string field contains a specified regular expression as
  * a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains("description", "(?i)example");
@@ -5615,6 +5842,7 @@ export function regexContains(
  * Creates an expression that checks if a string field contains a specified regular expression as
  * a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains("description", field("pattern"));
@@ -5635,6 +5863,7 @@ export function regexContains(
  * Creates an expression that checks if a string expression contains a specified regular
  * expression as a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains(field("description"), "(?i)example");
@@ -5655,6 +5884,7 @@ export function regexContains(
  * Creates an expression that checks if a string expression contains a specified regular
  * expression as a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains(field("description"), field("pattern"));
@@ -5682,6 +5912,7 @@ export function regexContains(
  *
  * Creates an expression that checks if a string field matches a specified regular expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch("email", "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
@@ -5701,6 +5932,7 @@ export function regexMatch(
  *
  * Creates an expression that checks if a string field matches a specified regular expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch("email", field("pattern"));
@@ -5721,6 +5953,7 @@ export function regexMatch(
  * Creates an expression that checks if a string expression matches a specified regular
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch(field("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
@@ -5741,6 +5974,7 @@ export function regexMatch(
  * Creates an expression that checks if a string expression matches a specified regular
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch(field("email"), field("pattern"));
@@ -5768,6 +6002,7 @@ export function regexMatch(
  *
  * Creates an expression that checks if a string field contains a specified substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example".
  * stringContains("description", "example");
@@ -5787,6 +6022,7 @@ export function stringContains(
  *
  * Creates an expression that checks if a string field contains a substring specified by an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains the value of the 'keyword' field.
  * stringContains("description", field("keyword"));
@@ -5806,6 +6042,7 @@ export function stringContains(
  *
  * Creates an expression that checks if a string expression contains a specified substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example".
  * stringContains(field("description"), "example");
@@ -5825,6 +6062,7 @@ export function stringContains(
  *
  * Creates an expression that checks if a string expression contains a substring specified by another expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains the value of the 'keyword' field.
  * stringContains(field("description"), field("keyword"));
@@ -5852,6 +6090,7 @@ export function stringContains(
  *
  * Creates an expression that checks if a field's value starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the 'name' field starts with "Mr."
  * startsWith("name", "Mr.");
@@ -5871,6 +6110,7 @@ export function startsWith(
  *
  * Creates an expression that checks if a field's value starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the 'fullName' field starts with the value of the 'firstName' field
  * startsWith("fullName", field("firstName"));
@@ -5890,6 +6130,7 @@ export function startsWith(
  *
  * Creates an expression that checks if a string expression starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
  * startsWith(field("fullName"), "Mr.");
@@ -5909,6 +6150,7 @@ export function startsWith(
  *
  * Creates an expression that checks if a string expression starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
  * startsWith(field("fullName"), field("prefix"));
@@ -5934,6 +6176,7 @@ export function startsWith(
  *
  * Creates an expression that checks if a field's value ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the 'filename' field ends with ".txt"
  * endsWith("filename", ".txt");
@@ -5950,6 +6193,7 @@ export function endsWith(fieldName: string, suffix: string): BooleanExpression;
  *
  * Creates an expression that checks if a field's value ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the 'url' field ends with the value of the 'extension' field
  * endsWith("url", field("extension"));
@@ -5969,6 +6213,7 @@ export function endsWith(
  *
  * Creates an expression that checks if a string expression ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
  * endsWith(field("fullName"), "Jr.");
@@ -5988,6 +6233,7 @@ export function endsWith(
  *
  * Creates an expression that checks if a string expression ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
  * endsWith(field("fullName"), constant("Jr."));
@@ -6013,6 +6259,7 @@ export function endsWith(
  *
  * Creates an expression that converts a string field to lowercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'name' field to lowercase
  * toLower("name");
@@ -6028,6 +6275,7 @@ export function toLower(fieldName: string): FunctionExpression;
  *
  * Creates an expression that converts a string expression to lowercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'name' field to lowercase
  * toLower(field("name"));
@@ -6046,6 +6294,7 @@ export function toLower(expr: Expression | string): FunctionExpression {
  *
  * Creates an expression that converts a string field to uppercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'title' field to uppercase
  * toUpper("title");
@@ -6061,6 +6310,7 @@ export function toUpper(fieldName: string): FunctionExpression;
  *
  * Creates an expression that converts a string expression to uppercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'title' field to uppercase
  * toUppercase(field("title"));
@@ -6079,6 +6329,7 @@ export function toUpper(expr: Expression | string): FunctionExpression {
  *
  * Creates an expression that removes leading and trailing whitespace from a string or byte array.
  *
+ * @example
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim("userInput");
@@ -6102,6 +6353,7 @@ export function trim(
  *
  * Creates an expression that removes leading and trailing characters from a string or byte array expression.
  *
+ * @example
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim(field("userInput"));
@@ -6131,6 +6383,7 @@ export function trim(
  *
  * Creates an expression that concatenates string functions, fields or constants together.
  *
+ * @example
  * ```typescript
  * // Combine the 'firstName', " ", and 'lastName' fields into a single string
  * stringConcat("firstName", " ", field("lastName"));
@@ -6151,6 +6404,7 @@ export function stringConcat(
  * @beta
  * Creates an expression that concatenates string expressions together.
  *
+ * @example
  * ```typescript
  * // Combine the 'firstName', " ", and 'lastName' fields into a single string
  * stringConcat(field("firstName"), " ", field("lastName"));
@@ -6182,6 +6436,7 @@ export function stringConcat(
  *
  * Accesses a value from a map (object) field using the provided key.
  *
+ * @example
  * ```typescript
  * // Get the 'city' value from the 'address' map field
  * mapGet("address", "city");
@@ -6198,6 +6453,7 @@ export function mapGet(fieldName: string, subField: string): FunctionExpression;
  *
  * Accesses a value from a map (object) expression using the provided key.
  *
+ * @example
  * ```typescript
  * // Get the 'city' value from the 'address' map field
  * mapGet(field("address"), "city");
@@ -6223,6 +6479,7 @@ export function mapGet(
  *
  * Creates an aggregation that counts the total number of stage inputs.
  *
+ * @example
  * ```typescript
  * // Count the total number of input documents
  * countAll().as("totalDocument");
@@ -6240,6 +6497,7 @@ export function countAll(): AggregateFunction {
  * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
  * provided expression.
  *
+ * @example
  * ```typescript
  * // Count the number of items where the price is greater than 10
  * count(field("price").greaterThan(10)).as("expensiveItemCount");
@@ -6254,6 +6512,7 @@ export function count(expression: Expression): AggregateFunction;
  * @beta
  * Creates an aggregation that counts the number of stage inputs where the input field exists.
  *
+ * @example
  * ```typescript
  * // Count the total number of products
  * count("productId").as("totalProducts");
@@ -6273,6 +6532,7 @@ export function count(value: Expression | string): AggregateFunction {
  * Creates an aggregation that calculates the sum of values from an expression across multiple
  * stage inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the total revenue from a set of orders
  * sum(field("orderAmount")).as("totalRevenue");
@@ -6289,6 +6549,7 @@ export function sum(expression: Expression): AggregateFunction;
  * Creates an aggregation that calculates the sum of a field's values across multiple stage
  * inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the total revenue from a set of orders
  * sum("orderAmount").as("totalRevenue");
@@ -6308,6 +6569,7 @@ export function sum(value: Expression | string): AggregateFunction {
  * Creates an aggregation that calculates the average (mean) of values from an expression across
  * multiple stage inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the average age of users
  * average(field("age")).as("averageAge");
@@ -6324,6 +6586,7 @@ export function average(expression: Expression): AggregateFunction;
  * Creates an aggregation that calculates the average (mean) of a field's values across multiple
  * stage inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the average age of users
  * average("age").as("averageAge");
@@ -6343,6 +6606,7 @@ export function average(value: Expression | string): AggregateFunction {
  * Creates an aggregation that finds the minimum value of an expression across multiple stage
  * inputs.
  *
+ * @example
  * ```typescript
  * // Find the lowest price of all products
  * minimum(field("price")).as("lowestPrice");
@@ -6358,6 +6622,7 @@ export function minimum(expression: Expression): AggregateFunction;
  *
  * Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
  *
+ * @example
  * ```typescript
  * // Find the lowest price of all products
  * minimum("price").as("lowestPrice");
@@ -6377,6 +6642,7 @@ export function minimum(value: Expression | string): AggregateFunction {
  * Creates an aggregation that finds the maximum value of an expression across multiple stage
  * inputs.
  *
+ * @example
  * ```typescript
  * // Find the highest score in a leaderboard
  * maximum(field("score")).as("highestScore");
@@ -6392,6 +6658,7 @@ export function maximum(expression: Expression): AggregateFunction;
  *
  * Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
  *
+ * @example
  * ```typescript
  * // Find the highest score in a leaderboard
  * maximum("score").as("highestScore");
@@ -6410,6 +6677,7 @@ export function maximum(value: Expression | string): AggregateFunction {
  *
  * Calculates the Cosine distance between a field's vector value and a literal vector value.
  *
+ * @example
  * ```typescript
  * // Calculate the Cosine distance between the 'location' field and a target location
  * cosineDistance("location", [37.7749, -122.4194]);
@@ -6429,6 +6697,7 @@ export function cosineDistance(
  *
  * Calculates the Cosine distance between a field's vector value and a vector expression.
  *
+ * @example
  * ```typescript
  * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
  * cosineDistance("userVector", field("itemVector"));
@@ -6448,6 +6717,7 @@ export function cosineDistance(
  *
  * Calculates the Cosine distance between a vector expression and a vector literal.
  *
+ * @example
  * ```typescript
  * // Calculate the cosine distance between the 'location' field and a target location
  * cosineDistance(field("location"), [37.7749, -122.4194]);
@@ -6467,6 +6737,7 @@ export function cosineDistance(
  *
  * Calculates the Cosine distance between two vector expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
  * cosineDistance(field("userVector"), field("itemVector"));
@@ -6494,6 +6765,7 @@ export function cosineDistance(
  *
  * Calculates the dot product between a field's vector value and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product distance between a feature vector and a target vector
  * dotProduct("features", [0.5, 0.8, 0.2]);
@@ -6513,6 +6785,7 @@ export function dotProduct(
  *
  * Calculates the dot product between a field's vector value and a vector expression.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product distance between two document vectors: 'docVector1' and 'docVector2'
  * dotProduct("docVector1", field("docVector2"));
@@ -6532,6 +6805,7 @@ export function dotProduct(
  *
  * Calculates the dot product between a vector expression and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product between a feature vector and a target vector
  * dotProduct(field("features"), [0.5, 0.8, 0.2]);
@@ -6551,6 +6825,7 @@ export function dotProduct(
  *
  * Calculates the dot product between two vector expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product between two document vectors: 'docVector1' and 'docVector2'
  * dotProduct(field("docVector1"), field("docVector2"));
@@ -6578,6 +6853,7 @@ export function dotProduct(
  *
  * Calculates the Euclidean distance between a field's vector value and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between the 'location' field and a target location
  * euclideanDistance("location", [37.7749, -122.4194]);
@@ -6597,6 +6873,7 @@ export function euclideanDistance(
  *
  * Calculates the Euclidean distance between a field's vector value and a vector expression.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
  * euclideanDistance("pointA", field("pointB"));
@@ -6616,6 +6893,7 @@ export function euclideanDistance(
  *
  * Calculates the Euclidean distance between a vector expression and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between the 'location' field and a target location
  *
@@ -6636,6 +6914,7 @@ export function euclideanDistance(
  *
  * Calculates the Euclidean distance between two vector expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
  * euclideanDistance(field("pointA"), field("pointB"));
@@ -6663,6 +6942,7 @@ export function euclideanDistance(
  *
  * Creates an expression that calculates the length of a Firestore Vector.
  *
+ * @example
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
  * vectorLength(field("embedding"));
@@ -6678,6 +6958,7 @@ export function vectorLength(vectorExpression: Expression): FunctionExpression;
  *
  * Creates an expression that calculates the length of a Firestore Vector represented by a field.
  *
+ * @example
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
  * vectorLength("embedding");
@@ -6697,6 +6978,7 @@ export function vectorLength(expr: Expression | string): FunctionExpression {
  * Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'microseconds' field as microseconds since epoch.
  * unixMicrosToTimestamp(field("microseconds"));
@@ -6713,6 +6995,7 @@ export function unixMicrosToTimestamp(expr: Expression): FunctionExpression;
  * Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'microseconds' field as microseconds since epoch.
  * unixMicrosToTimestamp("microseconds");
@@ -6733,6 +7016,7 @@ export function unixMicrosToTimestamp(
  *
  * Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to microseconds since epoch.
  * timestampToUnixMicros(field("timestamp"));
@@ -6748,6 +7032,7 @@ export function timestampToUnixMicros(expr: Expression): FunctionExpression;
  *
  * Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to microseconds since epoch.
  * timestampToUnixMicros("timestamp");
@@ -6769,6 +7054,7 @@ export function timestampToUnixMicros(
  * Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'milliseconds' field as milliseconds since epoch.
  * unixMillisToTimestamp(field("milliseconds"));
@@ -6785,6 +7071,7 @@ export function unixMillisToTimestamp(expr: Expression): FunctionExpression;
  * Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'milliseconds' field as milliseconds since epoch.
  * unixMillisToTimestamp("milliseconds");
@@ -6806,6 +7093,7 @@ export function unixMillisToTimestamp(
  *
  * Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to milliseconds since epoch.
  * timestampToUnixMillis(field("timestamp"));
@@ -6821,6 +7109,7 @@ export function timestampToUnixMillis(expr: Expression): FunctionExpression;
  *
  * Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to milliseconds since epoch.
  * timestampToUnixMillis("timestamp");
@@ -6843,6 +7132,7 @@ export function timestampToUnixMillis(
  * Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'seconds' field as seconds since epoch.
  * unixSecondsToTimestamp(field("seconds"));
@@ -6859,6 +7149,7 @@ export function unixSecondsToTimestamp(expr: Expression): FunctionExpression;
  * Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'seconds' field as seconds since epoch.
  * unixSecondsToTimestamp("seconds");
@@ -6880,6 +7171,7 @@ export function unixSecondsToTimestamp(
  *
  * Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to seconds since epoch.
  * timestampToUnixSeconds(field("timestamp"));
@@ -6895,6 +7187,7 @@ export function timestampToUnixSeconds(expr: Expression): FunctionExpression;
  *
  * Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to seconds since epoch.
  * timestampToUnixSeconds("timestamp");
@@ -6916,6 +7209,7 @@ export function timestampToUnixSeconds(
  *
  * Creates an expression that adds a specified amount of time to a timestamp.
  *
+ * @example
  * ```typescript
  * // Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
  * timestampAdd(field("timestamp"), field("unit"), field("amount"));
@@ -6937,6 +7231,7 @@ export function timestampAdd(
  *
  * Creates an expression that adds a specified amount of time to a timestamp.
  *
+ * @example
  * ```typescript
  * // Add 1 day to the 'timestamp' field.
  * timestampAdd(field("timestamp"), "day", 1);
@@ -6958,6 +7253,7 @@ export function timestampAdd(
  *
  * Creates an expression that adds a specified amount of time to a timestamp represented by a field.
  *
+ * @example
  * ```typescript
  * // Add 1 day to the 'timestamp' field.
  * timestampAdd("timestamp", "day", 1);
@@ -6996,6 +7292,7 @@ export function timestampAdd(
  *
  * Creates an expression that subtracts a specified amount of time from a timestamp.
  *
+ * @example
  * ```typescript
  * // Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
  * timestampSubtract(field("timestamp"), field("unit"), field("amount"));
@@ -7017,6 +7314,7 @@ export function timestampSubtract(
  *
  * Creates an expression that subtracts a specified amount of time from a timestamp.
  *
+ * @example
  * ```typescript
  * // Subtract 1 day from the 'timestamp' field.
  * timestampSubtract(field("timestamp"), "day", 1);
@@ -7038,6 +7336,7 @@ export function timestampSubtract(
  *
  * Creates an expression that subtracts a specified amount of time from a timestamp represented by a field.
  *
+ * @example
  * ```typescript
  * // Subtract 1 day from the 'timestamp' field.
  * timestampSubtract("timestamp", "day", 1);
@@ -7079,6 +7378,7 @@ export function timestampSubtract(
  *
  * Creates an expression that evaluates to the current server timestamp.
  *
+ * @example
  * ```typescript
  * // Get the current server timestamp
  * currentTimestamp()
@@ -7095,6 +7395,7 @@ export function currentTimestamp(): FunctionExpression {
  *
  * Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18 AND the 'city' field is "London" AND
  * // the 'status' field is "active"
@@ -7123,6 +7424,7 @@ export function and(
  *
  * Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18 OR the 'city' field is "London" OR
  * // the 'status' field is "active"
@@ -7150,6 +7452,7 @@ export function or(
  * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of the 'exponent' field.
  * pow(field("base"), field("exponent"));
@@ -7165,6 +7468,7 @@ export function pow(base: Expression, exponent: Expression): FunctionExpression;
  * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of 2.
  * pow(field("base"), 2);
@@ -7180,6 +7484,7 @@ export function pow(base: Expression, exponent: number): FunctionExpression;
  * @beta
  * Creates an expression that returns the value of the base field raised to the power of the exponent expression.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of the 'exponent' field.
  * pow("base", field("exponent"));
@@ -7195,6 +7500,7 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
  * @beta
  * Creates an expression that returns the value of the base field raised to the power of the exponent.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of 2.
  * pow("base", 2);
@@ -7216,6 +7522,7 @@ export function pow(
  * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field.
  * round("price");
@@ -7230,6 +7537,7 @@ export function round(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field.
  * round(field("price"));
@@ -7244,6 +7552,7 @@ export function round(expression: Expression): FunctionExpression;
  * @beta
  * Creates an expression that rounds a numeric value to the specified number of decimal places.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field to two decimal places.
  * round("price", 2);
@@ -7262,6 +7571,7 @@ export function round(
  * @beta
  * Creates an expression that rounds a numeric value to the specified number of decimal places.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field to two decimal places.
  * round(field("price"), constant(2));
@@ -7290,6 +7600,7 @@ export function round(
  * @beta
  * Creates an expression that returns the collection ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the collection ID from a path.
  * collectionId("__name__");
@@ -7304,6 +7615,7 @@ export function collectionId(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that returns the collection ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the collection ID from a path.
  * collectionId(field("__name__"));
@@ -7321,6 +7633,7 @@ export function collectionId(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
  *
+ * @example
  * ```typescript
  * // Get the length of the 'name' field.
  * length("name");
@@ -7338,6 +7651,7 @@ export function length(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
  *
+ * @example
  * ```typescript
  * // Get the length of the 'name' field.
  * length(field("name"));
@@ -7358,6 +7672,7 @@ export function length(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that computes the natural logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the natural logarithm of the 'value' field.
  * ln("value");
@@ -7372,6 +7687,7 @@ export function ln(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that computes the natural logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the natural logarithm of the 'value' field.
  * ln(field("value"));
@@ -7389,6 +7705,7 @@ export function ln(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that computes the logarithm of an expression to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with base 10.
  * log(field("value"), 10);
@@ -7403,6 +7720,7 @@ export function log(expression: Expression, base: number): FunctionExpression;
  * @beta
  * Creates an expression that computes the logarithm of an expression to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with the base in the 'base' field.
  * log(field("value"), field("base"));
@@ -7420,6 +7738,7 @@ export function log(
  * @beta
  * Creates an expression that computes the logarithm of a field to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with base 10.
  * log("value", 10);
@@ -7434,6 +7753,7 @@ export function log(fieldName: string, base: number): FunctionExpression;
  * @beta
  * Creates an expression that computes the logarithm of a field to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with the base in the 'base' field.
  * log("value", field("base"));
@@ -7458,6 +7778,7 @@ export function log(
  * @beta
  * Creates an expression that computes the square root of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the square root of the 'value' field.
  * sqrt(field("value"));
@@ -7471,6 +7792,7 @@ export function sqrt(expression: Expression): FunctionExpression;
  * @beta
  * Creates an expression that computes the square root of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the square root of the 'value' field.
  * sqrt("value");
@@ -7488,6 +7810,7 @@ export function sqrt(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that reverses a string.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * strReverse(field("myString"));
@@ -7502,6 +7825,7 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
  * @beta
  * Creates an expression that reverses a string value in the specified field.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * strReverse("myString");
@@ -7519,6 +7843,7 @@ export function stringReverse(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
  *
+ * @example
  * ```typescript
  * // Concatenate the 'firstName' and 'lastName' fields with a space in between.
  * concat(field("firstName"), " ", field("lastName"))
@@ -7539,6 +7864,7 @@ export function concat(
  * @beta
  * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
  *
+ * @example
  * ```typescript
  * // Concatenate a field with a literal string.
  * concat(field("firstName"), "Doe")
@@ -7593,6 +7919,7 @@ export function abs(expr: Expression | string): FunctionExpression {
  * Creates an expression that returns the `elseExpr` argument if `ifExpr` is absent, else return
  * the result of the `ifExpr` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns 'default_value'
  * // if the field is absent.
@@ -7610,6 +7937,7 @@ export function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
  * Creates an expression that returns the `elseValue` argument if `ifExpr` is absent, else
  * return the result of the `ifExpr` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns 'default_value'
  * // if the field is absent.
@@ -7627,6 +7955,7 @@ export function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
  * Creates an expression that returns the `elseExpr` argument if `ifFieldName` is absent, else
  * return the value of the field.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns the value of
  * // 'default_field' if 'optional_field' is absent.
@@ -7645,6 +7974,7 @@ export function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
  * Creates an expression that returns the `elseValue` argument if `ifFieldName` is absent, else
  * return the value of the field.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns 'default_value'
  * // if the field is absent.
@@ -7672,6 +8002,7 @@ export function ifAbsent(
  * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join the elements of the 'tags' field with a comma and space.
  * join("tags", ", ")
@@ -7687,6 +8018,7 @@ export function join(arrayFieldName: string, delimiter: string): Expression;
  * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join an array of string using the delimiter from the 'separator' field.
  * join(array(['foo', 'bar']), field("separator"))
@@ -7705,6 +8037,7 @@ export function join(
  * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join the elements of the 'tags' field with a comma and space.
  * join(field("tags"), ", ")
@@ -7723,6 +8056,7 @@ export function join(
  * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
  * join('tags', field("separator"))
@@ -7749,6 +8083,7 @@ export function join(
  * @beta
  * Creates an expression that computes the base-10 logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the base-10 logarithm of the 'value' field.
  * log10("value");
@@ -7763,6 +8098,7 @@ export function log10(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that computes the base-10 logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the base-10 logarithm of the 'value' field.
  * log10(field("value"));
@@ -7780,6 +8116,7 @@ export function log10(expr: Expression | string): FunctionExpression {
  * @beta
  * Creates an expression that computes the sum of the elements in an array.
  *
+ * @example
  * ```typescript
  * // Compute the sum of the elements in the 'scores' field.
  * arraySum("scores");
@@ -7794,6 +8131,7 @@ export function arraySum(fieldName: string): FunctionExpression;
  * @beta
  * Creates an expression that computes the sum of the elements in an array.
  *
+ * @example
  * ```typescript
  * // Compute the sum of the elements in the 'scores' field.
  * arraySum(field("scores"));
@@ -8032,6 +8370,7 @@ export function type(
  *
  * Creates an {@link Ordering} that sorts documents in ascending order based on an expression.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in lowercase in ascending order
  * firestore.pipeline().collection("users")
@@ -8048,6 +8387,7 @@ export function ascending(expr: Expression): Ordering;
  *
  * Creates an {@link Ordering} that sorts documents in ascending order based on a field.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in ascending order
  * firestore.pipeline().collection("users")
@@ -8067,6 +8407,7 @@ export function ascending(field: Expression | string): Ordering {
  *
  * Creates an {@link Ordering} that sorts documents in descending order based on an expression.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in lowercase in descending order
  * firestore.pipeline().collection("users")
@@ -8083,6 +8424,7 @@ export function descending(expr: Expression): Ordering;
  *
  * Creates an {@link Ordering} that sorts documents in descending order based on a field.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in descending order
  * firestore.pipeline().collection("users")
