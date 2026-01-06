@@ -18,10 +18,12 @@
 /* eslint-disable camelcase */
 import { expect } from 'chai';
 
+import { OpResult, SOURCE_SERVER } from '../../src';
 import { parseEntityIds } from '../../src/core/query/QueryManager';
 describe('parseEntityIds', () => {
   it('should parse single entity id', () => {
-    const response = {
+    const fetchTime = new Date().toISOString();
+    const response: OpResult<unknown> = {
       // Same as before except no more _id
       data: {
         posts: [
@@ -55,7 +57,8 @@ describe('parseEntityIds', () => {
           }
         ]
       },
-      errors: [],
+      fetchTime,
+      source: SOURCE_SERVER,
       // New! SDKs should parse this. Only present when Connector.clientCache.includeEntityId is true (can be set via the control plane soon; CLI will set it according to YAML later)
       extensions: {
         // Unique top-level key to avoid (future) conflicts with other GQL extensions

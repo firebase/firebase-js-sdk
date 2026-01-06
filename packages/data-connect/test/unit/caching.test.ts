@@ -293,7 +293,7 @@ async function waitFor(milliseconds: number): Promise<void> {
 }
 async function updateCacheData(
   dc: DataConnect,
-    {
+  {
     data,
     fetchTime,
     ref,
@@ -306,15 +306,12 @@ async function updateCacheData(
   const projectId = dc.app.options.projectId;
   return dc._queryManager.updateCache({
     data,
-    errors: [],
-    extensions: {
-      dataConnect: extension
-    },
-  }, {
-    data,
     fetchTime,
     ref,
     source,
+    extensions: {
+      dataConnect: extension
+    },
     toJSON() {
       return {
         data,

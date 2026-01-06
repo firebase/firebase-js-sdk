@@ -16,8 +16,10 @@
  */
 
 import { QueryRef, QueryResult, toQueryRef } from '../../api/query';
-import { OpResult, SerializedRef } from '../../api/Reference';
+import { SerializedRef } from '../../api/Reference';
 import { DataConnectError, Code } from '../error';
+
+import { getRefSerializer } from './QueryManager';
 
 /**
  * `OnCompleteSubscription`
@@ -102,17 +104,20 @@ export function subscribe<Data, Variables>(
   onComplete?: OnCompleteSubscription
 ): QueryUnsubscribe {
   let ref: QueryRef<Data, Variables>;
-  let initialCache: OpResult<Data> | undefined;
+  let initialCache: QueryResult<Data, Variables> | undefined;
   if ('refInfo' in queryRefOrSerializedResult) {
     const serializedRef: SerializedRef<Data, Variables> =
       queryRefOrSerializedResult;
     const { data, source, fetchTime } = serializedRef;
+    
+    ref = toQueryRef(serializedRef);
     initialCache = {
       data,
       source,
-      fetchTime
+      fetchTime,
+      ref,
+      toJSON: getRefSerializer(ref, data, source)
     };
-    ref = toQueryRef(serializedRef);
   } else {
     ref = queryRefOrSerializedResult;
   }

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DataConnectExtensions } from '../network';
+
 import { DataConnect, DataConnectOptions } from './DataConnect';
 import { QueryResult } from './query';
 export const QUERY_STR = 'query';
@@ -29,6 +31,7 @@ export interface OpResult<Data> {
   data: Data;
   source: DataSource;
   fetchTime: string;
+  extensions?: DataConnectExtensions;
 }
 
 /**

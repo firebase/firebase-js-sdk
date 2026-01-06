@@ -20,18 +20,17 @@ import { QueryRef, QueryResult } from '../../api/query';
 import {
   OperationRef,
   QUERY_STR,
-  OpResult,
   SerializedRef,
   SOURCE_SERVER,
   DataSource,
-  SOURCE_CACHE
+  SOURCE_CACHE,
+  OpResult
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { logDebug } from '../../logger';
 import {
   DataConnectExtension,
-  DataConnectResponse,
   DataConnectTransport
 } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
@@ -45,7 +44,7 @@ import {
 } from './subscribe';
 
 
-function getRefSerializer<Data, Variables>(
+export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
   data: Data,
   source: DataSource
@@ -86,22 +85,20 @@ export class QueryManager {
     this.queue = [];
   }
 
-  // TODO: with extensions, this result will not have entityIds.
-  updateSSR(updatedData: QueryResult<unknown, unknown>): void {
-    // this.queue.push(
-    //   this.updateCache(updatedData).then(async result =>
-    //     this.publishCacheResultsToSubscribers(result)
-    //   )
-    // );
+  updateSSR<Data, Variables>(updatedData: QueryResult<Data, Variables>): void {
+    this.queue.push(
+      this.updateCache(updatedData).then(async result =>
+        this.publishCacheResultsToSubscribers(result)
+      )
+    );
   }
 
   async updateCache<Data, Variables>(
-    response: DataConnectResponse<Data>,
     result: QueryResult<Data, Variables>
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
     if (this.cache) {
-      const entityIds = parseEntityIds(response);
+      const entityIds = parseEntityIds(result);
       return this.cache.update(
         encoderImpl({
           name: result.ref.name,
@@ -127,7 +124,7 @@ export class QueryManager {
     onResultCallback: OnResultSubscription<Data, Variables>,
     onCompleteCallback?: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
-    initialCache?: OpResult<Data>
+    initialCache?: QueryResult<Data, Variables>
   ): () => void {
     const key = encoderImpl({
       name: queryRef.name,
@@ -152,7 +149,7 @@ export class QueryManager {
     };
 
     if (initialCache) {
-      this.updateSSR(initialCache as QueryResult<Data, Variables>);
+      this.updateSSR(initialCache);
     }
 
     logDebug(
@@ -283,9 +280,10 @@ export class QueryManager {
           fetchTime: new Date().toISOString(),
           ref: queryRef,
           source: SOURCE_SERVER,
+          extensions: response.extensions,
           toJSON: getRefSerializer(queryRef, response.data, SOURCE_SERVER)
         };
-        impactedQueries = await this.updateCache(response, queryResult);
+        impactedQueries = await this.updateCache(queryResult);
       } catch (e: unknown) {
         this.publishErrorToSubscribers(key, e);
         throw e;
@@ -384,11 +382,11 @@ export class QueryManager {
 // TODO: Move this to its own file
 // TODO: Make this return a Record<string, unknown>, and use this as a lookup table for entity ids
 export function parseEntityIds<T>(
-  data: DataConnectResponse<T>
+  result: OpResult<T>
 ): Record<string, unknown> {
   // Iterate through extensions.dataConnect
-  const dataConnectExtensions = data.extensions.dataConnect;
-  const dataCopy = Object.assign(data);
+  const dataConnectExtensions = result.extensions?.dataConnect;
+  const dataCopy = Object.assign(result);
   if (!dataConnectExtensions) {
     return dataCopy;
   }
