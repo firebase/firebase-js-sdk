@@ -27,10 +27,10 @@ export declare class PipelineResult<AppModelType = DocumentData>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [createTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was created. Undefined if this result is not a document. {<!-- -->Timestamp\|undefined<!-- -->} |
-|  [id](./firestore_lite_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | <b><i>(Public Preview)</i></b> The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. {<!-- -->string<!-- -->} |
+|  [createTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was created. Undefined if this result is not a document. |
+|  [id](./firestore_lite_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | <b><i>(Public Preview)</i></b> The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. |
 |  [ref](./firestore_lite_pipelines.pipelineresult.md#pipelineresultref) |  | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) \| undefined | <b><i>(Public Preview)</i></b> The reference of the document, if it is a document; otherwise <code>undefined</code>. |
-|  [updateTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. {<!-- -->Timestamp\|undefined<!-- -->} |
+|  [updateTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. |
 
 ## Methods
 
@@ -46,8 +46,6 @@ export declare class PipelineResult<AppModelType = DocumentData>
 
 The time the document was created. Undefined if this result is not a document.
 
- {<!-- -->Timestamp\|undefined<!-- -->}
-
 <b>Signature:</b>
 
 ```typescript
@@ -60,8 +58,6 @@ get createTime(): Timestamp | undefined;
 > 
 
 The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`<!-- -->.
-
- {<!-- -->string<!-- -->}
 
 <b>Signature:</b>
 
@@ -88,8 +84,6 @@ get ref(): DocumentReference | undefined;
 > 
 
 The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document.
-
- {<!-- -->Timestamp\|undefined<!-- -->}
 
 <b>Signature:</b>
 

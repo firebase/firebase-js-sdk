@@ -58,7 +58,7 @@ conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the conditional expression.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the conditional expression.
 
 ### Example
 
@@ -119,7 +119,7 @@ ifError(catchValue: BooleanExpression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new  representing the 'ifError' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
 ### Example
 
@@ -154,7 +154,7 @@ ifError(catchValue: boolean): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new  representing the 'ifError' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
 ### Example
 
@@ -189,7 +189,7 @@ ifError(catchValue: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'ifError' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
 ### Example
 
@@ -223,7 +223,7 @@ ifError(catchValue: unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'ifError' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
 ### Example
 
@@ -250,7 +250,7 @@ not(): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new  representing the negated filter condition.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the negated filter condition.
 
 ### Example
 

@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Provides the entry point for defining the data source of a Firestore .
+Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
 
 Use the methods of this class (e.g., , , , or ) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
 

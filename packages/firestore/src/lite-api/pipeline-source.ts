@@ -44,10 +44,10 @@ import { UserDataReader, UserDataSource } from './user_data_reader';
 
 /**
  * @beta
- * Provides the entry point for defining the data source of a Firestore {@link Pipeline}.
+ * Provides the entry point for defining the data source of a Firestore {@link @firebase/firestore/pipelines#Pipeline}.
  *
- * Use the methods of this class (e.g., {@link PipelineSource#collection}, {@link PipelineSource#collectionGroup},
- * {@link PipelineSource#database}, or {@link PipelineSource#documents}) to specify the initial data
+ * Use the methods of this class (e.g., {@link @firebase/firestore/pipelines#PipelineSource.collection:1)}, {@link @firebase/firestore/pipelines#PipelineSource.collectionGroup:1)},
+ * {@link @firebase/firestore/pipelines#PipelineSource.database:1)}, or {@link @firebase/firestore/pipelines#PipelineSource.documents:1)}) to specify the initial data
  * for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
  */
 export class PipelineSource<PipelineType> {

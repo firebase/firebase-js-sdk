@@ -31,7 +31,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * @beta
  * Represents the results of a Firestore pipeline execution.
  *
- * A `PipelineSnapshot` contains zero or more {@link PipelineResult} objects
+ * A `PipelineSnapshot` contains zero or more {@link @firebase/firestore/pipelines#PipelineResult} objects
  * representing the documents returned by a pipeline query. It provides methods
  * to iterate over the documents and access metadata about the query results.
  *
@@ -73,7 +73,6 @@ export class PipelineSnapshot {
    * @beta
    * The time at which the pipeline producing this result is executed.
    *
-   * @type {Timestamp}
    * @readonly
    *
    */
@@ -151,7 +150,6 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`.
    *
-   * @type {string}
    * @readonly
    *
    */
@@ -163,7 +161,6 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * The time the document was created. Undefined if this result is not a document.
    *
-   * @type {Timestamp|undefined}
    * @readonly
    */
   get createTime(): Timestamp | undefined {
@@ -175,7 +172,6 @@ export class PipelineResult<AppModelType = DocumentData> {
    * The time the document was last updated (at the time the snapshot was
    * generated). Undefined if this result is not a document.
    *
-   * @type {Timestamp|undefined}
    * @readonly
    */
   get updateTime(): Timestamp | undefined {
@@ -222,7 +218,7 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * Retrieves the field specified by `field`.
    *
-   * @param {string|FieldPath|Field} field The field path
+   * @param field The field path
    * (e.g. 'foo' or 'foo.bar') to a specific field.
    * @returns {*} The data at the specified field location or undefined if no
    * such field exists.

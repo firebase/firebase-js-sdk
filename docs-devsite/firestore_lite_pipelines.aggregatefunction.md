@@ -93,7 +93,7 @@ as(name: string): AliasedAggregate;
 
 [AliasedAggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregate_class)
 
-A new  that wraps this AggregateFunction and associates it with the provided alias.
+A new [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) that wraps this AggregateFunction and associates it with the provided alias.
 
 ### Example
 

@@ -88,7 +88,7 @@ export function aliasedAggregateToMap(
 }
 
 /**
- * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  *
  * @private
@@ -112,7 +112,7 @@ export function vectorToExpr(
 }
 
 /**
- * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  * If the input is a string, it is assumed to be a field name, and a
  * field(value) is returned.
@@ -130,7 +130,7 @@ export function fieldOrExpression(value: unknown): Expression {
   }
 }
 /**
- * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  *
  * @private

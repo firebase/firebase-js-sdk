@@ -13,13 +13,13 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Represents an expression that can be evaluated to a value within the execution of a .
+Represents an expression that can be evaluated to a value within the execution of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
 
 Expressions are the building blocks for creating complex queries and transformations in Firestore pipelines. They can represent:
 
 - \*\*Field references:\*\* Access values from document fields. - \*\*Literals:\*\* Represent constant values (strings, numbers, booleans). - \*\*Function calls:\*\* Apply functions to one or more expressions.
 
-The `Expr` class provides a fluent API for building expressions. You can chain together method calls to create complex expressions.
+The `Expression` class provides a fluent API for building expressions. You can chain together method calls to create complex expressions.
 
 <b>Signature:</b>
 
@@ -53,7 +53,7 @@ export declare abstract class Expression
 |  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
 |  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
-|  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an  that sorts documents in ascending order based on this expression. |
+|  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
 |  [average()](./firestore_pipelines.expression.md#expressionaverage) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs. |
 |  [byteLength()](./firestore_pipelines.expression.md#expressionbytelength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of this string expression in bytes. |
 |  [ceil()](./firestore_pipelines.expression.md#expressionceil) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
@@ -64,7 +64,7 @@ export declare abstract class Expression
 |  [cosineDistance(vector)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between two vectors. |
 |  [count()](./firestore_pipelines.expression.md#expressioncount) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field. |
 |  [countDistinct()](./firestore_pipelines.expression.md#expressioncountdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of distinct values of the expression or field. |
-|  [descending()](./firestore_pipelines.expression.md#expressiondescending) |  | <b><i>(Public Preview)</i></b> Creates an  that sorts documents in descending order based on this expression. |
+|  [descending()](./firestore_pipelines.expression.md#expressiondescending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression. |
 |  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by another expression. |
 |  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by a constant value. |
 |  [documentId()](./firestore_pipelines.expression.md#expressiondocumentid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
@@ -193,7 +193,7 @@ abs(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the absolute value of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the absolute value of the numeric value.
 
 ### Example
 
@@ -227,7 +227,7 @@ add(second: Expression | unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the addition operation.
+A new `Expression` representing the addition operation.
 
 ### Example
 
@@ -262,7 +262,7 @@ arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expressio
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the concatenated array.
+A new `Expression` representing the concatenated array.
 
 ### Example
 
@@ -296,7 +296,7 @@ arrayContains(expression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'array\_contains' comparison.
+A new `Expression` representing the 'array\_contains' comparison.
 
 ### Example
 
@@ -330,7 +330,7 @@ arrayContains(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'array\_contains' comparison.
+A new `Expression` representing the 'array\_contains' comparison.
 
 ### Example
 
@@ -364,7 +364,7 @@ arrayContainsAll(values: Array<Expression | unknown>): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'array\_contains\_all' comparison.
+A new `Expression` representing the 'array\_contains\_all' comparison.
 
 ### Example
 
@@ -398,7 +398,7 @@ arrayContainsAll(arrayExpression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'array\_contains\_all' comparison.
+A new `Expression` representing the 'array\_contains\_all' comparison.
 
 ### Example
 
@@ -432,7 +432,7 @@ arrayContainsAny(values: Array<Expression | unknown>): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'array\_contains\_any' comparison.
+A new `Expression` representing the 'array\_contains\_any' comparison.
 
 ### Example
 
@@ -466,7 +466,7 @@ arrayContainsAny(arrayExpression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'array\_contains\_any' comparison.
+A new `Expression` representing the 'array\_contains\_any' comparison.
 
 ### Example
 
@@ -501,7 +501,7 @@ arrayGet(offset: number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new Expr representing the 'arrayGet' operation.
+A new `Expression` representing the 'arrayGet' operation.
 
 ### Example
 
@@ -529,13 +529,13 @@ arrayGet(offsetExpr: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  offsetExpr | [Expression](./firestore_pipelines.expression.md#expression_class) | An Expr evaluating to the index of the element to return. |
+|  offsetExpr | [Expression](./firestore_pipelines.expression.md#expression_class) | An <code>Expression</code> evaluating to the index of the element to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new Expr representing the 'arrayGet' operation.
+A new `Expression` representing the 'arrayGet' operation.
 
 ### Example
 
@@ -563,7 +563,7 @@ arrayLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the length of the array.
+A new `Expression` representing the length of the array.
 
 ### Example
 
@@ -590,7 +590,7 @@ arrayReverse(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the reversed array.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the reversed array.
 
 ### Example
 
@@ -617,7 +617,7 @@ arraySum(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the sum of the elements in the array.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the sum of the elements in the array.
 
 ### Example
 
@@ -653,7 +653,7 @@ as(name: string): AliasedExpression;
 
 [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)
 
-A new  that wraps this expression and associates it with the provided alias.
+A new [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class) that wraps this expression and associates it with the provided alias.
 
 ### Example
 
@@ -688,7 +688,7 @@ A \[BooleanExpression\] representing the same expression.
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an  that sorts documents in ascending order based on this expression.
+Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression.
 
 <b>Signature:</b>
 
@@ -754,7 +754,7 @@ byteLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the length of the string in bytes.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the length of the string in bytes.
 
 ### Example
 
@@ -781,7 +781,7 @@ ceil(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the ceiling of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ceiling of the numeric value.
 
 ### Example
 
@@ -808,7 +808,7 @@ charLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the length of the string.
+A new `Expression` representing the length of the string.
 
 ### Example
 
@@ -835,7 +835,7 @@ collectionId(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the collectionId operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the collectionId operation.
 
 ### Example
 
@@ -870,7 +870,7 @@ concat(second: Expression | unknown, ...others: Array<Expression | unknown>): Fu
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the concatenated value.
+A new `Expression` representing the concatenated value.
 
 ### Example
 
@@ -898,13 +898,13 @@ cosineDistance(vectorExpression: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  vectorExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The other vector (represented as an Expr) to compare against. |
+|  vectorExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The other vector (represented as an Expression) to compare against. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the cosine distance between the two vectors.
+A new `Expression` representing the cosine distance between the two vectors.
 
 ### Example
 
@@ -938,7 +938,7 @@ cosineDistance(vector: VectorValue | number[]): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the Cosine\* distance between the two vectors.
+A new `Expression` representing the Cosine\* distance between the two vectors.
 
 ### Example
 
@@ -1008,7 +1008,7 @@ field("productId").countDistinct().as("distinctProducts");
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an  that sorts documents in descending order based on this expression.
+Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression.
 
 <b>Signature:</b>
 
@@ -1054,7 +1054,7 @@ divide(divisor: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the division operation.
+A new `Expression` representing the division operation.
 
 ### Example
 
@@ -1088,7 +1088,7 @@ divide(divisor: number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the division operation.
+A new `Expression` representing the division operation.
 
 ### Example
 
@@ -1115,7 +1115,7 @@ documentId(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the documentId operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the documentId operation.
 
 ### Example
 
@@ -1149,7 +1149,7 @@ dotProduct(vectorExpression: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the dot product between the two vectors.
+A new `Expression` representing the dot product between the two vectors.
 
 ### Example
 
@@ -1183,7 +1183,7 @@ dotProduct(vector: VectorValue | number[]): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the dot product between the two vectors.
+A new `Expression` representing the dot product between the two vectors.
 
 ### Example
 
@@ -1217,7 +1217,7 @@ endsWith(suffix: string): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'ends with' comparison.
+A new `Expression` representing the 'ends with' comparison.
 
 ### Example
 
@@ -1251,7 +1251,7 @@ endsWith(suffix: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'ends with' comparison.
+A new `Expression` representing the 'ends with' comparison.
 
 ### Example
 
@@ -1285,7 +1285,7 @@ equal(expression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the equality comparison.
+A new `Expression` representing the equality comparison.
 
 ### Example
 
@@ -1319,7 +1319,7 @@ equal(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the equality comparison.
+A new `Expression` representing the equality comparison.
 
 ### Example
 
@@ -1353,7 +1353,7 @@ equalAny(values: Array<Expression | unknown>): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'IN' comparison.
+A new `Expression` representing the 'IN' comparison.
 
 ### Example
 
@@ -1387,7 +1387,7 @@ equalAny(arrayExpression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'IN' comparison.
+A new `Expression` representing the 'IN' comparison.
 
 ### Example
 
@@ -1421,7 +1421,7 @@ euclideanDistance(vectorExpression: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the Euclidean distance between the two vectors.
+A new `Expression` representing the Euclidean distance between the two vectors.
 
 ### Example
 
@@ -1455,7 +1455,7 @@ euclideanDistance(vector: VectorValue | number[]): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the Euclidean distance between the two vectors.
+A new `Expression` representing the Euclidean distance between the two vectors.
 
 ### Example
 
@@ -1482,7 +1482,7 @@ exists(): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'exists' check.
+A new `Expression` representing the 'exists' check.
 
 ### Example
 
@@ -1509,7 +1509,7 @@ exp(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the exp of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the exp of the numeric value.
 
 ### Example
 
@@ -1536,7 +1536,7 @@ floor(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the floor of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the floor of the numeric value.
 
 ### Example
 
@@ -1570,7 +1570,7 @@ greaterThan(expression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the greater than comparison.
+A new `Expression` representing the greater than comparison.
 
 ### Example
 
@@ -1604,7 +1604,7 @@ greaterThan(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the greater than comparison.
+A new `Expression` representing the greater than comparison.
 
 ### Example
 
@@ -1638,7 +1638,7 @@ greaterThanOrEqual(expression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the greater than or equal to comparison.
+A new `Expression` representing the greater than or equal to comparison.
 
 ### Example
 
@@ -1672,7 +1672,7 @@ greaterThanOrEqual(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the greater than or equal to comparison.
+A new `Expression` representing the greater than or equal to comparison.
 
 ### Example
 
@@ -1773,7 +1773,7 @@ ifError(catchExpr: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'ifError' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
 ### Example
 
@@ -1808,7 +1808,7 @@ ifError(catchValue: unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'ifError' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'ifError' operation.
 
 ### Example
 
@@ -1836,7 +1836,7 @@ isAbsent(): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new  representing the 'isAbsent' check.
+A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) representing the 'isAbsent' check.
 
 ### Example
 
@@ -1864,7 +1864,7 @@ isError(): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new  representing the 'isError' check.
+A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) representing the 'isError' check.
 
 ### Example
 
@@ -1959,7 +1959,7 @@ length(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the length of the string, array, map, vector, or bytes.
+A new `Expression` representing the length of the string, array, map, vector, or bytes.
 
 ### Example
 
@@ -1996,7 +1996,7 @@ lessThan(experession: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the less than comparison.
+A new `Expression` representing the less than comparison.
 
 ### Example
 
@@ -2030,7 +2030,7 @@ lessThan(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the less than comparison.
+A new `Expression` representing the less than comparison.
 
 ### Example
 
@@ -2064,7 +2064,7 @@ lessThanOrEqual(expression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the less than or equal to comparison.
+A new `Expression` representing the less than or equal to comparison.
 
 ### Example
 
@@ -2098,7 +2098,7 @@ lessThanOrEqual(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the less than or equal to comparison.
+A new `Expression` representing the less than or equal to comparison.
 
 ### Example
 
@@ -2132,7 +2132,7 @@ like(pattern: string): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'like' comparison.
+A new `Expression` representing the 'like' comparison.
 
 ### Example
 
@@ -2166,7 +2166,7 @@ like(pattern: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'like' comparison.
+A new `Expression` representing the 'like' comparison.
 
 ### Example
 
@@ -2193,7 +2193,7 @@ ln(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the natural logarithm of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the natural logarithm of the numeric value.
 
 ### Example
 
@@ -2220,7 +2220,7 @@ log10(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the base-10 logarithm of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the base-10 logarithm of the numeric value.
 
 ### Example
 
@@ -2255,7 +2255,7 @@ logicalMaximum(second: Expression | unknown, ...others: Array<Expression | unkno
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the logical maximum operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the logical maximum operation.
 
 ### Example
 
@@ -2290,7 +2290,7 @@ logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unkno
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the logical minimum operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the logical minimum operation.
 
 ### Example
 
@@ -2324,7 +2324,7 @@ mapGet(subfield: string): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the value associated with the given key in the map.
+A new `Expression` representing the value associated with the given key in the map.
 
 ### Example
 
@@ -2359,7 +2359,7 @@ mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Re
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'mapMerge' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'mapMerge' operation.
 
 ### Example
 
@@ -2394,7 +2394,7 @@ mapRemove(key: string): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'mapRemove' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'mapRemove' operation.
 
 ### Example
 
@@ -2428,7 +2428,7 @@ mapRemove(keyExpr: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the 'mapRemove' operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the 'mapRemove' operation.
 
 ### Example
 
@@ -2517,7 +2517,7 @@ mod(expression: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the modulo operation.
+A new `Expression` representing the modulo operation.
 
 ### Example
 
@@ -2551,7 +2551,7 @@ mod(value: number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the modulo operation.
+A new `Expression` representing the modulo operation.
 
 ### Example
 
@@ -2585,7 +2585,7 @@ multiply(second: Expression | number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the multiplication operation.
+A new `Expression` representing the multiplication operation.
 
 ### Example
 
@@ -2619,7 +2619,7 @@ notEqual(expression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the inequality comparison.
+A new `Expression` representing the inequality comparison.
 
 ### Example
 
@@ -2653,7 +2653,7 @@ notEqual(value: unknown): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the inequality comparison.
+A new `Expression` representing the inequality comparison.
 
 ### Example
 
@@ -2687,7 +2687,7 @@ notEqualAny(values: Array<Expression | unknown>): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'notEqualAny' comparison.
+A new `Expression` representing the 'notEqualAny' comparison.
 
 ### Example
 
@@ -2721,7 +2721,7 @@ notEqualAny(arrayExpression: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'notEqualAny' comparison.
+A new `Expression` representing the 'notEqualAny' comparison.
 
 ### Example
 
@@ -2755,7 +2755,7 @@ pow(exponent: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the power operation.
+A new `Expression` representing the power operation.
 
 ### Example
 
@@ -2789,7 +2789,7 @@ pow(exponent: number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the power operation.
+A new `Expression` representing the power operation.
 
 ### Example
 
@@ -2823,7 +2823,7 @@ regexContains(pattern: string): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'contains' comparison.
+A new `Expression` representing the 'contains' comparison.
 
 ### Example
 
@@ -2857,7 +2857,7 @@ regexContains(pattern: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'contains' comparison.
+A new `Expression` representing the 'contains' comparison.
 
 ### Example
 
@@ -2891,7 +2891,7 @@ regexMatch(pattern: string): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the regular expression match.
+A new `Expression` representing the regular expression match.
 
 ### Example
 
@@ -2925,7 +2925,7 @@ regexMatch(pattern: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the regular expression match.
+A new `Expression` representing the regular expression match.
 
 ### Example
 
@@ -2952,7 +2952,7 @@ reverse(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the reversed string.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the reversed string.
 
 ### Example
 
@@ -2979,7 +2979,7 @@ round(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the rounded value.
+A new `Expression` representing the rounded value.
 
 ### Example
 
@@ -3013,7 +3013,7 @@ round(decimalPlaces: number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the rounded value.
+A new `Expression` representing the rounded value.
 
 ### Example
 
@@ -3047,7 +3047,7 @@ round(decimalPlaces: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the rounded value.
+A new `Expression` representing the rounded value.
 
 ### Example
 
@@ -3081,7 +3081,7 @@ split(delimiter: string): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the split function.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the split function.
 
 ### Example
 
@@ -3115,7 +3115,7 @@ split(delimiter: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the split function.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the split function.
 
 ### Example
 
@@ -3142,7 +3142,7 @@ sqrt(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the square root of the numeric value.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the square root of the numeric value.
 
 ### Example
 
@@ -3176,7 +3176,7 @@ startsWith(prefix: string): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'starts with' comparison.
+A new `Expression` representing the 'starts with' comparison.
 
 ### Example
 
@@ -3210,7 +3210,7 @@ startsWith(prefix: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'starts with' comparison.
+A new `Expression` representing the 'starts with' comparison.
 
 ### Example
 
@@ -3245,7 +3245,7 @@ stringConcat(secondString: Expression | string, ...otherStrings: Array<Expressio
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the concatenated string.
+A new `Expression` representing the concatenated string.
 
 ### Example
 
@@ -3279,7 +3279,7 @@ stringContains(substring: string): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'contains' comparison.
+A new `Expression` representing the 'contains' comparison.
 
 ### Example
 
@@ -3313,7 +3313,7 @@ stringContains(expr: Expression): BooleanExpression;
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new `Expr` representing the 'contains' comparison.
+A new `Expression` representing the 'contains' comparison.
 
 ### Example
 
@@ -3340,7 +3340,7 @@ stringReverse(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the reversed string.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the reversed string.
 
 ### Example
 
@@ -3422,7 +3422,7 @@ subtract(subtrahend: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the subtraction operation.
+A new `Expression` representing the subtraction operation.
 
 ### Example
 
@@ -3456,7 +3456,7 @@ subtract(subtrahend: number): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the subtraction operation.
+A new `Expression` representing the subtraction operation.
 
 ### Example
 
@@ -3518,7 +3518,7 @@ timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the resulting timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the resulting timestamp.
 
 ### Example
 
@@ -3553,7 +3553,7 @@ timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' 
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the resulting timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the resulting timestamp.
 
 ### Example
 
@@ -3588,7 +3588,7 @@ timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the resulting timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the resulting timestamp.
 
 ### Example
 
@@ -3623,7 +3623,7 @@ timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'h
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the resulting timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the resulting timestamp.
 
 ### Example
 
@@ -3650,7 +3650,7 @@ timestampToUnixMicros(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the number of microseconds since epoch.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the number of microseconds since epoch.
 
 ### Example
 
@@ -3677,7 +3677,7 @@ timestampToUnixMillis(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the number of milliseconds since epoch.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the number of milliseconds since epoch.
 
 ### Example
 
@@ -3704,7 +3704,7 @@ timestampToUnixSeconds(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the number of seconds since epoch.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the number of seconds since epoch.
 
 ### Example
 
@@ -3801,7 +3801,7 @@ toLower(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the lowercase string.
+A new `Expression` representing the lowercase string.
 
 ### Example
 
@@ -3828,7 +3828,7 @@ toUpper(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the uppercase string.
+A new `Expression` representing the uppercase string.
 
 ### Example
 
@@ -3862,7 +3862,7 @@ trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expr` representing the trimmed string or byte array.
+A new `Expression` representing the trimmed string or byte array.
 
 ### Example
 
@@ -3919,7 +3919,7 @@ unixMicrosToTimestamp(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the timestamp.
 
 ### Example
 
@@ -3946,7 +3946,7 @@ unixMillisToTimestamp(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the timestamp.
 
 ### Example
 
@@ -3973,7 +3973,7 @@ unixSecondsToTimestamp(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the timestamp.
 
 ### Example
 
@@ -4000,7 +4000,7 @@ vectorLength(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new  representing the length of the vector.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the length of the vector.
 
 ### Example
 

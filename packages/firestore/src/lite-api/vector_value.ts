@@ -24,8 +24,6 @@ import { Property, property, validateJSON } from '../util/json_validation';
 /**
  * Represents a vector type in Firestore documents.
  * Create an instance with <code>{@link vector}</code>.
- *
- * @class VectorValue
  */
 export class VectorValue {
   private readonly _values: number[];
