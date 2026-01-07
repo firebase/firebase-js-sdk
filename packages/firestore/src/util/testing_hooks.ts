@@ -43,7 +43,7 @@ export class TestingHooks {
    * rely on any particular ordering. If a given callback is registered multiple
    * times then it will be notified multiple times, once per registration.
    *
-   * @param callback the callback to invoke upon existence filter mismatch.
+   * @param callback - the callback to invoke upon existence filter mismatch.
    *
    * @returns a function that, when called, unregisters the given callback; only
    * the first invocation of the returned function does anything; all subsequent

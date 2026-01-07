@@ -329,13 +329,13 @@ https://github.com/firebase/firebase-js-sdk
 |  [FieldPath](./firestore_pipelines.fieldpath.md#fieldpath_class) | A <code>FieldPath</code> refers to a field in a document. The path may consist of a single field name (referring to a top-level field in the document), or a list of field names (referring to a nested field in the document).<!-- -->Create a <code>FieldPath</code> by providing field names. If more than one field name is provided, the path will point to a nested field in a document. |
 |  [FieldValue](./firestore_pipelines.fieldvalue.md#fieldvalue_class) | Sentinel values that can be used when writing document fields with <code>set()</code> or <code>update()</code>. |
 |  [Firestore](./firestore_pipelines.firestore.md#firestore_class) | The Cloud Firestore service interface.<!-- -->Do not call this constructor directly. Instead, use [getFirestore()](./firestore_.md#getfirestore)<!-- -->. |
-|  [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class) | <b><i>(Public Preview)</i></b> This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_e0c48bd)<!-- -->, , or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) (<!-- -->, , etc.) to construct new Function instances. |
+|  [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class) | <b><i>(Public Preview)</i></b> This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.<!-- -->Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_e0c48bd)<!-- -->, [equal()](./firestore_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances. |
 |  [GeoPoint](./firestore_pipelines.geopoint.md#geopoint_class) | An immutable object representing a geographic location in Firestore. The location is represented as latitude/longitude pair.<!-- -->Latitude values are in the range of \[-90, 90\]. Longitude values are in the range of \[-180, 180\]. |
 |  [Ordering](./firestore_pipelines.ordering.md#ordering_class) | <b><i>(Public Preview)</i></b> Represents an ordering criterion for sorting documents in a Firestore pipeline.<!-- -->You create <code>Ordering</code> instances using the <code>ascending</code> and <code>descending</code> helper functions. |
 |  [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | <b><i>(Public Preview)</i></b> |
-|  [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) | <b><i>(Public Preview)</i></b> A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the  or  methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
+|  [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) | <b><i>(Public Preview)</i></b> A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.<p>If the PipelineResult represents a non-document result, <code>ref</code> will return a undefined value. |
 |  [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) | <b><i>(Public Preview)</i></b> Represents the results of a Firestore pipeline execution.<!-- -->A <code>PipelineSnapshot</code> contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results. |
-|  [PipelineSource](./firestore_pipelines.pipelinesource.md#pipelinesource_class) | <b><i>(Public Preview)</i></b> Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., , , , or ) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
+|  [PipelineSource](./firestore_pipelines.pipelinesource.md#pipelinesource_class) | <b><i>(Public Preview)</i></b> Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
 |  [Query](./firestore_pipelines.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryDocumentSnapshot](./firestore_pipelines.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
 |  [SnapshotMetadata](./firestore_pipelines.snapshotmetadata.md#snapshotmetadata_class) | Metadata about a snapshot, describing the state of the snapshot. |
@@ -357,30 +357,30 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an AddFieldsStage is evaluated. See . |
-|  [AggregateStageOptions](./firestore_pipelines.md#aggregatestageoptions) | <b><i>(Public Preview)</i></b> Options defining how an AggregateStage is evaluated. See . |
-|  [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | <b><i>(Public Preview)</i></b> Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution. |
-|  [CollectionStageOptions](./firestore_pipelines.md#collectionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a CollectionStage is evaluated. See . |
-|  [DatabaseStageOptions](./firestore_pipelines.md#databasestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DatabaseStage is evaluated. See . |
-|  [DistinctStageOptions](./firestore_pipelines.md#distinctstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DistinctStage is evaluated. See . |
-|  [DocumentsStageOptions](./firestore_pipelines.md#documentsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DocumentsStage is evaluated. See . |
+|  [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)<!-- -->. |
+|  [AggregateStageOptions](./firestore_pipelines.md#aggregatestageoptions) | <b><i>(Public Preview)</i></b> Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->. |
+|  [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | <b><i>(Public Preview)</i></b> Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
+|  [CollectionStageOptions](./firestore_pipelines.md#collectionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
+|  [DatabaseStageOptions](./firestore_pipelines.md#databasestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
+|  [DistinctStageOptions](./firestore_pipelines.md#distinctstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
+|  [DocumentsStageOptions](./firestore_pipelines.md#documentsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> An enumeration of the different types of expressions. |
-|  [FindNearestStageOptions](./firestore_pipelines.md#findneareststageoptions) | <b><i>(Public Preview)</i></b> Options defining how a FindNearestStage is evaluated. See . |
-|  [LimitStageOptions](./firestore_pipelines.md#limitstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a LimitStage is evaluated. See . |
-|  [OffsetStageOptions](./firestore_pipelines.md#offsetstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an OffsetStage is evaluated. See . |
-|  [OneOf](./firestore_pipelines.md#oneof) | <b><i>(Public Preview)</i></b> Utility type to create an type that only allows one property of the Type param T to be set.<!-- -->type XorY = OneOf<!-- -->&lt;<!-- -->{ x: unknown, y: unknown<!-- -->}<!-- -->&gt; let a = { x: "foo" } // OK let b = { y: "foo" } // OK let c = { a: "foo", y: "foo" } // Not OK |
+|  [FindNearestStageOptions](./firestore_pipelines.md#findneareststageoptions) | <b><i>(Public Preview)</i></b> Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_pipelines.pipeline.md#pipelinefindnearest)<!-- -->. |
+|  [LimitStageOptions](./firestore_pipelines.md#limitstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
+|  [OffsetStageOptions](./firestore_pipelines.md#offsetstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
+|  [OneOf](./firestore_pipelines.md#oneof) | <b><i>(Public Preview)</i></b> Utility type to create an type that only allows one property of the Type param T to be set. |
 |  [PartialWithFieldValue](./firestore_pipelines.md#partialwithfieldvalue) | Similar to TypeScript's <code>Partial&lt;T&gt;</code>, but allows nested fields to be omitted and FieldValues to be passed in as property values. |
 |  [Primitive](./firestore_pipelines.md#primitive) | Primitive types. |
-|  [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a RemoveFieldsStage is evaluated. See . |
-|  [ReplaceWithStageOptions](./firestore_pipelines.md#replacewithstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a ReplaceWithStage is evaluated. See . |
-|  [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) | <b><i>(Public Preview)</i></b> Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See  to create a sample stage.. |
-|  [SelectStageOptions](./firestore_pipelines.md#selectstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SelectStage is evaluated. See . |
+|  [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
+|  [ReplaceWithStageOptions](./firestore_pipelines.md#replacewithstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
+|  [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) | <b><i>(Public Preview)</i></b> Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
+|  [SelectStageOptions](./firestore_pipelines.md#selectstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
 |  [SetOptions](./firestore_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
-|  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SortStage is evaluated. See . |
+|  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [TimeGranularity](./firestore_pipelines.md#timegranularity) | <b><i>(Public Preview)</i></b> Specify time granularity for expressions. |
-|  [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a UnionStage is evaluated. See . |
+|  [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) | <b><i>(Public Preview)</i></b> Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
-|  [WhereStageOptions](./firestore_pipelines.md#wherestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a WhereStage is evaluated. See . |
+|  [WhereStageOptions](./firestore_pipelines.md#wherestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
 |  [WithFieldValue](./firestore_pipelines.md#withfieldvalue) | Allows FieldValues to be passed in as a property value while maintaining type safety. |
 
 ## function()
@@ -2887,7 +2887,7 @@ export declare function type(expression: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the data type.
+A new `Expression` representing the data type.
 
 ### Example
 
@@ -6026,7 +6026,7 @@ export declare function timestampTruncate(fieldName: string, granularity: TimeGr
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
+A new `Expression` representing the truncated timestamp.
 
 ### Example
 
@@ -6062,7 +6062,7 @@ export declare function timestampTruncate(fieldName: string, granularity: Expres
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
+A new `Expression` representing the truncated timestamp.
 
 ### Example
 
@@ -6202,7 +6202,7 @@ export declare function type(fieldName: string): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the data type.
+A new `Expression` representing the data type.
 
 ### Example
 
@@ -7295,8 +7295,8 @@ export declare function pipelineResultEqual(left: PipelineResult, right: Pipelin
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  left | [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) |  |
-|  right | [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) |  |
+|  left | [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) | First PipelineResult to compare. |
+|  right | [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) | Second PipelineResult to compare. |
 
 <b>Returns:</b>
 
@@ -8508,7 +8508,7 @@ export declare function timestampTruncate(timestampExpression: Expression, granu
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
+A new `Expression` representing the truncated timestamp.
 
 ### Example
 
@@ -8544,7 +8544,7 @@ export declare function timestampTruncate(timestampExpression: Expression, granu
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
+A new `Expression` representing the truncated timestamp.
 
 ### Example
 
@@ -9273,7 +9273,7 @@ vectorLength(field("embedding"));
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how an AddFieldsStage is evaluated. See .
+Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9288,7 +9288,7 @@ export declare type AddFieldsStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how an AggregateStage is evaluated. See .
+Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9306,6 +9306,8 @@ export declare type AggregateStageOptions = StageOptions & {
 
 Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution.
 
+See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage.
+
 <b>Signature:</b>
 
 ```typescript
@@ -9320,7 +9322,7 @@ export declare type CollectionGroupStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a CollectionStage is evaluated. See .
+Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9336,7 +9338,7 @@ export declare type CollectionStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a DatabaseStage is evaluated. See .
+Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9349,7 +9351,7 @@ export declare type DatabaseStageOptions = StageOptions & {};
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a DistinctStage is evaluated. See .
+Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9364,7 +9366,7 @@ export declare type DistinctStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a DocumentsStage is evaluated. See .
+Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9392,7 +9394,7 @@ export declare type ExpressionType = 'Field' | 'Constant' | 'Function' | 'Aggreg
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a FindNearestStage is evaluated. See .
+Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_pipelines.pipeline.md#pipelinefindnearest)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9411,7 +9413,7 @@ export declare type FindNearestStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a LimitStage is evaluated. See .
+Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9426,7 +9428,7 @@ export declare type LimitStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how an OffsetStage is evaluated. See .
+Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9443,8 +9445,6 @@ export declare type OffsetStageOptions = StageOptions & {
 
 Utility type to create an type that only allows one property of the Type param T to be set.
 
-type XorY = OneOf<!-- -->&lt;<!-- -->{ x: unknown, y: unknown<!-- -->}<!-- -->&gt; let a = { x: "foo" } // OK let b = { y: "foo" } // OK let c = { a: "foo", y: "foo" } // Not OK
-
 <b>Signature:</b>
 
 ```typescript
@@ -9453,6 +9453,17 @@ export declare type OneOf<T> = {
         [P in Exclude<keyof T, K>]?: undefined;
     };
 }[keyof T];
+```
+
+### Example
+
+
+```
+type XorY = OneOf<{ x: unknown, y: unknown }>
+let a = { x: "foo" }           // OK
+let b = { y: "foo" }           // OK
+let c = { a: "foo", y: "foo" } // Not OK
+
 ```
 
 ## PartialWithFieldValue
@@ -9482,7 +9493,7 @@ export declare type Primitive = string | number | boolean | undefined | null;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a RemoveFieldsStage is evaluated. See .
+Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9497,7 +9508,7 @@ export declare type RemoveFieldsStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a ReplaceWithStage is evaluated. See .
+Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9514,7 +9525,7 @@ export declare type ReplaceWithStageOptions = StageOptions & {
 
 Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) with a specific configuration where only one of the defined sampling methods can be applied.
 
-See  to create a sample stage..
+See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage..
 
 <b>Signature:</b>
 
@@ -9530,7 +9541,7 @@ export declare type SampleStageOptions = StageOptions & OneOf<{
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a SelectStage is evaluated. See .
+Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9559,7 +9570,7 @@ export declare type SetOptions = {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a SortStage is evaluated. See .
+Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9587,7 +9598,7 @@ export declare type TimeGranularity = 'microsecond' | 'millisecond' | 'second' |
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a UnionStage is evaluated. See .
+Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->.
 
 <b>Signature:</b>
 
@@ -9618,7 +9629,7 @@ export declare type UnnestStageOptions = StageOptions & {
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a WhereStage is evaluated. See .
+Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->.
 
 <b>Signature:</b>
 

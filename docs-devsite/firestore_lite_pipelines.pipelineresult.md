@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the  or  methods.
+A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.
 
 <p>If the PipelineResult represents a non-document result, `ref` will return a undefined value.
 
@@ -107,7 +107,7 @@ data(): AppModelType;
 
 AppModelType
 
-{<!-- -->T<!-- -->} An object containing all fields in the document or 'undefined' if the document doesn't exist.
+An object containing all fields in the document or 'undefined' if the document doesn't exist.
 
 ### Example
 
@@ -145,7 +145,7 @@ get(fieldPath: string | FieldPath | Field): any;
 
 any
 
-{<!-- -->\*<!-- -->} The data at the specified field location or undefined if no such field exists.
+The data at the specified field location or `undefined` if no such field exists.
 
 ### Example
 

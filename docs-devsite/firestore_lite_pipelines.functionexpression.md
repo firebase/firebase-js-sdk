@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 This class defines the base class for Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) functions, which can be evaluated within pipeline execution.
 
-Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_e0c48bd)<!-- -->, , or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) (<!-- -->, , etc.) to construct new Function instances.
+Typically, you would not use this class or its children directly. Use either the functions like [and()](./firestore_pipelines.md#and_e0c48bd)<!-- -->, [equal()](./firestore_pipelines.md#equal_b3c3382)<!-- -->, or the methods on [Expression](./firestore_pipelines.expression.md#expression_class) ([Expression.equal()](./firestore_pipelines.expression.md#expressionequal)<!-- -->, [Expression.lessThan()](./firestore_pipelines.expression.md#expressionlessthan)<!-- -->, etc.) to construct new Function instances.
 
 <b>Signature:</b>
 

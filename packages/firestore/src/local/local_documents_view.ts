@@ -394,9 +394,9 @@ export class LocalDocumentsView {
    * returned together, the total number of documents returned can exceed {@code count}.
    *
    * @param transaction
-   * @param collectionGroup The collection group for the documents.
-   * @param offset The offset to index into.
-   * @param count The number of documents to return
+   * @param collectionGroup - The collection group for the documents.
+   * @param offset - The offset to index into.
+   * @param count - The number of documents to return
    * @returns A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
    */
   getNextDocuments(

@@ -83,7 +83,7 @@ declare module './database' {
  * const results: PipelineResults = snapshot.results;
  * ```
  *
- * @param pipeline The pipeline to execute.
+ * @param pipeline - The pipeline to execute.
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
@@ -118,7 +118,7 @@ export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
  * const results: PipelineResults = snapshot.results;
  * ```
  *
- * @param options Specifies the pipeline to execute and other options for execute.
+ * @param options - Specifies the pipeline to execute and other options for execute.
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(

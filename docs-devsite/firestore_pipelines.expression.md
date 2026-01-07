@@ -3739,7 +3739,7 @@ timestampTruncate(granularity: TimeGranularity, timezone?: string | Expression):
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
+A new `Expression` representing the truncated timestamp.
 
 ### Example
 
@@ -3774,7 +3774,7 @@ timestampTruncate(granularity: Expression, timezone?: string | Expression): Func
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the truncated timestamp.
+A new `Expression` representing the truncated timestamp.
 
 ### Example
 
@@ -3892,7 +3892,7 @@ type(): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new {<!-- -->Expression<!-- -->} representing the data type.
+A new `Expression` representing the data type.
 
 ### Example
 

@@ -59,7 +59,7 @@ export interface StageOptions {
 }
 /**
  * @beta
- * Options defining how a CollectionStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.collection:1)}.
+ * Options defining how a CollectionStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(collection:1)}.
  */
 export type CollectionStageOptions = StageOptions & {
   /**
@@ -85,7 +85,7 @@ export type CollectionStageOptions = StageOptions & {
  * This type extends {@link @firebase/firestore/pipelines#StageOptions} and provides specific settings for how a collection group
  * is identified and processed during pipeline execution.
  *
- * @see {@link @firebase/firestore/pipelines#PipelineSource.collectionGroup:1)} to create a collection group stage.
+ * See {@link @firebase/firestore/pipelines#PipelineSource.(collectionGroup:1)} to create a collection group stage.
  */
 export type CollectionGroupStageOptions = StageOptions & {
   /**
@@ -106,12 +106,12 @@ export type CollectionGroupStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a DatabaseStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.database:1)}.
+ * Options defining how a DatabaseStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(database:1)}.
  */
 export type DatabaseStageOptions = StageOptions & {};
 /**
  * @beta
- * Options defining how a DocumentsStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.documents:1)}.
+ * Options defining how a DocumentsStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(documents:1)}.
  */
 export type DocumentsStageOptions = StageOptions & {
   /**
@@ -124,7 +124,7 @@ export type DocumentsStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how an AddFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.addFields:1)}.
+ * Options defining how an AddFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(addFields:1)}.
  */
 export type AddFieldsStageOptions = StageOptions & {
   /**
@@ -136,7 +136,7 @@ export type AddFieldsStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a RemoveFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.removeFields:1)}.
+ * Options defining how a RemoveFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(removeFields:1)}.
  */
 export type RemoveFieldsStageOptions = StageOptions & {
   /**
@@ -147,7 +147,7 @@ export type RemoveFieldsStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a SelectStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.select:1)}.
+ * Options defining how a SelectStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(select:1)}.
  */
 export type SelectStageOptions = StageOptions & {
   /**
@@ -159,7 +159,7 @@ export type SelectStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a WhereStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.where:1)}.
+ * Options defining how a WhereStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(where:1)}.
  */
 export type WhereStageOptions = StageOptions & {
   /**
@@ -170,7 +170,7 @@ export type WhereStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how an OffsetStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.offset:1)}.
+ * Options defining how an OffsetStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(offset:1)}.
  */
 export type OffsetStageOptions = StageOptions & {
   /**
@@ -181,7 +181,7 @@ export type OffsetStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a LimitStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.limit:1)}.
+ * Options defining how a LimitStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(limit:1)}.
  */
 export type LimitStageOptions = StageOptions & {
   /**
@@ -192,7 +192,7 @@ export type LimitStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a DistinctStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.distinct:1)}.
+ * Options defining how a DistinctStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(distinct:1)}.
  */
 export type DistinctStageOptions = StageOptions & {
   /**
@@ -205,7 +205,7 @@ export type DistinctStageOptions = StageOptions & {
 
 /**
  * @beta
- * Options defining how an AggregateStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.aggregate:1)}.
+ * Options defining how an AggregateStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(aggregate:1)}.
  */
 export type AggregateStageOptions = StageOptions & {
   /**
@@ -223,7 +223,7 @@ export type AggregateStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a FindNearestStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.findNearest:1)}.
+ * Options defining how a FindNearestStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(findNearest:1)}.
  */
 export type FindNearestStageOptions = StageOptions & {
   /**
@@ -263,7 +263,7 @@ export type FindNearestStageOptions = StageOptions & {
 };
 /**
  * @beta
- * Options defining how a ReplaceWithStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.replaceWith:1)}.
+ * Options defining how a ReplaceWithStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(replaceWith:1)}.
  */
 export type ReplaceWithStageOptions = StageOptions & {
   /**
@@ -279,7 +279,7 @@ export type ReplaceWithStageOptions = StageOptions & {
  * This type combines common {@link @firebase/firestore/pipelines#StageOptions} with a specific configuration
  * where only one of the defined sampling methods can be applied.
  *
- * See {@link @firebase/firestore/pipelines#Pipeline.sample:1)} to create a sample stage..
+ * See {@link @firebase/firestore/pipelines#Pipeline.(sample:1)} to create a sample stage..
  */
 export type SampleStageOptions = StageOptions &
   OneOf<{
@@ -302,7 +302,7 @@ export type SampleStageOptions = StageOptions &
   }>;
 /**
  * @beta
- * Options defining how a UnionStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.union:1)}.
+ * Options defining how a UnionStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(union:1)}.
  */
 export type UnionStageOptions = StageOptions & {
   /**
@@ -333,7 +333,7 @@ export type UnnestStageOptions = StageOptions & {
 /**
  * @beta
  * @beta
- * Options defining how a SortStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.sort:1)}.
+ * Options defining how a SortStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(sort:1)}.
  */
 export type SortStageOptions = StageOptions & {
   /**
