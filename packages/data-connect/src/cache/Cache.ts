@@ -27,15 +27,13 @@ import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { InternalCacheProvider } from './CacheProvider';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
-import { IndexedDBCacheProvider } from './IndexedDBCacheProvider';
 import { InMemoryCacheProvider } from './InMemoryCacheProvider';
 import { ResultTree } from './ResultTree';
 import { ResultTreeProcessor } from './ResultTreeProcessor';
 
 export const Memory = 'memory';
-export const Persistent = 'persistent';
 
-export type DataConnectStorage = typeof Memory | typeof Persistent;
+export type DataConnectStorage = typeof Memory;
 
 /**
  * ServerValues
@@ -75,9 +73,7 @@ export class DataConnectCache {
 
   async getIdentifier(uid: string | null): Promise<string> {
     const identifier = `${
-      this.cacheSettings?.cacheProvider instanceof IndexedDBStub
-        ? 'persistent'
-        : 'memory'
+      'memory' // TODO: replace this with indexeddb when persistence is available.
     }-${this.projectId}-${this.connectorConfig.service}-${
       this.connectorConfig.connector
     }-${this.connectorConfig.location}-${uid}-${this.host}`; // TODO: Check if null is the right identifier here.
@@ -139,15 +135,11 @@ export class DataConnectCache {
   }
 }
 
-export class IndexedDBStub implements CacheProvider<'PERSISTENT'> {
-  type: 'PERSISTENT' = 'PERSISTENT';
-  initialize(cacheId: string): IndexedDBCacheProvider {
-    return new IndexedDBCacheProvider(cacheId);
-  }
-}
-
 export class MemoryStub implements CacheProvider<'MEMORY'> {
   type: 'MEMORY' = 'MEMORY';
+  /**
+   * @internal
+   */
   initialize(cacheId: string): InMemoryCacheProvider {
     return new InMemoryCacheProvider(cacheId);
   }

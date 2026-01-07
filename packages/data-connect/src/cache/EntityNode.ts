@@ -24,7 +24,6 @@ import {
   FDCScalarValue
 } from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
-export const IndexedDb = 'indexeddb' as const;
 export const InMemoryProvider = 'inmemory' as const;
 
 export const GLOBAL_ID_KEY = '_id';

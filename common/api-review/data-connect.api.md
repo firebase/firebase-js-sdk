@@ -14,7 +14,9 @@ import { Provider } from '@firebase/component';
 // @public (undocumented)
 export interface CacheSettings {
     // (undocumented)
-    cacheProvider?: IndexedDBStub<StorageType>;
+    cacheProvider: MemoryStub<StorageType>;
+    // (undocumented)
+    maxAge?: number;
 }
 
 // @public
@@ -72,6 +74,12 @@ export class DataConnect {
     setInitialized(): void;
 }
 
+// @public (undocumented)
+export interface DataConnectEntityArray {
+    // (undocumented)
+    entityIds: string[];
+}
+
 // @public
 export class DataConnectError extends FirebaseError {
     /* Excluded from this release type: name */
@@ -80,6 +88,17 @@ export class DataConnectError extends FirebaseError {
 
 // @public (undocumented)
 export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
+
+// @public (undocumented)
+export type DataConnectExtension = {
+    path: Array<string | number>;
+} & (DataConnectEntityArray | DataConnectSingleEntity);
+
+// @public (undocumented)
+export interface DataConnectExtensions {
+    // (undocumented)
+    dataConnect?: DataConnectExtension[];
+}
 
 // @public
 export class DataConnectOperationError extends DataConnectError {
@@ -110,6 +129,16 @@ export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings
 }
 
 // @public (undocumented)
+export interface DataConnectResponse<T> {
+    // (undocumented)
+    data: T;
+    // (undocumented)
+    errors: Error[];
+    // (undocumented)
+    extensions: DataConnectExtensions;
+}
+
+// @public (undocumented)
 export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
     // (undocumented)
     ref: OperationRef<Data, Variables>;
@@ -119,6 +148,22 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
 export interface DataConnectSettings {
     // (undocumented)
     cacheSettings?: CacheSettings;
+}
+
+// @public (undocumented)
+export interface DataConnectSingleEntity {
+    // (undocumented)
+    entityId: string;
+}
+
+// @public
+export interface DataConnectSubscription<Data, Variables> {
+    // (undocumented)
+    errCallback?: (e?: DataConnectError) => void;
+    // (undocumented)
+    unsubscribe: () => void;
+    // (undocumented)
+    userCallback: OnResultSubscription<Data, Variables>;
 }
 
 // @public (undocumented)
@@ -149,13 +194,13 @@ export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfi
 export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig, settings: DataConnectSettings): DataConnect;
 
 // @public (undocumented)
-export class IndexedDBStub {
-    // (undocumented)
-    type: 'PERSISTENT';
-}
+export function makeMemoryCacheProvider(): MemoryStub<'MEMORY'>;
 
 // @public (undocumented)
-export function makeMemoryCacheProvider(): IndexedDBStub<'MEMORY'>;
+export class MemoryStub {
+    // (undocumented)
+    type: 'MEMORY';
+}
 
 // @public (undocumented)
 export const MUTATION_STR = "mutation";
@@ -208,15 +253,11 @@ export interface OpResult<Data> {
     // (undocumented)
     data: Data;
     // (undocumented)
+    extensions?: DataConnectExtensions;
+    // (undocumented)
     fetchTime: string;
     // (undocumented)
     source: DataSource;
-}
-
-// @public (undocumented)
-export class PersistentStub {
-    // (undocumented)
-    type: 'MEMORY';
 }
 
 // @public (undocumented)

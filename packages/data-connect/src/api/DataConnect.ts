@@ -30,7 +30,7 @@ import {
   updateEmulatorBanner
 } from '@firebase/util';
 
-import { DataConnectCache, IndexedDBStub, MemoryStub } from '../cache/Cache';
+import { DataConnectCache, MemoryStub } from '../cache/Cache';
 import { InternalCacheProvider } from '../cache/CacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
@@ -109,6 +109,9 @@ export class DataConnect {
   _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
+  /**
+   * @internal
+   */
   private cache?: DataConnectCache;
   // @internal
   constructor(
@@ -415,12 +418,12 @@ export interface CacheSettings {
 }
 export interface CacheProvider<T extends StorageType> {
   type: T;
+  /**
+   * @internal
+   */
   initialize(cacheId: string): InternalCacheProvider;
 }
 
-export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
-  return new IndexedDBStub();
-}
 export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'> {
   return new MemoryStub();
 }
