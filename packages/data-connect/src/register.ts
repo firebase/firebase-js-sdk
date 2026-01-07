@@ -40,8 +40,8 @@ export function registerDataConnect(variant?: string): void {
         let newOpts = options as ConnectorConfig;
         if (connectorConfigStr) {
           newOpts = {
+            ...newOpts,
             ...JSON.parse(connectorConfigStr),
-            ...newOpts
           };
         }
         if (!app.options.projectId) {
