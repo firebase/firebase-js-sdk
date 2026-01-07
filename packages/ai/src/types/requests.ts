@@ -332,6 +332,13 @@ export interface FunctionDeclaration {
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
   parameters?: ObjectSchema | ObjectSchemaRequest;
+  /**
+   * Reference to actual function to call. Specifying this will cause the
+   * function to be called automatically.
+   */
+  functionReference?: (
+    params: Record<string, unknown>
+  ) => Record<string, unknown> | Promise<Record<string, unknown>>;
 }
 
 /**

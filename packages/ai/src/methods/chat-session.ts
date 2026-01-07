@@ -17,16 +17,22 @@
 
 import {
   Content,
+  FunctionCall,
+  FunctionDeclarationsTool,
   GenerateContentRequest,
   GenerateContentResult,
   GenerateContentStreamResult,
   Part,
   RequestOptions,
   SingleRequestOptions,
-  StartChatParams
+  StartChatParams,
+  Tool
 } from '../types';
 import { formatNewContent } from '../requests/request-helpers';
-import { formatBlockErrorMessage } from '../requests/response-helpers';
+import {
+  formatBlockErrorMessage,
+  getFunctionCalls
+} from '../requests/response-helpers';
 import { validateChatHistory } from './chat-session-helpers';
 import { generateContent, generateContentStream } from './generate-content';
 import { ApiSettings } from '../types/internal';
@@ -85,59 +91,111 @@ export class ChatSession {
    */
   async sendMessage(
     request: string | Array<string | Part>,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions?: SingleRequestOptions,
+    shouldChain: boolean = true
   ): Promise<GenerateContentResult> {
-    await this._sendPromise;
-    const newContent = formatNewContent(request);
+    const incomingContent = formatNewContent(request);
     const generateContentRequest: GenerateContentRequest = {
       safetySettings: this.params?.safetySettings,
       generationConfig: this.params?.generationConfig,
       tools: this.params?.tools,
       toolConfig: this.params?.toolConfig,
       systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, newContent]
+      contents: [...this._history, incomingContent]
     };
     let finalResult = {} as GenerateContentResult;
-
-    this._sendPromise = this._sendPromise
-      .then(() =>
-        generateContent(
-          this._apiSettings,
-          this.model,
-          generateContentRequest,
-          this.chromeAdapter,
-          {
-            ...this.requestOptions,
-            ...singleRequestOptions
-          }
-        )
-      )
-      .then(result => {
+    // Add onto the chain.
+    const messageTask = generateContent(
+      this._apiSettings,
+      this.model,
+      generateContentRequest,
+      this.chromeAdapter,
+      this.requestOptions
+    ).then(async result => {
+      if (result.response.candidates && result.response.candidates.length > 0) {
         // TODO: Make this update atomic. If creating `responseContent` throws,
         // history will contain the user message but not the response, causing
         // validation errors on the next request.
-        if (
-          result.response.candidates &&
-          result.response.candidates.length > 0
-        ) {
-          this._history.push(newContent);
-          const responseContent: Content = {
-            parts: result.response.candidates?.[0].content.parts || [],
-            role: result.response.candidates?.[0].content.role || 'model'
-          };
-          this._history.push(responseContent);
-        } else {
-          const blockErrorMessage = formatBlockErrorMessage(result.response);
-          if (blockErrorMessage) {
-            logger.warn(
-              `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
-            );
-          }
+        this._history.push(incomingContent);
+        const responseContent: Content = {
+          parts: result.response.candidates?.[0].content.parts || [],
+          // Response seems to come back without a role set.
+          role: result.response.candidates?.[0].content.role || 'model'
+        };
+        this._history.push(responseContent);
+        const functionCalls = getFunctionCalls(result.response);
+        if (functionCalls) {
+          result = await this.callFunctionsAsNeeded(
+            functionCalls,
+            generateContentRequest.tools
+          );
         }
-        finalResult = result;
-      });
-    await this._sendPromise;
+      } else {
+        const blockErrorMessage = formatBlockErrorMessage(result.response);
+        if (blockErrorMessage) {
+          logger.warn(
+            `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
+          );
+        }
+      }
+      finalResult = result;
+    });
+    if (shouldChain) {
+      this._sendPromise = this._sendPromise.then(() => messageTask);
+      await this._sendPromise;
+    } else {
+      await messageTask;
+    }
     return finalResult;
+  }
+
+  async callFunctionsAsNeeded(
+    functionCalls: FunctionCall[],
+    tools?: Tool[]
+  ): Promise<GenerateContentResult> {
+    const activeCallList = new Map<
+      string,
+      { id?: string; results: Promise<Record<string, unknown>> }
+    >();
+    const promiseList = [];
+    const functionDeclarationsTool = tools?.find(
+      tool => (tool as FunctionDeclarationsTool).functionDeclarations
+    ) as FunctionDeclarationsTool;
+    if (
+      functionDeclarationsTool &&
+      functionDeclarationsTool.functionDeclarations
+    ) {
+      for (const functionCall of functionCalls) {
+        const functionDeclaration =
+          functionDeclarationsTool.functionDeclarations.find(
+            declaration => declaration.name === functionCall.name
+          );
+        if (functionDeclaration?.functionReference) {
+          const results = Promise.resolve(
+            functionDeclaration.functionReference!(functionCall.args)
+          );
+          activeCallList.set(functionCall.name, {
+            id: functionCall.id,
+            results
+          });
+          promiseList.push(results);
+        }
+      }
+      // Wait for promises to finish.
+      await Promise.all(promiseList);
+      const functionResponseParts = [];
+      for (const [name, callData] of activeCallList) {
+        functionResponseParts.push({
+          functionResponse: {
+            name,
+            response: await callData.results
+          }
+        });
+      }
+      return this.sendMessage(functionResponseParts, false);
+    } else {
+      throw new Error('error here about no function declarations tool');
+    }
   }
 
   /**

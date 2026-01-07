@@ -143,6 +143,8 @@ export class BooleanSchema extends Schema {
 export class ChatSession {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // (undocumented)
+    callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<GenerateContentResult>;
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -150,7 +152,7 @@ export class ChatSession {
     params?: StartChatParams | undefined;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
-    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions, shouldChain?: boolean): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     }
 
@@ -360,7 +362,7 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 // @public
 export interface FunctionCall {
     // (undocumented)
-    args: object;
+    args: Record<string, unknown>;
     id?: string;
     // (undocumented)
     name: string;
@@ -407,6 +409,7 @@ export interface FunctionCallPart {
 // @public
 export interface FunctionDeclaration {
     description: string;
+    functionReference?: (params: Record<string, unknown>) => Record<string, unknown> | Promise<Record<string, unknown>>;
     name: string;
     parameters?: ObjectSchema | ObjectSchemaRequest;
 }
@@ -422,7 +425,7 @@ export interface FunctionResponse {
     // (undocumented)
     name: string;
     // (undocumented)
-    response: object;
+    response: Record<string, unknown>;
 }
 
 // @public
