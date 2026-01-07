@@ -71,7 +71,8 @@ export class EntityNode {
     for (const key in values) {
       if (values.hasOwnProperty(key)) {
         if (typeof values[key] === 'object') {
-          const ids: Record<string, unknown> | undefined = entityIds && entityIds[key] as (Record<string, unknown>);
+          const ids: Record<string, unknown> | undefined =
+            entityIds && (entityIds[key] as Record<string, unknown>);
           if (Array.isArray(values[key])) {
             const objArray: EntityNode[] = [];
             const scalarArray: Array<NonNullable<FDCScalarValue>> = [];
@@ -81,7 +82,12 @@ export class EntityNode {
                   // Note: we don't support sparse arrays.
                 } else {
                   const entityNode = new EntityNode(this.acc);
-                  await entityNode.loadData(queryId, value, ids && ids[index] as Record<string, unknown>, cacheProvider);
+                  await entityNode.loadData(
+                    queryId,
+                    value,
+                    ids && (ids[index] as Record<string, unknown>),
+                    cacheProvider
+                  );
                   objArray.push(entityNode);
                 }
               } else {
@@ -119,7 +125,7 @@ export class EntityNode {
             await stubDataObject.loadData(
               queryId,
               (values as Record<string, FDCScalarValue>)[key],
-              ids && ids[key] as Record<string, unknown>,
+              ids && (ids[key] as Record<string, unknown>),
               cacheProvider
             );
             this.references[key] = stubDataObject;

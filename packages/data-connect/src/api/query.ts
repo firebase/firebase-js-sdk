@@ -57,7 +57,10 @@ export function executeQuery<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
   options?: ExecuteQueryOptions
 ): QueryPromise<Data, Variables> {
-  return queryRef.dataConnect._queryManager.maybeExecuteQuery(queryRef, options);
+  return queryRef.dataConnect._queryManager.maybeExecuteQuery(
+    queryRef,
+    options
+  );
 }
 
 /**

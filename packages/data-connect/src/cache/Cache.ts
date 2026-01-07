@@ -107,7 +107,11 @@ export class DataConnectCache {
     }
     return processor.hydrateResults(resultTree.getRootStub());
   }
-  async update(queryId: string, serverValues: ServerValues, entityIds: Record<string, unknown>): Promise<string[]> {
+  async update(
+    queryId: string,
+    serverValues: ServerValues,
+    entityIds: Record<string, unknown>
+  ): Promise<string[]> {
     await this.initialize();
     const processor = new ResultTreeProcessor();
     const acc = new ImpactedQueryRefsAccumulator();

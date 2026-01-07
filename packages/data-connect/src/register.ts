@@ -41,7 +41,7 @@ export function registerDataConnect(variant?: string): void {
         if (connectorConfigStr) {
           newOpts = {
             ...newOpts,
-            ...JSON.parse(connectorConfigStr),
+            ...JSON.parse(connectorConfigStr)
           };
         }
         if (!app.options.projectId) {

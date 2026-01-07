@@ -72,30 +72,37 @@ describe('caching', () => {
     };
     const date = new Date().toISOString();
     const q1 = queryRef<Q1Data>(dc, 'q1');
-    await updateCacheData(dc, {
-      data: q1MovieData,
-      fetchTime: date,
-      ref: q1,
-      source: 'CACHE'
-    }, [
+    await updateCacheData(
+      dc,
       {
-        path: ['movies', 0],
-        entityId: 'matrix'
-      }
-    ]
+        data: q1MovieData,
+        fetchTime: date,
+        ref: q1,
+        source: 'CACHE'
+      },
+      [
+        {
+          path: ['movies', 0],
+          entityId: 'matrix'
+        }
+      ]
     );
     const q2 = queryRef<Q2Data>(dc, 'q2');
-    await updateCacheData(dc, {
-      data: q2MovieData,
-      fetchTime: date,
-      ref: q2,
-      source: 'CACHE'
-    }, [
+    await updateCacheData(
+      dc,
       {
-        path: ['movies', 0],
-        entityId: 'matrix'
-      }
-    ]);
+        data: q2MovieData,
+        fetchTime: date,
+        ref: q2,
+        source: 'CACHE'
+      },
+      [
+        {
+          path: ['movies', 0],
+          entityId: 'matrix'
+        }
+      ]
+    );
 
     const events: Array<
       Pick<QueryResult<Q2Data, undefined>, 'data' | 'source'>
@@ -299,8 +306,7 @@ async function updateCacheData(
     ref,
     source
   }: Omit<QueryResult<unknown, unknown>, 'toJSON'>,
-  extension?: DataConnectExtension[],
-
+  extension?: DataConnectExtension[]
 ): Promise<string[]> {
   const connectorConfig = dc.getSettings();
   const projectId = dc.app.options.projectId;

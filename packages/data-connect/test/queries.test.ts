@@ -124,7 +124,7 @@ describe('DataConnect Tests', async () => {
           onErr: () => {
             unsubscribe();
             reject(res);
-          },
+          }
         });
       }
     );

@@ -119,20 +119,12 @@ describe('parseEntityIds', () => {
     // @ts-ignore
     expect(actual.posts[1]._id).to.eq('idForPost2GoesHere');
     // @ts-ignore
-    expect(actual.posts[0].comments_on_post[0]._id).to.eq(
-      'idForPost1Comment1'
-    );
+    expect(actual.posts[0].comments_on_post[0]._id).to.eq('idForPost1Comment1');
     // @ts-ignore
-    expect(actual.posts[0].comments_on_post[1]._id).to.eq(
-      'idForPost1Comment2'
-    );
+    expect(actual.posts[0].comments_on_post[1]._id).to.eq('idForPost1Comment2');
     // @ts-ignore
-    expect(actual.posts[1].comments_on_post[0]._id).to.eq(
-      'idForPost2Comment1'
-    );
+    expect(actual.posts[1].comments_on_post[0]._id).to.eq('idForPost2Comment1');
     // @ts-ignore
-    expect(actual.posts[1].comments_on_post[1]._id).to.eq(
-      'idForPost2Comment2'
-    );
+    expect(actual.posts[1].comments_on_post[1]._id).to.eq('idForPost2Comment2');
   });
 });

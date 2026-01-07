@@ -109,7 +109,7 @@ export function subscribe<Data, Variables>(
     const serializedRef: SerializedRef<Data, Variables> =
       queryRefOrSerializedResult;
     const { data, source, fetchTime } = serializedRef;
-    
+
     ref = toQueryRef(serializedRef);
     initialCache = {
       data,

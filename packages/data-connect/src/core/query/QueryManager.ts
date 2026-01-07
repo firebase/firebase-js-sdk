@@ -29,10 +29,7 @@ import {
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { logDebug } from '../../logger';
-import {
-  DataConnectExtension,
-  DataConnectTransport
-} from '../../network';
+import { DataConnectExtension, DataConnectTransport } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
@@ -42,7 +39,6 @@ import {
   OnErrorSubscription,
   OnResultSubscription
 } from './subscribe';
-
 
 export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -76,7 +72,7 @@ export class QueryManager {
     private transport: DataConnectTransport,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) { }
+  ) {}
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -153,14 +149,17 @@ export class QueryManager {
     }
 
     logDebug(
-      `Cache not available for query ${queryRef.name
+      `Cache not available for query ${
+        queryRef.name
       } with variables ${JSON.stringify(
         queryRef.variables
       )}. Calling executeQuery.`
     );
-    const promise = this.maybeExecuteQuery(queryRef as QueryRef<Data, Variables>);
+    const promise = this.maybeExecuteQuery(
+      queryRef as QueryRef<Data, Variables>
+    );
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => { });
+    promise.then(undefined, err => {});
 
     if (!this.callbacks.has(key)) {
       this.callbacks.set(key, []);
@@ -171,7 +170,11 @@ export class QueryManager {
 
     return unsubscribe;
   }
-  async loadCache<Data, Variables>(queryRef: QueryRef<Data, Variables>, cachingEnabled: boolean, options?: ExecuteQueryOptions): Promise<QueryResult<Data, Variables> | null> {
+  async loadCache<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>,
+    cachingEnabled: boolean,
+    options?: ExecuteQueryOptions
+  ): Promise<QueryResult<Data, Variables> | null> {
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
@@ -188,7 +191,11 @@ export class QueryManager {
           fetchTime: cachedData.fetchTime,
           ref: cachedData.ref,
           source: SOURCE_CACHE,
-          toJSON: getRefSerializer(cachedData.ref, cachedData.data, SOURCE_CACHE)
+          toJSON: getRefSerializer(
+            cachedData.ref,
+            cachedData.data,
+            SOURCE_CACHE
+          )
         });
         return cachedData;
       }
@@ -222,7 +229,8 @@ export class QueryManager {
         logDebug(`Skipping cache for fetch policy "serverOnly"`);
       } else {
         logDebug(
-          `No Cache found for query ${queryRef.name
+          `No Cache found for query ${
+            queryRef.name
           } with variables ${JSON.stringify(
             queryRef.variables
           )}. Calling executeQuery`
@@ -231,7 +239,10 @@ export class QueryManager {
     }
     return null;
   }
-  async maybeExecuteQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>, options?: ExecuteQueryOptions): Promise<QueryResult<Data, Variables>> {
+  async maybeExecuteQuery<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>,
+    options?: ExecuteQueryOptions
+  ): Promise<QueryResult<Data, Variables>> {
     await this.waitForQueuedWrites();
     if (queryRef.refType !== QUERY_STR) {
       throw new DataConnectError(
@@ -252,7 +263,6 @@ export class QueryManager {
       // queryResult = await this.executeQuery(queryRef, options);
       shouldExecute = true;
     } else {
-
       if (!cachingEnabled) {
         // read from subscriber cache.
         const fromSubscriberCache = await this.getFromSubscriberCache(key);
@@ -304,10 +314,11 @@ export class QueryManager {
       }
     });
   }
-  async getFromResultTreeCache<Data, Variables>(key: string, queryRef: QueryRef<Data, Variables>): Promise<QueryResult<Data, Variables>> {
-    const cacheResult: Data = JSON.parse(
-      await this.cache!.getResultJSON(key)
-    );
+  async getFromResultTreeCache<Data, Variables>(
+    key: string,
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<QueryResult<Data, Variables>> {
+    const cacheResult: Data = JSON.parse(await this.cache!.getResultJSON(key));
     const resultTree = await this.cache!.getResultTree(key);
     const result: QueryResult<Data, Variables> = {
       source: SOURCE_CACHE,
@@ -319,7 +330,9 @@ export class QueryManager {
     (await this.cache!.getResultTree(key))!.updateAccessed();
     return result;
   }
-  async getFromSubscriberCache(key: string): Promise<QueryResult<unknown, unknown> | undefined> {
+  async getFromSubscriberCache(
+    key: string
+  ): Promise<QueryResult<unknown, unknown> | undefined> {
     if (!this.subscriptionCache.has(key)) {
       return;
     }
