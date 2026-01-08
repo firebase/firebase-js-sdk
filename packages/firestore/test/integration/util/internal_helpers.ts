@@ -62,7 +62,8 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
       DEFAULT_SETTINGS.experimentalLongPollingOptions ?? {}
     ),
     /*use FetchStreams= */ false,
-    /*isUsingEmulator=*/ false
+    /*isUsingEmulator=*/ false,
+    undefined
   );
 }
 

@@ -20,10 +20,12 @@ import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
 import { queryToAggregateTarget, Query, queryToTarget } from '../core/query';
+import { StructuredPipeline } from '../core/structured_pipeline';
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { ResourcePath } from '../model/path';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import {
   ApiClientObjectMap,
   BatchGetDocumentsRequest as ProtoBatchGetDocumentsRequest,
@@ -32,6 +34,8 @@ import {
   RunAggregationQueryResponse as ProtoRunAggregationQueryResponse,
   RunQueryRequest as ProtoRunQueryRequest,
   RunQueryResponse as ProtoRunQueryResponse,
+  ExecutePipelineRequest as ProtoExecutePipelineRequest,
+  ExecutePipelineResponse as ProtoExecutePipelineResponse,
   Value
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
@@ -54,7 +58,9 @@ import {
   toName,
   toQueryTarget,
   toResourcePath,
-  toRunAggregationQueryRequest
+  toRunAggregationQueryRequest,
+  fromPipelineResponse,
+  getEncodedDatabaseId
 } from './serializer';
 
 /**
@@ -233,6 +239,42 @@ export async function invokeBatchGetDocumentsRpc(
     });
     result.push(doc);
   });
+  return result;
+}
+
+export async function invokeExecutePipeline(
+  datastore: Datastore,
+  structuredPipeline: StructuredPipeline
+): Promise<PipelineStreamElement[]> {
+  const datastoreImpl = debugCast(datastore, DatastoreImpl);
+  const executePipelineRequest: ProtoExecutePipelineRequest = {
+    database: getEncodedDatabaseId(datastoreImpl.serializer),
+    structuredPipeline: structuredPipeline._toProto(datastoreImpl.serializer)
+  };
+
+  const response = await datastoreImpl.invokeStreamingRPC<
+    ProtoExecutePipelineRequest,
+    ProtoExecutePipelineResponse
+  >(
+    'ExecutePipeline',
+    datastoreImpl.serializer.databaseId,
+    ResourcePath.emptyPath(),
+    executePipelineRequest
+  );
+
+  const result: PipelineStreamElement[] = [];
+  response.forEach(proto => {
+    if (!proto.results || proto.results!.length === 0) {
+      result.push(fromPipelineResponse(datastoreImpl.serializer, proto));
+    } else {
+      return proto.results!.forEach(document =>
+        result.push(
+          fromPipelineResponse(datastoreImpl.serializer, proto, document)
+        )
+      );
+    }
+  });
+
   return result;
 }
 
