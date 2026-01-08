@@ -24,8 +24,6 @@ import { Property, property, validateJSON } from '../util/json_validation';
 /**
  * Represents a vector type in Firestore documents.
  * Create an instance with <code>{@link vector}</code>.
- *
- * @class VectorValue
  */
 export class VectorValue {
   private readonly _values: number[];
@@ -74,7 +72,7 @@ export class VectorValue {
   /**
    * Builds a `VectorValue` instance from a JSON object created by {@link VectorValue.toJSON}.
    *
-   * @param json a JSON object represention of a `VectorValue` instance.
+   * @param json - a JSON object represention of a `VectorValue` instance.
    * @returns an instance of {@link VectorValue} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
    */

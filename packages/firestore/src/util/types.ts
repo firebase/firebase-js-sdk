@@ -79,10 +79,13 @@ export interface DocumentLike {
  * Utility type to create an type that only allows one
  * property of the Type param T to be set.
  *
- * type XorY = OneOf<{ x: unknown, y: unknown}>
+ * @example
+ * ```
+ * type XorY = OneOf<{ x: unknown, y: unknown }>
  * let a = { x: "foo" }           // OK
  * let b = { y: "foo" }           // OK
  * let c = { a: "foo", y: "foo" } // Not OK
+ * ```
  */
 export type OneOf<T> = {
   [K in keyof T]: Pick<T, K> & {
