@@ -13,20 +13,11 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Represents a reference to a field in a Firestore document, or outputs of a  stage.
+Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.
 
 <p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.
 
 <p>You can create a `Field` instance using the static  method:
-
-```typescript
-// Create a Field instance for the 'name' field
-const nameField = field("name");
-
-// Create a Field instance for a nested field 'address.city'
-const cityField = field("address.city");
-
-```
 
 <b>Signature:</b>
 
@@ -101,3 +92,16 @@ get fieldName(): string;
 ```typescript
 selectable: true;
 ```
+
+### Example
+
+
+```typescript
+// Create a Field instance for the 'name' field
+const nameField = field("name");
+
+// Create a Field instance for a nested field 'address.city'
+const cityField = field("address.city");
+
+```
+

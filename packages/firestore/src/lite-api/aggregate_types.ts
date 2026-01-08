@@ -43,8 +43,8 @@ export class AggregateField<T> {
 
   /**
    * Create a new AggregateField<T>
-   * @param aggregateType Specifies the type of aggregation operation to perform.
-   * @param _internalFieldPath Optionally specifies the field that is aggregated.
+   * @param aggregateType - Specifies the type of aggregation operation to perform.
+   * @param _internalFieldPath - Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
