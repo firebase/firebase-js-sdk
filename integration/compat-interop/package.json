@@ -24,7 +24,7 @@
     "@firebase/remote-config-compat": "0.2.20"
   },
   "devDependencies": {
-    "typescript": "5.5.4"
+    "typescript": "5.9.3"
   },
   "engines": {
     "node": ">=20.0.0"
