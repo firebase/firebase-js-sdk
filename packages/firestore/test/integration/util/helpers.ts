@@ -18,6 +18,8 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { describe } from '../../util/mocha_extensions';
+
 import {
   clearIndexedDbPersistence,
   collection,
@@ -44,6 +46,7 @@ import {
   Query,
   getDocsFromServer,
   getDocsFromCache,
+  // @ts-ignore internal API usage
   _AutoId
 } from './firebase_export';
 import {
@@ -177,7 +180,10 @@ export function isPersistenceAvailable(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 function apiDescribeInternal(
-  describeFn: Mocha.PendingSuiteFunction,
+  describeFn:
+    | Mocha.PendingSuiteFunction
+    | Mocha.SuiteFunction
+    | Mocha.ExclusiveSuiteFunction,
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
@@ -204,6 +210,9 @@ interface ApiDescribe {
   (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
+  skipEnterprise: ApiSuiteFunction;
+  skipEmulator: ApiSuiteFunction;
+  skipClassic: ApiSuiteFunction;
 }
 
 export const apiDescribe = apiDescribeInternal.bind(
@@ -214,6 +223,15 @@ export const apiDescribe = apiDescribeInternal.bind(
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+apiDescribe.skipEnterprise = apiDescribeInternal.bind(
+  null,
+  describe.skipEnterprise
+);
+apiDescribe.skipClassic = apiDescribeInternal.bind(null, describe.skipClassic);
+apiDescribe.skipEmulator = apiDescribeInternal.bind(
+  null,
+  describe.skipEmulator
+);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
