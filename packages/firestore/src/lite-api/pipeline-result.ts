@@ -31,7 +31,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * @beta
  * Represents the results of a Firestore pipeline execution.
  *
- * A `PipelineSnapshot` contains zero or more {@link PipelineResult} objects
+ * A `PipelineSnapshot` contains zero or more {@link @firebase/firestore/pipelines#PipelineResult} objects
  * representing the documents returned by a pipeline query. It provides methods
  * to iterate over the documents and access metadata about the query results.
  *
@@ -73,7 +73,6 @@ export class PipelineSnapshot {
    * @beta
    * The time at which the pipeline producing this result is executed.
    *
-   * @type {Timestamp}
    * @readonly
    *
    */
@@ -91,7 +90,7 @@ export class PipelineSnapshot {
  * @beta
  *
  * A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the
- * {@link #data()} or {@link #get(String)} methods.
+ * {@link @firebase/firestore/pipelines#PipelineResult.data} or {@link @firebase/firestore/pipelines#PipelineResult.(get:1)} methods.
  *
  * <p>If the PipelineResult represents a non-document result, `ref` will return a undefined
  * value.
@@ -118,12 +117,12 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @private
    * @internal
    *
-   * @param userDataWriter The serializer used to encode/decode protobuf.
-   * @param ref The reference to the document.
-   * @param fields The fields of the Firestore `Document` Protobuf backing
+   * @param userDataWriter - The serializer used to encode/decode protobuf.
+   * @param ref - The reference to the document.
+   * @param fields - The fields of the Firestore `Document` Protobuf backing
    * this document.
-   * @param createTime The time when the document was created if the result is a document, undefined otherwise.
-   * @param updateTime The time when the document was last updated if the result is a document, undefined otherwise.
+   * @param createTime - The time when the document was created if the result is a document, undefined otherwise.
+   * @param updateTime - The time when the document was last updated if the result is a document, undefined otherwise.
    */
   constructor(
     userDataWriter: AbstractUserDataWriter,
@@ -151,7 +150,6 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`.
    *
-   * @type {string}
    * @readonly
    *
    */
@@ -163,7 +161,6 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * The time the document was created. Undefined if this result is not a document.
    *
-   * @type {Timestamp|undefined}
    * @readonly
    */
   get createTime(): Timestamp | undefined {
@@ -175,7 +172,6 @@ export class PipelineResult<AppModelType = DocumentData> {
    * The time the document was last updated (at the time the snapshot was
    * generated). Undefined if this result is not a document.
    *
-   * @type {Timestamp|undefined}
    * @readonly
    */
   get updateTime(): Timestamp | undefined {
@@ -186,7 +182,7 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * Retrieves all fields in the result as an object.
    *
-   * @returns {T} An object containing all fields in the document or
+   * @returns An object containing all fields in the document or
    * 'undefined' if the document doesn't exist.
    *
    * @example
@@ -222,9 +218,9 @@ export class PipelineResult<AppModelType = DocumentData> {
    * @beta
    * Retrieves the field specified by `field`.
    *
-   * @param {string|FieldPath|Field} field The field path
+   * @param field - The field path
    * (e.g. 'foo' or 'foo.bar') to a specific field.
-   * @returns {*} The data at the specified field location or undefined if no
+   * @returns The data at the specified field location or `undefined` if no
    * such field exists.
    *
    * @example
@@ -260,8 +256,8 @@ export class PipelineResult<AppModelType = DocumentData> {
 /**
  * @beta
  * Test equality of two PipelineResults.
- * @param left
- * @param right
+ * @param left - First PipelineResult to compare.
+ * @param right - Second PipelineResult to compare.
  */
 export function pipelineResultEqual(
   left: PipelineResult,

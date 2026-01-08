@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 Represents the results of a Firestore pipeline execution.
 
-A `PipelineSnapshot` contains zero or more  objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results.
+A `PipelineSnapshot` contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results.
 
 <b>Signature:</b>
 
@@ -33,7 +33,7 @@ export declare class PipelineSnapshot
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [executionTime](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshotexecutiontime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) | <b><i>(Public Preview)</i></b> The time at which the pipeline producing this result is executed. {<!-- -->Timestamp<!-- -->} |
+|  [executionTime](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshotexecutiontime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) | <b><i>(Public Preview)</i></b> The time at which the pipeline producing this result is executed. |
 |  [results](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshotresults) |  | [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class)<!-- -->\[\] | <b><i>(Public Preview)</i></b> An array of all the results in the <code>PipelineSnapshot</code>. |
 
 ## PipelineSnapshot.(constructor)
@@ -63,8 +63,6 @@ constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Times
 > 
 
 The time at which the pipeline producing this result is executed.
-
- {<!-- -->Timestamp<!-- -->}
 
 <b>Signature:</b>
 

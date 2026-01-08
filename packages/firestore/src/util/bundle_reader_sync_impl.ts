@@ -80,7 +80,7 @@ export class BundleReaderSyncImpl implements BundleReaderSync {
    * Reads from a specified position from the bundleData string, for a specified
    * number of bytes.
    *
-   * @param length how many characters to read.
+   * @param length - how many characters to read.
    * @returns a string parsed from the bundle.
    */
   private readJsonString(length: number): string {
