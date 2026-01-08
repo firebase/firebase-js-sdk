@@ -144,7 +144,17 @@ export class ChatSession {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // (undocumented)
-    callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<GenerateContentResult>;
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<{
+        result?: GenerateContentResult;
+        callHistory: Content[];
+    }>;
+    // (undocumented)
+    _callGenerateContent(request: string | Array<string | Part>): Promise<{
+        result?: GenerateContentResult;
+        callHistory: Content[];
+    }>;
+    // (undocumented)
+    _formatRequest(incomingContent: Content): GenerateContentRequest;
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -152,8 +162,8 @@ export class ChatSession {
     params?: StartChatParams | undefined;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
-    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions, shouldChain?: boolean): Promise<GenerateContentResult>;
-    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
     }
 
 // @beta
