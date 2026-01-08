@@ -118,9 +118,18 @@ describe('Count Tokens', () => {
         };
         const response = await model.countTokens([imagePart]);
 
+        let expectedImageTokens: number;
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          expectedImageTokens =
+            testConfig.ai.backend.backendType === BackendType.GOOGLE_AI
+              ? 1089
+              : 1120;
+        } else {
+          expectedImageTokens = 258;
+        }
+
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          const expectedImageTokens = 259;
-          expect(response.totalTokens).to.equal(expectedImageTokens);
+          expect(response.totalTokens).to.equal(expectedImageTokens + 1); // There will be 1 unexpected text token
           expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
           expect(response.promptTokensDetails!.length).to.equal(2);
           expect(response.promptTokensDetails![0]).to.deep.equal({
@@ -129,19 +138,18 @@ describe('Count Tokens', () => {
           });
           expect(response.promptTokensDetails![1]).to.deep.equal({
             modality: Modality.IMAGE,
-            tokenCount: 258
+            tokenCount: expectedImageTokens
           });
         } else if (
           testConfig.ai.backend.backendType === BackendType.VERTEX_AI
         ) {
-          const expectedImageTokens = 258;
           expect(response.totalTokens).to.equal(expectedImageTokens);
           expect(response.totalBillableCharacters).to.be.undefined; // Incorrect behavior
           expect(response.promptTokensDetails!.length).to.equal(1);
           // Note: No text tokens are present for Vertex AI with image-only input.
           expect(response.promptTokensDetails![0]).to.deep.equal({
             modality: Modality.IMAGE,
-            tokenCount: 258
+            tokenCount: expectedImageTokens
           });
           expect(response.promptTokensDetails![0].tokenCount).to.equal(
             expectedImageTokens
@@ -220,13 +228,23 @@ describe('Count Tokens', () => {
         expect(response.promptTokensDetails).to.exist;
         expect(response.promptTokensDetails!.length).to.equal(3);
 
+        let expectedImageTokenCount;
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          expectedImageTokenCount =
+            testConfig.ai.backend.backendType === BackendType.GOOGLE_AI
+              ? 1089
+              : 1120;
+        } else {
+          expectedImageTokenCount = 258;
+        }
+
         expect(imageDetails).to.deep.equal({
           modality: Modality.IMAGE,
-          tokenCount: 258
+          tokenCount: expectedImageTokenCount
         });
 
         if (testConfig.ai.backend.backendType === BackendType.GOOGLE_AI) {
-          expect(response.totalTokens).to.equal(267);
+          expect(response.totalTokens).to.equal(expectedImageTokenCount + 9);
           expect(response.totalBillableCharacters).to.be.undefined;
           expect(textDetails).to.deep.equal({
             modality: Modality.TEXT,
@@ -239,7 +257,7 @@ describe('Count Tokens', () => {
         } else if (
           testConfig.ai.backend.backendType === BackendType.VERTEX_AI
         ) {
-          expect(response.totalTokens).to.equal(261);
+          expect(response.totalTokens).to.equal(expectedImageTokenCount + 3);
           expect(textDetails).to.deep.equal({
             modality: Modality.TEXT,
             tokenCount: 3
@@ -269,7 +287,12 @@ describe('Count Tokens', () => {
 
         const response = await model.countTokens([filePart]);
 
-        const expectedFileTokens = 258;
+        let expectedFileTokens: number;
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          expectedFileTokens = 1120;
+        } else {
+          expectedFileTokens = 258;
+        }
         expect(response.totalTokens).to.equal(expectedFileTokens);
         expect(response.totalBillableCharacters).to.be.undefined;
         expect(response.promptTokensDetails).to.exist;

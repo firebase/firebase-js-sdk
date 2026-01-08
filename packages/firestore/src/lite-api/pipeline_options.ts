@@ -65,7 +65,6 @@ export interface PipelineExecuteOptions {
    *   }
    * ```
    *
-   * @example
    * `rawOptions` supports dot notation, if you want to override
    * a nested option.
    * ```

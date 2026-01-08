@@ -1,5 +1,13 @@
 # @firebase/ai
 
+## 2.6.1
+
+### Patch Changes
+
+- [`bc2b2cd`](https://github.com/firebase/firebase-js-sdk/commit/bc2b2cdeae920ff22aca3414c2a1b79d4a3b1351) [#9399](https://github.com/firebase/firebase-js-sdk/pull/9399) - update the link /genai to /ailogic
+
+- [`5c7430d`](https://github.com/firebase/firebase-js-sdk/commit/5c7430deabb20ddce2a26ea9a565323d2a0f612e) [#9381](https://github.com/firebase/firebase-js-sdk/pull/9381) - Fix `generateContentStream` returning wrong `inferenceSource`.
+
 ## 2.6.0
 
 ### Minor Changes
