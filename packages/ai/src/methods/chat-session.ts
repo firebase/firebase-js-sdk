@@ -20,6 +20,7 @@ import {
   FunctionCall,
   FunctionDeclarationsTool,
   GenerateContentRequest,
+  GenerateContentResponse,
   GenerateContentResult,
   GenerateContentStreamResult,
   Part,
@@ -52,6 +53,12 @@ const SILENT_ERROR = 'SILENT_ERROR';
 export class ChatSession {
   private _apiSettings: ApiSettings;
   private _history: Content[] = [];
+  /**
+   * Temporarily store multiple turns for cases like automatic function
+   * calling, only writing them to official history when the entire
+   * sequence has completed successfully.
+   */
+  private _tempHistory: Content[] = [];
   private _sendPromise: Promise<void> = Promise.resolve();
 
   constructor(
@@ -79,46 +86,48 @@ export class ChatSession {
   }
 
   /**
-   * Sends a chat message and receives a non-streaming
-   * {@link GenerateContentResult}
+   * Add params and history to the content of a prospective request.
+   * @internal
    */
-  async sendMessage(
-    request: string | Array<string | Part>,
-    shouldChain: boolean = true
-  ): Promise<GenerateContentResult> {
-    const incomingContent = formatNewContent(request);
-    const generateContentRequest: GenerateContentRequest = {
+  _formatRequest(incomingContent: Content): GenerateContentRequest {
+    return {
       safetySettings: this.params?.safetySettings,
       generationConfig: this.params?.generationConfig,
       tools: this.params?.tools,
       toolConfig: this.params?.toolConfig,
       systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, incomingContent]
+      contents: [...this._history, ...this._tempHistory, incomingContent]
     };
-    let finalResult = {} as GenerateContentResult;
-    // Add onto the chain.
-    const messageTask = generateContent(
+  }
+
+  /**
+   * Make a single call to generateContent and do some response handling.
+   * @internal
+   */
+  async _callGenerateContent(
+    request: string | Array<string | Part>
+  ): Promise<{ result?: GenerateContentResult; callHistory: Content[] }> {
+    const incomingContent = formatNewContent(request);
+    const generateContentRequest = this._formatRequest(incomingContent); // Store history in a temporary array until we are done
+    // with all turns (such as in the case of function calls)
+    const callHistory: Content[] = [];
+    callHistory.push(incomingContent);
+
+    return generateContent(
       this._apiSettings,
       this.model,
       generateContentRequest,
       this.chromeAdapter,
       this.requestOptions
-    ).then(async result => {
+    ).then(result => {
       if (result.response.candidates && result.response.candidates.length > 0) {
-        this._history.push(incomingContent);
         const responseContent: Content = {
           parts: result.response.candidates?.[0].content.parts || [],
           // Response seems to come back without a role set.
           role: result.response.candidates?.[0].content.role || 'model'
         };
-        this._history.push(responseContent);
-        const functionCalls = getFunctionCalls(result.response);
-        if (functionCalls) {
-          result = await this.callFunctionsAsNeeded(
-            functionCalls,
-            generateContentRequest.tools
-          );
-        }
+        callHistory.push(responseContent);
+        return { result, callHistory };
       } else {
         const blockErrorMessage = formatBlockErrorMessage(result.response);
         if (blockErrorMessage) {
@@ -126,22 +135,57 @@ export class ChatSession {
             `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
           );
         }
+        return { callHistory };
       }
-      finalResult = result;
     });
-    if (shouldChain) {
-      this._sendPromise = this._sendPromise.then(() => messageTask);
-      await this._sendPromise;
-    } else {
-      await messageTask;
-    }
-    return finalResult;
   }
 
-  async callFunctionsAsNeeded(
+  /**
+   * Sends a chat message and receives a non-streaming
+   * {@link GenerateContentResult}
+   */
+  async sendMessage(
+    request: string | Array<string | Part>
+  ): Promise<GenerateContentResult> {
+    let finalResult = {} as GenerateContentResult;
+    await this._sendPromise;
+    this._sendPromise = this._sendPromise.then(async () => {
+      const { result, callHistory } = await this._callGenerateContent(request);
+
+      this._tempHistory = callHistory;
+
+      let functionCalls = getFunctionCalls(
+        result?.response as GenerateContentResponse
+      );
+      if (result && !functionCalls) {
+        finalResult = result;
+      }
+      // Repeats until model returns a response with no function calls.
+      while (functionCalls) {
+        const { result: fnResult, callHistory } =
+          await this._callFunctionsAsNeeded(functionCalls, this.params?.tools);
+        if (fnResult) {
+          this._tempHistory = this._tempHistory?.concat(callHistory);
+          functionCalls = getFunctionCalls(fnResult?.response);
+          finalResult = fnResult;
+        } else {
+          functionCalls = undefined;
+        }
+      }
+    });
+    await this._sendPromise;
+    this._history = this._history.concat(this._tempHistory);
+    return finalResult;
+  }
+  /**
+   * Call user-defined functions if requested by the model, and return
+   * the responses to the model.
+   * @internal
+   */
+  async _callFunctionsAsNeeded(
     functionCalls: FunctionCall[],
     tools?: Tool[]
-  ): Promise<GenerateContentResult> {
+  ): Promise<{ result?: GenerateContentResult; callHistory: Content[] }> {
     const activeCallList = new Map<
       string,
       { id?: string; results: Promise<Record<string, unknown>> }
@@ -181,7 +225,7 @@ export class ChatSession {
           }
         });
       }
-      return this.sendMessage(functionResponseParts, false);
+      return this._callGenerateContent(functionResponseParts);
     } else {
       throw new Error('error here about no function declarations tool');
     }
@@ -197,14 +241,7 @@ export class ChatSession {
   ): Promise<GenerateContentStreamResult> {
     await this._sendPromise;
     const newContent = formatNewContent(request);
-    const generateContentRequest: GenerateContentRequest = {
-      safetySettings: this.params?.safetySettings,
-      generationConfig: this.params?.generationConfig,
-      tools: this.params?.tools,
-      toolConfig: this.params?.toolConfig,
-      systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, newContent]
-    };
+    const generateContentRequest = this._formatRequest(newContent);
     const streamPromise = generateContentStream(
       this._apiSettings,
       this.model,
