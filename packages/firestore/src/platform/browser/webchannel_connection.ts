@@ -16,7 +16,7 @@
  */
 
 import {
-  createWebChannelTransport,
+  createWebChannelTransport as internalCreateWebChannelTransport,
   ErrorCode,
   EventType,
   WebChannel,
@@ -27,7 +27,8 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  Stat
+  Stat,
+  WebChannelTransport
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { Token } from '../../api/credentials';
@@ -53,6 +54,28 @@ const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 
 const XHR_TIMEOUT_SECS = 15;
 
+// Closure events are guarded and exceptions are swallowed, so catch any
+// exception and rethrow using a setTimeout so they become visible again.
+// Note that eventually this function could go away if we are confident
+// enough the code is exception free.
+const unguardedEventListen = <T>(
+  target: EventTarget,
+  type: string | number,
+  fn: (param: T) => void
+): void => {
+  // TODO(dimond): closure typing seems broken because WebChannel does
+  // not implement goog.events.Listenable
+  target.listen(type, (param: unknown) => {
+    try {
+      fn(param as T);
+    } catch (e) {
+      setTimeout(() => {
+        throw e;
+      }, 0);
+    }
+  });
+};
+
 export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
@@ -68,6 +91,29 @@ export class WebChannelConnection extends RestConnection {
     this.autoDetectLongPolling = info.autoDetectLongPolling;
     this.useFetchStreams = info.useFetchStreams;
     this.longPollingOptions = info.longPollingOptions;
+  }
+
+  /**
+   * Track if the STAT_EVENT listener has been initialized.
+   */
+  static statEventListenerInitialized: boolean = false;
+
+  /**
+   * Initialize STAT_EVENT listener once. Subsequent calls are a no-op.
+   * getStatEventTarget() returns the same target every time.
+   */
+  static ensureStatEventListenerInitialized(): void {
+    if (!WebChannelConnection.statEventListenerInitialized) {
+      const requestStats = getStatEventTarget();
+      unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
+        if (event.stat === Stat.PROXY) {
+          logDebug(LOG_TAG, `STAT_EVENT: detected buffering proxy`);
+        } else if (event.stat === Stat.NOPROXY) {
+          logDebug(LOG_TAG, `STAT_EVENT: detected no buffering proxy`);
+        }
+      });
+      WebChannelConnection.statEventListenerInitialized = true;
+    }
   }
 
   protected performRPCRequest<Req, Resp>(
@@ -181,8 +227,7 @@ export class WebChannelConnection extends RestConnection {
       rpcName,
       '/channel'
     ];
-    const webchannelTransport = createWebChannelTransport();
-    const requestStats = getStatEventTarget();
+    const webchannelTransport = this.createWebChannelTransport();
     const request: WebChannelOptions = {
       // Required for backend stickiness, routing behavior is based on this
       // parameter.
@@ -284,28 +329,6 @@ export class WebChannelConnection extends RestConnection {
       },
       closeFn: () => channel.close()
     });
-
-    // Closure events are guarded and exceptions are swallowed, so catch any
-    // exception and rethrow using a setTimeout so they become visible again.
-    // Note that eventually this function could go away if we are confident
-    // enough the code is exception free.
-    const unguardedEventListen = <T>(
-      target: EventTarget,
-      type: string | number,
-      fn: (param: T) => void
-    ): void => {
-      // TODO(dimond): closure typing seems broken because WebChannel does
-      // not implement goog.events.Listenable
-      target.listen(type, (param: unknown) => {
-        try {
-          fn(param as T);
-        } catch (e) {
-          setTimeout(() => {
-            throw e;
-          }, 0);
-        }
-      });
-    };
 
     unguardedEventListen(channel, WebChannel.EventType.OPEN, () => {
       if (!closed) {
@@ -409,19 +432,8 @@ export class WebChannelConnection extends RestConnection {
       }
     );
 
-    unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
-      if (event.stat === Stat.PROXY) {
-        logDebug(
-          LOG_TAG,
-          `RPC '${rpcName}' stream ${streamId} detected buffering proxy`
-        );
-      } else if (event.stat === Stat.NOPROXY) {
-        logDebug(
-          LOG_TAG,
-          `RPC '${rpcName}' stream ${streamId} detected no buffering proxy`
-        );
-      }
-    });
+    // Ensure that event listeners are configured for STAT_EVENTs.
+    WebChannelConnection.ensureStatEventListenerInitialized();
 
     setTimeout(() => {
       // Technically we could/should wait for the WebChannel opened event,
@@ -459,5 +471,30 @@ export class WebChannelConnection extends RestConnection {
     this.openWebChannels = this.openWebChannels.filter(
       instance => instance === webChannel
     );
+  }
+
+  /**
+   * Modifies the headers for a request, adding the api key if present,
+   * and then calling super.modifyHeadersForRequest
+   */
+  protected modifyHeadersForRequest(
+    headers: StringMap,
+    authToken: Token | null,
+    appCheckToken: Token | null
+  ): void {
+    super.modifyHeadersForRequest(headers, authToken, appCheckToken);
+
+    // For web channel streams, we want to send the api key in the headers.
+    if (this.databaseInfo.apiKey) {
+      headers['x-goog-api-key'] = this.databaseInfo.apiKey;
+    }
+  }
+
+  /**
+   * Wrapped for mocking.
+   * @protected
+   */
+  protected createWebChannelTransport(): WebChannelTransport {
+    return internalCreateWebChannelTransport();
   }
 }
