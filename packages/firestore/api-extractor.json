@@ -25,13 +25,5 @@
          * apiReport is handled by scripts/api-report.ts
          */
         "enabled": false
-    },
-    "messages": {
-      "extractorMessageReporting": {
-        "ae-extra-release-tag": {
-          "logLevel": "warning",
-          "addToApiReportFile": false
-        }
-    }
     }
 }
