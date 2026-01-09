@@ -69,7 +69,8 @@ function loadApiExtractorConfig(
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
   dtsRollupEnabled: boolean,
-  apiReportEnabled: boolean
+  apiReportEnabled: boolean,
+  excludeForgottenExportWarning: boolean
 ): ExtractorConfig {
   const apiExtractorJsonPath = path.resolve(tmpDir, 'api-extractor.json');
   const apiExtractorJson = {
@@ -102,7 +103,8 @@ function loadApiExtractorConfig(
           'logLevel': 'none'
         },
         'ae-forgotten-export': {
-          'logLevel': apiReportEnabled ? 'error' : 'none'
+          'logLevel': apiReportEnabled ? 'error' : 'none',
+          'addToApiReportFile': !excludeForgottenExportWarning
         }
       },
       'tsdocMessageReporting': {
@@ -142,7 +144,8 @@ export async function generateApi(
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
   publicDtsPath: string,
-  otherExportDtsPaths: string[]
+  otherExportDtsPaths: string[],
+  excludeForgottenExportWarning: boolean
 ): Promise<void> {
   console.log(`Configuring API Extractor for ${packageName}`);
   writeTypeScriptConfig(packageRoot);
@@ -154,7 +157,8 @@ export async function generateApi(
     rollupDtsPath,
     untrimmedRollupDtsPath,
     /* dtsRollupEnabled= */ true,
-    /* apiReportEnabled= */ false
+    /* apiReportEnabled= */ false,
+    excludeForgottenExportWarning
   );
   Extractor.invoke(extractorConfig, {
     localBuild: true
@@ -174,7 +178,8 @@ export async function generateApi(
     rollupDtsPath,
     untrimmedRollupDtsPath,
     /* dtsRollupEnabled= */ false,
-    /* apiReportEnabled= */ true
+    /* apiReportEnabled= */ true,
+    excludeForgottenExportWarning
   );
   Extractor.invoke(extractorConfig, { localBuild: true });
   console.log(`API report for ${packageName} written to ${reportFolder}`);
@@ -229,6 +234,11 @@ const argv = yargs
         'Optional. A comma-separated list of customer-facing of .d.ts' +
         'files for other exports from this package.',
       require: false
+    },
+    excludeForgottenExportWarning: {
+      type: 'boolean',
+      desc: 'Optional. Do not write ae-forgotten-export warnings into the api-report',
+      require: false
     }
   })
   .parseSync();
@@ -244,5 +254,6 @@ void generateApi(
     ? argv.otherExportsPublicDtsFiles
         .split(',')
         .map(filePath => path.resolve(filePath))
-    : []
+    : [],
+  !!argv.excludeForgottenExportWarning
 );
