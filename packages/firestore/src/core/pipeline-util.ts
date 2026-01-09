@@ -81,10 +81,7 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpression {
           fieldValue.equal(Constant._fromProto(value))
         );
       case Operator.NOT_EQUAL:
-        return and(
-          fieldValue.exists(),
-          fieldValue.notEqual(Constant._fromProto(value))
-        );
+        return fieldValue.notEqual(Constant._fromProto(value));
       case Operator.ARRAY_CONTAINS:
         return and(
           fieldValue.exists(),
@@ -113,11 +110,11 @@ export function toPipelineBooleanExpr(f: FilterInternal): BooleanExpression {
           Constant._fromProto(val)
         );
         if (!values) {
-          return and(fieldValue.exists(), fieldValue.notEqualAny([]));
+          return fieldValue.notEqualAny([]);
         } else if (values.length === 1) {
-          return and(fieldValue.exists(), fieldValue.notEqual(values[0]));
+          return fieldValue.notEqual(values[0]);
         } else {
-          return and(fieldValue.exists(), fieldValue.notEqualAny(values));
+          return fieldValue.notEqualAny(values);
         }
       }
       default:
@@ -169,7 +166,7 @@ export function toPipeline(query: Query, db: Firestore): Pipeline {
 
   // orders
   const orders = queryNormalizedOrderBy(query);
-  const existsConditions = orders.map(order =>
+  const existsConditions = query.explicitOrderBy.map(order =>
     field(order.field.canonicalString()).exists()
   );
   if (existsConditions.length > 1) {
