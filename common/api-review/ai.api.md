@@ -1371,7 +1371,19 @@ export interface TextPart {
 export interface ThinkingConfig {
     includeThoughts?: boolean;
     thinkingBudget?: number;
+    thinkingLevel?: ThinkingLevel;
 }
+
+// @public
+export const ThinkingLevel: {
+    MINIMAL: string;
+    LOW: string;
+    MEDIUM: string;
+    HIGH: string;
+};
+
+// @public
+export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
