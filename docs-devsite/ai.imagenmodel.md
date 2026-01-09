@@ -39,7 +39,7 @@ export declare class ImagenModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
+|  [generateImages(prompt, singleRequestOptions)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
 
@@ -100,7 +100,7 @@ If the prompt was not blocked, but one or more of the generated images were filt
 <b>Signature:</b>
 
 ```typescript
-generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
 ```
 
 #### Parameters
@@ -108,6 +108,7 @@ generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineIma
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  prompt | string | A text prompt describing the image(s) to generate. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 

@@ -20,7 +20,11 @@ import {
   templateGenerateContentStream
 } from '../methods/generate-content';
 import { GenerateContentResult, RequestOptions } from '../types';
-import { AI, GenerateContentStreamResult } from '../public-types';
+import {
+  AI,
+  GenerateContentStreamResult,
+  SingleRequestOptions
+} from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
 
@@ -62,13 +66,17 @@ export class TemplateGenerativeModel {
    */
   async generateContent(
     templateId: string,
-    templateVariables: object // anything!
+    templateVariables: object,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
       templateId,
       { inputs: templateVariables },
-      this.requestOptions
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 
@@ -86,13 +94,17 @@ export class TemplateGenerativeModel {
    */
   async generateContentStream(
     templateId: string,
-    templateVariables: object
+    templateVariables: object,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
       templateId,
       { inputs: templateVariables },
-      this.requestOptions
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 }

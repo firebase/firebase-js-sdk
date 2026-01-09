@@ -190,6 +190,8 @@ toc:
     path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SingleRequestOptions
+    path: /docs/reference/js/ai.singlerequestoptions.md
   - title: SpeechConfig
     path: /docs/reference/js/ai.speechconfig.md
   - title: StartAudioConversationOptions

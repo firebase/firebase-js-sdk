@@ -19,6 +19,7 @@ import { AIError } from '../errors';
 import {
   CountTokensRequest,
   CountTokensResponse,
+  SingleRequestOptions,
   InferenceMode,
   RequestOptions,
   AIErrorCode
@@ -33,7 +34,7 @@ export async function countTokensOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<CountTokensResponse> {
   let body: string = '';
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
@@ -48,7 +49,7 @@ export async function countTokensOnCloud(
       task: Task.COUNT_TOKENS,
       apiSettings,
       stream: false,
-      requestOptions
+      singleRequestOptions
     },
     body
   );

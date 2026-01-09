@@ -52,9 +52,14 @@ export function processStream(
   const inputStream = response.body!.pipeThrough(
     new TextDecoderStream('utf8', { fatal: true })
   );
+
   const responseStream =
     getResponseStream<GenerateContentResponse>(inputStream);
+
+  // We split the stream so the user can iterate over partial results (stream1)
+  // while we aggregate the full result for history/final response (stream2).
   const [stream1, stream2] = responseStream.tee();
+
   return {
     stream: generateResponseSequence(stream1, apiSettings, inferenceSource),
     response: getResponsePromise(stream2, apiSettings, inferenceSource)
@@ -82,7 +87,6 @@ async function getResponsePromise(
         inferenceSource
       );
     }
-
     allResponses.push(value);
   }
 }
@@ -112,7 +116,6 @@ async function* generateResponseSequence(
     }
 
     const firstCandidate = enhancedResponse.candidates?.[0];
-    // Don't yield a response with no useful data for the developer.
     if (
       !firstCandidate?.content?.parts &&
       !firstCandidate?.finishReason &&
@@ -127,9 +130,7 @@ async function* generateResponseSequence(
 }
 
 /**
- * Reads a raw stream from the fetch response and join incomplete
- * chunks, returning a new stream that provides a single complete
- * GenerateContentResponse in each iteration.
+ * Reads a raw string stream, buffers incomplete chunks, and yields parsed JSON objects.
  */
 export function getResponseStream<T>(
   inputStream: ReadableStream<string>
@@ -153,6 +154,8 @@ export function getResponseStream<T>(
           }
 
           currentText += value;
+          // SSE events may span chunk boundaries, so we buffer until we match
+          // the full "data: {json}\n\n" pattern.
           let match = currentText.match(responseLineRE);
           let parsedResponse: T;
           while (match) {
@@ -193,8 +196,7 @@ export function aggregateResponses(
   for (const response of responses) {
     if (response.candidates) {
       for (const candidate of response.candidates) {
-        // Index will be undefined if it's the first index (0), so we should use 0 if it's undefined.
-        // See: https://github.com/firebase/firebase-js-sdk/issues/8566
+        // Use 0 if index is undefined (protobuf default value omission).
         const i = candidate.index || 0;
         if (!aggregatedResponse.candidates) {
           aggregatedResponse.candidates = [];
@@ -204,7 +206,8 @@ export function aggregateResponses(
             index: candidate.index
           } as GenerateContentCandidate;
         }
-        // Keep overwriting, the last one will be final
+
+        // Overwrite with the latest metadata
         aggregatedResponse.candidates[i].citationMetadata =
           candidate.citationMetadata;
         aggregatedResponse.candidates[i].finishReason = candidate.finishReason;
@@ -229,12 +232,7 @@ export function aggregateResponses(
             urlContextMetadata as URLContextMetadata;
         }
 
-        /**
-         * Candidates should always have content and parts, but this handles
-         * possible malformed responses.
-         */
         if (candidate.content) {
-          // Skip a candidate without parts.
           if (!candidate.content.parts) {
             continue;
           }

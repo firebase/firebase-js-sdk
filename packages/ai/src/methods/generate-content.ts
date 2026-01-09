@@ -20,7 +20,7 @@ import {
   GenerateContentResponse,
   GenerateContentResult,
   GenerateContentStreamResult,
-  RequestOptions
+  SingleRequestOptions
 } from '../types';
 import {
   makeRequest,
@@ -39,7 +39,7 @@ async function generateContentStreamOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<Response> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
@@ -50,7 +50,7 @@ async function generateContentStreamOnCloud(
       model,
       apiSettings,
       stream: true,
-      requestOptions
+      singleRequestOptions
     },
     JSON.stringify(params)
   );
@@ -61,14 +61,19 @@ export async function generateContentStream(
   model: string,
   params: GenerateContentRequest,
   chromeAdapter?: ChromeAdapter,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentStreamResult> {
   const callResult = await callCloudOrDevice(
     params,
     chromeAdapter,
     () => chromeAdapter!.generateContentStream(params),
     () =>
-      generateContentStreamOnCloud(apiSettings, model, params, requestOptions)
+      generateContentStreamOnCloud(
+        apiSettings,
+        model,
+        params,
+        singleRequestOptions
+      )
   );
   return processStream(
     callResult.response,
@@ -81,7 +86,7 @@ async function generateContentOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: GenerateContentRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<Response> {
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
     params = GoogleAIMapper.mapGenerateContentRequest(params);
@@ -92,7 +97,7 @@ async function generateContentOnCloud(
       task: Task.GENERATE_CONTENT,
       apiSettings,
       stream: false,
-      requestOptions
+      singleRequestOptions
     },
     JSON.stringify(params)
   );
@@ -102,7 +107,7 @@ export async function templateGenerateContent(
   apiSettings: ApiSettings,
   templateId: string,
   templateParams: object,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentResult> {
   const response = await makeRequest(
     {
@@ -110,7 +115,7 @@ export async function templateGenerateContent(
       templateId,
       apiSettings,
       stream: false,
-      requestOptions
+      singleRequestOptions
     },
     JSON.stringify(templateParams)
   );
@@ -130,7 +135,7 @@ export async function templateGenerateContentStream(
   apiSettings: ApiSettings,
   templateId: string,
   templateParams: object,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentStreamResult> {
   const response = await makeRequest(
     {
@@ -138,7 +143,7 @@ export async function templateGenerateContentStream(
       templateId,
       apiSettings,
       stream: true,
-      requestOptions
+      singleRequestOptions
     },
     JSON.stringify(templateParams)
   );
@@ -150,13 +155,14 @@ export async function generateContent(
   model: string,
   params: GenerateContentRequest,
   chromeAdapter?: ChromeAdapter,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentResult> {
   const callResult = await callCloudOrDevice(
     params,
     chromeAdapter,
     () => chromeAdapter!.generateContent(params),
-    () => generateContentOnCloud(apiSettings, model, params, requestOptions)
+    () =>
+      generateContentOnCloud(apiSettings, model, params, singleRequestOptions)
   );
   const generateContentResponse = await processGenerateContentResponse(
     callResult.response,
