@@ -445,13 +445,13 @@ export interface ThinkingConfig {
    * The range of supported thinking budget values depends on the model.
    *
    * <ul>
-   * <li>To use the default thinking budget or thinking level for a model, leave
+   * <li>To use the default thinking budget for a model, leave
    * this value undefined.</li>
    *
    * <li>To disable thinking, when supported by the model, set this value
    * to `0`.</li>
    *
-   * <li>To use dynamic thinking, allowing the model to decide on the thinking
+   * <li>To use dynamic thinking, which allows the model to decide on the thinking
    * budget based on the task, set this value to `-1`.</li>
    * </ul>
    *
