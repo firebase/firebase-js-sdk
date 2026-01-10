@@ -83,7 +83,15 @@ export function recordError(
   const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
     'error-logger'
   );
-  const customAttributes = attributes || {};
+  const customAttributes: AnyValueMap = {};
+
+  // Add framework-specific metadata
+  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
+    .frameworkAttributesProvider;
+  if (frameworkAttributesProvider) {
+    const frameworkAttributes = frameworkAttributesProvider();
+    Object.assign(customAttributes, frameworkAttributes);
+  }
 
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
@@ -105,6 +113,12 @@ export function recordError(
   const sessionId = getSessionId();
   if (sessionId) {
     customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
+  }
+
+  // Merge in any additional attributes. Explicitly provided attributes take precedence over
+  // automatically added attributes.
+  if (attributes) {
+    Object.assign(customAttributes, attributes);
   }
 
   if (error instanceof Error) {
