@@ -529,4 +529,60 @@ describe('aggregateResponses', () => {
       );
     }
   });
+  it('preserves first urlContextMetadata and ignores duplicates', () => {
+    const firstMetadata = {
+      urlMetadata: [
+        {
+          retrievedUrl: 'https://example.com',
+          urlRetrievalStatus: 'URL_RETRIEVAL_STATUS_SUCCESS'
+        }
+      ]
+    };
+    const secondMetadata = {
+      urlMetadata: [
+        {
+          retrievedUrl: 'https://different.com',
+          urlRetrievalStatus: 'URL_RETRIEVAL_STATUS_SUCCESS'
+        }
+      ]
+    };
+
+    const responsesToAggregate: GenerateContentResponse[] = [
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'user',
+              parts: [{ text: 'first chunk' }]
+            },
+            urlContextMetadata: firstMetadata as any
+          }
+        ]
+      },
+      {
+        candidates: [
+          {
+            index: 0,
+            content: {
+              role: 'user',
+              parts: [{ text: 'second chunk' }]
+            },
+            urlContextMetadata: secondMetadata as any
+          }
+        ]
+      }
+    ];
+
+    const response = aggregateResponses(responsesToAggregate);
+    
+    // Should preserve the first metadata
+    expect(response.candidates?.[0].urlContextMetadata).to.deep.equal(
+      firstMetadata
+    );
+    // Verify it's the first one, not the second
+    expect(
+      response.candidates?.[0].urlContextMetadata?.urlMetadata[0].retrievedUrl
+    ).to.equal('https://example.com');
+  });
 });
