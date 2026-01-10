@@ -218,9 +218,10 @@ export function aggregateResponses(
         // The urlContextMetadata object is defined in the first chunk of the response stream.
         // In all subsequent chunks, the urlContextMetadata object will be undefined. We need to
         // make sure that we don't overwrite the first value urlContextMetadata object with undefined.
-        // FIXME: What happens if we receive a second, valid urlContextMetadata object?
+        // We preserve the first valid urlContextMetadata and ignore any subsequent ones.
         const urlContextMetadata = candidate.urlContextMetadata as unknown;
         if (
+          !aggregatedResponse.candidates[i].urlContextMetadata &&
           typeof urlContextMetadata === 'object' &&
           urlContextMetadata !== null &&
           Object.keys(urlContextMetadata).length > 0
