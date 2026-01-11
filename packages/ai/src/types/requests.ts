@@ -22,10 +22,12 @@ import {
   LanguageModelPromptOptions
 } from './language-model';
 import {
+  AspectRatio,
   FunctionCallingMode,
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  ImageSize,
   InferenceMode,
   ResponseModality
 } from './enums';
@@ -133,6 +135,12 @@ export interface GenerationConfig {
    * Configuration for "thinking" behavior of compatible Gemini models.
    */
   thinkingConfig?: ThinkingConfig;
+  /**
+   * Configuration for image generation.
+   *
+   * @beta
+   */
+  imageConfig?: ImageConfig;
 }
 
 /**
@@ -498,6 +506,22 @@ export interface ThinkingConfig {
    * debugging, understanding the model's reasoning, and verifying its accuracy.
    */
   includeThoughts?: boolean;
+}
+
+/**
+ * Configuration for image generation.
+ * @public
+ */
+export interface ImageConfig {
+  /**
+   * The aspect ratio of the generated images.
+   */
+  aspectRatio?: AspectRatio;
+
+  /**
+   * The size of generated images..
+   */
+  imageSize?: ImageSize;
 }
 
 /**
