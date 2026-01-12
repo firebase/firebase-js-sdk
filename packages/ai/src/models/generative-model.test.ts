@@ -72,6 +72,7 @@ describe('GenerativeModel', () => {
           }
         })
     ).to.throw(AIErrorCode.UNSUPPORTED);
+  });
   it('passes params through to generateContent', async () => {
     const genModel = new GenerativeModel(
       fakeAI,
