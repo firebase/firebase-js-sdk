@@ -22,6 +22,7 @@ import {
   GenerateContentStreamResult,
   Part,
   RequestOptions,
+  SingleRequestOptions,
   StartChatParams
 } from '../types';
 import { formatNewContent } from '../requests/request-helpers';
@@ -33,7 +34,8 @@ import { logger } from '../logger';
 import { ChromeAdapter } from '../types/chrome-adapter';
 
 /**
- * Do not log a message for this error.
+ * Used to break the internal promise chain when an error is already handled
+ * by the user, preventing duplicate console logs.
  */
 const SILENT_ERROR = 'SILENT_ERROR';
 
@@ -46,6 +48,11 @@ const SILENT_ERROR = 'SILENT_ERROR';
 export class ChatSession {
   private _apiSettings: ApiSettings;
   private _history: Content[] = [];
+
+  /**
+   * Ensures sequential execution of chat messages to maintain history order.
+   * Each call waits for the previous one to settle before proceeding.
+   */
   private _sendPromise: Promise<void> = Promise.resolve();
 
   constructor(
@@ -77,7 +84,8 @@ export class ChatSession {
    * {@link GenerateContentResult}
    */
   async sendMessage(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     await this._sendPromise;
     const newContent = formatNewContent(request);
@@ -90,7 +98,7 @@ export class ChatSession {
       contents: [...this._history, newContent]
     };
     let finalResult = {} as GenerateContentResult;
-    // Add onto the chain.
+
     this._sendPromise = this._sendPromise
       .then(() =>
         generateContent(
@@ -98,10 +106,16 @@ export class ChatSession {
           this.model,
           generateContentRequest,
           this.chromeAdapter,
-          this.requestOptions
+          {
+            ...this.requestOptions,
+            ...singleRequestOptions
+          }
         )
       )
       .then(result => {
+        // TODO: Make this update atomic. If creating `responseContent` throws,
+        // history will contain the user message but not the response, causing
+        // validation errors on the next request.
         if (
           result.response.candidates &&
           result.response.candidates.length > 0
@@ -109,7 +123,6 @@ export class ChatSession {
           this._history.push(newContent);
           const responseContent: Content = {
             parts: result.response.candidates?.[0].content.parts || [],
-            // Response seems to come back without a role set.
             role: result.response.candidates?.[0].content.role || 'model'
           };
           this._history.push(responseContent);
@@ -133,7 +146,8 @@ export class ChatSession {
    * and a response promise.
    */
   async sendMessageStream(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     await this._sendPromise;
     const newContent = formatNewContent(request);
@@ -150,23 +164,31 @@ export class ChatSession {
       this.model,
       generateContentRequest,
       this.chromeAdapter,
-      this.requestOptions
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
 
-    // Add onto the chain.
+    // We hook into the chain to update history, but we don't block the
+    // return of `streamPromise` to the user.
     this._sendPromise = this._sendPromise
       .then(() => streamPromise)
-      // This must be handled to avoid unhandled rejection, but jump
-      // to the final catch block with a label to not log this error.
       .catch(_ignored => {
+        // If the initial fetch fails, the user's `streamPromise` rejects.
+        // We swallow the error here to prevent double logging in the final catch.
         throw new Error(SILENT_ERROR);
       })
       .then(streamResult => streamResult.response)
       .then(response => {
+        // This runs after the stream completes. Runtime errors here cannot be
+        // caught by the user because their promise has likely already resolved.
+        // TODO: Move response validation logic upstream to `stream-reader` so
+        // errors propagate to the user's `result.response` promise.
         if (response.candidates && response.candidates.length > 0) {
           this._history.push(newContent);
+          // TODO: Validate that `response.candidates[0].content` is not null.
           const responseContent = { ...response.candidates[0].content };
-          // Response seems to come back without a role set.
           if (!responseContent.role) {
             responseContent.role = 'model';
           }
@@ -181,12 +203,8 @@ export class ChatSession {
         }
       })
       .catch(e => {
-        // Errors in streamPromise are already catchable by the user as
-        // streamPromise is returned.
-        // Avoid duplicating the error message in logs.
-        if (e.message !== SILENT_ERROR) {
-          // Users do not have access to _sendPromise to catch errors
-          // downstream from streamPromise, so they should not throw.
+        // Filter out errors already handled by the user or initiated by them.
+        if (e.message !== SILENT_ERROR && e.name !== 'AbortError') {
           logger.error(e);
         }
       });

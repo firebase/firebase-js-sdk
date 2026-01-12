@@ -210,7 +210,7 @@ export class LocalDocumentsView {
    * @param existenceStateChanged - A set of documents whose existence states
    *   might have changed. This is used to determine if we need to re-calculate
    *   overlays from mutation queues.
-   * @return A map represents the local documents view.
+   * @returns A map represents the local documents view.
    */
   computeViews(
     transaction: PersistenceTransaction,
@@ -394,10 +394,10 @@ export class LocalDocumentsView {
    * returned together, the total number of documents returned can exceed {@code count}.
    *
    * @param transaction
-   * @param collectionGroup The collection group for the documents.
-   * @param offset The offset to index into.
-   * @param count The number of documents to return
-   * @return A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
+   * @param collectionGroup - The collection group for the documents.
+   * @param offset - The offset to index into.
+   * @param count - The number of documents to return
+   * @returns A LocalWriteResult with the documents that follow the provided offset and the last processed batch id.
    */
   getNextDocuments(
     transaction: PersistenceTransaction,

@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the  or  methods.
+A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.
 
 <p>If the PipelineResult represents a non-document result, `ref` will return a undefined value.
 
@@ -27,10 +27,10 @@ export declare class PipelineResult<AppModelType = DocumentData>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [createTime](./firestore_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was created. Undefined if this result is not a document. {<!-- -->Timestamp\|undefined<!-- -->} |
-|  [id](./firestore_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | <b><i>(Public Preview)</i></b> The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. {<!-- -->string<!-- -->} |
+|  [createTime](./firestore_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was created. Undefined if this result is not a document. |
+|  [id](./firestore_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | <b><i>(Public Preview)</i></b> The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. |
 |  [ref](./firestore_pipelines.pipelineresult.md#pipelineresultref) |  | [DocumentReference](./firestore_.documentreference.md#documentreference_class) \| undefined | <b><i>(Public Preview)</i></b> The reference of the document, if it is a document; otherwise <code>undefined</code>. |
-|  [updateTime](./firestore_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. {<!-- -->Timestamp\|undefined<!-- -->} |
+|  [updateTime](./firestore_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. |
 
 ## Methods
 
@@ -46,8 +46,6 @@ export declare class PipelineResult<AppModelType = DocumentData>
 
 The time the document was created. Undefined if this result is not a document.
 
- {<!-- -->Timestamp\|undefined<!-- -->}
-
 <b>Signature:</b>
 
 ```typescript
@@ -60,8 +58,6 @@ get createTime(): Timestamp | undefined;
 > 
 
 The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`<!-- -->.
-
- {<!-- -->string<!-- -->}
 
 <b>Signature:</b>
 
@@ -89,8 +85,6 @@ get ref(): DocumentReference | undefined;
 
 The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document.
 
- {<!-- -->Timestamp\|undefined<!-- -->}
-
 <b>Signature:</b>
 
 ```typescript
@@ -113,7 +107,7 @@ data(): AppModelType;
 
 AppModelType
 
-{<!-- -->T<!-- -->} An object containing all fields in the document or 'undefined' if the document doesn't exist.
+An object containing all fields in the document or 'undefined' if the document doesn't exist.
 
 ### Example
 
@@ -151,7 +145,7 @@ get(fieldPath: string | FieldPath | Field): any;
 
 any
 
-{<!-- -->\*<!-- -->} The data at the specified field location or undefined if no such field exists.
+The data at the specified field location or `undefined` if no such field exists.
 
 ### Example
 

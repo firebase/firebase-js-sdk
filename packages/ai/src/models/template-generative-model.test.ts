@@ -73,6 +73,51 @@ describe('TemplateGenerativeModel', () => {
         { timeout: 5000 }
       );
     });
+
+    it('singleRequestOptions overrides requestOptions', async () => {
+      const templateGenerateContentStub = stub(
+        generateContentMethods,
+        'templateGenerateContent'
+      ).resolves({} as any);
+      const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
+      const singleRequestOptions = { timeout: 2000 };
+
+      await model.generateContent(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        singleRequestOptions
+      );
+
+      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS },
+        { timeout: 2000 }
+      );
+    });
+
+    it('singleRequestOptions is merged with requestOptions', async () => {
+      const templateGenerateContentStub = stub(
+        generateContentMethods,
+        'templateGenerateContent'
+      ).resolves({} as any);
+      const abortController = new AbortController();
+      const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
+      const singleRequestOptions = { signal: abortController.signal };
+
+      await model.generateContent(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        singleRequestOptions
+      );
+
+      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS },
+        { timeout: 1000, signal: abortController.signal }
+      );
+    });
   });
 
   describe('generateContentStream', () => {
@@ -90,6 +135,51 @@ describe('TemplateGenerativeModel', () => {
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
         { timeout: 5000 }
+      );
+    });
+
+    it('singleRequestOptions overrides requestOptions', async () => {
+      const templateGenerateContentStreamStub = stub(
+        generateContentMethods,
+        'templateGenerateContentStream'
+      ).resolves({} as any);
+      const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
+      const singleRequestOptions = { timeout: 2000 };
+
+      await model.generateContentStream(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        singleRequestOptions
+      );
+
+      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS },
+        { timeout: 2000 }
+      );
+    });
+
+    it('singleRequestOptions is merged with requestOptions', async () => {
+      const templateGenerateContentStreamStub = stub(
+        generateContentMethods,
+        'templateGenerateContentStream'
+      ).resolves({} as any);
+      const abortController = new AbortController();
+      const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
+      const singleRequestOptions = { signal: abortController.signal };
+
+      await model.generateContentStream(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        singleRequestOptions
+      );
+
+      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS },
+        { timeout: 1000, signal: abortController.signal }
       );
     });
   });

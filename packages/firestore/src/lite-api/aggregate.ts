@@ -44,7 +44,7 @@ import { fieldPathFromArgument } from './user_data_reader';
  * count the documents in cases where the result set is prohibitively large to
  * download entirely (thousands of documents).
  *
- * @param query The query whose result set size is calculated.
+ * @param query - The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
@@ -74,8 +74,8 @@ export function getCount<AppModelType, DbModelType extends DocumentData>(
  * function can perform aggregations of the documents in cases where the result
  * set is prohibitively large to download entirely (thousands of documents).
  *
- * @param query The query whose result set is aggregated over.
- * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * @param query - The query whose result set is aggregated over.
+ * @param aggregateSpec - An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.
  * @example
@@ -143,7 +143,7 @@ function convertToAggregateQuerySnapshot<
 /**
  * Create an AggregateField object that can be used to compute the sum of
  * a specified field over a range of documents in the result set of a query.
- * @param field Specifies the field to sum across the result set.
+ * @param field - Specifies the field to sum across the result set.
  */
 export function sum(field: string | FieldPath): AggregateField<number> {
   return new AggregateField('sum', fieldPathFromArgument('sum', field));
@@ -152,7 +152,7 @@ export function sum(field: string | FieldPath): AggregateField<number> {
 /**
  * Create an AggregateField object that can be used to compute the average of
  * a specified field over a range of documents in the result set of a query.
- * @param field Specifies the field to average across the result set.
+ * @param field - Specifies the field to average across the result set.
  */
 export function average(
   field: string | FieldPath
@@ -171,8 +171,8 @@ export function count(): AggregateField<number> {
 /**
  * Compares two 'AggregateField` instances for equality.
  *
- * @param left Compare this AggregateField to the `right`.
- * @param right Compare this AggregateField to the `left`.
+ * @param left - Compare this AggregateField to the `right`.
+ * @param right - Compare this AggregateField to the `left`.
  */
 export function aggregateFieldEqual(
   left: AggregateField<unknown>,

@@ -39,8 +39,8 @@ export declare class TemplateGenerativeModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateContent(templateId, templateVariables)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(templateId, templateVariables)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [generateContent(templateId, templateVariables, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(templateId, templateVariables, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
 
 ## TemplateGenerativeModel.(constructor)
 
@@ -85,7 +85,7 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
+generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
@@ -94,6 +94,7 @@ generateContent(templateId: string, templateVariables: object): Promise<Generate
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | object | A key-value map of variables to populate the template with. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
@@ -109,7 +110,7 @@ Makes a single streaming call to the model and returns an object containing an i
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
+generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
@@ -118,6 +119,7 @@ generateContentStream(templateId: string, templateVariables: object): Promise<Ge
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | object | A key-value map of variables to populate the template with. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 
