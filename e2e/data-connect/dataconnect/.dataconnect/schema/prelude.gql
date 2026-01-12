@@ -535,25 +535,41 @@ input Any_ListFilter {
 }
 
 """
-Mark a string field as searchable.
-When this directive is added, the field will be indexed for full-text search,
-and a <type>_search field will be generated at the query root.
-This directive accepts a `language` argument that defaults to `"english"` in
-case no value is specified.
-See:
-- go/fdc-full-text-search
+Put on a `String` field to include it in the full-text search index.
+
+###### Example
+
+```graphql
+type Post @table {
+  title: String @searchable
+  body: String @searchable
+}
+```
+
+```graphql
+query SearchPosts($query: String!) @auth(level: PUBLIC) {
+  posts_search(query: $query) {
+    id title body
+  }
+}
+```
+
 """
 directive @searchable(
   """
-   Language of the fields that you are searching over can be specified here
-   (e.g. "french", "spanish", etc.).
+   Language of the string column to be indexed for full-text search.
+   (e.g. "french", "spanish", etc.)
    Defaults to "english" if not specified.
   """
   language: String = "english") on FIELD_DEFINITION
 
 extend type _Metadata {
-  # During full text search, the relevance of the query term to this row.
-  # In other cases, this field is not set.
+  """
+  Only set for entities returned from a full text search.
+  The `ts_rank` relevance score of the row compared to the search query.
+
+  You can use it to tune `relevanceThreshold`.
+  """
   relevance: Float
 }
 

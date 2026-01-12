@@ -52,14 +52,14 @@ function getGoogApiClientValue(
   }
   return str;
 }
-export interface DataConnectFetchBody<T> {
+export interface DataConnectFetchBody<Variables> {
   name: string;
   operationName: string;
-  variables: T;
+  variables: Variables;
 }
-export async function dcFetch<T, U>(
+export async function dcFetch<Data, Variables>(
   url: string,
-  body: DataConnectFetchBody<U>,
+  body: DataConnectFetchBody<Variables>,
   { signal }: AbortController,
   appId: string | null | undefined,
   accessToken: string | null,
@@ -67,7 +67,7 @@ export async function dcFetch<T, U>(
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType,
   _isUsingEmulator: boolean
-): Promise<DataConnectResponse<T>> {
+): Promise<DataConnectResponse<Data>> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
@@ -104,7 +104,7 @@ export async function dcFetch<T, U>(
       'Failed to fetch: ' + JSON.stringify(err)
     );
   }
-  let jsonResponse: JsonResponse<T>;
+  let jsonResponse: JsonResponse<Data>;
   try {
     jsonResponse = await response.json();
   } catch (e) {
@@ -129,12 +129,14 @@ export async function dcFetch<T, U>(
       failureResponse
     );
   }
-  return jsonResponse as DataConnectResponse<T>;
+  // eslint-disable-next-line no-console
+  console.log("fetch", jsonResponse); // DEBUGGING
+  return jsonResponse as DataConnectResponse<Data>;
 }
-interface JsonResponse<T> {
+interface JsonResponse<Data> {
   message?: string;
   errors: [];
-  data: Record<string, unknown> | T | null;
+  data: Record<string, unknown> | Data | null;
   extensions: DataConnectExtensions;
 }
 function getErrorMessage(obj: JsonResponse<unknown>): string {

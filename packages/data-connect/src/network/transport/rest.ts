@@ -15,102 +15,18 @@
  * limitations under the License.
  */
 
-import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { DataConnectError, Code } from '../../core/error';
-import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logDebug } from '../../logger';
-import { addToken, urlBuilder } from '../../util/url';
+import { addToken } from '../../util/url';
 import { dcFetch } from '../fetch';
 
 import {
   CallerSdkType,
-  CallerSdkTypeEnum,
   DataConnectResponse,
-  DataConnectTransport
+  DataConnectTransportClass
 } from '.';
 
-export class RESTTransport implements DataConnectTransport {
-  private _host = '';
-  private _port: number | undefined;
-  private _location = 'l';
-  private _connectorName = '';
-  private _secure = true;
-  private _project = 'p';
-  private _serviceName: string;
-  private _accessToken: string | null = null;
-  private _appCheckToken: string | null | undefined = null;
-  private _lastToken: string | null = null;
-  private _isUsingEmulator = false;
-  constructor(
-    options: DataConnectOptions,
-    private apiKey?: string | undefined,
-    private appId?: string | null,
-    private authProvider?: AuthTokenProvider | undefined,
-    private appCheckProvider?: AppCheckTokenProvider | undefined,
-    transportOptions?: TransportOptions | undefined,
-    private _isUsingGen = false,
-    private _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
-  ) {
-    if (transportOptions) {
-      if (typeof transportOptions.port === 'number') {
-        this._port = transportOptions.port;
-      }
-      if (typeof transportOptions.sslEnabled !== 'undefined') {
-        this._secure = transportOptions.sslEnabled;
-      }
-      this._host = transportOptions.host;
-    }
-    const { location, projectId: project, connector, service } = options;
-    if (location) {
-      this._location = location;
-    }
-    if (project) {
-      this._project = project;
-    }
-    this._serviceName = service;
-    if (!connector) {
-      throw new DataConnectError(
-        Code.INVALID_ARGUMENT,
-        'Connector Name required!'
-      );
-    }
-    this._connectorName = connector;
-    this.authProvider?.addTokenChangeListener(token => {
-      logDebug(`New Token Available: ${token}`);
-      this._accessToken = token;
-    });
-    this.appCheckProvider?.addTokenChangeListener(result => {
-      const { token } = result;
-      logDebug(`New App Check Token Available: ${token}`);
-      this._appCheckToken = token;
-    });
-  }
-  get endpointUrl(): string {
-    return urlBuilder(
-      {
-        connector: this._connectorName,
-        location: this._location,
-        projectId: this._project,
-        service: this._serviceName
-      },
-      { host: this._host, sslEnabled: this._secure, port: this._port }
-    );
-  }
-  useEmulator(host: string, port?: number, isSecure?: boolean): void {
-    this._host = host;
-    this._isUsingEmulator = true;
-    if (typeof port === 'number') {
-      this._port = port;
-    }
-    if (typeof isSecure !== 'undefined') {
-      this._secure = isSecure;
-    }
-  }
-  onTokenChanged(newToken: string | null): void {
-    this._accessToken = newToken;
-  }
-
+export class RESTTransport extends DataConnectTransportClass {
   async getWithAuth(forceToken = false): Promise<string | null> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
@@ -135,10 +51,6 @@ export class RESTTransport implements DataConnectTransport {
       starterPromise = new Promise(resolve => resolve(''));
     }
     return starterPromise;
-  }
-
-  _setLastToken(lastToken: string | null): void {
-    this._lastToken = lastToken;
   }
 
   withRetry<T>(
@@ -169,18 +81,18 @@ export class RESTTransport implements DataConnectTransport {
   }
 
   // TODO(mtewani): Update U to include shape of body defined in line 13.
-  invokeQuery: <T, U>(
+  invokeQuery: <Data, Variables>(
     queryName: string,
-    body?: U
-  ) => Promise<DataConnectResponse<T>> = <T, U = unknown>(
+    body?: Variables
+  ) => Promise<DataConnectResponse<Data>> = <Variables, Data = unknown>(
     queryName: string,
-    body: U
+    body: Data
   ) => {
     const abortController = new AbortController();
 
     // TODO(mtewani): Update to proper value
     const withAuth = this.withRetry(() =>
-      dcFetch<T, U>(
+      dcFetch<Variables, Data>(
         addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
         {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
@@ -198,16 +110,16 @@ export class RESTTransport implements DataConnectTransport {
     );
     return withAuth;
   };
-  invokeMutation: <T, U>(
+  invokeMutation: <Data, Variables>(
     queryName: string,
-    body?: U
-  ) => Promise<DataConnectResponse<T>> = <T, U = unknown>(
+    body?: Variables
+  ) => Promise<DataConnectResponse<Data>> = <Data, Variables = unknown>(
     mutationName: string,
-    body: U
+    body: Variables
   ) => {
     const abortController = new AbortController();
     const taskResult = this.withRetry(() => {
-      return dcFetch<T, U>(
+      return dcFetch<Data, Variables>(
         addToken(`${this.endpointUrl}:executeMutation`, this.apiKey),
         {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
@@ -225,6 +137,22 @@ export class RESTTransport implements DataConnectTransport {
     });
     return taskResult;
   };
+  invokeSubscription<Variables>(queryName: string, body?: Variables): void {
+    throw new DataConnectError(
+      Code.NOT_SUPPORTED,
+      'Subscriptions are not supported using REST!'
+    );
+  }
+  invokeUnsubscription(queryName: string): void {
+    throw new DataConnectError(
+      Code.NOT_SUPPORTED,
+      'Unsubscriptions are not supported using REST!'
+    );
+  }
+
+  onTokenChanged(newToken: string | null): void {
+    this._accessToken = newToken;
+  }
 
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;

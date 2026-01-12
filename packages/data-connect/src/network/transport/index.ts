@@ -17,7 +17,10 @@
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { logDebug } from '../../logger';
+import { urlBuilder } from '../../util/url';
 
 /**
  * enum representing different flavors of the SDK used by developers
@@ -65,14 +68,16 @@ export interface DataConnectResponse<T> {
  * @internal
  */
 export interface DataConnectTransport {
-  invokeQuery<T, U>(
+  invokeQuery<Data, Variables>(
     queryName: string,
-    body?: U
-  ): Promise<DataConnectResponse<T>>;
-  invokeMutation<T, U>(
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+  invokeMutation<Data, Variables>(
     queryName: string,
-    body?: U
-  ): Promise<DataConnectResponse<T>>;
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+  invokeSubscription<Variables>(queryName: string, body?: Variables): void;
+  invokeUnsubscription(queryName: string): void;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
@@ -91,3 +96,138 @@ export type TransportClass = new (
   _isUsingGen?: boolean,
   _callerSdkType?: CallerSdkType
 ) => DataConnectTransport;
+
+/**
+ * @internal
+ */
+export abstract class DataConnectTransportClass
+  implements DataConnectTransport
+{
+  protected _host = '';
+  protected _port: number | undefined;
+  protected _location = 'l';
+  protected _connectorName = '';
+  protected _secure = true;
+  protected _project = 'p';
+  protected _serviceName: string;
+  protected _accessToken: string | null = null;
+  protected _appCheckToken: string | null | undefined = null;
+  protected _lastToken: string | null = null;
+  protected _isUsingEmulator = false;
+  constructor(
+    options: DataConnectOptions,
+    protected apiKey?: string | undefined,
+    protected appId?: string | null,
+    protected authProvider?: AuthTokenProvider | undefined,
+    protected appCheckProvider?: AppCheckTokenProvider | undefined,
+    transportOptions?: TransportOptions | undefined,
+    protected _isUsingGen = false,
+    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
+  ) {
+    if (transportOptions) {
+      if (typeof transportOptions.port === 'number') {
+        this._port = transportOptions.port;
+      }
+      if (typeof transportOptions.sslEnabled !== 'undefined') {
+        this._secure = transportOptions.sslEnabled;
+      }
+      this._host = transportOptions.host;
+    }
+    const { location, projectId: project, connector, service } = options;
+    if (location) {
+      this._location = location;
+    }
+    if (project) {
+      this._project = project;
+    }
+    this._serviceName = service;
+    if (!connector) {
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        'Connector Name required!'
+      );
+    }
+    this._connectorName = connector;
+    this.authProvider?.addTokenChangeListener(token => {
+      logDebug(`New Token Available: ${token}`);
+      this._accessToken = token;
+    });
+    this.appCheckProvider?.addTokenChangeListener(result => {
+      const { token } = result;
+      logDebug(`New App Check Token Available: ${token}`);
+      this._appCheckToken = token;
+    });
+  }
+
+  get endpointUrl(): string {
+    return urlBuilder(
+      {
+        connector: this._connectorName,
+        location: this._location,
+        projectId: this._project,
+        service: this._serviceName
+      },
+      { host: this._host, sslEnabled: this._secure, port: this._port }
+    );
+  }
+
+  useEmulator(host: string, port?: number, isSecure?: boolean): void {
+    this._host = host;
+    this._isUsingEmulator = true;
+    if (typeof port === 'number') {
+      this._port = port;
+    }
+    if (typeof isSecure !== 'undefined') {
+      this._secure = isSecure;
+    }
+  }
+
+  async getWithAuth(forceToken = false): Promise<string | null> {
+    let starterPromise: Promise<string | null> = new Promise(resolve =>
+      resolve(this._accessToken)
+    );
+    if (this.appCheckProvider) {
+      const appCheckToken = await this.appCheckProvider.getToken();
+      if (appCheckToken) {
+        this._appCheckToken = appCheckToken.token;
+      }
+    }
+    if (this.authProvider) {
+      starterPromise = this.authProvider
+        .getToken(/*forceToken=*/ forceToken)
+        .then(data => {
+          if (!data) {
+            return null;
+          }
+          this._accessToken = data.accessToken;
+          return this._accessToken;
+        });
+    } else {
+      starterPromise = new Promise(resolve => resolve(''));
+    }
+    return starterPromise;
+  }
+
+  _setLastToken(lastToken: string | null): void {
+    this._lastToken = lastToken;
+  }
+
+  abstract invokeQuery<Data, Variables>(
+    queryName: string,
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+  abstract invokeMutation<Data, Variables>(
+    queryName: string,
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+  abstract invokeSubscription<Variables>(
+    queryName: string,
+    body?: Variables
+  ): void;
+  abstract invokeUnsubscription(queryName: string): void;
+  abstract onTokenChanged(newToken: string | null): void;
+
+  _setCallerSdkType(callerSdkType: CallerSdkType): void {
+    this._callerSdkType = callerSdkType;
+  }
+}

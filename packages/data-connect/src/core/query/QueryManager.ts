@@ -271,7 +271,7 @@ export class QueryManager {
         }
         queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
       } else {
-        if (!this.cache?.containsResultTree(key)) {
+        if (!(await this.cache?.containsResultTree(key))) {
           shouldExecute = true;
         } else {
           queryResult = await this.getFromResultTreeCache(key, queryRef);
