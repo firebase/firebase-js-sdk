@@ -39,7 +39,7 @@ export declare class TemplateImagenModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(templateId, templateVariables)](./ai.templateimagenmodel.md#templateimagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Makes a single call to the model and returns an object containing a single [ImagenGenerationResponse](./ai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->. |
+|  [generateImages(templateId, templateVariables, singleRequestOptions)](./ai.templateimagenmodel.md#templateimagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Makes a single call to the model and returns an object containing a single [ImagenGenerationResponse](./ai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->. |
 
 ## TemplateImagenModel.(constructor)
 
@@ -84,7 +84,7 @@ Makes a single call to the model and returns an object containing a single [Imag
 <b>Signature:</b>
 
 ```typescript
-generateImages(templateId: string, templateVariables: object): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
 ```
 
 #### Parameters
@@ -93,6 +93,7 @@ generateImages(templateId: string, templateVariables: object): Promise<ImagenGen
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | object | A key-value map of variables to populate the template with. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
 
 <b>Returns:</b>
 

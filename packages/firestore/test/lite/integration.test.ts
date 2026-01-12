@@ -93,6 +93,7 @@ import {
   DEFAULT_SETTINGS,
   USE_EMULATOR
 } from '../integration/util/settings';
+import { it, describe } from '../util/mocha_extensions';
 
 import {
   Post,
@@ -2463,27 +2464,24 @@ describe('Count queries', () => {
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
-    'getCount error message contains console link if missing index',
-    () => {
-      return withTestCollection(async coll => {
-        const query_ = query(
-          coll,
-          where('key1', '==', 42),
-          where('key2', '<', 42)
+  it.skip('getCount error message contains console link if missing index', () => {
+    return withTestCollection(async coll => {
+      const query_ = query(
+        coll,
+        where('key1', '==', 42),
+        where('key2', '<', 42)
+      );
+      // TODO(b/316359394) Remove the special logic for non-default databases
+      // once cl/582465034 is rolled out to production.
+      if (coll.firestore._databaseId.isDefaultDatabase) {
+        await expect(getCount(query_)).to.be.eventually.rejectedWith(
+          /index.*https:\/\/console\.firebase\.google\.com/
         );
-        // TODO(b/316359394) Remove the special logic for non-default databases
-        // once cl/582465034 is rolled out to production.
-        if (coll.firestore._databaseId.isDefaultDatabase) {
-          await expect(getCount(query_)).to.be.eventually.rejectedWith(
-            /index.*https:\/\/console\.firebase\.google\.com/
-          );
-        } else {
-          await expect(getCount(query_)).to.be.eventually.rejected;
-        }
-      });
-    }
-  );
+      } else {
+        await expect(getCount(query_)).to.be.eventually.rejected;
+      }
+    });
+  });
 });
 
 describe('Aggregate queries', () => {
@@ -2772,7 +2770,7 @@ describe('Aggregate queries', () => {
   // production, since the Firestore Emulator does not require index creation
   // and will, therefore, never fail in this situation.
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it.skipEmulator.skipEnterprise(
     'getAggregate error message contains console link if missing index',
     () => {
       return withTestCollection(async coll => {
@@ -2906,26 +2904,29 @@ describe('Aggregate queries - sum / average', () => {
     });
   });
 
-  it('fails when exceeding the max (5) aggregations using getAggregationFromServer', () => {
-    const testDocs = [
-      { author: 'authorA', title: 'titleA', pages: 100 },
-      { author: 'authorB', title: 'titleB', pages: 50 }
-    ];
-    return withTestCollectionAndInitialData(testDocs, async coll => {
-      const promise = getAggregate(coll, {
-        totalPages: sum('pages'),
-        averagePages: average('pages'),
-        count: count(),
-        totalPagesX: sum('pages'),
-        averagePagesY: average('pages'),
-        countZ: count()
-      });
+  it.skipEmulator.skipEnterprise(
+    'fails when exceeding the max (5) aggregations using getAggregationFromServer',
+    () => {
+      const testDocs = [
+        { author: 'authorA', title: 'titleA', pages: 100 },
+        { author: 'authorB', title: 'titleB', pages: 50 }
+      ];
+      return withTestCollectionAndInitialData(testDocs, async coll => {
+        const promise = getAggregate(coll, {
+          totalPages: sum('pages'),
+          averagePages: average('pages'),
+          count: count(),
+          totalPagesX: sum('pages'),
+          averagePagesY: average('pages'),
+          countZ: count()
+        });
 
-      await expect(promise).to.eventually.be.rejectedWith(
-        /maximum number of aggregations/
-      );
-    });
-  });
+        await expect(promise).to.eventually.be.rejectedWith(
+          /maximum number of aggregations/
+        );
+      });
+    }
+  );
 
   // Only run tests that require indexes against the emulator, because we don't
   // have a way to dynamically create the indexes when running the tests.

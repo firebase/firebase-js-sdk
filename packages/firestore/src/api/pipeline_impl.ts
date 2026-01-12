@@ -1,0 +1,214 @@
+/**
+ * @license
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { Pipeline } from '../api/pipeline';
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
+import {
+  StructuredPipeline,
+  StructuredPipelineOptions
+} from '../core/structured_pipeline';
+import { Pipeline as LitePipeline } from '../lite-api/pipeline';
+import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
+import { PipelineSource } from '../lite-api/pipeline-source';
+import { PipelineExecuteOptions } from '../lite-api/pipeline_options';
+import { Stage } from '../lite-api/stage';
+import {
+  newUserDataReader,
+  UserDataReader,
+  UserDataSource
+} from '../lite-api/user_data_reader';
+import { cast } from '../util/input_validation';
+
+import { ensureFirestoreConfigured, Firestore } from './database';
+import { DocumentReference } from './reference';
+import { ExpUserDataWriter } from './user_data_writer';
+
+declare module './database' {
+  /**
+   * @beta
+   * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
+   *
+   * @example
+   * ```
+   * let myPipeline: Pipeline = firestore.pipeline().collection('books');
+   * ```
+   */
+  interface Firestore {
+    pipeline(): PipelineSource<Pipeline>;
+  }
+}
+
+/**
+ * @beta
+ * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ *
+ * The returned Promise can be used to track the progress of the pipeline execution
+ * and retrieve the results (or handle any errors) asynchronously.
+ *
+ * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
+ * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
+ * represents a single key/value map that has passed through all the
+ * stages of the pipeline, however this might differ depending on the stages involved in the
+ * pipeline. For example:
+ *
+ * <ul>
+ *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
+ *       represents a single document.</li>
+ *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
+ *       representing the aggregated results over the entire dataset .</li>
+ *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
+ *       distinct group and its associated aggregated values.</li>
+ * </ul>
+ *
+ * @example
+ * ```typescript
+ * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
+ *     .where(gt(field("rating"), 4.5))
+ *     .select("title", "author", "rating"));
+ *
+ * const results: PipelineResults = snapshot.results;
+ * ```
+ *
+ * @param pipeline - The pipeline to execute.
+ * @returns A Promise representing the asynchronous pipeline execution.
+ */
+export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
+/**
+ * @beta
+ * Executes a pipeline and returns a Promise to represent the asynchronous operation.
+ *
+ * The returned Promise can be used to track the progress of the pipeline execution
+ * and retrieve the results (or handle any errors) asynchronously.
+ *
+ * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
+ * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
+ * represents a single key/value map that has passed through all the
+ * stages of the pipeline, however this might differ depending on the stages involved in the
+ * pipeline. For example:
+ *
+ * <ul>
+ *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
+ *       represents a single document.</li>
+ *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
+ *       representing the aggregated results over the entire dataset .</li>
+ *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
+ *       distinct group and its associated aggregated values.</li>
+ * </ul>
+ *
+ * @example
+ * ```typescript
+ * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
+ *     .where(gt(field("rating"), 4.5))
+ *     .select("title", "author", "rating"));
+ *
+ * const results: PipelineResults = snapshot.results;
+ * ```
+ *
+ * @param options - Specifies the pipeline to execute and other options for execute.
+ * @returns A Promise representing the asynchronous pipeline execution.
+ */
+export function execute(
+  options: PipelineExecuteOptions
+): Promise<PipelineSnapshot>;
+export function execute(
+  pipelineOrOptions: LitePipeline | PipelineExecuteOptions
+): Promise<PipelineSnapshot> {
+  const options: PipelineExecuteOptions = !(
+    pipelineOrOptions instanceof LitePipeline
+  )
+    ? pipelineOrOptions
+    : {
+        pipeline: pipelineOrOptions
+      };
+
+  const { pipeline, rawOptions, ...rest } = options;
+
+  const firestore = cast(pipeline._db, Firestore);
+  const client = ensureFirestoreConfigured(firestore);
+
+  const udr = new UserDataReader(
+    firestore._databaseId,
+    /* ignoreUndefinedProperties */ true
+  );
+  const context = udr.createContext(UserDataSource.Argument, 'execute');
+
+  const structuredPipelineOptions = new StructuredPipelineOptions(
+    rest,
+    rawOptions
+  );
+  structuredPipelineOptions._readUserData(context);
+
+  const structuredPipeline: StructuredPipeline = new StructuredPipeline(
+    pipeline,
+    structuredPipelineOptions
+  );
+
+  return firestoreClientExecutePipeline(client, structuredPipeline).then(
+    result => {
+      // Get the execution time from the first result.
+      // firestoreClientExecutePipeline returns at least one PipelineStreamElement
+      // even if the returned document set is empty.
+      const executionTime =
+        result.length > 0 ? result[0].executionTime?.toTimestamp() : undefined;
+
+      const docs = result
+        // Currently ignore any response from ExecutePipeline that does
+        // not contain any document data in the `fields` property.
+        .filter(element => !!element.fields)
+        .map(
+          element =>
+            new PipelineResult(
+              pipeline._userDataWriter,
+              element.fields!,
+              element.key?.path
+                ? new DocumentReference(firestore, null, element.key)
+                : undefined,
+              element.createTime?.toTimestamp(),
+              element.updateTime?.toTimestamp()
+            )
+        );
+
+      return new PipelineSnapshot(pipeline, docs, executionTime);
+    }
+  );
+}
+
+/**
+ * @beta
+ * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
+ *
+ * @example
+ * ```
+ * let myPipeline: Pipeline = firestore.pipeline().collection('books');
+ * ```
+ */
+// Augment the Firestore class with the pipeline() factory method
+Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
+  const userDataReader = newUserDataReader(this);
+  return new PipelineSource<Pipeline>(
+    this._databaseId,
+    userDataReader,
+    (stages: Stage[]) => {
+      return new Pipeline(
+        this,
+        userDataReader,
+        new ExpUserDataWriter(this),
+        stages
+      );
+    }
+  );
+};

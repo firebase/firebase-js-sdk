@@ -49,7 +49,7 @@ function generateInitialUniqueDebugId(): number {
  * "debug ID" string in all of its log messages to help trace a specific
  * connection over time.
  *
- * @return the 10-character generated ID (e.g. "0xa1b2c3d4").
+ * @returns the 10-character generated ID (e.g. "0xa1b2c3d4").
  */
 export function generateUniqueDebugId(): string {
   if (lastUniqueDebugId === null) {

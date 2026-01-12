@@ -38,11 +38,16 @@ import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { FieldIndex } from '../model/field_index';
 import { Mutation } from '../model/mutation';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import { toByteStreamReader } from '../platform/byte_stream_reader';
 import { newSerializer } from '../platform/serializer';
 import { newTextEncoder } from '../platform/text_serializer';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
-import { Datastore, invokeRunAggregationQueryRpc } from '../remote/datastore';
+import {
+  Datastore,
+  invokeExecutePipeline,
+  invokeRunAggregationQueryRpc
+} from '../remote/datastore';
 import {
   RemoteStore,
   remoteStoreDisableNetwork,
@@ -82,6 +87,7 @@ import {
   removeSnapshotsInSyncListener
 } from './event_manager';
 import { newQueryForPath, Query } from './query';
+import { StructuredPipeline } from './structured_pipeline';
 import { SyncEngine } from './sync_engine';
 import {
   syncEngineListen,
@@ -140,7 +146,10 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     public asyncQueue: AsyncQueue,
-    private databaseInfo: DatabaseInfo,
+    /**
+     * Exposed for testing
+     */
+    public _databaseInfo: DatabaseInfo,
     componentProvider?: {
       _offline: OfflineComponentProvider;
       _online: OnlineComponentProvider;
@@ -161,7 +170,7 @@ export class FirestoreClient {
   get configuration(): ComponentConfiguration {
     return {
       asyncQueue: this.asyncQueue,
-      databaseInfo: this.databaseInfo,
+      databaseInfo: this._databaseInfo,
       clientId: this.clientId,
       authCredentials: this.authCredentials,
       appCheckCredentials: this.appCheckCredentials,
@@ -543,6 +552,23 @@ export function firestoreClientRunAggregateQuery(
       deferred.resolve(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
+    } catch (e) {
+      deferred.reject(e as Error);
+    }
+  });
+  return deferred.promise;
+}
+
+export function firestoreClientExecutePipeline(
+  client: FirestoreClient,
+  pipeline: StructuredPipeline
+): Promise<PipelineStreamElement[]> {
+  const deferred = new Deferred<PipelineStreamElement[]>();
+
+  client.asyncQueue.enqueueAndForget(async () => {
+    try {
+      const datastore = await getDatastore(client);
+      deferred.resolve(invokeExecutePipeline(datastore, pipeline));
     } catch (e) {
       deferred.reject(e as Error);
     }

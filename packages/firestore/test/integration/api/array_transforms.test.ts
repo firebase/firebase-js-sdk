@@ -34,8 +34,6 @@ import {
 } from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
-addEqualityMatcher();
-
 /**
  * Note: Transforms are tested pretty thoroughly in server_timestamp.test.ts
  * (via set, update, transactions, nested in documents, multiple transforms
@@ -43,6 +41,8 @@ addEqualityMatcher();
  * semantics.
  */
 apiDescribe('Array Transforms:', persistence => {
+  addEqualityMatcher();
+
   // A document reference to read and write to.
   let docRef: DocumentReference;
 

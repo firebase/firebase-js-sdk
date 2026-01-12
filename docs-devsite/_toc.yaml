@@ -190,6 +190,8 @@ toc:
     path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SingleRequestOptions
+    path: /docs/reference/js/ai.singlerequestoptions.md
   - title: SpeechConfig
     path: /docs/reference/js/ai.speechconfig.md
   - title: StartAudioConversationOptions
@@ -597,6 +599,130 @@ toc:
     path: /docs/reference/js/firestore_lite.vectorvalue.md
   - title: WriteBatch
     path: /docs/reference/js/firestore_lite.writebatch.md
+- title: firestore/lite/pipelines
+  path: /docs/reference/js/firestore_lite_pipelines.md
+  section:
+  - title: AggregateFunction
+    path: /docs/reference/js/firestore_lite_pipelines.aggregatefunction.md
+  - title: AliasedAggregate
+    path: /docs/reference/js/firestore_lite_pipelines.aliasedaggregate.md
+  - title: AliasedExpression
+    path: /docs/reference/js/firestore_lite_pipelines.aliasedexpression.md
+  - title: BooleanExpression
+    path: /docs/reference/js/firestore_lite_pipelines.booleanexpression.md
+  - title: Bytes
+    path: /docs/reference/js/firestore_lite_pipelines.bytes.md
+  - title: CollectionReference
+    path: /docs/reference/js/firestore_lite_pipelines.collectionreference.md
+  - title: DocumentData
+    path: /docs/reference/js/firestore_lite_pipelines.documentdata.md
+  - title: DocumentReference
+    path: /docs/reference/js/firestore_lite_pipelines.documentreference.md
+  - title: DocumentSnapshot
+    path: /docs/reference/js/firestore_lite_pipelines.documentsnapshot.md
+  - title: Expression
+    path: /docs/reference/js/firestore_lite_pipelines.expression.md
+  - title: Field
+    path: /docs/reference/js/firestore_lite_pipelines.field.md
+  - title: FieldPath
+    path: /docs/reference/js/firestore_lite_pipelines.fieldpath.md
+  - title: FieldValue
+    path: /docs/reference/js/firestore_lite_pipelines.fieldvalue.md
+  - title: Firestore
+    path: /docs/reference/js/firestore_lite_pipelines.firestore.md
+  - title: FirestoreDataConverter
+    path: /docs/reference/js/firestore_lite_pipelines.firestoredataconverter.md
+  - title: FunctionExpression
+    path: /docs/reference/js/firestore_lite_pipelines.functionexpression.md
+  - title: GeoPoint
+    path: /docs/reference/js/firestore_lite_pipelines.geopoint.md
+  - title: Ordering
+    path: /docs/reference/js/firestore_lite_pipelines.ordering.md
+  - title: Pipeline
+    path: /docs/reference/js/firestore_lite_pipelines.pipeline.md
+  - title: PipelineResult
+    path: /docs/reference/js/firestore_lite_pipelines.pipelineresult.md
+  - title: PipelineSnapshot
+    path: /docs/reference/js/firestore_lite_pipelines.pipelinesnapshot.md
+  - title: PipelineSource
+    path: /docs/reference/js/firestore_lite_pipelines.pipelinesource.md
+  - title: Query
+    path: /docs/reference/js/firestore_lite_pipelines.query.md
+  - title: QueryDocumentSnapshot
+    path: /docs/reference/js/firestore_lite_pipelines.querydocumentsnapshot.md
+  - title: Selectable
+    path: /docs/reference/js/firestore_lite_pipelines.selectable.md
+  - title: StageOptions
+    path: /docs/reference/js/firestore_lite_pipelines.stageoptions.md
+  - title: Timestamp
+    path: /docs/reference/js/firestore_lite_pipelines.timestamp.md
+  - title: VectorValue
+    path: /docs/reference/js/firestore_lite_pipelines.vectorvalue.md
+- title: firestore/pipelines
+  path: /docs/reference/js/firestore_pipelines.md
+  section:
+  - title: AggregateFunction
+    path: /docs/reference/js/firestore_pipelines.aggregatefunction.md
+  - title: AliasedAggregate
+    path: /docs/reference/js/firestore_pipelines.aliasedaggregate.md
+  - title: AliasedExpression
+    path: /docs/reference/js/firestore_pipelines.aliasedexpression.md
+  - title: BooleanExpression
+    path: /docs/reference/js/firestore_pipelines.booleanexpression.md
+  - title: Bytes
+    path: /docs/reference/js/firestore_pipelines.bytes.md
+  - title: CollectionReference
+    path: /docs/reference/js/firestore_pipelines.collectionreference.md
+  - title: DocumentData
+    path: /docs/reference/js/firestore_pipelines.documentdata.md
+  - title: DocumentReference
+    path: /docs/reference/js/firestore_pipelines.documentreference.md
+  - title: DocumentSnapshot
+    path: /docs/reference/js/firestore_pipelines.documentsnapshot.md
+  - title: Expression
+    path: /docs/reference/js/firestore_pipelines.expression.md
+  - title: Field
+    path: /docs/reference/js/firestore_pipelines.field.md
+  - title: FieldPath
+    path: /docs/reference/js/firestore_pipelines.fieldpath.md
+  - title: FieldValue
+    path: /docs/reference/js/firestore_pipelines.fieldvalue.md
+  - title: Firestore
+    path: /docs/reference/js/firestore_pipelines.firestore.md
+  - title: FirestoreDataConverter
+    path: /docs/reference/js/firestore_pipelines.firestoredataconverter.md
+  - title: FunctionExpression
+    path: /docs/reference/js/firestore_pipelines.functionexpression.md
+  - title: GeoPoint
+    path: /docs/reference/js/firestore_pipelines.geopoint.md
+  - title: Ordering
+    path: /docs/reference/js/firestore_pipelines.ordering.md
+  - title: Pipeline
+    path: /docs/reference/js/firestore_pipelines.pipeline.md
+  - title: PipelineExecuteOptions
+    path: /docs/reference/js/firestore_pipelines.pipelineexecuteoptions.md
+  - title: PipelineResult
+    path: /docs/reference/js/firestore_pipelines.pipelineresult.md
+  - title: PipelineSnapshot
+    path: /docs/reference/js/firestore_pipelines.pipelinesnapshot.md
+  - title: PipelineSource
+    path: /docs/reference/js/firestore_pipelines.pipelinesource.md
+  - title: Query
+    path: /docs/reference/js/firestore_pipelines.query.md
+  - title: QueryDocumentSnapshot
+    path: /docs/reference/js/firestore_pipelines.querydocumentsnapshot.md
+  - title: Selectable
+    path: /docs/reference/js/firestore_pipelines.selectable.md
+  - title: SnapshotMetadata
+    path: /docs/reference/js/firestore_pipelines.snapshotmetadata.md
+  - title: SnapshotOptions
+    path: /docs/reference/js/firestore_pipelines.snapshotoptions.md
+  - title: StageOptions
+    path: /docs/reference/js/firestore_pipelines.stageoptions.md
+  - title: Timestamp
+    path: /docs/reference/js/firestore_pipelines.timestamp.md
+  - title: VectorValue
+    path: /docs/reference/js/firestore_pipelines.vectorvalue.md
 - title: functions
   path: /docs/reference/js/functions.md
   section:
