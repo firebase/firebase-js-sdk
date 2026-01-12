@@ -177,6 +177,7 @@ The Firebase AI Web SDK.
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## Type Aliases
@@ -209,6 +210,7 @@ The Firebase AI Web SDK.
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
 |  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
@@ -828,6 +830,21 @@ SchemaType: {
 }
 ```
 
+## ThinkingLevel
+
+A preset that controls the model's "thinking" process. Use `ThinkingLevel.LOW` for faster responses on less complex tasks, and `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
+
+<b>Signature:</b>
+
+```typescript
+ThinkingLevel: {
+    MINIMAL: string;
+    LOW: string;
+    MEDIUM: string;
+    HIGH: string;
+}
+```
+
 ## URLRetrievalStatus
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -1141,6 +1158,16 @@ Contains the list of OpenAPI data types as defined by the [OpenAPI specification
 
 ```typescript
 export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
+```
+
+## ThinkingLevel
+
+A preset that controls the model's "thinking" process. Use `ThinkingLevel.LOW` for faster responses on less complex tasks, and `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
+
+<b>Signature:</b>
+
+```typescript
+export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 ```
 
 ## Tool
