@@ -14,3 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { DataConnectResponse, DataConnectTransportClass } from '.';
+
+export class StreamTransport extends DataConnectTransportClass {
+  invokeQuery<Data, Variables>(
+    queryName: string,
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>> {
+    throw new Error('Method not implemented.');
+  }
+
+  invokeMutation<Data, Variables>(
+    queryName: string,
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>> {
+    throw new Error('Method not implemented.');
+  }
+
+  invokeSubscription<Variables>(queryName: string, body?: Variables): void {
+    throw new Error('Method not implemented.');
+  }
+  
+  invokeUnsubscription(queryName: string): void {
+    throw new Error('Method not implemented.');
+  }
+  
+  onTokenChanged(newToken: string | null): void {
+    throw new Error('Method not implemented.');
+  }
+}

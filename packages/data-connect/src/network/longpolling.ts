@@ -25,7 +25,7 @@ import {
   DataConnectStreamManager
 } from './transport';
 
-export class WebSocketStreamManager implements DataConnectStreamManager {
+export class LongPollingStreamManager implements DataConnectStreamManager {
   executions: Array<ExecutionStream<object, object | undefined>> = []; // TODO: consider how to type this array... or do something different...
   subscriptions: Array<SubscriptionStream<object, object | undefined>> = []; // TODO: consider how to type this array... or do something different...
 

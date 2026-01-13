@@ -16,6 +16,8 @@
  */
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
+import { QueryRef } from '../../api/query';
+import { OperationRef } from '../../api/Reference';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
@@ -62,6 +64,32 @@ export interface DataConnectResponse<T> {
   data: T;
   errors: Error[];
   extensions: DataConnectExtensions;
+}
+
+/**
+ * Represents a single stream of communication over a physical connection.
+ * Example: A single query execution, or a query subscription
+ * @internal
+ */
+export interface LogicalStream<Data, Variables> {
+  id: string; // ID for this specific stream = Operation Key + Execute/Subscribe
+  ref: OperationRef<Data, Variables>;
+}
+
+/**
+ * @internal
+ */
+export interface ExecutionStream<Data, Variables>
+  extends LogicalStream<Data, Variables> {
+  // status: ?; // queued, sent, responded
+}
+
+/**
+ * @internal
+ */
+export interface SubscriptionStream<Data, Variables>
+  extends LogicalStream<Data, Variables> {
+  // status: ?; // check the protocol and determine possible statuses
 }
 
 /**
@@ -114,6 +142,8 @@ export abstract class DataConnectTransportClass
   protected _appCheckToken: string | null | undefined = null;
   protected _lastToken: string | null = null;
   protected _isUsingEmulator = false;
+  protected streamManager?: DataConnectStreamManager;
+
   constructor(
     options: DataConnectOptions,
     protected apiKey?: string | undefined,
@@ -230,4 +260,53 @@ export abstract class DataConnectTransportClass
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;
   }
+}
+
+/**
+ * Interface for managing physical and logical stream connections.
+ * @internal
+ */
+export interface DataConnectStreamManager {
+  /** Maps tracking the logical streams over physical connections. */
+  executions: Array<ExecutionStream<object, object | undefined>>; // TODO: type
+  subscriptions: Array<SubscriptionStream<object, object | undefined>>; // TODO: type
+
+  /** Open a physical stream connection to the server. */
+  openConnection(): void; // TODO: type
+  /** Close a physical stream connection to the server. */
+  closeConnection(): void; // TODO: type
+  /** Reconnect the physical stream. */
+  reconnect(): void; // TODO: type
+
+  /** Send a message via logical stream. */
+  sendMessage<Data, Variables>(
+    stream: LogicalStream<Data, Variables>,
+    message: object
+  ): void; // TODO: type
+
+  /** Execute a one-off operation. */
+  executeOperation<Data, Variables>(
+    operationRef: OperationRef<Data, Variables>
+  ): Promise<DataConnectResponse<Data>>;
+
+  /** Subscribe to Realtime Notifications for a query. */
+  subscribeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>): void; // TODO: type
+  /** Unsubscribe from Realtime Notifications for a query. */
+  unsubscribeQuery(): void; // TODO: type
+
+  /** Ping the connection to make sure it's still alive. */
+  heartbeat(): void; // TODO: type
+
+  /** Open a new logical stream for executing a one-off operation. */
+  openExecutionStream<Data, Variables>(): ExecutionStream<Data, Variables>;
+  /** Accept a response to a one-off execution request over the logical stream. */
+  handleExecutionResponse<Data>(): DataConnectResponse<Data>;
+
+  /** Open a new logical stream for subscribing to a query. */
+  openSubscriptionStream<Data, Variables>(): SubscriptionStream<
+    Data,
+    Variables
+  >;
+  /** Accept a response to a one-off execution request over the logical stream. */
+  handleSubscriptionNotification(): void; // TODO: type
 }
