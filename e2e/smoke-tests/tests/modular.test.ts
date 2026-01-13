@@ -308,7 +308,7 @@ describe('MODULAR', () => {
     });
   });
 
-  describe.only('AI', () => {
+  describe('AI', () => {
     let ai: AI;
     it('getVertexAI()', () => {
       ai = getAI(app, { backend: new VertexAIBackend() });
