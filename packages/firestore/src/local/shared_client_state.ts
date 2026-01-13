@@ -182,7 +182,7 @@ export interface SharedClientState {
    * Notifies other clients when remote documents have changed due to loading
    * a bundle.
    *
-   * @param collectionGroups The collection groups affected by this bundle.
+   * @param collectionGroups - The collection groups affected by this bundle.
    */
   notifyBundleLoaded(collectionGroups: Set<string>): void;
 }

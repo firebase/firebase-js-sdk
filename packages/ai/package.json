@@ -1,6 +1,6 @@
 {
   "name": "@firebase/ai",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "description": "The Firebase AI SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "engines": {

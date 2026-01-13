@@ -235,7 +235,7 @@ export interface AsyncQueue {
    * only possible way to request running an operation is through
    * `enqueueEvenWhileRestricted()`.
    *
-   * @param purgeExistingTasks Whether already enqueued tasked should be
+   * @param purgeExistingTasks - Whether already enqueued tasked should be
    * rejected (unless enqueued with `enqueueEvenWhileRestricted()`). Defaults
    * to false.
    */

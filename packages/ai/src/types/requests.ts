@@ -27,7 +27,8 @@ import {
   HarmBlockThreshold,
   HarmCategory,
   InferenceMode,
-  ResponseModality
+  ResponseModality,
+  ThinkingLevel
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
 
@@ -251,6 +252,47 @@ export interface RequestOptions {
    * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
+}
+
+/**
+ * Options that can be provided per-request.
+ * Extends the base {@link RequestOptions} (like `timeout` and `baseUrl`)
+ * with request-specific controls like cancellation via `AbortSignal`.
+ *
+ * Options specified here will override any default {@link RequestOptions}
+ * configured on a model (for example, {@link GenerativeModel}).
+ *
+ * @public
+ */
+export interface SingleRequestOptions extends RequestOptions {
+  /**
+   * An `AbortSignal` instance that allows cancelling ongoing requests (like `generateContent` or
+   * `generateImages`).
+   *
+   * If provided, calling `abort()` on the corresponding `AbortController`
+   * will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown
+   * if cancellation is successful.
+   *
+   * Note that this will not cancel the request in the backend, so any applicable billing charges
+   * will still be applied despite cancellation.
+   *
+   * @example
+   * ```javascript
+   * const controller = new AbortController();
+   * const model = getGenerativeModel({
+   *   // ...
+   * });
+   * model.generateContent(
+   *   "Write a story about a magic backpack.",
+   *   { signal: controller.signal }
+   * );
+   *
+   * // To cancel request:
+   * controller.abort();
+   * ```
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -506,17 +548,43 @@ export interface ThinkingConfig {
   /**
    * The thinking budget, in tokens.
    *
+   * @remarks
    * This parameter sets an upper limit on the number of tokens the model can use for its internal
    * "thinking" process. A higher budget may result in higher quality responses for complex tasks
    * but can also increase latency and cost.
    *
-   * If you don't specify a budget, the model will determine the appropriate amount
-   * of thinking based on the complexity of the prompt.
+   * The range of supported thinking budget values depends on the model.
+   *
+   * <ul>
+   * <li>To use the default thinking budget for a model, leave
+   * this value undefined.</li>
+   *
+   * <li>To disable thinking, when supported by the model, set this value
+   * to `0`.</li>
+   *
+   * <li>To use dynamic thinking, which allows the model to decide on the thinking
+   * budget based on the task, set this value to `-1`.</li>
+   * </ul>
    *
    * An error will be thrown if you set a thinking budget for a model that does not support this
    * feature or if the specified budget is not within the model's supported range.
+   *
+   * The model will also error if `thinkingLevel` and `thinkingBudget` are
+   * both set.
    */
   thinkingBudget?: number;
+
+  /**
+   * If not specified, Gemini will use the model's default dynamic thinking level.
+   *
+   * @remarks
+   * Note: The model will error if `thinkingLevel` and `thinkingBudget` are
+   * both set.
+   *
+   * Important: Gemini 2.5 series models do not support thinking levels; use
+   * `thinkingBudget` to set a thinking budget instead.
+   */
+  thinkingLevel?: ThinkingLevel;
 
   /**
    * Whether to include "thought summaries" in the model's response.

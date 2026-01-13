@@ -22,7 +22,8 @@ import {
   BackendType,
   GoogleAIBackend,
   VertexAIBackend,
-  getAI
+  getAI,
+  getGenerativeModel
 } from '../src';
 import { FIREBASE_CONFIG } from './firebase-config';
 
@@ -47,6 +48,14 @@ const backends: readonly Backend[] = [
   new VertexAIBackend('global')
 ];
 
+/**
+ * Vertex Live API only works on us-central1 at the moment.
+ */
+const liveBackends: readonly Backend[] = [
+  new GoogleAIBackend(),
+  new VertexAIBackend('us-central1')
+];
+
 const backendNames: Map<BackendType, string> = new Map([
   [BackendType.GOOGLE_AI, 'Google AI'],
   [BackendType.VERTEX_AI, 'Vertex AI']
@@ -61,10 +70,23 @@ const modelNames: readonly string[] = [
   'gemini-3-pro-preview'
 ];
 
+// Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
+export const cheapestModel = 'gemini-2.0-flash';
+export const defaultAIInstance = getAI(app, { backend: new VertexAIBackend() });
+export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
+  model: cheapestModel,
+  generationConfig: {
+    maxOutputTokens: 10 // Just enough to confirm we actually get something back.
+  }
+});
+
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([
-  [BackendType.GOOGLE_AI, ['gemini-live-2.5-flash-preview']],
-  [BackendType.VERTEX_AI, ['gemini-2.0-flash-live-preview-04-09']]
+  [BackendType.GOOGLE_AI, ['gemini-2.5-flash-native-audio-preview-09-2025']],
+  [
+    BackendType.VERTEX_AI,
+    ['gemini-live-2.5-flash-preview-native-audio-09-2025']
+  ]
 ]);
 
 /**
@@ -85,7 +107,7 @@ export const testConfigs: readonly TestConfig[] = backends.flatMap(backend => {
 /**
  * Test configurations used for the Live API integration tests.
  */
-export const liveTestConfigs: readonly TestConfig[] = backends.flatMap(
+export const liveTestConfigs: readonly TestConfig[] = liveBackends.flatMap(
   backend => {
     const testConfigs: TestConfig[] = [];
     liveModelNames.get(backend.backendType)!.forEach(modelName => {

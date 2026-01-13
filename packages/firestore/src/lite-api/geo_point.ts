@@ -116,7 +116,7 @@ export class GeoPoint {
   /**
    * Builds a `GeoPoint` instance from a JSON object created by {@link GeoPoint.toJSON}.
    *
-   * @param json a JSON object represention of a `GeoPoint` instance
+   * @param json - a JSON object represention of a `GeoPoint` instance
    * @returns an instance of {@link GeoPoint} if the JSON object could be parsed. Throws a
    * {@link FirestoreError} if an error occurs.
    */

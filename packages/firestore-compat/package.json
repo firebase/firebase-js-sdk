@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-compat",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "The Cloud Firestore component of the Firebase JS SDK.",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@firebase/component": "0.7.0",
-    "@firebase/firestore": "4.9.2",
+    "@firebase/firestore": "4.9.3",
     "@firebase/util": "1.13.0",
     "@firebase/firestore-types": "3.0.3",
     "tslib": "^2.1.0"

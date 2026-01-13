@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "12.6.0",
+  "version": "12.7.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -131,6 +131,18 @@
       },
       "default": "./firestore/dist/esm/index.esm.js"
     },
+    "./firestore/pipelines": {
+      "types": "./firestore/pipelines/dist/firestore/pipelines/index.d.ts",
+      "node": {
+        "require": "./firestore/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/pipelines/dist/pipelines.mjs"
+      },
+      "browser": {
+        "require": "./firestore/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/pipelines/dist/esm/pipelines.esm.js"
+      },
+      "default": "./firestore/pipelines/dist/esm/pipelines.esm.js"
+    },
     "./firestore/lite": {
       "types": "./firestore/lite/dist/firestore/lite/index.d.ts",
       "node": {
@@ -142,6 +154,18 @@
         "import": "./firestore/lite/dist/esm/index.esm.js"
       },
       "default": "./firestore/lite/dist/esm/index.esm.js"
+    },
+    "./firestore/lite/pipelines": {
+      "types": "./firestore/lite/pipelines/dist/firestore/lite/pipelines/index.d.ts",
+      "node": {
+        "require": "./firestore/lite/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/lite/pipelines/dist/pipelines.mjs"
+      },
+      "browser": {
+        "require": "./firestore/lite/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/lite/pipelines/dist/esm/pipelines.esm.js"
+      },
+      "default": "./firestore/lite/pipelines/dist/esm/pipelines.esm.js"
     },
     "./functions": {
       "types": "./functions/dist/functions/index.d.ts",
@@ -399,17 +423,17 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/ai": "2.6.0",
+    "@firebase/ai": "2.6.1",
     "@firebase/app": "0.14.6",
     "@firebase/app-compat": "0.5.6",
     "@firebase/app-types": "0.9.3",
-    "@firebase/auth": "1.11.1",
-    "@firebase/auth-compat": "0.6.1",
+    "@firebase/auth": "1.12.0",
+    "@firebase/auth-compat": "0.6.2",
     "@firebase/data-connect": "0.3.12",
     "@firebase/database": "1.1.0",
     "@firebase/database-compat": "2.1.0",
-    "@firebase/firestore": "4.9.2",
-    "@firebase/firestore-compat": "0.4.2",
+    "@firebase/firestore": "4.9.3",
+    "@firebase/firestore-compat": "0.4.3",
     "@firebase/functions": "0.13.1",
     "@firebase/functions-compat": "0.4.1",
     "@firebase/installations": "0.6.19",
@@ -453,6 +477,8 @@
     "functions",
     "firestore",
     "firestore/lite",
+    "firestore/pipelines",
+    "firestore/lite/pipelines",
     "installations",
     "storage",
     "performance",

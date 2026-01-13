@@ -26,6 +26,7 @@ import tmp from 'tmp';
 import typescript from 'typescript';
 
 import { generateBuildTargetReplaceConfig } from '../../scripts/build/rollup_replace_build_target';
+import { replaceDeclareModule } from '../../scripts/build/rollup_replace_declare_module';
 
 import pkg from './package.json';
 import tsconfig from './tsconfig.json';
@@ -64,9 +65,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.node.ts',
+    input: ['./src/index.node.ts', './pipelines/pipelines.node.ts'],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -79,9 +82,14 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: pkg['main-esm'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
-      file: pkg.main,
+      dir: 'dist/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -106,9 +114,14 @@ const allBuilds = [
   },
   // Node ESM build with build target reporting
   {
-    input: pkg['main-esm'],
+    input: [
+      'dist/intermediate/index.node.mjs',
+      'dist/intermediate/pipelines.node.mjs'
+    ],
     output: {
-      file: pkg['main-esm'],
+      dir: 'dist/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -125,9 +138,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './src/index.ts',
+    input: ['./src/index.ts', './pipelines/pipelines.ts'],
     output: {
-      file: pkg.browser,
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].js',
       format: 'es',
       sourcemap: true
     },
@@ -139,10 +154,12 @@ const allBuilds = [
   },
   // Convert es2020 build to cjs
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: './dist/index.cjs.js',
+        dir: 'dist/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'cjs',
         sourcemap: true
       }
@@ -158,10 +175,12 @@ const allBuilds = [
   },
   // es2020 build with build target reporting
   {
-    input: pkg['browser'],
+    input: ['dist/intermediate/index.js', 'dist/intermediate/pipelines.js'],
     output: [
       {
-        file: pkg['browser'],
+        dir: 'dist/',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: 'common-[hash].esm.js',
         format: 'es',
         sourcemap: true
       }
@@ -177,9 +196,11 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './src/index.rn.ts',
+    input: ['./src/index.rn.ts', './pipelines/pipelines.rn.ts'],
     output: {
-      file: pkg['react-native'],
+      dir: 'dist/',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common-[hash].rn.js',
       format: 'es',
       sourcemap: true
     },
@@ -194,7 +215,7 @@ const allBuilds = [
     }
   },
   {
-    input: 'dist/firestore/src/index.d.ts',
+    input: 'dist/firestore/src/global.d.ts',
     output: {
       file: 'dist/firestore/src/global_index.d.ts',
       format: 'es'
@@ -202,7 +223,17 @@ const allBuilds = [
     plugins: [
       dts({
         respectExternal: true
-      })
+      }),
+
+      // The global.d.ts input file will include
+      // a `declare module './database' { ... }` block. This block
+      // was not removed in the build, and the module
+      // './database' is not known in context of the global.d.ts file.
+      // Use the declareModuleReplacePlugin to replace:
+      // `declare module './database' { Y }`
+      // with the contents of the block:
+      // `Y`
+      replaceDeclareModule('global_index.d.ts', './database')
     ]
   }
 ];
