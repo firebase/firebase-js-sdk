@@ -38,7 +38,11 @@ const argv = yargs
     },
     databaseId: {
       type: 'string'
-    }
+    },
+    grep: {
+      type: 'string',
+      description: 'Filter tests by name (regex)'
+    },
   })
   .parseSync();
 
@@ -73,6 +77,11 @@ if (argv.persistence) {
 
 if (argv.databaseId) {
   process.env.FIRESTORE_TARGET_DB_ID = argv.databaseId;
+}
+
+if (argv.grep) {
+  console.log('found grep argument. forwarding.');
+  args.push('--grep', argv.grep);
 }
 
 args = args.concat(argv._ as string[]);
