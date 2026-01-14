@@ -39,6 +39,28 @@ export const CallerSdkTypeEnum = {
   GeneratedAngular: 'GeneratedAngular' // Generated Angular SDK
 } as const;
 
+export interface DataConnectEntityArray {
+  entityIds: string[];
+}
+
+export interface DataConnectSingleEntity {
+  entityId: string;
+}
+
+export type DataConnectExtension = {
+  path: Array<string | number>;
+} & (DataConnectEntityArray | DataConnectSingleEntity);
+
+export interface DataConnectExtensions {
+  dataConnect?: DataConnectExtension[];
+}
+
+export interface DataConnectResponse<T> {
+  data: T;
+  errors: Error[];
+  extensions: DataConnectExtensions;
+}
+
 /**
  * @internal
  */
@@ -46,11 +68,11 @@ export interface DataConnectTransport {
   invokeQuery<T, U>(
     queryName: string,
     body?: U
-  ): Promise<{ data: T; errors: Error[] }>;
+  ): Promise<DataConnectResponse<T>>;
   invokeMutation<T, U>(
     queryName: string,
     body?: U
-  ): Promise<{ data: T; errors: Error[] }>;
+  ): Promise<DataConnectResponse<T>>;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
   _setCallerSdkType(callerSdkType: CallerSdkType): void;

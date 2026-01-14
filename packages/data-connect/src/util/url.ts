@@ -19,6 +19,8 @@ import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
 import { Code, DataConnectError } from '../core/error';
 import { logError } from '../logger';
 
+export const PROD_HOST = 'firebasedataconnect.googleapis.com';
+
 export function urlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
@@ -26,7 +28,7 @@ export function urlBuilder(
   const { connector, location, projectId: project, service } = projectConfig;
   const { host, sslEnabled, port } = transportOptions;
   const protocol = sslEnabled ? 'https' : 'http';
-  const realHost = host || `firebasedataconnect.googleapis.com`;
+  const realHost = host || PROD_HOST;
   let baseUrl = `${protocol}://${realHost}`;
   if (typeof port === 'number') {
     baseUrl += `:${port}`;

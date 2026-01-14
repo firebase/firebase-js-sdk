@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  * limitations under the License.
  */
 
-export type HmacImpl = (obj: unknown) => string;
-export let encoderImpl: HmacImpl;
-export type DecodeHmacImpl = (s: string) => object;
-export let decoderImpl: DecodeHmacImpl;
-export function setEncoder(encoder: HmacImpl): void {
-  encoderImpl = encoder;
+import { EntityDataObject } from './EntityDataObject';
+import { ResultTree } from './ResultTree';
+
+export interface InternalCacheProvider {
+  getBdo(globalId: string): Promise<EntityDataObject>;
+  updateBackingData(backingData: EntityDataObject): Promise<void>;
+  createGlobalId(): string;
+  getResultTree(queryId: string): Promise<ResultTree | undefined>;
+  setResultTree(queryId: string, resultTree: ResultTree): Promise<void>;
+  close(): Promise<void>;
 }
-export function setDecoder(decoder: DecodeHmacImpl): void {
-  decoderImpl = decoder;
-}
-// TODO(mtewani): Fix issue where if fields are out of order, caching breaks.
-setEncoder(o => JSON.stringify(o));
-setDecoder(s => JSON.parse(s));

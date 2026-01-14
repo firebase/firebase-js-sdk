@@ -29,6 +29,7 @@ import { logDebug, logError } from '../logger';
 export interface AuthTokenProvider {
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null>;
   addTokenChangeListener(listener: AuthTokenListener): void;
+  getAuth(): FirebaseAuthInternal;
 }
 export type AuthTokenListener = (token: string | null) => void;
 
@@ -44,6 +45,9 @@ export class FirebaseAuthProvider implements AuthTokenProvider {
     if (!this._auth) {
       _authProvider.onInit(auth => (this._auth = auth));
     }
+  }
+  getAuth(): FirebaseAuthInternal {
+    return this._auth;
   }
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null> {
     if (!this._auth) {

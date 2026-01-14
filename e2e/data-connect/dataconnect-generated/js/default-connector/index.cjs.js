@@ -30,7 +30,7 @@ const connectorConfig = {
 };
 exports.connectorConfig = connectorConfig;
 
-exports.createMovieRef = function createMovieRef(dcOrVars, vars) {
+const createMovieRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars } = validateArgs(
     connectorConfig,
     dcOrVars,
@@ -40,16 +40,20 @@ exports.createMovieRef = function createMovieRef(dcOrVars, vars) {
   dcInstance._useGeneratedSdk();
   return mutationRef(dcInstance, 'CreateMovie', inputVars);
 };
+createMovieRef.operationName = 'CreateMovie';
+exports.createMovieRef = createMovieRef;
 
 exports.createMovie = function createMovie(dcOrVars, vars) {
   return executeMutation(createMovieRef(dcOrVars, vars));
 };
 
-exports.listMoviesRef = function listMoviesRef(dc) {
+const listMoviesRef = dc => {
   const { dc: dcInstance } = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();
   return queryRef(dcInstance, 'ListMovies');
 };
+listMoviesRef.operationName = 'ListMovies';
+exports.listMoviesRef = listMoviesRef;
 
 exports.listMovies = function listMovies(dc) {
   return executeQuery(listMoviesRef(dc));
