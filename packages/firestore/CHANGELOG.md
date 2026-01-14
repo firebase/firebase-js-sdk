@@ -1,5 +1,11 @@
 # @firebase/firestore
 
+## 4.10.0
+
+### Minor Changes
+
+- [`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7) [#9356](https://github.com/firebase/firebase-js-sdk/pull/9356) - Release Firestore Pipelines for Enterprise edition in public preview.
+
 ## 4.9.3
 
 ### Patch Changes
