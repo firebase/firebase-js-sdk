@@ -129,6 +129,48 @@ message Value {
 
     // A map value.
     MapValue map_value = 6;
+    // Value which references a field.
+    //
+    // This is considered relative (vs absolute) since it only refers to a field
+    // and not a field within a particular document.
+    //
+    // **Requires:**
+    //
+    // * Must follow [field reference][FieldReference.field_path] limitations.
+    //
+    // * Not allowed to be used when writing documents.
+    //
+    // (-- NOTE(batchik): long term, there is no reason this type should not be
+    //     allowed to be used on the write path. --)
+    string field_reference_value = 19;
+
+    // A value that represents an unevaluated expression.
+    //
+    // **Requires:**
+    //
+    // * Not allowed to be used when writing documents.
+    //
+    // (-- NOTE(batchik): similar to above, there is no reason to not allow
+    //     storing expressions into the database, just no plan to support in
+    //     the near term.
+    //
+    //     This would actually be an interesting way to represent user-defined
+    //     functions or more expressive rules-based systems. --)
+    Function function_value = 20;
+
+    // A value that represents an unevaluated pipeline.
+    //
+    // **Requires:**
+    //
+    // * Not allowed to be used when writing documents.
+    //
+    // (-- NOTE(batchik): similar to above, there is no reason to not allow
+    //     storing expressions into the database, just no plan to support in
+    //     the near term.
+    //
+    //     This would actually be an interesting way to represent user-defined
+    //     functions or more expressive rules-based systems. --)
+    Pipeline pipeline_value = 21;
   }
 }
 
@@ -147,4 +189,74 @@ message MapValue {
   // in certain documented contexts. The map keys, represented as UTF-8, must
   // not exceed 1,500 bytes and cannot be empty.
   map<string, Value> fields = 1;
+}
+
+
+// Represents an unevaluated scalar expression.
+//
+// For example, the expression `like(user_name, "%alice%")` is represented as:
+//
+// ```
+// name: "like"
+// args { field_reference: "user_name" }
+// args { string_value: "%alice%" }
+// ```
+//
+// (-- api-linter: core::0123::resource-annotation=disabled
+//     aip.dev/not-precedent: this is not a One Platform API resource. --)
+message Function {
+  // The name of the function to evaluate.
+  //
+  // **Requires:**
+  //
+  // * must be in snake case (lower case with underscore separator).
+  //
+  string name = 1;
+
+  // Ordered list of arguments the given function expects.
+  repeated Value args = 2;
+
+  // Optional named arguments that certain functions may support.
+  map<string, Value> options = 3;
+}
+
+// A Firestore query represented as an ordered list of operations / stages.
+message Pipeline {
+  // A single operation within a pipeline.
+  //
+  // A stage is made up of a unique name, and a list of arguments. The exact
+  // number of arguments & types is dependent on the stage type.
+  //
+  // To give an example, the stage `filter(state = "MD")` would be encoded as:
+  //
+  // ```
+  // name: "filter"
+  // args {
+  //   function_value {
+  //     name: "eq"
+  //     args { field_reference_value: "state" }
+  //     args { string_value: "MD" }
+  //   }
+  // }
+  // ```
+  //
+  // See public documentation for the full list.
+  message Stage {
+    // The name of the stage to evaluate.
+    //
+    // **Requires:**
+    //
+    // * must be in snake case (lower case with underscore separator).
+    //
+    string name = 1;
+
+    // Ordered list of arguments the given stage expects.
+    repeated Value args = 2;
+
+    // Optional named arguments that certain functions may support.
+    map<string, Value> options = 3;
+  }
+
+  // Ordered list of stages to evaluate.
+  repeated Stage stages = 1;
 }

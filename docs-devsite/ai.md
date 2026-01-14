@@ -133,6 +133,7 @@ The Firebase AI Web SDK.
 |  [SchemaShared](./ai.schemashared.md#schemashared_interface) | Basic [Schema](./ai.schema.md#schema_class) properties shared across several Schema-related types. |
 |  [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry point. |
 |  [Segment](./ai.segment.md#segment_interface) | Represents a specific segment within a [Content](./ai.content.md#content_interface) object, often used to pinpoint the exact location of text or data that grounding information refers to. |
+|  [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like <code>timeout</code> and <code>baseUrl</code>) with request-specific controls like cancellation via <code>AbortSignal</code>.<!-- -->Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (for example, [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->). |
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
@@ -176,6 +177,7 @@ The Firebase AI Web SDK.
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
 
 ## Type Aliases
@@ -208,6 +210,7 @@ The Firebase AI Web SDK.
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
 |  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
@@ -827,6 +830,21 @@ SchemaType: {
 }
 ```
 
+## ThinkingLevel
+
+A preset that controls the model's "thinking" process. Use `ThinkingLevel.LOW` for faster responses on less complex tasks, and `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
+
+<b>Signature:</b>
+
+```typescript
+ThinkingLevel: {
+    MINIMAL: string;
+    LOW: string;
+    MEDIUM: string;
+    HIGH: string;
+}
+```
+
 ## URLRetrievalStatus
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -1140,6 +1158,16 @@ Contains the list of OpenAPI data types as defined by the [OpenAPI specification
 
 ```typescript
 export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
+```
+
+## ThinkingLevel
+
+A preset that controls the model's "thinking" process. Use `ThinkingLevel.LOW` for faster responses on less complex tasks, and `ThinkingLevel.HIGH` for better reasoning on more complex tasks.
+
+<b>Signature:</b>
+
+```typescript
+export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 ```
 
 ## Tool

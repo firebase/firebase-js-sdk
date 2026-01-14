@@ -31,10 +31,12 @@ import {
 import { LiteUserDataWriter } from '../lite-api/reference_impl';
 import {
   DocumentSnapshot as LiteDocumentSnapshot,
-  fieldPathFromArgument,
   FirestoreDataConverter as LiteFirestoreDataConverter
 } from '../lite-api/snapshot';
-import { UntypedFirestoreDataConverter } from '../lite-api/user_data_reader';
+import {
+  fieldPathFromArgument,
+  UntypedFirestoreDataConverter
+} from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import { fromBundledQuery } from '../local/local_serializer';
 import { documentKeySet } from '../model/collections';
