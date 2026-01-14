@@ -80,7 +80,6 @@ if (argv.databaseId) {
 }
 
 if (argv.grep) {
-  console.log('found grep argument. forwarding.');
   args.push('--grep', argv.grep);
 }
 
