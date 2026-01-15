@@ -1,5 +1,30 @@
 # firebase
 
+## 12.8.0
+
+### Minor Changes
+
+- [`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7) [#9356](https://github.com/firebase/firebase-js-sdk/pull/9356) - Release Firestore Pipelines for Enterprise edition in public preview.
+
+- [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8) [#8890](https://github.com/firebase/firebase-js-sdk/pull/8890) (fixes [#8859](https://github.com/firebase/firebase-js-sdk/issues/8859)) - Add support for `AbortSignal`, allowing requests to be aborted.
+
+- [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544) [#9424](https://github.com/firebase/firebase-js-sdk/pull/9424) - Added ability to specify thinking levels in `thinkingConfig`.
+
+- [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9) [#9440](https://github.com/firebase/firebase-js-sdk/pull/9440) - Update default hybrid-in-cloud model to `gemini-2.5-flash-lite`.
+
+- [`b282744`](https://github.com/firebase/firebase-js-sdk/commit/b2827448bf8b51e2a1d0343092989a7b79fc0491) [#9449](https://github.com/firebase/firebase-js-sdk/pull/9449) - Web support for ABT and Rollouts
+
+### Patch Changes
+
+- Updated dependencies [[`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7), [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8), [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544), [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9), [`b282744`](https://github.com/firebase/firebase-js-sdk/commit/b2827448bf8b51e2a1d0343092989a7b79fc0491)]:
+  - @firebase/firestore@4.10.0
+  - @firebase/app@0.14.7
+  - @firebase/ai@2.7.0
+  - @firebase/remote-config@0.8.0
+  - @firebase/firestore-compat@0.4.4
+  - @firebase/app-compat@0.5.7
+  - @firebase/remote-config-compat@0.2.21
+
 ## 12.7.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @firebase/ai
 
+## 2.7.0
+
+### Minor Changes
+
+- [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8) [#8890](https://github.com/firebase/firebase-js-sdk/pull/8890) (fixes [#8859](https://github.com/firebase/firebase-js-sdk/issues/8859)) - Add support for `AbortSignal`, allowing requests to be aborted.
+
+- [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544) [#9424](https://github.com/firebase/firebase-js-sdk/pull/9424) - Added ability to specify thinking levels in `thinkingConfig`.
+
+- [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9) [#9440](https://github.com/firebase/firebase-js-sdk/pull/9440) - Update default hybrid-in-cloud model to `gemini-2.5-flash-lite`.
+
 ## 2.6.1
 
 ### Patch Changes
