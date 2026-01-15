@@ -16,8 +16,6 @@
  */
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import { QueryRef } from '../../api/query';
-import { OperationRef } from '../../api/Reference';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
@@ -68,28 +66,14 @@ export interface DataConnectResponse<T> {
 
 /**
  * Represents a single stream of communication over a physical connection.
- * Example: A single query execution, or a query subscription
+ * Example: A single operations execution, or a query subscription
  * @internal
  */
 export interface LogicalStream<Data, Variables> {
-  id: string; // ID for this specific stream = Operation Key + Execute/Subscribe
-  ref: OperationRef<Data, Variables>;
-}
-
-/**
- * @internal
- */
-export interface ExecutionStream<Data, Variables>
-  extends LogicalStream<Data, Variables> {
-  // status: ?; // queued, sent, responded
-}
-
-/**
- * @internal
- */
-export interface SubscriptionStream<Data, Variables>
-  extends LogicalStream<Data, Variables> {
-  // status: ?; // check the protocol and determine possible statuses
+  requestId: string;
+  operationName: string;
+  variables?: Variables;
+  lastResponse?: DataConnectResponse<Data>;
 }
 
 /**
@@ -142,7 +126,6 @@ export abstract class DataConnectTransportClass
   protected _appCheckToken: string | null | undefined = null;
   protected _lastToken: string | null = null;
   protected _isUsingEmulator = false;
-  protected streamManager?: DataConnectStreamManager;
 
   constructor(
     options: DataConnectOptions,
@@ -246,15 +229,19 @@ export abstract class DataConnectTransportClass
     queryName: string,
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
+
   abstract invokeMutation<Data, Variables>(
     queryName: string,
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
+
   abstract invokeSubscription<Variables>(
     queryName: string,
     body?: Variables
   ): void;
+
   abstract invokeUnsubscription(queryName: string): void;
+
   abstract onTokenChanged(newToken: string | null): void;
 
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
@@ -266,10 +253,9 @@ export abstract class DataConnectTransportClass
  * Interface for managing physical and logical stream connections.
  * @internal
  */
-export interface DataConnectStreamManager {
-  /** Maps tracking the logical streams over physical connections. */
-  executions: Array<ExecutionStream<object, object | undefined>>; // TODO: type
-  subscriptions: Array<SubscriptionStream<object, object | undefined>>; // TODO: type
+export interface DataConnectStreamManager<Connection> {
+  // TODO: more than one connection
+  _connection: Connection | undefined;
 
   /** Open a physical stream connection to the server. */
   openConnection(): void; // TODO: type
@@ -278,35 +264,31 @@ export interface DataConnectStreamManager {
   /** Reconnect the physical stream. */
   reconnect(): void; // TODO: type
 
-  /** Send a message via logical stream. */
-  sendMessage<Data, Variables>(
-    stream: LogicalStream<Data, Variables>,
-    message: object
-  ): void; // TODO: type
-
   /** Execute a one-off operation. */
   executeOperation<Data, Variables>(
-    operationRef: OperationRef<Data, Variables>
+    operationName: string,
+    body?: Variables
   ): Promise<DataConnectResponse<Data>>;
 
   /** Subscribe to Realtime Notifications for a query. */
-  subscribeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>): void; // TODO: type
+  subscribeQuery<Data, Variables>(
+    operationName: string,
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>; // TODO: type
   /** Unsubscribe from Realtime Notifications for a query. */
   unsubscribeQuery(): void; // TODO: type
 
   /** Ping the connection to make sure it's still alive. */
   heartbeat(): void; // TODO: type
+}
 
-  /** Open a new logical stream for executing a one-off operation. */
-  openExecutionStream<Data, Variables>(): ExecutionStream<Data, Variables>;
-  /** Accept a response to a one-off execution request over the logical stream. */
-  handleExecutionResponse<Data>(): DataConnectResponse<Data>;
-
-  /** Open a new logical stream for subscribing to a query. */
-  openSubscriptionStream<Data, Variables>(): SubscriptionStream<
-    Data,
-    Variables
-  >;
-  /** Accept a response to a one-off execution request over the logical stream. */
-  handleSubscriptionNotification(): void; // TODO: type
+/**
+ * the data passed along the stream to make a request to the server
+ * @internal
+ */
+export interface DataConnectWebSocketBody<Variables> {
+  urlPath: string;
+  requestId: string;
+  operationName: string;
+  variables?: Variables;
 }
