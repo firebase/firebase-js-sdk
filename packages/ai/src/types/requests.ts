@@ -474,23 +474,6 @@ interface LatLng {
 }
 
 /**
- *
- * RetrievalConfig
- * @public
- */
-interface RetrievalConfig {
-  /**
-   * The location of the user.
-   */
-  latLng?: LatLng;
-
-  /**
-   * The language code of the user.
-   */
-  languageCode?: string;
-}
-
-/**
  * Tool config. This config is shared for all tools provided in the request.
  * @public
  */
@@ -505,6 +488,21 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * @public
+ */
+interface RetrievalConfig {
+  /**
+   * The location of the user.
+   */
+  latLng?: LatLng;
+
+  /**
+   * The language code of the user.
+   */
+  languageCode?: string;
 }
 
 /**

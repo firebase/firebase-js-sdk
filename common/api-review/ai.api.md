@@ -657,9 +657,8 @@ export interface GoogleMapsGroundChunk {
     uri?: string;
 }
 
-// @public (undocumented)
+// @public
 export interface GoogleMapsTool {
-    // (undocumented)
     googleMaps: GoogleMaps;
 }
 
