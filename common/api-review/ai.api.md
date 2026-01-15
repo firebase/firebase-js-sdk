@@ -961,6 +961,12 @@ export interface LanguageModelPromptOptions {
     responseConstraint?: object;
 }
 
+// @public
+export interface LatLng {
+    latitude?: number;
+    longitude?: number;
+}
+
 // @beta
 export interface LiveGenerationConfig {
     frequencyPenalty?: number;
@@ -1176,6 +1182,12 @@ export const ResponseModality: {
 
 // @beta
 export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
+
+// @public (undocumented)
+export interface RetrievalConfig {
+    languageCode?: string;
+    latLng?: LatLng;
+}
 
 // @public (undocumented)
 export interface RetrievedContextAttribution {
@@ -1422,8 +1434,6 @@ export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool 
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
-    // Warning: (ae-forgotten-export) The symbol "RetrievalConfig" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     retrievalConfig?: RetrievalConfig;
 }

@@ -461,7 +461,7 @@ export interface FunctionDeclarationsTool {
  * An object that represents a latitude/longitude pair.
  * @public
  */
-interface LatLng {
+export interface LatLng {
   /**
    * The latitude in degrees. It must be in the range [-90.0, +90.0].
    */
@@ -493,7 +493,7 @@ export interface FunctionCallingConfig {
 /**
  * @public
  */
-interface RetrievalConfig {
+export interface RetrievalConfig {
   /**
    * The location of the user.
    */
