@@ -230,8 +230,7 @@ describe('Generate Content', function () {
         });
 
         const result = await model.generateContent(
-          'Where is a good place to grab a coffee near Arlington, MA?'
-          //'Where is the closest starbucks?'
+          'Where is a good place to grab a coffee in New York City?'
         );
         const response = result.response;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
@@ -268,8 +267,7 @@ describe('Generate Content', function () {
         });
 
         const result = await model.generateContent(
-          'Where is a good place to grab a coffee near Arlington, MA?'
-          //'Where is the closest starbucks?'
+          'Where is a good place to grab a coffee in New York City?'
         );
         const response = result.response;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
@@ -315,7 +313,6 @@ describe('Generate Content', function () {
 
         const result = await model.generateContent(
           'Where is a good place to grab a coffee near here?'
-          //'Where is the closest starbucks?'
         );
         const response = result.response;
         const groundingMetadata = response.candidates?.[0].groundingMetadata;
