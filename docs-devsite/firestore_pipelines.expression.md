@@ -128,6 +128,10 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value. |
 |  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
 |  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->\* |
+|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->\* |
+|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression. |
+|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression. |
 |  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
 |  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
 |  [reverse()](./firestore_pipelines.expression.md#expressionreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses this string expression. |
@@ -2865,6 +2869,146 @@ A new `Expression` representing the 'contains' comparison.
 ```typescript
 // Check if the 'description' field contains the regular expression stored in field 'regex'
 field("description").regexContains(field("regex"));
+
+```
+
+## Expression.regexFind()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
+
+\*
+
+<b>Signature:</b>
+
+```typescript
+regexFind(pattern: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  pattern | string | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the regular expression find function.
+
+### Example
+
+
+```typescript
+// Extract a substring based on a dynamic pattern field
+field("email").regexFind("pattern")
+
+```
+
+## Expression.regexFind()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
+
+\*
+
+<b>Signature:</b>
+
+```typescript
+regexFind(pattern: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  pattern | [Expression](./firestore_pipelines.expression.md#expression_class) | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the regular expression find function.
+
+### Example
+
+
+```typescript
+// Extract a substring based on a dynamic pattern field
+field("email").regexFind(field("pattern"))
+
+```
+
+## Expression.regexFindAll()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.
+
+<b>Signature:</b>
+
+```typescript
+regexFindAll(pattern: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  pattern | string | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) that evaluates to an array of matched substrings.
+
+### Example
+
+
+```typescript
+// Extract all hashtags from a post content field
+field("content").regexFindAll("#[A-Za-z0-9_]+")
+
+```
+
+## Expression.regexFindAll()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.
+
+<b>Signature:</b>
+
+```typescript
+regexFindAll(pattern: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  pattern | [Expression](./firestore_pipelines.expression.md#expression_class) | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) that evaluates to an array of matched substrings.
+
+### Example
+
+
+```typescript
+// Extract all names from a post content field
+field("content").regexFindAll(field("names"))
 
 ```
 

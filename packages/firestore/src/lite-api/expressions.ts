@@ -924,6 +924,86 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an expression that returns the first substring of a string expression that matches
+   * a specified regular expression.
+   *
+   * * @example
+   * ```typescript
+   * // Extract a substring based on a dynamic pattern field
+   * field("email").regexFind("pattern")
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+   */
+  regexFind(pattern: string): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that returns the first substring of a string expression that matches
+   * a specified regular expression.
+   *
+   * * @example
+   * ```typescript
+   * // Extract a substring based on a dynamic pattern field
+   * field("email").regexFind(field("pattern"))
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+   */
+  regexFind(pattern: Expression): FunctionExpression;
+  regexFind(stringOrExpr: string | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'regex_find',
+      [this, valueToDefaultExpr(stringOrExpr)],
+      'regexFind'
+    );
+  }
+
+  /**
+   * @beta
+   *
+   * Creates an expression that evaluates to a list of all substrings in this string expression that
+   * match a specified regular expression.
+   *
+   * @example
+   * ```typescript
+   * // Extract all hashtags from a post content field
+   * field("content").regexFindAll("#[A-Za-z0-9_]+")
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} that evaluates to an array of matched substrings.
+   */
+  regexFindAll(pattern: string): FunctionExpression;
+
+  /**
+   * @beta
+   *
+   * Creates an expression that evaluates to a list of all substrings in this string expression that
+   * match a specified regular expression.
+   *
+   * @example
+   * ```typescript
+   * // Extract all names from a post content field
+   * field("content").regexFindAll(field("names"))
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} that evaluates to an array of matched substrings.
+   */
+  regexFindAll(pattern: Expression): FunctionExpression;
+  regexFindAll(stringOrExpr: string | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'regex_find_all',
+      [this, valueToDefaultExpr(stringOrExpr)],
+      'regexFindAll'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an expression that checks if a string matches a specified regular expression.
    *
    * @example
@@ -5916,6 +5996,190 @@ export function regexContains(
   const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.regexContains(patternExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first substring of a string field that matches a
+ * specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract the domain name from an email field
+ * regexFind("email", "@[A-Za-z0-9.-]+");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  fieldName: string,
+  pattern: string
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first substring of a string field that matches a
+ * specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract a substring from 'email' based on a pattern stored in another field
+ * regexFind("email", field("pattern"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  fieldName: string,
+  pattern: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first substring of a string expression that matches
+ * a specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract the domain from a lower-cased email address
+ * regexFind(lower(field("email")), "@[A-Za-z0-9.-]+");
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  stringExpression: Expression,
+  pattern: string
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first substring of a string expression that matches
+ * a specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract a substring based on a dynamic pattern field
+ * regexFind(lower(field("email")), field("pattern"));
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  stringExpression: Expression,
+  pattern: Expression
+): FunctionExpression;
+export function regexFind(
+  left: Expression | string,
+  pattern: Expression | string
+): FunctionExpression {
+  const leftExpr = fieldOrExpression(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.regexFind(patternExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string field that
+ * match a specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract all hashtags from a post content field
+ * regexFindAll("content", "#[A-Za-z0-9_]+");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  fieldName: string,
+  pattern: string
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string field that
+ * match a specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract all matches from 'content' based on a pattern stored in another field
+ * regexFindAll("content", field("pattern"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  fieldName: string,
+  pattern: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string expression
+ * that match a specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract all mentions from a lower-cased comment
+ * regexFindAll(lower(field("comment")), "@[A-Za-z0-9_]+");
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  stringExpression: Expression,
+  pattern: string
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string expression
+ * that match a specified regular expression.
+ *
+ * @example
+ * ```typescript
+ * // Extract all matches based on a dynamic pattern expression
+ * regexFindAll(lower(field("comment")), field("pattern"));
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  stringExpression: Expression,
+  pattern: Expression
+): FunctionExpression;
+export function regexFindAll(
+  left: Expression | string,
+  pattern: Expression | string
+): FunctionExpression {
+  const leftExpr = fieldOrExpression(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.regexFindAll(patternExpr);
 }
 
 /**
