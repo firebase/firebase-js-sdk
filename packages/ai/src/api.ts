@@ -41,6 +41,7 @@ import { GoogleAIBackend } from './backend';
 import { WebSocketHandlerImpl } from './websocket';
 import { TemplateGenerativeModel } from './models/template-generative-model';
 import { TemplateImagenModel } from './models/template-imagen-model';
+import { logger } from './logger';
 
 export { ChatSession } from './methods/chat-session';
 export { LiveSession } from './methods/live-session';
@@ -132,6 +133,20 @@ export function getGenerativeModel(
   const hybridParams = modelParams as HybridParams;
   let inCloudParams: ModelParams;
   if (hybridParams.mode) {
+    const hybridParamKeys: Array<keyof HybridParams> = [
+      'mode',
+      'onDeviceParams',
+      'inCloudParams'
+    ];
+    for (const param in modelParams) {
+      if (!hybridParamKeys.includes(param as keyof HybridParams)) {
+        logger.warn(
+          `When a hybrid inference mode is specified, ${param} cannot be ` +
+            `configured at the top level. Configuration for cloud and ` +
+            `on-device must be done separately in inCloudParams and onDeviceParams.`
+        );
+      }
+    }
     inCloudParams = hybridParams.inCloudParams || {
       model: DEFAULT_HYBRID_IN_CLOUD_MODEL
     };
