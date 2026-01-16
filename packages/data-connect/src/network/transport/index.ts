@@ -80,18 +80,59 @@ export interface LogicalStream<Data, Variables> {
  * @internal
  */
 export interface DataConnectTransport {
+  /**
+   * Invoke a query execution request.
+   * @param queryName The name of the query to execute.
+   * @param body The variables associated with the query.
+   * @returns A promise resolving to the DataConnectResponse.
+   */
   invokeQuery<Data, Variables>(
     queryName: string,
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
+
+  /**
+   * Invoke a mutation execution request.
+   * @param queryName The name of the mutation to execute.
+   * @param body The variables associated with the mutation.
+   * @returns A promise resolving to the DataConnectResponse.
+   */
   invokeMutation<Data, Variables>(
     queryName: string,
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
+
+  /**
+   * Subscribes to a query to receive updates over a stream.
+   * @param queryName The name of the query to subscribe to.
+   * @param body The variables associated with the subscription.
+   */
   invokeSubscription<Variables>(queryName: string, body?: Variables): void;
+
+  /**
+   * Unsubscribes from an active subscription.
+   * @param queryName The name of the query to unsubscribe from.
+   */
   invokeUnsubscription(queryName: string): void;
+
+  /**
+   * Configures the transport to use a local Data Connect emulator.
+   * @param host The host address of the emulator (e.g., '127.0.0.1').
+   * @param port The port number the emulator is listening on.
+   * @param sslEnabled Whether to use SSL (HTTPS/WSS) for the emulator connection.
+   */
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
+
+  /**
+   * Callback invoked when the Firebase Auth token is refreshed or changed.
+   * @param token The new access token or null if signed out.
+   */
   onTokenChanged: (token: string | null) => void;
+
+  /**
+   * Internal method to set the SDK type for metrics and logging purposes.
+   * @param callerSdkType The type of SDK making the call (e.g., generated vs base).
+   */
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
 }
 
@@ -253,42 +294,52 @@ export abstract class DataConnectTransportClass
  * Interface for managing physical and logical stream connections.
  * @internal
  */
-export interface DataConnectStreamManager<Connection> {
-  // TODO: more than one connection
-  _connection: Connection | undefined;
-
+export interface DataConnectStreamManager {
   /** Open a physical stream connection to the server. */
   openConnection(): void; // TODO: type
   /** Close a physical stream connection to the server. */
   closeConnection(): void; // TODO: type
   /** Reconnect the physical stream. */
   reconnect(): void; // TODO: type
-
-  /** Execute a one-off operation. */
-  executeOperation<Data, Variables>(
-    operationName: string,
-    body?: Variables
-  ): Promise<DataConnectResponse<Data>>;
-
-  /** Subscribe to Realtime Notifications for a query. */
-  subscribeQuery<Data, Variables>(
-    operationName: string,
-    body?: Variables
-  ): Promise<DataConnectResponse<Data>>; // TODO: type
-  /** Unsubscribe from Realtime Notifications for a query. */
-  unsubscribeQuery(): void; // TODO: type
-
   /** Ping the connection to make sure it's still alive. */
   heartbeat(): void; // TODO: type
 }
 
 /**
- * the data passed along the stream to make a request to the server
+ * The operation payload to be sent over the stream to the server.
  * @internal
  */
-export interface DataConnectWebSocketBody<Variables> {
-  urlPath: string;
-  requestId: string;
+export interface StreamOperation<Variables> {
   operationName: string;
   variables?: Variables;
 }
+
+/**
+ * The request body for an execute request over the stream.
+ * @internal
+ */
+export interface ExecuteStreamRequestBody<Variables> {
+  name: string;
+  requestId: string;
+  execute: StreamOperation<Variables>;
+  subscribe?: never;
+}
+
+/**
+ * The request body for a subscribe request over the stream.
+ * @internal
+ */
+export interface SubscribeStreamRequestBody<Variables> {
+  name: string;
+  requestId: string;
+  subscribe: StreamOperation<Variables>;
+  execute?: never;
+}
+
+/**
+ * Shape of the request body to be sent over the stream to the server.
+ * @internal
+ */
+export type DataConnectStreamRequestBody<Variables> =
+  | ExecuteStreamRequestBody<Variables>
+  | SubscribeStreamRequestBody<Variables>;

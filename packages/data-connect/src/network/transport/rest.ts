@@ -80,7 +80,6 @@ export class RESTTransport extends DataConnectTransportClass {
       });
   }
 
-  // TODO(mtewani): Update U to include shape of body defined in line 13.
   invokeQuery: <Data, Variables>(
     queryName: string,
     body?: Variables
@@ -90,6 +89,7 @@ export class RESTTransport extends DataConnectTransportClass {
   ) => {
     const abortController = new AbortController();
 
+    // TODO(mtewani): Update U to include shape of body defined in line 13.
     // TODO(mtewani): Update to proper value
     const withAuth = this.withRetry(() =>
       dcFetch<Variables, Data>(
