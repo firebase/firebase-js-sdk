@@ -927,10 +927,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the first substring of a string expression that matches
    * a specified regular expression.
    *
-   * * @example
+   * @example
    * ```typescript
-   * // Extract a substring based on a dynamic pattern field
-   * field("email").regexFind("pattern")
+   * // Extract the domain from an email address
+   * field("email").regexFind("@.+")
    * ```
    *
    * @param pattern - The regular expression to search for.
@@ -943,10 +943,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the first substring of a string expression that matches
    * a specified regular expression.
    *
-   * * @example
+   * @example
    * ```typescript
-   * // Extract a substring based on a dynamic pattern field
-   * field("email").regexFind(field("pattern"))
+   * // Extract the domain from an email address
+   * field("email").regexFind(field("domain"))
    * ```
    *
    * @param pattern - The regular expression to search for.

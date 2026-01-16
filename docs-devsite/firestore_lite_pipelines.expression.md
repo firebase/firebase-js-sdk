@@ -128,8 +128,8 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value. |
 |  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
 |  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
-|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->\* |
-|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->\* |
+|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression. |
+|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression. |
 |  [regexFindAll(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression. |
 |  [regexFindAll(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression. |
 |  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
@@ -2879,8 +2879,6 @@ field("description").regexContains(field("regex"));
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
 
-\*
-
 <b>Signature:</b>
 
 ```typescript
@@ -2903,8 +2901,8 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Extract a substring based on a dynamic pattern field
-field("email").regexFind("pattern")
+// Extract the domain from an email address
+field("email").regexFind("@.+")
 
 ```
 
@@ -2914,8 +2912,6 @@ field("email").regexFind("pattern")
 > 
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
-
-\*
 
 <b>Signature:</b>
 
