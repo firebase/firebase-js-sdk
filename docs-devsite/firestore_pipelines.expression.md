@@ -2935,8 +2935,8 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Extract a substring based on a dynamic pattern field
-field("email").regexFind(field("pattern"))
+// Extract the domain from an email address
+field("email").regexFind(field("domain"))
 
 ```
 
