@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// Note: setTimeout from 'timers/promises' removed as it's no longer used for polling
-
-import { ReferenceType } from '../../api';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
