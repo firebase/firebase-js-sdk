@@ -26,8 +26,8 @@ export function urlBuilder(
   transportOptions: TransportOptions
 ): string {
   const { connector, location, projectId: project, service } = projectConfig;
-  const { host, sslEnabled, port } = transportOptions;
-  const protocol = sslEnabled ? 'https' : 'http';
+  const { host, sslEnabled, streamEnabled, port } = transportOptions;
+  const protocol = streamEnabled ? 'ws' : sslEnabled ? 'https' : 'http';
   const realHost = host || PROD_HOST;
   let baseUrl = `${protocol}://${realHost}`;
   if (typeof port === 'number') {

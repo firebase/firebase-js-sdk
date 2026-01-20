@@ -112,8 +112,12 @@ export interface DataConnectTransport {
   /**
    * Unsubscribes from an active subscription.
    * @param queryName The name of the query to unsubscribe from.
+   * @param body The variables associated with the subscription.
    */
-  invokeUnsubscription(queryName: string): void;
+  invokeUnsubscription<Variables>(
+    queryName: string,
+    variables: Variables
+  ): void;
 
   /**
    * Configures the transport to use a local Data Connect emulator.
@@ -161,6 +165,7 @@ export abstract class DataConnectTransportClass
   protected _location = 'l';
   protected _connectorName = '';
   protected _secure = true;
+  protected _stream = true; // TODO: make this dynamic
   protected _project = 'p';
   protected _serviceName: string;
   protected _accessToken: string | null = null;
@@ -221,7 +226,12 @@ export abstract class DataConnectTransportClass
         projectId: this._project,
         service: this._serviceName
       },
-      { host: this._host, sslEnabled: this._secure, port: this._port }
+      {
+        host: this._host,
+        sslEnabled: this._secure,
+        streamEnabled: this._stream,
+        port: this._port
+      }
     );
   }
 
@@ -281,7 +291,10 @@ export abstract class DataConnectTransportClass
     body?: Variables
   ): void;
 
-  abstract invokeUnsubscription(queryName: string): void;
+  abstract invokeUnsubscription<Variables>(
+    queryName: string,
+    variables: Variables
+  ): void;
 
   abstract onTokenChanged(newToken: string | null): void;
 
@@ -291,55 +304,86 @@ export abstract class DataConnectTransportClass
 }
 
 /**
- * Interface for managing physical and logical stream connections.
- * @internal
+ * Base interface for stream request payloads sent over the stream to the server.
  */
-export interface DataConnectStreamManager {
-  /** Open a physical stream connection to the server. */
-  openConnection(): void; // TODO: type
-  /** Close a physical stream connection to the server. */
-  closeConnection(): void; // TODO: type
-  /** Reconnect the physical stream. */
-  reconnect(): void; // TODO: type
-  /** Ping the connection to make sure it's still alive. */
-  heartbeat(): void; // TODO: type
+interface StreamRequest {
+  name: string; // connectorResourcePath
+  requestId: string;
+  authToken?: string; // TODO: type
+  dataEtag?: string; // TODO: type
 }
 
 /**
- * The operation payload to be sent over the stream to the server.
+ * Fields for an execute request payload.
  * @internal
  */
-export interface StreamOperation<Variables> {
+interface ExecuteRequestKind<Variables> {
   operationName: string;
   variables?: Variables;
 }
 
 /**
- * The request body for an execute request over the stream.
+ * Fields for a resume request payload.
  * @internal
  */
-export interface ExecuteStreamRequestBody<Variables> {
-  name: string;
-  requestId: string;
-  execute: StreamOperation<Variables>;
-  subscribe?: never;
+interface ResumeRequestKind {}
+
+/**
+ * Fields for a cancel request payload.
+ * @internal
+ */
+interface CancelRequestKind {}
+
+/**
+ * Fields for a subscribe request payload.
+ * @internal
+ */
+export interface SubscribeStreamRequest<Variables> extends StreamRequest {
+  subscribe: ExecuteRequestKind<Variables>;
+  execute?: never;
+  resume?: never;
+  cancel?: never;
 }
 
 /**
- * The request body for a subscribe request over the stream.
+ * Fields for an execute request payload.
  * @internal
  */
-export interface SubscribeStreamRequestBody<Variables> {
-  name: string;
-  requestId: string;
-  subscribe: StreamOperation<Variables>;
+export interface ExecuteStreamRequest<Variables> extends StreamRequest {
+  execute: ExecuteRequestKind<Variables>;
+  subscribe?: never;
+  resume?: never;
+  cancel?: never;
+}
+
+/**
+ * Fields for a cancel request payload.
+ * @internal
+ */
+export interface ResumeStreamRequest extends StreamRequest {
+  resume?: ResumeRequestKind;
+  subscribe?: never;
   execute?: never;
+  cancel?: never;
+}
+
+/**
+ * Fields for a cancel (unsubscribe) request payload.
+ * @internal
+ */
+export interface CancelStreamRequest extends StreamRequest {
+  cancel: CancelRequestKind;
+  subscribe?: never;
+  execute?: never;
+  resume?: never;
 }
 
 /**
  * Shape of the request body to be sent over the stream to the server.
  * @internal
  */
-export type DataConnectStreamRequestBody<Variables> =
-  | ExecuteStreamRequestBody<Variables>
-  | SubscribeStreamRequestBody<Variables>;
+export type DataConnectStreamRequest<Variables> =
+  | ExecuteStreamRequest<Variables>
+  | SubscribeStreamRequest<Variables>
+  | ResumeStreamRequest
+  | CancelStreamRequest;

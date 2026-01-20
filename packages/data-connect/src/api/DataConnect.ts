@@ -67,6 +67,7 @@ export interface ConnectorConfig {
 export interface TransportOptions {
   host: string;
   sslEnabled?: boolean;
+  streamEnabled?: boolean;
   port?: number;
 }
 

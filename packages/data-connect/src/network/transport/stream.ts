@@ -17,24 +17,23 @@
 
 // Note: setTimeout from 'timers/promises' removed as it's no longer used for polling
 
+import { ReferenceType } from '../../api';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { encoderImpl } from '../../util/encoder';
 
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
   DataConnectResponse,
-  DataConnectStreamManager,
-  DataConnectStreamRequestBody,
+  DataConnectStreamRequest,
   DataConnectTransportClass,
-  ExecuteStreamRequestBody,
-  SubscribeStreamRequestBody
+  ExecuteStreamRequest,
+  SubscribeStreamRequest,
+  CancelStreamRequest
 } from '.';
-
-// TODO: add resume and cancel messages
-// TODO: add auth_token field
 
 /**
  * A Transport implementation that uses WebSockets to stream requests and responses.
@@ -42,26 +41,15 @@ import {
  * reconnection and request correlation.
  * @internal
  */
-export class StreamTransport
-  extends DataConnectTransportClass
-  implements DataConnectStreamManager
-{
+export class StreamTransport extends DataConnectTransportClass {
   /** The current established connection to the server. Undefined if disconnected. */
   private _connection: WebSocket | undefined = undefined;
 
   /**
-   * Tracks any ongoing connection attempt. This ensures we don't open multiple sockets if multiple
+   * Tracks any ongoing connection attempt. This ensures we don't open multiple streams if multiple
    * requests are fired simultaneously.
    */
   private _connectionAttempt: Promise<void> | null = null;
-
-  // TODO: make this real
-  /**
-   * The endpoint for connecting to the server via a stream connection.
-   */
-  get endpointUrl(): string {
-    return `ws://127.0.0.1:9399/v1/Connect/locations/ignored`;
-  }
 
   /**
    * The resource path formatted for the Data Connect backend.
@@ -71,11 +59,22 @@ export class StreamTransport
     return `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
   }
 
+  /** Monotonically increasing sequence number for execution requests */
+  private _executionRequestNumber = 1;
+
   /**
    * Map of active execution requests and their corresponding Promise resolvers.
-   * Used to correlate incoming WebSocket messages (responses) with the requests that triggered them.
    */
-  private _executeRequsts = new Map<
+  private _executeRequests = new Map<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
+  >();
+
+  /**
+   * Map of active subscription requests and their corresponding Promise resolvers.
+   */
+  private _subscribeRequests = new Map<
     string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
@@ -106,7 +105,7 @@ export class StreamTransport
   /**
    * Ensures that that there is an open connection. If there is none, it initiates a new one.
    * If a connection attempt is already in progress, it returns the existing promise.
-   * @returns A promise that resolves when the WebSocket is open and ready.
+   * @returns A promise that resolves when the stream is open and ready.
    */
   private ensureConnection(): Promise<void> {
     if (this._connection?.readyState === WebSocket.OPEN) {
@@ -132,7 +131,7 @@ export class StreamTransport
         this._connection = undefined;
         this._connectionAttempt = null;
         // Clean up pending requests on close so calls don't hang indefinitely
-        this._executeRequsts.forEach(p =>
+        this._executeRequests.forEach(p =>
           p.reject(
             new DataConnectError(
               Code.OTHER,
@@ -140,7 +139,7 @@ export class StreamTransport
             )
           )
         );
-        this._executeRequsts.clear();
+        this._executeRequests.clear();
       };
     });
 
@@ -148,7 +147,7 @@ export class StreamTransport
   }
 
   /**
-   * Open a new WebSocket connection. Errors if the connection fails.
+   * Open a new stream connection. Errors if the connection fails.
    */
   openConnection(): void {
     this.ensureConnection().catch(err => {
@@ -160,7 +159,7 @@ export class StreamTransport
   }
 
   /**
-   * Closes the current WebSocket connection if one exists.
+   * Closes the current stream connection if one exists.
    */
   closeConnection(): void {
     if (this._connection) {
@@ -180,13 +179,39 @@ export class StreamTransport
   }
 
   /**
-   * Send a message over the WebSocket stream.
+   * Create a unique id for an execute request over the stream.
+   * @returns the request id as a string
+   */
+  private _makeExecuteRequestId(): string {
+    return `execute-${this._executionRequestNumber++}`;
+  }
+
+  /**
+   * Create a unique id for a subscribe request over the stream. Can be used to correlate requests
+   * with future responses, or cancel an existing subscription.
+   * @param name name of the operation
+   * @param variables the operation's variables
+   * @returns the request id as a string
+   */
+  private _makeSubscribeRequestId<Variables>(
+    name: string,
+    variables: Variables
+  ): string {
+    // TODO: should this be simpler? maybe it should be similar to the execution request ID...? the only reason we need a unique AND identifying ID is so the SDK can lookup for an existing request when we want to unsubscribe, so maybe let's keep the complexity on the SDK side only
+    return encoderImpl({
+      name,
+      variables
+    });
+  }
+
+  /**
+   * Send a message over the stream.
    * Automatically ensures the connection is open before sending.
    * @param requestBody The body of the message to be sent.
    * @throws DataConnectError if sending fails.
    */
   private _sendMessage<Variables>(
-    requestBody: DataConnectStreamRequestBody<Variables>
+    requestBody: DataConnectStreamRequest<Variables>
   ): void {
     this.ensureConnection()
       .then(() => {
@@ -205,7 +230,7 @@ export class StreamTransport
    * @param body The execution payload.
    */
   private _sendExecuteMessage<Variables>(
-    body: ExecuteStreamRequestBody<Variables>
+    body: ExecuteStreamRequest<Variables>
   ): void {
     this._sendMessage(body);
   }
@@ -215,27 +240,35 @@ export class StreamTransport
    * @param subscribeRequestBody The subscription payload.
    */
   private _sendSubscribeMessage<Variables>(
-    subscribeRequestBody: SubscribeStreamRequestBody<Variables>
+    subscribeRequestBody: SubscribeStreamRequest<Variables>
   ): void {
     this._sendMessage(subscribeRequestBody);
   }
 
   /**
-   * Handles incoming WebSocket messages.
+   * Internal helper to send a message over the connection to subscribe to a query.
+   * @param cancelStreamRequest The cancel/unsubscription payload.
+   */
+  private _sendCancelMessage(cancelStreamRequest: CancelStreamRequest): void {
+    this._sendMessage(cancelStreamRequest);
+  }
+
+  /**
+   * Handles incoming stream messages.
    * Parses the message, finds the matching pending request ID, and resolves the associated promise.
-   * @param ev The MessageEvent from the WebSocket.
+   * @param ev The MessageEvent from the stream.
    */
   private handleMessage(ev: MessageEvent): void {
     try {
       // eslint-disable-next-line no-console
       console.log('MESSAGE RECEIVED:', ev.data); // DEBUGGING
-      const msg = JSON.parse(ev.data); // TODO: type the message, probably need some sort of enum to determine what type of message it is
-      const requestId = msg.requestId;
-      if (requestId && this._executeRequsts.has(requestId)) {
+      const msg = JSON.parse(ev.data);
+      const requestId = msg.requestId; // TODO: figure out what type of message this is based on the request ID
+      if (requestId && this._executeRequests.has(requestId)) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { resolve, reject } = this._executeRequsts.get(requestId)!;
+        const { resolve, reject } = this._executeRequests.get(requestId)!; // TODO: might not exist... remove "!"
         resolve(msg); // TODO: do something with the message other than just pass it along, depending on message type - we should be resolving to DataConnectResponse<Data> if it succeeds
-        this._executeRequsts.delete(requestId);
+        this._executeRequests.delete(requestId); // TODO: not necessarily an execute. only delete if this an execute
       }
     } catch (e) {
       console.error('Error handling WebSocket message', e);
@@ -269,8 +302,7 @@ export class StreamTransport
   }
 
   /**
-   * Internal helper to execute a standard Query or Mutation over the socket.
-   * Generates a request ID, registers the pending request, sends the message, and waits for response.
+   * Internal helper to execute a Query or Mutation over the stream.
    * @param operationName The name of the operation.
    * @param variables The operation variables.
    */
@@ -278,8 +310,8 @@ export class StreamTransport
     operationName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = crypto.randomUUID(); // TODO: update
-    const body: ExecuteStreamRequestBody<Variables> = {
+    const requestId = this._makeExecuteRequestId();
+    const body: ExecuteStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
       'execute': { operationName, variables }
@@ -287,47 +319,58 @@ export class StreamTransport
     this._sendExecuteMessage<Variables>(body);
     const responsePromise = new Promise<DataConnectResponse<Data>>(
       (resolve, reject) => {
-        this._executeRequsts.set(requestId, { resolve, reject });
+        this._executeRequests.set(requestId, { resolve, reject });
       }
     );
     return responsePromise;
   }
 
-  invokeSubscription<Variables>(
-    operationName: string,
-    variables: Variables
-  ): void {
-    const requestId = crypto.randomUUID(); // TODO: update
-    const body: DataConnectStreamRequestBody<Variables> = {
+  /**
+   * Internal helper to subscribe to a Query over the stream.
+   * @param queryName The name of the query.
+   * @param variables The query variables.
+   */
+  invokeSubscription<Variables>(queryName: string, variables: Variables): void {
+    const requestId = this._makeSubscribeRequestId(queryName, variables);
+    const body: SubscribeStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
-      'subscribe': { operationName, variables }
+      'subscribe': { operationName: queryName, variables }
     };
     this._sendSubscribeMessage<Variables>(body);
+    // TODO: track the request in the subscription requests map
     // TODO: need to connect this to our QueryManager's callback system - probably add/remove handling logic when subscribing/unsubscribing which just calls onNext()/onError() with the returned data
   }
 
-  invokeUnsubscription(url?: string): void {
-    throw new Error('Method not implemented.');
+  /**
+   * Internal helper to unsubscribe from a Query over the stream.
+   * @param queryName The name of the query.
+   * @param variables The query variables.
+   */
+  invokeUnsubscription<Variables>(
+    queryName: string,
+    variables: Variables
+  ): void {
+    const requestId = this._makeSubscribeRequestId(queryName, variables);
+    const request = this._subscribeRequests.get(requestId);
+    if (!request) {
+      // TODO: should we do anything else in this case?
+      console.warn(
+        `Requested unsubscription of query which is not currently being subscribed to: '${queryName}' with variables ${variables}`
+      );
+      return;
+    }
+    const body: CancelStreamRequest = {
+      name: this.connectorResourcePath,
+      requestId,
+      cancel: {}
+    };
+    this._sendCancelMessage(body);
+    // TODO: add to subscription requests (?), call callbacks, etc.
   }
 
+  // TODO: implement
   onTokenChanged(newToken: string | null): void {
-    throw new Error('Method not implemented.');
-  }
-
-  // TODO: type
-  subscribeQuery<Data, Variables>(
-    operationName: string,
-    body?: Variables
-  ): Promise<DataConnectResponse<Data>> {
-    throw new Error('Method not implemented.');
-  }
-
-  unsubscribeQuery(): void {
-    throw new Error('Method not implemented.');
-  }
-
-  heartbeat(): void {
     throw new Error('Method not implemented.');
   }
 }
