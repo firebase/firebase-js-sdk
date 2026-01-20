@@ -128,6 +128,7 @@ describe('Top level API', () => {
       value: originalCrypto,
       writable: true
     });
+    delete AUTO_CONSTANTS.appVersion;
   });
 
   describe('getCrashlytics()', () => {
@@ -334,6 +335,31 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+      });
+    });
+
+    it('should retrieve framework-specific attributes', () => {
+      const error = new Error('This is a test error');
+      error.stack = '...stack trace...';
+      error.name = 'TestError';
+
+      (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider =
+        () => ({
+          'framework_attr1': 'framework attribute #1',
+          'framework_attr2': 'framework attribute #2'
+        });
+
+      recordError(fakeCrashlytics, error);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes).to.deep.equal({
+        'error.type': 'TestError',
+        'error.stack': '...stack trace...',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        'framework_attr1': 'framework attribute #1',
+        'framework_attr2': 'framework attribute #2',
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
