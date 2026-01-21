@@ -128,10 +128,10 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value. |
 |  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
 |  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
-|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression. |
-|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression. |
-|  [regexFindAll(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression. |
-|  [regexFindAll(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression. |
+|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(pattern)](./firestore_lite_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
 |  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
 |  [regexMatch(pattern)](./firestore_lite_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
 |  [reverse()](./firestore_lite_pipelines.expression.md#expressionreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses this string expression. |
@@ -2879,6 +2879,8 @@ field("description").regexContains(field("regex"));
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
 
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
 <b>Signature:</b>
 
 ```typescript
@@ -2912,6 +2914,8 @@ field("email").regexFind("@.+")
 > 
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
 
 <b>Signature:</b>
 
@@ -2947,6 +2951,8 @@ field("email").regexFind(field("domain"))
 
 Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.
 
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
 <b>Signature:</b>
 
 ```typescript
@@ -2980,6 +2986,8 @@ field("content").regexFindAll("#[A-Za-z0-9_]+")
 > 
 
 Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
 
 <b>Signature:</b>
 

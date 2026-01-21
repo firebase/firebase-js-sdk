@@ -927,6 +927,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the first substring of a string expression that matches
    * a specified regular expression.
    *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+   *
    * @example
    * ```typescript
    * // Extract the domain from an email address
@@ -942,6 +944,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the first substring of a string expression that matches
    * a specified regular expression.
+   *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
    *
    * @example
    * ```typescript
@@ -967,6 +971,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that evaluates to a list of all substrings in this string expression that
    * match a specified regular expression.
    *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+   *
    * @example
    * ```typescript
    * // Extract all hashtags from a post content field
@@ -983,6 +989,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * Creates an expression that evaluates to a list of all substrings in this string expression that
    * match a specified regular expression.
+   *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
    *
    * @example
    * ```typescript
@@ -6004,6 +6012,8 @@ export function regexContains(
  * Creates an expression that returns the first substring of a string field that matches a
  * specified regular expression.
  *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
  * @example
  * ```typescript
  * // Extract the domain name from an email field
@@ -6024,6 +6034,8 @@ export function regexFind(
  *
  * Creates an expression that returns the first substring of a string field that matches a
  * specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
  *
  * @example
  * ```typescript
@@ -6046,10 +6058,12 @@ export function regexFind(
  * Creates an expression that returns the first substring of a string expression that matches
  * a specified regular expression.
  *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
  * @example
  * ```typescript
  * // Extract the domain from a lower-cased email address
- * regexFind(lower(field("email")), "@[A-Za-z0-9.-]+");
+ * regexFind(field("email"), "@[A-Za-z0-9.-]+");
  * ```
  *
  * @param stringExpression - The expression representing the string to search.
@@ -6067,10 +6081,12 @@ export function regexFind(
  * Creates an expression that returns the first substring of a string expression that matches
  * a specified regular expression.
  *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
  * @example
  * ```typescript
  * // Extract a substring based on a dynamic pattern field
- * regexFind(lower(field("email")), field("pattern"));
+ * regexFind(field("email"), field("pattern"));
  * ```
  *
  * @param stringExpression - The expression representing the string to search.
@@ -6096,6 +6112,8 @@ export function regexFind(
  * Creates an expression that evaluates to a list of all substrings in a string field that
  * match a specified regular expression.
  *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
  * @example
  * ```typescript
  * // Extract all hashtags from a post content field
@@ -6116,6 +6134,8 @@ export function regexFindAll(
  *
  * Creates an expression that evaluates to a list of all substrings in a string field that
  * match a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
  *
  * @example
  * ```typescript
@@ -6138,10 +6158,12 @@ export function regexFindAll(
  * Creates an expression that evaluates to a list of all substrings in a string expression
  * that match a specified regular expression.
  *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
  * @example
  * ```typescript
  * // Extract all mentions from a lower-cased comment
- * regexFindAll(lower(field("comment")), "@[A-Za-z0-9_]+");
+ * regexFindAll(field("comment"), "@[A-Za-z0-9_]+");
  * ```
  *
  * @param stringExpression - The expression representing the string to search.
@@ -6159,10 +6181,12 @@ export function regexFindAll(
  * Creates an expression that evaluates to a list of all substrings in a string expression
  * that match a specified regular expression.
  *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
  * @example
  * ```typescript
  * // Extract all matches based on a dynamic pattern expression
- * regexFindAll(lower(field("comment")), field("pattern"));
+ * regexFindAll(field("comment"), field("pattern"));
  * ```
  *
  * @param stringExpression - The expression representing the string to search.
