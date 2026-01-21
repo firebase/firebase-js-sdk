@@ -21,6 +21,7 @@ import {
   GenerativeContentBlob,
   LiveResponseType,
   LiveServerContent,
+  LiveServerGoingAwayNotice,
   LiveServerToolCall,
   LiveServerToolCallCancellation,
   Part
@@ -227,7 +228,10 @@ export class LiveSession {
    * @beta
    */
   async *receive(): AsyncGenerator<
-    LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation
+    | LiveServerContent
+    | LiveServerToolCall
+    | LiveServerToolCallCancellation
+    | LiveServerGoingAwayNotice
   > {
     if (this.isClosed) {
       throw new AIError(
@@ -261,6 +265,15 @@ export class LiveSession {
               }
             ).toolCallCancellation
           } as LiveServerToolCallCancellation;
+        } else if (LiveResponseType.GOING_AWAY_NOTICE in message) {
+          yield {
+            type: 'goingAwayNotice',
+            ...(
+              message as {
+                goingAwayNotice: Omit<LiveServerGoingAwayNotice, 'type'>;
+              }
+            ).goingAwayNotice
+          } as LiveServerGoingAwayNotice;
         } else {
           logger.warn(
             `Received an unknown message type from the server: ${JSON.stringify(

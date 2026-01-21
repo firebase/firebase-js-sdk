@@ -990,6 +990,7 @@ export const LiveResponseType: {
     SERVER_CONTENT: string;
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
+    GOING_AWAY_NOTICE: string;
 };
 
 // @beta
@@ -1004,6 +1005,13 @@ export interface LiveServerContent {
     turnComplete?: boolean;
     // (undocumented)
     type: 'serverContent';
+}
+
+// @public
+export interface LiveServerGoingAwayNotice {
+    timeLeft: number;
+    // (undocumented)
+    type: 'goingAwayNotice';
 }
 
 // @beta
@@ -1027,7 +1035,7 @@ export class LiveSession {
     close(): Promise<void>;
     inConversation: boolean;
     isClosed: boolean;
-    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;

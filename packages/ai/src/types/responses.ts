@@ -605,6 +605,17 @@ export interface LiveServerToolCallCancellation {
 }
 
 /**
+ * Notification that the server will not be able to service the client soon.
+ */
+export interface LiveServerGoingAwayNotice {
+  type: 'goingAwayNotice';
+  /**
+   * The remaining time (in seconds) before the connection will be terminated.
+   */
+  timeLeft: number;
+}
+
+/**
  * The types of responses that can be returned by {@link LiveSession.receive}.
  *
  * @beta
@@ -612,7 +623,8 @@ export interface LiveServerToolCallCancellation {
 export const LiveResponseType = {
   SERVER_CONTENT: 'serverContent',
   TOOL_CALL: 'toolCall',
-  TOOL_CALL_CANCELLATION: 'toolCallCancellation'
+  TOOL_CALL_CANCELLATION: 'toolCallCancellation',
+  GOING_AWAY_NOTICE: 'goingAwayNotice'
 };
 
 /**

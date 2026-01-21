@@ -23,6 +23,7 @@ import {
   FunctionResponse,
   LiveResponseType,
   LiveServerContent,
+  LiveServerGoingAwayNotice,
   LiveServerToolCall,
   LiveServerToolCallCancellation
 } from '../types';
@@ -239,13 +240,16 @@ describe('LiveSession', () => {
         toolCallCancellation: { functionIds: ['123'] }
       });
       mockHandler.simulateServerMessage({
+        goingAwayNotice: { timeLeft: 30 }
+      });
+      mockHandler.simulateServerMessage({
         serverContent: { turnComplete: true }
       });
       await new Promise<void>(r => setTimeout(() => r(), 10)); // Wait for the listener to process messages
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.have.lengthOf(4);
+      expect(responses).to.have.lengthOf(5);
       expect(responses[0]).to.deep.equal({
         type: LiveResponseType.SERVER_CONTENT,
         modelTurn: { parts: [{ text: 'response 1' }] }
@@ -258,6 +262,14 @@ describe('LiveSession', () => {
         type: LiveResponseType.TOOL_CALL_CANCELLATION,
         functionIds: ['123']
       } as LiveServerToolCallCancellation);
+      expect(responses[3]).to.deep.equal({
+        type: LiveResponseType.GOING_AWAY_NOTICE,
+        timeLeft: 30
+      } as LiveServerGoingAwayNotice);
+      expect(responses[4]).to.deep.equal({
+        type: LiveResponseType.SERVER_CONTENT,
+        turnComplete: true
+      } as LiveServerContent);
     });
 
     it('should log a warning and skip messages that are not objects', async () => {
