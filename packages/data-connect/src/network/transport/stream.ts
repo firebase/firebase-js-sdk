@@ -293,6 +293,16 @@ export class StreamTransport extends DataConnectTransportClass {
         // TODO: call callbacks
       }
     } catch (e) {
+      if (e instanceof Error) {
+        const err = new DataConnectError(
+          Code.OTHER,
+          `error receiving message: ${e.name}: ${e.message}`
+        );
+        if (e instanceof DataConnectError) {
+          err.customData = e.customData;
+        }
+        throw err;
+      }
       throw new DataConnectError(Code.OTHER, 'error receiving message');
     }
   }
