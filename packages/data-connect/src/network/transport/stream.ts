@@ -120,6 +120,8 @@ export class StreamTransport extends DataConnectTransportClass {
     }
     this._connectionAttempt = new Promise<void>((resolve, reject) => {
       const ws = new WebSocket(this.endpointUrl);
+      // eslint-disable-next-line no-console
+      console.log(this.endpointUrl);
       ws.onopen = () => {
         this._connection = ws;
         // eslint-disable-next-line no-console
