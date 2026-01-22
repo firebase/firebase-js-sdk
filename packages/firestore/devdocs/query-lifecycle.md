@@ -25,23 +25,23 @@ When a user calls `onSnapshot(query, callback)`, the **Event Manager** does not 
 
 The **Sync Engine** acts as the coordinator between the User World (Query) and the System World (Target).
 
-1.  **Allocation**: The Sync Engine asks the **Local Store** to allocate a `TargetID` for the query.
-2.  **Persistence**: The `TargetData` is written to the `targets` table (IndexedDB) with an initial `sequence_number`.
-3.  **Watch Stream**: The Sync Engine instructs the **Remote Store** to begin listening to this `TargetID` over the network.
+1.  **Allocation**: The Sync Engine asks the **Local Store** to allocate a `Target ID` for the query.
+2.  **Persistence**: The **Target Data** is written to the **Targets Table** (IndexedDB) with an initial `sequence_number`.
+3.  **Watch Stream**: The Sync Engine instructs the **Remote Store** to begin listening to this `Target ID` over the network.
 
 ## Phase 3: The "View" Calculation (Local Store)
 
 The "View" is what the user actually sees via the API. It is constructed purely from local data, allowing for offline access and optimistic updates.
 
-> **Formula:** `View = RemoteDocuments (Cache) + Overlays (Pending Writes)`
+> **Formula:** `View = Remote Document Cache + Overlays (Pending Writes)`
 
 When a query runs (initially or after a remote update), the **Local Store** performs the following:
 
 1.  **Execution**: The `Query Engine` determines the most efficient strategy to find the set of matching `DocumentKeys`.
     *   *Deep Dive*: For details on Index Scans, Full Scans, and Optimization strategies, see [Query Execution & Indexing](./query-execution.md).
-2.  **Base State**: The store retrieves the confirmed server state from the `remote_documents` table.
+2.  **Base State**: The store retrieves the confirmed server state from the **Remote Document Cache**.
 3.  **Overlay Application**:
-    *   The store checks the `mutation_queue` for any pending writes associated with these keys.
+    *   The store checks the **Mutation Queue** for any pending writes associated with these keys.
     *   These mutations are converted into **Overlays**.
     *   The Overlay is applied on top of the Remote Document.
 4.  **Projection**: The final composed documents are sent to the Event Manager.
@@ -54,7 +54,7 @@ As the **Remote Store** receives snapshot events from the backend, the Sync Engi
 
 ### The Happy Path
 1.  Backend sends a `DocumentChange`.
-2.  Sync Engine updates `remote_documents` table.
+2.  Sync Engine updates **Remote Document Cache**.
 3.  Local Store recalculates the View.
 4.  If the view changes, Event Manager fires the user callback.
 
@@ -77,8 +77,8 @@ When a user calls `unsubscribe()`, data is **not** immediately deleted.
 1.  **Event Manager**: Decrements the listener count for that Query.
 2.  **Zero-Count**: If the count hits 0, the Event Manager notifies the Sync Engine.
 3.  **Sync Engine**:
-    *   Removes the `TargetID` from the Remote Store (stopping the network stream).
-    *   **Crucial**: The data in `remote_documents` and the metadata in `targets` remains on disk. This allows for "Offline Query Acceleration" if the user restarts the app or re-issues the query later.
+    *   Removes the `Target ID` from the Remote Store (stopping the network stream).
+    *   **Crucial**: The data in **Remote Document Cache** and the metadata in **Targets Table** remains on disk. This allows for "Offline Query Acceleration" if the user restarts the app or re-issues the query later.
 
 ## Phase 6: Garbage Collection (The "Death" of a Query)
 
@@ -87,7 +87,7 @@ Since data persists after `unsubscribe()`, the SDK must actively manage disk usa
 *   **Eager GC**: If persistence is disabled, data is cleared from memory immediately when the listener count hits 0.
 *   **LRU GC**: If persistence is enabled, the data remains on disk for offline availability.
 
-The **LruGarbageCollector** runs periodically to keep the cache within the configured size (default 40MB/100MB). It uses a "Sequence Number" system to track when data was last used.
+The **LRU Garbage Collector** runs periodically to keep the cache within the configured size (default 40MB/100MB). It uses a "Sequence Number" system to track when data was last used.
 
 For a detailed walkthrough of the algorithm, Sequence Numbers, and Orphaned Documents, see **[Garbage Collection](./garbage-collection.md)**.
 
@@ -96,6 +96,6 @@ For a detailed walkthrough of the algorithm, Sequence Numbers, and Orphaned Docu
 
 If you are debugging a **"Zombie Document"** (data appearing that should be gone) or **"Missing Data"**:
 
-1.  **Check `targets`**: Is there an active target (valid `resumeToken`) covering that document?
-2.  **Check `mutation_queue`**: Is there a pending mutation (BatchID) that hasn't been acknowledged? This creates an Overlay that persists even if the remote doc is deleted.
-3.  **Check `target_documents`**: Is the document explicitly linked to a TargetID that you thought was closed?
+1.  **Check Targets Table**: Is there an active target (valid `resumeToken`) covering that document?
+2.  **Check Mutation Queue**: Is there a pending mutation (BatchID) that hasn't been acknowledged? This creates an Overlay that persists even if the remote doc is deleted.
+3.  **Check Target-Document Index**: Is the document explicitly linked to a Target ID that you thought was closed?

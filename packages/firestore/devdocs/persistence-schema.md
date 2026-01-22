@@ -4,11 +4,13 @@ The Firestore JS SDK persists data to IndexedDB to support offline querying, lat
 
 While the Android/iOS SDKs use SQLite, the JS SDK uses IndexedDB Object Stores. However, the logical schema is identical across platforms to ensure consistent behavior.
 
+This document serves as a reference guide for the IndexedDB tables (Object Stores) used by the SDK. It helps maintainers maps logical concepts (like "Mutation Queue") to their physical implementation.
+
 ## Core Object Stores
 
 ### Remote Document Cache
 *   **Concept**: The client's cache of the backend's "Source of Truth."
-*   **Implementation**: Stored in `remoteDocuments` (legacy: `remoteDocumentsV14`).
+*   **Implementation**: Stored in `remoteDocuments`.
 *   **Key**: `DocumentKey` (Path to the document).
 *   **Value**:
     *   **Document Data**: The serialized Protobuf of the document.

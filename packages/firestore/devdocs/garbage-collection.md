@@ -35,28 +35,28 @@ A document is only eligible for collection if it is **Orphaned**. A document is 
 ## Key Concepts
 
 ### Sequence Numbers (The Logical Clock)
-To determine "recency," the SDK maintains a global `lastListenSequenceNumber` in the **Target Globals** store (`targetGlobal`).
+To determine "recency," the SDK maintains a global `lastListenSequenceNumber` in the **Target Globals** store.
 *   **Tick**: Every transaction (write, query listen, remote update) increments this number.
 *   **Tagging**: When a Target is actively listened to or updated, its `lastListenSequenceNumber` is updated to the current global tick.
 *   **Effect**: Higher numbers = More recently used.
 
-### The Reference Map (`targetDocuments`)
-The **Target-Document Index** (`targetDocuments`) acts as a reference counter linking Documents to Targets.
+### The Reference Map (Target-Document Index)
+The **Target-Document Index** acts as a reference counter linking Documents to Targets.
 *   **Active Association**: If `targetId: 2` matches `documentKey: A`, a row exists.
 *   **Sentinel Rows (`targetId: 0`)**: If a document exists in the cache but is not matched by *any* specific target (perhaps previously downloaded, or part of a target that was deleted), it may have a row with `targetId: 0`. This marks the document as present but potentially orphaned.
 
 ## The Collection Algorithm
 
-The `LruGarbageCollector` runs periodically (e.g., every few minutes).
+The **LRU Garbage Collector** runs periodically (e.g., every few minutes).
 
 1.  **Threshold Check**: It calculates the byte size of the current cache. If `CurrentSize < CacheSizeBytes` (default 100MB), the process aborts.
 2.  **Calculate Cutoff**:
     *   The GC decides how many items to cull (e.g., 10%).
-    *   It queries the **Target-Document Index** (`targetDocuments`) table, ordered by `sequenceNumber` ASC.
+    *   It queries the **Target-Document Index** table, ordered by `sequenceNumber` ASC.
     *   It finds the sequence number at the 10th percentile. This becomes the **Upper Bound**.
 3.  **Sweep Targets**:
-    *   Any Target in the **Targets** table (`targets`) with a `lastListenSequenceNumber` <= **Upper Bound** is deleted.
+    *   Any Target in the **Targets Table** with a `lastListenSequenceNumber` <= **Upper Bound** is deleted.
     *   This removes the "Active" link for any documents associated with that target.
 4.  **Sweep Documents**:
     *   The GC scans for documents that have *no* rows in **Target-Document Index** (or only sentinel rows) AND have a sequence number <= **Upper Bound**.
-    *   These "Orphaned" documents are deleted from the **Remote Document Cache** (`remoteDocuments`).
+    *   These "Orphaned" documents are deleted from the **Remote Document Cache**.

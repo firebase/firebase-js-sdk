@@ -14,7 +14,7 @@ The **Query Engine** is the component within the **Local Store** responsible for
     *   The engine uses the index to narrow down the potential keys and then performs a scan on that smaller subset to verify the remaining conditions.
 3.  **Index-Free (Timestamp) Optimization**:
     *   **Concept**: If the client has been online and syncing, it knows the state of the collection up to a specific point in time (the `lastLimboFreeSnapshot`).
-    *   **Mechanism**: The SDK assumes the "base state" (documents matching at the last snapshot) is correct. It then only scans the `remote_documents` table for documents modified *after* that snapshot version.
+    *   **Mechanism**: The SDK assumes the "base state" (documents matching at the last snapshot) is correct. It then only scans the **Remote Document Cache** for documents modified *after* that snapshot version.
     *   This drastically reduces the work required for active listeners, changing the cost from *Collection Size* to *Recent Change Volume*.
 4.  **Full Collection Scan (O(N))**:
     *   The fallback strategy. The engine iterates through every document in the collection locally to check for matches.
@@ -23,7 +23,7 @@ The **Query Engine** is the component within the **Local Store** responsible for
 
 To support efficient querying without blocking the main thread, the SDK utilizes a decoupled indexing architecture.
 
-*   **Structure**: Index entries are stored in a dedicated `index_entries` table. An entry maps field values (e.g., `(coll/doc1, fieldA=1)`) to a document key.
+*   **Structure**: Index entries are stored in a dedicated **Index Entries** table. An entry maps field values (e.g., `(coll/doc1, fieldA=1)`) to a document key.
 *   **The Index Backfiller**: Indexes are **not** updated synchronously when you write a document. Instead, a background task called the **Backfiller** runs periodically (when the SDK is idle). It reads new/modified documents and updates the index entries.
 *   **Hybrid Lookup**: Because the Backfiller is asynchronous, the index might be "stale" (behind the document cache). To guarantee consistency, the Query Engine performs a **Hybrid Lookup**:
     1.  Query the **Index** for results up to the `IndexOffset` (the point where the Backfiller stopped).
@@ -35,7 +35,7 @@ To support efficient querying without blocking the main thread, the SDK utilizes
 Queries using `OR` or `IN` are not executed as a single monolithic scan.
 
 > [!NOTE]
-> **Scalability & Watch**: While functionality exists to run these queries against the backend, the SDK implements **Disjunctive Normal Form (DNF)** transformation primarily to enable efficient **local** execution using simpler indexes (as seen in `IndexedDbIndexManager`). This allows the SDK to support complex queries offline or against the cache without requiring full table scans. [See Watch System](./watch.md) for more on the backend interaction.
+> **Scalability & Watch**: While functionality exists to run these queries against the backend, the SDK implements **Disjunctive Normal Form (DNF)** transformation primarily to enable efficient **local** execution using simpler indexes (as seen in the **Index Manager**). This allows the SDK to support complex queries offline or against the cache without requiring full table scans. [See Watch System](./watch.md) for more on the backend interaction.
 
 The SDK transforms these into **Disjunctive Normal Form (DNF)**—essentially breaking them into multiple sub-queries.
 
