@@ -30,7 +30,7 @@ import {
 } from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
-import { AIErrorCode } from '../types';
+import { AIErrorCode, InferenceMode } from '../types';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { VertexAIBackend } from '../backend';
@@ -139,10 +139,26 @@ describe('request methods', () => {
       stream: true,
       singleRequestOptions: undefined
     });
-    it('adds client headers', async () => {
+    it('adds client headers (no hybrid)', async () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-client')).to.match(
-        /gl-js\/[0-9\.]+ fire\/[0-9\.]+/
+        /gl-js\/[0-9\.]+ fire\/[0-9\.]+$/
+      );
+    });
+    it('adds client headers (if hybrid)', async () => {
+      const fakeUrlWithHybrid = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
+          ...fakeApiSettings,
+          inferenceMode: InferenceMode.PREFER_ON_DEVICE
+        },
+        stream: true,
+        singleRequestOptions: undefined
+      });
+      const headers = await getHeaders(fakeUrlWithHybrid);
+      expect(headers.get('x-goog-api-client')).to.match(
+        /gl-js\/[0-9\.]+ fire\/[0-9\.]+ hybrid$/
       );
     });
     it('adds api key', async () => {
