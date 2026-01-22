@@ -58,22 +58,18 @@ export interface DataConnectExtensions {
   dataConnect?: DataConnectExtension[];
 }
 
-export interface DataConnectResponse<T> {
-  data: T;
+export interface DataConnectResponse<Data> {
+  data: Data;
   errors: Error[];
   extensions: DataConnectExtensions;
 }
 
-/**
- * Represents a single stream of communication over a physical connection.
- * Example: A single operations execution, or a query subscription
- * @internal
- */
-export interface LogicalStream<Data, Variables> {
+export interface DataConnectStreamResponse<Data> {
   requestId: string;
-  operationName: string;
-  variables?: Variables;
-  lastResponse?: DataConnectResponse<Data>;
+  data: Data;
+  dataEtag: string; // TODO: actually a hash
+  errors: Error[];
+  cancelled: boolean;
 }
 
 /**

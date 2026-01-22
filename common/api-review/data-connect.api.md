@@ -129,9 +129,9 @@ export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings
 }
 
 // @public (undocumented)
-export interface DataConnectResponse<T> {
+export interface DataConnectResponse<Data> {
     // (undocumented)
-    data: T;
+    data: Data;
     // (undocumented)
     errors: Error[];
     // (undocumented)
@@ -154,6 +154,20 @@ export interface DataConnectSettings {
 export interface DataConnectSingleEntity {
     // (undocumented)
     entityId: string;
+}
+
+// @public (undocumented)
+export interface DataConnectStreamResponse<Data> {
+    // (undocumented)
+    cancelled: boolean;
+    // (undocumented)
+    data: Data;
+    // (undocumented)
+    dataEtag: string;
+    // (undocumented)
+    errors: Error[];
+    // (undocumented)
+    requestId: string;
 }
 
 // @public
@@ -366,6 +380,8 @@ export interface TransportOptions {
     port?: number;
     // (undocumented)
     sslEnabled?: boolean;
+    // (undocumented)
+    streamEnabled?: boolean;
 }
 
 

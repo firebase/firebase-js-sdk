@@ -17,7 +17,13 @@
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
-import { Code, DataConnectError } from '../../core/error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationFailureResponse,
+  DataConnectOperationFailureResponseErrorInfo
+} from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { encoderImpl } from '../../util/encoder';
 
@@ -29,7 +35,8 @@ import {
   DataConnectTransportClass,
   ExecuteStreamRequest,
   SubscribeStreamRequest,
-  CancelStreamRequest
+  CancelStreamRequest,
+  DataConnectStreamResponse
 } from '.';
 
 /**
@@ -195,10 +202,11 @@ export class StreamTransport extends DataConnectTransportClass {
     variables: Variables
   ): string {
     // TODO: should this be simpler? maybe it should be similar to the execution request ID...? the only reason we need a unique AND identifying ID is so the SDK can lookup for an existing request when we want to unsubscribe, so maybe let's keep the complexity on the SDK side only
-    return encoderImpl({
+    const queryKey = encoderImpl({
       name,
       variables
     });
+    return `subscribe-${queryKey}`;
   }
 
   /**
@@ -259,17 +267,53 @@ export class StreamTransport extends DataConnectTransportClass {
     try {
       // eslint-disable-next-line no-console
       console.log('MESSAGE RECEIVED:', ev.data); // DEBUGGING
-      const msg = JSON.parse(ev.data);
-      const requestId = msg.requestId; // TODO: figure out what type of message this is based on the request ID
-      if (requestId && this._executeRequests.has(requestId)) {
+      const response = this._parseStreamResponse(ev.data);
+      const requestId = response.requestId;
+
+      if (response.errors) {
+        const stringified = JSON.stringify(response.errors);
+        const failureResponse: DataConnectOperationFailureResponse = {
+          errors:
+            response.errors as unknown as DataConnectOperationFailureResponseErrorInfo[], // TODO: type this properly, or return a different type of error
+          data: response.data as Record<string, unknown>
+        };
+        throw new DataConnectOperationError(
+          'DataConnect error while performing request: ' + stringified,
+          failureResponse
+        );
+      }
+
+      if (this._executeRequests.has(requestId)) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { resolve, reject } = this._executeRequests.get(requestId)!; // TODO: might not exist... remove "!"
-        resolve(msg); // TODO: do something with the message other than just pass it along, depending on message type - we should be resolving to DataConnectResponse<Data> if it succeeds
-        this._executeRequests.delete(requestId); // TODO: not necessarily an execute. only delete if this an execute
+        const { resolve, reject } = this._executeRequests.get(requestId)!;
+        resolve(response.data); // TODO: do something with the message other than just pass it along, depending on message type - we should be resolving to DataConnectResponse<Data> if it succeeds
+        this._executeRequests.delete(requestId);
+      }
+      if (this._subscribeRequests.has(requestId)) {
+        // TODO: call callbacks
       }
     } catch (e) {
-      console.error('Error handling WebSocket message', e);
+      throw new DataConnectError(Code.OTHER, 'error receiving message');
     }
+  }
+
+  /**
+   * Parse a response from the server. Assert that it has a requestId.
+   * @param msg the message from the server to be parsed
+   * @returns the parsed message as a DataConnectStreamResponse
+   */
+  private _parseStreamResponse<Data>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    msg: any
+  ): DataConnectStreamResponse<Data> {
+    const response = JSON.parse(msg.data);
+    if (!response.requestId) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'message from stream did not include requestId'
+      );
+    }
+    return response as DataConnectStreamResponse<Data>;
   }
 
   /**
@@ -308,6 +352,7 @@ export class StreamTransport extends DataConnectTransportClass {
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
     const requestId = this._makeExecuteRequestId();
+    // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
@@ -329,6 +374,7 @@ export class StreamTransport extends DataConnectTransportClass {
    */
   invokeSubscription<Variables>(queryName: string, variables: Variables): void {
     const requestId = this._makeSubscribeRequestId(queryName, variables);
+    // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: SubscribeStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
