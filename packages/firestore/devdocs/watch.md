@@ -1,6 +1,6 @@
 # The Watch System
 
-This document explains the "Watch" backend system, which powers the real-time capabilities and standard read/write operations of the Firestore SDKs.
+This document explains the "Watch" backend system, which powers the real-time capabilities and standard read/write operations of the Firestore SDKs. It is the backend protocol managed by the [Remote Store](./architecture.md#remote-store).
 
 ## Overview
 

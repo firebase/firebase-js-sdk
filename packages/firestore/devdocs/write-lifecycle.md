@@ -1,6 +1,8 @@
 # Write Lifecycle & Latency Compensation
 
-This document details the lifecycle of a write operation (Set, Update, Delete) from the moment the API is called to when it is committed to the backend. It focuses on **Mutations**, **Overlays**, and how the SDK achieves instant **Latency Compensation**.
+This document details the lifecycle of a write operation (Set, Update, Delete) from the moment the API is called to when it is committed to the backend. It describes the data flow managed by the [Sync Engine](./architecture.md#sync-engine).
+
+It focuses on **Mutations**, **Overlays**, and how the SDK achieves instant **Latency Compensation**.
 
 ## Key Concepts
 

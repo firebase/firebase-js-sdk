@@ -1,6 +1,6 @@
 # Firestore Data Bundles
 
-This document provides an overview of Firestore data bundles, how they are processed, and how they are used within the SDK.
+This document provides an overview of Firestore data bundles, how they are processed, and how they are used within the SDK. It is a feature used for [Data Distribution and SSR](./overview.md#read-operations).
 
 ## What is a Bundle?
 

@@ -1,6 +1,8 @@
 # Limbo Resolution & Consistency
 
-This document details how the Firestore Client SDKs ensure the local cache remains consistent with the server after connectivity interruptions, specifically focusing on **Limbo Resolution**, **Resume Tokens**, and **Existence Filters**.
+This document details how the Firestore Client SDKs ensure the local cache remains consistent with the server after connectivity interruptions. It is a reconciliation process managed by the [Sync Engine](./architecture.md#sync-engine).
+
+Specifically, it focuses on **Limbo Resolution**, **Resume Tokens**, and **Existence Filters**.
 
 ## The Problem: Offline Drift
 

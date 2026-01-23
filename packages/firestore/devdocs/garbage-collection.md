@@ -1,6 +1,8 @@
 # Garbage Collection (LRU)
 
-This document details how the SDK manages local cache size to prevent unbounded growth. It explains the distinction between Eager and LRU collection, the criteria for deletion, and the sequence-number-based algorithm used to identify old data.
+This document details how the SDK manages local cache size to prevent unbounded growth. It is a critical component of the [Local Store](./architecture.md#local-store).
+
+It explains the distinction between Eager and LRU collection, the criteria for deletion, and the sequence-number-based algorithm used to identify old data.
 
 ## Strategies: Eager vs. LRU
 

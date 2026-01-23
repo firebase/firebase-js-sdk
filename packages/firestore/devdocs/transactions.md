@@ -1,6 +1,8 @@
 # Transaction Lifecycle & Mechanics
 
-This document details the internal implementation of Transactions in the Firestore JavaScript SDK. Unlike standard writes, which use the [Write Lifecycle](./write-lifecycle.md) (Mutation Queue, Overlays, Sync Engine), Transactions are **online-only** operations that communicate directly with the backend.
+This document details the internal implementation of Transactions in the Firestore JavaScript SDK. It is a key component of the [Remote Store](./architecture.md#remote-store).
+
+Unlike standard writes, which use the [Write Lifecycle](./write-lifecycle.md) (Mutation Queue, Overlays, Sync Engine), Transactions are **online-only** operations that communicate directly with the backend.
 
 ## Optimistic vs. Pessimistic Concurrency
 
@@ -30,7 +32,7 @@ The `runTransaction` function accepts an `updateFunction`. This function is exec
 
 ### 2. Reads (`get`)
 When a user reads a document inside a transaction:
-*   **Bypasses Cache**: The SDK does *not* look in `remoteDocuments` (cache) or `mutationQueue` (local writes). It forces a network fetch.
+*   **Bypasses Cache**: The SDK does *not* look in **Remote Document Cache** or **Mutation Queue** (local writes). It forces a network fetch.
 *   **RPC**: It uses the `BatchGetDocuments` RPC.
 *   **No Transaction ID**: Unlike server SDKs, the `BatchGetDocuments` request does **not** include a Transaction ID. It is a standard read.
 *   **Versioning**: The SDK records the `updateTime` and `key` of every document read. These will be used later for verification.
