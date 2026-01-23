@@ -606,6 +606,8 @@ export interface LiveServerToolCallCancellation {
 
 /**
  * Notification that the server will not be able to service the client soon.
+ *
+ * @beta
  */
 export interface LiveServerGoingAwayNotice {
   type: 'goingAwayNotice';

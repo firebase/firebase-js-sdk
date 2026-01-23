@@ -1007,7 +1007,7 @@ export interface LiveServerContent {
     type: 'serverContent';
 }
 
-// @public
+// @beta
 export interface LiveServerGoingAwayNotice {
     timeLeft: number;
     // (undocumented)
