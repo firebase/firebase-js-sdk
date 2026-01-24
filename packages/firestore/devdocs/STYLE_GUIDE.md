@@ -51,8 +51,9 @@ This guide summarizes the key points of the [Google Developer Documentation Styl
 *   **No "Translations"**: Never convert code names into snake_case. Either use the English Concept ("Remote Documents") or the exact Code Name (`remoteDocuments`).
 
 ## Progressive Disclosure
-*   **Start High-Level**: Always start with the "What" and "Why" before diving into the "How".
-*   **Link to Details**: Keep the main text focused on concepts and link to separate files or sections for implementation details (e.g., "See [Transactions](./transactions.md) for implementation details").
+*   **What & Why > How**: Always start with **What** the concept is and **Why** it matters.
+*   **Gradual Complexity**: Introduce concepts gradually. Start with the basics and build up.
+*   **Link the "How"**: **Do not** dive into implementation details (the "How") in the main specific documentation. The code speaks for itself. Instead, link to specific files or sections if deep detail is needed, but prefer keeping the docs focused on concepts.
 *   **Verify**: Ensure this pattern is applied consistently to prevent information overload.
 
 ## Accuracy and Relevance

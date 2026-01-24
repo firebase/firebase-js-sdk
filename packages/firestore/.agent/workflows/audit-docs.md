@@ -26,18 +26,21 @@ description: Audits documentation to ensure they adhere to the style guide
 
 ### 2. Concepts & Terminology
 *   [ ] **English Concepts**: Does it use English terms (e.g., "Mutation Queue") instead of code identifiers (e.g., `mutationQueue`) in narrative text?
-*   [ ] **Why > How**: Does it explain the architectural intent before listing class names?
 *   [ ] **Accuracy**: Does it describe the *current* state (no aspirational features)?
 *   [ ] **No Legacy**: Are deprecated APIs avoided unless necessary for migration?
 
-### 3. Voice, Tone & Perspective
+### 3. Progressive Disclosure
+*   **What & Why > How**: Does it convey the "What" and "Why" early on?
+*   **Link the How**: Are complex details linked to separate files/sections rather than inline?
+
+### 4. Voice, Tone & Perspective
 *   [ ] **Audience**: Is it written for a Fellow Maintainer (not an App Developer)?
 *   [ ] **Second Person**: Does it address the reader as "You"?
 *   [ ] **Present Tense**: "Returns X" (Pass) vs "Will return X" (Fail).
 *   [ ] **Active Voice**: "The Server handles X" (Pass) vs "X is handled by the Server" (Fail).
 *   [ ] **Respectful**: Is it free of slang and unnecessary complexity?
 
-### 4. Formatting & Polish
+### 5. Formatting & Polish
 *   [ ] **Relative Links**: Are all links relative (`./doc.md`)?
 *   [ ] **Diagrams**: Are complex flows visualized with Mermaid?
 *   [ ] **Code Formatting**: Are variables wrapped in backticks?
