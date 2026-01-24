@@ -306,6 +306,7 @@ interface StreamRequest {
   name: string; // connectorResourcePath
   requestId: string;
   authToken?: string; // TODO: type
+  appCheckToken?: string; // TODO: type
   dataEtag?: string; // TODO: type
 }
 
@@ -329,6 +330,41 @@ interface ResumeRequestKind {}
  * @internal
  */
 interface CancelRequestKind {}
+
+/**
+ * Payload for an auth token authentication stream request.
+ * @internal
+ */
+interface AuthStreamRequest extends StreamRequest {
+  authToken: string; // TODO: type
+}
+
+/**
+ * Payload for an app check token authentication stream request.
+ * @internal
+ */
+interface AppCheckStreamRequest extends StreamRequest {
+  appCheckToken: string; // TODO: type
+}
+
+/**
+ * Payload for an auth and appcheck token authentication stream request.
+ * @internal
+ */
+interface AuthAppCheckStreamRequest extends StreamRequest {
+  authToken: string; // TODO: type
+  appCheckToken: string; // TODO: type
+}
+
+/**
+ * Payload for an authentication stream request.
+ * Requires providing an auth token, or app check token, or both.
+ * @internal
+ */
+export type AuthenticationStreamRequest =
+  | AuthStreamRequest
+  | AppCheckStreamRequest
+  | AuthAppCheckStreamRequest;
 
 /**
  * Fields for a subscribe request payload.
@@ -382,4 +418,5 @@ export type DataConnectStreamRequest<Variables> =
   | ExecuteStreamRequest<Variables>
   | SubscribeStreamRequest<Variables>
   | ResumeStreamRequest
-  | CancelStreamRequest;
+  | CancelStreamRequest
+  | AuthenticationStreamRequest;

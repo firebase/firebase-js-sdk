@@ -17,15 +17,8 @@
 
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
-import {
-  Code,
-  DataConnectError,
-  DataConnectOperationError,
-  DataConnectOperationFailureResponse,
-  DataConnectOperationFailureResponseErrorInfo
-} from '../../core/error';
+import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
-import { encoderImpl } from '../../util/encoder';
 
 import {
   CallerSdkType,
@@ -36,8 +29,17 @@ import {
   ExecuteStreamRequest,
   SubscribeStreamRequest,
   CancelStreamRequest,
-  DataConnectStreamResponse
+  DataConnectStreamResponse,
+  AuthenticationStreamRequest
 } from '.';
+
+const EXECUTE_STR = 'exec';
+const SUBSCRIBE_STR = 'sub';
+const AUTHENTICATION_STR = 'auth';
+type RequestType =
+  | typeof EXECUTE_STR
+  | typeof SUBSCRIBE_STR
+  | typeof AUTHENTICATION_STR;
 
 /**
  * A Transport implementation that uses WebSockets to stream requests and responses.
@@ -46,6 +48,8 @@ import {
  * @internal
  */
 export class StreamTransport extends DataConnectTransportClass {
+  // TODO: handle app check and auth... in RESTTransport there are providers that get called... probably have to do something like that here, too
+
   /** The current established connection to the server. Undefined if disconnected. */
   private _connection: WebSocket | undefined = undefined;
 
@@ -67,21 +71,33 @@ export class StreamTransport extends DataConnectTransportClass {
   private _executionRequestNumber = 1;
 
   /**
-   * Map of active execution requests and their corresponding Promise resolvers.
+   * Map of active execution RequestIds and their corresponding Promise resolvers.
    */
-  private _executeRequests = new Map<
+  private _executeRequestPromises = new Map<
     string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
   >();
 
   /**
-   * Map of active subscription requests and their corresponding Promise resolvers.
+   * Map of active subscription RequestIds and their corresponding callbacks. These callbacks are
+   * provided by the query layer, which handles calling the user's registered callbacks
    */
-  private _subscribeRequests = new Map<
+  private _subscribeRequestCallbacks = new Map<
+    // TODO: these callbacks should be supplied by the query layer when invoking the subscribe transport functions 
     string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
+    {
+      onNotification: (result: DataConnectResponse<unknown>) => void;
+      onComplete: () => void;
+    }
+  >();
+
+  /**
+   * Map of active subscription query name, variable combinations and their corresponding RequestIds.
+   */
+  private _subscribeRequestIds = new Map<
+    { queryName: string; variables: object | undefined },
+    string
   >();
 
   constructor(
@@ -120,12 +136,8 @@ export class StreamTransport extends DataConnectTransportClass {
     }
     this._connectionAttempt = new Promise<void>((resolve, reject) => {
       const ws = new WebSocket(this.endpointUrl);
-      // eslint-disable-next-line no-console
-      console.log(this.endpointUrl);
       ws.onopen = () => {
         this._connection = ws;
-        // eslint-disable-next-line no-console
-        console.log('WebSocket Connected'); // DEBUGGING
         resolve();
       };
       ws.onerror = err => {
@@ -137,7 +149,7 @@ export class StreamTransport extends DataConnectTransportClass {
         this._connection = undefined;
         this._connectionAttempt = null;
         // Clean up pending requests on close so calls don't hang indefinitely
-        this._executeRequests.forEach(p =>
+        this._executeRequestPromises.forEach(p =>
           p.reject(
             new DataConnectError(
               Code.OTHER,
@@ -145,7 +157,7 @@ export class StreamTransport extends DataConnectTransportClass {
             )
           )
         );
-        this._executeRequests.clear();
+        this._executeRequestPromises.clear();
       };
     });
 
@@ -185,30 +197,11 @@ export class StreamTransport extends DataConnectTransportClass {
   }
 
   /**
-   * Create a unique id for an execute request over the stream.
+   * Create a unique id for a request over the stream.
    * @returns the request id as a string
    */
-  private _makeExecuteRequestId(): string {
-    return `execute-${this._executionRequestNumber++}`;
-  }
-
-  /**
-   * Create a unique id for a subscribe request over the stream. Can be used to correlate requests
-   * with future responses, or cancel an existing subscription.
-   * @param name name of the operation
-   * @param variables the operation's variables
-   * @returns the request id as a string
-   */
-  private _makeSubscribeRequestId<Variables>(
-    name: string,
-    variables: Variables
-  ): string {
-    // TODO: should this be simpler? maybe it should be similar to the execution request ID...? the only reason we need a unique AND identifying ID is so the SDK can lookup for an existing request when we want to unsubscribe, so maybe let's keep the complexity on the SDK side only
-    const queryKey = encoderImpl({
-      name,
-      variables
-    });
-    return `subscribe-${queryKey}`;
+  private _makeRequestId(requestType: RequestType): string {
+    return `${requestType}-${this._executionRequestNumber++}`;
   }
 
   /**
@@ -261,71 +254,76 @@ export class StreamTransport extends DataConnectTransportClass {
   }
 
   /**
+   * Internal helper to send a message over the connection to subscribe to a query.
+   * @param cancelStreamRequest The cancel/unsubscription payload.
+   */
+  private _sendAuthenticationMessaage(
+    authenticationMessage: AuthenticationStreamRequest
+  ): void {
+    this._sendMessage(authenticationMessage);
+  }
+
+  /**
    * Handles incoming stream messages.
    * Parses the message, finds the matching pending request ID, and resolves the associated promise.
    * @param ev The MessageEvent from the stream.
    */
   private handleMessage(ev: MessageEvent): void {
-    try {
-      // eslint-disable-next-line no-console
-      console.log('MESSAGE RECEIVED:', ev.data); // DEBUGGING
-      const response = this._parseStreamResponse(ev.data);
-      const requestId = response.requestId;
+    const result = this._parseStreamResponse(ev.data);
+    const requestId = result.requestId;
 
-      if (response.errors) {
-        const stringified = JSON.stringify(response.errors);
-        const failureResponse: DataConnectOperationFailureResponse = {
-          errors:
-            response.errors as unknown as DataConnectOperationFailureResponseErrorInfo[], // TODO: type this properly, or return a different type of error
-          data: response.data as Record<string, unknown>
-        };
-        throw new DataConnectOperationError(
-          'DataConnect error while performing request: ' + stringified,
-          failureResponse
-        );
-      }
+    const dataConnectResponse: DataConnectResponse<unknown> = {
+      data: result.data,
+      errors: result.errors,
+      extensions: { dataConnect: [] } // TODO: actually fill this... it should be coming from result.extensions... right?
+    };
 
-      if (this._executeRequests.has(requestId)) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { resolve, reject } = this._executeRequests.get(requestId)!;
-        resolve(response.data); // TODO: do something with the message other than just pass it along, depending on message type - we should be resolving to DataConnectResponse<Data> if it succeeds
-        this._executeRequests.delete(requestId);
-      }
-      if (this._subscribeRequests.has(requestId)) {
-        // TODO: call callbacks
-      }
-    } catch (e) {
-      if (e instanceof Error) {
-        const err = new DataConnectError(
-          Code.OTHER,
-          `error receiving message: ${e.name}: ${e.message}`
-        );
-        if (e instanceof DataConnectError) {
-          err.customData = e.customData;
-        }
-        throw err;
-      }
-      throw new DataConnectError(Code.OTHER, 'error receiving message');
+    if (this._executeRequestPromises.has(requestId)) {
+      // TODO: when do we use reject? if there was an ERROR error, like something really went wrong with the stream? in that case, it probably won't get called when handling a message, but rather in catach statements of stream-related functions, right...?
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars 
+      const { resolve, reject } = this._executeRequestPromises.get(requestId)!;
+      // TODO: make this into a QueryResult? no... should bubble up to caller of transport function
+      resolve(dataConnectResponse);
+      this._executeRequestPromises.delete(requestId);
+    } else if (this._subscribeRequestCallbacks.has(requestId)) {
+      // TODO: my understanding: this is definitely a data update notification. but lowkey what if there's also an ack from the server for unsubscriptions?
+      const { onNotification } =
+        this._subscribeRequestCallbacks.get(requestId)!;
+      onNotification(dataConnectResponse);
+    } else {
+      // TODO: error?
+      throw new DataConnectError(
+        Code.OTHER,
+        `Unrecognized requestId '${requestId}'`
+      );
     }
   }
 
   /**
    * Parse a response from the server. Assert that it has a requestId.
-   * @param msg the message from the server to be parsed
+   * @param json the message from the server to be parsed
    * @returns the parsed message as a DataConnectStreamResponse
    */
   private _parseStreamResponse<Data>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    msg: any
+    json: any // TODO: type better
   ): DataConnectStreamResponse<Data> {
-    const response = JSON.parse(msg.data);
-    if (!response.requestId) {
+    const message = JSON.parse(json);
+    // eslint-disable-next-line no-console
+    console.log('\nMESSAGE:\n', message); // DEBUGGING
+    if (!('result' in message)) {
       throw new DataConnectError(
         Code.OTHER,
-        'message from stream did not include requestId'
+        'message from stream did not include result'
       );
     }
-    return response as DataConnectStreamResponse<Data>;
+    if (!('requestId' in message.result)) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'server response did not include requestId'
+      );
+    }
+    return message.result as DataConnectStreamResponse<Data>;
   }
 
   /**
@@ -363,7 +361,7 @@ export class StreamTransport extends DataConnectTransportClass {
     operationName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this._makeExecuteRequestId();
+    const requestId = this._makeRequestId(EXECUTE_STR);
     // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
@@ -373,7 +371,7 @@ export class StreamTransport extends DataConnectTransportClass {
     this._sendExecuteMessage<Variables>(body);
     const responsePromise = new Promise<DataConnectResponse<Data>>(
       (resolve, reject) => {
-        this._executeRequests.set(requestId, { resolve, reject });
+        this._executeRequestPromises.set(requestId, { resolve, reject });
       }
     );
     return responsePromise;
@@ -385,7 +383,7 @@ export class StreamTransport extends DataConnectTransportClass {
    * @param variables The query variables.
    */
   invokeSubscription<Variables>(queryName: string, variables: Variables): void {
-    const requestId = this._makeSubscribeRequestId(queryName, variables);
+    const requestId = this._makeRequestId(SUBSCRIBE_STR);
     // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: SubscribeStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
@@ -406,25 +404,37 @@ export class StreamTransport extends DataConnectTransportClass {
     queryName: string,
     variables: Variables
   ): void {
-    const requestId = this._makeSubscribeRequestId(queryName, variables);
-    const request = this._subscribeRequests.get(requestId);
-    if (!request) {
+    const requestId = this._subscribeRequestIds.get({
+      queryName,
+      variables: variables as object | undefined
+    });
+    if (!requestId) {
       // TODO: should we do anything else in this case?
       console.warn(
         `Requested unsubscription of query which is not currently being subscribed to: '${queryName}' with variables ${variables}`
       );
       return;
     }
+
+    const request = this._subscribeRequestCallbacks.get(requestId);
+    if (!request) {
+      // TODO: should we do anything else in this case?
+      console.warn(
+        `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked callbacks`
+      );
+      return;
+    }
+
     const body: CancelStreamRequest = {
       name: this.connectorResourcePath,
       requestId,
       cancel: {}
     };
     this._sendCancelMessage(body);
-    // TODO: add to subscription requests (?), call callbacks, etc.
   }
 
-  // TODO: implement
+  // TODO: type better
+  // TODO: tear down stream, open new one + reauthenticate
   onTokenChanged(newToken: string | null): void {
     throw new Error('Method not implemented.');
   }
