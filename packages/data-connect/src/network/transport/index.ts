@@ -102,8 +102,14 @@ export interface DataConnectTransport {
    * Subscribes to a query to receive updates over a stream.
    * @param queryName The name of the query to subscribe to.
    * @param body The variables associated with the subscription.
+   * @param streamCallbacks The callbacks passed to the transport layer. Transport layer will call
+   * these when it receives responses over stream related to this subscription.
    */
-  invokeSubscription<Variables>(queryName: string, body?: Variables): void;
+  invokeSubscription<Data, Variables>(
+    streamCallbacks: DataConnectStreamCallbacks<Data>,
+    queryName: string,
+    body?: Variables
+  ): void;
 
   /**
    * Unsubscribes from an active subscription.
@@ -282,7 +288,8 @@ export abstract class DataConnectTransportClass
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
 
-  abstract invokeSubscription<Variables>(
+  abstract invokeSubscription<Data, Variables>(
+    streamCallbacks: DataConnectStreamCallbacks<Data>,
     queryName: string,
     body?: Variables
   ): void;
@@ -420,3 +427,15 @@ export type DataConnectStreamRequest<Variables> =
   | ResumeStreamRequest
   | CancelStreamRequest
   | AuthenticationStreamRequest;
+
+/**
+ * The hooks passed from the query layer which this transport will call when it receives data update
+ * notifications.
+ * @internal
+ */
+export interface DataConnectStreamCallbacks<Data> {
+  /** To be called when we receive a response over the stream */
+  resultCallback: (result: DataConnectResponse<Data>) => void;
+  /** To be called when the subscription is successfully unsubscribed */
+  cancelCallback: () => void; // TODO: only necessary if server will ACK unsubscribe
+}

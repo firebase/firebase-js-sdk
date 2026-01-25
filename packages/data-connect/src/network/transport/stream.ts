@@ -30,7 +30,8 @@ import {
   SubscribeStreamRequest,
   CancelStreamRequest,
   DataConnectStreamResponse,
-  AuthenticationStreamRequest
+  AuthenticationStreamRequest,
+  DataConnectStreamCallbacks
 } from '.';
 
 const EXECUTE_STR = 'exec';
@@ -84,19 +85,16 @@ export class StreamTransport extends DataConnectTransportClass {
    * provided by the query layer, which handles calling the user's registered callbacks
    */
   private _subscribeRequestCallbacks = new Map<
-    // TODO: these callbacks should be supplied by the query layer when invoking the subscribe transport functions 
+    // TODO: these callbacks should be supplied by the query layer when invoking the subscribe transport functions
     string,
-    {
-      onNotification: (result: DataConnectResponse<unknown>) => void;
-      onComplete: () => void;
-    }
+    DataConnectStreamCallbacks<unknown>
   >();
 
   /**
    * Map of active subscription query name, variable combinations and their corresponding RequestIds.
    */
   private _subscribeRequestIds = new Map<
-    { queryName: string; variables: object | undefined },
+    { queryName: string; variables?: unknown },
     string
   >();
 
@@ -280,16 +278,16 @@ export class StreamTransport extends DataConnectTransportClass {
 
     if (this._executeRequestPromises.has(requestId)) {
       // TODO: when do we use reject? if there was an ERROR error, like something really went wrong with the stream? in that case, it probably won't get called when handling a message, but rather in catach statements of stream-related functions, right...?
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars 
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { resolve, reject } = this._executeRequestPromises.get(requestId)!;
       // TODO: make this into a QueryResult? no... should bubble up to caller of transport function
       resolve(dataConnectResponse);
       this._executeRequestPromises.delete(requestId);
     } else if (this._subscribeRequestCallbacks.has(requestId)) {
       // TODO: my understanding: this is definitely a data update notification. but lowkey what if there's also an ack from the server for unsubscriptions?
-      const { onNotification } =
+      const { resultCallback } =
         this._subscribeRequestCallbacks.get(requestId)!;
-      onNotification(dataConnectResponse);
+      resultCallback(dataConnectResponse);
     } else {
       // TODO: error?
       throw new DataConnectError(
@@ -382,7 +380,11 @@ export class StreamTransport extends DataConnectTransportClass {
    * @param queryName The name of the query.
    * @param variables The query variables.
    */
-  invokeSubscription<Variables>(queryName: string, variables: Variables): void {
+  invokeSubscription<Data, Variables>(
+    streamCallbacks: DataConnectStreamCallbacks<Data>,
+    queryName: string,
+    variables: Variables
+  ): void {
     const requestId = this._makeRequestId(SUBSCRIBE_STR);
     // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: SubscribeStreamRequest<Variables> = {
@@ -391,8 +393,11 @@ export class StreamTransport extends DataConnectTransportClass {
       'subscribe': { operationName: queryName, variables }
     };
     this._sendSubscribeMessage<Variables>(body);
-    // TODO: track the request in the subscription requests map
-    // TODO: need to connect this to our QueryManager's callback system - probably add/remove handling logic when subscribing/unsubscribing which just calls onNext()/onError() with the returned data
+    this._subscribeRequestIds.set({ queryName, variables }, requestId);
+    this._subscribeRequestCallbacks.set(
+      requestId,
+      streamCallbacks as DataConnectStreamCallbacks<unknown> // TODO: is there a way to avoid casting this?
+    );
   }
 
   /**
@@ -416,8 +421,8 @@ export class StreamTransport extends DataConnectTransportClass {
       return;
     }
 
-    const request = this._subscribeRequestCallbacks.get(requestId);
-    if (!request) {
+    const callbacks = this._subscribeRequestCallbacks.get(requestId);
+    if (!callbacks) {
       // TODO: should we do anything else in this case?
       console.warn(
         `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked callbacks`
@@ -431,6 +436,16 @@ export class StreamTransport extends DataConnectTransportClass {
       cancel: {}
     };
     this._sendCancelMessage(body);
+    try {
+      callbacks.cancelCallback();
+      this._subscribeRequestIds.delete({ queryName, variables });
+      this._subscribeRequestCallbacks.delete(requestId);
+    } catch (e) {
+      if (e instanceof DataConnectError) {
+        throw e;
+      }
+      throw new DataConnectError(Code.OTHER, `Failed to unsubscribe from query '${queryName}' with variables ${variables}`);
+    }
   }
 
   // TODO: type better
