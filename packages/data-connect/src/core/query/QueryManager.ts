@@ -6,7 +6,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +29,11 @@ import {
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { logDebug } from '../../logger';
-import { DataConnectExtension, DataConnectTransport } from '../../network';
+import {
+  DataConnectExtension,
+  DataConnectTransport,
+  DataConnectResponse
+} from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
@@ -131,13 +135,24 @@ export class QueryManager {
     const unsubscribe = (): void => {
       if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
-        this.callbacks.set(
-          key,
-          callbackList.filter(callback => callback !== subscription)
+        const filteredList = callbackList.filter(
+          callback => callback !== subscription
         );
+        this.callbacks.set(key, filteredList);
+
+        if (filteredList.length === 0) {
+          this.callbacks.delete(key);
+          if ('invokeUnsubscription' in this.transport) {
+            this.transport.invokeUnsubscription(
+              queryRef.name,
+              queryRef.variables
+            );
+          }
+        }
         onCompleteCallback?.();
       }
     };
+
     const subscription: DataConnectSubscription<Data, Variables> = {
       userCallback: onResultCallback,
       errCallback: onErrorCallback,
@@ -148,6 +163,7 @@ export class QueryManager {
       this.updateSSR(initialCache);
     }
 
+    // TODO: shouldn't this go after the callbacks have been linked up?
     logDebug(
       `Cache not available for query ${
         queryRef.name
@@ -163,7 +179,57 @@ export class QueryManager {
 
     if (!this.callbacks.has(key)) {
       this.callbacks.set(key, []);
+
+      logDebug(
+        `Starting stream for query ${
+          queryRef.name
+        } with variables ${JSON.stringify(queryRef.variables)}.`
+      );
+
+      const transportCallback = {
+        resultCallback: async (response: DataConnectResponse<Data>) => {
+          if (response.errors && response.errors.length > 0) {
+            const err = new DataConnectError(
+              Code.OTHER,
+              JSON.stringify(response.errors)
+            );
+            this.publishErrorToSubscribers(key, err);
+          }
+
+          if (response.data) {
+            const result: QueryResult<Data, Variables> = {
+              data: response.data,
+              source: SOURCE_SERVER,
+              ref: queryRef as QueryRef<Data, Variables>,
+              fetchTime: new Date().toISOString(),
+              toJSON: getRefSerializer(
+                queryRef as QueryRef<Data, Variables>,
+                response.data,
+                SOURCE_SERVER
+              )
+            };
+
+            try {
+              const impactedQueries = await this.updateCache(result);
+              await this.publishCacheResultsToSubscribers(impactedQueries);
+            } catch (e) {
+              this.publishErrorToSubscribers(key, e);
+            }
+          }
+        },
+        cancelCallback: () => {
+          logDebug(`Stream cancelled for ${queryRef.name}`);
+        }
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (this.transport as any).invokeSubscription(
+        transportCallback,
+        queryRef.name,
+        queryRef.variables
+      );
     }
+
     this.callbacks
       .get(key)!
       .push(subscription as DataConnectSubscription<unknown, unknown>);

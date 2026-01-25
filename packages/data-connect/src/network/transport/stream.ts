@@ -80,6 +80,7 @@ export class StreamTransport extends DataConnectTransportClass {
     { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
   >();
 
+  // TODO: we need to also track the request body so that if the stream disconnects/reconnects, we can re-subscribe... unless...?
   /**
    * Map of active subscription RequestIds and their corresponding callbacks. These callbacks are
    * provided by the query layer, which handles calling the user's registered callbacks
@@ -444,7 +445,10 @@ export class StreamTransport extends DataConnectTransportClass {
       if (e instanceof DataConnectError) {
         throw e;
       }
-      throw new DataConnectError(Code.OTHER, `Failed to unsubscribe from query '${queryName}' with variables ${variables}`);
+      throw new DataConnectError(
+        Code.OTHER,
+        `Failed to unsubscribe from query '${queryName}' with variables ${variables}`
+      );
     }
   }
 
