@@ -23,7 +23,7 @@ export interface UsageMetadata
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [cachedContentTokenCount](./ai.usagemetadata.md#usagemetadatacachedcontenttokencount) | number | The number of tokens in the prompt that were served from the cache. If implicit caching is not active or no content was cached, this will be 0. |
-|  [cacheTokensDetails](./ai.usagemetadata.md#usagemetadatacachetokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] | Detailed breakdown of the cached tokens by modality (e.g., text, image). This list provides granular insight into which parts of the content were cached. |
+|  [cacheTokensDetails](./ai.usagemetadata.md#usagemetadatacachetokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] | Detailed breakdown of the cached tokens by modality (for example, text or image). This list provides granular insight into which parts of the content were cached. |
 |  [candidatesTokenCount](./ai.usagemetadata.md#usagemetadatacandidatestokencount) | number |  |
 |  [candidatesTokensDetails](./ai.usagemetadata.md#usagemetadatacandidatestokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
 |  [promptTokenCount](./ai.usagemetadata.md#usagemetadataprompttokencount) | number |  |
@@ -45,7 +45,7 @@ cachedContentTokenCount?: number;
 
 ## UsageMetadata.cacheTokensDetails
 
-Detailed breakdown of the cached tokens by modality (e.g., text, image). This list provides granular insight into which parts of the content were cached.
+Detailed breakdown of the cached tokens by modality (for example, text or image). This list provides granular insight into which parts of the content were cached.
 
 <b>Signature:</b>
 
