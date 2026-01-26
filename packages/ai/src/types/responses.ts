@@ -140,7 +140,7 @@ export interface UsageMetadata {
    */
   cachedContentTokenCount?: number;
   /**
-   * Detailed breakdown of the cached tokens by modality (e.g., text,
+   * Detailed breakdown of the cached tokens by modality (for example, text or
    * image). This list provides granular insight into which parts of
    * the content were cached.
    */
