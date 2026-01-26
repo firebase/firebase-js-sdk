@@ -265,14 +265,15 @@ export class LiveSession {
               }
             ).toolCallCancellation
           } as LiveServerToolCallCancellation;
-        } else if (LiveResponseType.GOING_AWAY_NOTICE in message) {
+        } else if ('goAway' in message) {
+          const notice = (
+            message as {
+              goAway: { timeLeft: string };
+            }
+          ).goAway;
           yield {
-            type: 'goingAwayNotice',
-            ...(
-              message as {
-                goingAwayNotice: Omit<LiveServerGoingAwayNotice, 'type'>;
-              }
-            ).goingAwayNotice
+            type: LiveResponseType.GOING_AWAY_NOTICE,
+            timeLeft: parseDuration(notice.timeLeft)
           } as LiveServerGoingAwayNotice;
         } else {
           logger.warn(
@@ -373,3 +374,17 @@ export class LiveSession {
     }
   }
 }
+
+/**
+ * Parses a duration string (e.g. "3.000000001s") into a number of seconds.
+ *
+ * @param duration - The duration string to parse.
+ * @returns The duration in seconds.
+ */
+function parseDuration(duration: string | undefined): number {
+  if (!duration || !duration.endsWith('s')) {
+    return 0;
+  }
+  return Number(duration.slice(0, -1)); // slice removes the trailing 's'.
+}
+
