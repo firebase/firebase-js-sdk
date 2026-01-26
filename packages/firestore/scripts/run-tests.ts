@@ -95,11 +95,11 @@ const childProcess = spawnPromise.childProcess;
 spawnPromise.catch(error => {
   // When a test fails, there will be a non-zero error code. Simply exit this process,
   // and don't print a stack trace.
-  if (error.code) {
+  if (typeof error.code === 'number') {
     process.exit(error.code);
   } else {
-    // The error code will be undefined if it was a real crash (e.g., spawn failed to start),
-    // so print the entire stack trace for debugging.
+    // The error code will not be a number for a real crash (e.g., spawn
+    // failed to start), so print the entire stack trace for debugging.
     console.error(error);
     process.exit(1);
   }
