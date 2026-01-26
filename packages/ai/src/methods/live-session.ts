@@ -387,4 +387,3 @@ function parseDuration(duration: string | undefined): number {
   }
   return Number(duration.slice(0, -1)); // slice removes the trailing 's'.
 }
-
