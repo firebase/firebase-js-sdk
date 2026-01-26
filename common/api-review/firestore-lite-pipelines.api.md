@@ -544,6 +544,14 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     regexContains(pattern: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    regexFind(pattern: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFind(pattern: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFindAll(pattern: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFindAll(pattern: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     regexMatch(pattern: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     regexMatch(pattern: Expression): BooleanExpression;
@@ -1020,6 +1028,30 @@ export function regexContains(stringExpression: Expression, pattern: string): Bo
 
 // @beta
 export function regexContains(stringExpression: Expression, pattern: Expression): BooleanExpression;
+
+// @beta
+export function regexFind(fieldName: string, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFind(fieldName: string, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFind(stringExpression: Expression, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFind(stringExpression: Expression, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFindAll(fieldName: string, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFindAll(fieldName: string, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFindAll(stringExpression: Expression, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFindAll(stringExpression: Expression, pattern: Expression): FunctionExpression;
 
 // @beta
 export function regexMatch(fieldName: string, pattern: string): BooleanExpression;

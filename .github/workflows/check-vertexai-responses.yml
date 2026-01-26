@@ -14,7 +14,10 @@
 
 name: Check Vertex AI Responses
 
-on: pull_request
+on: 
+  pull_request:
+    paths:
+      - 'packages/ai/**'
 
 jobs:
   check-version:

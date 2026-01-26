@@ -60,6 +60,33 @@ export interface FirebaseRemoteConfigObject {
 }
 
 /**
+ * Defines experiment and variant attached to a config parameter.
+ *
+ * @public
+ */
+export interface FirebaseExperimentDescription {
+  // A string of max length 22 characters and of format: _exp_<experiment_id>
+  experimentId: string;
+
+  // The variant of the experiment assigned to the app instance.
+  variantId: string;
+
+  // When the experiment was started.
+  experimentStartTime: string;
+
+  // How long the experiment can remain in STANDBY state. Valid range from 1 ms
+  // to 6 months.
+  triggerTimeoutMillis: string;
+
+  // How long the experiment can remain in ON state. Valid range from 1 ms to 6
+  // months.
+  timeToLiveMillis: string;
+
+  // Which all parameters are affected by this experiment.
+  affectedParameterKeys?: string[];
+}
+
+/**
  * Defines a successful response (200 or 304).
  *
  * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
@@ -99,8 +126,12 @@ export interface FetchResponse {
    */
   templateVersion?: number;
 
-  // Note: we're not extracting experiment metadata until
-  // ABT and Analytics have Web SDKs.
+  /**
+   * Metadata for A/B testing and Remote Config Rollout experiments.
+   *
+   * @remarks Only defined for 200 responses.
+   */
+  experiments?: FirebaseExperimentDescription[];
 }
 
 /**
