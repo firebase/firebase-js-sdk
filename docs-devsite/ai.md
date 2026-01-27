@@ -115,6 +115,7 @@ The Firebase AI Web SDK.
 |  [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface) | <b><i>(Public Preview)</i></b> Configuration parameters used by [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) to control live content generation. |
 |  [LiveModelParams](./ai.livemodelparams.md#livemodelparams_interface) | <b><i>(Public Preview)</i></b> Params passed to [getLiveGenerativeModel()](./ai.md#getlivegenerativemodel_f2099ac)<!-- -->. |
 |  [LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) | <b><i>(Public Preview)</i></b> An incremental content update from the model. |
+|  [LiveServerGoingAwayNotice](./ai.liveservergoingawaynotice.md#liveservergoingawaynotice_interface) | <b><i>(Public Preview)</i></b> Notification that the server will not be able to service the client soon. |
 |  [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) | <b><i>(Public Preview)</i></b> A request from the model for the client to execute one or more functions. |
 |  [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface) | <b><i>(Public Preview)</i></b> Notification to cancel a previous function call triggered by [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface)<!-- -->. |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
@@ -748,6 +749,7 @@ LiveResponseType: {
     SERVER_CONTENT: string;
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
+    GOING_AWAY_NOTICE: string;
 }
 ```
 
