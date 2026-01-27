@@ -47,7 +47,7 @@ import {
   TransportClass
 } from '../network';
 // import { RESTTransport } from '../network/transport/rest';
-import { StreamTransport } from '../network/transport/stream';
+import { StreamTransport } from '../network/transport/websocket';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';

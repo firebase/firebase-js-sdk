@@ -64,13 +64,14 @@ export interface DataConnectResponse<Data> {
   extensions: DataConnectExtensions;
 }
 
-export interface DataConnectStreamResponse<Data> {
-  requestId: string;
-  data: Data;
-  dataEtag: string; // TODO: actually a hash
-  errors: Error[];
-  cancelled: boolean;
-}
+/**
+ * Type signature of the callback passed from the query layer to the transport layer. This will be 
+ * called when transport receives responses from the server related to this subscription.
+ * @internal
+ */
+export type SubscribeTransportCallback<Data> = (
+  result: DataConnectResponse<Data>
+) => void;
 
 /**
  * @internal
@@ -99,14 +100,14 @@ export interface DataConnectTransport {
   ): Promise<DataConnectResponse<Data>>;
 
   /**
-   * Subscribes to a query to receive updates over a stream.
+   * Subscribes to a query to receive push notifications of updates.
+   * @param resultCallback the callback passed to the transport layer - will be called when it
+   * receives responses related to this subscription.
    * @param queryName The name of the query to subscribe to.
    * @param body The variables associated with the subscription.
-   * @param streamCallbacks The callbacks passed to the transport layer. Transport layer will call
-   * these when it receives responses over stream related to this subscription.
    */
-  invokeSubscription<Data, Variables>(
-    streamCallbacks: DataConnectStreamCallbacks<Data>,
+  invokeSubscribe<Data, Variables>(
+    resultCallback: SubscribeTransportCallback<Data>,
     queryName: string,
     body?: Variables
   ): void;
@@ -116,10 +117,7 @@ export interface DataConnectTransport {
    * @param queryName The name of the query to unsubscribe from.
    * @param body The variables associated with the subscription.
    */
-  invokeUnsubscription<Variables>(
-    queryName: string,
-    variables: Variables
-  ): void;
+  invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void;
 
   /**
    * Configures the transport to use a local Data Connect emulator.
@@ -133,7 +131,7 @@ export interface DataConnectTransport {
    * Callback invoked when the Firebase Auth token is refreshed or changed.
    * @param token The new access token or null if signed out.
    */
-  onTokenChanged: (token: string | null) => void;
+  onAuthTokenChanged: (token: string | null) => void;
 
   /**
    * Internal method to set the SDK type for metrics and logging purposes.
@@ -167,7 +165,8 @@ export abstract class DataConnectTransportClass
   protected _location = 'l';
   protected _connectorName = '';
   protected _secure = true;
-  protected _stream = true; // TODO: make this dynamic
+  /** false by default. implementation will set to true if supported */
+  protected _streamIsSupported = false;
   protected _project = 'p';
   protected _serviceName: string;
   protected _accessToken: string | null = null;
@@ -231,7 +230,7 @@ export abstract class DataConnectTransportClass
       {
         host: this._host,
         sslEnabled: this._secure,
-        streamEnabled: this._stream,
+        streamEnabled: this._streamIsSupported,
         port: this._port
       }
     );
@@ -288,154 +287,20 @@ export abstract class DataConnectTransportClass
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
 
-  abstract invokeSubscription<Data, Variables>(
-    streamCallbacks: DataConnectStreamCallbacks<Data>,
+  abstract invokeSubscribe<Data, Variables>(
+    resultCallback: SubscribeTransportCallback<Data>,
     queryName: string,
     body?: Variables
   ): void;
 
-  abstract invokeUnsubscription<Variables>(
+  abstract invokeUnsubscribe<Variables>(
     queryName: string,
     variables: Variables
   ): void;
 
-  abstract onTokenChanged(newToken: string | null): void;
+  abstract onAuthTokenChanged(newToken: string | null): void;
 
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;
   }
-}
-
-/**
- * Base interface for stream request payloads sent over the stream to the server.
- */
-interface StreamRequest {
-  name: string; // connectorResourcePath
-  requestId: string;
-  authToken?: string; // TODO: type
-  appCheckToken?: string; // TODO: type
-  dataEtag?: string; // TODO: type
-}
-
-/**
- * Fields for an execute request payload.
- * @internal
- */
-interface ExecuteRequestKind<Variables> {
-  operationName: string;
-  variables?: Variables;
-}
-
-/**
- * Fields for a resume request payload.
- * @internal
- */
-interface ResumeRequestKind {}
-
-/**
- * Fields for a cancel request payload.
- * @internal
- */
-interface CancelRequestKind {}
-
-/**
- * Payload for an auth token authentication stream request.
- * @internal
- */
-interface AuthStreamRequest extends StreamRequest {
-  authToken: string; // TODO: type
-}
-
-/**
- * Payload for an app check token authentication stream request.
- * @internal
- */
-interface AppCheckStreamRequest extends StreamRequest {
-  appCheckToken: string; // TODO: type
-}
-
-/**
- * Payload for an auth and appcheck token authentication stream request.
- * @internal
- */
-interface AuthAppCheckStreamRequest extends StreamRequest {
-  authToken: string; // TODO: type
-  appCheckToken: string; // TODO: type
-}
-
-/**
- * Payload for an authentication stream request.
- * Requires providing an auth token, or app check token, or both.
- * @internal
- */
-export type AuthenticationStreamRequest =
-  | AuthStreamRequest
-  | AppCheckStreamRequest
-  | AuthAppCheckStreamRequest;
-
-/**
- * Fields for a subscribe request payload.
- * @internal
- */
-export interface SubscribeStreamRequest<Variables> extends StreamRequest {
-  subscribe: ExecuteRequestKind<Variables>;
-  execute?: never;
-  resume?: never;
-  cancel?: never;
-}
-
-/**
- * Fields for an execute request payload.
- * @internal
- */
-export interface ExecuteStreamRequest<Variables> extends StreamRequest {
-  execute: ExecuteRequestKind<Variables>;
-  subscribe?: never;
-  resume?: never;
-  cancel?: never;
-}
-
-/**
- * Fields for a cancel request payload.
- * @internal
- */
-export interface ResumeStreamRequest extends StreamRequest {
-  resume?: ResumeRequestKind;
-  subscribe?: never;
-  execute?: never;
-  cancel?: never;
-}
-
-/**
- * Fields for a cancel (unsubscribe) request payload.
- * @internal
- */
-export interface CancelStreamRequest extends StreamRequest {
-  cancel: CancelRequestKind;
-  subscribe?: never;
-  execute?: never;
-  resume?: never;
-}
-
-/**
- * Shape of the request body to be sent over the stream to the server.
- * @internal
- */
-export type DataConnectStreamRequest<Variables> =
-  | ExecuteStreamRequest<Variables>
-  | SubscribeStreamRequest<Variables>
-  | ResumeStreamRequest
-  | CancelStreamRequest
-  | AuthenticationStreamRequest;
-
-/**
- * The hooks passed from the query layer which this transport will call when it receives data update
- * notifications.
- * @internal
- */
-export interface DataConnectStreamCallbacks<Data> {
-  /** To be called when we receive a response over the stream */
-  resultCallback: (result: DataConnectResponse<Data>) => void;
-  /** To be called when the subscription is successfully unsubscribed */
-  cancelCallback: () => void; // TODO: only necessary if server will ACK unsubscribe
 }

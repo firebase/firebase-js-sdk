@@ -110,6 +110,7 @@ export class RESTTransport extends DataConnectTransportClass {
     );
     return withAuth;
   };
+
   invokeMutation: <Data, Variables>(
     queryName: string,
     body?: Variables
@@ -137,20 +138,22 @@ export class RESTTransport extends DataConnectTransportClass {
     });
     return taskResult;
   };
-  invokeSubscription<Variables>(queryName: string, body?: Variables): void {
+
+  invokeSubscribe(): void {
     throw new DataConnectError(
       Code.NOT_SUPPORTED,
       'Subscriptions are not supported using REST!'
     );
   }
-  invokeUnsubscription(queryName: string): void {
+
+  invokeUnsubscribe(): void {
     throw new DataConnectError(
       Code.NOT_SUPPORTED,
       'Unsubscriptions are not supported using REST!'
     );
   }
 
-  onTokenChanged(newToken: string | null): void {
+  onAuthTokenChanged(newToken: string | null): void {
     this._accessToken = newToken;
   }
 

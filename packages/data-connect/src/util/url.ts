@@ -27,7 +27,7 @@ export function urlBuilder(
 ): string {
   const { connector, location, projectId: project, service } = projectConfig;
   const { host, sslEnabled, streamEnabled, port } = transportOptions;
-  const protocol = streamEnabled ? 'ws' : sslEnabled ? 'https' : 'http';
+  const protocol = streamEnabled ? 'ws' : sslEnabled ? 'https' : 'http'; // TODO: streamEnabled doesn't necessarily mean use websockets - they're not supported everywhere. 
   const realHost = host || PROD_HOST;
   let baseUrl = `${protocol}://${realHost}`;
   if (typeof port === 'number') {

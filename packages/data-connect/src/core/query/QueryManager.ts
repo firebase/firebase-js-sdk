@@ -143,7 +143,7 @@ export class QueryManager {
         if (filteredList.length === 0) {
           this.callbacks.delete(key);
           if ('invokeUnsubscription' in this.transport) {
-            this.transport.invokeUnsubscription(
+            this.transport.invokeUnsubscribe(
               queryRef.name,
               queryRef.variables
             );
