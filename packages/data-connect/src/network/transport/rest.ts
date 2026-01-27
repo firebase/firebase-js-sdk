@@ -29,7 +29,7 @@ import {
 export class RESTTransport extends DataConnectTransportClass {
   async getWithAuth(forceToken = false): Promise<string | null> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
-      resolve(this._accessToken)
+      resolve(this._authToken)
     );
     if (this.appCheckProvider) {
       const appCheckToken = await this.appCheckProvider.getToken();
@@ -44,8 +44,8 @@ export class RESTTransport extends DataConnectTransportClass {
           if (!data) {
             return null;
           }
-          this._accessToken = data.accessToken;
-          return this._accessToken;
+          this._authToken = data.accessToken;
+          return this._authToken;
         });
     } else {
       starterPromise = new Promise(resolve => resolve(''));
@@ -101,7 +101,7 @@ export class RESTTransport extends DataConnectTransportClass {
         },
         abortController,
         this.appId,
-        this._accessToken,
+        this._authToken,
         this._appCheckToken,
         this._isUsingGen,
         this._callerSdkType,
@@ -129,7 +129,7 @@ export class RESTTransport extends DataConnectTransportClass {
         },
         abortController,
         this.appId,
-        this._accessToken,
+        this._authToken,
         this._appCheckToken,
         this._isUsingGen,
         this._callerSdkType,
@@ -154,7 +154,7 @@ export class RESTTransport extends DataConnectTransportClass {
   }
 
   onAuthTokenChanged(newToken: string | null): void {
-    this._accessToken = newToken;
+    this._authToken = newToken;
   }
 
   _setCallerSdkType(callerSdkType: CallerSdkType): void {

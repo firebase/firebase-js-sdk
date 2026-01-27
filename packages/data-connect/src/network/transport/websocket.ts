@@ -201,6 +201,12 @@ export class StreamTransport extends DataConnectStreamTransportClass {
   ): void {
     this.ensureConnection()
       .then(() => {
+        if (this._authToken && requestBody.authToken) {
+          requestBody.authToken = this._authToken;
+        }
+        if (this._appCheckToken && requestBody.appCheckToken) {
+          requestBody.appCheckToken = this._appCheckToken;
+        }
         this._connection!.send(JSON.stringify(requestBody));
       })
       .catch(err => {
@@ -366,8 +372,8 @@ export class StreamTransport extends DataConnectStreamTransportClass {
 
   // TODO: type better
   // TODO: tear down stream, open new one + reauthenticate
-  onTokenChanged(newToken: string | null): void {
-    this._accessToken = newToken;
+  onAuthTokenChanged(newToken: string | null): void {
+    this._authToken = newToken;
     throw new Error('Method not implemented.');
   }
 }

@@ -169,7 +169,7 @@ export abstract class DataConnectTransportClass
   protected _streamIsSupported = false;
   protected _project = 'p';
   protected _serviceName: string;
-  protected _accessToken: string | null = null;
+  protected _authToken: string | null = null;
   protected _appCheckToken: string | null | undefined = null;
   protected _lastToken: string | null = null;
   protected _isUsingEmulator = false;
@@ -210,7 +210,7 @@ export abstract class DataConnectTransportClass
     this._connectorName = connector;
     this.authProvider?.addTokenChangeListener(token => {
       logDebug(`New Token Available: ${token}`);
-      this._accessToken = token;
+      this._authToken = token;
     });
     this.appCheckProvider?.addTokenChangeListener(result => {
       const { token } = result;
@@ -249,7 +249,7 @@ export abstract class DataConnectTransportClass
 
   async getWithAuth(forceToken = false): Promise<string | null> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
-      resolve(this._accessToken)
+      resolve(this._authToken)
     );
     if (this.appCheckProvider) {
       const appCheckToken = await this.appCheckProvider.getToken();
@@ -264,8 +264,8 @@ export abstract class DataConnectTransportClass
           if (!data) {
             return null;
           }
-          this._accessToken = data.accessToken;
-          return this._accessToken;
+          this._authToken = data.accessToken;
+          return this._authToken;
         });
     } else {
       starterPromise = new Promise(resolve => resolve(''));
