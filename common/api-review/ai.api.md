@@ -1444,6 +1444,8 @@ export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRet
 
 // @public
 export interface UsageMetadata {
+    cachedContentTokenCount?: number;
+    cacheTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     candidatesTokenCount: number;
     // (undocumented)
