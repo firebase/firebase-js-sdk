@@ -22,7 +22,6 @@ import {
 } from '..';
 
 import {
-  AuthenticationStreamRequest,
   CancelStreamRequest,
   DataConnectStreamRequest,
   ExecuteStreamRequest,
@@ -145,16 +144,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
    */
   protected _sendCancelMessage(cancelStreamRequest: CancelStreamRequest): void {
     this.sendMessage(cancelStreamRequest);
-  }
-
-  /**
-   * Internal helper to queue a message to subscribe to a query.
-   * @param cancelStreamRequest The cancel/unsubscription payload.
-   */
-  protected _sendAuthenticationMessage(
-    authenticationMessage: AuthenticationStreamRequest
-  ): void {
-    this.sendMessage(authenticationMessage);
   }
 
   invokeQuery<Data, Variables>(
