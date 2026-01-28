@@ -65,7 +65,7 @@ export interface DataConnectResponse<Data> {
 }
 
 /**
- * Type signature of the callback passed from the query layer to the transport layer. This will be 
+ * Type signature of the callback passed from the query layer to the transport layer. This will be
  * called when transport receives responses from the server related to this subscription.
  * @internal
  */

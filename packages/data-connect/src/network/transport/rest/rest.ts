@@ -15,16 +15,16 @@
  * limitations under the License.
  */
 
-import { DataConnectError, Code } from '../../core/error';
-import { logDebug } from '../../logger';
-import { addToken } from '../../util/url';
-import { dcFetch } from '../fetch';
-
 import {
   CallerSdkType,
   DataConnectResponse,
   DataConnectTransportClass
-} from '.';
+} from '../../../';
+import { DataConnectError, Code } from '../../../core/error';
+import { logDebug } from '../../../logger';
+import { addToken } from '../../../util/url';
+
+import { dcFetch } from './fetch';
 
 export class RESTTransport extends DataConnectTransportClass {
   async getWithAuth(forceToken = false): Promise<string | null> {

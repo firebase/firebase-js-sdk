@@ -1,5 +1,24 @@
-import { DataConnectTransportClass } from '.';
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
+/**
+ * Shape of response from the server.
+ * @internal
+ */
 export interface DataConnectStreamResponse<Data> {
   requestId: string;
   data: Data;
@@ -10,15 +29,19 @@ export interface DataConnectStreamResponse<Data> {
 
 /**
  * Base interface for stream request payloads sent over the stream to the server.
+ * @internal
  */
-interface StreamRequest {
-  name: string; // connectorResourcePath
+export interface StreamRequest {
+  /** connectorResourcePath - only required on initial connection */
+  name?: string;
   requestId: string;
+  /** only required if initially authenticating or re-authenticating */
   authToken?: string; // TODO: type
+  /** only required if initially authenticating or re-authenticating */
   appCheckToken?: string; // TODO: type
+  //TODO: /** only required if... */
   dataEtag?: string; // TODO: type
 }
-
 /**
  * Fields for an execute request payload.
  * @internal
@@ -129,63 +152,3 @@ export type DataConnectStreamRequest<Variables> =
   | ResumeStreamRequest
   | CancelStreamRequest
   | AuthenticationStreamRequest;
-
-export abstract class DataConnectStreamTransportClass extends DataConnectTransportClass {
-  /**
-   * Open a new stream connection. Errors if the connection fails.
-   */
-  abstract openConnection(): void;
-
-  /**
-   * Closes the current stream connection if one exists.
-   */
-  abstract closeConnection(): void;
-
-  /**
-   * Send a message over the stream.
-   * Automatically ensures the connection is open before sending.
-   * @param requestBody The body of the message to be sent.
-   * @throws DataConnectError if sending fails.
-   */
-  protected abstract _sendMessage<Variables>(
-    requestBody: DataConnectStreamRequest<Variables>
-  ): void;
-
-  /**
-   * Internal helper to send a message over the connection to execute a one-off query or mutation.
-   * @param body The execution payload.
-   */
-  protected _sendExecuteMessage<Variables>(
-    body: ExecuteStreamRequest<Variables>
-  ): void {
-    this._sendMessage(body);
-  }
-
-  /**
-   * Internal helper to send a message over the connection to subscribe to a query.
-   * @param subscribeRequestBody The subscription payload.
-   */
-  protected _sendSubscribeMessage<Variables>(
-    subscribeRequestBody: SubscribeStreamRequest<Variables>
-  ): void {
-    this._sendMessage(subscribeRequestBody);
-  }
-
-  /**
-   * Internal helper to send a message over the connection to subscribe to a query.
-   * @param cancelStreamRequest The cancel/unsubscription payload.
-   */
-  protected _sendCancelMessage(cancelStreamRequest: CancelStreamRequest): void {
-    this._sendMessage(cancelStreamRequest);
-  }
-
-  /**
-   * Internal helper to send a message over the connection to subscribe to a query.
-   * @param cancelStreamRequest The cancel/unsubscription payload.
-   */
-  protected _sendAuthenticationMessaage(
-    authenticationMessage: AuthenticationStreamRequest
-  ): void {
-    this._sendMessage(authenticationMessage);
-  }
-}

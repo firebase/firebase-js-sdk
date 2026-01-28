@@ -22,16 +22,15 @@ import {
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
-} from '../core/error';
-import { SDK_VERSION } from '../core/version';
-import { logError } from '../logger';
-
+} from '../../../core/error';
+import { SDK_VERSION } from '../../../core/version';
+import { logError } from '../../../logger';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
   DataConnectExtensions,
   DataConnectResponse
-} from './transport';
+} from '../../transport';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
@@ -130,7 +129,7 @@ export async function dcFetch<Data, Variables>(
     );
   }
   // eslint-disable-next-line no-console
-  console.log("fetch", jsonResponse); // DEBUGGING
+  console.log('fetch', jsonResponse); // DEBUGGING
   return jsonResponse as DataConnectResponse<Data>;
 }
 interface JsonResponse<Data> {
