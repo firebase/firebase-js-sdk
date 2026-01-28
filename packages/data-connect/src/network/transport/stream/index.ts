@@ -18,7 +18,7 @@
 import {
   DataConnectResponse,
   DataConnectTransportClass,
-  SubscribeTransportCallback
+  SubscribeNotificationHook
 } from '..';
 
 import {
@@ -83,12 +83,12 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   >();
 
   /**
-   * Map of active subscription RequestIds and their corresponding callbacks. These callbacks are
-   * provided by the operation layer, which handles calling the user's registered callbacks
+   * Map of active subscription RequestIds and their corresponding notification hooks. These allow the
+   * query layer to be updated when the transport layer receives data updates from the server.
    */
-  protected _subscribeRequestCallbacks = new Map<
+  protected _subscribeNotificationHooks = new Map<
     string,
-    SubscribeTransportCallback<unknown>
+    SubscribeNotificationHook<unknown>
   >();
 
   /**
@@ -162,9 +162,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     if (activeRequest) {
       // there is already an active execute request for this queryName + variables
       // do not duplicate requests. return the already pending promise
-      const activeRequestPromise = this._executeRequestPromises.get(
-        activeRequest.requestId
-      );
+      const activeRequestPromise = this._executeRequestPromises.get(requestId);
       if (activeRequestPromise) {
         return activeRequestPromise.promise as Promise<
           DataConnectResponse<Data>
@@ -242,15 +240,25 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   }
 
   invokeSubscribe<Data, Variables>(
-    callback: SubscribeTransportCallback<Data>,
+    notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
     variables: Variables
   ): void {
     const activeRequestKey = { operationName: queryName, variables };
-    if (this._activeSubscribeRequests.get(activeRequestKey)) {
+    const activeRequest = this._activeSubscribeRequests.get(activeRequestKey);
+    if (activeRequest) {
       // we have already subscribed to this query
-      // TODO: should we run an ad-hoc execute?
-      return;
+      const requestId = activeRequest.requestId;
+      const existingNotify = this._subscribeNotificationHooks.get(requestId);
+      if (existingNotify) {
+        // and we already have a notificaiton hook set up to pass data updates to the query layer
+        return;
+      } else {
+        // edge case - no active request notification hook, so make a new one and re-request from server
+        console.warn(
+          `invokeSubscribe for operation '${queryName}' with variables ${variables} found activeRequest with requestId '${requestId}', but requestId did not have any tracked executeRequestPromise. Re-requesting from server.`
+        );
+      }
     }
     const requestId = this._makeRequestId(SUBSCRIBE_STR);
 
@@ -263,9 +271,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
 
     this._sendSubscribeMessage<Variables>(body);
     this._activeSubscribeRequests.set(activeRequestKey, body);
-    this._subscribeRequestCallbacks.set(
+    this._subscribeNotificationHooks.set(
       requestId,
-      callback as SubscribeTransportCallback<unknown> // TODO: is there a way to avoid casting this?
+      notifyQueryManager as SubscribeNotificationHook<unknown> // TODO: is there a way to avoid casting this?
     );
   }
 
@@ -282,13 +290,13 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
     const requestId = subscribeRequest.requestId;
 
-    const callbacks = this._subscribeRequestCallbacks.get(requestId);
-    if (!callbacks) {
-      // TODO: should we do anything else in this case?
+    const notifyQueryManager = this._subscribeNotificationHooks.get(requestId);
+    if (!notifyQueryManager) {
+        // edge case - no notification hook, so no way for transport layer to update query layer of
+        // new data from server. we don't want updates anymore anyways, so just log and continue.
       console.warn(
-        `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked callbacks`
+        `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked notification hook`
       );
-      return;
     }
 
     const body: CancelStreamRequest = {
@@ -298,7 +306,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     };
     this._sendCancelMessage(body);
     this._activeSubscribeRequests.delete(activeRequestKey);
-    this._subscribeRequestCallbacks.delete(requestId);
+    this._subscribeNotificationHooks.delete(requestId);
   }
 
   // TODO: type better

@@ -178,10 +178,9 @@ export class StreamTransport extends DataConnectStreamTransportClass {
       // TODO: make this into a QueryResult? no... should bubble up to caller of transport function
       resolve(dataConnectResponse);
       this._executeRequestPromises.delete(requestId);
-    } else if (this._subscribeRequestCallbacks.has(requestId)) {
-      // TODO: my understanding: this is definitely a data update notification. but lowkey what if there's also an ack from the server for unsubscriptions?
-      const resultCallback = this._subscribeRequestCallbacks.get(requestId)!;
-      resultCallback(dataConnectResponse);
+    } else if (this._subscribeNotificationHooks.has(requestId)) {
+      const notifyQueryManager = this._subscribeNotificationHooks.get(requestId)!;
+      notifyQueryManager(dataConnectResponse);
     } else {
       // TODO: error?
       throw new DataConnectError(

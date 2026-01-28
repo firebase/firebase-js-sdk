@@ -65,11 +65,11 @@ export interface DataConnectResponse<Data> {
 }
 
 /**
- * Type signature of the callback passed from the query layer to the transport layer. This will be
- * called when transport receives responses from the server related to this subscription.
+ * Type signature of the notification hook passed from the query layer to the transport layer. This
+ * will be called by the transport layer to forward data updates from the server to the query layer.
  * @internal
  */
-export type SubscribeTransportCallback<Data> = (
+export type SubscribeNotificationHook<Data> = (
   result: DataConnectResponse<Data>
 ) => void;
 
@@ -101,13 +101,13 @@ export interface DataConnectTransport {
 
   /**
    * Subscribes to a query to receive push notifications of updates.
-   * @param resultCallback the callback passed to the transport layer - will be called when it
-   * receives responses related to this subscription.
+   * @param notifyQueryManager the notification hook passed to the transport layer - will be called
+   * when it receives responses related to this subscription to notify query layer of data updates.
    * @param queryName The name of the query to subscribe to.
    * @param body The variables associated with the subscription.
    */
   invokeSubscribe<Data, Variables>(
-    resultCallback: SubscribeTransportCallback<Data>,
+    notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
     body?: Variables
   ): void;
@@ -288,7 +288,7 @@ export abstract class DataConnectTransportClass
   ): Promise<DataConnectResponse<Data>>;
 
   abstract invokeSubscribe<Data, Variables>(
-    resultCallback: SubscribeTransportCallback<Data>,
+    notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
     body?: Variables
   ): void;
