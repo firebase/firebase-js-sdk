@@ -332,7 +332,7 @@ describe('generateContent()', () => {
       'model',
       fakeRequestParams
     );
-    expect(result.response.text()).to.include('Joe’s Pizza');
+    expect(result.response.text()).to.include('Here are some pizza restaurants near you:');
     const groundingMetadata = result.response.candidates?.[0].groundingMetadata;
     expect(groundingMetadata).to.not.be.undefined;
     expect(groundingMetadata!.groundingChunks?.length).to.equal(20);
@@ -345,7 +345,7 @@ describe('generateContent()', () => {
     expect(groundingMetadata!.groundingChunks?.[0].maps?.uri).to.contain(
       'https://maps.google.com/?cid=10332424901773702701'
     );
-    expect(groundingMetadata!.groundingSupports?.length).to.equal(4);
+    expect(groundingMetadata!.groundingSupports?.length).to.equal(39);
     expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
       .undefined;
     expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
@@ -355,11 +355,11 @@ describe('generateContent()', () => {
     expect(groundingMetadata!.groundingSupports?.[0].segment?.text).to
       .not.be.undefined;
     expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
-      .equal(421);
+      .equal(43);
     expect(groundingMetadata!.groundingSupports?.[0].segment?.endIndex).to
-      .equal(463);
+      .equal(152);
     expect(groundingMetadata!.groundingSupports?.[0].segment?.text).to
-      .contain('They offer takeout, delivery, and dine-in.');
+      .contain('Joe\'s Pizza');
 
     expect(makeRequestStub).to.be.calledWith(
       {
