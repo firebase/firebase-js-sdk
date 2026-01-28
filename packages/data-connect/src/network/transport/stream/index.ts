@@ -67,13 +67,19 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     ActiveRequestKey,
     SubscribeStreamRequest<unknown>
   >();
+
   /**
    * Map of active execution RequestIds and their corresponding Promise resolvers.
    */
   protected _executeRequestPromises = new Map<
     string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      resolve: (data: any) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      reject: (err: any) => void;
+      promise: Promise<DataConnectResponse<unknown>>;
+    } // TODO: can type better?
   >();
 
   /**
@@ -139,7 +145,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   }
 
   /**
-   * Internal helper to queue a message to subscribe to a query.
+   * Internal helper to queue a message to unsubscribe to a query.
    * @param cancelStreamRequest The cancel/unsubscription payload.
    */
   protected _sendCancelMessage(cancelStreamRequest: CancelStreamRequest): void {
@@ -148,43 +154,90 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
 
   invokeQuery<Data, Variables>(
     queryName: string,
-    body?: Variables
-  ): Promise<DataConnectResponse<Data>> {
-    return this._invokeExecute(queryName, body);
-  }
-
-  invokeMutation<Data, Variables>(
-    mutationName: string,
-    body?: Variables
-  ): Promise<DataConnectResponse<Data>> {
-    return this._invokeExecute(mutationName, body);
-  }
-
-  /**
-   * Internal helper to execute a Query or Mutation over the stream.
-   * @param operationName The name of the operation.
-   * @param variables The operation variables.
-   */
-  private _invokeExecute<Data, Variables>(
-    operationName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
     const requestId = this._makeRequestId(EXECUTE_STR);
-    const activeRequestKey = { operationName, variables };
+    const activeRequestKey = { operationName: queryName, variables };
+    const activeRequest = this._activeExecuteRequests.get(activeRequestKey);
+    if (activeRequest) {
+      // there is already an active execute request for this queryName + variables
+      // do not duplicate requests. return the already pending promise
+      const activeRequestPromise = this._executeRequestPromises.get(
+        activeRequest.requestId
+      );
+      if (activeRequestPromise) {
+        return activeRequestPromise.promise as Promise<
+          DataConnectResponse<Data>
+        >;
+      } else {
+        // edge case - no active request promise, so make a new one and re-request from server
+        console.warn(
+          `invokeQuery for operation '${queryName}' with variables ${variables} found activeRequest with requestId '${requestId}', but requestId did not have any tracked executeRequestPromise. Re-requesting from server.`
+        );
+      }
+    }
     // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
       'execute': activeRequestKey
     };
-
     this._sendExecuteMessage<Variables>(body);
     this._activeExecuteRequests.set(activeRequestKey, body);
+
+    // track and returna a promise so that transport layer can update query layer when results come
+    // in, and de-duplicate identical requests that come in before server responds
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
     const responsePromise = new Promise<DataConnectResponse<Data>>(
       (resolve, reject) => {
-        this._executeRequestPromises.set(requestId, { resolve, reject });
+        resolveFn = resolve;
+        rejectFn = reject;
       }
     );
+    this._executeRequestPromises.set(requestId, {
+      resolve: resolveFn!,
+      reject: rejectFn!,
+      promise: responsePromise as Promise<DataConnectResponse<unknown>>
+    });
+
+    return responsePromise;
+  }
+
+  invokeMutation<Data, Variables>(
+    mutationName: string,
+    variables?: Variables
+  ): Promise<DataConnectResponse<Data>> {
+    const requestId = this._makeRequestId(EXECUTE_STR);
+    const activeRequestKey = { operationName: mutationName, variables };
+    // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
+    const body: ExecuteStreamRequest<Variables> = {
+      'name': this.connectorResourcePath,
+      requestId,
+      'execute': activeRequestKey
+    };
+    this._sendExecuteMessage<Variables>(body);
+    this._activeExecuteRequests.set(activeRequestKey, body);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
+    );
+    this._executeRequestPromises.set(requestId, {
+      resolve: resolveFn!,
+      reject: rejectFn!,
+      promise: responsePromise as Promise<DataConnectResponse<unknown>>
+    });
+
     return responsePromise;
   }
 
