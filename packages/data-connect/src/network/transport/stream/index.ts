@@ -77,13 +77,11 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     { resolve: (data: any) => void; reject: (err: any) => void } // TODO: can type better?
   >();
 
-  // TODO: we need to also track the request body so that if the stream disconnects/reconnects, we can re-subscribe... unless...?
   /**
    * Map of active subscription RequestIds and their corresponding callbacks. These callbacks are
    * provided by the operation layer, which handles calling the user's registered callbacks
    */
   protected _subscribeRequestCallbacks = new Map<
-    // TODO: these callbacks should be supplied by the operation layer when invoking the subscribe transport functions
     string,
     SubscribeTransportCallback<unknown>
   >();

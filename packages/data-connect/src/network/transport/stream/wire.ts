@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { DataConnectExtensions } from "..";
+
 /**
  * Shape of response from the server.
  * @internal
@@ -22,6 +24,7 @@
 export interface DataConnectStreamResponse<Data> {
   requestId: string;
   data: Data;
+  extensions: DataConnectExtensions;
   dataEtag: string; // TODO: actually a hash
   errors: Error[];
   cancelled: boolean;
