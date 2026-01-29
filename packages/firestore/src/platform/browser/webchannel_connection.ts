@@ -410,9 +410,9 @@ export class WebChannelConnection extends RestConnection {
             let message = error.message;
             if (
               status === 'NOT_FOUND' &&
-              message.includes(
-                `The database ${this.databaseId.database} does not exist`
-              )
+              message.includes('database') &&
+              message.includes('does not exist') &&
+              message.includes(this.databaseId.database)
             ) {
               logWarn(
                 `Database '${this.databaseId.database}' not found. Please check your project configuration.`
