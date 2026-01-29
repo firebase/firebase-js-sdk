@@ -406,6 +406,9 @@ export class WebChannelConnection extends RestConnection {
             );
             // error.status will be a string like 'OK' or 'NOT_FOUND'.
             const status: string = error.status;
+            if (status === 'NOT_FOUND') {
+              logWarn('something was not found');
+            }
             let code = mapCodeFromRpcStatus(status);
             let message = error.message;
             if (code === undefined) {
