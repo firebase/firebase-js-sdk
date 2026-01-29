@@ -205,7 +205,7 @@ The Firebase AI Web SDK.
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> Allowable types for on-device language model messages. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. This is a property on all messages that can be used for type narrowing. This property is not returned by the server, it is assigned to a server message object once it's parsed. |
 |  [Modality](./ai.md#modality) | Content part modality. |
-|  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
+|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
 |  [Part](./ai.md#part) | Content part - includes text, image/video, or function call/response part types. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
@@ -1093,9 +1093,6 @@ export type Modality = (typeof Modality)[keyof typeof Modality];
 ```
 
 ## Outcome
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Represents the result of the code execution.
 

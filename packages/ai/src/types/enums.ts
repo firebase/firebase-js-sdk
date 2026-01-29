@@ -412,7 +412,7 @@ export const Outcome = {
 /**
  * Represents the result of the code execution.
  *
- * @beta
+ * @public
  */
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 

@@ -1111,7 +1111,7 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @beta
+// @public
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
 // @public
