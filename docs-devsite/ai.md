@@ -65,8 +65,8 @@ The Firebase AI Web SDK.
 |  [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) | <b><i>(Public Preview)</i></b> Defines an inference "backend" that uses Chrome's on-device model, and encapsulates logic for detecting when on-device inference is possible.<!-- -->These methods should not be called directly by the user. |
 |  [Citation](./ai.citation.md#citation_interface) | A single citation. |
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
-|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | <b><i>(Public Preview)</i></b> The results of code execution run by the model. |
-|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | <b><i>(Public Preview)</i></b> Represents the code execution result from the model. |
+|  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | The results of code execution run by the model. |
+|  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
 |  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | <b><i>(Public Preview)</i></b> A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
@@ -75,8 +75,8 @@ The Firebase AI Web SDK.
 |  [Date\_2](./ai.date_2.md#date_2_interface) | Protobuf google.type.Date |
 |  [EnhancedGenerateContentResponse](./ai.enhancedgeneratecontentresponse.md#enhancedgeneratecontentresponse_interface) | Response object wrapped with helper methods. |
 |  [ErrorDetails](./ai.errordetails.md#errordetails_interface) | Details object that may be included in an error response. |
-|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | <b><i>(Public Preview)</i></b> An interface for executable code returned by the model. |
-|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | <b><i>(Public Preview)</i></b> Represents the code that is executed by the model. |
+|  [ExecutableCode](./ai.executablecode.md#executablecode_interface) | An interface for executable code returned by the model. |
+|  [ExecutableCodePart](./ai.executablecodepart.md#executablecodepart_interface) | Represents the code that is executed by the model. |
 |  [FileData](./ai.filedata.md#filedata_interface) | Data pointing to a file uploaded on Google Cloud Storage. |
 |  [FileDataPart](./ai.filedatapart.md#filedatapart_interface) | Content part interface if the part represents [FileData](./ai.filedata.md#filedata_interface) |
 |  [FunctionCall](./ai.functioncall.md#functioncall_interface) | A predicted [FunctionCall](./ai.functioncall.md#functioncall_interface) returned from the model that contains a string representing the [FunctionDeclaration.name](./ai.functiondeclaration.md#functiondeclarationname) and a structured JSON object containing the parameters and their values. |
@@ -142,9 +142,9 @@ The Firebase AI Web SDK.
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of audio. This can be returned from a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) if transcription is enabled with the <code>inputAudioTranscription</code> or <code>outputAudioTranscription</code> properties on the [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface)<!-- -->. |
 |  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
-|  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
+|  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
 |  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
-|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | <b><i>(Public Preview)</i></b> Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
+|  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
 |  [VoiceConfig](./ai.voiceconfig.md#voiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the voice to used in speech synthesis. |
@@ -170,15 +170,15 @@ The Firebase AI Web SDK.
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
 |  [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
-|  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
+|  [Language](./ai.md#language) | The programming language of the code. |
 |  [LiveResponseType](./ai.md#liveresponsetype) | <b><i>(Public Preview)</i></b> The types of responses that can be returned by [LiveSession.receive()](./ai.livesession.md#livesessionreceive)<!-- -->. |
 |  [Modality](./ai.md#modality) | Content part modality. |
-|  [Outcome](./ai.md#outcome) | <b><i>(Public Preview)</i></b> Represents the result of the code execution. |
+|  [Outcome](./ai.md#outcome) | Represents the result of the code execution. |
 |  [POSSIBLE\_ROLES](./ai.md#possible_roles) | Possible roles. |
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
 |  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
-|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | The status of a URL retrieval. |
 
 ## Type Aliases
 
@@ -199,7 +199,7 @@ The Firebase AI Web SDK.
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
 |  [InferenceMode](./ai.md#inferencemode) | <b><i>(Public Preview)</i></b> Determines whether inference happens on-device or in-cloud. |
 |  [InferenceSource](./ai.md#inferencesource) | <b><i>(Public Preview)</i></b> Indicates whether inference happened on-device or in-cloud. |
-|  [Language](./ai.md#language) | <b><i>(Public Preview)</i></b> The programming language of the code. |
+|  [Language](./ai.md#language) | The programming language of the code. |
 |  [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> Content formats that can be provided as on-device message content. |
 |  [LanguageModelMessageRole](./ai.md#languagemodelmessagerole) | <b><i>(Public Preview)</i></b> Allowable roles for on-device language model usage. |
 |  [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> Allowable types for on-device language model messages. |
@@ -213,7 +213,7 @@ The Firebase AI Web SDK.
 |  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
-|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | <b><i>(Public Preview)</i></b> The status of a URL retrieval. |
+|  [URLRetrievalStatus](./ai.md#urlretrievalstatus) | The status of a URL retrieval. |
 
 ## function(app, ...)
 
@@ -720,9 +720,6 @@ InferenceSource: {
 
 ## Language
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The programming language of the code.
 
 <b>Signature:</b>
@@ -769,9 +766,6 @@ Modality: {
 ```
 
 ## Outcome
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Represents the result of the code execution.
 
@@ -846,9 +840,6 @@ ThinkingLevel: {
 ```
 
 ## URLRetrievalStatus
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The status of a URL retrieval.
 
@@ -1031,9 +1022,6 @@ export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSou
 
 ## Language
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The programming language of the code.
 
 <b>Signature:</b>
@@ -1191,9 +1179,6 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 ```
 
 ## URLRetrievalStatus
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The status of a URL retrieval.
 
