@@ -24,15 +24,15 @@ import { Component, ReactNode, ErrorInfo } from 'react';
  */
 export class CrashlyticsErrorBoundary extends Component<
   { children: ReactNode; onError: (error: Error) => void },
-  { hasError: boolean }
+  { error: Error | null }
 > {
   constructor(props: { children: ReactNode; onError: (error: Error) => void }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { error: null };
   }
 
-  static getDerivedStateFromError(_: Error): { hasError: boolean } {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): { error: Error } {
+    return { error };
   }
 
   componentDidCatch(error: Error, _errorInfo: ErrorInfo): void {
@@ -40,8 +40,9 @@ export class CrashlyticsErrorBoundary extends Component<
   }
 
   render(): ReactNode {
-    if (this.state.hasError) {
-      return null;
+    if (this.state.error) {
+      // Re-throw the error to allow other boundaries to catch it.
+      throw this.state.error;
     }
     return this.props.children;
   }
