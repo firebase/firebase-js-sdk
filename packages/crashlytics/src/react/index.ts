@@ -127,15 +127,32 @@ export function FirebaseCrashlytics({
  *
  * @example
  * ```tsx
+ * import { useEffect, useState } from "react";
  * import { CrashlyticsRoutes } from "@firebase/crashlytics/react";
- * import { Route } from "react-router-dom";
+ * import { FirebaseApp, initializeApp } from "@firebase/app";
  *
- * function App({ firebaseApp }) {
+ * export default function MyApp() {
+ *   const [app, setApp] = useState<FirebaseApp | null>(null);
+ *
+ *   useEffect(() => {
+ *     if (getApps().length === 0) {
+ *       const newApp = initializeApp({...});
+ *       setApp(newApp);
+ *     } else {
+ *       setApp(getApp());
+ *     }
+ *   }, []);
+ *
  *   return (
- *     <CrashlyticsRoutes firebaseApp={firebaseApp}>
- *       <Route path="/" element={<Home />} />
- *       <Route path="/about" element={<About />} />
- *     </CrashlyticsRoutes>
+ *     <>
+ *       {app && (
+ *         <CrashlyticsRoutes firebaseApp={app}>
+ *           <Route path="/" element={<Home />} />
+ *           <Route path="/about" element={<About />} />
+ *         </CrashlyticsRoutes>
+ *       )}
+ *       ...
+ *     </>
  *   );
  * }
  * ```
