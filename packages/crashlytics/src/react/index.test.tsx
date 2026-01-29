@@ -100,7 +100,30 @@ describe('FirebaseCrashlytics', () => {
         sinon.match
           .instanceOf(Error)
           .and(sinon.match.has('message', 'render error')),
-        sinon.match({ location: '/' })
+        sinon.match({ route: '/' })
+      );
+
+      consoleErrorStub.restore();
+    });
+
+    it('captures parameterized route pattern', () => {
+      const consoleErrorStub = stub(console, 'error');
+
+      render(
+        <MemoryRouter initialEntries={['/users/123']}>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/users/:id" element={<ThrowingComponent />} />
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      );
+
+      expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+      expect(recordErrorStub).to.have.been.calledWith(
+        fakeCrashlytics,
+        sinon.match
+          .instanceOf(Error)
+          .and(sinon.match.has('message', 'render error')),
+        sinon.match({ route: '/users/:id' })
       );
 
       consoleErrorStub.restore();

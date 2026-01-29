@@ -20,7 +20,13 @@ import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import React, { useEffect } from 'react';
-import { Routes as RoutesRR, RoutesProps, useLocation } from 'react-router-dom';
+import {
+  Routes as RoutesRR,
+  RoutesProps,
+  useLocation,
+  createRoutesFromChildren,
+  matchRoutes
+} from 'react-router-dom';
 import { CrashlyticsErrorBoundary } from './types';
 
 registerCrashlytics();
@@ -152,9 +158,19 @@ export function CrashlyticsRoutes({
   const location = useLocation();
   const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
 
+  // Determine the current route pattern from the location and routes
+  // Example: `/users/:id/details`
+  const routes = createRoutesFromChildren(children);
+  const matches = matchRoutes(routes, location);
+  const pattern =
+    matches
+      ?.map(m => (m.route.path === '/' ? '' : m.route.path))
+      .filter(p => p !== undefined)
+      .join('/') || '/';
+
   const onError = (error: Error): void => {
     recordError(crashlytics, error, {
-      location: location.pathname
+      route: pattern || 'unknown'
     });
   };
 
