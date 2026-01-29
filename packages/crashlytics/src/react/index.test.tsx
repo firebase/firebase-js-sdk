@@ -18,14 +18,14 @@
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { restore, stub } from 'sinon';
-import * as app from '@firebase/app';
+import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
-import { FirebaseCrashlytics } from '.';
+import { FirebaseCrashlytics, CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
+import { MemoryRouter, Route } from 'react-router-dom';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -75,5 +75,35 @@ describe('FirebaseCrashlytics', () => {
     );
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+  });
+
+  describe('CrashlyticsRoutes', () => {
+    const ThrowingComponent = () => {
+      throw new Error('render error');
+    };
+
+    it('captures render errors in routes', () => {
+      // Stub console.error to avoid React error logging in test output
+      const consoleErrorStub = stub(console, 'error');
+
+      render(
+        <MemoryRouter>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/" element={<ThrowingComponent />} />
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      );
+
+      expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+      expect(recordErrorStub).to.have.been.calledWith(
+        fakeCrashlytics,
+        sinon.match
+          .instanceOf(Error)
+          .and(sinon.match.has('message', 'render error')),
+        sinon.match({ location: '/' })
+      );
+
+      consoleErrorStub.restore();
+    });
   });
 });

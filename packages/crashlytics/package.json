@@ -75,7 +75,8 @@
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
     "@types/react": "17.x || 18.x || 19.x",
-    "react": "17.x || 18.x || 19.x"
+    "react": "17.x || 18.x || 19.x",
+    "react-router-dom": ">= 7.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -129,7 +130,8 @@
     "rollup-plugin-typescript2": "0.36.0",
     "rxjs": "7.8.2",
     "typescript": "5.5.4",
-    "zone.js": "0.15.1"
+    "zone.js": "0.15.1",
+    "react-router-dom": "7.9.6"
   },
   "repository": {
     "directory": "packages/crashlytics",

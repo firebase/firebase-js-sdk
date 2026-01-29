@@ -15,7 +15,10 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
+|  <b>function({ firebaseApp, crashlyticsOptions }, ...)</b> |
 |  [FirebaseCrashlytics({ firebaseApp, crashlyticsOptions })](./crashlytics_react.md#firebasecrashlytics_c141224) | Registers event listeners for uncaught errors.<!-- -->This should be installed near the root of your application. Caught errors, including those implicitly caught by Error Boundaries, will not be captured by this component. |
+|  <b>function({ firebaseApp, crashlyticsOptions, children, ...props }, ...)</b> |
+|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props })](./crashlytics_react.md#crashlyticsroutes_707e4a5) | A wrapper around  that automatically captures errors in route components.<!-- -->This component acts as a replacement for <code>Routes</code> from <code>react-router-dom</code>. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes). |
 
 ## Interfaces
 
@@ -83,6 +86,53 @@ export default function MyApp() {
       )}
       ...
     </>
+  );
+}
+
+```
+
+## function({ firebaseApp, crashlyticsOptions, children, ...props }, ...)
+
+### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }) {:#crashlyticsroutes_707e4a5}
+
+A wrapper around  that automatically captures errors in route components.
+
+This component acts as a replacement for `Routes` from `react-router-dom`<!-- -->. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes).
+
+<b>Signature:</b>
+
+```typescript
+export declare function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }: RoutesProps & {
+    firebaseApp: FirebaseApp;
+    crashlyticsOptions?: CrashlyticsOptions;
+}): React.ReactElement | null;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  { firebaseApp, crashlyticsOptions, children, ...props } | RoutesProps &amp; { firebaseApp: [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->; crashlyticsOptions?: [CrashlyticsOptions](./crashlytics_.crashlyticsoptions.md#crashlyticsoptions_interface)<!-- -->; } |  |
+
+<b>Returns:</b>
+
+React.ReactElement \| null
+
+The rendered routes wrapped in an error boundary.
+
+### Example
+
+
+```tsx
+import { CrashlyticsRoutes } from "@firebase/crashlytics/react";
+import { Route } from "react-router-dom";
+
+function App({ firebaseApp }) {
+  return (
+    <CrashlyticsRoutes firebaseApp={firebaseApp}>
+      <Route path="/" element={<Home />} />
+      <Route path="/about" element={<About />} />
+    </CrashlyticsRoutes>
   );
 }
 
