@@ -95,7 +95,7 @@ export default function MyApp() {
 
 ### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }) {:#crashlyticsroutes_707e4a5}
 
-A wrapper around  that automatically captures errors in route components.
+A wrapper around `Routes` from `react-router-dom` that automatically captures errors in route components.
 
 This component acts as a replacement for `Routes` from `react-router-dom`<!-- -->. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes).
 
