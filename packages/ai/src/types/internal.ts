@@ -18,6 +18,7 @@
 import { AppCheckTokenResult } from '@firebase/app-check-interop-types';
 import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
 import { Backend } from '../backend';
+import { InferenceMode } from './enums';
 
 export * from './imagen/internal';
 
@@ -33,4 +34,5 @@ export interface ApiSettings {
   backend: Backend;
   getAuthToken?: () => Promise<FirebaseAuthTokenData | null>;
   getAppCheckToken?: () => Promise<AppCheckTokenResult>;
+  inferenceMode?: InferenceMode;
 }
