@@ -542,6 +542,7 @@ export class GenerativeModel extends AIModel {
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
+    initializeDeviceModel(): Promise<void>;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)

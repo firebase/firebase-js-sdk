@@ -49,7 +49,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   // Visible for testing
   static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
   private isDownloading = false;
-  private downloadPromise: Promise<LanguageModel | void> | undefined;
+  downloadPromise: Promise<LanguageModel | void> | undefined;
   private oldSession: LanguageModel | undefined;
   onDeviceParams: OnDeviceParams = {
     createOptions: {
@@ -231,7 +231,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Encapsulates logic to get availability and download a model if one is downloadable.
    */
-  private async downloadIfAvailable(): Promise<Availability | undefined> {
+  async downloadIfAvailable(): Promise<Availability | undefined> {
     const availability = await this.languageModelProvider?.availability(
       this.onDeviceParams.createOptions
     );
