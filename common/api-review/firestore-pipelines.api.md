@@ -583,6 +583,14 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     stringContains(expr: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringRepeat(repetitions: number | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     stringReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     substring(position: number, length?: number): FunctionExpression;
@@ -1206,6 +1214,30 @@ export function stringContains(stringExpression: Expression, substring: string):
 
 // @beta
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
+
+// @beta
+export function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export function stringReverse(stringExpression: Expression): FunctionExpression;

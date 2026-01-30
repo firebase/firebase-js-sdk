@@ -99,6 +99,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [split(expression, delimiter)](./firestore_lite_pipelines.md#split_5b5612b) | <b><i>(Public Preview)</i></b> Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
 |  [split(expression, delimiter)](./firestore_lite_pipelines.md#split_5a171ed) | <b><i>(Public Preview)</i></b> Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
 |  [sqrt(expression)](./firestore_lite_pipelines.md#sqrt_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
+|  [stringIndexOf(expression, search)](./firestore_lite_pipelines.md#stringindexof_6dfca5f) | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(expression, repetitions)](./firestore_lite_pipelines.md#stringrepeat_a55ba16) | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(expression, find, replacement)](./firestore_lite_pipelines.md#stringreplaceall_197ecbe) | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(expression, find, replacement)](./firestore_lite_pipelines.md#stringreplaceone_197ecbe) | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
 |  [subtract(expression, value)](./firestore_lite_pipelines.md#subtract_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from an expression. |
 |  [sum(expression)](./firestore_lite_pipelines.md#sum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of values from an expression across multiple stage inputs. |
 |  [type(expression)](./firestore_lite_pipelines.md#type_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of an expression's result. |
@@ -190,6 +194,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [stringConcat(fieldName, secondString, otherStrings)](./firestore_lite_pipelines.md#stringconcat_d80077e) | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string functions, fields or constants together. |
 |  [stringContains(fieldName, substring)](./firestore_lite_pipelines.md#stringcontains_5b94cfe) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified substring. |
 |  [stringContains(fieldName, substring)](./firestore_lite_pipelines.md#stringcontains_ac3ba47) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a substring specified by an expression. |
+|  [stringIndexOf(fieldName, search)](./firestore_lite_pipelines.md#stringindexof_6c4650e) | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(fieldName, repetitions)](./firestore_lite_pipelines.md#stringrepeat_e144a59) | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(fieldName, find, replacement)](./firestore_lite_pipelines.md#stringreplaceall_b0db15f) | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(fieldName, find, replacement)](./firestore_lite_pipelines.md#stringreplaceone_b0db15f) | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
 |  [subtract(fieldName, expression)](./firestore_lite_pipelines.md#subtract_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts an expression from a field's value. |
 |  [subtract(fieldName, value)](./firestore_lite_pipelines.md#subtract_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from a field's value. |
 |  [sum(fieldName)](./firestore_lite_pipelines.md#sum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a field's values across multiple stage inputs. |
@@ -2794,6 +2802,148 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Compute the square root of the 'value' field.
 sqrt(field("value"));
+
+```
+
+### stringIndexOf(expression, search) {:#stringindexof_6dfca5f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index of the first occurrence.
+
+### Example
+
+
+```typescript
+// Find the index of "foo" in the 'text' field
+stringIndexOf(field("text"), "foo");
+
+```
+
+### stringRepeat(expression, repetitions) {:#stringrepeat_a55ba16}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that repeats a string or byte array a specified number of times.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  repetitions | number \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The number of times to repeat the string or byte array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the repeated string or byte array.
+
+### Example
+
+
+```typescript
+// Repeat the 'label' field 3 times
+stringRepeat(field("label"), 3);
+
+```
+
+### stringReplaceAll(expression, find, replacement) {:#stringreplaceall_197ecbe}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with replacements.
+
+### Example
+
+
+```typescript
+// Replace all occurrences of "foo" with "bar" in the 'text' field
+stringReplaceAll(field("text"), "foo", "bar");
+
+```
+
+### stringReplaceOne(expression, find, replacement) {:#stringreplaceone_197ecbe}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with the replacement.
+
+### Example
+
+
+```typescript
+// Replace the first occurrence of "foo" with "bar" in the 'text' field
+stringReplaceOne(field("text"), "foo", "bar");
 
 ```
 
@@ -5870,6 +6020,148 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Check if the 'description' field contains the value of the 'keyword' field.
 stringContains("description", field("keyword"));
+
+```
+
+### stringIndexOf(fieldName, search) {:#stringindexof_6c4650e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  search | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index of the first occurrence.
+
+### Example
+
+
+```typescript
+// Find the index of "foo" in the 'text' field
+stringIndexOf("text", "foo");
+
+```
+
+### stringRepeat(fieldName, repetitions) {:#stringrepeat_e144a59}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that repeats a string or byte array a specified number of times.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  repetitions | number \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The number of times to repeat the string or byte array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the repeated string or byte array.
+
+### Example
+
+
+```typescript
+// Repeat the 'label' field 3 times
+stringRepeat("label", 3);
+
+```
+
+### stringReplaceAll(fieldName, find, replacement) {:#stringreplaceall_b0db15f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with replacements.
+
+### Example
+
+
+```typescript
+// Replace all occurrences of "foo" with "bar" in the 'text' field
+stringReplaceAll("text", "foo", "bar");
+
+```
+
+### stringReplaceOne(fieldName, find, replacement) {:#stringreplaceone_b0db15f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  find | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| [Bytes](./firestore_lite.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with the replacement.
+
+### Example
+
+
+```typescript
+// Replace the first occurrence of "foo" with "bar" in the 'text' field
+stringReplaceOne("text", "foo", "bar");
 
 ```
 
