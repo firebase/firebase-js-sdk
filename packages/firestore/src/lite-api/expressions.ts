@@ -1218,6 +1218,54 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an expression that concatenates string expressions together.
+   *
+   * @example
+   * ```typescript
+   * // Combine the 'firstName', " ", and 'lastName' fields into a single string
+   * field("firstName").stringConcat(constant(" "), field("lastName"));
+   * ```
+   *
+   * @param secondString - The additional expression or string literal to concatenate.
+   * @param otherStrings - Optional additional expressions or string literals to concatenate.
+   * @returns A new `Expression` representing the concatenated string.
+   */
+  stringConcat(
+    secondString: Expression | string,
+    ...otherStrings: Array<Expression | string>
+  ): FunctionExpression {
+    const elements = [secondString, ...otherStrings];
+    const exprs = elements.map(valueToDefaultExpr);
+    return new FunctionExpression(
+      'string_concat',
+      [this, ...exprs],
+      'stringConcat'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+   *
+   * @example
+   * ```typescript
+   * // Find the index of "foo" in the 'text' field
+   * field("text").stringIndexOf("foo");
+   * ```
+   *
+   * @param search - The substring or byte sequence to search for.
+   * @returns A new `Expression` representing the index of the first occurrence.
+   */
+  stringIndexOf(search: string | Expression | Bytes): FunctionExpression {
+    return new FunctionExpression(
+      'string_index_of',
+      [this, valueToDefaultExpr(search)],
+      'stringIndexOf'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an expression that repeats a string or byte array a specified number of times.
    *
    * @example
@@ -1284,54 +1332,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       'string_replace_one',
       [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
       'stringReplaceOne'
-    );
-  }
-
-  /**
-   * @beta
-   * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
-   *
-   * @example
-   * ```typescript
-   * // Find the index of "foo" in the 'text' field
-   * field("text").stringIndexOf("foo");
-   * ```
-   *
-   * @param search - The substring or byte sequence to search for.
-   * @returns A new `Expression` representing the index of the first occurrence.
-   */
-  stringIndexOf(search: string | Expression | Bytes): FunctionExpression {
-    return new FunctionExpression(
-      'string_index_of',
-      [this, valueToDefaultExpr(search)],
-      'stringIndexOf'
-    );
-  }
-
-  /**
-   * @beta
-   * Creates an expression that concatenates string expressions together.
-   *
-   * @example
-   * ```typescript
-   * // Combine the 'firstName', " ", and 'lastName' fields into a single string
-   * field("firstName").stringConcat(constant(" "), field("lastName"));
-   * ```
-   *
-   * @param secondString - The additional expression or string literal to concatenate.
-   * @param otherStrings - Optional additional expressions or string literals to concatenate.
-   * @returns A new `Expression` representing the concatenated string.
-   */
-  stringConcat(
-    secondString: Expression | string,
-    ...otherStrings: Array<Expression | string>
-  ): FunctionExpression {
-    const elements = [secondString, ...otherStrings];
-    const exprs = elements.map(valueToDefaultExpr);
-    return new FunctionExpression(
-      'string_concat',
-      [this, ...exprs],
-      'stringConcat'
     );
   }
 
@@ -6771,6 +6771,103 @@ export function trim(
 
 /**
  * @beta
+ *
+ * Creates an expression that concatenates string functions, fields or constants together.
+ *
+ * @example
+ * ```typescript
+ * // Combine the 'firstName', " ", and 'lastName' fields into a single string
+ * stringConcat("firstName", " ", field("lastName"));
+ * ```
+ *
+ * @param fieldName - The field name containing the initial string value.
+ * @param secondString - An expression or string literal to concatenate.
+ * @param otherStrings - Optional additional expressions or literals (typically strings) to concatenate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated string.
+ */
+export function stringConcat(
+  fieldName: string,
+  secondString: Expression | string,
+  ...otherStrings: Array<Expression | string>
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that concatenates string expressions together.
+ *
+ * @example
+ * ```typescript
+ * // Combine the 'firstName', " ", and 'lastName' fields into a single string
+ * stringConcat(field("firstName"), " ", field("lastName"));
+ * ```
+ *
+ * @param firstString - The initial string expression to concatenate to.
+ * @param secondString - An expression or string literal to concatenate.
+ * @param otherStrings - Optional additional expressions or literals (typically strings) to concatenate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated string.
+ */
+export function stringConcat(
+  firstString: Expression,
+  secondString: Expression | string,
+  ...otherStrings: Array<Expression | string>
+): FunctionExpression;
+export function stringConcat(
+  first: string | Expression,
+  second: string | Expression,
+  ...elements: Array<string | Expression>
+): FunctionExpression {
+  return fieldOrExpression(first).stringConcat(
+    valueToDefaultExpr(second),
+    ...elements.map(valueToDefaultExpr)
+  );
+}
+
+/**
+ * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf("text", "foo");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  fieldName: string,
+  search: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf(field("text"), "foo");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  expression: Expression,
+  search: string | Expression | Bytes
+): FunctionExpression;
+export function stringIndexOf(
+  expr: Expression | string,
+  search: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringIndexOf(search);
+}
+
+/**
+ * @beta
  * Creates an expression that repeats a string or byte array a specified number of times.
  *
  * @example
@@ -6909,103 +7006,6 @@ export function stringReplaceOne(
   replacement: string | Expression | Bytes
 ): FunctionExpression {
   return fieldOrExpression(expr).stringReplaceOne(find, replacement);
-}
-
-/**
- * @beta
- * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
- *
- * @example
- * ```typescript
- * // Find the index of "foo" in the 'text' field
- * stringIndexOf("text", "foo");
- * ```
- *
- * @param fieldName - The name of the field containing the string or byte array.
- * @param search - The substring or byte sequence to search for.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
- */
-export function stringIndexOf(
-  fieldName: string,
-  search: string | Expression | Bytes
-): FunctionExpression;
-
-/**
- * @beta
- * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
- *
- * @example
- * ```typescript
- * // Find the index of "foo" in the 'text' field
- * stringIndexOf(field("text"), "foo");
- * ```
- *
- * @param expression - The expression representing the string or byte array.
- * @param search - The substring or byte sequence to search for.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
- */
-export function stringIndexOf(
-  expression: Expression,
-  search: string | Expression | Bytes
-): FunctionExpression;
-export function stringIndexOf(
-  expr: Expression | string,
-  search: string | Expression | Bytes
-): FunctionExpression {
-  return fieldOrExpression(expr).stringIndexOf(search);
-}
-
-/**
- * @beta
- *
- * Creates an expression that concatenates string functions, fields or constants together.
- *
- * @example
- * ```typescript
- * // Combine the 'firstName', " ", and 'lastName' fields into a single string
- * stringConcat("firstName", " ", field("lastName"));
- * ```
- *
- * @param fieldName - The field name containing the initial string value.
- * @param secondString - An expression or string literal to concatenate.
- * @param otherStrings - Optional additional expressions or literals (typically strings) to concatenate.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated string.
- */
-export function stringConcat(
-  fieldName: string,
-  secondString: Expression | string,
-  ...otherStrings: Array<Expression | string>
-): FunctionExpression;
-
-/**
- * @beta
- * Creates an expression that concatenates string expressions together.
- *
- * @example
- * ```typescript
- * // Combine the 'firstName', " ", and 'lastName' fields into a single string
- * stringConcat(field("firstName"), " ", field("lastName"));
- * ```
- *
- * @param firstString - The initial string expression to concatenate to.
- * @param secondString - An expression or string literal to concatenate.
- * @param otherStrings - Optional additional expressions or literals (typically strings) to concatenate.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated string.
- */
-export function stringConcat(
-  firstString: Expression,
-  secondString: Expression | string,
-  ...otherStrings: Array<Expression | string>
-): FunctionExpression;
-export function stringConcat(
-  first: string | Expression,
-  second: string | Expression,
-  ...elements: Array<string | Expression>
-): FunctionExpression {
-  return fieldOrExpression(first).stringConcat(
-    valueToDefaultExpr(second),
-    ...elements.map(valueToDefaultExpr)
-  );
 }
 
 /**
