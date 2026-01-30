@@ -185,13 +185,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @beta
+// @public
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @beta
+// @public
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -283,13 +283,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @beta
+// @public
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @beta
+// @public
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -461,8 +461,6 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
-    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
-    //
     // (undocumented)
     urlContextMetadata?: URLContextMetadata;
 }
@@ -873,13 +871,13 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @beta
+// @public
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @beta
+// @public
 export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
@@ -1113,7 +1111,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @beta
+// @public
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1121,12 +1119,9 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @beta
+// @public
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
-//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1422,7 +1417,7 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 export interface URLContext {
 }
 
-// @beta
+// @public
 export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
@@ -1432,13 +1427,13 @@ export interface URLContextTool {
     urlContext: URLContext;
 }
 
-// @beta
+// @public
 export interface URLMetadata {
     retrievedUrl?: string;
     urlRetrievalStatus?: URLRetrievalStatus;
 }
 
-// @beta
+// @public
 export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
     URL_RETRIEVAL_STATUS_SUCCESS: string;
@@ -1447,7 +1442,7 @@ export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSAFE: string;
 };
 
-// @beta
+// @public
 export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
