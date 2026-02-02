@@ -16,30 +16,44 @@
  */
 
 import { InternalCacheProvider } from './CacheProvider';
-import { EntityNode } from './EntityNode';
+import { EncodingMode, EntityNode } from './EntityNode';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 
 interface DehydratedResults {
   entityNode: EntityNode;
-  data: string;
+  impacted: string[];
 }
 
 export class ResultTreeProcessor {
-  hydrateResults(rootStubObject: EntityNode): string {
-    return JSON.stringify(rootStubObject.toJson());
+  /**
+   * Hydrate the EntityNode into a JSON object so that it can be returned to the user.
+   * @param rootStubObject
+   * @returns {string}
+   */
+  hydrateResults(rootStubObject: EntityNode): Record<string, unknown> {
+    return rootStubObject.toJson(EncodingMode.hydrated);
   }
+  // TODO: Make this closer to https://github.com/firebase/data-connect-ios-sdk/blob/main/Sources/Cache/ResultTreeProcessor.swift
+  /**
+   * Dehydrate results so that they can be stored in the cache.
+   * @param json
+   * @param entityIds
+   * @param cacheProvider
+   * @param queryId
+   * @returns {Promise<DehydratedResults>}
+   */
   async dehydrateResults(
     json: Record<string, unknown>,
     entityIds: Record<string, unknown>, // TODO: handle entity ids.
     cacheProvider: InternalCacheProvider,
-    acc: ImpactedQueryRefsAccumulator,
     queryId: string
   ): Promise<DehydratedResults> {
-    const entityNode = new EntityNode(acc);
-    await entityNode.loadData(queryId, json, entityIds, cacheProvider);
+    const acc = new ImpactedQueryRefsAccumulator(queryId);
+    const entityNode = new EntityNode();
+    await entityNode.loadData(queryId, json, entityIds, acc, cacheProvider);
     return {
       entityNode,
-      data: JSON.stringify(entityNode.toStorableJson())
+      impacted: acc.consumeEvents(),
     };
   }
 }

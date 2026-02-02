@@ -26,7 +26,6 @@ import { DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { InternalCacheProvider } from './CacheProvider';
-import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 import { InMemoryCacheProvider } from './InMemoryCacheProvider';
 import { ResultTree } from './ResultTree';
 import { ResultTreeProcessor } from './ResultTreeProcessor';
@@ -94,7 +93,7 @@ export class DataConnectCache {
     await this.initialize();
     return this.cacheProvider!.getResultTree(queryId);
   }
-  async getResultJSON(queryId: string): Promise<string> {
+  async getResultJSON(queryId: string): Promise<Record<string, unknown>> {
     await this.initialize();
     const processor = new ResultTreeProcessor();
     const cacheProvider = this.cacheProvider;
@@ -114,28 +113,25 @@ export class DataConnectCache {
   ): Promise<string[]> {
     await this.initialize();
     const processor = new ResultTreeProcessor();
-    const acc = new ImpactedQueryRefsAccumulator();
     const cacheProvider = this.cacheProvider;
-    const { data, entityNode: stubDataObject } =
+    const { entityNode: stubDataObject, impacted } =
       await processor.dehydrateResults(
         serverValues,
         entityIds,
         cacheProvider!,
-        acc,
         queryId
       );
     const now = new Date();
     await cacheProvider!.setResultTree(
       queryId,
       new ResultTree(
-        data,
         stubDataObject,
         serverValues.maxAge || this.cacheSettings.maxAge,
         now,
         now
       )
     );
-    return acc.consumeEvents();
+    return impacted;
   }
 }
 

@@ -28,49 +28,39 @@ export interface BackingDataObjectJson {
   map: {
     [key: string]: FDCScalarValue;
   };
-  queriesReferenced: Set<string>;
+  referencedFrom: string[];
   globalID: string;
 }
 
 export class EntityDataObject {
-  getMap(): { [key: string]: FDCScalarValue } {
-    return this.map;
+  private serverValues: { [key: string]: FDCScalarValue } = {};
+  private referencedFrom = new Set<string>();
+  constructor(public readonly globalID: string) {}
+  getServerValues(): { [key: string]: FDCScalarValue } {
+    return this.serverValues;
   }
-  getStorableMap(map: { [key: string]: FDCScalarValue }): {
-    [key: string]: FDCScalarValue;
-  } {
-    const newMap: { [key: string]: FDCScalarValue } = {};
-    for (const key in map) {
-      if (map.hasOwnProperty(key)) {
-        newMap[key] = map[key];
-      }
-    }
-    return newMap;
-  }
-  toStorableJson(): BackingDataObjectJson {
+  toJson(): BackingDataObjectJson {
     return {
       globalID: this.globalID,
-      map: this.getStorableMap(this.map),
-      queriesReferenced: this.queriesReferenced
+      map: this.serverValues,
+      referencedFrom: Array.from(this.referencedFrom)
     };
   }
-  static fromStorableJson(json: BackingDataObjectJson): EntityDataObject {
+  static fromJson(json: BackingDataObjectJson): EntityDataObject {
     const bdo = new EntityDataObject(json.globalID);
-    bdo.map = json.map;
-    bdo.queriesReferenced = json.queriesReferenced;
+    bdo.serverValues = json.map;
+    bdo.referencedFrom = new Set(json.referencedFrom);
     return bdo;
   }
-  private map: { [key: string]: FDCScalarValue } = {};
-  private queriesReferenced = new Set<string>();
-  constructor(public readonly globalID: string) {}
+
   updateServerValue(
     key: string,
     value: FDCScalarValue,
     requestedFrom: string
   ): string[] {
-    this.map[key] = value;
-    this.queriesReferenced.add(requestedFrom);
-    return Array.from(this.queriesReferenced);
+    this.serverValues[key] = value;
+    this.referencedFrom.add(requestedFrom);
+    return Array.from(this.referencedFrom);
   }
   // TODO(mtewani): Add a way to track what fields are associated with each query during runtime.
 }

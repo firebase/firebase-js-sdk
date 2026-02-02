@@ -27,6 +27,9 @@ import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
 export const InMemoryProvider = 'inmemory' as const;
 
 export const GLOBAL_ID_KEY = '_id';
+export const OBJECT_LISTS_KEY = '_objectLists';
+export const REFERENCES_KEY = '_references';
+export const SCALARS_KEY = '_scalars';
 export class EntityNode {
   entityData?: EntityDataObject;
   scalars: Record<string, FDCScalarValue> = {};
@@ -35,16 +38,15 @@ export class EntityNode {
     [key: string]: EntityNode[];
   } = {};
   globalId?: string;
-  impactedQueryRefs = new Set<string>();
-  constructor(private acc = new ImpactedQueryRefsAccumulator()) {}
 
   async loadData(
     queryId: string,
     values: FDCScalarValue,
     entityIds: Record<string, unknown> | undefined,
-    cacheProvider?: InternalCacheProvider // TODO: Look into why null is being passed in here.
+    acc: ImpactedQueryRefsAccumulator,
+    cacheProvider: InternalCacheProvider // TODO: Look into why null is being passed in here.
   ): Promise<void> {
-    if (values === undefined || !cacheProvider) {
+    if (values === undefined) {
       return;
     }
     if (typeof values !== 'object' || Array.isArray(values)) {
@@ -81,11 +83,12 @@ export class EntityNode {
                 if (Array.isArray(value)) {
                   // Note: we don't support sparse arrays.
                 } else {
-                  const entityNode = new EntityNode(this.acc);
+                  const entityNode = new EntityNode();
                   await entityNode.loadData(
                     queryId,
                     value,
                     ids && (ids[index] as Record<string, unknown>),
+                    acc,
                     cacheProvider
                   );
                   objArray.push(entityNode);
@@ -107,7 +110,7 @@ export class EntityNode {
                   scalarArray,
                   queryId
                 );
-                this.acc.add(impactedRefs);
+                acc.add(impactedRefs);
               } else {
                 this.scalars[key] = scalarArray;
               }
@@ -121,14 +124,16 @@ export class EntityNode {
               this.scalars[key] = null;
               continue;
             }
-            const stubDataObject = new EntityNode(this.acc);
-            await stubDataObject.loadData(
+            const entityNode = new EntityNode();
+            // TODO: Load Data might need to be pushed into ResultTreeProcessor instead.
+            await entityNode.loadData(
               queryId,
               (values as Record<string, FDCScalarValue>)[key],
               ids && (ids[key] as Record<string, unknown>),
+              acc,
               cacheProvider
             );
-            this.references[key] = stubDataObject;
+            this.references[key] = entityNode;
           }
         } else {
           if (this.entityData) {
@@ -138,7 +143,7 @@ export class EntityNode {
               values[key] as FDCScalarValue,
               queryId
             );
-            this.acc.add(impactedRefs);
+            acc.add(impactedRefs);
           } else {
             this.scalars[key] = values[key] as FDCScalarValue;
           }
@@ -150,131 +155,105 @@ export class EntityNode {
     }
   }
 
-  toJson(): object {
+  toJson(mode: EncodingMode): Record<string, unknown> {
     const resultObject: Record<string, unknown> = {};
-    const entityDataMap = this.entityData?.getMap();
-    for (const key in entityDataMap) {
-      if (entityDataMap?.hasOwnProperty(key)) {
-        resultObject[key] = entityDataMap[key];
+    if(mode === EncodingMode.hydrated) {
+      if(this.entityData) {
+        Object.assign(resultObject, this.entityData.getServerValues());
+      }
+      
+      if(this.scalars) {
+        Object.assign(resultObject, this.scalars);
+      }
+      if(this.references) {
+        for(const key in this.references) {
+          if(this.references.hasOwnProperty(key)) {
+            resultObject[key] = this.references[key].toJson(mode);
+          }
+        }
+      }
+      if(this.objectLists) {
+        for (const key in this.objectLists) {
+          if(this.objectLists.hasOwnProperty(key)) {
+            resultObject[key] = this.objectLists[key].map(obj => obj.toJson(mode));
+          }
+        }
+      }
+      return resultObject;
+    } else {
+      // Get JSON representation of dehydrated list
+      if(this.entityData) {
+        resultObject[GLOBAL_ID_KEY] = this.entityData.globalID;
+      }
+
+      if(this.scalars) {
+        resultObject[SCALARS_KEY] = this.scalars;
+      }
+
+      if(this.references) {
+        const references = {} as Record<string, unknown>;
+        for(const key in this.references) {
+          if(this.references.hasOwnProperty(key)) {
+            references[key] = this.references[key].toJson(mode);
+          }
+        }
+        resultObject[REFERENCES_KEY] = references;
+      }
+      if(this.objectLists) {
+        const objectLists = {} as Record<string, unknown>;
+        for (const key in this.objectLists) {
+          if(this.objectLists.hasOwnProperty(key)) {
+            objectLists[key] = this.objectLists[key].map(obj => obj.toJson(mode));
+          }
+        }
+        resultObject[OBJECT_LISTS_KEY] = objectLists;
       }
     }
-    // Scalars should never have stubdataobjects
-    for (const key in this.scalars) {
-      if (this.scalars.hasOwnProperty(key)) {
-        resultObject[key] = this.scalars[key];
-      }
-    }
-    for (const key in this.references) {
-      if (this.references.hasOwnProperty(key)) {
-        resultObject[key] = this.references[key].toJson();
-      }
-    }
-    for (const key in this.objectLists) {
-      if (this.objectLists.hasOwnProperty(key)) {
-        resultObject[key] = this.objectLists[key].map(obj => {
-          return obj.toJson();
-        });
-      }
-    }
+    
     return resultObject;
   }
-  static parseMap(
-    map: Record<
-      string,
-      | EntityNode
-      | EntityNode[]
-      | FDCScalarValue
-      | StubDataObjectJson
-      | StubDataObjectJson[]
-    >,
-    isSdo = false
-  ): Record<
-    string,
-    | EntityNode
-    | EntityNode[]
-    | FDCScalarValue
-    | StubDataObjectJson
-    | StubDataObjectJson[]
-  > {
-    const newMap: typeof map = {};
-    for (const key in map) {
-      if (map.hasOwnProperty(key)) {
-        if (Array.isArray(map[key])) {
-          newMap[key] = map[key].map(value =>
-            isSdo
-              ? EntityNode.fromStorableJson(value as StubDataObjectJson)
-              : value
-          ) as EntityNode[] | FDCScalarValue[];
-        } else {
-          newMap[key] = isSdo
-            ? EntityNode.fromStorableJson(map[key] as StubDataObjectJson)
-            : map[key];
-        }
-      }
-    }
-    return newMap;
-  }
-  static fromStorableJson(obj: StubDataObjectJson): EntityNode {
+  
+  static fromJson(obj: DehydratedStubDataObject): EntityNode {
     const sdo = new EntityNode();
     if (obj.backingData) {
-      sdo.entityData = EntityDataObject.fromStorableJson(obj.backingData);
+      sdo.entityData = EntityDataObject.fromJson(obj.backingData);
     }
-    sdo.acc = new ImpactedQueryRefsAccumulator();
     sdo.globalId = obj.globalID;
-    sdo.impactedQueryRefs = new Set<string>();
-    sdo.scalars = EntityNode.parseMap(obj.scalars) as Record<
-      string,
-      FDCScalarValue
-    >;
-    sdo.references = EntityNode.parseMap(
-      obj.references
-    ) as typeof sdo.references;
-    sdo.objectLists = EntityNode.parseMap(
-      obj.objectLists,
-      true
-    ) as typeof sdo.objectLists;
-    return sdo;
-  }
-  getStorableMap(map: { [key: string]: EntityNode | EntityNode[] }): {
-    [key: string]: StubDataObjectJson | StubDataObjectJson[];
-  } {
-    const newMap: { [key: string]: StubDataObjectJson | StubDataObjectJson[] } =
-      {};
-    for (const key in map) {
-      if (map.hasOwnProperty(key)) {
-        if (Array.isArray(map[key])) {
-          newMap[key] = map[key].map(value => value.toStorableJson());
-        } else {
-          newMap[key] = map[key].toStorableJson();
+    sdo.scalars = obj.scalars;
+    if(obj.references) {
+      const references: Record<string, unknown> = {};
+      for(const key in obj.references) {
+        if(obj.references.hasOwnProperty(key)) {
+          references[key] = EntityNode.fromJson(obj.references[key]);
         }
       }
+      sdo.references = references as typeof sdo.references;
     }
-    return newMap;
-  }
-  toStorableJson(): StubDataObjectJson {
-    const obj: StubDataObjectJson = {
-      globalID: this.globalId,
-      scalars: this.scalars,
-      references: this.getStorableMap(
-        this.references
-      ) as StubDataObjectJson['references'],
-      objectLists: this.getStorableMap(
-        this.objectLists
-      ) as StubDataObjectJson['objectLists']
-    };
-    if (this.entityData) {
-      obj.backingData = this.entityData.toStorableJson();
+    if(obj.objectLists) {
+      const objectLists: Record<string, unknown> = {};
+      for(const key in obj.objectLists) {
+        if(obj.objectLists.hasOwnProperty(key)) {
+          objectLists[key] = obj.objectLists[key].map(obj => EntityNode.fromJson(obj));
+        }
+      }
+      sdo.objectLists = objectLists as typeof sdo.objectLists;
     }
-    return obj;
+    return sdo;
   }
 }
 
-export interface StubDataObjectJson {
+export interface DehydratedStubDataObject {
   backingData?: BackingDataObjectJson;
   globalID?: string;
   scalars: { [key: string]: FDCScalarValue };
-  references: { [key: string]: StubDataObjectJson };
+  references: { [key: string]: DehydratedStubDataObject };
   objectLists: {
-    [key: string]: StubDataObjectJson[];
+    [key: string]: DehydratedStubDataObject[];
   };
+}
+
+// Helpful for storing in persistent cache, which is not available yet.
+export enum EncodingMode {
+  hydrated,
+  dehydrated
 }

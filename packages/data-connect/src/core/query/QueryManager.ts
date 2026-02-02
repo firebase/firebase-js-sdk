@@ -28,6 +28,7 @@ import {
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
+import { EncodingMode } from '../../cache/EntityNode';
 import { logDebug } from '../../logger';
 import { DataConnectExtension, DataConnectTransport } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
@@ -206,9 +207,7 @@ export class QueryManager {
       (await this.cache!.containsResultTree(key)) &&
       !(await this.cache!.getResultTree(key))!.isStale()
     ) {
-      const cacheResult: Data = JSON.parse(
-        await this.cache!.getResultJSON(key)
-      );
+      const cacheResult: Data = (await this.cache!.getResultJSON(key)) as Data;
       const resultTree = await this.cache!.getResultTree(key);
       const result: QueryResult<Data, Variables> = {
         source: SOURCE_CACHE,
@@ -318,7 +317,7 @@ export class QueryManager {
     key: string,
     queryRef: QueryRef<Data, Variables>
   ): Promise<QueryResult<Data, Variables>> {
-    const cacheResult: Data = JSON.parse(await this.cache!.getResultJSON(key));
+    const cacheResult: Data = await this.cache!.getResultJSON(key) as Data;
     const resultTree = await this.cache!.getResultTree(key);
     const result: QueryResult<Data, Variables> = {
       source: SOURCE_CACHE,
@@ -367,7 +366,7 @@ export class QueryManager {
       }
       const newJson = (await this.cache.getResultTree(query))!
         .getRootStub()
-        .toJson();
+        .toJson(EncodingMode.hydrated);
       const { name, variables } = decoderImpl(query) as QueryRef<
         unknown,
         unknown

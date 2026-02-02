@@ -15,21 +15,23 @@
  * limitations under the License.
  */
 
-import { EntityNode, StubDataObjectJson } from './EntityNode';
+import { EntityNode, DehydratedStubDataObject } from './EntityNode';
 
 export class ResultTree {
-  static parse(value: ResultTreeJson): ResultTree {
-    const rt = new ResultTree(
-      value.data,
-      EntityNode.fromStorableJson(value.rootStub),
+  /**
+   * Create a {@link ResultTree} from a dehydrated JSON object.
+   * @param value The dehydrated JSON object.
+   * @returns The {@link ResultTree}.
+   */
+  static fromJson(value: DehydratedResultTreeJson): ResultTree {
+    return new ResultTree(
+      EntityNode.fromJson(value.rootStub),
       value.maxAge,
       value.cachedAt,
       value.lastAccessed
     );
-    return rt;
   }
   constructor(
-    public readonly data: string,
     private rootStub: EntityNode,
     private maxAge: number = 30000,
     public readonly cachedAt: Date,
@@ -54,10 +56,9 @@ export class ResultTree {
   }
 }
 
-interface ResultTreeJson {
-  rootStub: StubDataObjectJson;
+interface DehydratedResultTreeJson {
+  rootStub: DehydratedStubDataObject;
   maxAge: number;
   cachedAt: Date;
   lastAccessed: Date;
-  data: string;
 }
