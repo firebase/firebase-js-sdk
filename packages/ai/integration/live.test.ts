@@ -22,6 +22,7 @@ import {
   LiveServerContent,
   LiveServerToolCall,
   LiveServerToolCallCancellation,
+  LiveServerGoingAwayNotice,
   ResponseModality
 } from '../src';
 import { liveTestConfigs } from './constants';
@@ -30,7 +31,10 @@ import { HELLO_AUDIO_PCM_BASE64 } from './sample-data/hello-audio';
 // A helper function to consume the generator and collect text parts from one turn.
 async function nextTurnData(
   stream: AsyncGenerator<
-    LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation
+    | LiveServerContent
+    | LiveServerToolCall
+    | LiveServerToolCallCancellation
+    | LiveServerGoingAwayNotice
   >
 ): Promise<{
   text: string;
@@ -48,7 +52,8 @@ async function nextTurnData(
     const chunk = result.value as
       | LiveServerContent
       | LiveServerToolCall
-      | LiveServerToolCallCancellation;
+      | LiveServerToolCallCancellation
+      | LiveServerGoingAwayNotice;
     switch (chunk.type) {
       case 'serverContent':
         if (chunk.turnComplete) {
@@ -80,6 +85,10 @@ async function nextTurnData(
             }
           });
         }
+        break;
+      case 'goingAwayNotice':
+        // Ignore going away notices for now. It can take 15 minutes before the service
+        // generates one, which is much too long to test.
         break;
       default:
         throw new Error(`Unexpected chunk type '${(chunk as any).type}'`);
@@ -323,7 +332,8 @@ describe('Live', function () {
             const chunk = result.value as
               | LiveServerContent
               | LiveServerToolCall
-              | LiveServerToolCallCancellation;
+              | LiveServerToolCallCancellation
+              | LiveServerGoingAwayNotice;
             if (chunk.type === 'serverContent') {
               if (chunk.turnComplete) {
                 break;
