@@ -157,62 +157,66 @@ export class EntityNode {
 
   toJson(mode: EncodingMode): Record<string, unknown> {
     const resultObject: Record<string, unknown> = {};
-    if(mode === EncodingMode.hydrated) {
-      if(this.entityData) {
+    if (mode === EncodingMode.hydrated) {
+      if (this.entityData) {
         Object.assign(resultObject, this.entityData.getServerValues());
       }
-      
-      if(this.scalars) {
+
+      if (this.scalars) {
         Object.assign(resultObject, this.scalars);
       }
-      if(this.references) {
-        for(const key in this.references) {
-          if(this.references.hasOwnProperty(key)) {
+      if (this.references) {
+        for (const key in this.references) {
+          if (this.references.hasOwnProperty(key)) {
             resultObject[key] = this.references[key].toJson(mode);
           }
         }
       }
-      if(this.objectLists) {
+      if (this.objectLists) {
         for (const key in this.objectLists) {
-          if(this.objectLists.hasOwnProperty(key)) {
-            resultObject[key] = this.objectLists[key].map(obj => obj.toJson(mode));
+          if (this.objectLists.hasOwnProperty(key)) {
+            resultObject[key] = this.objectLists[key].map(obj =>
+              obj.toJson(mode)
+            );
           }
         }
       }
       return resultObject;
     } else {
       // Get JSON representation of dehydrated list
-      if(this.entityData) {
+      if (this.entityData) {
         resultObject[GLOBAL_ID_KEY] = this.entityData.globalID;
       }
 
-      if(this.scalars) {
+      if (this.scalars) {
         resultObject[SCALARS_KEY] = this.scalars;
       }
 
-      if(this.references) {
+      if (this.references) {
         const references = {} as Record<string, unknown>;
-        for(const key in this.references) {
-          if(this.references.hasOwnProperty(key)) {
+        for (const key in this.references) {
+          if (this.references.hasOwnProperty(key)) {
             references[key] = this.references[key].toJson(mode);
           }
         }
         resultObject[REFERENCES_KEY] = references;
       }
-      if(this.objectLists) {
+      if (this.objectLists) {
         const objectLists = {} as Record<string, unknown>;
         for (const key in this.objectLists) {
-          if(this.objectLists.hasOwnProperty(key)) {
-            objectLists[key] = this.objectLists[key].map(obj => obj.toJson(mode));
+          if (this.objectLists.hasOwnProperty(key)) {
+            objectLists[key] = this.objectLists[key].map(obj =>
+              obj.toJson(mode)
+            );
           }
         }
         resultObject[OBJECT_LISTS_KEY] = objectLists;
       }
     }
-    
+
     return resultObject;
   }
-  
+
   static fromJson(obj: DehydratedStubDataObject): EntityNode {
     const sdo = new EntityNode();
     if (obj.backingData) {
@@ -220,20 +224,22 @@ export class EntityNode {
     }
     sdo.globalId = obj.globalID;
     sdo.scalars = obj.scalars;
-    if(obj.references) {
+    if (obj.references) {
       const references: Record<string, unknown> = {};
-      for(const key in obj.references) {
-        if(obj.references.hasOwnProperty(key)) {
+      for (const key in obj.references) {
+        if (obj.references.hasOwnProperty(key)) {
           references[key] = EntityNode.fromJson(obj.references[key]);
         }
       }
       sdo.references = references as typeof sdo.references;
     }
-    if(obj.objectLists) {
+    if (obj.objectLists) {
       const objectLists: Record<string, unknown> = {};
-      for(const key in obj.objectLists) {
-        if(obj.objectLists.hasOwnProperty(key)) {
-          objectLists[key] = obj.objectLists[key].map(obj => EntityNode.fromJson(obj));
+      for (const key in obj.objectLists) {
+        if (obj.objectLists.hasOwnProperty(key)) {
+          objectLists[key] = obj.objectLists[key].map(obj =>
+            EntityNode.fromJson(obj)
+          );
         }
       }
       sdo.objectLists = objectLists as typeof sdo.objectLists;

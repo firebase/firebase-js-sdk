@@ -317,7 +317,7 @@ export class QueryManager {
     key: string,
     queryRef: QueryRef<Data, Variables>
   ): Promise<QueryResult<Data, Variables>> {
-    const cacheResult: Data = await this.cache!.getResultJSON(key) as Data;
+    const cacheResult: Data = (await this.cache!.getResultJSON(key)) as Data;
     const resultTree = await this.cache!.getResultTree(key);
     const result: QueryResult<Data, Variables> = {
       source: SOURCE_CACHE,

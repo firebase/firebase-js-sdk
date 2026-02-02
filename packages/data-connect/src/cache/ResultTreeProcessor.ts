@@ -53,7 +53,7 @@ export class ResultTreeProcessor {
     await entityNode.loadData(queryId, json, entityIds, acc, cacheProvider);
     return {
       entityNode,
-      impacted: acc.consumeEvents(),
+      impacted: acc.consumeEvents()
     };
   }
 }
