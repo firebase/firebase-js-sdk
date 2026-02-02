@@ -89,6 +89,8 @@ export class PersistenceUserManager {
         response,
         blob
       );
+      // TODO look into why this is needed, probably something we need to fix in the cookie
+      // persistence layer
       if (this.persistence.type === PersistenceType.COOKIE) {
         user.stsTokenManager.refreshToken = 'REDACTED';
       }
