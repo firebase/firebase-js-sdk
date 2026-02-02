@@ -18,7 +18,11 @@
 import { getAccountInfo } from '../../api/account_management/account';
 import { ApiKey, AppName, AuthInternal } from '../../model/auth';
 import { UserInternal } from '../../model/user';
-import { PersistedBlob, PersistenceInternal } from '../persistence';
+import {
+  PersistedBlob,
+  PersistenceInternal,
+  PersistenceType
+} from '../persistence';
 import { UserImpl } from '../user/user_impl';
 import { _getInstance } from '../util/instantiator';
 import { inMemoryPersistence } from './in_memory';
@@ -80,7 +84,15 @@ export class PersistenceUserManager {
       if (!response) {
         return null;
       }
-      return UserImpl._fromGetAccountInfoResponse(this.auth, response, blob);
+      const user = await UserImpl._fromGetAccountInfoResponse(
+        this.auth,
+        response,
+        blob
+      );
+      if (this.persistence.type === PersistenceType.COOKIE) {
+        user.stsTokenManager.refreshToken = 'REDACTED';
+      }
+      return user;
     }
     return UserImpl._fromJSON(this.auth, blob);
   }
@@ -170,6 +182,9 @@ export class PersistenceUserManager {
               response,
               blob
             );
+            if (persistence.type === PersistenceType.COOKIE) {
+              user.stsTokenManager.refreshToken = 'REDACTED';
+            }
           } else {
             user = UserImpl._fromJSON(auth, blob); // throws for unparsable blob (wrong format)
           }

@@ -26,6 +26,7 @@ import {
   PersistenceValue,
   StorageEventListener
 } from '../../core/persistence';
+import { _isSafari } from '../../core/util/browser';
 
 // Pull a cookie value from document.cookie
 function getDocumentCookie(name: string): string | null {
@@ -102,8 +103,15 @@ export class CookiePersistence implements PersistenceInternal {
       return;
     }
     const name = getCookieName(key);
-    document.cookie = `${name}=;Max-Age=34560000;Partitioned;Secure;SameSite=Strict;Path=/;Priority=High`;
-    await fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
+    const isDevMode = window.location.protocol === 'http:';
+    // Safari doesn't consider http://localhost to be secure so we need to set the cookie as
+    // insecure in this case.
+    const useInsecureCookie = isDevMode && _isSafari(navigator.userAgent);
+    document.cookie = `${name}=;Max-Age=34560000;${useInsecureCookie ? '' : 'Partitioned;Secure;'}SameSite=Lax;Path=/;Priority=High`;
+    // Calling DELETE is entirely optional, but it's a nice optimization to clear the http-only 
+    // refresh token from the backend as well. Fire and forget.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    fetch(`/__cookies__`, { method: 'DELETE' }).catch(() => undefined);
   }
 
   // Listen for cookie changes, both cookieStore and fallback to polling document.cookie
