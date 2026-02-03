@@ -15,17 +15,21 @@
  * limitations under the License.
  */
 
-import { ErrorDetails, RequestOptions, AIErrorCode } from '../types';
+import { SingleRequestOptions, AIErrorCode, ErrorDetails } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_DOMAIN,
   DEFAULT_FETCH_TIMEOUT_MS,
+  HYBRID_TAG,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
-import { BackendType } from '../public-types';
+import { BackendType, InferenceMode } from '../public-types';
+
+export const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
+export const ABORT_ERROR_NAME = 'AbortError';
 
 export const enum Task {
   GENERATE_CONTENT = 'generateContent',
@@ -43,7 +47,7 @@ export const enum ServerPromptTemplateTask {
 interface BaseRequestURLParams {
   apiSettings: ApiSettings;
   stream: boolean;
-  requestOptions?: RequestOptions;
+  singleRequestOptions?: SingleRequestOptions;
 }
 
 /**
@@ -94,7 +98,9 @@ export class RequestURL {
   }
 
   private get baseUrl(): string {
-    return this.params.requestOptions?.baseUrl ?? `https://${DEFAULT_DOMAIN}`;
+    return (
+      this.params.singleRequestOptions?.baseUrl ?? `https://${DEFAULT_DOMAIN}`
+    );
   }
 
   private get queryParams(): URLSearchParams {
@@ -132,17 +138,28 @@ export class WebSocketUrl {
 /**
  * Log language and "fire/version" to x-goog-api-client
  */
-function getClientHeaders(): string {
+function getClientHeaders(url: RequestURL): string {
   const loggingTags = [];
   loggingTags.push(`${LANGUAGE_TAG}/${PACKAGE_VERSION}`);
   loggingTags.push(`fire/${PACKAGE_VERSION}`);
+  /**
+   * No call would be made if ONLY_ON_DEVICE.
+   * ONLY_IN_CLOUD does not indicate an intention to use hybrid.
+   */
+  if (
+    url.params.apiSettings.inferenceMode === InferenceMode.PREFER_ON_DEVICE ||
+    url.params.apiSettings.inferenceMode === InferenceMode.PREFER_IN_CLOUD
+  ) {
+    // No version
+    loggingTags.push(HYBRID_TAG);
+  }
   return loggingTags.join(' ');
 }
 
 export async function getHeaders(url: RequestURL): Promise<Headers> {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
-  headers.append('x-goog-api-client', getClientHeaders());
+  headers.append('x-goog-api-client', getClientHeaders(url));
   headers.append('x-goog-api-key', url.params.apiSettings.apiKey);
   if (url.params.apiSettings.automaticDataCollectionEnabled) {
     headers.append('X-Firebase-Appid', url.params.apiSettings.appId);
@@ -175,23 +192,47 @@ export async function makeRequest(
 ): Promise<Response> {
   const url = new RequestURL(requestUrlParams);
   let response;
-  let fetchTimeoutId: string | number | NodeJS.Timeout | undefined;
+
+  const externalSignal = requestUrlParams.singleRequestOptions?.signal;
+  const timeoutMillis =
+    requestUrlParams.singleRequestOptions?.timeout != null &&
+    requestUrlParams.singleRequestOptions.timeout >= 0
+      ? requestUrlParams.singleRequestOptions.timeout
+      : DEFAULT_FETCH_TIMEOUT_MS;
+
+  const internalAbortController = new AbortController();
+  const fetchTimeoutId = setTimeout(() => {
+    internalAbortController.abort(
+      new DOMException(TIMEOUT_EXPIRED_MESSAGE, ABORT_ERROR_NAME)
+    );
+    logger.debug(
+      `Aborting request to ${url} due to timeout (${timeoutMillis}ms)`
+    );
+  }, timeoutMillis);
+
+  // Used to abort the fetch if either the user-defined `externalSignal` is aborted, or if the
+  // internal signal (triggered by timeouts) is aborted.
+  const combinedSignal = AbortSignal.any(
+    externalSignal
+      ? [externalSignal, internalAbortController.signal]
+      : [internalAbortController.signal]
+  );
+
+  if (externalSignal && externalSignal.aborted) {
+    clearTimeout(fetchTimeoutId);
+    throw new DOMException(
+      externalSignal.reason ?? 'Aborted externally before fetch',
+      ABORT_ERROR_NAME
+    );
+  }
+
   try {
     const fetchOptions: RequestInit = {
       method: 'POST',
       headers: await getHeaders(url),
+      signal: combinedSignal,
       body
     };
-
-    // Timeout is 180s by default.
-    const timeoutMillis =
-      requestUrlParams.requestOptions?.timeout != null &&
-      requestUrlParams.requestOptions.timeout >= 0
-        ? requestUrlParams.requestOptions.timeout
-        : DEFAULT_FETCH_TIMEOUT_MS;
-    const abortController = new AbortController();
-    fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
-    fetchOptions.signal = abortController.signal;
 
     response = await fetch(url.toString(), fetchOptions);
     if (!response.ok) {
@@ -252,7 +293,8 @@ export async function makeRequest(
     if (
       (e as AIError).code !== AIErrorCode.FETCH_ERROR &&
       (e as AIError).code !== AIErrorCode.API_NOT_ENABLED &&
-      e instanceof Error
+      e instanceof Error &&
+      (e as DOMException).name !== ABORT_ERROR_NAME
     ) {
       err = new AIError(
         AIErrorCode.ERROR,
@@ -263,9 +305,10 @@ export async function makeRequest(
 
     throw err;
   } finally {
-    if (fetchTimeoutId) {
-      clearTimeout(fetchTimeoutId);
-    }
+    // When doing streaming requests, this will clear the timeout once the stream begins.
+    // If a timeout it 3000ms, and the stream starts after 300ms and ends after 5000ms, the
+    // timeout will be cleared after 300ms, so it won't abort the request.
+    clearTimeout(fetchTimeoutId);
   }
   return response;
 }

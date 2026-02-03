@@ -38,7 +38,11 @@ const argv = yargs
     },
     databaseId: {
       type: 'string'
-    }
+    },
+    grep: {
+      type: 'string',
+      description: 'Filter tests by name (regex)'
+    },
   })
   .parseSync();
 
@@ -75,12 +79,31 @@ if (argv.databaseId) {
   process.env.FIRESTORE_TARGET_DB_ID = argv.databaseId;
 }
 
+if (argv.grep) {
+  args.push('--grep', argv.grep);
+}
+
 args = args.concat(argv._ as string[]);
 
-const childProcess = spawn(nyc, args, {
+const spawnPromise = spawn(nyc, args, {
   stdio: 'inherit',
   cwd: process.cwd()
-}).childProcess;
+});
+
+const childProcess = spawnPromise.childProcess;
+
+spawnPromise.catch(error => {
+  // When a test fails, there will be a non-zero error code. Simply exit this process,
+  // and don't print a stack trace.
+  if (typeof error.code === 'number') {
+    process.exit(error.code);
+  } else {
+    // The error code will not be a number for a real crash (e.g., spawn
+    // failed to start), so print the entire stack trace for debugging.
+    console.error(error);
+    process.exit(1);
+  }
+});
 
 process.once('exit', () => childProcess.kill());
 process.once('SIGINT', () => childProcess.kill('SIGINT'));

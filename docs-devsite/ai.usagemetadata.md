@@ -22,6 +22,8 @@ export interface UsageMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [cachedContentTokenCount](./ai.usagemetadata.md#usagemetadatacachedcontenttokencount) | number | The number of tokens in the prompt that were served from the cache. If implicit caching is not active or no content was cached, this will be 0. |
+|  [cacheTokensDetails](./ai.usagemetadata.md#usagemetadatacachetokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] | Detailed breakdown of the cached tokens by modality (for example, text or image). This list provides granular insight into which parts of the content were cached. |
 |  [candidatesTokenCount](./ai.usagemetadata.md#usagemetadatacandidatestokencount) | number |  |
 |  [candidatesTokensDetails](./ai.usagemetadata.md#usagemetadatacandidatestokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] |  |
 |  [promptTokenCount](./ai.usagemetadata.md#usagemetadataprompttokencount) | number |  |
@@ -30,6 +32,26 @@ export interface UsageMetadata
 |  [toolUsePromptTokenCount](./ai.usagemetadata.md#usagemetadatatooluseprompttokencount) | number | The number of tokens used by tools. |
 |  [toolUsePromptTokensDetails](./ai.usagemetadata.md#usagemetadatatooluseprompttokensdetails) | [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface)<!-- -->\[\] | A list of tokens used by tools, broken down by modality. |
 |  [totalTokenCount](./ai.usagemetadata.md#usagemetadatatotaltokencount) | number |  |
+
+## UsageMetadata.cachedContentTokenCount
+
+The number of tokens in the prompt that were served from the cache. If implicit caching is not active or no content was cached, this will be 0.
+
+<b>Signature:</b>
+
+```typescript
+cachedContentTokenCount?: number;
+```
+
+## UsageMetadata.cacheTokensDetails
+
+Detailed breakdown of the cached tokens by modality (for example, text or image). This list provides granular insight into which parts of the content were cached.
+
+<b>Signature:</b>
+
+```typescript
+cacheTokensDetails?: ModalityTokenCount[];
+```
 
 ## UsageMetadata.candidatesTokenCount
 

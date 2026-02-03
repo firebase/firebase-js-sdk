@@ -32,9 +32,11 @@ export const PACKAGE_VERSION = version;
 
 export const LANGUAGE_TAG = 'gl-js';
 
+export const HYBRID_TAG = 'hybrid';
+
 export const DEFAULT_FETCH_TIMEOUT_MS = 180 * 1000;
 
 /**
  * Defines the name of the default in-cloud model to use for hybrid inference.
  */
-export const DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-2.0-flash-lite';
+export const DEFAULT_HYBRID_IN_CLOUD_MODEL = 'gemini-2.5-flash-lite';

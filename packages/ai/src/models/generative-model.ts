@@ -29,11 +29,12 @@ import {
   GenerationConfig,
   ModelParams,
   Part,
-  RequestOptions,
   SafetySetting,
+  RequestOptions,
   StartChatParams,
   Tool,
-  ToolConfig
+  ToolConfig,
+  SingleRequestOptions
 } from '../types';
 import { ChatSession } from '../methods/chat-session';
 import { countTokens } from '../methods/count-tokens';
@@ -41,9 +42,10 @@ import {
   formatGenerateContentInput,
   formatSystemInstruction
 } from '../requests/request-helpers';
-import { AI } from '../public-types';
+import { AI, AIErrorCode } from '../public-types';
 import { AIModel } from './ai-model';
 import { ChromeAdapter } from '../types/chrome-adapter';
+import { AIError } from '../errors';
 
 /**
  * Class for generative model APIs.
@@ -65,6 +67,7 @@ export class GenerativeModel extends AIModel {
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
+    validateGenerationConfig(this.generationConfig);
     this.safetySettings = modelParams.safetySettings || [];
     this.tools = modelParams.tools;
     this.toolConfig = modelParams.toolConfig;
@@ -79,7 +82,8 @@ export class GenerativeModel extends AIModel {
    * and returns an object containing a single {@link GenerateContentResponse}.
    */
   async generateContent(
-    request: GenerateContentRequest | string | Array<string | Part>
+    request: GenerateContentRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     const formattedParams = formatGenerateContentInput(request);
     return generateContent(
@@ -94,7 +98,11 @@ export class GenerativeModel extends AIModel {
         ...formattedParams
       },
       this.chromeAdapter,
-      this.requestOptions
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 
@@ -105,7 +113,8 @@ export class GenerativeModel extends AIModel {
    * a promise that returns the final aggregated response.
    */
   async generateContentStream(
-    request: GenerateContentRequest | string | Array<string | Part>
+    request: GenerateContentRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     const formattedParams = formatGenerateContentInput(request);
     return generateContentStream(
@@ -120,7 +129,11 @@ export class GenerativeModel extends AIModel {
         ...formattedParams
       },
       this.chromeAdapter,
-      this.requestOptions
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
     );
   }
 
@@ -154,14 +167,37 @@ export class GenerativeModel extends AIModel {
    * Counts the tokens in the provided request.
    */
   async countTokens(
-    request: CountTokensRequest | string | Array<string | Part>
+    request: CountTokensRequest | string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<CountTokensResponse> {
     const formattedParams = formatGenerateContentInput(request);
     return countTokens(
       this._apiSettings,
       this.model,
       formattedParams,
-      this.chromeAdapter
+      this.chromeAdapter,
+      // Merge request options
+      {
+        ...this.requestOptions,
+        ...singleRequestOptions
+      }
+    );
+  }
+}
+
+/**
+ * Client-side validation of some common `GenerationConfig` pitfalls, in order
+ * to save the developer a wasted request.
+ */
+function validateGenerationConfig(generationConfig: GenerationConfig): void {
+  if (
+    // != allows for null and undefined. 0 is considered "set" by the model
+    generationConfig.thinkingConfig?.thinkingBudget != null &&
+    generationConfig.thinkingConfig?.thinkingLevel
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `Cannot set both thinkingBudget and thinkingLevel in a config.`
     );
   }
 }

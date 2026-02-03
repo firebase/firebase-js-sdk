@@ -211,31 +211,21 @@ export function constant(value: boolean): BooleanExpression;
 // @beta
 export function constant(value: null): Expression;
 
-// Warning: (ae-forgotten-export) The symbol "GeoPoint" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export function constant(value: GeoPoint): Expression;
 
-// Warning: (ae-forgotten-export) The symbol "Timestamp" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export function constant(value: Timestamp): Expression;
 
 // @beta
 export function constant(value: Date): Expression;
 
-// Warning: (ae-forgotten-export) The symbol "Bytes" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export function constant(value: Bytes): Expression;
 
-// Warning: (ae-forgotten-export) The symbol "DocumentReference" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export function constant(value: DocumentReference): Expression;
 
-// Warning: (ae-forgotten-export) The symbol "VectorValue" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export function constant(value: VectorValue): Expression;
 
@@ -554,6 +544,14 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     regexContains(pattern: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    regexFind(pattern: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFind(pattern: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFindAll(pattern: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFindAll(pattern: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     regexMatch(pattern: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     regexMatch(pattern: Expression): BooleanExpression;
@@ -649,8 +647,6 @@ export class Field extends Expression implements Selectable {
 // @beta
 export function field(name: string): Field;
 
-// Warning: (ae-forgotten-export) The symbol "FieldPath" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export function field(path: FieldPath): Field;
 
@@ -976,8 +972,6 @@ export class Pipeline {
     where(options: WhereStageOptions): Pipeline;
 }
 
-// Warning: (ae-forgotten-export) The symbol "DocumentData" needs to be exported by the entry point pipelines.d.ts
-//
 // @beta
 export class PipelineResult<AppModelType = DocumentData> {
     /* Excluded from this release type: _ref */
@@ -1034,6 +1028,30 @@ export function regexContains(stringExpression: Expression, pattern: string): Bo
 
 // @beta
 export function regexContains(stringExpression: Expression, pattern: Expression): BooleanExpression;
+
+// @beta
+export function regexFind(fieldName: string, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFind(fieldName: string, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFind(stringExpression: Expression, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFind(stringExpression: Expression, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFindAll(fieldName: string, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFindAll(fieldName: string, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFindAll(stringExpression: Expression, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFindAll(stringExpression: Expression, pattern: Expression): FunctionExpression;
 
 // @beta
 export function regexMatch(fieldName: string, pattern: string): BooleanExpression;
@@ -1306,10 +1324,6 @@ export type WhereStageOptions = StageOptions & {
 // @beta
 export function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
 
-
-// Warnings were encountered during analysis:
-//
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:830:5 - (ae-forgotten-export) The symbol "Query" needs to be exported by the entry point pipelines.d.ts
 
 // (No @packageDocumentation comment for this package)
 

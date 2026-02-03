@@ -13,9 +13,9 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Provides the entry point for defining the data source of a Firestore .
+Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
 
-Use the methods of this class (e.g., , , , or ) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
+Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
 
 <b>Signature:</b>
 
@@ -154,7 +154,7 @@ createFrom(query: Query): Pipeline;
 
 #### Exceptions
 
- Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
+`FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
 
 ## PipelineSource.database()
 
@@ -220,7 +220,7 @@ PipelineType
 
 #### Exceptions
 
- Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
+`FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
 
 ## PipelineSource.documents()
 
@@ -247,5 +247,5 @@ PipelineType
 
 #### Exceptions
 
- Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
+`FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
 

@@ -22,7 +22,8 @@ import {
   BackendType,
   GoogleAIBackend,
   VertexAIBackend,
-  getAI
+  getAI,
+  getGenerativeModel
 } from '../src';
 import { FIREBASE_CONFIG } from './firebase-config';
 
@@ -68,6 +69,16 @@ const modelNames: readonly string[] = [
   'gemini-2.5-pro',
   'gemini-3-pro-preview'
 ];
+
+// Used for testing non-AI behavior (e.g. Network requests). Configured to minimize cost.
+export const cheapestModel = 'gemini-2.0-flash';
+export const defaultAIInstance = getAI(app, { backend: new VertexAIBackend() });
+export const defaultGenerativeModel = getGenerativeModel(defaultAIInstance, {
+  model: cheapestModel,
+  generationConfig: {
+    maxOutputTokens: 10 // Just enough to confirm we actually get something back.
+  }
+});
 
 // The Live API requires a different set of models, and they're different for each backend.
 const liveModelNames: Map<BackendType, string[]> = new Map([

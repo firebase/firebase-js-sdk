@@ -150,8 +150,8 @@ export class ChatSession {
     params?: StartChatParams | undefined;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
-    sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
-    sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     }
 
 // @beta
@@ -185,13 +185,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @beta
+// @public
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @beta
+// @public
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -283,13 +283,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @beta
+// @public
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @beta
+// @public
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -461,8 +461,6 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
-    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
-    //
     // (undocumented)
     urlContextMetadata?: URLContextMetadata;
 }
@@ -539,9 +537,9 @@ export interface GenerativeContentBlob {
 export class GenerativeModel extends AIModel {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
-    countTokens(request: CountTokensRequest | string | Array<string | Part>): Promise<CountTokensResponse>;
-    generateContent(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentResult>;
-    generateContentStream(request: GenerateContentRequest | string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+    countTokens(request: CountTokensRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<CountTokensResponse>;
+    generateContent(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
     // (undocumented)
@@ -784,9 +782,9 @@ export interface ImagenInlineImage {
 // @public
 export class ImagenModel extends AIModel {
     constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
-    generateImages(prompt: string): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     // @internal
-    generateImagesGCS(prompt: string, gcsURI: string): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
+    generateImagesGCS(prompt: string, gcsURI: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenGCSImage>>;
     generationConfig?: ImagenGenerationConfig;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
@@ -873,13 +871,13 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @beta
+// @public
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @beta
+// @public
 export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
@@ -990,6 +988,7 @@ export const LiveResponseType: {
     SERVER_CONTENT: string;
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
+    GOING_AWAY_NOTICE: string;
 };
 
 // @beta
@@ -1004,6 +1003,13 @@ export interface LiveServerContent {
     turnComplete?: boolean;
     // (undocumented)
     type: 'serverContent';
+}
+
+// @beta
+export interface LiveServerGoingAwayNotice {
+    timeLeft: number;
+    // (undocumented)
+    type: 'goingAwayNotice';
 }
 
 // @beta
@@ -1027,7 +1033,7 @@ export class LiveSession {
     close(): Promise<void>;
     inConversation: boolean;
     isClosed: boolean;
-    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
@@ -1105,7 +1111,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @beta
+// @public
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1113,12 +1119,9 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @beta
+// @public
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
-//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1294,6 +1297,11 @@ export interface Segment {
     text: string;
 }
 
+// @public
+export interface SingleRequestOptions extends RequestOptions {
+    signal?: AbortSignal;
+}
+
 // @beta
 export interface SpeechConfig {
     voiceConfig?: VoiceConfig;
@@ -1333,8 +1341,8 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: object): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: object): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
 }
 
@@ -1343,7 +1351,7 @@ export class TemplateImagenModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateImages(templateId: string, templateVariables: object): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
+    generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
 }
 
@@ -1371,7 +1379,19 @@ export interface TextPart {
 export interface ThinkingConfig {
     includeThoughts?: boolean;
     thinkingBudget?: number;
+    thinkingLevel?: ThinkingLevel;
 }
+
+// @public
+export const ThinkingLevel: {
+    MINIMAL: string;
+    LOW: string;
+    MEDIUM: string;
+    HIGH: string;
+};
+
+// @public
+export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
 // Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
@@ -1397,7 +1417,7 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 export interface URLContext {
 }
 
-// @beta
+// @public
 export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
@@ -1407,13 +1427,13 @@ export interface URLContextTool {
     urlContext: URLContext;
 }
 
-// @beta
+// @public
 export interface URLMetadata {
     retrievedUrl?: string;
     urlRetrievalStatus?: URLRetrievalStatus;
 }
 
-// @beta
+// @public
 export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
     URL_RETRIEVAL_STATUS_SUCCESS: string;
@@ -1422,11 +1442,13 @@ export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSAFE: string;
 };
 
-// @beta
+// @public
 export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
+    cachedContentTokenCount?: number;
+    cacheTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     candidatesTokenCount: number;
     // (undocumented)

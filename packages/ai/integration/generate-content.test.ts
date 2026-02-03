@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import chai, { AssertionError } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
 import {
   BackendType,
   Content,
@@ -29,7 +33,14 @@ import {
   URLRetrievalStatus,
   getGenerativeModel
 } from '../src';
-import { testConfigs } from './constants';
+import {
+  cheapestModel,
+  defaultAIInstance,
+  defaultGenerativeModel,
+  testConfigs
+} from './constants';
+import { TIMEOUT_EXPIRED_MESSAGE } from '../src/requests/request';
+import { isNode } from '@firebase/util';
 
 describe('Generate Content', function () {
   this.timeout(90_000); // gemini 3 requests take a long time, especially when using google search and url context.
@@ -352,6 +363,156 @@ describe('Generate Content', function () {
         const trimmedText = response.text().trim();
         expect(trimmedText).to.equal('Mountain View');
         expect(response.usageMetadata).to.be.undefined; // Note: This is incorrect behavior.
+      });
+    });
+  });
+
+  describe('Request Options', async () => {
+    const defaultAbortReason = isNode()
+      ? 'This operation was aborted'
+      : 'signal is aborted without reason';
+    describe('unary', async () => {
+      it('timeout cancels request', async () => {
+        await expect(
+          defaultGenerativeModel.generateContent('hello', { timeout: 100 })
+        ).to.be.rejectedWith(DOMException, TIMEOUT_EXPIRED_MESSAGE);
+      });
+
+      it('long timeout does not cancel request', async () => {
+        const result = await defaultGenerativeModel.generateContent('hello', {
+          timeout: 50_000
+        });
+        expect(result.response.text().length).to.be.greaterThan(0);
+      });
+
+      it('abort signal with no reason causes request to throw AbortError', async () => {
+        const abortController = new AbortController();
+        const responsePromise = defaultGenerativeModel.generateContent(
+          'hello',
+          { signal: abortController.signal }
+        );
+        abortController.abort();
+        await expect(responsePromise)
+          .to.be.rejectedWith(DOMException, defaultAbortReason)
+          .and.eventually.have.property('name', 'AbortError');
+      });
+
+      it('abort signal with string reason causes request to throw reason string', async () => {
+        const abortController = new AbortController();
+        const responsePromise = defaultGenerativeModel.generateContent(
+          'hello',
+          { signal: abortController.signal }
+        );
+        const reason = 'Cancelled';
+        abortController.abort(reason);
+        await expect(responsePromise).to.be.rejectedWith(reason);
+      });
+
+      it('abort signal with error reason causes request to throw reason error', async () => {
+        const abortController = new AbortController();
+        const responsePromise = defaultGenerativeModel.generateContent(
+          'hello',
+          { signal: abortController.signal }
+        );
+        abortController.abort(new Error('Cancelled'));
+        // `fetch()` will reject with the exact object we passed to `abort()`. Since we throw a generic
+        // Error, we cannot differentiate between this error and other generic fetch errors, which
+        // we wrap in an AIError.
+        await expect(responsePromise)
+          .to.be.rejectedWith(Error, 'Cancelled')
+          .and.eventually.have.property('name', 'FirebaseError');
+      });
+    });
+
+    describe('streaming', async () => {
+      it('timeout cancels initial request', async () => {
+        await expect(
+          defaultGenerativeModel.generateContent('hello', { timeout: 50 })
+        ).to.be.rejectedWith(DOMException, TIMEOUT_EXPIRED_MESSAGE);
+      });
+
+      it('timeout does not cancel request once streaming has begun', async () => {
+        const generativeModel = getGenerativeModel(defaultAIInstance, {
+          model: cheapestModel
+        });
+        // Setting a timeout that will be in the interval between the stream starting and ending.
+        // Since the timeout will expire once the stream has begun, it should have already been
+        // cleared, and so it shouldn't abort the stream.
+        const { stream, response } =
+          await generativeModel.generateContentStream(
+            'tell me a short story with 200 words.',
+            { timeout: 1_000 }
+          );
+
+        // We should be able to get through the entire stream without an error being thrown
+        // from the async generator.
+        for await (const chunk of stream) {
+          expect(chunk.text().length).to.be.greaterThan(0);
+        }
+
+        expect((await response).text().length).to.be.greaterThan(0);
+      });
+
+      it('abort signal without reason should cancel stream with default abort reason', async () => {
+        const abortController = new AbortController();
+        const generativeModel = getGenerativeModel(defaultAIInstance, {
+          model: cheapestModel
+        });
+        const { stream, response } =
+          await generativeModel.generateContentStream(
+            'tell me a short story with 200 words.',
+            { signal: abortController.signal }
+          );
+
+        // As soon as the initial request resolves and the stream starts, abort the stream.
+        abortController.abort();
+
+        try {
+          for await (const _ of stream) {
+            expect.fail('Expected stream to throw an error');
+          }
+          expect.fail('Expected stream to throw an error');
+        } catch (err) {
+          if ((err as Error) instanceof AssertionError) {
+            throw err;
+          }
+          expect(err).to.be.instanceof(DOMException);
+          expect((err as Error).name).to.equal('AbortError');
+          expect((err as Error).message).to.equal(defaultAbortReason);
+        }
+
+        await expect(response)
+          .to.be.rejectedWith(DOMException, defaultAbortReason)
+          .and.to.eventually.have.property('name', 'AbortError');
+      });
+
+      it('abort signal with reason string should cancel stream with string abort reason', async () => {
+        const abortController = new AbortController();
+        const generativeModel = getGenerativeModel(defaultAIInstance, {
+          model: cheapestModel
+        });
+        const { stream, response } =
+          await generativeModel.generateContentStream(
+            'tell me a short story with 200 words.',
+            { signal: abortController.signal }
+          );
+
+        // As soon as the initial request resolves and the stream starts, abort the stream.
+        abortController.abort('Cancelled');
+
+        try {
+          for await (const _ of stream) {
+            expect.fail('Expected stream to throw an error');
+          }
+          expect.fail('Expected stream to throw an error');
+        } catch (err) {
+          if ((err as Error) instanceof AssertionError) {
+            throw err;
+          }
+          expect(err).to.equal('Cancelled');
+        }
+
+        await expect(response).to.be.rejectedWith('Cancelled');
       });
     });
   });

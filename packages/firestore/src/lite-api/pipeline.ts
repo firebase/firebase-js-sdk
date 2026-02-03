@@ -108,6 +108,7 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *
  * Usage Examples:
  *
+ * @example
  * ```typescript
  * const db: Firestore; // Assumes a valid firestore instance.
  *
@@ -168,14 +169,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * stages or constants. You can use this to create new fields or overwrite existing ones (if there
    * is name overlaps).
    *
-   * The added fields are defined using {@link Selectable}s, which can be:
+   * The added fields are defined using {@link @firebase/firestore/pipelines#Selectable}s, which can be:
    *
-   * - {@link Field}: References an existing document field.
-   * - {@link Expression}: Either a literal value (see {@link Constant}) or a computed value
-   *   (see {@FunctionExpr}) with an assigned alias using {@link Expression#as}.
+   * - {@link @firebase/firestore/pipelines#Field}: References an existing document field.
+   * - {@link @firebase/firestore/pipelines#Expression}: Either a literal value (see {@link @firebase/firestore/pipelines#(constant:1)}) or a computed value
+   *   with an assigned alias using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
@@ -184,9 +186,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param field The first field to add to the documents, specified as a {@link Selectable}.
-   * @param additionalFields Optional additional fields to add to the documents, specified as {@link Selectable}s.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @param field - The first field to add to the documents, specified as a {@link @firebase/firestore/pipelines#Selectable}.
+   * @param additionalFields - Optional additional fields to add to the documents, specified as {@link @firebase/firestore/pipelines#Selectable}s.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
   /**
@@ -197,14 +199,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * stages or constants. You can use this to create new fields or overwrite existing ones (if there
    * is name overlaps).
    *
-   * The added fields are defined using {@link Selectable}s, which can be:
+   * The added fields are defined using {@link @firebase/firestore/pipelines#Selectable}s, which can be:
    *
-   * - {@link Field}: References an existing document field.
-   * - {@link Expression}: Either a literal value (see {@link Constant}) or a computed value
-   *   (see {@FunctionExpr}) with an assigned alias using {@link Expression#as}.
+   * - {@link @firebase/firestore/pipelines#Field}: References an existing document field.
+   * - {@link @firebase/firestore/pipelines#Expression}: Either a literal value (see {@link @firebase/firestore/pipelines#(constant:1)}) or a computed value
+   *   with an assigned alias using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
@@ -214,7 +217,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   addFields(options: AddFieldsStageOptions): Pipeline;
   addFields(
@@ -255,6 +258,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
@@ -264,9 +268,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param fieldValue The first field to remove.
-   * @param additionalFields Optional additional fields to remove.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @param fieldValue - The first field to remove.
+   * @param additionalFields - Optional additional fields to remove.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   removeFields(
     fieldValue: Field | string,
@@ -278,6 +282,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
@@ -288,7 +293,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   removeFields(options: RemoveFieldsStageOptions): Pipeline;
   removeFields(
@@ -327,21 +332,22 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
-   * <p>The selected fields are defined using {@link Selectable} expressions, which can be:
+   * <p>The selected fields are defined using {@link @firebase/firestore/pipelines#Selectable} expressions, which can be:
    *
    * <ul>
-   *   <li>{@code string}: Name of an existing field</li>
-   *   <li>{@link Field}: References an existing field.</li>
-   *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expression#as}</li>
+   *   <li>`string` : Name of an existing field</li>
+   *   <li>{@link @firebase/firestore/pipelines#Field}: References an existing field.</li>
+   *   <li>{@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name using
+   *       {@link @firebase/firestore/pipelines#Expression.(as:1)}</li>
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
-   * Pipeline#addFields} instead if only additions are
+   * @firebase/firestore/pipelines#Pipeline.(addFields:1)} instead if only additions are
    * desired.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * db.pipeline().collection("books")
    *   .select(
@@ -351,11 +357,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param selection The first field to include in the output documents, specified as {@link
-   *     Selectable} expression or string value representing the field name.
-   * @param additionalSelections Optional additional fields to include in the output documents, specified as {@link
-   *     Selectable} expressions or {@code string} values representing field names.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @param selection - The first field to include in the output documents, specified as {@link
+   *     @firebase/firestore/pipelines#Selectable} expression or string value representing the field name.
+   * @param additionalSelections - Optional additional fields to include in the output documents, specified as {@link
+   *     @firebase/firestore/pipelines#Selectable} expressions or `string` values representing field names.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   select(
     selection: Selectable | string,
@@ -365,21 +371,22 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
-   * <p>The selected fields are defined using {@link Selectable} expressions, which can be:
+   * <p>The selected fields are defined using {@link @firebase/firestore/pipelines#Selectable} expressions, which can be:
    *
    * <ul>
-   *   <li>{@code string}: Name of an existing field</li>
-   *   <li>{@link Field}: References an existing field.</li>
-   *   <li>{@link Function}: Represents the result of a function with an assigned alias name using
-   *       {@link Expression#as}</li>
+   *   <li>`string`: Name of an existing field</li>
+   *   <li>{@link @firebase/firestore/pipelines#Field}: References an existing field.</li>
+   *   <li>{@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name using
+   *       {@link @firebase/firestore/pipelines#Expression.(as:1)}</li>
    * </ul>
    *
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
-   * Pipeline#addFields} instead if only additions are
+   * @firebase/firestore/pipelines#Pipeline.(addFields:1)} instead if only additions are
    * desired.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * db.pipeline().collection("books")
    *   .select(
@@ -390,7 +397,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   select(options: SelectStageOptions): Pipeline;
   select(
@@ -430,22 +437,23 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   /**
    * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
-   * BooleanExpression}.
+   * @firebase/firestore/pipelines#BooleanExpression}.
    *
    * <p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL.
    * You can filter documents based on their field values, using implementations of {@link
-   * BooleanExpression}, typically including but not limited to:
+   * @firebase/firestore/pipelines#BooleanExpression}, typically including but not limited to:
    *
    * <ul>
-   *   <li>field comparators: {@link Function#eq}, {@link Function#lt} (less than), {@link
-   *       Function#gt} (greater than), etc.</li>
-   *   <li>logical operators: {@link Function#and}, {@link Function#or}, {@link Function#not}, etc.</li>
-   *   <li>advanced functions: {@link Function#regexMatch}, {@link
-   *       Function#arrayContains}, etc.</li>
+   *   <li>field comparators: {@link @firebase/firestore/pipelines#Expression.(equal:1)}, {@link @firebase/firestore/pipelines#Expression.(lessThan:1)}, {@link
+   *       @firebase/firestore/pipelines#Expression.(greaterThan:1)}, etc.</li>
+   *   <li>logical operators: {@link @firebase/firestore/pipelines#Expression.(and:1)}, {@link @firebase/firestore/pipelines#Expression.(or:1)}, {@link @firebase/firestore/pipelines#Expression.(not:1)}, etc.</li>
+   *   <li>advanced functions: {@link @firebase/firestore/pipelines#Expression.(regexMatch:1)}, {@link
+   *       @firebase/firestore/pipelines#Expression.(arrayContains:1)}, etc.</li>
    * </ul>
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .where(
@@ -456,29 +464,30 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   );
    * ```
    *
-   * @param condition The {@link BooleanExpression} to apply.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @param condition - The {@link @firebase/firestore/pipelines#BooleanExpression} to apply.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   where(condition: BooleanExpression): Pipeline;
   /**
    * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
-   * BooleanExpression}.
+   * @firebase/firestore/pipelines#BooleanExpression}.
    *
    * <p>This stage allows you to apply conditions to the data, similar to a "WHERE" clause in SQL.
    * You can filter documents based on their field values, using implementations of {@link
-   * BooleanExpression}, typically including but not limited to:
+   * @firebase/firestore/pipelines#BooleanExpression}, typically including but not limited to:
    *
    * <ul>
-   *   <li>field comparators: {@link Function#eq}, {@link Function#lt} (less than), {@link
-   *       Function#gt} (greater than), etc.</li>
-   *   <li>logical operators: {@link Function#and}, {@link Function#or}, {@link Function#not}, etc.</li>
-   *   <li>advanced functions: {@link Function#regexMatch}, {@link
-   *       Function#arrayContains}, etc.</li>
+   *   <li>field comparators: {@link @firebase/firestore/pipelines#Expression.(eq:1)}, {@link @firebase/firestore/pipelines#Expression.(lt:1)} (less than), {@link
+   *       @firebase/firestore/pipelines#Expression.(greaterThan:1)}, etc.</li>
+   *   <li>logical operators: {@link @firebase/firestore/pipelines#Expression.(and:1)}, {@link @firebase/firestore/pipelines#Expression.(or:1)}, {@link @firebase/firestore/pipelines#Expression.(not:1)}, etc.</li>
+   *   <li>advanced functions: {@link @firebase/firestore/pipelines#Expression.(regexMatch:1)}, {@link
+   *       @firebase/firestore/pipelines#Expression.(arrayContains:1)}, etc.</li>
    * </ul>
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .where(
@@ -490,7 +499,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   where(options: WhereStageOptions): Pipeline;
   where(conditionOrOptions: BooleanExpression | WhereStageOptions): Pipeline {
@@ -520,11 +529,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
-   * results in chunks. It is typically used in conjunction with {@link #limit} to control the
+   * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.limit} to control the
    * size of each page.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Retrieve the second page of 20 results
    * firestore.pipeline().collection('books')
@@ -533,8 +543,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .limit(20);   // Take the next 20 results
    * ```
    *
-   * @param offset The number of documents to skip.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @param offset - The number of documents to skip.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   offset(offset: number): Pipeline;
   /**
@@ -542,11 +552,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
-   * results in chunks. It is typically used in conjunction with {@link #limit} to control the
+   * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.limit} to control the
    * size of each page.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Retrieve the second page of 20 results
    * firestore.pipeline().collection('books')
@@ -556,7 +567,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   offset(options: OffsetStageOptions): Pipeline;
   offset(offsetOrOptions: number | OffsetStageOptions): Pipeline {
@@ -594,7 +605,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * a potentially large result set. It's often used for:
    *
    * <ul>
-   *   <li>**Pagination:** In combination with {@link #offset} to retrieve specific pages of
+   *   <li>**Pagination:** In combination with {@link @firebase/firestore/pipelines#Pipeline.offset} to retrieve specific pages of
    *       results.</li>
    *   <li>**Limiting Data Retrieval:** To prevent excessive data transfer and improve performance,
    *       especially when dealing with large collections.</li>
@@ -602,6 +613,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Limit the results to the top 10 highest-rated books
    * firestore.pipeline().collection('books')
@@ -609,8 +621,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .limit(10);
    * ```
    *
-   * @param limit The maximum number of documents to return.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @param limit - The maximum number of documents to return.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   limit(limit: number): Pipeline;
   /**
@@ -621,7 +633,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * a potentially large result set. It's often used for:
    *
    * <ul>
-   *   <li>**Pagination:** In combination with {@link #offset} to retrieve specific pages of
+   *   <li>**Pagination:** In combination with {@link @firebase/firestore/pipelines#Pipeline.offset} to retrieve specific pages of
    *       results.</li>
    *   <li>**Limiting Data Retrieval:** To prevent excessive data transfer and improve performance,
    *       especially when dealing with large collections.</li>
@@ -629,6 +641,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Limit the results to the top 10 highest-rated books
    * firestore.pipeline().collection('books')
@@ -637,7 +650,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   limit(options: LimitStageOptions): Pipeline;
   limit(limitOrOptions: number | LimitStageOptions): Pipeline {
@@ -667,17 +680,18 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
-   * unique combinations of {@link Expression} values ({@link Field}, {@link Function}, etc).
+   * unique combinations of {@link @firebase/firestore/pipelines#Expression} values ({@link @firebase/firestore/pipelines#Field}, {@link @firebase/firestore/pipelines#AliasedExpression}, etc).
    *
-   * The parameters to this stage are defined using {@link Selectable} expressions or strings:
+   * The parameters to this stage are defined using {@link @firebase/firestore/pipelines#Selectable} expressions or strings:
    *
-   * - {@code string}: Name of an existing field
-   * - {@link Field}: References an existing document field.
-   * - {@link AliasedExpr}: Represents the result of a function with an assigned alias name
-   *   using {@link Expression#as}.
+   * - `string`: Name of an existing field
+   * - {@link @firebase/firestore/pipelines#Field}: References an existing document field.
+   * - {@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name
+   *   using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
@@ -685,11 +699,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     .select("authorName");
    * ```
    *
-   * @param group The {@link Selectable} expression or field name to consider when determining
+   * @param group - The {@link @firebase/firestore/pipelines#Selectable} expression or field name to consider when determining
    *     distinct value combinations.
-   * @param additionalGroups Optional additional {@link Selectable} expressions to consider when determining distinct
+   * @param additionalGroups - Optional additional {@link @firebase/firestore/pipelines#Selectable} expressions to consider when determining distinct
    *     value combinations or strings representing field names.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   distinct(
     group: string | Selectable,
@@ -700,17 +714,18 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
-   * unique combinations of {@link Expression} values ({@link Field}, {@link Function}, etc).
+   * unique combinations of {@link @firebase/firestore/pipelines#Expression} values ({@link @firebase/firestore/pipelines#Field}, {@link @firebase/firestore/pipelines#AliasedExpression}, etc).
    *
-   * The parameters to this stage are defined using {@link Selectable} expressions or strings:
+   * The parameters to this stage are defined using {@link @firebase/firestore/pipelines#Selectable} expressions or strings:
    *
-   * - {@code string}: Name of an existing field
-   * - {@link Field}: References an existing document field.
-   * - {@link AliasedExpr}: Represents the result of a function with an assigned alias name
-   *   using {@link Expression#as}.
+   * - `string`: Name of an existing field
+   * - {@link @firebase/firestore/pipelines#Field}: References an existing document field.
+   * - {@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name
+   *   using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
@@ -719,7 +734,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   distinct(options: DistinctStageOptions): Pipeline;
   distinct(
@@ -759,11 +774,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
-   * aggregations to perform using {@link AliasedAggregate} expressions which are typically results of
-   * calling {@link Expression#as} on {@link AggregateFunction} instances.
+   * aggregations to perform using {@link @firebase/firestore/pipelines#AliasedAggregate} expressions which are typically results of
+   * calling {@link @firebase/firestore/pipelines#Expression.(as:1)} on {@link @firebase/firestore/pipelines#AggregateFunction} instances.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Calculate the average rating and the total number of books
    * firestore.pipeline().collection("books")
@@ -773,11 +789,11 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     );
    * ```
    *
-   * @param accumulator The first {@link AliasedAggregate}, wrapping an {@link AggregateFunction}
+   * @param accumulator - The first {@link @firebase/firestore/pipelines#AliasedAggregate}, wrapping an {@link @firebase/firestore/pipelines#AggregateFunction}
    *     and providing a name for the accumulated results.
-   * @param additionalAccumulators Optional additional {@link AliasedAggregate}, each wrapping an {@link AggregateFunction}
+   * @param additionalAccumulators - Optional additional {@link @firebase/firestore/pipelines#AliasedAggregate}, each wrapping an {@link @firebase/firestore/pipelines#AggregateFunction}
    *     and providing a name for the accumulated results.
-   * @return A new Pipeline object with this stage appended to the stage list.
+   * @returns A new Pipeline object with this stage appended to the stage list.
    */
   aggregate(
     accumulator: AliasedAggregate,
@@ -796,13 +812,14 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *       If no grouping fields are provided, a single group containing all documents is used. Not
    *       specifying groups is the same as putting the entire inputs into one group.</li>
    *   <li>**Accumulators:** One or more accumulation operations to perform within each group. These
-   *       are defined using {@link AliasedAggregate} expressions, which are typically created by
-   *       calling {@link Expression#as} on {@link AggregateFunction} instances. Each aggregation
+   *       are defined using {@link @firebase/firestore/pipelines#AliasedAggregate} expressions, which are typically created by
+   *       calling {@link @firebase/firestore/pipelines#Expression.(as:1)} on {@link @firebase/firestore/pipelines#AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Calculate the average rating for each genre.
    * firestore.pipeline().collection("books")
@@ -813,7 +830,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage
    * list.
    */
   aggregate(options: AggregateStageOptions): Pipeline;
@@ -880,7 +897,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   findNearest(options: FindNearestStageOptions): Pipeline {
     // Convert user land convenience types to internal types
@@ -928,16 +945,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
   /**
    * @beta
-   * Sorts the documents from previous stages based on one or more {@link Ordering} criteria.
+   * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
-   * Ordering} instances to sort by multiple fields in ascending or descending order. If documents
+   * @firebase/firestore/pipelines#Ordering} instances to sort by multiple fields in ascending or descending order. If documents
    * have the same value for a field used for sorting, the next specified ordering will be used. If
    * all orderings result in equal comparison, the documents are considered equal and the order is
    * unspecified.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Sort books by rating in descending order, and then by title in ascending order for books
    * // with the same rating
@@ -948,23 +966,24 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *     );
    * ```
    *
-   * @param ordering The first {@link Ordering} instance specifying the sorting criteria.
-   * @param additionalOrderings Optional additional {@link Ordering} instances specifying the additional sorting criteria.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @param ordering - The first {@link @firebase/firestore/pipelines#Ordering} instance specifying the sorting criteria.
+   * @param additionalOrderings - Optional additional {@link @firebase/firestore/pipelines#Ordering} instances specifying the additional sorting criteria.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   /**
    * @beta
-   * Sorts the documents from previous stages based on one or more {@link Ordering} criteria.
+   * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
-   * Ordering} instances to sort by multiple fields in ascending or descending order. If documents
+   * @firebase/firestore/pipelines#Ordering} instances to sort by multiple fields in ascending or descending order. If documents
    * have the same value for a field used for sorting, the next specified ordering will be used. If
    * all orderings result in equal comparison, the documents are considered equal and the order is
    * unspecified.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Sort books by rating in descending order, and then by title in ascending order for books
    * // with the same rating
@@ -976,7 +995,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   sort(options: SortStageOptions): Pipeline;
   sort(
@@ -1013,6 +1032,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Input.
    * // {
@@ -1033,8 +1053,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    * ```
    *
-   * @param fieldName The {@link Field} field containing the nested map.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @param fieldName - The {@link @firebase/firestore/pipelines#Field} field containing the nested map.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(fieldName: string): Pipeline;
   /**
@@ -1046,6 +1066,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Input.
    * // {
@@ -1071,8 +1092,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // }
    * ```
    *
-   * @param expr An {@link Expression} that when returned evaluates to a map.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @param expr - An {@link @firebase/firestore/pipelines#Expression} that when returned evaluates to a map.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(expr: Expression): Pipeline;
   /**
@@ -1084,6 +1105,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Input.
    * // {
@@ -1110,7 +1132,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   replaceWith(options: ReplaceWithStageOptions): Pipeline;
   replaceWith(
@@ -1151,14 +1173,15 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Examples:
    *
+   * @example
    * ```typescript
    * // Sample 25 books, if available.
    * firestore.pipeline().collection('books')
    *     .sample(25);
    * ```
    *
-   * @param documents The number of documents to sample.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @param documents - The number of documents to sample.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   sample(documents: number): Pipeline;
 
@@ -1167,10 +1190,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how
-   * sampling will be performed. See {@code SampleOptions} for more information.
+   * sampling will be performed. See {@link @firebase/firestore/pipelines#SampleStageOptions} for more information.
    *
-   * <p>Examples:
-   *
+   * @example
+   * ```typescript
    * // Sample 10 books, if available.
    * firestore.pipeline().collection("books")
    *     .sample({ documents: 10 });
@@ -1178,9 +1201,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Sample 50% of books.
    * firestore.pipeline().collection("books")
    *     .sample({ percentage: 0.5 });
+   * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   sample(options: SampleStageOptions): Pipeline;
   sample(documentsOrOptions: number | SampleStageOptions): Pipeline {
@@ -1219,19 +1243,20 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
-   * from previous stage of the `other` {@code Pipeline} given in parameter. The order of documents
+   * from previous stage of the `other` {@link @firebase/firestore/pipelines#Pipeline} given in parameter. The order of documents
    * emitted from this stage is undefined.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Emit documents from books collection and magazines collection.
    * firestore.pipeline().collection('books')
    *     .union(firestore.pipeline().collection('magazines'));
    * ```
    *
-   * @param other The other {@code Pipeline} that is part of union.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @param other - The other {@link @firebase/firestore/pipelines#Pipeline} that is part of union.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   union(other: Pipeline): Pipeline;
   /**
@@ -1239,11 +1264,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
-   * from previous stage of the `other` {@code Pipeline} given in parameter. The order of documents
+   * from previous stage of the `other` {@link @firebase/firestore/pipelines#Pipeline} given in parameter. The order of documents
    * emitted from this stage is undefined.
    *
    * <p>Example:
    *
+   * @example
    * ```typescript
    * // Emit documents from books collection and magazines collection.
    * firestore.pipeline().collection('books')
@@ -1251,7 +1277,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   union(options: UnionStageOptions): Pipeline;
   union(otherOrOptions: Pipeline | UnionStageOptions): Pipeline {
@@ -1295,6 +1321,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Input:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
@@ -1309,9 +1336,9 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tag": "adventure", "tagIndex": 2, ... }
    * ```
    *
-   * @param selectable A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents.
-   * @param indexField An optional string value specifying the field path to write the offset (starting at zero) into the array the un-nested element is from
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @param selectable - A selectable expression defining the field to unnest and the alias to use for each un-nested element in the output documents.
+   * @param indexField - An optional string value specifying the field path to write the offset (starting at zero) into the array the un-nested element is from
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline;
   /**
@@ -1329,6 +1356,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * Example:
    *
+   * @example
    * ```typescript
    * // Input:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
@@ -1344,7 +1372,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```
    *
    * @param options - An object that specifies required and optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   unnest(options: UnnestStageOptions): Pipeline;
   unnest(
@@ -1399,6 +1427,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *
    * <p>Example (Assuming there is no 'where' stage available in SDK):
    *
+   * @example
    * ```typescript
    * // Assume we don't have a built-in 'where' stage
    * firestore.pipeline().collection('books')
@@ -1409,7 +1438,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param name - The unique name of the raw stage to add.
    * @param params - A list of parameters to configure the raw stage's behavior.
    * @param options - An object of key value pairs that specifies optional parameters for the stage.
-   * @return A new {@code Pipeline} object with this stage appended to the stage list.
+   * @returns A new {@link @firebase/firestore/pipelines#Pipeline} object with this stage appended to the stage list.
    */
   rawStage(
     name: string,
