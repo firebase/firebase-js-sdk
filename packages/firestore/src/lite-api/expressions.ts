@@ -1218,14 +1218,19 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Trims whitespace from the beginning of a string.
+   * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
    *
    * @example
    * ```typescript
    * // Trim whitespace from the beginning of the 'userInput' field
    * field("userInput").ltrim();
+   *
+   * // Trim quotes from the beginning of the 'userInput' field
+   * field("userInput").ltrim('"');
    * ```
    *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
    * @returns A new `Expression` representing the trimmed string.
    */
   ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
@@ -6816,7 +6821,7 @@ export function trim(
 
 /**
  * @beta
- * Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
  *
  * @example
  * ```typescript
@@ -6836,7 +6841,7 @@ export function ltrim(
 
 /**
  * @beta
- * Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
  *
  * @example
  * ```typescript

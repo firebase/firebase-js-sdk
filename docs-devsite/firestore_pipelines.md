@@ -90,7 +90,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [log(expression, base)](./firestore_pipelines.md#log_ac183e2) | <b><i>(Public Preview)</i></b> Creates an expression that computes the logarithm of an expression to a given base. |
 |  [log(expression, base)](./firestore_pipelines.md#log_1894737) | <b><i>(Public Preview)</i></b> Creates an expression that computes the logarithm of an expression to a given base. |
 |  [log10(expression)](./firestore_pipelines.md#log10_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
-|  [ltrim(expression, valueToTrim)](./firestore_pipelines.md#ltrim_775e2f2) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the start of a string or byte array. |
+|  [ltrim(expression, valueToTrim)](./firestore_pipelines.md#ltrim_775e2f2) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [maximum(expression)](./firestore_pipelines.md#maximum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of an expression across multiple stage inputs. |
 |  [minimum(expression)](./firestore_pipelines.md#minimum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of an expression across multiple stage inputs. |
 |  [mod(expression, value)](./firestore_pipelines.md#mod_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant. |
@@ -168,7 +168,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [log10(fieldName)](./firestore_pipelines.md#log10_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
 |  [logicalMaximum(fieldName, second, others)](./firestore_pipelines.md#logicalmaximum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
 |  [logicalMinimum(fieldName, second, others)](./firestore_pipelines.md#logicalminimum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering. |
-|  [ltrim(fieldName, valueToTrim)](./firestore_pipelines.md#ltrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the start of a string or byte array. |
+|  [ltrim(fieldName, valueToTrim)](./firestore_pipelines.md#ltrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [mapGet(fieldName, subField)](./firestore_pipelines.md#mapget_06663cf) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
 |  [maximum(fieldName)](./firestore_pipelines.md#maximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
 |  [minimum(fieldName)](./firestore_pipelines.md#minimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
@@ -2509,7 +2509,7 @@ log10(field("value"));
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
+Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
 
 <b>Signature:</b>
 
@@ -5123,7 +5123,7 @@ logicalMinimum("field1", field("field2"), 1000);
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
+Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
 
 <b>Signature:</b>
 
