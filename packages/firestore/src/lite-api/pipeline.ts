@@ -78,6 +78,7 @@ import {
   RemoveFieldsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
+  SearchStageOptions,
   SelectStageOptions,
   SortStageOptions,
   StageOptions,
@@ -912,6 +913,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * TODO(search)
+   *
+   * @param options - An object that specifies required and optional parameters for the stage.
+   * @return A new `Pipeline` object with this stage appended to the stage list.
+   */
+  search(options: SearchStageOptions): Pipeline {
+    throw "not implemented";
   }
 
   /**

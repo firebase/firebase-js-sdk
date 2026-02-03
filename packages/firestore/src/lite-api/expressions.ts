@@ -2636,6 +2636,65 @@ export class Field extends Expression implements Selectable {
   }
 
   /**
+   * Perform a full-text search on this field.
+   *
+   * @remarks This Expression can only be used within a `Search` stage.
+   *
+   * @param query Define the search query using the search DTS (TODO(search) link).
+   */
+  containsText(query: string): BooleanExpression {
+    throw "Not implemented";
+  }
+
+  /**
+   * Evaluates to the distance in meters between the location specified
+   * by this field and the query location.
+   *
+   * @remarks This Expression can only be used within a `Search` stage.
+   *
+   * @param location - Compute distance to this GeoPoint.
+   */
+  geoDistance(location: GeoPoint): Expression {
+    throw "Not implemented";
+  }
+
+  /**
+   * Evaluates if the result of this `expression` is between
+   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+   *
+   * @example
+   * ```
+   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+   * field('tireWidth').between(constant(2.2), constant(2.4))
+   *
+   * // This is functionally equivalent to
+   * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
+   * ```
+   *
+   * @param lowerBound - Lower bound (inclusive) of the range.
+   * @param upperBound - Upper bound (inclusive) of the range.
+   */
+  between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+
+  /**
+   * Evaluates if the result of this `expression` is between
+   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+   *
+   * @example
+   * ```
+   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+   * field('tireWidth').between(2.2, 2.4)
+   *
+   * // This is functionally equivalent to
+   * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
+   * ```
+   *
+   * @param lowerBound - Lower bound (inclusive) of the range.
+   * @param upperBound - Upper bound (inclusive) of the range.
+   */
+  between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+
+  /**
    * @private
    * @internal
    */
@@ -8023,6 +8082,189 @@ export function type(
   fieldNameOrExpression: string | Expression
 ): FunctionExpression {
   return fieldOrExpression(fieldNameOrExpression).type();
+}
+
+/**
+ * Perform a full-text search on the specified field.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @param fieldName Search the specified field.
+ * @param query Define the search query using the search DTS (TODO(search) link).
+ */
+export function containsText(fieldName: string | Field, query: string): BooleanExpression {
+  throw "Not implemented";
+}
+
+/**
+ * Perform a full-text search on the the document.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @param query Define the search query using the search DTS (TODO(search) link).
+ */
+export function documentContainsText(query: string): BooleanExpression {
+  throw "Not implemented";
+}
+
+/**
+ * Evaluates to the search score.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ */
+export function searchScore(): Expression {
+  throw "Not implemented";
+}
+
+/**
+ * Options defining how a snippet expression is evaluated.
+ */
+export type SnippetOptions = {
+  /**
+   * Search the specified field for matching terms.
+   */
+  fieldName: string | Field;
+
+  /**
+   * Define the search query using the search DTS (TODO(search) link).
+   */
+  query: string;
+
+  /**
+   * The maximum width of the string estimated for a variable width font. The
+   * unit is tenths of ems. The default is `160`.
+   */
+  maxSnippetWidth?: number;
+
+  /**
+   * The maximum number of non-contiguous pieces of text in the returned snippet.
+   * The default is `1`.
+   */
+  maxSnippets?: number;
+
+  /**
+   * The string to join the pieces. The default value is '\n'
+   */
+  separator?: string;
+};
+
+/**
+ * Evaluates to an HTML-formatted text snippet that highlights terms matching
+ * the search query in `<b>bold</b>`.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @param fieldName Search the specified field for matching terms.
+ * @param query Define the search query using the search DTS (TODO(search) link).
+ */
+export function snippet(fieldName: string | Field, query: string): Expression;
+
+/**
+ * Evaluates to an HTML-formatted text snippet that highlights terms matching
+ * the search query in `<b>bold</b>`.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @param fieldName Search the specified field for matching terms.
+ * @param query Define the search query using the search DTS (TODO(search) link).
+ */
+export function snippet(options: SnippetOptions): Expression;
+export function snippet(optionsOrField: SnippetOptions | string | Field, query?: string): Expression {
+  throw "Not implemented";
+}
+
+/**
+ * Evaluates to the distance in meters between the location in the specified
+ * field and the query location.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @param fieldName - Specifies the field in the document which contains
+ * the first GeoPoint for distance computation.
+ * @param location - Compute distance to this GeoPoint.
+ */
+export function geoDistance(fieldName: string | Field, location: GeoPoint): Expression {
+  throw "Not implemented";
+}
+
+/**
+ * Evaluates if the value in the field specified by `fieldName` is between
+ * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between('tireWidth', constant(2.2), constant(2.4))
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
+ * ```
+ *
+ * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(fieldName: string, lowerBound: Expression, upperBound: Expression): BooleanExpression;
+
+/**
+ * Evaluates if the value in the field specified by `fieldName` is between
+ * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between('tireWidth', 2.2, 2.4)
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
+ * ```
+ *
+ * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(fieldName: string, lowerBound: unknown, upperBound: unknown): BooleanExpression;
+
+/**
+ * Evaluates if the result of the specified `expression` is between
+ * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between(field('tireWidth'), constant(2.2), constant(2.4))
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
+ * ```
+ *
+ * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(expression: Expression, lowerBound: Expression, upperBound: Expression): BooleanExpression;
+
+/**
+ * Evaluates if the result of the specified `expression` is between
+ * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+ *
+ * @example
+ * ```
+ * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+ * between(field('tireWidth'), 2.2, 2.4)
+ *
+ * // This is functionally equivalent to
+ * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
+ * ```
+ *
+ * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+ * @param lowerBound - Lower bound (inclusive) of the range.
+ * @param upperBound - Upper bound (inclusive) of the range.
+ */
+export function between(expression: Expression, lowerBound: unknown, upperBound: unknown): BooleanExpression;
+
+export function between(expression: Expression | string, lowerBound: unknown, upperBound: unknown): BooleanExpression {
+  throw "Not implemented";
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line

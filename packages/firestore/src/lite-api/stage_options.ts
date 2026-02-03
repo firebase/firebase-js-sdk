@@ -263,6 +263,76 @@ export type FindNearestStageOptions = StageOptions & {
 };
 /**
  * @beta
+ * Options defining how a SearchStage is evaluated. See {@link Pipeline.search}.
+ */
+export type SearchStageOptions = StageOptions & {
+  /**
+   * @beta
+   * Specifies the search query that will be used to query and score documents
+   * by the search stage.
+   *
+   * The query can be expressed as an `Expression`, which will be used to score
+   * and filter the results. Not all expressions supported by Pipelines
+   * are supported in the Search query.
+   *
+   * @example
+   * ```
+   * db.pipeline().collection('restaurants').search({
+   *   query: or(
+   *     documentContainsText("breakfast"),
+   *     field('menu').containsText('waffle AND coffee')
+   *   )
+   * })
+   * ```
+   *
+   * The query can also be expressed as a string in the Search DSL:
+   *
+   * @example
+   * ```
+   * db.pipeline().collection('restaurants').search({
+   *   query: 'menu:(waffle and coffee) OR breakfast'
+   * })
+   * ```
+   *
+   * See TODO(search) link to list of supported expressions in search query.
+   */
+  query: Expression | string;
+  /**
+   * @beta
+   * Specifies additional conditions that will be used to filter documents
+   * in the search query, but that will not contribute to the score.
+   */
+  where?: BooleanExpression;
+  /**
+   * @beta
+   * The maximum number of documents to return from the Search stage.
+   */
+  limit?: number;
+  /**
+   * @beta
+   * The maximum number of documents for the search stage to score. Documents
+   * will be processed in the pre-sort order specified by the search index.
+   */
+  maxToScore?: number;
+  /**
+   * @beta
+   * Orderings specify how the input documents are sorted.
+   * One or more ordering are required.
+   */
+  sort?: Ordering | Ordering[];
+  /**
+   * @beta
+   * The fields to add to each document, specified as a {@link Selectable}.
+   */
+  addFields?: Selectable[];
+  /**
+   * @beta
+   * The number of documents to skip.
+   */
+  offset?: number;
+};
+/**
+ * @beta
  * Options defining how a ReplaceWithStage is evaluated. See {@link Pipeline.replaceWith}.
  */
 export type ReplaceWithStageOptions = StageOptions & {

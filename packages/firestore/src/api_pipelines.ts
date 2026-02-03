@@ -50,7 +50,8 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
 } from './lite-api/stage_options';
 
 export {
@@ -149,6 +150,10 @@ export {
   timestampTruncate,
   split,
   type,
+  snippet,
+  searchScore,
+  documentContainsText,
+  geoDistance,
   Expression,
   AliasedExpression,
   Field,
