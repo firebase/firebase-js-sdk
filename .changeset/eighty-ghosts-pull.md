@@ -3,4 +3,4 @@
 '@firebase/firestore': minor
 ---
 
-Added support for `stringRepeat`, `stringReplaceOne`, `stringReplaceAll`, and `stringIndexOf` Pipeline expressions.
+Support added for the following string Pipeline expressions: `stringRepeat`, `stringReplaceOne`, `stringReplaceAll`, `stringIndexOf`, `ltrim`, `rtrim`.
