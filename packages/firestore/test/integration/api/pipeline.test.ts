@@ -100,6 +100,8 @@ import {
   stringReplaceOne,
   subtract,
   trim,
+  ltrim,
+  rtrim,
   isAbsent,
   timestampSubtract,
   mapRemove,
@@ -146,9 +148,7 @@ import {
   PipelineSnapshot,
   timestampTruncate,
   split,
-  type,
-  ltrim,
-  rtrim
+  type
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);

@@ -119,8 +119,9 @@ import {
   arrayLength,
   charLength,
   divide,
-  ltrim,
   not,
+  trim,
+  ltrim,
   rtrim,
   stringConcat,
   stringIndexOf,
@@ -129,7 +130,6 @@ import {
   stringReplaceOne,
   toLower,
   toUpper,
-  trim,
   byteLength,
   arrayGet,
   abs,
@@ -3801,6 +3801,23 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, { uppercaseAuthor: 'GEORGE ORWELL' });
     });
 
+    it('testTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .addFields(
+            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          )
+          .select(trim('spacedTitle').as('trimmedTitle'), field('spacedTitle'))
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+        trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+      });
+    });
+
     it('testLTrim', async () => {
       const snapshot = await execute(
         firestore
@@ -3838,23 +3855,6 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, {
         rtrimmedTitle: " The Hitchhiker's Guide to the Galaxy",
         rtrimmedValues: " The Hitchhiker's Guide to the Gala"
-      });
-    });
-
-    it('testTrim', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .addFields(
-            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
-          )
-          .select(trim('spacedTitle').as('trimmedTitle'), field('spacedTitle'))
-          .limit(1)
-      );
-      expectResults(snapshot, {
-        spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
-        trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
       });
     });
 

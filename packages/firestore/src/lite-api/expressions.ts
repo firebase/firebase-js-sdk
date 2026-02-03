@@ -1215,6 +1215,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     }
     return new FunctionExpression('trim', args, 'trim');
   }
+
   /**
    * @beta
    * Trims whitespace from the beginning of a string.
@@ -6761,6 +6762,60 @@ export function toUpper(expr: Expression | string): FunctionExpression {
 
 /**
  * @beta
+ *
+ * Creates an expression that removes leading and trailing whitespace from a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the 'userInput' field
+ * trim("userInput");
+ *
+ * // Trim quotes from the 'userInput' field
+ * trim("userInput", '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
+ * trimmed from the input. If not specified, then whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string.
+ */
+export function trim(
+  fieldName: string,
+  valueToTrim?: string | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that removes leading and trailing characters from a string or byte array expression.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the 'userInput' field
+ * trim(field("userInput"));
+ *
+ * // Trim quotes from the 'userInput' field
+ * trim(field("userInput"), '"');
+ * ```
+ *
+ * @param stringExpression - The expression representing the string or byte array to trim.
+ * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
+ * trimmed from the input. If not specified, then whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function trim(
+  stringExpression: Expression,
+  valueToTrim?: string | Expression
+): FunctionExpression;
+export function trim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(expr).trim(valueToTrim);
+}
+
+/**
+ * @beta
  * Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
  *
  * @example
@@ -6849,60 +6904,6 @@ export function rtrim(
   valueToTrim?: string | Expression | Bytes
 ): FunctionExpression {
   return fieldOrExpression(expr).rtrim(valueToTrim);
-}
-
-/**
- * @beta
- *
- * Creates an expression that removes leading and trailing whitespace from a string or byte array.
- *
- * @example
- * ```typescript
- * // Trim whitespace from the 'userInput' field
- * trim("userInput");
- *
- * // Trim quotes from the 'userInput' field
- * trim("userInput", '"');
- * ```
- *
- * @param fieldName - The name of the field containing the string or byte array.
- * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
- * trimmed from the input. If not specified, then whitespace will be trimmed.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string.
- */
-export function trim(
-  fieldName: string,
-  valueToTrim?: string | Expression
-): FunctionExpression;
-
-/**
- * @beta
- *
- * Creates an expression that removes leading and trailing characters from a string or byte array expression.
- *
- * @example
- * ```typescript
- * // Trim whitespace from the 'userInput' field
- * trim(field("userInput"));
- *
- * // Trim quotes from the 'userInput' field
- * trim(field("userInput"), '"');
- * ```
- *
- * @param stringExpression - The expression representing the string or byte array to trim.
- * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
- * trimmed from the input. If not specified, then whitespace will be trimmed.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
- */
-export function trim(
-  stringExpression: Expression,
-  valueToTrim?: string | Expression
-): FunctionExpression;
-export function trim(
-  expr: Expression | string,
-  valueToTrim?: string | Expression
-): FunctionExpression {
-  return fieldOrExpression(expr).trim(valueToTrim);
 }
 
 /**
