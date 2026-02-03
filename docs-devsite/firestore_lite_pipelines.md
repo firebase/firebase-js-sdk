@@ -2528,8 +2528,11 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Trim whitespace from the start of the 'userInput' field
-ltrim("userInput");
+// Trim whitespace from the beginning of the 'userInput' field
+ltrim(field("userInput"));
+
+// Trim quotes from the beginning of the 'userInput' field
+ltrim(field("userInput"), '"');
 
 ```
 
@@ -2772,6 +2775,9 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Trim whitespace from the end of the 'userInput' field
 rtrim(field("userInput"));
+
+// Trim quotes from the end of the 'userInput' field
+rtrim(field("userInput"), '"');
 
 ```
 
@@ -5142,8 +5148,11 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Trim whitespace from the start of the 'userInput' field
-ltrim("userInput");
+// Trim whitespace from the beginning of the 'userInput' field
+ltrim(field("userInput"));
+
+// Trim quotes from the beginning of the 'userInput' field
+ltrim(field("userInput"), '"');
 
 ```
 
@@ -5883,7 +5892,10 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Trim whitespace from the end of the 'userInput' field
-rtrim("userInput");
+rtrim(field("userInput"));
+
+// Trim quotes from the end of the 'userInput' field
+rtrim(field("userInput"), '"');
 
 ```
 

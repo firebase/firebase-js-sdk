@@ -6825,8 +6825,11 @@ export function trim(
  *
  * @example
  * ```typescript
- * // Trim whitespace from the start of the 'userInput' field
- * ltrim("userInput");
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
  * ```
  *
  * @param fieldName - The name of the field containing the string or byte array.
@@ -6845,8 +6848,11 @@ export function ltrim(
  *
  * @example
  * ```typescript
- * // Trim whitespace from the start of the 'userInput' field
- * ltrim("userInput");
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
  * ```
  *
  * @param expression - The expression representing the string or byte array.
@@ -6872,7 +6878,10 @@ export function ltrim(
  * @example
  * ```typescript
  * // Trim whitespace from the end of the 'userInput' field
- * rtrim("userInput");
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
  * ```
  *
  * @param fieldName - The name of the field containing the string or byte array.
@@ -6893,6 +6902,9 @@ export function rtrim(
  * ```typescript
  * // Trim whitespace from the end of the 'userInput' field
  * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
  * ```
  *
  * @param expression - The expression representing the string or byte array.
