@@ -111,6 +111,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [log10()](./firestore_pipelines.expression.md#expressionlog10) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
 |  [logicalMaximum(second, others)](./firestore_pipelines.expression.md#expressionlogicalmaximum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
 |  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
+|  [ltrim(valueToTrim)](./firestore_pipelines.expression.md#expressionltrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace from the beginning of a string. |
 |  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
 |  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
@@ -138,6 +139,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [round()](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
 |  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
 |  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(valueToTrim)](./firestore_pipelines.expression.md#expressionrtrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
 |  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
 |  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
 |  [sqrt()](./firestore_pipelines.expression.md#expressionsqrt) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
@@ -2309,6 +2311,40 @@ field("timestamp").logicalMinimum(Function.currentTimestamp());
 
 ```
 
+## Expression.ltrim()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace from the beginning of a string.
+
+<b>Signature:</b>
+
+```typescript
+ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) |  |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the trimmed string.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the beginning of the 'userInput' field
+field("userInput").ltrim();
+
+```
+
 ## Expression.mapGet()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -3207,6 +3243,43 @@ A new `Expression` representing the rounded value.
 ```typescript
 // Round the value of the 'price' field to two decimal places.
 field("price").round(constant(2));
+
+```
+
+## Expression.rtrim()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the end of the 'userInput' field
+field("userInput").rtrim();
+
+// Trim quotes from the end of the 'userInput' field
+field("userInput").rtrim('"');
 
 ```
 

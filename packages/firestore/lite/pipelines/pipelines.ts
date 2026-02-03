@@ -144,6 +144,8 @@ export {
   stringRepeat,
   stringReplaceAll,
   stringReplaceOne,
+  ltrim,
+  rtrim,
   mapGet,
   countAll,
   minimum,

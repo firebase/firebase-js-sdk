@@ -1215,6 +1215,50 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     }
     return new FunctionExpression('trim', args, 'trim');
   }
+  /**
+   * @beta
+   * Trims whitespace from the beginning of a string.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the beginning of the 'userInput' field
+   * field("userInput").ltrim();
+   * ```
+   *
+   * @returns A new `Expression` representing the trimmed string.
+   */
+  ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('ltrim', args, 'ltrim');
+  }
+
+  /**
+   * @beta
+   * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the end of the 'userInput' field
+   * field("userInput").rtrim();
+   *
+   * // Trim quotes from the end of the 'userInput' field
+   * field("userInput").rtrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string or byte array.
+   */
+  rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('rtrim', args, 'rtrim');
+  }
 
   /**
    * @beta
@@ -6713,6 +6757,98 @@ export function toUpper(fieldName: string): FunctionExpression;
 export function toUpper(stringExpression: Expression): FunctionExpression;
 export function toUpper(expr: Expression | string): FunctionExpression {
   return fieldOrExpression(expr).toUpper();
+}
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the start of the 'userInput' field
+ * ltrim("userInput");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the start of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the start of the 'userInput' field
+ * ltrim("userInput");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function ltrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).ltrim(valueToTrim);
+}
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim("userInput");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function rtrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).rtrim(valueToTrim);
 }
 
 /**

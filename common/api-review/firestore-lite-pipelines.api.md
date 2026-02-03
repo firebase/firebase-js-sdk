@@ -510,6 +510,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -563,6 +565,8 @@ export abstract class Expression {
     round(decimalPlaces: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     split(delimiter: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -833,6 +837,12 @@ export function logicalMinimum(first: Expression, second: Expression | unknown, 
 export function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 
 // @beta
+export function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export function map(elements: Record<string, unknown>): FunctionExpression;
 
 // @beta
@@ -1100,6 +1110,12 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @beta
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export type SampleStageOptions = StageOptions & OneOf<{

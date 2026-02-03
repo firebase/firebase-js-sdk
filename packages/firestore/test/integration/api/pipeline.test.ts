@@ -146,7 +146,9 @@ import {
   PipelineSnapshot,
   timestampTruncate,
   split,
-  type
+  type,
+  ltrim,
+  rtrim
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -3856,6 +3858,46 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         trimmedTitle: "The Hitchhiker's Guide to the Galaxy",
         userName: 'alice',
         bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02]))
+      });
+    });
+
+    it('testLTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .addFields(
+            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          )
+          .select(
+            ltrim('spacedTitle').as('ltrimmedTitle'),
+            ltrim('spacedTitle', ' Th').as('ltrimmedValues')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        ltrimmedTitle: "The Hitchhiker's Guide to the Galaxy ",
+        ltrimmedValues: "e Hitchhiker's Guide to the Galaxy "
+      });
+    });
+
+    it('testRTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .addFields(
+            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          )
+          .select(
+            rtrim('spacedTitle').as('rtrimmedTitle'),
+            rtrim('spacedTitle', ' xy').as('rtrimmedValues')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        rtrimmedTitle: " The Hitchhiker's Guide to the Galaxy",
+        rtrimmedValues: " The Hitchhiker's Guide to the Gala"
       });
     });
 
