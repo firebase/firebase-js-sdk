@@ -85,6 +85,8 @@ export {
   charLength,
   like,
   regexContains,
+  regexFind,
+  regexFindAll,
   regexMatch,
   stringContains,
   startsWith,

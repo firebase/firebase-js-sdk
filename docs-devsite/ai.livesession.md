@@ -98,11 +98,11 @@ Yields messages received from the server. This can only be used by one consumer 
 <b>Signature:</b>
 
 ```typescript
-receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
 ```
 <b>Returns:</b>
 
-AsyncGenerator&lt;[LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) \| [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) \| [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface)<!-- -->&gt;
+AsyncGenerator&lt;[LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) \| [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) \| [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface) \| [LiveServerGoingAwayNotice](./ai.liveservergoingawaynotice.md#liveservergoingawaynotice_interface)<!-- -->&gt;
 
 An `AsyncGenerator` that yields server messages as they arrive.
 
