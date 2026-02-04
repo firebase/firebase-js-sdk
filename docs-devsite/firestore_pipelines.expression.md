@@ -98,6 +98,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
 |  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
 |  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
+|  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
 |  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
 |  [length()](./firestore_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
@@ -1876,6 +1877,40 @@ A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpr
 ```typescript
 // Check if the result of a calculation is an error
 field("title").arrayContains(1).isError();
+
+```
+
+## Expression.isType()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the result of this expression is of the given type.
+
+<b>Signature:</b>
+
+```typescript
+isType(type: Type): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  type | [Type](./firestore_pipelines.md#type) | The type to check for. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+
+### Example
+
+
+```typescript
+// Check if the 'price' field is a number
+field('price').isType('number');
 
 ```
 

@@ -66,6 +66,7 @@ import {
   ifError,
   isAbsent,
   isError,
+  isType,
   or,
   map,
   length,
@@ -124,6 +125,7 @@ import {
   toLower,
   toUpper,
   trim,
+  type,
   byteLength,
   arrayGet,
   abs,
@@ -3809,6 +3811,93 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, {
         spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
         trimmedTitle: "The Hitchhiker's Guide to the Galaxy"
+      });
+    });
+
+    it('testType', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(
+                Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+              ),
+              docRef: constant(doc(firestore, 'foo', 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                'number': 1,
+                'string': 'a string'
+              }),
+              list: array([1, '2', true])
+            })
+          )
+          .select(
+            type(field('int')).as('int'),
+            field('float').type().as('float'),
+            type('str').as('str'),
+            field('bool').type().as('bool'),
+            type('null').as('null'),
+            field('geoPoint').type().as('geoPoint'),
+            type('timestamp').as('timestamp'),
+            field('bytes').type().as('bytes'),
+            type('docRef').as('docRef'),
+            field('vector').type().as('vector'),
+            type('map').as('map'),
+            field('list').type().as('list')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        int: 'int64',
+        float: 'float64',
+        str: 'string',
+        bool: 'boolean',
+        null: 'null',
+        geoPoint: 'geo_point',
+        timestamp: 'timestamp',
+        bytes: 'bytes',
+        docRef: 'reference',
+        vector: 'vector',
+        map: 'map',
+        list: 'array'
+      });
+    });
+
+    it('testIsType', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              int: constant(1),
+              str: constant('a string')
+            })
+          )
+          .select(
+            isType(field('int'), 'number').as('isNum'),
+            isType('int', 'string').as('isNumStr'),
+            field('str').isType('string').as('isStr'),
+            field('str').isType('number').as('isStrNum')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        isNum: true,
+        isNumStr: false,
+        isStr: true,
+        isStrNum: false
       });
     });
 

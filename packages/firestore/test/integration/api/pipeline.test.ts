@@ -142,7 +142,8 @@ import {
   PipelineSnapshot,
   timestampTruncate,
   split,
-  type
+  type,
+  isType
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -4190,6 +4191,34 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         vector: 'vector',
         map: 'map',
         array: 'array'
+      });
+    });
+
+    it('supports isType', async () => {
+      const result = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .replaceWith(
+            map({
+              int: constant(1),
+              str: constant('a string')
+            })
+          )
+          .select(
+            isType(field('int'), 'int64').as('isNum'),
+            isType('int', 'string').as('isNumStr'),
+            field('str').isType('string').as('isStr'),
+            field('str').isType('int64').as('isStrNum')
+          )
+      );
+
+      expectResults(result, {
+        isNum: true,
+        isNumStr: false,
+        isStr: true,
+        isStrNum: false
       });
     });
 

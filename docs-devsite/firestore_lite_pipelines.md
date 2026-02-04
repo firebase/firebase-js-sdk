@@ -83,6 +83,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [exp(expression)](./firestore_lite_pipelines.md#exp_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of the expression's result. |
 |  [greaterThan(expression, value)](./firestore_lite_pipelines.md#greaterthan_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is greater than a constant value. |
 |  [greaterThanOrEqual(expression, value)](./firestore_lite_pipelines.md#greaterthanorequal_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is greater than or equal to a constant value. |
+|  [isType(expression, type)](./firestore_lite_pipelines.md#istype_27398ce) | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of an expression is of the given type. |
 |  [length\_2(expression)](./firestore_lite_pipelines.md#length_2_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
 |  [lessThan(expression, value)](./firestore_lite_pipelines.md#lessthan_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is less than a constant value. |
 |  [lessThanOrEqual(expression, value)](./firestore_lite_pipelines.md#lessthanorequal_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is less than or equal to a constant value. |
@@ -149,6 +150,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [greaterThan(fieldName, value)](./firestore_lite_pipelines.md#greaterthan_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than a constant value. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_2e16acb) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than or equal to an expression. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_lite_pipelines.md#greaterthanorequal_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than or equal to a constant value. |
+|  [isType(fieldName, type)](./firestore_lite_pipelines.md#istype_5da287e) | <b><i>(Public Preview)</i></b> Creates an expression that checks if the value in the specified field is of the given type. |
 |  [length\_2(fieldName)](./firestore_lite_pipelines.md#length_2_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
 |  [lessThan(fieldName, expression)](./firestore_lite_pipelines.md#lessthan_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than an expression. |
 |  [lessThan(fieldName, value)](./firestore_lite_pipelines.md#lessthan_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than a constant value. |
@@ -380,6 +382,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [SetOptions](./firestore_lite_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [TimeGranularity](./firestore_lite_pipelines.md#timegranularity) | <b><i>(Public Preview)</i></b> Specify time granularity for expressions. |
+|  [Type](./firestore_lite_pipelines.md#type) | <b><i>(Public Preview)</i></b> An enumeration of the different types of values that can be returned by <code>type()</code>. |
 |  [UnionStageOptions](./firestore_lite_pipelines.md#unionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_lite_pipelines.md#unneststageoptions) | <b><i>(Public Preview)</i></b> Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
 |  [WhereStageOptions](./firestore_lite_pipelines.md#wherestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
@@ -2238,6 +2241,41 @@ A new `Expression` representing the greater than or equal to comparison.
 ```typescript
 // Check if the 'quantity' field is greater than or equal to 10
 greaterThanOrEqual(field("quantity"), 10);
+
+```
+
+### isType(expression, type) {:#istype_27398ce}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the result of an expression is of the given type.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isType(expression: Expression, type: Type): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to check. |
+|  type | [Type](./firestore_lite_pipelines.md#type) | The type to check for. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+
+### Example
+
+
+```typescript
+// Check if the result of a calculation is a number
+isType(add(Field('count'), 1), 'number')
 
 ```
 
@@ -4426,6 +4464,41 @@ A new `Expression` representing the greater than or equal to comparison.
 ```typescript
 // Check if the 'score' field is greater than or equal to 80
 greaterThanOrEqual("score", 80);
+
+```
+
+### isType(fieldName, type) {:#istype_5da287e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the value in the specified field is of the given type.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isType(fieldName: string, type: Type): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to check. |
+|  type | [Type](./firestore_lite_pipelines.md#type) | The type to check for. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `BooleanExpression` that evaluates to true if the field's value is of the given type, false otherwise.
+
+### Example
+
+
+```typescript
+// Check if the 'price' field is a number
+isType('price', 'number');
 
 ```
 
@@ -9820,6 +9893,19 @@ Specify time granularity for expressions.
 
 ```typescript
 export declare type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+```
+
+## Type
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An enumeration of the different types of values that can be returned by `type()`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 ```
 
 ## UnionStageOptions

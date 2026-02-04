@@ -56,6 +56,33 @@ export type ExpressionType =
   | 'AliasedExpression';
 
 /**
+ * @beta
+ *
+ * An enumeration of the different types of values that can be returned by `type()`.
+ */
+export type Type =
+  | 'null'
+  | 'array'
+  | 'boolean'
+  | 'bytes'
+  | 'timestamp'
+  | 'geo_point'
+  | 'number'
+  | 'int32'
+  | 'int64'
+  | 'float64'
+  | 'decimal128'
+  | 'map'
+  | 'reference'
+  | 'string'
+  | 'vector'
+  | 'max_key'
+  | 'min_key'
+  | 'object_id'
+  | 'regex'
+  | 'request_timestamp';
+
+/**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  *
@@ -1214,6 +1241,43 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       args.push(valueToDefaultExpr(valueToTrim));
     }
     return new FunctionExpression('trim', args, 'trim');
+  }
+
+  /**
+   * @beta
+   * Creates an expression that returns the data type of this expression's result, as a string.
+   *
+   * @example
+   * ```typescript
+   * // Get the data type of the value in field 'title'
+   * field('title').type()
+   * ```
+   *
+   * @returns A new `Expression` representing the data type.
+   */
+  type(): FunctionExpression {
+    return new FunctionExpression('type', [this]);
+  }
+
+  /**
+   * @beta
+   * Creates an expression that checks if the result of this expression is of the given type.
+   *
+   * @example
+   * ```typescript
+   * // Check if the 'price' field is a number
+   * field('price').isType('number');
+   * ```
+   *
+   * @param type - The type to check for.
+   * @returns A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+   */
+  isType(type: Type): BooleanExpression {
+    return new FunctionExpression(
+      'is_type',
+      [this, constant(type)],
+      'isType'
+    ).asBoolean();
   }
 
   /**
@@ -2514,22 +2578,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       args.push(valueToDefaultExpr(timezone));
     }
     return new FunctionExpression('timestamp_trunc', args);
-  }
-
-  /**
-   * @beta
-   * Creates an expression that returns the data type of this expression's result, as a string.
-   *
-   * @example
-   * ```typescript
-   * // Get the data type of the value in field 'title'
-   * field('title').type()
-   * ```
-   *
-   * @returns A new `Expression` representing the data type.
-   */
-  type(): FunctionExpression {
-    return new FunctionExpression('type', [this]);
   }
 
   // TODO(new-expression): Add new expression method definitions above this line
@@ -6679,6 +6727,75 @@ export function trim(
 
 /**
  * @beta
+ * Creates an expression that returns the data type of the data in the specified field.
+ *
+ * @example
+ * ```typescript
+ * // Get the data type of the value in field 'title'
+ * type('title')
+ * ```
+ *
+ * @returns A new `Expression` representing the data type.
+ */
+export function type(fieldName: string): FunctionExpression;
+/**
+ * @beta
+ * Creates an expression that returns the data type of an expression's result.
+ *
+ * @example
+ * ```typescript
+ * // Get the data type of a conditional expression
+ * type(conditional(exists('foo'), constant(1), constant(true)))
+ * ```
+ *
+ * @returns A new `Expression` representing the data type.
+ */
+export function type(expression: Expression): FunctionExpression;
+export function type(
+  fieldNameOrExpression: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).type();
+}
+
+/**
+ * @beta
+ * Creates an expression that checks if the value in the specified field is of the given type.
+ *
+ * @example
+ * ```typescript
+ * // Check if the 'price' field is a number
+ * isType('price', 'number');
+ * ```
+ *
+ * @param fieldName - The name of the field to check.
+ * @param type - The type to check for.
+ * @returns A new `BooleanExpression` that evaluates to true if the field's value is of the given type, false otherwise.
+ */
+export function isType(fieldName: string, type: Type): BooleanExpression;
+/**
+ * @beta
+ * Creates an expression that checks if the result of an expression is of the given type.
+ *
+ * @example
+ * ```typescript
+ * // Check if the result of a calculation is a number
+ * isType(add(Field('count'), 1), 'number')
+ * ```
+ *
+ * @param expression - The expression to check.
+ * @param type - The type to check for.
+ * @returns A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+ */
+export function isType(expression: Expression, type: Type): BooleanExpression;
+export function isType(
+  fieldNameOrExpression: string | Expression,
+  type: Type
+): BooleanExpression {
+  return fieldOrExpression(fieldNameOrExpression).isType(type);
+}
+
+/**
+ * @beta
  *
  * Creates an expression that concatenates string functions, fields or constants together.
  *
@@ -8628,38 +8745,6 @@ export function timestampTruncate(
     internalGranularity,
     timezone
   );
-}
-
-/**
- * @beta
- * Creates an expression that returns the data type of the data in the specified field.
- *
- * @example
- * ```typescript
- * // Get the data type of the value in field 'title'
- * type('title')
- * ```
- *
- * @returns A new `Expression` representing the data type.
- */
-export function type(fieldName: string): FunctionExpression;
-/**
- * @beta
- * Creates an expression that returns the data type of an expression's result.
- *
- * @example
- * ```typescript
- * // Get the data type of a conditional expression
- * type(conditional(exists('foo'), constant(1), constant(true)))
- * ```
- *
- * @returns A new `Expression` representing the data type.
- */
-export function type(expression: Expression): FunctionExpression;
-export function type(
-  fieldNameOrExpression: string | Expression
-): FunctionExpression {
-  return fieldOrExpression(fieldNameOrExpression).type();
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
