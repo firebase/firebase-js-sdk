@@ -74,6 +74,10 @@ import {
   lessThanOrEqual,
   arrayLength,
   mapGet,
+  mapSet,
+  mapKeys,
+  mapValues,
+  mapEntries,
   notEqual,
   or,
   regexContains,
@@ -2839,6 +2843,76 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         'nested.level.`1`': 'bar',
         nested: 'baz'
       });
+    });
+
+    it('test mapSet', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({}))
+          .addFields(
+            mapSet(map({}), 'a', 1).as('simple'),
+            mapSet(map({ a: 1 }), 'b', 2).as('add'),
+            mapSet(map({ a: 1 }), 'a', 2).as('overwrite'),
+            mapSet(map({ a: 1, b: 2 }), 'a', 3, 'c', 4).as('multi'),
+            mapSet(map({ a: 1 }), 'a', field('non_existent')).as('remove')
+          )
+      );
+      expectResults(snapshot, {
+        simple: { a: 1 },
+        add: { a: 1, b: 2 },
+        overwrite: { a: 2 },
+        multi: { a: 3, b: 2, c: 4 },
+        remove: {}
+      });
+    });
+
+    it('test mapKeys', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ a: 1, b: 2, c: 3 }))
+          .addFields(mapKeys(map({ a: 1, b: 2 })).as('keys'))
+      );
+
+      // Map iteration order is generally insertion order but not strictly guaranteed by JSON.
+      // However, our backend implementation (LinkedHashMap) preserves insertion order.
+      // We'll check for containment to be safe if order flakes, but expecting order for now.
+      const res = snapshot.results[0].data();
+      expect(res.keys).to.have.members(['a', 'b']);
+    });
+
+    it('test mapValues', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ a: 1, b: 2 }))
+          .addFields(mapValues(map({ a: 1, b: 2 })).as('values'))
+      );
+      const res = snapshot.results[0].data();
+      expect(res.values).to.have.members([1, 2]);
+    });
+
+    it('test mapEntries', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ a: 1, b: 2 }))
+          .addFields(mapEntries(map({ a: 1, b: 2 })).as('entries'))
+      );
+      const res = snapshot.results[0].data();
+      expect(res.entries).to.deep.include.members([
+        { k: 'a', v: 1 },
+        { k: 'b', v: 2 }
+      ]);
     });
 
     describe('rawFunction', () => {
