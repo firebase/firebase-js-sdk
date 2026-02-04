@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnectError } from '../core/error';
+import { Code, DataConnectError } from '../core/error';
 
 import { InternalCacheProvider } from './CacheProvider';
 import {
@@ -51,7 +51,7 @@ export class EntityNode {
     }
     if (typeof values !== 'object' || Array.isArray(values)) {
       throw new DataConnectError(
-        'invalid-argument',
+        Code.INVALID_ARGUMENT,
         'EntityNode initialized with non-object value'
       );
     }
@@ -99,7 +99,7 @@ export class EntityNode {
             }
             if (scalarArray.length > 0 && objArray.length > 0) {
               throw new DataConnectError(
-                'invalid-argument',
+                Code.INVALID_ARGUMENT,
                 'Sparse array detected.'
               );
             }
