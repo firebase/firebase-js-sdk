@@ -39,7 +39,8 @@ export class ResultTree {
   ) {}
   isStale(): boolean {
     return (
-      Date.now() - new Date(this.cachedAt.getTime()).getTime() > (this.maxAge * 1000)
+      Date.now() - new Date(this.cachedAt.getTime()).getTime() >
+      this.maxAge * 1000
     );
   }
   updateMaxAge(maxAgeInSeconds: number): void {

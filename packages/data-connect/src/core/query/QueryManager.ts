@@ -23,7 +23,7 @@ import {
   SerializedRef,
   SOURCE_SERVER,
   DataSource,
-  SOURCE_CACHE,
+  SOURCE_CACHE
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
@@ -96,7 +96,6 @@ export class QueryManager {
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
     if (this.cache) {
-      console.log('update cache result', result);
       const entityIds = parseEntityIds(result);
       return this.cache.update(
         encoderImpl({
@@ -205,7 +204,10 @@ export class QueryManager {
         }
         queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
       } else {
-        if (!(await this.cache?.containsResultTree(key)) || (await this.cache?.getResultTree(key))!.isStale()) {
+        if (
+          !(await this.cache?.containsResultTree(key)) ||
+          (await this.cache?.getResultTree(key))!.isStale()
+        ) {
           shouldExecute = true;
         } else {
           queryResult = await this.getFromResultTreeCache(key, queryRef);
@@ -226,7 +228,12 @@ export class QueryManager {
           ref: queryRef,
           source: SOURCE_SERVER,
           extensions: response.extensions,
-          toJSON: getRefSerializer(queryRef, response.data, SOURCE_SERVER, fetchTime)
+          toJSON: getRefSerializer(
+            queryRef,
+            response.data,
+            SOURCE_SERVER,
+            fetchTime
+          )
         };
         impactedQueries = await this.updateCache(queryResult);
       } catch (e: unknown) {
@@ -238,7 +245,10 @@ export class QueryManager {
       this.subscriptionCache.set(key, queryResult!);
       this.publishDataToSubscribers(key, queryResult!);
     } else {
-      await this.publishCacheResultsToSubscribers(impactedQueries, queryResult!.fetchTime);
+      await this.publishCacheResultsToSubscribers(
+        impactedQueries,
+        queryResult!.fetchTime
+      );
     }
     return queryResult!;
   }
@@ -259,7 +269,12 @@ export class QueryManager {
       source: SOURCE_CACHE,
       ref: queryRef,
       data: cacheResult,
-      toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE, resultTree!.cachedAt.toString()),
+      toJSON: getRefSerializer(
+        queryRef,
+        cacheResult,
+        SOURCE_CACHE,
+        resultTree!.cachedAt.toString()
+      ),
       fetchTime: resultTree!.cachedAt.toString()
     };
     (await this.cache!.getResultTree(key))!.updateAccessed();
@@ -273,7 +288,12 @@ export class QueryManager {
     }
     const result = this.subscriptionCache.get(key);
     result!.source = SOURCE_CACHE;
-    result!.toJSON = getRefSerializer(result!.ref, result!.data, SOURCE_CACHE, result!.fetchTime);
+    result!.toJSON = getRefSerializer(
+      result!.ref,
+      result!.data,
+      SOURCE_CACHE,
+      result!.fetchTime
+    );
     return result;
   }
 
