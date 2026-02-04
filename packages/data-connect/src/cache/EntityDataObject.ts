@@ -24,7 +24,7 @@ export type FDCScalarValue =
   | Record<string, unknown>
   | FDCScalarValue[];
 
-export interface BackingDataObjectJson {
+export interface EntityDataObjectJson {
   map: {
     [key: string]: FDCScalarValue;
   };
@@ -39,14 +39,14 @@ export class EntityDataObject {
   getServerValues(): { [key: string]: FDCScalarValue } {
     return this.serverValues;
   }
-  toJson(): BackingDataObjectJson {
+  toJson(): EntityDataObjectJson {
     return {
       globalID: this.globalID,
       map: this.serverValues,
       referencedFrom: Array.from(this.referencedFrom)
     };
   }
-  static fromJson(json: BackingDataObjectJson): EntityDataObject {
+  static fromJson(json: EntityDataObjectJson): EntityDataObject {
     const bdo = new EntityDataObject(json.globalID);
     bdo.serverValues = json.map;
     bdo.referencedFrom = new Set(json.referencedFrom);
