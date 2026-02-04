@@ -24,13 +24,12 @@ import {
   SOURCE_SERVER,
   DataSource,
   SOURCE_CACHE,
-  OpResult
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { EncodingMode } from '../../cache/EntityNode';
 import { logDebug } from '../../logger';
-import { DataConnectExtension, DataConnectTransport } from '../../network';
+import { DataConnectTransport } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
@@ -40,11 +39,13 @@ import {
   OnErrorSubscription,
   OnResultSubscription
 } from './subscribe';
+import { parseEntityIds } from '../../cache/cacheUtils';
 
 export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
   data: Data,
-  source: DataSource
+  source: DataSource,
+  fetchTime: string
 ) {
   return function toJSON(): SerializedRef<Data, Variables> {
     return {
@@ -57,7 +58,7 @@ export function getRefSerializer<Data, Variables>(
           ...queryRef.dataConnect.getSettings()
         }
       },
-      fetchTime: Date.now().toLocaleString(), // TODO: Fix the fetch time here.
+      fetchTime,
       source
     };
   };
@@ -85,7 +86,7 @@ export class QueryManager {
   updateSSR<Data, Variables>(updatedData: QueryResult<Data, Variables>): void {
     this.queue.push(
       this.updateCache(updatedData).then(async result =>
-        this.publishCacheResultsToSubscribers(result)
+        this.publishCacheResultsToSubscribers(result, updatedData.fetchTime)
       )
     );
   }
@@ -95,6 +96,7 @@ export class QueryManager {
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
     if (this.cache) {
+      console.log('update cache result', result);
       const entityIds = parseEntityIds(result);
       return this.cache.update(
         encoderImpl({
@@ -171,73 +173,6 @@ export class QueryManager {
 
     return unsubscribe;
   }
-  async loadCache<Data, Variables>(
-    queryRef: QueryRef<Data, Variables>,
-    cachingEnabled: boolean,
-    options?: ExecuteQueryOptions
-  ): Promise<QueryResult<Data, Variables> | null> {
-    const key = encoderImpl({
-      name: queryRef.name,
-      variables: queryRef.variables,
-      refType: QUERY_STR
-    });
-    if (!cachingEnabled) {
-      const cachedData = this.subscriptionCache.get(key) as QueryResult<
-        Data,
-        Variables
-      >;
-      if (cachedData) {
-        this.publishDataToSubscribers(key, {
-          data: cachedData.data,
-          fetchTime: cachedData.fetchTime,
-          ref: cachedData.ref,
-          source: SOURCE_CACHE,
-          toJSON: getRefSerializer(
-            cachedData.ref,
-            cachedData.data,
-            SOURCE_CACHE
-          )
-        });
-        return cachedData;
-      }
-    }
-    if (
-      options?.fetchPolicy !== QueryFetchPolicy.SERVER_ONLY &&
-      cachingEnabled &&
-      (await this.cache!.containsResultTree(key)) &&
-      !(await this.cache!.getResultTree(key))!.isStale()
-    ) {
-      const cacheResult: Data = (await this.cache!.getResultJSON(key)) as Data;
-      const resultTree = await this.cache!.getResultTree(key);
-      const result: QueryResult<Data, Variables> = {
-        source: SOURCE_CACHE,
-        ref: queryRef,
-        data: cacheResult,
-        toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
-        fetchTime: resultTree!.cachedAt.toString()
-      };
-      (await this.cache!.getResultTree(key))!.updateAccessed();
-      logDebug(
-        `Cache found for query ${queryRef.name} with variables ${JSON.stringify(
-          queryRef.variables
-        )}. Calling executeQuery`
-      );
-      return result;
-    } else {
-      if (options?.fetchPolicy === QueryFetchPolicy.SERVER_ONLY) {
-        logDebug(`Skipping cache for fetch policy "serverOnly"`);
-      } else {
-        logDebug(
-          `No Cache found for query ${
-            queryRef.name
-          } with variables ${JSON.stringify(
-            queryRef.variables
-          )}. Calling executeQuery`
-        );
-      }
-    }
-    return null;
-  }
   async maybeExecuteQuery<Data, Variables>(
     queryRef: QueryRef<Data, Variables>,
     options?: ExecuteQueryOptions
@@ -270,7 +205,7 @@ export class QueryManager {
         }
         queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
       } else {
-        if (!this.cache?.containsResultTree(key)) {
+        if (!(await this.cache?.containsResultTree(key)) || (await this.cache?.getResultTree(key))!.isStale()) {
           shouldExecute = true;
         } else {
           queryResult = await this.getFromResultTreeCache(key, queryRef);
@@ -284,13 +219,14 @@ export class QueryManager {
           queryRef.name,
           queryRef.variables
         );
+        const fetchTime = new Date().toISOString();
         queryResult = {
           data: response.data,
-          fetchTime: new Date().toISOString(),
+          fetchTime,
           ref: queryRef,
           source: SOURCE_SERVER,
           extensions: response.extensions,
-          toJSON: getRefSerializer(queryRef, response.data, SOURCE_SERVER)
+          toJSON: getRefSerializer(queryRef, response.data, SOURCE_SERVER, fetchTime)
         };
         impactedQueries = await this.updateCache(queryResult);
       } catch (e: unknown) {
@@ -302,7 +238,7 @@ export class QueryManager {
       this.subscriptionCache.set(key, queryResult!);
       this.publishDataToSubscribers(key, queryResult!);
     } else {
-      await this.publishCacheResultsToSubscribers(impactedQueries);
+      await this.publishCacheResultsToSubscribers(impactedQueries, queryResult!.fetchTime);
     }
     return queryResult!;
   }
@@ -323,7 +259,7 @@ export class QueryManager {
       source: SOURCE_CACHE,
       ref: queryRef,
       data: cacheResult,
-      toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE),
+      toJSON: getRefSerializer(queryRef, cacheResult, SOURCE_CACHE, resultTree!.cachedAt.toString()),
       fetchTime: resultTree!.cachedAt.toString()
     };
     (await this.cache!.getResultTree(key))!.updateAccessed();
@@ -337,7 +273,7 @@ export class QueryManager {
     }
     const result = this.subscriptionCache.get(key);
     result!.source = SOURCE_CACHE;
-    result!.toJSON = getRefSerializer(result!.ref, result!.data, SOURCE_CACHE);
+    result!.toJSON = getRefSerializer(result!.ref, result!.data, SOURCE_CACHE, result!.fetchTime);
     return result;
   }
 
@@ -354,7 +290,8 @@ export class QueryManager {
     });
   }
   async publishCacheResultsToSubscribers(
-    impactedQueries: string[]
+    impactedQueries: string[],
+    fetchTime: string
   ): Promise<void> {
     if (!this.cache) {
       return;
@@ -382,59 +319,11 @@ export class QueryManager {
         fetchTime: new Date().toISOString(),
         ref: queryRef,
         source: SOURCE_CACHE,
-        toJSON: getRefSerializer(queryRef, newJson, SOURCE_CACHE)
+        toJSON: getRefSerializer(queryRef, newJson, SOURCE_CACHE, fetchTime)
       });
     }
   }
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
-  }
-}
-
-// TODO: Move this to its own file
-// TODO: Make this return a Record<string, unknown>, and use this as a lookup table for entity ids
-export function parseEntityIds<T>(
-  result: OpResult<T>
-): Record<string, unknown> {
-  // Iterate through extensions.dataConnect
-  const dataConnectExtensions = result.extensions?.dataConnect;
-  const dataCopy = Object.assign(result);
-  if (!dataConnectExtensions) {
-    return dataCopy;
-  }
-  const ret: Record<string, unknown> = {};
-  for (const extension of dataConnectExtensions) {
-    const { path } = extension;
-    populatePath(path, ret, extension);
-  }
-  return ret;
-}
-
-// TODO: Only enable this if clientCache.includeEntityId is true
-// mutates the object to update the path
-export function populatePath(
-  path: Array<string | number>,
-  toUpdate: Record<string | number, unknown>,
-  extension: DataConnectExtension
-): void {
-  let curObj: Record<string | number, unknown> = toUpdate;
-  for (const slice of path) {
-    if (typeof curObj[slice] !== 'object') {
-      curObj[slice] = {};
-    }
-    curObj = curObj[slice] as Record<string, unknown>;
-  }
-
-  if ('entityId' in extension) {
-    curObj['_id'] = extension.entityId;
-  } else {
-    const entityArr = extension.entityIds;
-    for (let i = 0; i < entityArr.length; i++) {
-      const entityId = entityArr[i];
-      if (typeof curObj[i] === 'undefined') {
-        curObj[i] = {};
-      }
-      (curObj[i] as Record<string, unknown>)._id = entityId;
-    }
   }
 }

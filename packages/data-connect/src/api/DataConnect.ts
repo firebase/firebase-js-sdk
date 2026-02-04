@@ -413,8 +413,8 @@ export const StorageType = {
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 export interface CacheSettings {
-  cacheProvider: CacheProvider<StorageType>; // TODO: Modify the API proposal to make this required.
-  maxAge?: number;
+  cacheProvider: CacheProvider<StorageType>;
+  maxAgeSeconds?: number;
 }
 export interface CacheProvider<T extends StorageType> {
   type: T;

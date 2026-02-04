@@ -16,7 +16,7 @@ export interface CacheSettings {
     // (undocumented)
     cacheProvider: MemoryStub<StorageType>;
     // (undocumented)
-    maxAge?: number;
+    maxAgeSeconds?: number;
 }
 
 // @public

@@ -33,17 +33,17 @@ export class ResultTree {
   }
   constructor(
     private rootStub: EntityNode,
-    private maxAge: number = 30000,
+    private maxAge: number = 30,
     public readonly cachedAt: Date,
     private _lastAccessed: Date
   ) {}
   isStale(): boolean {
     return (
-      Date.now() - new Date(this.cachedAt.getTime()).getTime() > this.maxAge
+      Date.now() - new Date(this.cachedAt.getTime()).getTime() > (this.maxAge * 1000)
     );
   }
-  updateMaxAge(maxAgeInMs: number): void {
-    this.maxAge = maxAgeInMs;
+  updateMaxAge(maxAgeInSeconds: number): void {
+    this.maxAge = maxAgeInSeconds;
   }
   updateAccessed(): void {
     this._lastAccessed = new Date();

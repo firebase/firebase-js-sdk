@@ -50,6 +50,7 @@ export class ResultTreeProcessor {
   ): Promise<DehydratedResults> {
     const acc = new ImpactedQueryRefsAccumulator(queryId);
     const entityNode = new EntityNode();
+    console.log('entityIds', entityIds);
     await entityNode.loadData(queryId, json, entityIds, acc, cacheProvider);
     return {
       entityNode,

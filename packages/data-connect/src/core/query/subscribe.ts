@@ -116,7 +116,7 @@ export function subscribe<Data, Variables>(
       source,
       fetchTime,
       ref,
-      toJSON: getRefSerializer(ref, data, source)
+      toJSON: getRefSerializer(ref, data, source, fetchTime)
     };
   } else {
     ref = queryRefOrSerializedResult;

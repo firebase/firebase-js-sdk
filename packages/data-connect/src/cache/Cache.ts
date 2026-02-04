@@ -22,7 +22,7 @@ import {
   CacheSettings,
   type ConnectorConfig
 } from '../api/DataConnect';
-import { DataConnectError } from '../core/error';
+import { Code, DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { InternalCacheProvider } from './CacheProvider';
@@ -100,7 +100,7 @@ export class DataConnectCache {
     const resultTree = await cacheProvider!.getResultTree(queryId);
     if (!resultTree) {
       throw new DataConnectError(
-        'invalid-argument',
+        Code.INVALID_ARGUMENT,
         `${queryId} not found in cache. Call "update() first."`
       );
     }
@@ -126,7 +126,7 @@ export class DataConnectCache {
       queryId,
       new ResultTree(
         stubDataObject,
-        serverValues.maxAge || this.cacheSettings.maxAge,
+        serverValues.maxAge || this.cacheSettings.maxAgeSeconds,
         now,
         now
       )
