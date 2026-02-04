@@ -324,7 +324,7 @@ export class QueryManager {
       const newJson = (await this.cache.getResultTree(query))!
         .getRootStub()
         .toJson(EncodingMode.hydrated);
-      const { name, variables } = decoderImpl(query) as QueryRef<
+      const { name, variables } = decoderImpl(query) as unknown as QueryRef<
         unknown,
         unknown
       >;

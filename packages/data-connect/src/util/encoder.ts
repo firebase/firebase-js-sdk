@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-export type HmacImpl = (obj: unknown) => string;
+export type HmacImpl = (obj: Record<string, unknown>) => string;
 export let encoderImpl: HmacImpl;
-export type DecodeHmacImpl = (s: string) => object;
+export type DecodeHmacImpl = (s: string) => Record<string, unknown>;
 export let decoderImpl: DecodeHmacImpl;
 export function setEncoder(encoder: HmacImpl): void {
   encoderImpl = encoder;
@@ -25,6 +25,10 @@ export function setEncoder(encoder: HmacImpl): void {
 export function setDecoder(decoder: DecodeHmacImpl): void {
   decoderImpl = decoder;
 }
-// TODO(mtewani): Fix issue where if fields are out of order, caching breaks.
-setEncoder(o => JSON.stringify(o));
+setEncoder((o: Record<string, unknown>) => JSON.stringify(Object.keys(o)
+  .sort()
+  .reduce((accumulator, currentKey) => {
+    accumulator[currentKey] = o[currentKey];
+    return accumulator;
+  }, {} as Record<string, unknown>)));
 setDecoder(s => JSON.parse(s));

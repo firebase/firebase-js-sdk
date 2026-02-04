@@ -20,7 +20,7 @@ import { DataConnectError } from '../core/error';
 import { InternalCacheProvider } from './CacheProvider';
 import {
   EntityDataObject,
-  BackingDataObjectJson,
+  EntityDataObjectJson,
   FDCScalarValue
 } from './EntityDataObject';
 import { ImpactedQueryRefsAccumulator } from './ImpactedQueryRefsAccumulator';
@@ -249,7 +249,7 @@ export class EntityNode {
 }
 
 export interface DehydratedStubDataObject {
-  backingData?: BackingDataObjectJson;
+  backingData?: EntityDataObjectJson;
   globalID?: string;
   scalars: { [key: string]: FDCScalarValue };
   references: { [key: string]: DehydratedStubDataObject };
