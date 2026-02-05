@@ -37,12 +37,13 @@ export class CrashlyticsErrorBoundary extends Component<
 
   componentDidCatch(error: Error, _errorInfo: ErrorInfo): void {
     this.props.onError(error);
+    // Re-throw the error to allow other boundaries to catch it.
+    throw error;
   }
 
   render(): ReactNode {
     if (this.state.error) {
-      // Re-throw the error to allow other boundaries to catch it.
-      throw this.state.error;
+      return null;
     }
     return this.props.children;
   }

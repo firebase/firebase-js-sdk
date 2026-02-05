@@ -122,6 +122,7 @@ describe('FirebaseCrashlytics', () => {
       );
 
       // Verify the error was recorded
+
       expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
       expect(recordErrorStub).to.have.been.calledWith(
         fakeCrashlytics,
