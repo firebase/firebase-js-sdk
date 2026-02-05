@@ -16,6 +16,7 @@
  */
 
 import {
+  AIErrorCode,
   Content,
   FunctionCall,
   FunctionDeclarationsTool,
@@ -38,6 +39,7 @@ import { generateContent, generateContentStream } from './generate-content';
 import { ApiSettings } from '../types/internal';
 import { logger } from '../logger';
 import { ChromeAdapter } from '../types/chrome-adapter';
+import { AIError } from '../errors';
 
 /**
  * Do not log a message for this error.
@@ -114,6 +116,46 @@ export class ChatSession {
     callHistory.push(incomingContent);
 
     return generateContent(
+      this._apiSettings,
+      this.model,
+      generateContentRequest,
+      this.chromeAdapter,
+      this.requestOptions
+    ).then(result => {
+      if (result.response.candidates && result.response.candidates.length > 0) {
+        const responseContent: Content = {
+          parts: result.response.candidates?.[0].content.parts || [],
+          // Response seems to come back without a role set.
+          role: result.response.candidates?.[0].content.role || 'model'
+        };
+        callHistory.push(responseContent);
+        return { result, callHistory };
+      } else {
+        const blockErrorMessage = formatBlockErrorMessage(result.response);
+        if (blockErrorMessage) {
+          logger.warn(
+            `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
+          );
+        }
+        return { callHistory };
+      }
+    });
+  }
+
+  /**
+   * Make a single call to generateContentStream and do some response handling.
+   * @internal
+   */
+  async _callGenerateContentStream(
+    request: string | Array<string | Part>
+  ): Promise<{ result?: GenerateContentStreamResult; callHistory: Content[] }> {
+    const incomingContent = formatNewContent(request);
+    const generateContentRequest = this._formatRequest(incomingContent); // Store history in a temporary array until we are done
+    // with all turns (such as in the case of function calls)
+    const callHistory: Content[] = [];
+    callHistory.push(incomingContent);
+
+    return generateContentStream(
       this._apiSettings,
       this.model,
       generateContentRequest,
@@ -227,7 +269,10 @@ export class ChatSession {
       }
       return this._callGenerateContent(functionResponseParts);
     } else {
-      throw new Error('error here about no function declarations tool');
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        `No function declarations were provided in "tools".`
+      );
     }
   }
 
@@ -242,7 +287,7 @@ export class ChatSession {
     await this._sendPromise;
     const newContent = formatNewContent(request);
     const generateContentRequest = this._formatRequest(newContent);
-    const streamPromise = generateContentStream(
+    const { firstValue, stream, response } = await generateContentStream(
       this._apiSettings,
       this.model,
       generateContentRequest,
@@ -250,9 +295,25 @@ export class ChatSession {
       this.requestOptions
     );
 
+    let finalStreamResult = { stream, response };
+
+    let functionCalls = getFunctionCalls(firstValue);
+    // Repeats until model returns a response with no function calls.
+    while (functionCalls) {
+      const { result: fnResult, callHistory } =
+        await this._callFunctionsAsNeeded(functionCalls, this.params?.tools);
+      if (fnResult) {
+        this._tempHistory = this._tempHistory?.concat(callHistory);
+        functionCalls = getFunctionCalls(fnResult?.response);
+        finalResult = fnResult;
+      } else {
+        functionCalls = undefined;
+      }
+    }
+
     // Add onto the chain.
     this._sendPromise = this._sendPromise
-      .then(() => streamPromise)
+      .then(() => (finalStreamResult))
       // This must be handled to avoid unhandled rejection, but jump
       // to the final catch block with a label to not log this error.
       .catch(_ignored => {
@@ -287,6 +348,6 @@ export class ChatSession {
           logger.error(e);
         }
       });
-    return streamPromise;
+    return finalStreamResult;
   }
 }

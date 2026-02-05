@@ -108,7 +108,7 @@ export class GenerativeModel extends AIModel {
     request: GenerateContentRequest | string | Array<string | Part>
   ): Promise<GenerateContentStreamResult> {
     const formattedParams = formatGenerateContentInput(request);
-    return generateContentStream(
+    const { stream, response } = await generateContentStream(
       this._apiSettings,
       this.model,
       {
@@ -122,6 +122,7 @@ export class GenerativeModel extends AIModel {
       this.chromeAdapter,
       this.requestOptions
     );
+    return { stream, response };
   }
 
   /**
