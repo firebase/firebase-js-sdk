@@ -3886,6 +3886,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
           .select(
             isType(field('int'), 'number').as('isNum'),
+            isType(field('int'), 'int64').as('isInt64'),
             isType('int', 'string').as('isNumStr'),
             field('str').isType('string').as('isStr'),
             field('str').isType('number').as('isStrNum')
@@ -3895,6 +3896,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       expectResults(snapshot, {
         isNum: true,
+        isInt64: true,
         isNumStr: false,
         isStr: true,
         isStrNum: false
