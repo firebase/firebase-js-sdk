@@ -4,7 +4,9 @@
 
 ```ts
 
+import { default } from 'react';
 import { FirebaseApp } from '@firebase/app';
+import { RoutesProps } from 'react-router-dom';
 
 // @public
 export interface Crashlytics {
@@ -16,6 +18,12 @@ export interface CrashlyticsOptions {
     appVersion?: string;
     endpointUrl?: string;
 }
+
+// @public
+export function CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }: RoutesProps & {
+    firebaseApp: FirebaseApp;
+    crashlyticsOptions?: CrashlyticsOptions;
+}): default.ReactElement | null;
 
 // @public
 export function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }: {

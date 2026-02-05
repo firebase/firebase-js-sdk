@@ -75,7 +75,8 @@
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
     "@types/react": "17.x || 18.x || 19.x",
-    "react": "17.x || 18.x || 19.x"
+    "react": "17.x || 18.x || 19.x",
+    "react-router-dom": ">= 7.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -88,6 +89,9 @@
       "optional": true
     },
     "@angular/router": {
+      "optional": true
+    },
+    "react-router-dom": {
       "optional": true
     }
   },
@@ -123,6 +127,7 @@
     "next": "15.5.2",
     "react": "19.1.1",
     "react-dom": "19.1.1",
+    "react-router-dom": "7.9.6",
     "rollup": "2.79.2",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-replace": "2.2.0",
