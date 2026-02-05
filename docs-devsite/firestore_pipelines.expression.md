@@ -4085,8 +4085,8 @@ A new `Expression` representing the data type.
 
 
 ```typescript
-// Best practice: Get the data type of the nested object field 'address.city'
-field('address').mapGet('city').type()
+// Get the data type of the value in field 'title'
+field('title').type()
 
 ```
 

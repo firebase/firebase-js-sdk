@@ -2275,7 +2275,7 @@ A new `BooleanExpression` that evaluates to true if the expression's result is o
 
 ```typescript
 // Check if the result of a calculation is a number
-isType(add(Field('count'), 1), 'number')
+isType(add('count', 1), 'number')
 
 ```
 
@@ -4473,8 +4473,6 @@ greaterThanOrEqual("score", 80);
 > 
 
 Creates an expression that checks if the value in the specified field is of the given type.
-
-This function is compiled to an AST pipeline evaluation and relies strictly on backend resolution logic: - A JS `number` requires checking for `'int64'` or `'float64'` depending on precision. - Missing fields should be handled by `ifAbsent()` checks before `isType()`<!-- -->.
 
 <b>Signature:</b>
 

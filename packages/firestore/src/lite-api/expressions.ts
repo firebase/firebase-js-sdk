@@ -1263,8 +1263,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @example
    * ```typescript
-   * // Best practice: Get the data type of the nested object field 'address.city'
-   * field('address').mapGet('city').type()
+   * // Get the data type of the value in field 'title'
+   * field('title').type()
    * ```
    *
    * @returns A new `Expression` representing the data type.
@@ -6784,11 +6784,6 @@ export function type(
  * @beta
  * Creates an expression that checks if the value in the specified field is of the given type.
  *
- * @remarks
- * This function is compiled to an AST pipeline evaluation and relies strictly on backend resolution logic:
- * - A JS `number` requires checking for `'int64'` or `'float64'` depending on precision.
- * - Missing fields should be handled by `ifAbsent()` checks before `isType()`.
- *
  * @example
  * ```typescript
  * // Check if the 'price' field is a floating point number (evaluating to true inside pipeline conditionals)
@@ -6800,6 +6795,7 @@ export function type(
  * @returns A new `BooleanExpression` that evaluates to true if the field's value is of the given type, false otherwise.
  */
 export function isType(fieldName: string, type: Type): BooleanExpression;
+
 /**
  * @beta
  * Creates an expression that checks if the result of an expression is of the given type.
@@ -6807,7 +6803,7 @@ export function isType(fieldName: string, type: Type): BooleanExpression;
  * @example
  * ```typescript
  * // Check if the result of a calculation is a number
- * isType(add(Field('count'), 1), 'number')
+ * isType(add('count', 1), 'number')
  * ```
  *
  * @param expression - The expression to check.
