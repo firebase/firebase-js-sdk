@@ -94,6 +94,8 @@ export {
   toLower,
   toUpper,
   trim,
+  type,
+  isType,
   stringConcat,
   mapGet,
   countAll,
@@ -150,7 +152,6 @@ export {
   arraySum,
   timestampTruncate,
   split,
-  type,
   Expression,
   AliasedExpression,
   Field,
@@ -161,7 +162,8 @@ export {
   ExpressionType,
   AliasedAggregate,
   Selectable,
-  TimeGranularity
+  TimeGranularity,
+  Type
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
