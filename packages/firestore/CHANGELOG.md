@@ -1,5 +1,15 @@
 # @firebase/firestore
 
+## 4.11.0
+
+### Minor Changes
+
+- [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded) [#9459](https://github.com/firebase/firebase-js-sdk/pull/9459) - Add support for `regexFind` and `regexFindAll` Pipeline expressions.
+
+### Patch Changes
+
+- [`65a553b`](https://github.com/firebase/firebase-js-sdk/commit/65a553baf435be2463477ef9ddb114f26a2845ce) [#9472](https://github.com/firebase/firebase-js-sdk/pull/9472) - Log a warning when `databaseId` is not found.
+
 ## 4.10.0
 
 ### Minor Changes
