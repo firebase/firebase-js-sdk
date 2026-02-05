@@ -1,5 +1,27 @@
 # firebase
 
+## 12.9.0
+
+### Minor Changes
+
+- [`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c) [#9461](https://github.com/firebase/firebase-js-sdk/pull/9461) - AI Logic: Extend the `LiveSession.receive()` return types to include a `LiveServiceGoingAwayNotice`
+  which signifies that the service will soon close the session.
+
+- [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8) [#9475](https://github.com/firebase/firebase-js-sdk/pull/9475) - Remove "preview" tags from code execution and URL context documentation.
+
+- [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59) [#9462](https://github.com/firebase/firebase-js-sdk/pull/9462) - Add params on `UsageMetadata` that provide cache-related usage data when the implicit caching feature is used.
+
+- [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded) [#9459](https://github.com/firebase/firebase-js-sdk/pull/9459) - Add support for `regexFind` and `regexFindAll` Pipeline expressions.
+
+### Patch Changes
+
+- Updated dependencies [[`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c), [`691a506`](https://github.com/firebase/firebase-js-sdk/commit/691a506ecaa10ac3f0354313f5de5a47f4c85199), [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8), [`65a553b`](https://github.com/firebase/firebase-js-sdk/commit/65a553baf435be2463477ef9ddb114f26a2845ce), [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59), [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded)]:
+  - @firebase/app@0.14.8
+  - @firebase/ai@2.8.0
+  - @firebase/firestore@4.11.0
+  - @firebase/app-compat@0.5.8
+  - @firebase/firestore-compat@0.4.5
+
 ## 12.8.0
 
 ### Minor Changes
