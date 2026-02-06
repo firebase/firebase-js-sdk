@@ -43,7 +43,7 @@ import {
 import { isValidResourceName } from '../remote/serializer';
 import { fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
-import { logError } from '../util/log';
+import { logDebug } from '../util/log';
 import { forEach } from '../util/obj';
 
 import { GeoPoint } from './geo_point';
@@ -184,7 +184,7 @@ export abstract class AbstractUserDataWriter {
 
     if (!databaseId.isEqual(expectedDatabaseId)) {
       // TODO(b/64130202): Somehow support foreign references.
-      logError(
+      logDebug(
         `Document ${key} contains a document ` +
           `reference within a different database (` +
           `${databaseId.projectId}/${databaseId.database}) which is not ` +

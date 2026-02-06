@@ -66,7 +66,7 @@ export type CollectionStageOptions = StageOptions & {
    * @beta
    * Name or reference to the collection that will be used as the Pipeline source.
    */
-  collection: string | CollectionReference;
+  collection?: string | CollectionReference;
 
   /**
    * @beta
@@ -342,4 +342,104 @@ export type SortStageOptions = StageOptions & {
    * One or more ordering are required.
    */
   orderings: Ordering[];
+};
+
+/**
+ * @beta
+ * Options defining how a WriteStage is evaluated.
+ */
+export type WriteStageOptions = StageOptions & {
+  /**
+   * @beta
+   * Whether the write should be performed in a transaction.
+   */
+  transactional?: boolean;
+};
+
+/**
+ * @beta
+ * Options defining how a DeleteStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(delete:1)}.
+ */
+export type DeleteStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Specifies what to return from the delete operation.
+   */
+  returns?: 'EMPTY' | 'DOCUMENT_ID';
+};
+
+/**
+ * @beta
+ * Options defining how an UpsertStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(upsert:1)}.
+ */
+export type UpsertStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Name or reference to the collection where documents will be upserted.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * @beta
+   * Specifies what to return from the upsert operation.
+   */
+  returns?: 'EMPTY' | 'DOCUMENT_ID';
+  /**
+   * @beta
+   * Specifies the conflict resolution strategy.
+   */
+  conflictResolution?: 'OVERWRITE' | 'MERGE' | 'FAIL' | 'KEEP';
+  /**
+   * @beta
+   * Expressions to apply during the upsert.
+   */
+  transformations?: Selectable[];
+};
+
+/**
+ * @beta
+ * Options defining how an UpdateStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(update:1)}.
+ */
+export type UpdateStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Name or reference to the collection where documents will be updated.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * @beta
+   * Specifies what to return from the update operation.
+   */
+  returns?: 'EMPTY' | 'DOCUMENT_ID';
+  /**
+   * @beta
+   * Specifies the conflict resolution strategy.
+   */
+  conflictResolution?: 'OVERWRITE' | 'MERGE' | 'FAIL' | 'KEEP';
+  /**
+   * @beta
+   * Expressions to apply during the update.
+   */
+  transformations?: Selectable[];
+};
+
+/**
+ * @beta
+ * Options defining how an InsertStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(insert:1)}.
+ */
+export type InsertStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Name or reference to the collection where documents will be inserted.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * @beta
+   * Specifies what to return from the insert operation.
+   */
+  returns?: 'EMPTY' | 'DOCUMENT_ID';
+  /**
+   * @beta
+   * Expressions to apply during the insert.
+   */
+  transformations?: Selectable[];
 };

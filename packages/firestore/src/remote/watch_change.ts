@@ -239,13 +239,16 @@ class TargetState {
   }
 
   recordTargetResponse(): void {
-    this.pendingResponses -= 1;
-    hardAssert(
-      this.pendingResponses >= 0,
-      0x0ca9,
-      '`pendingResponses` is less than 0. This indicates that the SDK received more target acks from the server than expected. The SDK should not continue to operate.',
-      { pendingResponses: this.pendingResponses }
-    );
+    if (this.pendingResponses > 0) {
+      this.pendingResponses -= 1;
+    } else {
+      // This can happen if the server sends more target acks than expected.
+      // We log this but continue to operate to avoid crashing the app.
+      logWarn(
+        'recordTargetResponse: pendingResponses is already 0. ' +
+          'This indicates that the SDK received more target acks from the server than expected.'
+      );
+    }
   }
 
   markCurrent(): void {
