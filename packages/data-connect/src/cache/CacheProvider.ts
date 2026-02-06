@@ -19,7 +19,7 @@ import { EntityDataObject } from './EntityDataObject';
 import { ResultTree } from './ResultTree';
 
 export interface InternalCacheProvider {
-  getBdo(globalId: string): Promise<EntityDataObject>;
+  getEntityData(globalId: string): Promise<EntityDataObject>;
   updateBackingData(backingData: EntityDataObject): Promise<void>;
   createGlobalId(): Promise<string>;
   getResultTree(queryId: string): Promise<ResultTree | undefined>;

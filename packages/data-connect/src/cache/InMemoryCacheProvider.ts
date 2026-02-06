@@ -37,7 +37,7 @@ export class InMemoryCacheProvider implements InternalCacheProvider {
   async updateBackingData(backingData: EntityDataObject): Promise<void> {
     this.edos.set(backingData.globalID, backingData);
   }
-  async getBdo(globalId: string): Promise<EntityDataObject> {
+  async getEntityData(globalId: string): Promise<EntityDataObject> {
     if (!this.edos.has(globalId)) {
       this.edos.set(globalId, new EntityDataObject(globalId));
     }

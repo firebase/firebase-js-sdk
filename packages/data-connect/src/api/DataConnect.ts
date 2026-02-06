@@ -130,6 +130,12 @@ export class DataConnect {
       }
     }
   }
+  /**
+   * @internal
+   */
+  getCache(): DataConnectCache | undefined {
+    return this.cache;
+  }
   // @internal
   _useGeneratedSdk(): void {
     if (!this._isUsingGeneratedSdk) {

@@ -38,13 +38,14 @@ export class EntityNode {
     [key: string]: EntityNode[];
   } = {};
   globalId?: string;
+  entityDataKeys: Set<string> = new Set();
 
   async loadData(
     queryId: string,
     values: FDCScalarValue,
     entityIds: Record<string, unknown> | undefined,
     acc: ImpactedQueryRefsAccumulator,
-    cacheProvider: InternalCacheProvider // TODO: Look into why null is being passed in here.
+    cacheProvider: InternalCacheProvider
   ): Promise<void> {
     if (values === undefined) {
       return;
@@ -66,16 +67,14 @@ export class EntityNode {
       typeof entityIds[GLOBAL_ID_KEY] === 'string'
     ) {
       this.globalId = entityIds[GLOBAL_ID_KEY];
-      // TODO: Add current query id to BDO
-      this.entityData = await cacheProvider.getBdo(this.globalId);
-    } else {
+      this.entityData = await cacheProvider.getEntityData(this.globalId);
     }
     for (const key in values) {
       if (values.hasOwnProperty(key)) {
         if (typeof values[key] === 'object') {
-          const ids: Record<string, unknown> | undefined =
-            entityIds && (entityIds[key] as Record<string, unknown>);
           if (Array.isArray(values[key])) {
+            const ids: Record<string, unknown> | undefined =
+              entityIds && (entityIds[key] as Record<string, unknown>);
             const objArray: EntityNode[] = [];
             const scalarArray: Array<NonNullable<FDCScalarValue>> = [];
             for (const [index, value] of values[key].entries()) {
@@ -110,6 +109,7 @@ export class EntityNode {
                   scalarArray,
                   queryId
                 );
+                this.entityDataKeys.add(key);
                 acc.add(impactedRefs);
               } else {
                 this.scalars[key] = scalarArray;
@@ -129,7 +129,7 @@ export class EntityNode {
             await entityNode.loadData(
               queryId,
               (values as Record<string, FDCScalarValue>)[key],
-              ids && (ids[key] as Record<string, unknown>),
+              entityIds && (entityIds[key] as Record<string, unknown>),
               acc,
               cacheProvider
             );
@@ -137,12 +137,12 @@ export class EntityNode {
           }
         } else {
           if (this.entityData) {
-            // TODO: Track only the fields we need for the BDO
             const impactedRefs = this.entityData.updateServerValue(
               key,
               values[key] as FDCScalarValue,
               queryId
             );
+            this.entityDataKeys.add(key);
             acc.add(impactedRefs);
           } else {
             this.scalars[key] = values[key] as FDCScalarValue;
@@ -155,11 +155,13 @@ export class EntityNode {
     }
   }
 
-  toJson(mode: EncodingMode): Record<string, unknown> {
+  toJSON(mode: EncodingMode): Record<string, unknown> {
     const resultObject: Record<string, unknown> = {};
     if (mode === EncodingMode.hydrated) {
       if (this.entityData) {
-        Object.assign(resultObject, this.entityData.getServerValues());
+        for (const key of this.entityDataKeys) {
+          resultObject[key] = this.entityData.getServerValue(key);
+        }
       }
 
       if (this.scalars) {
@@ -168,7 +170,7 @@ export class EntityNode {
       if (this.references) {
         for (const key in this.references) {
           if (this.references.hasOwnProperty(key)) {
-            resultObject[key] = this.references[key].toJson(mode);
+            resultObject[key] = this.references[key].toJSON(mode);
           }
         }
       }
@@ -176,7 +178,7 @@ export class EntityNode {
         for (const key in this.objectLists) {
           if (this.objectLists.hasOwnProperty(key)) {
             resultObject[key] = this.objectLists[key].map(obj =>
-              obj.toJson(mode)
+              obj.toJSON(mode)
             );
           }
         }
@@ -186,6 +188,7 @@ export class EntityNode {
       // Get JSON representation of dehydrated list
       if (this.entityData) {
         resultObject[GLOBAL_ID_KEY] = this.entityData.globalID;
+        // TODO: Check the object for the list of keys that need to be retrieved from the entity data object.
       }
 
       if (this.scalars) {
@@ -196,7 +199,7 @@ export class EntityNode {
         const references = {} as Record<string, unknown>;
         for (const key in this.references) {
           if (this.references.hasOwnProperty(key)) {
-            references[key] = this.references[key].toJson(mode);
+            references[key] = this.references[key].toJSON(mode);
           }
         }
         resultObject[REFERENCES_KEY] = references;
@@ -206,7 +209,7 @@ export class EntityNode {
         for (const key in this.objectLists) {
           if (this.objectLists.hasOwnProperty(key)) {
             objectLists[key] = this.objectLists[key].map(obj =>
-              obj.toJson(mode)
+              obj.toJSON(mode)
             );
           }
         }
@@ -220,7 +223,7 @@ export class EntityNode {
   static fromJson(obj: DehydratedStubDataObject): EntityNode {
     const sdo = new EntityNode();
     if (obj.backingData) {
-      sdo.entityData = EntityDataObject.fromJson(obj.backingData);
+      sdo.entityData = EntityDataObject.fromJSON(obj.backingData);
     }
     sdo.globalId = obj.globalID;
     sdo.scalars = obj.scalars;

@@ -31,7 +31,7 @@ export class ResultTreeProcessor {
    * @returns {string}
    */
   hydrateResults(rootStubObject: EntityNode): Record<string, unknown> {
-    return rootStubObject.toJson(EncodingMode.hydrated);
+    return rootStubObject.toJSON(EncodingMode.hydrated);
   }
   // TODO: Make this closer to https://github.com/firebase/data-connect-ios-sdk/blob/main/Sources/Cache/ResultTreeProcessor.swift
   /**
@@ -50,7 +50,6 @@ export class ResultTreeProcessor {
   ): Promise<DehydratedResults> {
     const acc = new ImpactedQueryRefsAccumulator(queryId);
     const entityNode = new EntityNode();
-    console.log('entityIds', entityIds);
     await entityNode.loadData(queryId, json, entityIds, acc, cacheProvider);
     return {
       entityNode,

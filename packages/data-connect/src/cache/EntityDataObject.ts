@@ -33,20 +33,23 @@ export interface EntityDataObjectJson {
 }
 
 export class EntityDataObject {
+  getServerValue(key: string): unknown {
+    return this.serverValues[key];
+  }
   private serverValues: { [key: string]: FDCScalarValue } = {};
   private referencedFrom = new Set<string>();
   constructor(public readonly globalID: string) {}
   getServerValues(): { [key: string]: FDCScalarValue } {
     return this.serverValues;
   }
-  toJson(): EntityDataObjectJson {
+  toJSON(): EntityDataObjectJson {
     return {
       globalID: this.globalID,
       map: this.serverValues,
       referencedFrom: Array.from(this.referencedFrom)
     };
   }
-  static fromJson(json: EntityDataObjectJson): EntityDataObject {
+  static fromJSON(json: EntityDataObjectJson): EntityDataObject {
     const bdo = new EntityDataObject(json.globalID);
     bdo.serverValues = json.map;
     bdo.referencedFrom = new Set(json.referencedFrom);
