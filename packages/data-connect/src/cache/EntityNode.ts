@@ -30,6 +30,7 @@ export const GLOBAL_ID_KEY = '_id';
 export const OBJECT_LISTS_KEY = '_objectLists';
 export const REFERENCES_KEY = '_references';
 export const SCALARS_KEY = '_scalars';
+export const ENTITY_DATA_KEYS_KEY = '_entity_data_keys';
 export class EntityNode {
   entityData?: EntityDataObject;
   scalars: Record<string, FDCScalarValue> = {};
@@ -190,6 +191,8 @@ export class EntityNode {
         resultObject[GLOBAL_ID_KEY] = this.entityData.globalID;
         // TODO: Check the object for the list of keys that need to be retrieved from the entity data object.
       }
+
+      resultObject[ENTITY_DATA_KEYS_KEY] = Array.from(this.entityDataKeys);
 
       if (this.scalars) {
         resultObject[SCALARS_KEY] = this.scalars;
