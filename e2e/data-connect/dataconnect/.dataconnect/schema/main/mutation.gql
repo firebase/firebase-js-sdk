@@ -1,0 +1,114 @@
+extend type Mutation {
+  """
+  ✨ Insert a single `Movie` into the table and return its key. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  movie_insert(
+    """
+    Data object to insert into the table.
+    """
+    data: Movie_Data!
+  ): Movie_KeyOutput! @fdc_generated(from: "Movie", purpose: INSERT_SINGLE)
+  """
+  ✨ Insert `Movie` objects into the table and return their keys. Columns not specified in `data` will receive defaults (e.g. `null`).
+  """
+  movie_insertMany(
+    """
+    List of data objects to insert into the table.
+    """
+    data: [Movie_Data!]!
+  ): [Movie_KeyOutput!]! @fdc_generated(from: "Movie", purpose: INSERT_MULTIPLE)
+  """
+  ✨ Insert or update a single `Movie` into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Movie`.
+  """
+  movie_upsert(
+    """
+    Data object to insert or update if it already exists.
+    """
+    data: Movie_Data!
+  ): Movie_KeyOutput! @fdc_generated(from: "Movie", purpose: UPSERT_SINGLE)
+  """
+  ✨ Insert or update `Movie` objects into the table, based on the primary key. Returns the key of the newly inserted or existing updated `Movie`.
+  """
+  movie_upsertMany(
+    """
+    List of data objects to insert or update if it already exists.
+    """
+    data: [Movie_Data!]!
+  ): [Movie_KeyOutput!]! @fdc_generated(from: "Movie", purpose: UPSERT_MULTIPLE)
+  """
+  ✨ Update a single `Movie` based on `id`, `key` or `first`, setting columns specified in `data`. Returns the key of the updated `Movie` or `null` if not found.
+  """
+  movie_update(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Movie_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Movie_FirstRow
+
+    """
+    Data object containing fields to be updated.
+    """
+    data: Movie_Data!
+  ): Movie_KeyOutput @fdc_generated(from: "Movie", purpose: UPDATE_SINGLE)
+  """
+  ✨ Update `Movie` objects matching `where` conditions (or `all`, if true) according to `data`. Returns the number of rows updated.
+  """
+  movie_updateMany(
+    """
+    Filter condition to specify which rows to update.
+    """
+    where: Movie_Filter
+
+    """
+    Set to true to update all rows.
+    """
+    all: Boolean = false
+
+    """
+    Data object containing fields to update.
+    """
+    data: Movie_Data!
+  ): Int! @fdc_generated(from: "Movie", purpose: UPDATE_MULTIPLE)
+  """
+  ✨ Delete a single `Movie` based on `id`, `key` or `first` and return its key (or `null` if not found).
+  """
+  movie_delete(
+    """
+    The unique ID of the object.
+    """
+    id: UUID
+
+    """
+    The key used to identify the object.
+    """
+    key: Movie_Key
+
+    """
+    Fetch the first row based on the filters and ordering.
+    """
+    first: Movie_FirstRow
+  ): Movie_KeyOutput @fdc_generated(from: "Movie", purpose: DELETE_SINGLE)
+  """
+  ✨ Delete `Movie` objects matching `where` conditions (or `all`, if true). Returns the number of rows deleted.
+  """
+  movie_deleteMany(
+    """
+    Filter condition to specify which rows to delete.
+    """
+    where: Movie_Filter
+
+    """
+    Set to true to delete all rows.
+    """
+    all: Boolean = false
+  ): Int! @fdc_generated(from: "Movie", purpose: DELETE_MULTIPLE)
+}

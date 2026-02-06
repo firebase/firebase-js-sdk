@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,17 @@
  * limitations under the License.
  */
 
-export * from './core/query/subscribe';
-export { makeMemoryCacheProvider, CacheProvider } from './api/DataConnect';
+export class ImpactedQueryRefsAccumulator {
+  impacted = new Set<string>();
+  constructor(private queryId: string) {}
+  add(impacted: string[]): void {
+    impacted
+      .filter(ref => ref !== this.queryId)
+      .forEach(ref => this.impacted.add(ref));
+  }
+  consumeEvents(): string[] {
+    const events = Array.from(this.impacted);
+    this.impacted.clear();
+    return events;
+  }
+}

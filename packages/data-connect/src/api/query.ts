@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnectError } from '../core/error';
+import { ExecuteQueryOptions } from '../core/query/queryOptions';
 
 import { DataConnect, getDataConnect } from './DataConnect';
 import {
@@ -24,21 +24,6 @@ import {
   DataConnectResult,
   SerializedRef
 } from './Reference';
-
-/**
- * Signature for `OnResultSubscription` for `subscribe`
- */
-export type OnResultSubscription<Data, Variables> = (
-  res: QueryResult<Data, Variables>
-) => void;
-/**
- * Signature for `OnErrorSubscription` for `subscribe`
- */
-export type OnErrorSubscription = (err?: DataConnectError) => void;
-/**
- * Signature for unsubscribe from `subscribe`
- */
-export type QueryUnsubscribe = () => void;
 
 /**
  * QueryRef object
@@ -69,9 +54,13 @@ export interface QueryPromise<Data, Variables>
  * @returns `QueryPromise`
  */
 export function executeQuery<Data, Variables>(
-  queryRef: QueryRef<Data, Variables>
+  queryRef: QueryRef<Data, Variables>,
+  options?: ExecuteQueryOptions
 ): QueryPromise<Data, Variables> {
-  return queryRef.dataConnect._queryManager.executeQuery(queryRef);
+  return queryRef.dataConnect._queryManager.maybeExecuteQuery(
+    queryRef,
+    options
+  );
 }
 
 /**
@@ -111,7 +100,9 @@ export function queryRef<Data, Variables>(
   initialCache?: QueryResult<Data, Variables>
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
-  dcInstance._queryManager.track(queryName, variables, initialCache);
+  if (initialCache !== undefined) {
+    dcInstance._queryManager.updateSSR(initialCache);
+  }
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,
@@ -131,16 +122,4 @@ export function toQueryRef<Data, Variables>(
     refInfo: { name, variables, connectorConfig }
   } = serializedRef;
   return queryRef(getDataConnect(connectorConfig), name, variables);
-}
-/**
- * `OnCompleteSubscription`
- */
-export type OnCompleteSubscription = () => void;
-/**
- * Representation of full observer options in `subscribe`
- */
-export interface SubscriptionOptions<Data, Variables> {
-  onNext?: OnResultSubscription<Data, Variables>;
-  onErr?: OnErrorSubscription;
-  onComplete?: OnCompleteSubscription;
 }
