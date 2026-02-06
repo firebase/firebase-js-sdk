@@ -4,12 +4,9 @@
 
 ```ts
 
-import { AppCheckInternalComponentName } from '@firebase/app-check-interop-types';
 import { FirebaseApp } from '@firebase/app';
-import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
-import { Provider } from '@firebase/component';
 
 // @public
 export type CallerSdkType = 'Base' | 'Generated' | 'TanstackReactCore' | 'GeneratedReact' | 'TanstackAngularCore' | 'GeneratedAngular';
@@ -53,7 +50,6 @@ export interface ConnectorConfig {
 
 // @public
 export class DataConnect {
-    constructor(app: FirebaseApp, dataConnectOptions: DataConnectOptions, _authProvider: Provider<FirebaseAuthInternalName>, _appCheckProvider: Provider<AppCheckInternalComponentName>);
     // (undocumented)
     readonly app: FirebaseApp;
     // (undocumented)
@@ -95,12 +91,6 @@ export interface DataConnectOperationFailureResponseErrorInfo {
     readonly message: string;
     // (undocumented)
     readonly path: Array<string | number>;
-}
-
-// @public
-export interface DataConnectOptions extends ConnectorConfig {
-    // (undocumented)
-    projectId: string;
 }
 
 // @public (undocumented)
@@ -216,7 +206,7 @@ export type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
 // @public
 export interface RefInfo<Variables> {
     // (undocumented)
-    connectorConfig: DataConnectOptions;
+    connectorConfig: ConnectorConfig;
     // (undocumented)
     name: string;
     // (undocumented)
