@@ -2532,6 +2532,70 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new FunctionExpression('type', [this]);
   }
 
+  /**
+   * Evaluates if the result of this `expression` is between
+   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+   *
+   * @example
+   * ```
+   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+   * field('tireWidth').between(constant(2.2), constant(2.4))
+   *
+   * // This is functionally equivalent to
+   * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
+   * ```
+   *
+   * @param lowerBound - Lower bound (inclusive) of the range.
+   * @param upperBound - Upper bound (inclusive) of the range.
+   */
+  between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+
+  /**
+   * Evaluates if the result of this `expression` is between
+   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+   *
+   * @example
+   * ```
+   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+   * field('tireWidth').between(2.2, 2.4)
+   *
+   * // This is functionally equivalent to
+   * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
+   * ```
+   *
+   * @param lowerBound - Lower bound (inclusive) of the range.
+   * @param upperBound - Upper bound (inclusive) of the range.
+   */
+  between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+
+  between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
+    throw 'not implemented';
+  }
+
+  /**
+   * Evaluates to an HTML-formatted text snippet that highlights terms matching
+   * the search query in `<b>bold</b>`.
+   *
+   * @remarks This Expression can only be used within a `Search` stage.
+   *
+   * @param rquery Define the search query using the search DTS (TODO(search) link).
+   */
+  snippet(rquery: string): BooleanExpression;
+
+  /**
+   * Evaluates to an HTML-formatted text snippet that highlights terms matching
+   * the search query in `<b>bold</b>`.
+   *
+   * @remarks This Expression can only be used within a `Search` stage.
+   *
+   * @param options Define how snippeting behaves.
+   */
+  snippet(options: SnippetOptions): BooleanExpression;
+
+  snippet(optionsOrRQuery: string | SnippetOptions): BooleanExpression {
+    throw 'not implemented';
+  }
+
   // TODO(new-expression): Add new expression method definitions above this line
 
   /**
@@ -2861,42 +2925,6 @@ export class Field extends Expression implements Selectable {
   geoDistance(location: GeoPoint): Expression {
     throw "Not implemented";
   }
-
-  /**
-   * Evaluates if the result of this `expression` is between
-   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-   *
-   * @example
-   * ```
-   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-   * field('tireWidth').between(constant(2.2), constant(2.4))
-   *
-   * // This is functionally equivalent to
-   * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
-   * ```
-   *
-   * @param lowerBound - Lower bound (inclusive) of the range.
-   * @param upperBound - Upper bound (inclusive) of the range.
-   */
-  between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
-
-  /**
-   * Evaluates if the result of this `expression` is between
-   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-   *
-   * @example
-   * ```
-   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-   * field('tireWidth').between(2.2, 2.4)
-   *
-   * // This is functionally equivalent to
-   * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
-   * ```
-   *
-   * @param lowerBound - Lower bound (inclusive) of the range.
-   * @param upperBound - Upper bound (inclusive) of the range.
-   */
-  between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
 
   /**
    * @private
@@ -8727,9 +8755,9 @@ export function type(
  * @remarks This Expression can only be used within a `Search` stage.
  *
  * @param fieldName Search the specified field.
- * @param query Define the search query using the search DTS (TODO(search) link).
+ * @param rquery Define the search query using the search DTS (TODO(search) link).
  */
-export function containsText(fieldName: string | Field, query: string): BooleanExpression {
+export function containsText(fieldName: string | Field, rquery: string): BooleanExpression {
   throw "Not implemented";
 }
 
@@ -8738,19 +8766,33 @@ export function containsText(fieldName: string | Field, query: string): BooleanE
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
- * @param query Define the search query using the search DTS (TODO(search) link).
+ * @param rquery Define the search query using the search DTS (TODO(search) link).
  */
-export function documentContainsText(query: string): BooleanExpression {
+export function documentContainsText(rquery: string): BooleanExpression {
   throw "Not implemented";
 }
 
 /**
- * Evaluates to the search score.
+ * Returns an {@link Ordering} that will sort the search stage results
+ * in the same order as the search index. This is often more performant
+ * than sorting by search score.
  *
  * @remarks This Expression can only be used within a `Search` stage.
  */
-export function searchScore(): Expression {
-  throw "Not implemented";
+export function indexSortOrder(): Ordering {
+  throw 'not implemented';
+}
+
+/**
+ * Evaluates to the search score that refelects the topicality of the document
+ * to all of the text predicates (`containsText` and `documentContainsText`)
+ * in the search query. If `SearchOptions.query` is not set or does not contain
+ * any text predicates, then this topicality score will always be `0`.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ */
+export function topicalityScore(): Expression {
+  throw 'not implemented';
 }
 
 /**
@@ -8758,14 +8800,9 @@ export function searchScore(): Expression {
  */
 export type SnippetOptions = {
   /**
-   * Search the specified field for matching terms.
-   */
-  fieldName: string | Field;
-
-  /**
    * Define the search query using the search DTS (TODO(search) link).
    */
-  query: string;
+  rquery: string;
 
   /**
    * The maximum width of the string estimated for a variable width font. The
@@ -8794,7 +8831,7 @@ export type SnippetOptions = {
  * @param fieldName Search the specified field for matching terms.
  * @param query Define the search query using the search DTS (TODO(search) link).
  */
-export function snippet(fieldName: string | Field, query: string): Expression;
+export function snippet(fieldName: string | Field, rquery: string): Expression;
 
 /**
  * Evaluates to an HTML-formatted text snippet that highlights terms matching
@@ -8805,8 +8842,8 @@ export function snippet(fieldName: string | Field, query: string): Expression;
  * @param fieldName Search the specified field for matching terms.
  * @param query Define the search query using the search DTS (TODO(search) link).
  */
-export function snippet(options: SnippetOptions): Expression;
-export function snippet(optionsOrField: SnippetOptions | string | Field, query?: string): Expression {
+export function snippet(fieldName: string | Field, options: SnippetOptions): Expression;
+export function snippet(field: string | Field, queryOrOptions: string | SnippetOptions): Expression {
   throw "Not implemented";
 }
 

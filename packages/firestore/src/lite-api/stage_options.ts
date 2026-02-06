@@ -296,13 +296,7 @@ export type SearchStageOptions = StageOptions & {
    *
    * See TODO(search) link to list of supported expressions in search query.
    */
-  query: Expression | string;
-  /**
-   * @beta
-   * Specifies additional conditions that will be used to filter documents
-   * in the search query, but that will not contribute to the score.
-   */
-  where?: BooleanExpression;
+  query?: Expression | string;
   /**
    * @beta
    * The maximum number of documents to return from the Search stage.
@@ -325,6 +319,11 @@ export type SearchStageOptions = StageOptions & {
    * The fields to add to each document, specified as a {@link Selectable}.
    */
   addFields?: Selectable[];
+  /**
+   * The fields to keep or add to each document,
+   * specified as an array of {@link Selectable}.
+   */
+  select?: Selectable[];
   /**
    * @beta
    * The number of documents to skip.

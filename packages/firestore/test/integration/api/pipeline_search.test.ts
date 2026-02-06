@@ -140,7 +140,6 @@ import {
   PipelineSnapshot,
   timestampTruncate,
   split,
-  typ,
   snippet,
   searchScore,
   documentContainsText,
