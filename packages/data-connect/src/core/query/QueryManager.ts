@@ -163,7 +163,7 @@ export class QueryManager {
       this.updateSSR(initialCache);
     }
 
-    // TODO: shouldn't this go after the callbacks have been linked up?
+    // TODO(stephenarosaj): shouldn't this go after the callbacks have been linked up?
     logDebug(
       `Cache not available for query ${
         queryRef.name

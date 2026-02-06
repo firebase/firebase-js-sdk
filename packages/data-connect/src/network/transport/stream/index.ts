@@ -42,6 +42,7 @@ type RequestType = typeof EXECUTE_STR | typeof SUBSCRIBE_STR;
 
 /**
  * Key to identify requests coming from the operation layer.
+ * @internal
  */
 interface ActiveRequestKey {
   operationName: string;
@@ -69,7 +70,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   >();
 
   /**
-   * Map of active execution RequestIds and their corresponding Promise resolvers.
+   * Map of active execution RequestIds and their corresponding Promises and resolvers.
    */
   protected _executeRequestPromises = new Map<
     string,
@@ -79,7 +80,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reject: (err: any) => void;
       promise: Promise<DataConnectResponse<unknown>>;
-    } // TODO: can type better?
+    } // TODO(stephenarosaj): can type better?
   >();
 
   /**
@@ -174,7 +175,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
         );
       }
     }
-    // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
+    // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
@@ -211,7 +212,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   ): Promise<DataConnectResponse<Data>> {
     const requestId = this._makeRequestId(EXECUTE_STR);
     const activeRequestKey = { operationName: mutationName, variables };
-    // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
+    // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
@@ -262,7 +263,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
     const requestId = this._makeRequestId(SUBSCRIBE_STR);
 
-    // TODO: "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
+    // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: SubscribeStreamRequest<Variables> = {
       'name': this.connectorResourcePath,
       requestId,
@@ -273,7 +274,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     this._activeSubscribeRequests.set(activeRequestKey, body);
     this._subscribeNotificationHooks.set(
       requestId,
-      notifyQueryManager as SubscribeNotificationHook<unknown> // TODO: is there a way to avoid casting this?
+      notifyQueryManager as SubscribeNotificationHook<unknown> // TODO(stephenarosaj): is there a way to avoid casting this?
     );
   }
 
@@ -282,7 +283,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     const subscribeRequest =
       this._activeSubscribeRequests.get(activeRequestKey);
     if (!subscribeRequest) {
-      // TODO: should we do anything else in this case?
+      // TODO(stephenarosaj): should we do anything else in this case? - EDGE CASE #1
       console.warn(
         `Requested unsubscription of query which is not currently being subscribed to: '${queryName}' with variables ${variables}`
       );
@@ -292,8 +293,8 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
 
     const notifyQueryManager = this._subscribeNotificationHooks.get(requestId);
     if (!notifyQueryManager) {
-        // edge case - no notification hook, so no way for transport layer to update query layer of
-        // new data from server. we don't want updates anymore anyways, so just log and continue.
+      // edge case - no notification hook, so no way for transport layer to update query layer of
+      // new data from server. we don't want updates anymore anyways, so just log and continue.
       console.warn(
         `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked notification hook`
       );
@@ -309,9 +310,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     this._subscribeNotificationHooks.delete(requestId);
   }
 
-  // TODO: type better
-  // TODO: tear down stream, open new one + reauthenticate
-  // TODO: what about app check token?
+  // TODO(stephenarosaj): type better
+  // TODO(stephenarosaj): tear down stream, open new one + reauthenticate
+  // TODO(stephenarosaj): what about app check token?
   onAuthTokenChanged(newToken: string | null): void {
     this._authToken = newToken;
     throw new Error('Method not implemented.');

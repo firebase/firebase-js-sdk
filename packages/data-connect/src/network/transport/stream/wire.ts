@@ -25,7 +25,7 @@ export interface DataConnectStreamResponse<Data> {
   requestId: string;
   data: Data;
   extensions: DataConnectExtensions;
-  dataEtag: string; // TODO: actually a hash
+  dataEtag: string; // TODO(stephenarosaj): actually a hash
   errors: Error[];
   cancelled: boolean;
 }
@@ -39,11 +39,11 @@ export interface StreamRequest {
   name?: string;
   requestId: string;
   /** only required if initially authenticating or re-authenticating */
-  authToken?: string; // TODO: type
+  authToken?: string; // TODO(stephenarosaj): type
   /** only required if initially authenticating or re-authenticating */
-  appCheckToken?: string; // TODO: type
-  //TODO: /** only required if... */
-  dataEtag?: string; // TODO: type
+  appCheckToken?: string; // TODO(stephenarosaj): type
+  //TODO(stephenarosaj): flesh out comment: /** only required if... */
+  dataEtag?: string; // TODO(stephenarosaj): type
 }
 /**
  * Fields for an execute request payload.
