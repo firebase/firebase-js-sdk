@@ -319,6 +319,59 @@ describe('generateContent()', () => {
       );
     });
   });
+  it('google maps grounding', async () => {
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-google-maps-grounding.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    const result = await generateContent(
+      fakeApiSettings,
+      'model',
+      fakeRequestParams
+    );
+    expect(result.response.text()).to.include('Here are some pizza restaurants near you:');
+    const groundingMetadata = result.response.candidates?.[0].groundingMetadata;
+    expect(groundingMetadata).to.not.be.undefined;
+    expect(groundingMetadata!.groundingChunks?.length).to.equal(20);
+    expect(groundingMetadata!.groundingChunks?.[0].maps?.title).to.equal(
+      'Joe’s Pizza'
+    );
+    expect(groundingMetadata!.groundingChunks?.[0].maps?.placeId).to.equal(
+      'places/ChIJqdNaaBVbwokRLTafYrQlZI8'
+    );
+    expect(groundingMetadata!.groundingChunks?.[0].maps?.uri).to.contain(
+      'https://maps.google.com/?cid=10332424901773702701'
+    );
+    expect(groundingMetadata!.groundingSupports?.length).to.equal(39);
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.partIndex).to.be
+      .undefined;
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
+      .not.be.undefined;
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.endIndex).to
+      .not.be.undefined;
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.text).to
+      .not.be.undefined;
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.startIndex).to
+      .equal(43);
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.endIndex).to
+      .equal(152);
+    expect(groundingMetadata!.groundingSupports?.[0].segment?.text).to
+      .contain('Joe\'s Pizza');
+
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'model',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      },
+      JSON.stringify(fakeRequestParams)
+    );
+  });
   it('codeExecution', async () => {
     const mockResponse = getMockResponse(
       'vertexAI',
