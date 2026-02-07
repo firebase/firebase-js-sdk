@@ -71,7 +71,8 @@ import {
   QuerySnapshot,
   querySnapshotFromJSON,
   vector,
-  getDocsFromServer
+  getDocsFromServer,
+  Bytes
 } from '../util/firebase_export';
 import {
   apiDescribe,
@@ -84,7 +85,8 @@ import {
   withNamedTestDbsOrSkipUnlessUsingEmulator,
   toDataArray,
   checkOnlineAndOfflineResultsMatch,
-  toIds
+  toIds,
+  withEmptyTestCollection
 } from '../util/helpers';
 import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from '../util/settings';
 
@@ -3134,5 +3136,113 @@ apiDescribe('Database', persistence => {
         );
       }
     );
+  });
+
+  describe('Test large documents', () => {
+    /**
+     * Returns a Blob with the size equal to the largest number of bytes allowed to
+     * be stored in a Firestore document.
+     */
+    function getLargestDocContent(): object {
+      const MAX_BYTES_PER_FIELD_VALUE = 1048487;
+      // Subtract 8 for '__name__', 20 for its value, and 4 for 'blob'.
+      const numBytesToUse = MAX_BYTES_PER_FIELD_VALUE - 8 - 20 - 4;
+
+      const bytes = new Uint8Array(numBytesToUse);
+      for (let i = 0; i < bytes.length; i++) {
+        // Fill with random byte (0-255)
+        bytes[i] = Math.floor(Math.random() * 256);
+      }
+
+      return { blob: Bytes.fromUint8Array(bytes) };
+    }
+
+    it('can CRUD and query large documents', async () => {
+      return withEmptyTestCollection(persistence, async coll => {
+        const docRef = doc(coll);
+        const data = getLargestDocContent();
+
+        // Set
+        await setDoc(docRef, data);
+
+        // Get
+        let docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal(data);
+
+        // Update
+        const newData = getLargestDocContent();
+        await updateDoc(docRef, newData);
+        docSnap = await getDoc(docRef);
+        expect(docSnap.data()).to.deep.equal(newData);
+
+        // Query
+        const querySnap = await getDocs(coll);
+        expect(querySnap.size).to.equal(1);
+        expect(toDataArray(querySnap)).to.deep.equal([newData]);
+
+        // Delete
+        await deleteDoc(docRef);
+        docSnap = await getDoc(docRef);
+        expect(docSnap.exists()).to.be.false;
+      });
+    });
+
+    it('can CRUD large documents inside transaction', async () => {
+      return withEmptyTestCollection(persistence, async (coll, db) => {
+        const data = getLargestDocContent();
+        const newData = getLargestDocContent();
+
+        const docRef1 = doc(coll, 'doc1');
+        const docRef2 = doc(coll, 'doc2');
+        const docRef3 = doc(coll, 'doc3');
+
+        await setDoc(docRef1, data);
+        await setDoc(docRef3, data);
+
+        await runTransaction(db, async tx => {
+          // Get and update
+          const docSnap = await tx.get(docRef1);
+          expect(docSnap.data()).to.deep.equal(data);
+          tx.update(docRef1, newData);
+
+          // Set
+          tx.set(docRef2, data);
+
+          // Delete
+          tx.delete(docRef3);
+        });
+
+        let docSnap = await getDoc(docRef1);
+        expect(docSnap.data()).to.deep.equal(newData);
+
+        docSnap = await getDoc(docRef2);
+        expect(docSnap.data()).to.deep.equal(data);
+
+        docSnap = await getDoc(docRef3);
+        expect(docSnap.exists()).to.be.false;
+      });
+    }).timeout(10000);
+
+    it('can listen to large query snapshots', async () => {
+      const testDoc = { doc1: getLargestDocContent() };
+      return withTestCollection(persistence, testDoc, async coll => {
+        const storeEvent = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(coll, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(toDataArray(watchSnapshot)).to.deep.equal([testDoc.doc1]);
+        unsubscribe();
+      });
+    });
+
+    it('can listen to large document snapshots', async () => {
+      const testDoc = getLargestDocContent();
+      return withTestDocAndInitialData(persistence, testDoc, async docRef => {
+        const storeEvent = new EventsAccumulator<DocumentSnapshot>();
+        const unsubscribe = onSnapshot(docRef, storeEvent.storeEvent);
+        const watchSnapshot = await storeEvent.awaitEvent();
+        expect(watchSnapshot.data()).to.deep.equal(testDoc);
+        unsubscribe();
+      });
+    });
   });
 });
