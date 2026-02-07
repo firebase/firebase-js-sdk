@@ -15,40 +15,42 @@
  * limitations under the License.
  */
 
+import { TrustedResourceUrl, trustedResourceUrl } from 'safevalues';
+
 interface ExternalJSProvider {
-  loadJS(url: string): Promise<Event>;
-  recaptchaV2Script: string;
-  recaptchaEnterpriseScript: string;
-  gapiScript: string;
+  loadJS(url: TrustedResourceUrl): Promise<Event>;
+  recaptchaV2Script: TrustedResourceUrl;
+  recaptchaEnterpriseScript: TrustedResourceUrl;
+  gapiScript: TrustedResourceUrl;
 }
 
 let externalJSProvider: ExternalJSProvider = {
-  async loadJS() {
+  loadJS(url: TrustedResourceUrl): Promise<Event> {
     throw new Error('Unable to load external scripts');
   },
 
-  recaptchaV2Script: '',
-  recaptchaEnterpriseScript: '',
-  gapiScript: ''
+  recaptchaV2Script: trustedResourceUrl``,
+  recaptchaEnterpriseScript: trustedResourceUrl``,
+  gapiScript: trustedResourceUrl``
 };
 
 export function _setExternalJSProvider(p: ExternalJSProvider): void {
   externalJSProvider = p;
 }
 
-export function _loadJS(url: string): Promise<Event> {
+export function _loadJS(url: TrustedResourceUrl): Promise<Event> {
   return externalJSProvider.loadJS(url);
 }
 
-export function _recaptchaV2ScriptUrl(): string {
+export function _recaptchaV2ScriptUrl(): TrustedResourceUrl {
   return externalJSProvider.recaptchaV2Script;
 }
 
-export function _recaptchaEnterpriseScriptUrl(): string {
+export function _recaptchaEnterpriseScriptUrl(): TrustedResourceUrl {
   return externalJSProvider.recaptchaEnterpriseScript;
 }
 
-export function _gapiScriptUrl(): string {
+export function _gapiScriptUrl(): TrustedResourceUrl {
   return externalJSProvider.gapiScript;
 }
 
