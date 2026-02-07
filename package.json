@@ -158,7 +158,7 @@
     "typedoc": "0.16.11",
     "typescript": "5.5.4",
     "watch": "1.0.2",
-    "webpack": "5.98.0",
+    "webpack": "5.104.1",
     "yargs": "17.7.2"
   }
 }
