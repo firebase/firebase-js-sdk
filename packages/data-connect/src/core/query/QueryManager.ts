@@ -18,7 +18,6 @@
 import { type DataConnect } from '../../api/DataConnect';
 import { QueryRef, QueryResult } from '../../api/query';
 import {
-  OperationRef,
   QUERY_STR,
   SerializedRef,
   SOURCE_SERVER,
@@ -27,9 +26,10 @@ import {
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
+import { parseEntityIds } from '../../cache/cacheUtils';
 import { EncodingMode } from '../../cache/EntityNode';
 import { logDebug } from '../../logger';
-import { DataConnectTransport } from '../../network';
+import { DataConnectResponse, DataConnectTransport } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
@@ -39,7 +39,6 @@ import {
   OnErrorSubscription,
   OnResultSubscription
 } from './subscribe';
-import { parseEntityIds } from '../../cache/cacheUtils';
 
 export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -118,7 +117,7 @@ export class QueryManager {
   }
 
   addSubscription<Data, Variables>(
-    queryRef: OperationRef<Data, Variables>,
+    queryRef: QueryRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
     onCompleteCallback?: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
@@ -137,6 +136,12 @@ export class QueryManager {
           key,
           callbackList.filter(callback => callback !== subscription)
         );
+        if (this.callbacks.get(key)!.length === 0) {
+          this.callbacks.delete(key);
+          if ('invokeUnsubscribe' in this.transport) {
+            this.transport.invokeUnsubscribe(queryRef.name, queryRef.variables);
+          }
+        }
         onCompleteCallback?.();
       }
     };
@@ -169,6 +174,34 @@ export class QueryManager {
     this.callbacks
       .get(key)!
       .push(subscription as DataConnectSubscription<unknown, unknown>);
+
+    const cachingEnabled = this.cache && !!this.cache.cacheSettings;
+
+    // create a callback the transport layer can use to notify us of realtime updates
+    const notificationHook = async (
+      response: DataConnectResponse<Data>
+    ): Promise<void> => {
+      const { impactedQueries, queryResult } = await this.handleServerResponse(
+        queryRef,
+        response
+      );
+      if (cachingEnabled) {
+        await this.publishCacheResultsToSubscribers(
+          impactedQueries,
+          queryResult.fetchTime
+        );
+      } else {
+        this.subscriptionCache.set(key, queryResult);
+        this.publishDataToSubscribers(key, queryResult);
+      }
+    };
+    if ('invokeSubscribe' in this.transport) {
+      this.transport.invokeSubscribe(
+        notificationHook,
+        queryRef.name,
+        queryRef.variables
+      );
+    }
 
     return unsubscribe;
   }
@@ -221,21 +254,10 @@ export class QueryManager {
           queryRef.name,
           queryRef.variables
         );
-        const fetchTime = new Date().toISOString();
-        queryResult = {
-          data: response.data,
-          fetchTime,
-          ref: queryRef,
-          source: SOURCE_SERVER,
-          extensions: response.extensions,
-          toJSON: getRefSerializer(
-            queryRef,
-            response.data,
-            SOURCE_SERVER,
-            fetchTime
-          )
-        };
-        impactedQueries = await this.updateCache(queryResult);
+        const { impactedQueries: impacts, queryResult: result } =
+          await this.handleServerResponse(queryRef, response);
+        impactedQueries = impacts;
+        queryResult = result;
       } catch (e: unknown) {
         this.publishErrorToSubscribers(key, e);
         throw e;
@@ -251,6 +273,31 @@ export class QueryManager {
       );
     }
     return queryResult!;
+  }
+  private async handleServerResponse<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>,
+    response: DataConnectResponse<Data>
+  ): Promise<{
+    impactedQueries: string[];
+    queryResult: QueryResult<Data, Variables>;
+  }> {
+    // TODO(stephenarosaj): handle response.errors... publish to subscribers???
+    const fetchTime = new Date().toISOString();
+    const queryResult: QueryResult<Data, Variables> = {
+      data: response.data,
+      fetchTime,
+      ref: queryRef,
+      source: SOURCE_SERVER,
+      extensions: response.extensions,
+      toJSON: getRefSerializer(
+        queryRef,
+        response.data,
+        SOURCE_SERVER,
+        fetchTime
+      )
+    };
+    const impactedQueries = await this.updateCache(queryResult);
+    return { impactedQueries, queryResult };
   }
   publishErrorToSubscribers(key: string, err: unknown): void {
     this.callbacks.get(key)?.forEach(subscription => {

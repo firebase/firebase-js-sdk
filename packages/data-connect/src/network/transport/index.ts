@@ -62,19 +62,78 @@ export interface DataConnectResponse<T> {
 }
 
 /**
+ * Type signature of the notification hook passed from the query layer to the transport layer. This
+ * will be called by the transport layer to forward data updates from the server to the query layer.
+ * @internal
+ */
+export type SubscribeNotificationHook<Data> = (
+  result: DataConnectResponse<Data>
+) => void;
+
+/**
  * @internal
  */
 export interface DataConnectTransport {
-  invokeQuery<T, U>(
+  /**
+   * Invoke a query execution request.
+   * @param queryName The name of the query to execute.
+   * @param body The variables associated with the query.
+   * @returns A promise resolving to the DataConnectResponse.
+   */
+  invokeQuery<Data, Variables>(
     queryName: string,
-    body?: U
-  ): Promise<DataConnectResponse<T>>;
-  invokeMutation<T, U>(
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+
+  /**
+   * Invoke a mutation execution request.
+   * @param queryName The name of the mutation to execute.
+   * @param body The variables associated with the mutation.
+   * @returns A promise resolving to the DataConnectResponse.
+   */
+  invokeMutation<Data, Variables>(
     queryName: string,
-    body?: U
-  ): Promise<DataConnectResponse<T>>;
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+
+  /**
+   * Subscribes to a query to receive push notifications of updates.
+   * @param notificationHook the notification hook passed to the transport layer - will be called
+   * when it receives responses related to this subscription to notify query layer of data updates.
+   * @param queryName The name of the query to subscribe to.
+   * @param body The variables associated with the subscription.
+   */
+  invokeSubscribe<Data, Variables>(
+    notificationHook: SubscribeNotificationHook<Data>,
+    queryName: string,
+    body?: Variables
+  ): void;
+
+  /**
+   * Unsubscribes from an active subscription.
+   * @param queryName The name of the query to unsubscribe from.
+   * @param body The variables associated with the subscription.
+   */
+  invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void;
+
+  /**
+   * Configures the transport to use a local Data Connect emulator.
+   * @param host The host address of the emulator (e.g., '127.0.0.1').
+   * @param port The port number the emulator is listening on.
+   * @param sslEnabled Whether to use SSL (HTTPS/WSS) for the emulator connection.
+   */
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
-  onTokenChanged: (token: string | null) => void;
+
+  /**
+   * Callback invoked when the Firebase Auth token is refreshed or changed.
+   * @param token The new access token or null if signed out.
+   */
+  onAuthTokenChanged: (token: string | null) => void;
+
+  /**
+   * Internal method to set the SDK type for metrics and logging purposes.
+   * @param callerSdkType The type of SDK making the call (e.g., generated vs base).
+   */
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
 }
 
