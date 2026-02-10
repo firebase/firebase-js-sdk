@@ -34,8 +34,8 @@ export class InMemoryCacheProvider implements InternalCacheProvider {
   async createGlobalId(): Promise<string> {
     return crypto.randomUUID();
   }
-  async updateBackingData(backingData: EntityDataObject): Promise<void> {
-    this.edos.set(backingData.globalID, backingData);
+  async updateEntityData(entityData: EntityDataObject): Promise<void> {
+    this.edos.set(entityData.globalID, entityData);
   }
   async getEntityData(globalId: string): Promise<EntityDataObject> {
     if (!this.edos.has(globalId)) {

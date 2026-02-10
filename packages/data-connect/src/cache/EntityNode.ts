@@ -152,7 +152,7 @@ export class EntityNode {
       }
     }
     if (this.entityData) {
-      await cacheProvider.updateBackingData(this.entityData);
+      await cacheProvider.updateEntityData(this.entityData);
     }
   }
 
