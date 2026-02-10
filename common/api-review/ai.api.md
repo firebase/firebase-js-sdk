@@ -143,16 +143,8 @@ export class BooleanSchema extends Schema {
 export class ChatSession {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<{
-        result?: GenerateContentResult;
-        callHistory: Content[];
-    }>;
-    // (undocumented)
-    _callGenerateContent(request: string | Array<string | Part>): Promise<{
-        result?: GenerateContentResult;
-        callHistory: Content[];
-    }>;
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<FunctionResponsePart[]>;
     // (undocumented)
     _formatRequest(incomingContent: Content): GenerateContentRequest;
     getHistory(): Promise<Content[]>;
@@ -163,7 +155,7 @@ export class ChatSession {
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
     sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
-    sendMessageStream(request: string | Array<string | Part>): Promise<GenerateContentStreamResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     }
 
 // @beta

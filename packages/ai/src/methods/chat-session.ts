@@ -20,6 +20,7 @@ import {
   Content,
   FunctionCall,
   FunctionDeclarationsTool,
+  FunctionResponsePart,
   GenerateContentRequest,
   GenerateContentResponse,
   GenerateContentResult,
@@ -94,7 +95,6 @@ export class ChatSession {
     return this._history;
   }
 
-
   _formatRequest(incomingContent: Content): GenerateContentRequest {
     return {
       safetySettings: this.params?.safetySettings,
@@ -107,90 +107,6 @@ export class ChatSession {
   }
 
   /**
-   * Make a single call to generateContent and do some response handling.
-   * @internal
-   */
-  async _callGenerateContent(
-    request: string | Array<string | Part>
-  ): Promise<{ result?: GenerateContentResult; callHistory: Content[] }> {
-    const incomingContent = formatNewContent(request);
-    const generateContentRequest = this._formatRequest(incomingContent); // Store history in a temporary array until we are done
-    // with all turns (such as in the case of function calls)
-    const callHistory: Content[] = [];
-    callHistory.push(incomingContent);
-
-    return generateContent(
-      this._apiSettings,
-      this.model,
-      generateContentRequest,
-      this.chromeAdapter,
-      this.requestOptions
-    ).then(result => {
-      if (result.response.candidates && result.response.candidates.length > 0) {
-        // TODO: Make this update atomic. If creating `responseContent` throws,
-        // history will contain the user message but not the response, causing
-        // validation errors on the next request.
-        this._history.push(incomingContent);
-        const responseContent: Content = {
-          parts: result.response.candidates?.[0].content.parts || [],
-          // Response seems to come back without a role set.
-          role: result.response.candidates?.[0].content.role || 'model'
-        };
-        callHistory.push(responseContent);
-        return { result, callHistory };
-      } else {
-        const blockErrorMessage = formatBlockErrorMessage(result.response);
-        if (blockErrorMessage) {
-          logger.warn(
-            `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
-          );
-        }
-        return { callHistory };
-      }
-    });
-  }
-
-  /**
-   * Make a single call to generateContentStream and do some response handling.
-   * @internal
-   */
-  async _callGenerateContentStream(
-    request: string | Array<string | Part>
-  ): Promise<{ result?: GenerateContentStreamResult; callHistory: Content[] }> {
-    const incomingContent = formatNewContent(request);
-    const generateContentRequest = this._formatRequest(incomingContent); // Store history in a temporary array until we are done
-    // with all turns (such as in the case of function calls)
-    const callHistory: Content[] = [];
-    callHistory.push(incomingContent);
-
-    return generateContentStream(
-      this._apiSettings,
-      this.model,
-      generateContentRequest,
-      this.chromeAdapter,
-      this.requestOptions
-    ).then(result => {
-      if (result.response.candidates && result.response.candidates.length > 0) {
-        const responseContent: Content = {
-          parts: result.response.candidates?.[0].content.parts || [],
-          // Response seems to come back without a role set.
-          role: result.response.candidates?.[0].content.role || 'model'
-        };
-        callHistory.push(responseContent);
-        return { result, callHistory };
-      } else {
-        const blockErrorMessage = formatBlockErrorMessage(result.response);
-        if (blockErrorMessage) {
-          logger.warn(
-            `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
-          );
-        }
-        return { callHistory };
-      }
-    });
-  }
-
-  /**
    * Sends a chat message and receives a non-streaming
    * {@link GenerateContentResult}
    */
@@ -199,43 +115,78 @@ export class ChatSession {
   ): Promise<GenerateContentResult> {
     let finalResult = {} as GenerateContentResult;
     await this._sendPromise;
+    this._tempHistory = [];
+
     this._sendPromise = this._sendPromise.then(async () => {
-      const { result, callHistory } = await this._callGenerateContent(request);
+      let functionCalls: FunctionCall[] | undefined;
 
-      this._tempHistory = callHistory;
-
-      let functionCalls = getFunctionCalls(
-        result?.response as GenerateContentResponse
-      );
-      if (result && !functionCalls) {
-        finalResult = result;
-      }
       // Repeats until model returns a response with no function calls.
-      while (functionCalls) {
-        const { result: fnResult, callHistory } =
-          await this._callFunctionsAsNeeded(functionCalls, this.params?.tools);
-        if (fnResult) {
-          this._tempHistory = this._tempHistory?.concat(callHistory);
-          functionCalls = getFunctionCalls(fnResult?.response);
-          finalResult = fnResult;
+      do {
+        let formattedContent;
+
+        if (functionCalls) {
+          const functionResponseParts = await this._callFunctionsAsNeeded(
+            functionCalls,
+            this.params?.tools
+          );
+          formattedContent = formatNewContent(functionResponseParts);
+        } else {
+          formattedContent = formatNewContent(request);
+        }
+        const formattedRequest = this._formatRequest(formattedContent);
+
+        this._tempHistory.push(formattedContent);
+
+        const result = await generateContent(
+          this._apiSettings,
+          this.model,
+          formattedRequest,
+          this.chromeAdapter,
+          this.requestOptions
+        );
+        if (result) {
+          finalResult = result;
+          functionCalls = getFunctionCalls(result.response);
+          if (
+            result.response.candidates &&
+            result.response.candidates.length > 0
+          ) {
+            // TODO: Make this update atomic. If creating `responseContent` throws,
+            // history will contain the user message but not the response, causing
+            // validation errors on the next request.
+            const responseContent: Content = {
+              parts: result.response.candidates?.[0].content.parts || [],
+              // Response seems to come back without a role set.
+              role: result.response.candidates?.[0].content.role || 'model'
+            };
+            this._tempHistory.push(responseContent);
+          } else {
+            const blockErrorMessage = formatBlockErrorMessage(result.response);
+            if (blockErrorMessage) {
+              logger.warn(
+                `sendMessage() was unsuccessful. ${blockErrorMessage}. Inspect response object for details.`
+              );
+            }
+          }
         } else {
           functionCalls = undefined;
         }
-      }
+      } while (functionCalls);
     });
+
     await this._sendPromise;
     this._history = this._history.concat(this._tempHistory);
     return finalResult;
   }
   /**
    * Call user-defined functions if requested by the model, and return
-   * the responses to the model.
+   * the response that should be sent to the model.
    * @internal
    */
   async _callFunctionsAsNeeded(
     functionCalls: FunctionCall[],
     tools?: Tool[]
-  ): Promise<{ result?: GenerateContentResult; callHistory: Content[] }> {
+  ): Promise<FunctionResponsePart[]> {
     const activeCallList = new Map<
       string,
       { id?: string; results: Promise<Record<string, unknown>> }
@@ -275,7 +226,7 @@ export class ChatSession {
           }
         });
       }
-      return this._callGenerateContent(functionResponseParts);
+      return functionResponseParts;
     } else {
       throw new AIError(
         AIErrorCode.REQUEST_ERROR,
@@ -296,38 +247,55 @@ export class ChatSession {
     await this._sendPromise;
     const newContent = formatNewContent(request);
     const generateContentRequest = this._formatRequest(newContent);
-    const { firstValue, stream, response } = await generateContentStream(
-      this._apiSettings,
-      this.model,
-      generateContentRequest,
-      this.chromeAdapter,
-      {
-        ...this.requestOptions,
-        ...singleRequestOptions
-      }
-    );
 
-    // We hook into the chain to update history, but we don't block the
-    // return of `streamPromise` to the user.
-    let finalStreamResult = { stream, response };
+    const callGenerateContentStream =
+      async (): Promise<GenerateContentStreamResult> => {
+        let functionCalls: FunctionCall[] | undefined;
+        this._tempHistory = [newContent];
+        let result: GenerateContentStreamResult & {
+          firstValue?: GenerateContentResponse;
+        };
 
-    let functionCalls = getFunctionCalls(firstValue);
-    // Repeats until model returns a response with no function calls.
-    while (functionCalls) {
-      const { result: fnResult, callHistory } =
-        await this._callFunctionsAsNeeded(functionCalls, this.params?.tools);
-      if (fnResult) {
-        this._tempHistory = this._tempHistory?.concat(callHistory);
-        functionCalls = getFunctionCalls(fnResult?.response);
-        finalResult = fnResult;
-      } else {
-        functionCalls = undefined;
-      }
-    }
+        // Repeats until model returns a response with no function calls.
+        do {
+          let request;
+
+          if (functionCalls) {
+            const functionResponseParts = await this._callFunctionsAsNeeded(
+              functionCalls,
+              this.params?.tools
+            );
+
+            request = this._formatRequest(
+              formatNewContent(functionResponseParts)
+            );
+          } else {
+            request = generateContentRequest;
+          }
+
+          result = await generateContentStream(
+            this._apiSettings,
+            this.model,
+            request,
+            this.chromeAdapter,
+            {
+              ...this.requestOptions,
+              ...singleRequestOptions
+            }
+          );
+
+          functionCalls = getFunctionCalls(result.firstValue);
+          // TODO: add asyncly to history
+          // this._tempHistory = this._tempHistory?.concat(callHistory);
+        } while (functionCalls);
+        return { stream: result.stream, response: result.response };
+      };
+
+    const streamPromise = callGenerateContentStream();
 
     // Add onto the chain.
     this._sendPromise = this._sendPromise
-      .then(() => (finalStreamResult))
+      .then(async () => streamPromise)
       // This must be handled to avoid unhandled rejection, but jump
       // to the final catch block with a label to not log this error.
       .catch(_ignored => {
@@ -364,6 +332,6 @@ export class ChatSession {
           logger.error(e);
         }
       });
-    return finalStreamResult;
+    return streamPromise;
   }
 }
