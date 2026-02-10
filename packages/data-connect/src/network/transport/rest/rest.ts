@@ -19,10 +19,11 @@ import {
   CallerSdkType,
   DataConnectResponse,
   DataConnectTransportClass
-} from '../..';
-import { DataConnectError, Code } from '../../core/error';
-import { addToken } from '../../util/url';
-import { dcFetch } from '../fetch';
+} from '../../..';
+import { DataConnectError, Code } from '../../../core/error';
+import { addToken } from '../../../util/url';
+
+import { dcFetch } from './fetch';
 
 export class RESTTransport extends DataConnectTransportClass {
   invokeQuery: <Data, Variables>(
