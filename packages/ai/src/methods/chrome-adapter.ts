@@ -231,13 +231,15 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Encapsulates logic to get availability and download a model if one is downloadable.
    */
-  async downloadIfAvailable(): Promise<Availability | undefined> {
+  async downloadIfAvailable(
+    onDownloadProgress?: (progressValue: number) => void
+  ): Promise<Availability | undefined> {
     const availability = await this.languageModelProvider?.availability(
       this.onDeviceParams.createOptions
     );
 
     if (availability === Availability.DOWNLOADABLE) {
-      this.download();
+      this.download(onDownloadProgress);
     }
 
     return availability;
@@ -252,11 +254,19 @@ export class ChromeAdapterImpl implements ChromeAdapter {
    * Since Chrome manages the download, the SDK can only avoid redundant download requests by
    * tracking if a download has previously been requested.
    */
-  private download(): void {
+  private download(onDownloadProgress?: (progressValue: number) => void): void {
     if (this.isDownloading) {
       return;
     }
     this.isDownloading = true;
+    const options = this.onDeviceParams.createOptions;
+    if (options && !options.monitor && onDownloadProgress) {
+      options.monitor = m => {
+        m.addEventListener('downloadprogress', e => {
+          onDownloadProgress(e.loaded);
+        });
+      };
+    }
     this.downloadPromise = this.languageModelProvider
       ?.create(this.onDeviceParams.createOptions)
       .finally(() => {
