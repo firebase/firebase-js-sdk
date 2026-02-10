@@ -58,12 +58,6 @@ const SILENT_ERROR = 'SILENT_ERROR';
 export class ChatSession {
   private _apiSettings: ApiSettings;
   private _history: Content[] = [];
-  /**
-   * Temporarily store multiple turns for cases like automatic function
-   * calling, only writing them to official history when the entire
-   * sequence has completed successfully.
-   */
-  private _tempHistory: Content[] = [];
 
   /**
    * Ensures sequential execution of chat messages to maintain history order.
@@ -95,14 +89,17 @@ export class ChatSession {
     return this._history;
   }
 
-  _formatRequest(incomingContent: Content): GenerateContentRequest {
+  _formatRequest(
+    incomingContent: Content,
+    tempHistory: Content[]
+  ): GenerateContentRequest {
     return {
       safetySettings: this.params?.safetySettings,
       generationConfig: this.params?.generationConfig,
       tools: this.params?.tools,
       toolConfig: this.params?.toolConfig,
       systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, ...this._tempHistory, incomingContent]
+      contents: [...this._history, ...tempHistory, incomingContent]
     };
   }
 
@@ -115,7 +112,12 @@ export class ChatSession {
   ): Promise<GenerateContentResult> {
     let finalResult = {} as GenerateContentResult;
     await this._sendPromise;
-    this._tempHistory = [];
+    /**
+     * Temporarily store multiple turns for cases like automatic function
+     * calling, only writing them to official history when the entire
+     * sequence has completed successfully.
+     */
+    const tempHistory: Content[] = [];
 
     this._sendPromise = this._sendPromise.then(async () => {
       let functionCalls: FunctionCall[] | undefined;
@@ -133,9 +135,12 @@ export class ChatSession {
         } else {
           formattedContent = formatNewContent(request);
         }
-        const formattedRequest = this._formatRequest(formattedContent);
+        const formattedRequest = this._formatRequest(
+          formattedContent,
+          tempHistory
+        );
 
-        this._tempHistory.push(formattedContent);
+        tempHistory.push(formattedContent);
 
         const result = await generateContent(
           this._apiSettings,
@@ -159,7 +164,7 @@ export class ChatSession {
               // Response seems to come back without a role set.
               role: result.response.candidates?.[0].content.role || 'model'
             };
-            this._tempHistory.push(responseContent);
+            tempHistory.push(responseContent);
           } else {
             const blockErrorMessage = formatBlockErrorMessage(result.response);
             if (blockErrorMessage) {
@@ -175,7 +180,7 @@ export class ChatSession {
     });
 
     await this._sendPromise;
-    this._history = this._history.concat(this._tempHistory);
+    this._history = this._history.concat(tempHistory);
     return finalResult;
   }
   /**
@@ -207,7 +212,16 @@ export class ChatSession {
         if (functionDeclaration?.functionReference) {
           const results = Promise.resolve(
             functionDeclaration.functionReference!(functionCall.args)
-          );
+          ).catch(e => {
+            const wrappedError = new AIError(
+              AIErrorCode.ERROR,
+              `Error in user-defined function "${functionDeclaration.name}": ${
+                (e as Error).message
+              }`
+            );
+            wrappedError.stack = (e as Error).stack;
+            throw wrappedError;
+          });
           activeCallList.set(functionCall.name, {
             id: functionCall.id,
             results
@@ -245,38 +259,44 @@ export class ChatSession {
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     await this._sendPromise;
-    const newContent = formatNewContent(request);
-    const generateContentRequest = this._formatRequest(newContent);
+    /**
+     * Temporarily store multiple turns for cases like automatic function
+     * calling, only writing them to official history when the entire
+     * sequence has completed successfully.
+     */
+    const tempHistory: Content[] = [];
 
     const callGenerateContentStream =
       async (): Promise<GenerateContentStreamResult> => {
         let functionCalls: FunctionCall[] | undefined;
-        this._tempHistory = [newContent];
         let result: GenerateContentStreamResult & {
           firstValue?: GenerateContentResponse;
         };
 
         // Repeats until model returns a response with no function calls.
         do {
-          let request;
+          let formattedContent;
 
           if (functionCalls) {
             const functionResponseParts = await this._callFunctionsAsNeeded(
               functionCalls,
               this.params?.tools
             );
-
-            request = this._formatRequest(
-              formatNewContent(functionResponseParts)
-            );
+            formattedContent = formatNewContent(functionResponseParts);
           } else {
-            request = generateContentRequest;
+            formattedContent = formatNewContent(request);
           }
+
+          tempHistory.push(formattedContent);
+          const formattedRequest = this._formatRequest(
+            formattedContent,
+            tempHistory
+          );
 
           result = await generateContentStream(
             this._apiSettings,
             this.model,
-            request,
+            formattedRequest,
             this.chromeAdapter,
             {
               ...this.requestOptions,
@@ -285,8 +305,21 @@ export class ChatSession {
           );
 
           functionCalls = getFunctionCalls(result.firstValue);
-          // TODO: add asyncly to history
-          // this._tempHistory = this._tempHistory?.concat(callHistory);
+
+          if (
+            functionCalls &&
+            result.firstValue &&
+            result.firstValue.candidates &&
+            result.firstValue.candidates.length > 0
+          ) {
+            const responseContent = {
+              ...result.firstValue.candidates[0].content
+            };
+            if (!responseContent.role) {
+              responseContent.role = 'model';
+            }
+            tempHistory.push(responseContent);
+          }
         } while (functionCalls);
         return { stream: result.stream, response: result.response };
       };
@@ -310,7 +343,7 @@ export class ChatSession {
         // TODO: Move response validation logic upstream to `stream-reader` so
         // errors propagate to the user's `result.response` promise.
         if (response.candidates && response.candidates.length > 0) {
-          this._history.push(newContent);
+          this._history = this._history.concat(tempHistory);
           // TODO: Validate that `response.candidates[0].content` is not null.
           const responseContent = { ...response.candidates[0].content };
           if (!responseContent.role) {

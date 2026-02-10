@@ -146,7 +146,7 @@ export class ChatSession {
     // @internal
     _callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<FunctionResponsePart[]>;
     // (undocumented)
-    _formatRequest(incomingContent: Content): GenerateContentRequest;
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
