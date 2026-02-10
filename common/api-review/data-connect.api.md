@@ -94,12 +94,6 @@ export type DataConnectExtension = {
     path: Array<string | number>;
 } & (DataConnectEntityArray | DataConnectSingleEntity);
 
-// @public (undocumented)
-export interface DataConnectExtensions {
-    // (undocumented)
-    dataConnect?: DataConnectExtension[];
-}
-
 // @public
 export class DataConnectOperationError extends DataConnectError {
     /* Excluded from this release type: name */
@@ -135,7 +129,7 @@ export interface DataConnectResponse<T> {
     // (undocumented)
     errors: Error[];
     // (undocumented)
-    extensions: DataConnectExtensions;
+    extensions: Extensions;
 }
 
 // @public (undocumented)
@@ -179,6 +173,12 @@ export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables
 export interface ExecuteQueryOptions {
     // (undocumented)
     fetchPolicy: QueryFetchPolicy;
+}
+
+// @public (undocumented)
+export interface Extensions {
+    // (undocumented)
+    dataConnect?: DataConnectExtension[];
 }
 
 // @public
@@ -253,7 +253,7 @@ export interface OpResult<Data> {
     // (undocumented)
     data: Data;
     // (undocumented)
-    extensions?: DataConnectExtensions;
+    extensions?: Extensions;
     // (undocumented)
     fetchTime: string;
     // (undocumented)

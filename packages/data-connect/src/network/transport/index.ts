@@ -51,14 +51,14 @@ export type DataConnectExtension = {
   path: Array<string | number>;
 } & (DataConnectEntityArray | DataConnectSingleEntity);
 
-export interface DataConnectExtensions {
+export interface Extensions {
   dataConnect?: DataConnectExtension[];
 }
 
 export interface DataConnectResponse<T> {
   data: T;
   errors: Error[];
-  extensions: DataConnectExtensions;
+  extensions: Extensions;
 }
 
 /**

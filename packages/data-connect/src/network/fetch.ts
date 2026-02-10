@@ -29,7 +29,7 @@ import { logError } from '../logger';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
-  DataConnectExtensions,
+  Extensions,
   DataConnectResponse
 } from './transport';
 
@@ -135,7 +135,7 @@ interface JsonResponse<T> {
   message?: string;
   errors: [];
   data: Record<string, unknown> | T | null;
-  extensions: DataConnectExtensions;
+  extensions: Extensions;
 }
 function getErrorMessage(obj: JsonResponse<unknown>): string {
   if ('message' in obj && obj.message) {
