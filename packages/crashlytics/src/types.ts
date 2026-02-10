@@ -19,7 +19,7 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Crashlytics } from './public-types';
 
 /**
- * An internal interface for the Telemetry service.
+ * An internal interface for the Crashlytics service.
  *
  * @internal
  */

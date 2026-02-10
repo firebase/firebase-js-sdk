@@ -22,9 +22,10 @@ import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
-import { FirebaseCrashlytics } from '.';
+import { CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
+import { MemoryRouter, Route } from 'react-router-dom';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -54,7 +55,7 @@ class TestErrorBoundary extends React.Component<
   }
 }
 
-describe('FirebaseCrashlytics', () => {
+describe('CrashlyticsRoutes', () => {
   let getCrashlyticsStub: sinon.SinonStub;
   let recordErrorStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
@@ -74,30 +75,67 @@ describe('FirebaseCrashlytics', () => {
     restore();
   });
 
-  it('captures window errors', done => {
-    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
-    const error = new Error('test error');
-    window.onerror = () => {
-      // Prevent error from bubbling up to test suite
-    };
-    window.addEventListener('error', (event: ErrorEvent) => {
-      // Registers another listener (sequential) to confirm behaviour.
-      expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-      expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, error);
-      done();
-    });
-    window.dispatchEvent(new ErrorEvent('error', { error }));
+  const ThrowingComponent = () => {
+    throw new Error('render error');
+  };
+
+  it('captures render errors in routes and re-throws them', () => {
+    // Stub console.error to avoid React error logging in test output
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/" element={<ThrowingComponent />} />
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
+    );
+
+    // Verify the error was recorded
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error')),
+      sinon.match({ route: '/' })
+    );
+
+    // Verify the error was caught by our TestErrorBoundary (meaning it was re-thrown)
+    // Since TestErrorBoundary returns null on error, container should be empty
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
   });
 
-  it('captures unhandled promise rejections', () => {
-    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
-    const reason = new Error('test rejection');
-    const promise = Promise.reject(reason);
-    promise.catch(() => {});
-    window.dispatchEvent(
-      new PromiseRejectionEvent('unhandledrejection', { reason, promise })
+  it('captures parameterized route pattern and re-throws', () => {
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter initialEntries={['/users/123']}>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/users/:id" element={<ThrowingComponent />} />
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
     );
+
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error')),
+      sinon.match({ route: '/users/:id' })
+    );
+
+    // Verify re-throw
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
   });
 });
