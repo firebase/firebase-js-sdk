@@ -221,8 +221,6 @@ branch. The push should cause the CI to re-check your PR's changes.
 
 # Generating Documentation
 
-If the Doc Change Check fails in your PR, the documentation has not been generated correctly. 
-
 To generate documentation, run the following command:
 
 ```
