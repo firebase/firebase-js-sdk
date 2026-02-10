@@ -46,7 +46,8 @@ import {
   DataConnectTransport,
   TransportClass
 } from '../network';
-import { RESTTransport } from '../network/transport/rest';
+// import { RESTTransport } from '../network/transport/rest';
+import { StreamTransport } from '../network/transport/stream/websocket';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
@@ -66,6 +67,7 @@ export interface ConnectorConfig {
 export interface TransportOptions {
   host: string;
   sslEnabled?: boolean;
+  streamEnabled?: boolean;
   port?: number;
 }
 
@@ -177,8 +179,9 @@ export class DataConnect {
       return;
     }
     if (this._transportClass === undefined) {
-      logDebug('transportClass not provided. Defaulting to RESTTransport.');
-      this._transportClass = RESTTransport;
+      // TODO(stephenarosaj): first, REST, then STREAM only when we start subscribing...
+      logDebug('USING STREAM TRANSPORT!'); // DEBUGGING
+      this._transportClass = StreamTransport;
     }
 
     this._authTokenProvider = new FirebaseAuthProvider(
