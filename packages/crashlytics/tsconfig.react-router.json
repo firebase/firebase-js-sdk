@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/react-router",
+    "declarationDir": "dist/react-router",
+    "jsx": "react"
+  },
+  "include": ["src/react-router/index.ts"]
+}

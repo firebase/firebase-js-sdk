@@ -140,6 +140,57 @@ const reactBuilds = [
   }
 ];
 
+const reactRouterBuilds = [
+  {
+    input: 'src/react-router/index.ts',
+    output: {
+      file: pkg.exports['./react-router'].browser.import,
+      format: 'es',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.react.json'
+      }),
+      json(),
+      copy({
+        targets: [
+          {
+            src: 'dist/src/react-router/index.d.ts',
+            dest: 'dist/react-router'
+          },
+          {
+            src: 'dist/src/public-types.d.ts',
+            dest: 'dist'
+          }
+        ]
+      }),
+      replaceSource('../auto-constants.mjs')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'src/react-router/index.ts',
+    output: {
+      file: pkg.exports['./react-router'].browser.require,
+      format: 'cjs',
+      sourcemap: true,
+      banner: `'use client';`
+    },
+    plugins: [
+      typescriptPlugin({
+        typescript,
+        tsconfig: 'tsconfig.react.json'
+      }),
+      json(),
+      replaceSource('../auto-constants.js')
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
 const angularBuilds = [
   {
     input: 'src/angular/index.ts',
@@ -212,6 +263,7 @@ export default [
   ...browserBuilds,
   ...nodeBuilds,
   ...reactBuilds,
+  ...reactRouterBuilds,
   ...angularBuilds,
   ...autoinitBuild
 ];

@@ -144,7 +144,7 @@ A request error handler for use in Next.js' instrumentation file
 
 ```javascript
 // In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
-import { nextOnRequestError } from 'firebase/telemetry'
+import { nextOnRequestError } from 'firebase/crashlytics'
 export const onRequestError = nextOnRequestError();
 
 ```

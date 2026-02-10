@@ -3,12 +3,16 @@
   "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
   "additionalEntryPoints": [
     {
+      "modulePath": "angular",
+      "filePath": "<projectFolder>/dist/angular/index.d.ts"
+    },
+    {
       "modulePath": "react",
       "filePath": "<projectFolder>/dist/react/index.d.ts"
     },
     {
-      "modulePath": "angular",
-      "filePath": "<projectFolder>/dist/angular/index.d.ts"
+      "modulePath": "react-router",
+      "filePath": "<projectFolder>/dist/react-router/index.d.ts"
     }
   ],
   "dtsRollup": {

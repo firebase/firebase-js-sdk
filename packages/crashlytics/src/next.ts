@@ -29,7 +29,7 @@ export { Instrumentation };
  * @example
  * ```javascript
  * // In instrumentation.ts (https://nextjs.org/docs/app/guides/instrumentation):
- * import { nextOnRequestError } from 'firebase/telemetry'
+ * import { nextOnRequestError } from 'firebase/crashlytics'
  * export const onRequestError = nextOnRequestError();
  * ```
  *
