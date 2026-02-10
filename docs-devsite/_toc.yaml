@@ -429,6 +429,13 @@ toc:
     path: /docs/reference/js/crashlytics_react.crashlytics.md
   - title: CrashlyticsOptions
     path: /docs/reference/js/crashlytics_react.crashlyticsoptions.md
+- title: crashlytics/react-router
+  path: /docs/reference/js/crashlytics_react-router.md
+  section:
+  - title: Crashlytics
+    path: /docs/reference/js/crashlytics_react-router.crashlytics.md
+  - title: CrashlyticsOptions
+    path: /docs/reference/js/crashlytics_react-router.crashlyticsoptions.md
 - title: database
   path: /docs/reference/js/database.md
   section:

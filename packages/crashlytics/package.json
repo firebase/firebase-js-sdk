@@ -31,6 +31,18 @@
       },
       "default": "./dist/react/index.esm.js"
     },
+    "./react-router": {
+      "types": "./dist/react-router/index-public.d.ts",
+      "node": {
+        "import": "./dist/react-router/index.esm.js",
+        "default": "./dist/react-router/index.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/react-router/index.cjs.js",
+        "import": "./dist/react-router/index.esm.js"
+      },
+      "default": "./dist/react-router/index.esm.js"
+    },
     "./angular": {
       "types": "./dist/angular/index-public.d.ts",
       "node": {
@@ -62,9 +74,10 @@
     "test:browser": "karma start",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha **/*.test.ts src/**/*.test.ts --exclude src/angular/*.test.ts --config ../../config/mocharc.node.js",
     "trusted-type-check": "tsec -p tsconfig.json --noEmit",
-    "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:angular && yarn api-report:api-json",
+    "api-report": "yarn api-report:main && yarn api-report:react && yarn api-report:react-router && yarn api-report:angular && yarn api-report:api-json",
     "api-report:main": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics --packageRoot . --typescriptDts ./dist/index.d.ts --rollupDts ./dist/private.d.ts --untrimmedRollupDts ./dist/internal.d.ts --publicDts ./dist/index-public.d.ts",
     "api-report:react": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-react --packageRoot . --typescriptDts ./dist/react/index.d.ts --rollupDts ./dist/react/private.d.ts --untrimmedRollupDts ./dist/react/internal.d.ts --publicDts ./dist/react/index-public.d.ts",
+    "api-report:react-router": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-react-router --packageRoot . --typescriptDts ./dist/react-router/index.d.ts --rollupDts ./dist/react-router/private.d.ts --untrimmedRollupDts ./dist/react-router/internal.d.ts --publicDts ./dist/react-router/index-public.d.ts",
     "api-report:angular": "ts-node-script ../../repo-scripts/prune-dts/extract-public-api.ts --package crashlytics-angular --packageRoot . --typescriptDts ./dist/angular/index.d.ts --rollupDts ./dist/angular/private.d.ts --untrimmedRollupDts ./dist/angular/internal.d.ts --publicDts ./dist/angular/index-public.d.ts",
     "api-report:api-json": "api-extractor run --local --verbose",
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/index-public.d.ts"
@@ -74,9 +87,9 @@
     "@angular/router": ">= 14.0.0",
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
-    "@types/react": "17.x || 18.x || 19.x",
-    "react": "17.x || 18.x || 19.x",
-    "react-router-dom": ">= 7.0.0"
+    "@types/react": ">= 16.8.0",
+    "react": ">= 16.8.0",
+    "react-router-dom": ">= 6.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
