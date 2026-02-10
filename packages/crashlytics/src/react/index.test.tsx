@@ -22,7 +22,7 @@ import { restore, stub } from 'sinon';
 import * as app from '@firebase/app';
 import * as telemetry from '../api';
 import { FirebaseApp } from '@firebase/app';
-import { Telemetry } from '../public-types';
+import { Crashlytics } from '../public-types';
 import { FirebaseTelemetry } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
@@ -30,21 +30,21 @@ import { render } from '@testing-library/react';
 use(sinonChai);
 use(chaiAsPromised);
 
-describe.only('FirebaseTelemetry', () => {
-  let getTelemetryStub: sinon.SinonStub;
-  let captureErrorStub: sinon.SinonStub;
+describe('FirebaseTelemetry', () => {
+  let getCrashlyticsStub: sinon.SinonStub;
+  let recordErrorStub: sinon.SinonStub;
   let initializeAppStub: sinon.SinonStub;
   let getAppStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
-  let fakeTelemetry: Telemetry;
+  let fakeCrashlytics: Crashlytics;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeTelemetry = {} as Telemetry;
+    fakeCrashlytics = {} as Crashlytics;
 
     initializeAppStub = stub(app, 'initializeApp').returns(fakeApp);
-    getTelemetryStub = stub(telemetry, 'getTelemetry').returns(fakeTelemetry);
-    captureErrorStub = stub(telemetry, 'captureError');
+    getCrashlyticsStub = stub(telemetry, 'getCrashlytics').returns(fakeCrashlytics);
+    recordErrorStub = stub(telemetry, 'recordError');
     getAppStub = stub(app, 'getApp').returns(fakeApp);
   });
 
@@ -71,8 +71,8 @@ describe.only('FirebaseTelemetry', () => {
     };
     window.addEventListener('error', (event: ErrorEvent) => {
       // Registers another listener (sequential) to confirm behaviour.
-      expect(getTelemetryStub).to.have.been.called;
-      expect(captureErrorStub).to.have.been.calledWith(fakeTelemetry, error);
+      expect(getCrashlyticsStub).to.have.been.called;
+      expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, error);
       done();
     });
     window.dispatchEvent(new ErrorEvent('error', { error }));
@@ -86,8 +86,8 @@ describe.only('FirebaseTelemetry', () => {
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );
-    expect(getTelemetryStub).to.have.been.called;
-    expect(captureErrorStub).to.have.been.calledWith(fakeTelemetry, reason);
+    expect(getCrashlyticsStub).to.have.been.called;
+    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
   });
 
   it('fails silently when getTelemetry fails', () => {

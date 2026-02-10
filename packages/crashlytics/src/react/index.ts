@@ -16,18 +16,18 @@
  */
 
 import { FirebaseOptions, initializeApp } from '@firebase/app';
-import { registerTelemetry } from '../register';
-import { captureError, getTelemetry } from '../api';
+import { registerCrashlytics } from '../register';
+import { recordError, getCrashlytics } from '../api';
 import { useEffect } from 'react';
 
-registerTelemetry();
+registerCrashlytics();
 
 function errorListener(event: ErrorEvent): void {
-  captureError(getTelemetry(), event.error, {});
+  recordError(getCrashlytics(), event.error, {});
 }
 
 function unhandledRejectionListener(event: PromiseRejectionEvent): void {
-  captureError(getTelemetry(), event.reason, {});
+  recordError(getCrashlytics(), event.reason, {});
 }
 
 /**
