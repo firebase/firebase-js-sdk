@@ -7560,7 +7560,7 @@ export declare function mapSet(map: unknown, key: string | Expression, value: un
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  map | unknown | The map to set entries in. |
-|  key | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The key to set. |
+|  key | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
 |  value | unknown | The value to set. |
 |  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
 

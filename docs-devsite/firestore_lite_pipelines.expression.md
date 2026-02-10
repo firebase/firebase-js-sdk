@@ -117,7 +117,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [mapMerge(secondMap, otherMaps)](./firestore_lite_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(key)](./firestore_lite_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
 |  [mapRemove(keyExpr)](./firestore_lite_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
-|  [mapSet(key, value, moreKeyValues)](./firestore_lite_pipelines.expression.md#expressionmapset) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use . |
+|  [mapSet(key, value, moreKeyValues)](./firestore_lite_pipelines.expression.md#expressionmapset) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated. |
 |  [mapValues()](./firestore_lite_pipelines.expression.md#expressionmapvalues) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
 |  [maximum()](./firestore_lite_pipelines.expression.md#expressionmaximum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
 |  [minimum()](./firestore_lite_pipelines.expression.md#expressionminimum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
@@ -2523,7 +2523,7 @@ mapSet(key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): F
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  key | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The key to set. |
+|  key | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
 |  value | unknown | The value to set. |
 |  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
 

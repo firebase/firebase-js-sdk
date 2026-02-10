@@ -2828,7 +2828,15 @@ describe.skipClassic('Firestore Pipelines', () => {
             mapSet(map({ a: 1 }), 'b', 2).as('add'),
             mapSet(map({ a: 1 }), 'a', 2).as('overwrite'),
             mapSet(map({ a: 1, b: 2 }), 'a', 3, 'c', 4).as('multi'),
-            mapSet(map({ a: 1 }), 'a', field('non_existent')).as('remove')
+            mapSet(map({ a: 1 }), 'a', field('non_existent')).as('remove'),
+            mapSet(map({ a: 1 }), 'b', null).as('setNull'),
+            mapSet(map({ a: { b: 1 } }), 'a.b', 2).as('setDotted'),
+            mapSet(map({}), '', 'empty').as('setEmptyKey'),
+            mapSet(map({ a: 1 }), 'b', add(constant(1), constant(2))).as(
+              'setExprVal'
+            ),
+            mapSet(map({}), 'obj', map({ hidden: true })).as('setNestedMap'),
+            mapSet(map({}), '~!@#$%^&*()_+', 'special').as('setSpecialChars')
           )
       );
       expectResults(snapshot, {
@@ -2836,7 +2844,13 @@ describe.skipClassic('Firestore Pipelines', () => {
         add: { a: 1, b: 2 },
         overwrite: { a: 2 },
         multi: { a: 3, b: 2, c: 4 },
-        remove: {}
+        remove: {},
+        setNull: { a: 1, b: null },
+        setDotted: { a: { b: 1 }, 'a.b': 2 },
+        setEmptyKey: { '': 'empty' },
+        setExprVal: { a: 1, b: 3 },
+        setNestedMap: { obj: { hidden: true } },
+        setSpecialChars: { '~!@#$%^&*()_+': 'special' }
       });
     });
 
@@ -2847,11 +2861,17 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .limit(1)
           .replaceWith(map({ a: 1, b: 2, c: 3 }))
-          .addFields(mapKeys(map({ a: 1, b: 2 })).as('keys'))
+          .addFields(
+            mapKeys(map({ a: 1, b: 2 })).as('keys'),
+            mapKeys(map({})).as('empty_keys'),
+            mapKeys(map({ a: { nested: true } })).as('nested_keys')
+          )
       );
 
       const res = snapshot.results[0].data();
       expect(res.keys).to.have.members(['a', 'b']);
+      expect(res.empty_keys).to.deep.equal([]);
+      expect(res.nested_keys).to.have.members(['a']);
     });
 
     it('test mapValues', async () => {
@@ -2861,10 +2881,16 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .limit(1)
           .replaceWith(map({ a: 1, b: 2 }))
-          .addFields(mapValues(map({ a: 1, b: 2 })).as('values'))
+          .addFields(
+            mapValues(map({ a: 1, b: 2 })).as('values'),
+            mapValues(map({})).as('empty_values'),
+            mapValues(map({ a: { nested: true } })).as('nested_values')
+          )
       );
       const res = snapshot.results[0].data();
       expect(res.values).to.have.members([1, 2]);
+      expect(res.empty_values).to.deep.equal([]);
+      expect(res.nested_values).to.deep.include.members([{ nested: true }]);
     });
 
     it('test mapEntries', async () => {
@@ -2874,12 +2900,20 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .limit(1)
           .replaceWith(map({ a: 1, b: 2 }))
-          .addFields(mapEntries(map({ a: 1, b: 2 })).as('entries'))
+          .addFields(
+            mapEntries(map({ a: 1, b: 2 })).as('entries'),
+            mapEntries(map({})).as('empty_entries'),
+            mapEntries(map({ a: { nested: true } })).as('nested_entries')
+          )
       );
       const res = snapshot.results[0].data();
       expect(res.entries).to.deep.include.members([
         { k: 'a', v: 1 },
         { k: 'b', v: 2 }
+      ]);
+      expect(res.empty_entries).to.deep.equal([]);
+      expect(res.nested_entries).to.deep.include.members([
+        { k: 'a', v: { nested: true } }
       ]);
     });
 

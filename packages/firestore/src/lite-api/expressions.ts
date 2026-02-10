@@ -1387,6 +1387,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns a new map with the specified entries added or updated.
    *
+   * @remarks
    * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
    * will retain the key with a `null` value. To remove a key entirely, use
    * {@link @firebase/firestore/pipelines#mapRemove | mapRemove}.
@@ -1397,7 +1398,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("address").mapSet("city", "San Francisco");
    * ```
    *
-   * @param key - The key to set.
+   * @param key - The key to set. Must be a string or a constant string expression.
    * @param value - The value to set.
    * @param moreKeyValues - Additional key-value pairs to set.
    * @returns A new `Expression` representing the map with the entries set.
@@ -6877,7 +6878,7 @@ export function mapGet(
  * ```
  *
  * @param map - The map to set entries in.
- * @param key - The key to set.
+ * @param key - The key to set. Must be a string or a constant string expression.
  * @param value - The value to set.
  * @param moreKeyValues - Additional key-value pairs to set.
  * @returns A new `Expression` representing the map with the entries set.
