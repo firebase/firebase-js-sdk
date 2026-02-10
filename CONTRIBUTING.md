@@ -219,24 +219,18 @@ formatting guidelines. In your local build environment, please run the code form
 by executing the command `yarn format`. Once the code is formatted, commit the changes and push your
 branch. The push should cause the CI to re-check your PR's changes.
 
-# Generating Documentation HTML Files
+# Generating Documentation
 
-If the Doc Change Check fails in your PR, it indicates that the documentation has not been generated
-correctly for the changes. In your local build environment, please run the following commands in the
-root directory to generate the documentation locally:
+If the Doc Change Check fails in your PR, the documentation has not been generated correctly. 
+
+To generate documentation, run the following command:
 
 ```
-yarn
 yarn docgen:all
 ```
 
-This will generate reference docs and the toc in `docs-devsite/`. Commit and push the generated
-documentation changes to GitHub following the [PR submission guidelines](#submit). Your push
-to the remote repository should force any failing documentation checks to execute again.
-
-**NOTE:** These files are formatted to be inserted into Google's documentation site, which adds some
-styling and navigation, so the raw files will be missing navigation elements and may not look
-polished. However, it should be enough to preview the content.
+**Note:** These files are uploaded to the [Firebase API Reference](https://firebase.google.com/docs/reference),
+where navigation elements are added.
 
 [archive]: https://github.com/firebase/firebase-js-sdk/issues?utf8=%E2%9C%93&q=is%3Aissue
 [file-an-issue]: https://github.com/firebase/firebase-js-sdk/issues/new
