@@ -34,14 +34,6 @@ export interface OpResult<Data> {
   extensions?: Extensions;
 }
 
-/**
- * @internal
- */
-export interface CachedQueryResult<Data, Variables>
-  extends QueryResult<Data, Variables> {
-  entityIds: Record<string, unknown>;
-}
-
 export interface OperationRef<_Data, Variables> {
   name: string;
   variables: Variables;
