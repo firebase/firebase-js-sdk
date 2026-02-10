@@ -74,6 +74,10 @@ describe('caching', () => {
     };
     const date = new Date().toISOString();
     const q1 = queryRef<Q1Data>(dc, 'q1');
+    const matrixEntity = {
+      path: ['movies', 0],
+      entityId: 'matrix'
+    };
     await updateCacheData(
       dc,
       {
@@ -82,12 +86,7 @@ describe('caching', () => {
         ref: q1,
         source: 'CACHE'
       },
-      [
-        {
-          path: ['movies', 0],
-          entityId: 'matrix'
-        }
-      ]
+      [matrixEntity]
     );
     const q2 = queryRef<Q2Data>(dc, 'q2');
     await updateCacheData(
@@ -98,12 +97,7 @@ describe('caching', () => {
         ref: q2,
         source: 'CACHE'
       },
-      [
-        {
-          path: ['movies', 0],
-          entityId: 'matrix'
-        }
-      ]
+      [matrixEntity]
     );
 
     const events: Array<
@@ -125,12 +119,7 @@ describe('caching', () => {
         ]
       },
       extensions: {
-        dataConnect: [
-          {
-            path: ['movies', 0],
-            entityId: 'matrix'
-          }
-        ]
+        dataConnect: [matrixEntity]
       }
     };
     stubFetch(expected);
@@ -279,7 +268,7 @@ describe('caching', () => {
       } as QueryResult<Q2Data, undefined>
     ]);
   });
-  it('should merge entity data when multiple queries have the same entity id', async () => {
+  it('retrieve entity data when multiple queries have the same entity id', async () => {
     type Q1Data = {
       movie: {
         title: string;

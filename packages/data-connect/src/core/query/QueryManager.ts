@@ -118,7 +118,7 @@ export class QueryManager {
   }
 
   addSubscription<Data, Variables>(
-    queryRef: OperationRef<Data, Variables>,
+    queryRef: QueryRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
     onCompleteCallback?: OnCompleteSubscription,
     onErrorCallback?: OnErrorSubscription,
@@ -241,14 +241,14 @@ export class QueryManager {
         throw e;
       }
     }
-    if (!cachingEnabled) {
-      this.subscriptionCache.set(key, queryResult!);
-      this.publishDataToSubscribers(key, queryResult!);
-    } else {
+    if (cachingEnabled) {
       await this.publishCacheResultsToSubscribers(
         impactedQueries,
         queryResult!.fetchTime
       );
+    } else {
+      this.subscriptionCache.set(key, queryResult!);
+      this.publishDataToSubscribers(key, queryResult!);
     }
     return queryResult!;
   }

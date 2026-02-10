@@ -25,14 +25,13 @@ export function setEncoder(encoder: HmacImpl): void {
 export function setDecoder(decoder: DecodeHmacImpl): void {
   decoderImpl = decoder;
 }
-setEncoder((o: Record<string, unknown>) =>
-  JSON.stringify(
-    Object.keys(o)
-      .sort()
-      .reduce((accumulator, currentKey) => {
-        accumulator[currentKey] = o[currentKey];
-        return accumulator;
-      }, {} as Record<string, unknown>)
-  )
-);
-setDecoder(s => JSON.parse(s));
+function sortKeysForObj(o: Record<string, unknown>): Record<string, unknown> {
+  return Object.keys(o)
+    .sort()
+    .reduce((accumulator, currentKey) => {
+      accumulator[currentKey] = o[currentKey];
+      return accumulator;
+    }, {} as Record<string, unknown>);
+}
+setEncoder((o: Record<string, unknown>) => JSON.stringify(sortKeysForObj(o)));
+setDecoder(s => sortKeysForObj(JSON.parse(s)));

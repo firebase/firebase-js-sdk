@@ -24,7 +24,6 @@ describe('parseEntityIds', () => {
   it('should parse single entity id', () => {
     const fetchTime = new Date().toISOString();
     const response: OpResult<unknown> = {
-      // Same as before except no more _id
       data: {
         posts: [
           {
@@ -59,32 +58,20 @@ describe('parseEntityIds', () => {
       },
       fetchTime,
       source: SOURCE_SERVER,
-      // New! SDKs should parse this. Only present when Connector.clientCache.includeEntityId is true (can be set via the control plane soon; CLI will set it according to YAML later)
       extensions: {
-        // Unique top-level key to avoid (future) conflicts with other GQL extensions
-        // Not called "cache" since it can be used for realtime and pagination too later
         dataConnect: [
-          // This is a list, each item contains a path and properties for that path.
           {
-            // If path points to a list, then there will be multiple IDs, one for
-            // each element, in list order.
             path: ['posts'],
             entityIds: ['idForPost1GoesHere', 'idForPost2GoesHere']
-            // Later we can attach properties like pagination to the same list here.
           },
           {
-            // If path points to a single object, there is only one entityId.
-            path: ['posts', 0, 'author'], // Each path segment may be string (field name) or number (index).
-            entityId: 'idForAuthorOfPost1' // singular entityId, not entityIds
-            // Later we can attach object-level properties here.
+            path: ['posts', 0, 'author'],
+            entityId: 'idForAuthorOfPost1'
           },
           {
-            // There's some path repetition for nested objects but it will not be so
-            // bad after response gzipping (for proto and JSON alike).
-            path: ['posts', 1, 'author'], // Each path segment may be string (field name) or number (index).
+            path: ['posts', 1, 'author'],
             entityId: 'idForAuthorOfPost2'
           },
-          // The backend will prefer to return paths pointing to lists when possible.
           {
             path: ['posts', 0, 'comments_on_post'],
             entityIds: ['idForPost1Comment1', 'idForPost1Comment2']
@@ -93,19 +80,6 @@ describe('parseEntityIds', () => {
             path: ['posts', 1, 'comments_on_post'],
             entityIds: ['idForPost2Comment1', 'idForPost2Comment2']
           }
-          // Although these are valid under our spec, the backend in practice
-          // will choose the wire-efficient equivalent above.
-          /*
-      {
-        path: ["posts", 1, "comments_on_post", 0],
-        entityId: "idForPost2Comment1"
-      },
-      {
-        path: ["posts", 1, "comments_on_post", 1],
-        entityId: "idForPost2Comment2"
-      }, /* and so on */
-          // Later if we need to do a response-level property, we still can:
-          // {path: [/*empty*/], propertyForTheWholeResponse: ...}
         ]
       }
     };
