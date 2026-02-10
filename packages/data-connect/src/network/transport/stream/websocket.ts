@@ -1,0 +1,218 @@
+/**
+ * @license
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { CallerSdkType, CallerSdkTypeEnum, DataConnectResponse } from '..';
+import { DataConnectOptions, TransportOptions } from '../../../api/DataConnect';
+import { AppCheckTokenProvider } from '../../../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../../../core/error';
+import { AuthTokenProvider } from '../../../core/FirebaseAuthProvider';
+
+import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
+
+import { DataConnectStreamTransportClass } from '.';
+
+/**
+ * A Transport implementation that uses WebSockets to stream requests and responses.
+ * This class handles the lifecycle of the WebSocket connection, including automatic
+ * reconnection and request correlation.
+ * @internal
+ */
+export class StreamTransport extends DataConnectStreamTransportClass {
+  // TODO(stephenarosaj): handle app check and auth... in RESTTransport there are providers that get called... probably have to do something like that here, too
+
+  /** The current established connection to the server. Undefined if disconnected. */
+  private _connection: WebSocket | undefined = undefined;
+
+  /**
+   * Tracks any ongoing connection attempt. This ensures we don't open multiple streams if multiple
+   * requests are fired simultaneously.
+   */
+  private _connectionAttempt: Promise<void> | null = null;
+
+  constructor(
+    options: DataConnectOptions,
+    protected apiKey?: string | undefined,
+    protected appId?: string | null,
+    protected authProvider?: AuthTokenProvider | undefined,
+    protected appCheckProvider?: AppCheckTokenProvider | undefined,
+    transportOptions?: TransportOptions | undefined,
+    protected _isUsingGen = false,
+    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
+  ) {
+    super(
+      options,
+      apiKey,
+      appId,
+      authProvider,
+      appCheckProvider,
+      transportOptions,
+      _isUsingGen,
+      _callerSdkType
+    );
+  }
+
+  /**
+   * Ensures that that there is an open connection. If there is none, it initiates a new one.
+   * If a connection attempt is already in progress, it returns the existing promise.
+   * @returns A promise that resolves when the stream is open and ready.
+   */
+  private _ensureConnection(): Promise<void> {
+    if (this._connection?.readyState === WebSocket.OPEN) {
+      return Promise.resolve();
+    }
+    if (this._connectionAttempt) {
+      return this._connectionAttempt;
+    }
+    this._connectionAttempt = new Promise<void>((resolve, reject) => {
+      const ws = new WebSocket(this.endpointUrl);
+      ws.onopen = () => {
+        this._connection = ws;
+        resolve();
+      };
+      ws.onerror = err => {
+        this._connectionAttempt = null;
+        reject(err);
+      };
+      ws.onmessage = ev => this._handleWebSocketMessage(ev);
+      ws.onclose = ev => this._handleDisconnect(ev);
+    });
+
+    return this._connectionAttempt;
+  }
+
+  openConnection(): Promise<void> {
+    return this._ensureConnection().catch(err => {
+      throw new DataConnectError(
+        Code.OTHER,
+        `Failed to open connection: ${err}`
+      );
+    });
+  }
+
+  closeConnection(): void {
+    if (this._connection) {
+      this._connection.close();
+      this._connection = undefined;
+      this._connectionAttempt = null;
+    }
+  }
+
+  /**
+   * Handle a disconnection from the server. Should gracefully clean up outstanding requests, and
+   * orchestrate reconnection attempts.
+   * @param ev the CloseEvent that closed the WebSocket.
+   */
+  private _handleDisconnect(ev: CloseEvent): void {
+    this._connection = undefined;
+    this._connectionAttempt = null;
+
+    // server will drop all requests on disconnect
+    // TODO(stephenarosaj): requeue all requests for when connection comes back online
+    // TODO(stephenarosaj): what do we do with pending execute requests? do we resolve them as failed after a timeout (if reconnect before timeout, stop the timeout)?
+    // TODO(stephenarosaj): NOTE: if we are re-requesting, the first request needs to have auth and app check, and 
+    // TODO(stephenarosaj): use ev.code and ev.wasClean to figure out what kind of disconnect this was and what to do next
+  }
+
+  /**
+   * Forces a reconnection by closing the existing connection and opening a new one.
+   */
+  // TODO(stephenarosaj): add algorithmic backoff, etc.
+  private _reconnect(): Promise<void> {
+    this.closeConnection();
+    return this.openConnection();
+  }
+
+  sendMessage<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
+  ): void {
+    this._ensureConnection()
+      .then(() => {
+        // TODO(stephenarosaj): save some bytes. no need to re-send tokens if not refreshing, and no need to re-send connector/service name for existing stream
+        if (this._accessToken && requestBody.authToken) {
+          requestBody.authToken = this._accessToken;
+        }
+        if (this._appCheckToken && requestBody.appCheckToken) {
+          requestBody.appCheckToken = this._appCheckToken;
+        }
+        this._connection!.send(JSON.stringify(requestBody));
+      })
+      .catch(err => {
+        throw new DataConnectError(
+          Code.OTHER,
+          `Failed to send message: ${err}`
+        );
+      });
+  }
+
+  /**
+   * Handles incoming WebSocket messages.
+   * @param ev The MessageEvent from the WebSocket.
+   */
+  private _handleWebSocketMessage(ev: MessageEvent): void {
+    const result = this._parseWebSocketData(ev.data);
+    const requestId = result.requestId;
+
+    const dataConnectResponse: DataConnectResponse<unknown> = {
+      data: result.data,
+      errors: result.errors,
+      extensions: { dataConnect: [] } // TODO(stephenarosaj): actually fill this... it should be coming from result.extensions... right?
+    };
+
+    if (this._executeRequestPromises.has(requestId)) {
+      // TODO(stephenarosaj): when do we use reject? if there was an ERROR error, like something really went wrong with the stream? in that case, it probably won't get called when handling a message, but rather in catach statements of stream-related functions, right...?
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { resolve, reject } = this._executeRequestPromises.get(requestId)!;
+      resolve(dataConnectResponse);
+      this._executeRequestPromises.delete(requestId);
+    } else if (this._subscribeNotificationHooks.has(requestId)) {
+      const notifyQueryManager = this._subscribeNotificationHooks.get(requestId)!;
+      notifyQueryManager(dataConnectResponse);
+    } else {
+      throw new DataConnectError(
+        Code.OTHER,
+        `Unrecognized requestId '${requestId}'`
+      );
+    }
+  }
+
+  /**
+   * Parse a response from the server. Assert that it has a requestId.
+   * @param data the message from the server to be parsed
+   * @returns the parsed message as a DataConnectStreamResponse
+   */
+  private _parseWebSocketData<Data>(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any // TODO(stephenarosaj): type better
+  ): DataConnectStreamResponse<Data> {
+    const webSocketMessage = JSON.parse(data);
+    // eslint-disable-next-line no-console
+    console.log('\nMESSAGE:\n', webSocketMessage); // DEBUGGING
+    if (!('result' in webSocketMessage)) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'message from stream did not include result'
+      );
+    }
+    if (!('requestId' in webSocketMessage.result)) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'server response did not include requestId'
+      );
+    }
+    return webSocketMessage.result as DataConnectStreamResponse<Data>;
+  }
+}

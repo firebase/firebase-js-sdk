@@ -26,8 +26,8 @@ export function urlBuilder(
   transportOptions: TransportOptions
 ): string {
   const { connector, location, projectId: project, service } = projectConfig;
-  const { host, sslEnabled, port } = transportOptions;
-  const protocol = sslEnabled ? 'https' : 'http';
+  const { host, sslEnabled, streamEnabled, port } = transportOptions;
+  const protocol = streamEnabled ? 'ws' : sslEnabled ? 'https' : 'http'; // TODO(stephenarosaj): streamEnabled doesn't necessarily mean use websockets - they're not supported everywhere.
   const realHost = host || PROD_HOST;
   let baseUrl = `${protocol}://${realHost}`;
   if (typeof port === 'number') {
@@ -38,6 +38,9 @@ export function urlBuilder(
       Code.INVALID_ARGUMENT,
       'Incorrect type for port passed in!'
     );
+  }
+  if (streamEnabled) {
+    return `${baseUrl}/v1/Connect/locations/${location}`;
   }
   return `${baseUrl}/v1/projects/${project}/locations/${location}/services/${service}/connectors/${connector}`;
 }
