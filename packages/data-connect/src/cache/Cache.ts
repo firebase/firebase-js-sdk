@@ -101,7 +101,7 @@ export class DataConnectCache {
     if (!resultTree) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,
-        `${queryId} not found in cache. Call "update() first."`
+        `${queryId} not found in cache. Call "update()" first.`
       );
     }
     return processor.hydrateResults(resultTree.getRootStub());
