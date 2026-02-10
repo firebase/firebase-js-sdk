@@ -265,6 +265,7 @@ export interface FunctionResponse {
   id?: string;
   name: string;
   response: Record<string, unknown>;
+  parts?: Part[]
 }
 
 /**
