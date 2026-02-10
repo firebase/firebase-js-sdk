@@ -542,7 +542,7 @@ export class GenerativeModel extends AIModel {
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
-    initializeDeviceModel(): Promise<void>;
+    initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void>;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)
@@ -885,6 +885,12 @@ export type Language = (typeof Language)[keyof typeof Language];
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    monitor?: (monitor: {
+        addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+            loaded: number;
+        }) => void) => void;
+    }) => void;
     // (undocumented)
     temperature?: number;
     // (undocumented)

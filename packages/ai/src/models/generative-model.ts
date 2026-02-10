@@ -97,7 +97,7 @@ export class GenerativeModel extends AIModel {
    *
    * @public
    */
-  async initializeDeviceModel(): Promise<void> {
+  async initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void> {
     if (
       !this.chromeAdapter ||
       this.chromeAdapter.mode === InferenceMode.ONLY_IN_CLOUD
@@ -106,7 +106,7 @@ export class GenerativeModel extends AIModel {
     }
     const availability = await (
       this.chromeAdapter as ChromeAdapterImpl
-    ).downloadIfAvailable();
+    ).downloadIfAvailable(onDownloadProgress);
     if (availability === Availability.UNAVAILABLE) {
       const notEnabledError = new AIError(
         AIErrorCode.API_NOT_ENABLED,
