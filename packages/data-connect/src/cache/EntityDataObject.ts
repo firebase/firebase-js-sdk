@@ -50,10 +50,10 @@ export class EntityDataObject {
     };
   }
   static fromJSON(json: EntityDataObjectJson): EntityDataObject {
-    const bdo = new EntityDataObject(json.globalID);
-    bdo.serverValues = json.map;
-    bdo.referencedFrom = new Set(json.referencedFrom);
-    return bdo;
+    const edo = new EntityDataObject(json.globalID);
+    edo.serverValues = json.map;
+    edo.referencedFrom = new Set(json.referencedFrom);
+    return edo;
   }
 
   updateServerValue(

@@ -33,7 +33,6 @@ export class ResultTreeProcessor {
   hydrateResults(rootStubObject: EntityNode): Record<string, unknown> {
     return rootStubObject.toJSON(EncodingMode.hydrated);
   }
-  // TODO: Make this closer to https://github.com/firebase/data-connect-ios-sdk/blob/main/Sources/Cache/ResultTreeProcessor.swift
   /**
    * Dehydrate results so that they can be stored in the cache.
    * @param json
@@ -44,7 +43,7 @@ export class ResultTreeProcessor {
    */
   async dehydrateResults(
     json: Record<string, unknown>,
-    entityIds: Record<string, unknown>, // TODO: handle entity ids.
+    entityIds: Record<string, unknown>,
     cacheProvider: InternalCacheProvider,
     queryId: string
   ): Promise<DehydratedResults> {

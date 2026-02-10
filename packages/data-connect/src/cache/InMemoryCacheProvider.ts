@@ -41,7 +41,7 @@ export class InMemoryCacheProvider implements InternalCacheProvider {
     if (!this.edos.has(globalId)) {
       this.edos.set(globalId, new EntityDataObject(globalId));
     }
-    // Because of the above, we can guarantee that there will be a BDO at the globalId.
+    // Because of the above, we can guarantee that there will be an EDO at the globalId.
     return this.edos.get(globalId)!;
   }
   close(): Promise<void> {
