@@ -360,6 +360,139 @@ describe('caching', () => {
       }
     });
   });
+  it('should retrieve a social media homepage with nested comment arrays and overlapping queries', async () => {
+    interface Author {
+      id: string;
+      name: string;
+    }
+    interface PostComment {
+      content: string;
+      author: Author;
+    }
+    interface Post {
+      title: string;
+      author: Author;
+      comments: PostComment[];
+    }
+    interface HomePageData {
+      posts: Post[];
+    }
+    const homePageData: HomePageData = {
+      posts: [
+        {
+          title: 'post1',
+          author: { id: 'author1', name: 'Alice' },
+          comments: [
+            {
+              content: 'comment1',
+              author: { id: 'author2', name: 'Bob' }
+            },
+            {
+              content: 'comment2',
+              author: { id: 'author1', name: 'Alice' }
+            }
+          ]
+        },
+        {
+          title: 'post2',
+          author: { id: 'author2', name: 'Bob' },
+          comments: []
+        }
+      ]
+    };
+
+    const getHomePageQueryId = 'getHomePage';
+    await updateCacheData(
+      dc,
+      {
+        data: homePageData,
+        fetchTime: new Date().toISOString(),
+        ref: queryRef<HomePageData>(dc, getHomePageQueryId),
+        source: 'SERVER'
+      },
+      [
+        {
+          path: ['posts'],
+          entityIds: ['post1', 'post2']
+        },
+        {
+          path: ['posts', 0, 'author'],
+          entityId: 'author1'
+        },
+        {
+          path: ['posts', 1, 'author'],
+          entityId: 'author2'
+        },
+        {
+          path: ['posts', 0, 'comments'],
+          entityIds: ['comment1', 'comment2']
+        },
+        {
+          path: ['posts', 0, 'comments', 0, 'author'],
+          entityId: 'author2'
+        },
+        {
+          path: ['posts', 0, 'comments', 1, 'author'],
+          entityId: 'author1'
+        }
+      ]
+    );
+
+    const result = await executeQuery(queryRef<HomePageData>(dc, getHomePageQueryId), {
+      fetchPolicy: 'CACHE_ONLY'
+    });
+    expect(result.data).to.deep.eq(homePageData);
+
+    interface GetUserCommentsData {
+      user: {
+        id: string;
+        name: string;
+        comments: PostComment[];
+      };
+    }
+    const userCommentsData: GetUserCommentsData = {
+      user: {
+        id: 'author1',
+        name: 'Alice',
+        comments: [
+          {
+            content: 'comment2',
+            author: { id: 'author1', name: 'Alice' }
+          }
+        ]
+      }
+    };
+
+    const getUserCommentsQueryId = 'getUserComments';
+    await updateCacheData(
+      dc,
+      {
+        data: userCommentsData,
+        fetchTime: new Date().toISOString(),
+        ref: queryRef<GetUserCommentsData>(dc, getUserCommentsQueryId),
+        source: 'SERVER'
+      },
+      [
+        {
+          path: ['user'],
+          entityId: 'author1'
+        },
+        {
+          path: ['user', 'comments'],
+          entityIds: ['comment2']
+        },
+        {
+          path: ['user', 'comments', 0, 'author'],
+          entityId: 'author1'
+        }
+      ]
+    );
+
+    const result2 = await executeQuery(queryRef<GetUserCommentsData>(dc, getUserCommentsQueryId), {
+      fetchPolicy: 'CACHE_ONLY'
+    });
+    expect(result2.data).to.deep.eq(userCommentsData);
+  });
 });
 
 function stubFetch(response: unknown): void {

@@ -135,6 +135,7 @@ export class DataConnectCache {
   }
 }
 
+// TODO: Rename from MemoryStub
 export class MemoryStub implements CacheProvider<'MEMORY'> {
   type: 'MEMORY' = 'MEMORY';
   /**
