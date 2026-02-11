@@ -89,6 +89,11 @@ export class ChatSession {
     return this._history;
   }
 
+  /**
+   * Format Content into a request for generateContent or
+   * generateContentStream.
+   * @internal
+   */
   _formatRequest(
     incomingContent: Content,
     tempHistory: Content[]

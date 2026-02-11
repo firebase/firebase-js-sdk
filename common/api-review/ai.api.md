@@ -145,7 +145,7 @@ export class ChatSession {
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // @internal
     _callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<FunctionResponsePart[]>;
-    // (undocumented)
+    // @internal
     _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
     getHistory(): Promise<Content[]>;
     // (undocumented)
@@ -154,7 +154,7 @@ export class ChatSession {
     params?: StartChatParams | undefined;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
-    sendMessage(request: string | Array<string | Part>): Promise<GenerateContentResult>;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     }
 
@@ -364,7 +364,7 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
 // @public
 export interface FunctionCall {
     // (undocumented)
-    args: Record<string, unknown>;
+    args: object;
     id?: string;
     // (undocumented)
     name: string;
@@ -411,7 +411,7 @@ export interface FunctionCallPart {
 // @public
 export interface FunctionDeclaration {
     description: string;
-    functionReference?: (params: Record<string, unknown>) => Record<string, unknown> | Promise<Record<string, unknown>>;
+    functionReference?: Function;
     name: string;
     parameters?: ObjectSchema | ObjectSchemaRequest;
 }
@@ -427,7 +427,9 @@ export interface FunctionResponse {
     // (undocumented)
     name: string;
     // (undocumented)
-    response: Record<string, unknown>;
+    parts?: Part[];
+    // (undocumented)
+    response: object;
 }
 
 // @public

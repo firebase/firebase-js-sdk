@@ -242,7 +242,7 @@ export interface FunctionCall {
    */
   id?: string;
   name: string;
-  args: Record<string, unknown>;
+  args: object;
 }
 
 /**
@@ -264,7 +264,7 @@ export interface FunctionResponse {
    */
   id?: string;
   name: string;
-  response: Record<string, unknown>;
+  response: object;
   parts?: Part[];
 }
 
