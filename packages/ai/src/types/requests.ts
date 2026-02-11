@@ -333,8 +333,8 @@ export interface FunctionDeclaration {
    */
   parameters?: ObjectSchema | ObjectSchemaRequest;
   /**
-   * Reference to actual function to call. Specifying this will cause the
-   * function to be called automatically.
+   * Reference to an actual function to call. Specifying this will cause the
+   * function to be called automatically when requested by the model.
    */
   // eslint-disable-next-line @typescript-eslint/ban-types
   functionReference?: Function;
