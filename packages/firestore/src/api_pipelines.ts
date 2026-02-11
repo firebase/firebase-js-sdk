@@ -161,7 +161,15 @@ export {
   ExpressionType,
   AliasedAggregate,
   Selectable,
-  TimeGranularity
+  TimeGranularity,
+  arrayFirst,
+  arrayFirstN,
+  arrayLast,
+  arrayLastN,
+  arrayMaximum,
+  arrayMaximumN,
+  arrayMinimum,
+  arrayMinimumN
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

@@ -1284,6 +1284,178 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Returns the first element of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first element of the 'myArray' field.
+   * field("myArray").arrayFirst();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+   */
+  arrayFirst(): FunctionExpression {
+    return new FunctionExpression('array_first', [this], 'arrayFirst');
+  }
+
+  /**
+   * @beta
+   * Returns the first `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first 3 elements of the 'myArray' field.
+   * field("myArray").arrayFirstN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+   */
+  arrayFirstN(n: number): FunctionExpression;
+  /**
+   * @beta
+   * Returns the first `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first n elements of the 'myArray' field.
+   * field("myArray").arrayFirstN(field("count"));
+   * ```
+   *
+   * @param n - The expression representing the number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+   */
+  arrayFirstN(n: Expression): FunctionExpression;
+  arrayFirstN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_first_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayFirstN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the last element of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last element of the 'myArray' field.
+   * field("myArray").arrayLast();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+   */
+  arrayLast(): FunctionExpression {
+    return new FunctionExpression('array_last', [this], 'arrayLast');
+  }
+
+  /**
+   * @beta
+   * Returns the last `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last 3 elements of the 'myArray' field.
+   * field("myArray").arrayLastN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+   */
+  arrayLastN(n: number): FunctionExpression;
+  /**
+   * @beta
+   * Returns the last `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last n elements of the 'myArray' field.
+   * field("myArray").arrayLastN(field("count"));
+   * ```
+   *
+   * @param n - The expression representing the number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+   */
+  arrayLastN(n: Expression): FunctionExpression;
+  arrayLastN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_last_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayLastN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the maximum value in the array.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+   */
+  arrayMaximum(): FunctionExpression {
+    return new FunctionExpression('maximum', [this], 'arrayMaximum');
+  }
+
+  /**
+   * @beta
+   * Returns the largest `n` elements of the array.
+   *
+   * @param n - The number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+   */
+  arrayMaximumN(n: number): FunctionExpression;
+  /**
+   * @beta
+   * Returns the largest `n` elements of the array.
+   *
+   * @param n - The expression representing the number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+   */
+  arrayMaximumN(n: Expression): FunctionExpression;
+  arrayMaximumN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'maximum_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayMaximumN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the minimum value in the array.
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+   */
+  arrayMinimum(): FunctionExpression {
+    return new FunctionExpression('minimum', [this], 'arrayMinimum');
+  }
+
+  /**
+   * @beta
+   * Returns the smallest `n` elements of the array.
+   *
+   * @param n - The number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+   */
+  arrayMinimumN(n: number): FunctionExpression;
+  /**
+   * @beta
+   * Returns the smallest `n` elements of the array.
+   *
+   * @param n - The expression representing the number of elements to return.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+   */
+  arrayMinimumN(n: Expression): FunctionExpression;
+  arrayMinimumN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'minimum_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayMinimumN'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an expression that calculates the length of this string expression in bytes.
    *
    * @example
@@ -6004,6 +6176,430 @@ export function regexContains(
   const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.regexContains(patternExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first tag from the 'tags' array field
+ * arrayFirst("tags");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+ */
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first tag from the 'tags' array field
+ * arrayFirst(field("tags"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+ */
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+export function arrayFirst(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayFirst();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 tags from the 'tags' array field
+ * arrayFirstN("tags", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 tags from the 'tags' array field
+ * arrayFirstN("tags", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The expression representing the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 elements from an array expression
+ * arrayFirstN(field("tags"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first n elements from an array expression
+ * arrayFirstN(field("tags"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The expression representing the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayFirstN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFirstN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last tag from the 'tags' array field
+ * arrayLast("tags");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+ */
+export function arrayLast(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last tag from the 'tags' array field
+ * arrayLast(field("tags"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+ */
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+export function arrayLast(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayLast();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 tags from the 'tags' array field
+ * arrayLastN("tags", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 tags from the 'tags' array field
+ * arrayLastN("tags", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The expression representing the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 elements from an array expression
+ * arrayLastN(field("tags"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last n elements from an array expression
+ * arrayLastN(field("tags"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The expression representing the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayLastN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayLastN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the maximum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the maximum value from the 'scores' array field
+ * arrayMaximum("scores");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+ */
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the maximum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the maximum value from the 'scores' array field
+ * arrayMaximum(field("scores"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+ */
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+export function arrayMaximum(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayMaximum();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 scores from the 'scores' array field
+ * arrayMaximumN("scores", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 scores from the 'scores' array field
+ * arrayMaximumN("scores", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The expression representing the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 elements from an array expression
+ * arrayMaximumN(field("scores"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the top n elements from an array expression
+ * arrayMaximumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The expression representing the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayMaximumN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayMaximumN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the minimum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the minimum value from the 'scores' array field
+ * arrayMinimum("scores");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+ */
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the minimum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the minimum value from the 'scores' array field
+ * arrayMinimum(field("scores"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+ */
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+export function arrayMinimum(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayMinimum();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom 3 scores from the 'scores' array field
+ * arrayMinimumN("scores", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+export function arrayMinimumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+export function arrayMinimumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+export function arrayMinimumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayMinimumN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayMinimumN(valueToDefaultExpr(n));
 }
 
 /**

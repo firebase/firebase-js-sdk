@@ -144,7 +144,15 @@ import {
   currentTimestamp,
   ifAbsent,
   join,
-  arraySum
+  arraySum,
+  arrayFirst,
+  arrayFirstN,
+  arrayLast,
+  arrayLastN,
+  arrayMaximum,
+  arrayMaximumN,
+  arrayMinimum,
+  arrayMinimumN
 } from './pipeline_export';
 
 use(chaiAsPromised);
@@ -2974,6 +2982,246 @@ describe.skipClassic('Firestore Pipelines', () => {
           .sort(field('rating').descending())
           .limit(3)
           .select(field('tags').arrayGet(0).as('firstTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayFirst', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayFirst('tags').as('firstTag'))
+      );
+      const expectedResults = [
+        {
+          firstTag: 'adventure'
+        },
+        {
+          firstTag: 'politics'
+        },
+        {
+          firstTag: 'classic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayFirst().as('firstTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayFirstN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayFirstN('tags', 2).as('firstTwoTags'))
+      );
+      const expectedResults = [
+        {
+          firstTwoTags: ['adventure', 'magic']
+        },
+        {
+          firstTwoTags: ['politics', 'desert']
+        },
+        {
+          firstTwoTags: ['classic', 'social commentary']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayFirstN(2).as('firstTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayLast', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayLast('tags').as('lastTag'))
+      );
+      const expectedResults = [
+        {
+          lastTag: 'epic'
+        },
+        {
+          lastTag: 'ecology'
+        },
+        {
+          lastTag: 'love'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayLast().as('lastTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayLastN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayLastN('tags', 2).as('lastTwoTags'))
+      );
+      const expectedResults = [
+        {
+          lastTwoTags: ['magic', 'epic']
+        },
+        {
+          lastTwoTags: ['desert', 'ecology']
+        },
+        {
+          lastTwoTags: ['social commentary', 'love']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayLastN(2).as('lastTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayMaximum', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMaximum('tags').as('maxTag'))
+      );
+      const expectedResults = [
+        {
+          maxTag: 'magic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMaximum().as('maxTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayMaximumN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMaximumN('tags', 2).as('maxTwoTags'))
+      );
+      const expectedResults = [
+        {
+          maxTwoTags: ['magic', 'epic']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMaximumN(2).as('maxTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayMinimum', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMinimum('tags').as('minTag'))
+      );
+      const expectedResults = [
+        {
+          minTag: 'adventure'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMinimum().as('minTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayMinimumN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMinimumN('tags', 2).as('minTwoTags'))
+      );
+      const expectedResults = [
+        {
+          minTwoTags: ['adventure', 'epic']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMinimumN(2).as('minTwoTags'))
       );
       expectResults(snapshot, ...expectedResults);
     });

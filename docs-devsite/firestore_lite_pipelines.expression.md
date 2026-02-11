@@ -46,9 +46,21 @@ export declare abstract class Expression
 |  [arrayContainsAll(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
 |  [arrayContainsAny(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
 |  [arrayContainsAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayFirst()](./firestore_lite_pipelines.expression.md#expressionarrayfirst) |  | <b><i>(Public Preview)</i></b> Returns the first element of the array. |
+|  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
+|  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
 |  [arrayGet(offset)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  [arrayGet(offsetExpr)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayLast()](./firestore_lite_pipelines.expression.md#expressionarraylast) |  | <b><i>(Public Preview)</i></b> Returns the last element of the array. |
+|  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
+|  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
 |  [arrayLength()](./firestore_lite_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
+|  [arrayMaximum()](./firestore_lite_pipelines.expression.md#expressionarraymaximum) |  | <b><i>(Public Preview)</i></b> Returns the maximum value in the array. |
+|  [arrayMaximumN(n)](./firestore_lite_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array. |
+|  [arrayMaximumN(n)](./firestore_lite_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array. |
+|  [arrayMinimum()](./firestore_lite_pipelines.expression.md#expressionarrayminimum) |  | <b><i>(Public Preview)</i></b> Returns the minimum value in the array. |
+|  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
+|  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
 |  [arrayReverse()](./firestore_lite_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
 |  [arraySum()](./firestore_lite_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [as(name)](./firestore_lite_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
@@ -482,6 +494,101 @@ field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
 
 ```
 
+## Expression.arrayFirst()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the first element of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayFirst(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first element.
+
+### Example
+
+
+```typescript
+// Get the first element of the 'myArray' field.
+field("myArray").arrayFirst();
+
+```
+
+## Expression.arrayFirstN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the first `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayFirstN(n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+
+### Example
+
+
+```typescript
+// Get the first 3 elements of the 'myArray' field.
+field("myArray").arrayFirstN(3);
+
+```
+
+## Expression.arrayFirstN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the first `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayFirstN(n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+
+### Example
+
+
+```typescript
+// Get the first n elements of the 'myArray' field.
+field("myArray").arrayFirstN(field("count"));
+
+```
+
 ## Expression.arrayGet()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -551,6 +658,101 @@ field('tags').arrayGet(field('favoriteTag'));
 
 ```
 
+## Expression.arrayLast()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the last element of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayLast(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last element.
+
+### Example
+
+
+```typescript
+// Get the last element of the 'myArray' field.
+field("myArray").arrayLast();
+
+```
+
+## Expression.arrayLastN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the last `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayLastN(n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+
+### Example
+
+
+```typescript
+// Get the last 3 elements of the 'myArray' field.
+field("myArray").arrayLastN(3);
+
+```
+
+## Expression.arrayLastN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the last `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayLastN(n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+
+### Example
+
+
+```typescript
+// Get the last n elements of the 'myArray' field.
+field("myArray").arrayLastN(field("count"));
+
+```
+
 ## Expression.arrayLength()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -577,6 +779,142 @@ A new `Expression` representing the length of the array.
 field("cart").arrayLength();
 
 ```
+
+## Expression.arrayMaximum()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the maximum value in the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayMaximum(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the maximum value.
+
+## Expression.arrayMaximumN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the largest `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayMaximumN(n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+## Expression.arrayMaximumN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the largest `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayMaximumN(n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+## Expression.arrayMinimum()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the minimum value in the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayMinimum(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the minimum value.
+
+## Expression.arrayMinimumN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the smallest `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayMinimumN(n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+## Expression.arrayMinimumN()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the smallest `n` elements of the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayMinimumN(n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
 
 ## Expression.arrayReverse()
 

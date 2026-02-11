@@ -108,6 +108,24 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayGet(arrayField: string, offset: number): FunctionExpression;
 
 // @beta
@@ -120,10 +138,73 @@ export function arrayGet(arrayExpression: Expression, offset: number): FunctionE
 export function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
 
 // @beta
+export function arrayLast(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayLength(fieldName: string): FunctionExpression;
 
 // @beta
 export function arrayLength(array: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public (undocumented)
+export function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public (undocumented)
+export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public (undocumented)
+export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @beta
 export function arraySum(fieldName: string): FunctionExpression;
@@ -391,11 +472,35 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFirst(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayGet(offset: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayGet(offsetExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayLast(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayLength(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
