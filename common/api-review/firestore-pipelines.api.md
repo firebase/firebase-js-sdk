@@ -188,22 +188,13 @@ export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
 // @beta
 export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public (undocumented)
+// @beta
 export function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public (undocumented)
+// @beta
 export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "arrayMinimumN" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public (undocumented)
+// @beta
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @beta

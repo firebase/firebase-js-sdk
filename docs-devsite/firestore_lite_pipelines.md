@@ -39,8 +39,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array. |
 |  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array. |
 |  [arrayMinimum(arrayExpression)](./firestore_lite_pipelines.md#arrayminimum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
-|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_bff7f91) |  |
-|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_19b4ef8) |  |
+|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
+|  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_lite_pipelines.md#join_313e6aa) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayExpression, delimiter)](./firestore_lite_pipelines.md#join_d088d29) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
@@ -141,7 +141,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array. |
 |  [arrayMinimum(fieldName)](./firestore_lite_pipelines.md#arrayminimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
-|  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_1a86a2c) |  |
+|  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
 |  [arraySum(fieldName)](./firestore_lite_pipelines.md#arraysum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [ascending(fieldName)](./firestore_lite_pipelines.md#ascending_e5b0480) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_lite_pipelines.md#average_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
@@ -1132,6 +1132,11 @@ arrayMinimum(field("scores"));
 
 ### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_bff7f91}
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1142,14 +1147,30 @@ export declare function arrayMinimumN(arrayExpression: Expression, n: number): F
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
-|  n | number |  |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | number | The number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom 3 scores from the 'scores' array field
+arrayMinimumN(field("scores"), 3);
+
+```
+
 ### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_19b4ef8}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
 
 <b>Signature:</b>
 
@@ -1161,12 +1182,23 @@ export declare function arrayMinimumN(arrayExpression: Expression, n: Expression
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom 3 scores from the 'scores' array field
+arrayMinimumN(field("scores"), 3);
+
+```
 
 ### join(arrayExpression, delimiterExpression) {:#join_313e6aa}
 
@@ -4153,6 +4185,11 @@ arrayMinimumN("scores", 3);
 
 ### arrayMinimumN(fieldName, n) {:#arrayminimumn_1a86a2c}
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
+
 <b>Signature:</b>
 
 ```typescript
@@ -4164,11 +4201,22 @@ export declare function arrayMinimumN(fieldName: string, n: Expression): Functio
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string |  |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom 3 scores from the 'scores' array field
+arrayMinimumN(field("scores"), 3);
+
+```
 
 ### arraySum(fieldName) {:#arraysum_e5b0480}
 
