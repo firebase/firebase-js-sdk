@@ -1312,7 +1312,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
    */
   arrayFirstN(n: number): FunctionExpression;
-  
+
   /**
    * @beta
    * Returns the first `n` elements of the array.
@@ -1365,7 +1365,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
    */
   arrayLastN(n: number): FunctionExpression;
-  
+
   /**
    * @beta
    * Returns the last `n` elements of the array.
@@ -6624,7 +6624,7 @@ export function arrayMinimum(array: Expression | string): FunctionExpression {
  */
 export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
 
-  /**
+/**
  * @beta
  *
  * Creates an expression that returns the smallest `n` elements of an array.
