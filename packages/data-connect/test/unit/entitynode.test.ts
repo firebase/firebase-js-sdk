@@ -272,4 +272,108 @@ describe('entity node', () => {
       ].entityData?.getServerValues()!.name
     ).to.equal('Cypher');
   });
+
+  it('should load data for complex nested lists and objects like a social media feed', async () => {
+    const exampleEntityIds = {
+      posts: [
+        {
+          [GLOBAL_ID_KEY]: 'post1',
+          author: {
+            [GLOBAL_ID_KEY]: 'author1'
+          },
+          comments: [
+            {
+              [GLOBAL_ID_KEY]: 'comment1',
+              author: {
+                [GLOBAL_ID_KEY]: 'author2'
+              }
+            },
+            {
+              [GLOBAL_ID_KEY]: 'comment2',
+              author: {
+                [GLOBAL_ID_KEY]: 'author1'
+              }
+            }
+          ]
+        },
+        {
+          [GLOBAL_ID_KEY]: 'post2',
+          author: {
+            [GLOBAL_ID_KEY]: 'author2'
+          },
+          comments: []
+        }
+      ]
+    };
+
+    const exampleData = {
+      posts: [
+        {
+          title: 'Hello world',
+          author: { name: 'Alice', username: '@alice' },
+          comments: [
+            {
+              content: 'First!',
+              author: { name: 'Bob', username: '@bob' }
+            },
+            {
+              content: 'Nice post',
+              author: { name: 'Alice', username: '@alice' }
+            }
+          ]
+        },
+        {
+          title: 'Another day',
+          author: { name: 'Bob', username: '@bob' },
+          comments: []
+        }
+      ]
+    };
+
+    const queryId = 'homePageQuery';
+    const cacheId = 'cacheId';
+    const memoryCacheProvider = makeMemoryCacheProvider().initialize(cacheId);
+    const node = new EntityNode();
+
+    await node.loadData(
+      queryId,
+      exampleData,
+      exampleEntityIds,
+      new ImpactedQueryRefsAccumulator(queryId),
+      memoryCacheProvider
+    );
+
+    // Verify root-level entities
+    expect(node.objectLists).to.have.property('posts');
+    expect(node.objectLists.posts).to.have.lengthOf(2);
+    expect(node.objectLists.posts[0].entityDataKeys.has('title')).to.be.true;
+
+    // Verify nested entities
+    expect(
+      node.objectLists.posts[0].references['author'].entityDataKeys.has('name')
+    ).to.be.true;
+    expect(
+      node.objectLists.posts[0].references[
+        'author'
+      ].entityData?.getServerValues()!.name
+    ).to.equal('Alice');
+
+    // Verify deeply nested lists and entities
+    expect(node.objectLists.posts[0].objectLists['comments']).to.have.lengthOf(
+      2
+    );
+    expect(
+      node.objectLists.posts[0].objectLists['comments'][0].references[
+        'author'
+      ].entityData?.getServerValues()!.name
+    ).to.equal('Bob');
+    expect(
+      node.objectLists.posts[0].objectLists['comments'][1].references[
+        'author'
+      ].entityData?.getServerValues()!.name
+    ).to.equal('Alice');
+
+    // Verify JSON export constructs the merged object fully
+    expect(node.toJSON(EncodingMode.hydrated)).to.deep.equal(exampleData);
+  });
 });

@@ -438,9 +438,12 @@ describe('caching', () => {
       ]
     );
 
-    const result = await executeQuery(queryRef<HomePageData>(dc, getHomePageQueryId), {
-      fetchPolicy: 'CACHE_ONLY'
-    });
+    const result = await executeQuery(
+      queryRef<HomePageData>(dc, getHomePageQueryId),
+      {
+        fetchPolicy: 'CACHE_ONLY'
+      }
+    );
     expect(result.data).to.deep.eq(homePageData);
 
     interface GetUserCommentsData {
@@ -488,9 +491,12 @@ describe('caching', () => {
       ]
     );
 
-    const result2 = await executeQuery(queryRef<GetUserCommentsData>(dc, getUserCommentsQueryId), {
-      fetchPolicy: 'CACHE_ONLY'
-    });
+    const result2 = await executeQuery(
+      queryRef<GetUserCommentsData>(dc, getUserCommentsQueryId),
+      {
+        fetchPolicy: 'CACHE_ONLY'
+      }
+    );
     expect(result2.data).to.deep.eq(userCommentsData);
   });
 });

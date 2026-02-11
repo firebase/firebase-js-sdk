@@ -196,14 +196,7 @@ export class QueryManager {
       // queryResult = await this.executeQuery(queryRef, options);
       shouldExecute = true;
     } else {
-      if (!cachingEnabled) {
-        // read from subscriber cache.
-        const fromSubscriberCache = await this.getFromSubscriberCache(key);
-        if (!fromSubscriberCache) {
-          shouldExecute = true;
-        }
-        queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
-      } else {
+      if (cachingEnabled) {
         if (
           !(await this.cache?.containsResultTree(key)) ||
           (await this.cache?.getResultTree(key))!.isStale()
@@ -212,6 +205,13 @@ export class QueryManager {
         } else {
           queryResult = await this.getFromResultTreeCache(key, queryRef);
         }
+      } else {
+        // read from subscriber cache.
+        const fromSubscriberCache = await this.getFromSubscriberCache(key);
+        if (!fromSubscriberCache) {
+          shouldExecute = true;
+        }
+        queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
       }
     }
     let impactedQueries: string[] = [key];
