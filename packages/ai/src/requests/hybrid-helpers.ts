@@ -95,13 +95,13 @@ export async function callCloudOrDevice<Response>(
       }
     case InferenceMode.PREFER_ON_DEVICE:
       if (await chromeAdapter.isAvailable(request)) {
-    console.log(2);
+        console.log(2);
         return {
           response: await onDeviceCall(),
           inferenceSource: InferenceSource.ON_DEVICE
         };
       }
-    console.log(3);
+      console.log(3);
       return {
         response: await inCloudCall(),
         inferenceSource: InferenceSource.IN_CLOUD

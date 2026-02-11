@@ -20,7 +20,11 @@ import { match, restore, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { Content, GenerateContentStreamResult } from '../types';
+import {
+  Content,
+  FunctionDeclaration,
+  GenerateContentStreamResult
+} from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
@@ -411,7 +415,9 @@ describe('ChatSession', () => {
         }
       ]
     };
-    const getFunctionDeclarationGreeting = (greetingSpy: SinonSpy) => ({
+    const getFunctionDeclarationGreeting = (
+      greetingSpy: SinonSpy
+    ): FunctionDeclaration => ({
       name: 'getGreeting',
       functionReference: greetingSpy,
       description: `Given the user's name, give a custom greeting`,
@@ -423,7 +429,9 @@ describe('ChatSession', () => {
         }
       })
     });
-    const getFunctionDeclarationFarewell = (farewellSpy: SinonSpy) => ({
+    const getFunctionDeclarationFarewell = (
+      farewellSpy: SinonSpy
+    ): FunctionDeclaration => ({
       name: 'getFarewell',
       functionReference: farewellSpy,
       description: `Given the user's name, give a custom farewell`,

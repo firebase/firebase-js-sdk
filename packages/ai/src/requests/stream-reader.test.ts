@@ -82,16 +82,22 @@ describe('processStream', () => {
   afterEach(() => {
     restore();
   });
-  it('streaming response - short', async () => {
+  it.only('streaming response - short', async () => {
     const fakeResponse = getMockResponseStreaming(
       'vertexAI',
       'streaming-success-basic-reply-short.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
       expect(response.inferenceSource).to.equal(InferenceSource.IN_CLOUD);
     }
+    expect(result.firstValue?.candidates?.[0].content.parts[0].text).to.equal(
+      'Cheyenne'
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cheyenne');
     expect(aggregatedResponse.inferenceSource).to.equal(
@@ -123,7 +129,13 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-basic-reply-long.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
+    expect(result.firstValue?.candidates?.[0].content.parts[0].text).to.equal(
+      'Okay'
+    );
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -137,7 +149,10 @@ describe('processStream', () => {
       'streaming-success-basic-reply-long.txt',
       1e6
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -150,7 +165,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-utf8.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     for await (const response of result.stream) {
       expect(response.text()).to.not.be.empty;
     }
@@ -163,7 +181,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-function-call-short.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     for await (const response of result.stream) {
       expect(response.text()).to.be.empty;
       expect(response.functionCalls()).to.be.deep.equal([
@@ -187,7 +208,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-finish-reason-safety.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.candidates?.[0].finishReason).to.equal('SAFETY');
     expect(aggregatedResponse.text).to.throw('SAFETY');
@@ -200,7 +224,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-prompt-blocked-safety.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('SAFETY');
     expect(aggregatedResponse.promptFeedback?.blockReason).to.equal('SAFETY');
@@ -213,7 +240,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-empty-content.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.equal('');
     for await (const response of result.stream) {
@@ -226,7 +256,10 @@ describe('processStream', () => {
       'streaming-success-empty-parts.txt'
     );
 
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     for await (const response of result.stream) {
       expect(response.candidates?.[0].content.parts.length).to.be.at.least(1);
     }
@@ -239,7 +272,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-unknown-safety-enum.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Cats');
     for await (const response of result.stream) {
@@ -251,7 +287,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-failure-recitation-no-content.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text).to.throw('RECITATION');
     expect(aggregatedResponse.candidates?.[0].content.parts[0].text).to.include(
@@ -270,7 +309,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-citations.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.include('Quantum mechanics is');
     expect(
@@ -290,7 +332,10 @@ describe('processStream', () => {
       'vertexAI',
       'streaming-success-empty-text-part.txt'
     );
-    const result = await processStream(fakeResponse as Response, fakeApiSettings);
+    const result = await processStream(
+      fakeResponse as Response,
+      fakeApiSettings
+    );
     const aggregatedResponse = await result.response;
     expect(aggregatedResponse.text()).to.equal('1');
     expect(aggregatedResponse.candidates?.length).to.equal(1);
