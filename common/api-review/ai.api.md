@@ -144,9 +144,11 @@ export class ChatSession {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[], tools?: Tool[]): Promise<FunctionResponsePart[]>;
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
     // @internal
     _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;

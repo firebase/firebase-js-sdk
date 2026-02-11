@@ -28,8 +28,7 @@ import {
   Part,
   RequestOptions,
   SingleRequestOptions,
-  StartChatParams,
-  Tool
+  StartChatParams
 } from '../types';
 import { formatNewContent } from '../requests/request-helpers';
 import {
@@ -134,8 +133,7 @@ export class ChatSession {
 
         if (functionCalls) {
           const functionResponseParts = await this._callFunctionsAsNeeded(
-            functionCalls,
-            this.params?.tools
+            functionCalls
           );
           formattedContent = formatNewContent(functionResponseParts);
         } else {
@@ -160,7 +158,7 @@ export class ChatSession {
         );
         if (result) {
           finalResult = result;
-          functionCalls = getFunctionCalls(result.response);
+          functionCalls = this._getCallableFunctionCalls(result.response);
           if (
             result.response.candidates &&
             result.response.candidates.length > 0
@@ -198,15 +196,14 @@ export class ChatSession {
    * @internal
    */
   async _callFunctionsAsNeeded(
-    functionCalls: FunctionCall[],
-    tools?: Tool[]
+    functionCalls: FunctionCall[]
   ): Promise<FunctionResponsePart[]> {
     const activeCallList = new Map<
       string,
       { id?: string; results: Promise<Record<string, unknown>> }
     >();
     const promiseList = [];
-    const functionDeclarationsTool = tools?.find(
+    const functionDeclarationsTool = this.params?.tools?.find(
       tool => (tool as FunctionDeclarationsTool).functionDeclarations
     ) as FunctionDeclarationsTool;
     if (
@@ -288,8 +285,7 @@ export class ChatSession {
 
           if (functionCalls) {
             const functionResponseParts = await this._callFunctionsAsNeeded(
-              functionCalls,
-              this.params?.tools
+              functionCalls
             );
             formattedContent = formatNewContent(functionResponseParts);
           } else {
@@ -313,7 +309,7 @@ export class ChatSession {
             }
           );
 
-          functionCalls = getFunctionCalls(result.firstValue);
+          functionCalls = this._getCallableFunctionCalls(result.firstValue);
 
           if (
             functionCalls &&
@@ -375,5 +371,40 @@ export class ChatSession {
         }
       });
     return streamPromise;
+  }
+
+  /**
+   * Get function calls that the SDK has references to actually call.
+   * This is all-or-nothing. If the model is requesting multiple
+   * function calls, all of them must have references in order for
+   * automatic function calling to work.
+   *
+   * @internal
+   */
+  _getCallableFunctionCalls(
+    response?: GenerateContentResponse
+  ): FunctionCall[] | undefined {
+    const functionDeclarationsTool = this.params?.tools?.find(
+      tool => (tool as FunctionDeclarationsTool).functionDeclarations
+    ) as FunctionDeclarationsTool;
+    if (!functionDeclarationsTool?.functionDeclarations) {
+      return;
+    }
+    const functionCalls = getFunctionCalls(response);
+    if (!functionCalls) {
+      return;
+    }
+    for (const functionCall of functionCalls) {
+      const hasFunctionReference =
+        functionDeclarationsTool.functionDeclarations?.some(
+          declaration =>
+            declaration.name === functionCall.name &&
+            typeof declaration.functionReference === 'function'
+        );
+      if (!hasFunctionReference) {
+        return;
+      }
+    }
+    return functionCalls;
   }
 }

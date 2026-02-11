@@ -82,7 +82,7 @@ describe('processStream', () => {
   afterEach(() => {
     restore();
   });
-  it.only('streaming response - short', async () => {
+  it('streaming response - short', async () => {
     const fakeResponse = getMockResponseStreaming(
       'vertexAI',
       'streaming-success-basic-reply-short.txt'

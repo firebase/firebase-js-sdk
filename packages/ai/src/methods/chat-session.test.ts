@@ -31,10 +31,6 @@ import { VertexAIBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { logger } from '../logger';
 import { Schema } from '../api';
-import {
-  getChunkedStream,
-  getMockResponseStreaming
-} from '../../test-utils/mock-response';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -611,10 +607,7 @@ describe('ChatSession', () => {
                     index: 1,
                     content: {
                       role: 'model',
-                      parts: [
-                        functionCallPartGreeting,
-                        functionCallPartFarewell
-                      ]
+                      parts: [functionCallPartGreeting]
                     }
                   }
                 ]
@@ -733,6 +726,287 @@ describe('ChatSession', () => {
         });
         expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
         expect(farewellSpy).to.be.calledWith({ username: 'Bob' });
+      });
+    });
+  });
+  describe('_getCallableFunctionCalls()', () => {
+    it('returns all functions if they have references', async () => {
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: () => {},
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  functionReference: () => {},
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const query1 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+            }
+          }
+        ]
+      });
+      expect(query1?.length).to.equal(1);
+      const query2 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [
+                { functionCall: { name: 'myFunction1', args: {} } },
+                { functionCall: { name: 'myFunction2', args: {} } }
+              ]
+            }
+          }
+        ]
+      });
+      expect(query2?.length).to.equal(2);
+    });
+    it('returns undefined if any called function does not have a reference', async () => {
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: () => {},
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const query1 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+            }
+          }
+        ]
+      });
+      expect(query1?.length).to.equal(1);
+      const query2 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [
+                { functionCall: { name: 'myFunction1', args: {} } },
+                { functionCall: { name: 'myFunction2', args: {} } }
+              ]
+            }
+          }
+        ]
+      });
+      expect(query2).to.be.undefined;
+    });
+  });
+  describe('_callFunctionsAsNeeded()', () => {
+    it('calls functions and formats responses', async () => {
+      const myFunction1 = spy(() => ({ replyParam: 'hi' }));
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: myFunction1,
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const responseParts = await chatSession._callFunctionsAsNeeded([
+        { name: 'myFunction1', args: { someParam: 'a' } }
+      ]);
+      expect(myFunction1).to.be.calledWith({ someParam: 'a' });
+      expect(responseParts[0].functionResponse).to.deep.equal({
+        name: 'myFunction1',
+        response: { replyParam: 'hi' }
+      });
+    });
+    it('calls functions and formats responses (2 functions)', async () => {
+      const myFunction1 = spy(() => ({ replyParam: 'hi' }));
+      const myFunction2 = spy(() => ({ replyParam: 'yo' }));
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: myFunction1,
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  functionReference: myFunction2,
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const responseParts = await chatSession._callFunctionsAsNeeded([
+        { name: 'myFunction1', args: { someParam: 'a' } },
+        { name: 'myFunction2', args: { someParam: 'b' } }
+      ]);
+      expect(myFunction1).to.be.calledWith({ someParam: 'a' });
+      expect(myFunction2).to.be.calledWith({ someParam: 'b' });
+      expect(responseParts[0].functionResponse).to.deep.equal({
+        name: 'myFunction1',
+        response: { replyParam: 'hi' }
+      });
+      expect(responseParts[1].functionResponse).to.deep.equal({
+        name: 'myFunction2',
+        response: { replyParam: 'yo' }
+      });
+    });
+    it('calls functions and formats responses (one function async)', async () => {
+      const myFunction1 = spy(() => ({ replyParam: 'hi' }));
+      const myFunction2 = spy(() => Promise.resolve({ replyParam: 'yo' }));
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: myFunction1,
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  functionReference: myFunction2,
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const responseParts = await chatSession._callFunctionsAsNeeded([
+        { name: 'myFunction1', args: { someParam: 'a' } },
+        { name: 'myFunction2', args: { someParam: 'b' } }
+      ]);
+      expect(myFunction1).to.be.calledWith({ someParam: 'a' });
+      expect(myFunction2).to.be.calledWith({ someParam: 'b' });
+      expect(responseParts[0].functionResponse).to.deep.equal({
+        name: 'myFunction1',
+        response: { replyParam: 'hi' }
+      });
+      expect(responseParts[1].functionResponse).to.deep.equal({
+        name: 'myFunction2',
+        response: { replyParam: 'yo' }
       });
     });
   });
