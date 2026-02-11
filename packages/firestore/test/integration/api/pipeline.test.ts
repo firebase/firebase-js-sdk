@@ -4203,21 +4203,62 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .replaceWith(
             map({
               int: constant(1),
-              str: constant('a string')
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]))),
+              docRef: constant(doc(firestore, randomCol.path, 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                numberK: 1,
+                stringK: 'a string'
+              }),
+              array: array([1, '2', true])
             })
           )
           .select(
-            isType(field('int'), 'int64').as('isNum'),
+            isType(field('int'), 'int64').as('isInt64'),
+            isType(field('int'), 'number').as('isInt64IsNumber'),
+            isType(field('int'), 'decimal128').as('isInt64IsDecimal128'),
+            field('float').isType('float64').as('isFloat64'),
+            field('float').isType('number').as('isFloat64IsNumber'),
+            field('float').isType('decimal128').as('isFloat64IsDecimal128'),
+            isType('str', 'string').as('isStr'),
             isType('int', 'string').as('isNumStr'),
-            field('str').isType('string').as('isStr'),
+            field('bool').isType('boolean').as('isBool'),
+            isType('null', 'null').as('isNull'),
+            field('geoPoint').isType('geo_point').as('isGeoPoint'),
+            isType('timestamp', 'timestamp').as('isTimestamp'),
+            field('bytes').isType('bytes').as('isBytes'),
+            isType('docRef', 'reference').as('isDocRef'),
+            field('vector').isType('vector').as('isVector'),
+            isType('map', 'map').as('isMap'),
+            field('array').isType('array').as('isArray'),
             field('str').isType('int64').as('isStrNum')
           )
       );
 
       expectResults(result, {
-        isNum: true,
-        isNumStr: false,
+        isInt64: true,
+        isInt64IsNumber: true,
+        isInt64IsDecimal128: false,
+        isFloat64: true,
+        isFloat64IsNumber: true,
+        isFloat64IsDecimal128: false,
         isStr: true,
+        isNumStr: false,
+        isBool: true,
+        isNull: true,
+        isGeoPoint: true,
+        isTimestamp: true,
+        isBytes: true,
+        isDocRef: true,
+        isVector: true,
+        isMap: true,
+        isArray: true,
         isStrNum: false
       });
     });
