@@ -108,7 +108,8 @@ export class ChatSession {
    * {@link GenerateContentResult}
    */
   async sendMessage(
-    request: string | Array<string | Part>
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     let finalResult = {} as GenerateContentResult;
     await this._sendPromise;
@@ -147,7 +148,10 @@ export class ChatSession {
           this.model,
           formattedRequest,
           this.chromeAdapter,
-          this.requestOptions
+          {
+            ...this.requestOptions,
+            ...singleRequestOptions
+          }
         );
         if (result) {
           finalResult = result;

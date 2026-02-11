@@ -336,9 +336,8 @@ export interface FunctionDeclaration {
    * Reference to actual function to call. Specifying this will cause the
    * function to be called automatically.
    */
-  functionReference?: (
-    params: Record<string, unknown>
-  ) => Record<string, unknown> | Promise<Record<string, unknown>>;
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  functionReference?: Function;
 }
 
 /**
