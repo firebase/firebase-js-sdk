@@ -1154,6 +1154,7 @@ export interface PromptFeedback {
 // @public
 export interface RequestOptions {
     baseUrl?: string;
+    maxSequentalFunctionCalls?: number;
     timeout?: number;
 }
 

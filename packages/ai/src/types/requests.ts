@@ -252,6 +252,15 @@ export interface RequestOptions {
    * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
+  /**
+   * Limits amount of sequential function calls the SDK can make during automatic
+   * function calling, in order to prevent infinite loops. If not specified,
+   * this value defaults to 10.
+   *
+   * When it reaches this limit, it will return the last response received
+   * from the model, whether it is a text response or further function calls.
+   */
+  maxSequentalFunctionCalls?: number;
 }
 
 /**

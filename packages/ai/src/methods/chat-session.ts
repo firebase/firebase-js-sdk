@@ -49,6 +49,12 @@ import { AIError } from '../errors';
 const SILENT_ERROR = 'SILENT_ERROR';
 
 /**
+ * Prevent infinite loop if the model continues to request sequential
+ * function calls during automatic function calling.
+ */
+const DEFAULT_MAX_SEQUENTIAL_FUNCTION_CALLS = 10;
+
+/**
  * ChatSession class that enables sending chat messages and stores
  * history of sent and received messages so far.
  *
@@ -126,12 +132,17 @@ export class ChatSession {
 
     this._sendPromise = this._sendPromise.then(async () => {
       let functionCalls: FunctionCall[] | undefined;
+      let functionCallTurnCount = 0;
+      const functionCallMaxTurns =
+        this.requestOptions?.maxSequentalFunctionCalls ??
+        DEFAULT_MAX_SEQUENTIAL_FUNCTION_CALLS;
 
       // Repeats until model returns a response with no function calls.
       do {
         let formattedContent;
 
         if (functionCalls) {
+          functionCallTurnCount++;
           const functionResponseParts = await this._callFunctionsAsNeeded(
             functionCalls
           );
@@ -183,76 +194,19 @@ export class ChatSession {
         } else {
           functionCalls = undefined;
         }
-      } while (functionCalls);
+      } while (functionCalls && functionCallTurnCount < functionCallMaxTurns);
+
+      if (functionCalls && functionCallTurnCount >= functionCallMaxTurns) {
+        logger.warn(
+          `Automatic function calling exceeded the limit of` +
+            ` ${functionCallMaxTurns} function calls. Returning last model response.`
+        );
+      }
     });
 
     await this._sendPromise;
     this._history = this._history.concat(tempHistory);
     return finalResult;
-  }
-  /**
-   * Call user-defined functions if requested by the model, and return
-   * the response that should be sent to the model.
-   * @internal
-   */
-  async _callFunctionsAsNeeded(
-    functionCalls: FunctionCall[]
-  ): Promise<FunctionResponsePart[]> {
-    const activeCallList = new Map<
-      string,
-      { id?: string; results: Promise<Record<string, unknown>> }
-    >();
-    const promiseList = [];
-    const functionDeclarationsTool = this.params?.tools?.find(
-      tool => (tool as FunctionDeclarationsTool).functionDeclarations
-    ) as FunctionDeclarationsTool;
-    if (
-      functionDeclarationsTool &&
-      functionDeclarationsTool.functionDeclarations
-    ) {
-      for (const functionCall of functionCalls) {
-        const functionDeclaration =
-          functionDeclarationsTool.functionDeclarations.find(
-            declaration => declaration.name === functionCall.name
-          );
-        if (functionDeclaration?.functionReference) {
-          const results = Promise.resolve(
-            functionDeclaration.functionReference!(functionCall.args)
-          ).catch(e => {
-            const wrappedError = new AIError(
-              AIErrorCode.ERROR,
-              `Error in user-defined function "${functionDeclaration.name}": ${
-                (e as Error).message
-              }`
-            );
-            wrappedError.stack = (e as Error).stack;
-            throw wrappedError;
-          });
-          activeCallList.set(functionCall.name, {
-            id: functionCall.id,
-            results
-          });
-          promiseList.push(results);
-        }
-      }
-      // Wait for promises to finish.
-      await Promise.all(promiseList);
-      const functionResponseParts = [];
-      for (const [name, callData] of activeCallList) {
-        functionResponseParts.push({
-          functionResponse: {
-            name,
-            response: await callData.results
-          }
-        });
-      }
-      return functionResponseParts;
-    } else {
-      throw new AIError(
-        AIErrorCode.REQUEST_ERROR,
-        `No function declarations were provided in "tools".`
-      );
-    }
   }
 
   /**
@@ -275,6 +229,10 @@ export class ChatSession {
     const callGenerateContentStream =
       async (): Promise<GenerateContentStreamResult> => {
         let functionCalls: FunctionCall[] | undefined;
+        let functionCallTurnCount = 0;
+        const functionCallMaxTurns =
+          this.requestOptions?.maxSequentalFunctionCalls ??
+          DEFAULT_MAX_SEQUENTIAL_FUNCTION_CALLS;
         let result: GenerateContentStreamResult & {
           firstValue?: GenerateContentResponse;
         };
@@ -284,6 +242,7 @@ export class ChatSession {
           let formattedContent;
 
           if (functionCalls) {
+            functionCallTurnCount++;
             const functionResponseParts = await this._callFunctionsAsNeeded(
               functionCalls
             );
@@ -325,7 +284,14 @@ export class ChatSession {
             }
             tempHistory.push(responseContent);
           }
-        } while (functionCalls);
+        } while (functionCalls && functionCallTurnCount < functionCallMaxTurns);
+
+        if (functionCalls && functionCallTurnCount >= functionCallMaxTurns) {
+          logger.warn(
+            `Automatic function calling exceeded the limit of` +
+              ` ${functionCallMaxTurns} function calls. Returning last model response.`
+          );
+        }
         return { stream: result.stream, response: result.response };
       };
 
@@ -406,5 +372,70 @@ export class ChatSession {
       }
     }
     return functionCalls;
+  }
+
+  /**
+   * Call user-defined functions if requested by the model, and return
+   * the response that should be sent to the model.
+   * @internal
+   */
+  async _callFunctionsAsNeeded(
+    functionCalls: FunctionCall[]
+  ): Promise<FunctionResponsePart[]> {
+    const activeCallList = new Map<
+      string,
+      { id?: string; results: Promise<Record<string, unknown>> }
+    >();
+    const promiseList = [];
+    const functionDeclarationsTool = this.params?.tools?.find(
+      tool => (tool as FunctionDeclarationsTool).functionDeclarations
+    ) as FunctionDeclarationsTool;
+    if (
+      functionDeclarationsTool &&
+      functionDeclarationsTool.functionDeclarations
+    ) {
+      for (const functionCall of functionCalls) {
+        const functionDeclaration =
+          functionDeclarationsTool.functionDeclarations.find(
+            declaration => declaration.name === functionCall.name
+          );
+        if (functionDeclaration?.functionReference) {
+          const results = Promise.resolve(
+            functionDeclaration.functionReference!(functionCall.args)
+          ).catch(e => {
+            const wrappedError = new AIError(
+              AIErrorCode.ERROR,
+              `Error in user-defined function "${functionDeclaration.name}": ${
+                (e as Error).message
+              }`
+            );
+            wrappedError.stack = (e as Error).stack;
+            throw wrappedError;
+          });
+          activeCallList.set(functionCall.name, {
+            id: functionCall.id,
+            results
+          });
+          promiseList.push(results);
+        }
+      }
+      // Wait for promises to finish.
+      await Promise.all(promiseList);
+      const functionResponseParts = [];
+      for (const [name, callData] of activeCallList) {
+        functionResponseParts.push({
+          functionResponse: {
+            name,
+            response: await callData.results
+          }
+        });
+      }
+      return functionResponseParts;
+    } else {
+      throw new AIError(
+        AIErrorCode.REQUEST_ERROR,
+        `No function declarations were provided in "tools".`
+      );
+    }
   }
 }
