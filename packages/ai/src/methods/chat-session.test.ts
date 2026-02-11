@@ -589,6 +589,60 @@ describe('ChatSession', () => {
         expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
         expect(farewellSpy).to.be.calledWith({ username: 'Bob' });
       });
+      it('does not call any functions if sequential limit is set to 0', async () => {
+        const greetingSpy = spy(getGreeting);
+        const warnStub = stub(logger, 'warn');
+        const generateContentStub = stub(
+          generateContentMethods,
+          'generateContent'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              response: {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [functionCallPartGreeting]
+                    }
+                  }
+                ]
+              }
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          },
+          {
+            maxSequentalFunctionCalls: 0
+          }
+        );
+        const result = await chatSession.sendMessage('My name is Bob');
+        expect(
+          result.response.candidates?.[0].content.parts[0].functionCall?.name
+        ).to.equal('getGreeting');
+        expect(generateContentStub).to.be.calledOnce;
+        expect(warnStub).calledWithMatch('exceeded the limit');
+        expect(greetingSpy).to.not.be.called;
+      });
     });
     describe('sendMessageStream()', () => {
       it('calls one function automatically', async () => {
@@ -726,6 +780,65 @@ describe('ChatSession', () => {
         });
         expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
         expect(farewellSpy).to.be.calledWith({ username: 'Bob' });
+      });
+      it('does not call any functions if sequential limit is set to 0', async () => {
+        const greetingSpy = spy(getGreeting);
+        const warnStub = stub(logger, 'warn');
+        const functionCallResponse = {
+          candidates: [
+            {
+              index: 1,
+              content: {
+                role: 'model',
+                parts: [functionCallPartGreeting]
+              }
+            }
+          ]
+        };
+        const generateContentStreamStub = stub(
+          generateContentMethods,
+          'generateContentStream'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              firstValue: functionCallResponse,
+              response: functionCallResponse
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              firstValue: finalResponse,
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          },
+          {
+            maxSequentalFunctionCalls: 0
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        // No sense testing the stream fully, it's just stubbed data.
+        const response = await result.response;
+        expect(
+          response.candidates?.[0].content.parts[0].functionCall?.name
+        ).to.equal('getGreeting');
+        expect(generateContentStreamStub).to.be.calledOnce;
+        expect(warnStub).calledWithMatch('exceeded the limit');
+        expect(greetingSpy).to.not.be.called;
       });
     });
   });
