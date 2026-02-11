@@ -3866,18 +3866,28 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .addFields(
-            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
           )
           .select(
             ltrim('spacedTitle').as('ltrimmedTitle'),
-            ltrim('spacedTitle', ' Th').as('ltrimmedValues')
+            field('userNameWithQuotes').ltrim('"').as('userName'),
+            field('bytes')
+              .ltrim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
           )
           .limit(1)
       );
       expectResults(snapshot, {
         ltrimmedTitle: "The Hitchhiker's Guide to the Galaxy ",
-        ltrimmedValues: "e Hitchhiker's Guide to the Galaxy "
+        userName: 'alice"',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x00, 0x00]))
       });
     });
 
@@ -3886,18 +3896,28 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .addFields(
-            constant(" The Hitchhiker's Guide to the Galaxy ").as('spacedTitle')
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
           )
           .select(
             rtrim('spacedTitle').as('rtrimmedTitle'),
-            rtrim('spacedTitle', ' xy').as('rtrimmedValues')
+            field('userNameWithQuotes').rtrim('"').as('userName'),
+            field('bytes')
+              .rtrim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
           )
           .limit(1)
       );
       expectResults(snapshot, {
         rtrimmedTitle: " The Hitchhiker's Guide to the Galaxy",
-        rtrimmedValues: " The Hitchhiker's Guide to the Gala"
+        userName: '"alice',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x00, 0x01, 0x02]))
       });
     });
 
@@ -3935,19 +3955,38 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .collection(randomCol.path)
           .replaceWith(
             map({
-              title: "The Hitchhiker's Guide to the Galaxy"
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02]))
             })
           )
           .select(
-            stringReplaceAll(field('title'), 'Galaxy', 'Universe').as(
-              'replacedAll'
-            )
+            stringReplaceAll(field('title'), 'the', 'a').as('replacedAll'),
+            stringReplaceAll(toLower('title'), 'the', 'a').as(
+              'replacedAllLower'
+            ),
+            stringReplaceAll(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03, 0x03, 0x03]))
+            ).as('replacedEntireByteArray'),
+            stringReplaceAll(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03]))
+            ).as('replacedMultipleBytes')
           )
           .limit(1)
       );
 
       expectResults(snapshot, {
-        replacedAll: "The Hitchhiker's Guide to the Universe"
+        replacedAll: "The Hitchhiker's Guide to a Galaxy",
+        replacedAllLower: "a hitchhiker's guide to a galaxy",
+        replacedEntireByteArray: Bytes.fromUint8Array(
+          Uint8Array.from([0x03, 0x03, 0x03])
+        ),
+        replacedMultipleBytes: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x03, 0x03])
+        )
       });
     });
 
@@ -3958,15 +3997,25 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .collection(randomCol.path)
           .replaceWith(
             map({
-              title: "The Hitchhiker's Guide to the Galaxy"
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02]))
             })
           )
-          .select(stringReplaceOne(field('title'), 'e', 'X').as('replacedOne'))
+          .select(
+            stringReplaceOne(field('title'), 'e', 'X').as('replacedOne'),
+            stringReplaceOne(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03]))
+            ).as('replacedOneByte')
+          )
           .limit(1)
       );
-
       expectResults(snapshot, {
-        replacedOne: "ThX Hitchhiker's Guide to the Galaxy"
+        replacedOne: "ThX Hitchhiker's Guide to the Galaxy",
+        replacedOneByte: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x03, 0x02])
+        )
       });
     });
 
