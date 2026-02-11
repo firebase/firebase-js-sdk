@@ -137,7 +137,8 @@ export class ChatSession {
         this.requestOptions?.maxSequentalFunctionCalls ??
         DEFAULT_MAX_SEQUENTIAL_FUNCTION_CALLS;
 
-      // Repeats until model returns a response with no function calls.
+      // Repeats until model returns a response with no function calls
+      // or until `functionCallMaxTurns` is met or exceeded.
       do {
         let formattedContent;
 
@@ -237,7 +238,8 @@ export class ChatSession {
           firstValue?: GenerateContentResponse;
         };
 
-        // Repeats until model returns a response with no function calls.
+        // Repeats until model returns a response with no function calls
+        // or until `functionCallMaxTurns` is met or exceeded.
         do {
           let formattedContent;
 
