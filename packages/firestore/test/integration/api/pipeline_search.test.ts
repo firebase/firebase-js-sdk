@@ -141,9 +141,10 @@ import {
   timestampTruncate,
   split,
   snippet,
-  searchScore,
-  documentContainsText,
-  geoDistance,
+  topicalityScore,
+  searchFor,
+  searchDocumentFor,
+  geoDistance
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -210,9 +211,9 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         awards: {
           hugo: true,
           nebula: false,
-          others: {unknown: {year: 1980}}
+          others: { unknown: { year: 1980 } }
         },
-        nestedField: {'level.1': {'level.2': true}},
+        nestedField: { 'level.1': { 'level.2': true } },
         embedding: vector([10, 1, 1, 1, 1, 1, 1, 1, 1, 1])
       },
       book2: {
@@ -222,7 +223,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1813,
         rating: 4.5,
         tags: ['classic', 'social commentary', 'love'],
-        awards: {none: true},
+        awards: { none: true },
         embedding: vector([1, 10, 1, 1, 1, 1, 1, 1, 1, 1])
       },
       book3: {
@@ -232,7 +233,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1967,
         rating: 4.3,
         tags: ['family', 'history', 'fantasy'],
-        awards: {nobel: true, nebula: false},
+        awards: { nobel: true, nebula: false },
         embedding: vector([1, 1, 10, 1, 1, 1, 1, 1, 1, 1])
       },
       book4: {
@@ -242,7 +243,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1954,
         rating: 4.7,
         tags: ['adventure', 'magic', 'epic'],
-        awards: {hugo: false, nebula: false},
+        awards: { hugo: false, nebula: false },
         remarks: null,
         cost: NaN,
         embedding: vector([1, 1, 1, 10, 1, 1, 1, 1, 1, 1])
@@ -254,7 +255,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1985,
         rating: 4.1,
         tags: ['feminism', 'totalitarianism', 'resistance'],
-        awards: {'arthur c. clarke': true, 'booker prize': false},
+        awards: { 'arthur c. clarke': true, 'booker prize': false },
         embedding: vector([1, 1, 1, 1, 10, 1, 1, 1, 1, 1])
       },
       book6: {
@@ -264,7 +265,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1866,
         rating: 4.3,
         tags: ['philosophy', 'crime', 'redemption'],
-        awards: {none: true},
+        awards: { none: true },
         embedding: vector([1, 1, 1, 1, 1, 10, 1, 1, 1, 1])
       },
       book7: {
@@ -274,7 +275,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1960,
         rating: 4.2,
         tags: ['racism', 'injustice', 'coming-of-age'],
-        awards: {pulitzer: true},
+        awards: { pulitzer: true },
         embedding: vector([1, 1, 1, 1, 1, 1, 10, 1, 1, 1])
       },
       book8: {
@@ -284,7 +285,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1949,
         rating: 4.2,
         tags: ['surveillance', 'totalitarianism', 'propaganda'],
-        awards: {prometheus: true},
+        awards: { prometheus: true },
         embedding: vector([1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
       },
       book9: {
@@ -294,7 +295,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1925,
         rating: 4.0,
         tags: ['wealth', 'american dream', 'love'],
-        awards: {none: true},
+        awards: { none: true },
         embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 10, 1])
       },
       book10: {
@@ -304,7 +305,7 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         published: 1965,
         rating: 4.6,
         tags: ['politics', 'desert', 'ecology'],
-        awards: {hugo: true, nebula: true},
+        awards: { hugo: true, nebula: true },
         embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
       }
     };
@@ -340,21 +341,37 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
 
   describe('search query', () => {
     it('document contains text', async () => {
-      firestore.pipeline().collection('restaurants')
+      firestore
+        .pipeline()
+        .collection('restaurants')
         .search({
-          query: documentContainsText('waffles')
+          query: searchDocumentFor('waffles')
         });
     });
 
     it('field contains text', async () => {
-      firestore.pipeline().collection('restaurants')
+      firestore
+        .pipeline()
+        .collection('restaurants')
         .search({
-          query: field('description').containsText('waffles')
+          query: field('description').searchFor('waffles')
         });
     });
 
+    firestore
+      .pipeline()
+      .collection('restaurants')
+      .search({
+        query: field('menu').searchFor(
+          'waffles',
+          'SemanticSearch' /* search mode */
+        )
+      });
+
     it('geo near query', async () => {
-      firestore.pipeline().collection('restaurants')
+      firestore
+        .pipeline()
+        .collection('restaurants')
         .search({
           query: field('location')
             .geoDistance(new GeoPoint(38.989177, -107.065076))
@@ -363,7 +380,9 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
     });
 
     it('geo near query with ordering by query/geo-distance', async () => {
-      firestore.pipeline().collection('restaurants')
+      firestore
+        .pipeline()
+        .collection('restaurants')
         .search({
           query: field('location')
             .geoDistance(new GeoPoint(38.989177, -107.065076))
@@ -375,9 +394,11 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
     });
 
     it('sort by geo-distance with unrelated query', async () => {
-      firestore.pipeline().collection('restaurants')
+      firestore
+        .pipeline()
+        .collection('restaurants')
         .search({
-          query: field('description').containsText('waffles'),
+          query: field('description').searchFor('waffles'),
           sort: field('location')
             .geoDistance(new GeoPoint(38.989177, -107.065076))
             .ascending()
@@ -385,10 +406,12 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
     });
 
     it('conjunction of query predicates', async () => {
-      firestore.pipeline().collection('restaurants')
+      firestore
+        .pipeline()
+        .collection('restaurants')
         .search({
           query: and(
-            field('description').containsText('waffles'),
+            field('description').searchFor('waffles'),
             field('location')
               .geoDistance(new GeoPoint(38.989177, -107.065076))
               .lessThan(1000)
@@ -396,5 +419,24 @@ apiDescribe.skipClassic('Pipeline Search', persistence => {
         });
     });
 
+    it('everything bagel', async () => {
+      firestore
+        .pipeline()
+        .collection('restaurants')
+        .search({
+          query: field('menu').searchFor('waffles', 'SemanticSearch'),
+          addFields: [
+            field('menu')
+              .snippet({
+                rquery: 'waffles',
+                maxSnippetWidth: 2000,
+                maxSnippets: 2,
+                separator: '...',
+                searchMode: 'SemanticSearch'
+              })
+              .as('snippet')
+          ]
+        });
+    });
   });
 });

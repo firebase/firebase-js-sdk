@@ -940,7 +940,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new `Pipeline` object with this stage appended to the stage list.
    */
   search(options: SearchStageOptions): Pipeline {
-    throw "not implemented";
+    throw 'not implemented';
   }
 
   /**

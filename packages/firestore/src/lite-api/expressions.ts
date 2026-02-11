@@ -55,6 +55,8 @@ export type ExpressionType =
   | 'ListOfExpressions'
   | 'AliasedExpression';
 
+export type SearchMode = 'SemanticSearch' | 'LiteralSearch';
+
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
@@ -2909,9 +2911,10 @@ export class Field extends Expression implements Selectable {
    * @remarks This Expression can only be used within a `Search` stage.
    *
    * @param query Define the search query using the search DTS (TODO(search) link).
+   * @param searchMode Define the search behavior.
    */
-  containsText(query: string): BooleanExpression {
-    throw "Not implemented";
+  searchFor(query: string, searchMode?: SearchMode): BooleanExpression {
+    throw 'Not implemented';
   }
 
   /**
@@ -2923,7 +2926,7 @@ export class Field extends Expression implements Selectable {
    * @param location - Compute distance to this GeoPoint.
    */
   geoDistance(location: GeoPoint): Expression {
-    throw "Not implemented";
+    throw 'Not implemented';
   }
 
   /**
@@ -8756,9 +8759,14 @@ export function type(
  *
  * @param fieldName Search the specified field.
  * @param rquery Define the search query using the search DTS (TODO(search) link).
+ * @param searchMode Specific the search behavior.
  */
-export function containsText(fieldName: string | Field, rquery: string): BooleanExpression {
-  throw "Not implemented";
+export function searchFor(
+  fieldName: string | Field,
+  rquery: string,
+  searchMode?: SearchMode
+): BooleanExpression {
+  throw 'Not implemented';
 }
 
 /**
@@ -8767,20 +8775,13 @@ export function containsText(fieldName: string | Field, rquery: string): Boolean
  * @remarks This Expression can only be used within a `Search` stage.
  *
  * @param rquery Define the search query using the search DTS (TODO(search) link).
+ * @param searchMode
  */
-export function documentContainsText(rquery: string): BooleanExpression {
-  throw "Not implemented";
-}
-
-/**
- * Returns an {@link Ordering} that will sort the search stage results
- * in the same order as the search index. This is often more performant
- * than sorting by search score.
- *
- * @remarks This Expression can only be used within a `Search` stage.
- */
-export function indexSortOrder(): Ordering {
-  throw 'not implemented';
+export function searchDocumentFor(
+  rquery: string,
+  searchMode?: SearchMode
+): BooleanExpression {
+  throw 'Not implemented';
 }
 
 /**
@@ -8820,6 +8821,12 @@ export type SnippetOptions = {
    * The string to join the pieces. The default value is '\n'
    */
   separator?: string;
+
+  /**
+   * Specify the search mode use for identifying matching terms.
+   * This should match the searchMode provided to {@link searchFor} or {@link searchDocumentFor};
+   */
+  searchMode?: SearchMode;
 };
 
 /**
@@ -8842,9 +8849,15 @@ export function snippet(fieldName: string | Field, rquery: string): Expression;
  * @param fieldName Search the specified field for matching terms.
  * @param query Define the search query using the search DTS (TODO(search) link).
  */
-export function snippet(fieldName: string | Field, options: SnippetOptions): Expression;
-export function snippet(field: string | Field, queryOrOptions: string | SnippetOptions): Expression {
-  throw "Not implemented";
+export function snippet(
+  fieldName: string | Field,
+  options: SnippetOptions
+): Expression;
+export function snippet(
+  field: string | Field,
+  queryOrOptions: string | SnippetOptions
+): Expression {
+  throw 'Not implemented';
 }
 
 /**
@@ -8857,8 +8870,11 @@ export function snippet(field: string | Field, queryOrOptions: string | SnippetO
  * the first GeoPoint for distance computation.
  * @param location - Compute distance to this GeoPoint.
  */
-export function geoDistance(fieldName: string | Field, location: GeoPoint): Expression {
-  throw "Not implemented";
+export function geoDistance(
+  fieldName: string | Field,
+  location: GeoPoint
+): Expression {
+  throw 'Not implemented';
 }
 
 /**
@@ -8878,7 +8894,11 @@ export function geoDistance(fieldName: string | Field, location: GeoPoint): Expr
  * @param lowerBound - Lower bound (inclusive) of the range.
  * @param upperBound - Upper bound (inclusive) of the range.
  */
-export function between(fieldName: string, lowerBound: Expression, upperBound: Expression): BooleanExpression;
+export function between(
+  fieldName: string,
+  lowerBound: Expression,
+  upperBound: Expression
+): BooleanExpression;
 
 /**
  * Evaluates if the value in the field specified by `fieldName` is between
@@ -8897,7 +8917,11 @@ export function between(fieldName: string, lowerBound: Expression, upperBound: E
  * @param lowerBound - Lower bound (inclusive) of the range.
  * @param upperBound - Upper bound (inclusive) of the range.
  */
-export function between(fieldName: string, lowerBound: unknown, upperBound: unknown): BooleanExpression;
+export function between(
+  fieldName: string,
+  lowerBound: unknown,
+  upperBound: unknown
+): BooleanExpression;
 
 /**
  * Evaluates if the result of the specified `expression` is between
@@ -8916,7 +8940,11 @@ export function between(fieldName: string, lowerBound: unknown, upperBound: unkn
  * @param lowerBound - Lower bound (inclusive) of the range.
  * @param upperBound - Upper bound (inclusive) of the range.
  */
-export function between(expression: Expression, lowerBound: Expression, upperBound: Expression): BooleanExpression;
+export function between(
+  expression: Expression,
+  lowerBound: Expression,
+  upperBound: Expression
+): BooleanExpression;
 
 /**
  * Evaluates if the result of the specified `expression` is between
@@ -8935,10 +8963,18 @@ export function between(expression: Expression, lowerBound: Expression, upperBou
  * @param lowerBound - Lower bound (inclusive) of the range.
  * @param upperBound - Upper bound (inclusive) of the range.
  */
-export function between(expression: Expression, lowerBound: unknown, upperBound: unknown): BooleanExpression;
+export function between(
+  expression: Expression,
+  lowerBound: unknown,
+  upperBound: unknown
+): BooleanExpression;
 
-export function between(expression: Expression | string, lowerBound: unknown, upperBound: unknown): BooleanExpression {
-  throw "Not implemented";
+export function between(
+  expression: Expression | string,
+  lowerBound: unknown,
+  upperBound: unknown
+): BooleanExpression {
+  throw 'Not implemented';
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
