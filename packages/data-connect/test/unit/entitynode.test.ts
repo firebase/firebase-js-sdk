@@ -375,5 +375,61 @@ describe('entity node', () => {
 
     // Verify JSON export constructs the merged object fully
     expect(node.toJSON(EncodingMode.hydrated)).to.deep.equal(exampleData);
+
+    // Make a second query requesting additional fields for the same entity
+    const userProfileQueryId = 'userProfileQuery';
+    const profileEntityIds = {
+      profile: {
+        [GLOBAL_ID_KEY]: 'author1'
+      }
+    };
+    const profileData = {
+      profile: {
+        name: 'Alice',
+        bio: 'Just another user',
+        avatarUrl: 'https://example.com/alice.png'
+      }
+    };
+    const profileNode = new EntityNode();
+
+    await profileNode.loadData(
+      userProfileQueryId,
+      profileData,
+      profileEntityIds,
+      new ImpactedQueryRefsAccumulator(userProfileQueryId),
+      memoryCacheProvider
+    );
+
+    // The original node's entity should also have received the new fields
+    // since both query nodes point to the same global cache manager
+    const author1Entity =
+      node.objectLists.posts[0].references['author'].entityData;
+    expect(author1Entity?.getServerValues()!.name).to.equal('Alice');
+    expect(author1Entity?.getServerValues()!.username).to.equal('@alice');
+    expect(author1Entity?.getServerValues()!.bio).to.equal('Just another user');
+    expect(author1Entity?.getServerValues()!.avatarUrl).to.equal(
+      'https://example.com/alice.png'
+    );
+
+    // Make sure we kept the original entity keys for this node correct
+    expect(
+      node.objectLists.posts[0].references['author'].entityDataKeys.has('name')
+    ).to.be.true;
+    expect(
+      node.objectLists.posts[0].references['author'].entityDataKeys.has(
+        'username'
+      )
+    ).to.be.true;
+    expect(
+      node.objectLists.posts[0].references['author'].entityDataKeys.has('bio')
+    ).to.be.false;
+
+    // Verify the profileNode's keys as well
+    expect(profileNode.references['profile'].entityDataKeys.has('name')).to.be
+      .true;
+    expect(profileNode.references['profile'].entityDataKeys.has('bio')).to.be
+      .true;
+    expect(profileNode.references['profile'].entityDataKeys.has('username')).to
+      .be.false;
   });
 });
