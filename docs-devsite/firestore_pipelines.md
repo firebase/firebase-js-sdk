@@ -1201,8 +1201,8 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Get the bottom 3 scores from the 'scores' array field
-arrayMinimumN(field("scores"), 3);
+// Get the bottom n scores from the 'scores' array field
+arrayMinimumN(field("scores"), field("count"));
 
 ```
 
@@ -3873,7 +3873,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Get the first 3 tags from the 'tags' array field
+// Get the first n tags from the 'tags' array field
 arrayFirstN("tags", field("count"));
 
 ```
@@ -3977,7 +3977,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Get the last 3 tags from the 'tags' array field
+// Get the last n tags from the 'tags' array field
 arrayLastN("tags", field("count"));
 
 ```
@@ -4115,7 +4115,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Get the top 3 scores from the 'scores' array field
+// Get the top n scores from the 'scores' array field
 arrayMaximumN("scores", field("count"));
 
 ```
@@ -4219,8 +4219,8 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Get the bottom 3 scores from the 'scores' array field
-arrayMinimumN(field("scores"), 3);
+// Get the bottom n scores from the 'scores' array field
+arrayMinimumN(field("scores"), field("count"));
 
 ```
 

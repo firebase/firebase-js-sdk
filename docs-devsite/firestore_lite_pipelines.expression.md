@@ -798,6 +798,15 @@ arrayMaximum(): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the maximum value.
 
+### Example
+
+
+```typescript
+// Get the maximum value of the 'myArray' field.
+field("myArray").arrayMaximum();
+
+```
+
 ## Expression.arrayMaximumN()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -822,6 +831,15 @@ arrayMaximumN(n: number): FunctionExpression;
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the largest 3 elements of the 'myArray' field.
+field("myArray").arrayMaximumN(3);
+
+```
 
 ## Expression.arrayMaximumN()
 
@@ -848,6 +866,15 @@ arrayMaximumN(n: Expression): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
 
+### Example
+
+
+```typescript
+// Get the largest n elements of the 'myArray' field.
+field("myArray").arrayMaximumN(field("count"));
+
+```
+
 ## Expression.arrayMinimum()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -865,6 +892,15 @@ arrayMinimum(): FunctionExpression;
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the minimum value.
+
+### Example
+
+
+```typescript
+// Get the minimum value of the 'myArray' field.
+field("myArray").arrayMinimum();
+
+```
 
 ## Expression.arrayMinimumN()
 
@@ -891,6 +927,15 @@ arrayMinimumN(n: number): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
 
+### Example
+
+
+```typescript
+// Get the smallest 3 elements of the 'myArray' field.
+field("myArray").arrayMinimumN(3);
+
+```
+
 ## Expression.arrayMinimumN()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -915,6 +960,15 @@ arrayMinimumN(n: Expression): FunctionExpression;
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the smallest n elements of the 'myArray' field.
+field("myArray").arrayMinimumN(field("count"));
+
+```
 
 ## Expression.arrayReverse()
 
