@@ -27,7 +27,6 @@ export class InMemoryCacheProvider implements InternalCacheProvider {
   async setResultTree(queryId: string, rt: ResultTree): Promise<void> {
     this.resultTrees.set(queryId, rt);
   }
-  // TODO: Should this be in the cache provider? This seems common along all CacheProviders.
   async getResultTree(queryId: string): Promise<ResultTree | undefined> {
     return this.resultTrees.get(queryId);
   }

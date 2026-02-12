@@ -360,7 +360,6 @@ export function getDataConnect(
     const dcInstance = provider.getImmediate({ identifier });
     const options = provider.getOptions(identifier);
     const optionsValid = Object.keys(options).length > 0;
-    // TODO: check whether the current DataConnect provider is the same as what's being passed in.
     if (optionsValid) {
       logDebug('Re-using cached instance');
       return dcInstance;

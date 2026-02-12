@@ -65,5 +65,4 @@ export class EntityDataObject {
     this.referencedFrom.add(requestedFrom);
     return Array.from(this.referencedFrom);
   }
-  // TODO(mtewani): Add a way to track what fields are associated with each query during runtime.
 }

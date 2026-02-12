@@ -75,7 +75,7 @@ export class DataConnectCache {
       'memory' // TODO: replace this with indexeddb when persistence is available.
     }-${this.projectId}-${this.connectorConfig.service}-${
       this.connectorConfig.connector
-    }-${this.connectorConfig.location}-${uid}-${this.host}`; // TODO: Check if null is the right identifier here.
+    }-${this.connectorConfig.location}-${uid}-${this.host}`;
     const sha256 = await generateSHA256HashBrowser(identifier);
     return sha256;
   }
@@ -135,7 +135,6 @@ export class DataConnectCache {
   }
 }
 
-// TODO: Rename from MemoryStub
 export class MemoryStub implements CacheProvider<'MEMORY'> {
   type: 'MEMORY' = 'MEMORY';
   /**

@@ -16,5 +16,4 @@
  */
 
 export * from './core/query/subscribe';
-export { MemoryStub } from './cache/Cache';
-export { makeMemoryCacheProvider } from './api/DataConnect';
+export { makeMemoryCacheProvider, CacheProvider } from './api/DataConnect';

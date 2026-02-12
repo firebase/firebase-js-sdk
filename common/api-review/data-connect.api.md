@@ -12,9 +12,15 @@ import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
 // @public (undocumented)
+export interface CacheProvider<T extends StorageType> {
+    // (undocumented)
+    type: T;
+}
+
+// @public (undocumented)
 export interface CacheSettings {
     // (undocumented)
-    cacheProvider: MemoryStub<StorageType>;
+    cacheProvider: CacheProvider<StorageType>;
     // (undocumented)
     maxAgeSeconds?: number;
 }
@@ -194,13 +200,7 @@ export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfi
 export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig, settings: DataConnectSettings): DataConnect;
 
 // @public (undocumented)
-export function makeMemoryCacheProvider(): MemoryStub<'MEMORY'>;
-
-// @public (undocumented)
-export class MemoryStub {
-    // (undocumented)
-    type: 'MEMORY';
-}
+export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'>;
 
 // @public (undocumented)
 export const MUTATION_STR = "mutation";
