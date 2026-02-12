@@ -200,5 +200,10 @@ export {
   Selectable,
   BooleanExpression,
   AggregateFunction,
-  TimeGranularity
+  TimeGranularity,
+  arraySlice,
+  arrayIndexOf,
+  arrayLastIndexOf,
+  arrayIndexOfAll,
+  arrayFilter
 } from '../../src/lite-api/expressions';

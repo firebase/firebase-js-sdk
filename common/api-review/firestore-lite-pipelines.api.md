@@ -108,6 +108,12 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayFilter(fieldName: string, variable: string, predicate: Expression): FunctionExpression;
+
+// @beta
+export function arrayFilter(arrayExpression: Expression, variable: string, predicate: Expression): FunctionExpression;
+
+// @beta
 export function arrayFirst(fieldName: string): FunctionExpression;
 
 // @beta
@@ -138,10 +144,28 @@ export function arrayGet(arrayExpression: Expression, offset: number): FunctionE
 export function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
 
 // @beta
+export function arrayIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
 export function arrayLast(fieldName: string): FunctionExpression;
 
 // @beta
 export function arrayLast(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
 
 // @beta
 export function arrayLastN(fieldName: string, n: number): FunctionExpression;
@@ -196,6 +220,12 @@ export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionE
 
 // @beta
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
+export function arraySlice(fieldName: string, start: number | Expression, end?: number | Expression): FunctionExpression;
+
+// @beta
+export function arraySlice(arrayExpression: Expression, start: number | Expression, end?: number | Expression): FunctionExpression;
 
 // @beta
 export function arraySum(fieldName: string): FunctionExpression;
@@ -463,6 +493,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFilter(variable: string, predicate: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayFirst(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayFirstN(n: number): FunctionExpression;
@@ -473,7 +505,19 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayGet(offsetExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayLast(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayLastN(n: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -494,6 +538,10 @@ export abstract class Expression {
     arrayMinimumN(n: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arraySlice(start: number, end?: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arraySlice(start: Expression, end?: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arraySum(): FunctionExpression;
     /* Excluded from this release type: _readUserData */

@@ -1496,6 +1496,176 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Returns a slice of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get a slice of the 'myArray' field from index 1 to 3 (inclusive).
+   * field("myArray").arraySlice(1, 3);
+   * ```
+   *
+   * @param start - The index to start the slice.
+   * @param end - The index to end the slice (inclusive).
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
+   */
+  arraySlice(start: number, end?: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns a slice of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get a slice of the 'myArray' field from index value in 'start' field to
+   * index value in 'end' field (inclusive).
+   * field("myArray").arraySlice(field("start"), field("end"));
+   * ```
+   *
+   * @param start - The expression representing the index to start the slice.
+   * @param end - The expression representing the index to end the slice (inclusive).
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
+   */
+  arraySlice(start: Expression, end?: Expression): FunctionExpression;
+  arraySlice(
+    start: number | Expression,
+    end?: number | Expression
+  ): FunctionExpression {
+    const args = [this, valueToDefaultExpr(start)];
+    if (end !== undefined) {
+      args.push(valueToDefaultExpr(end));
+    }
+    return new FunctionExpression('array_slice', args, 'arraySlice');
+  }
+
+  /**
+   * @beta
+   * Returns the first index of the search value in the array, or null if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the first index of the value 3 in the 'myArray' field.
+   * field("myArray").arrayIndexOf(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   */
+  arrayIndexOf(search: unknown): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the first index of the search value in the array, or null if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the first index of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayIndexOf(field("searchVal"));
+   * ```
+   *
+   * @param search - The expression representing the value to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   */
+  arrayIndexOf(search: Expression): FunctionExpression;
+  arrayIndexOf(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of',
+      [this, valueToDefaultExpr(search), valueToDefaultExpr('first')],
+      'arrayIndexOf'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the last index of the search value in the array, or null if not found.
+   *
+   * @param search - The value to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   */
+  arrayLastIndexOf(search: unknown): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the last index of the search value in the array, or null if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the last index of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayLastIndexOf(field("searchVal"));
+   * ```
+   *
+   * @param search - The expression representing the value to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   */
+  arrayLastIndexOf(search: Expression): FunctionExpression;
+  arrayLastIndexOf(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of',
+      [this, valueToDefaultExpr(search), valueToDefaultExpr('last')],
+      'arrayLastIndexOf'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns all indices of the search value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get all indices of the value 3 in the 'myArray' field.
+   * field("myArray").arrayIndexOfAll(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+   */
+  arrayIndexOfAll(search: unknown): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns all indices of the search value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get all indices of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayIndexOfAll(field("searchVal"));
+   * ```
+   *
+   * @param search - The expression representing the value to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+   */
+  arrayIndexOfAll(search: Expression): FunctionExpression;
+  arrayIndexOfAll(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of_all',
+      [this, valueToDefaultExpr(search)],
+      'arrayIndexOfAll'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns a filtered array containing only elements that match the predicate.
+   *
+   * @example
+   * ```typescript
+   * // Get a filtered array of the 'myArray' field containing only elements that match the predicate.
+   * field("myArray").arrayFilter("element", element.eq(3));
+   * ```
+   *
+   * @param variable - The variable name to bind to each element.
+   * @param predicate - The predicate expression to filter by.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+   */
+  arrayFilter(variable: string, predicate: Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_filter',
+      [this, valueToDefaultExpr(variable), predicate],
+      'arrayFilter'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an expression that calculates the length of this string expression in bytes.
    *
    * @example
@@ -6688,6 +6858,252 @@ export function arrayMinimumN(
   n: Expression | number
 ): FunctionExpression {
   return fieldOrExpression(array).arrayMinimumN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns a slice of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 elements of the 'tags' array field
+ * arraySlice("tags", 0, 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to slice.
+ * @param start - The index to start the slice.
+ * @param end - The index to end the slice (inclusive).
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
+ */
+export function arraySlice(
+  fieldName: string,
+  start: number | Expression,
+  end?: number | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns a slice of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 elements of the 'tags' array field
+ * arraySlice(field("tags"), 0, 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to slice.
+ * @param start - The index to start the slice.
+ * @param end - The index to end the slice (inclusive).
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
+ */
+export function arraySlice(
+  arrayExpression: Expression,
+  start: number | Expression,
+  end?: number | Expression
+): FunctionExpression;
+export function arraySlice(
+  array: Expression | string,
+  start: number | Expression,
+  end?: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arraySlice(
+    valueToDefaultExpr(start),
+    end === undefined ? undefined : valueToDefaultExpr(end)
+  );
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the index of "politics" in the 'tags' array field
+ * arrayIndexOf("tags", "politics");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the index of "politics" in the 'tags' array field
+ * arrayIndexOf(field("tags"), "politics");
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayIndexOf(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayIndexOf(valueToDefaultExpr(search));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the last index of "politics" in the 'tags' array field
+ * arrayLastIndexOf("tags", "politics");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayLastIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last index of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last index of "politics" in the 'tags' array field
+ * arrayLastIndexOf(field("tags"), "politics");
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayLastIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayLastIndexOf(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayLastIndexOf(valueToDefaultExpr(search));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns all indices of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get all indices of 5 in the 'scores' array field
+ * arrayIndexOfAll("scores", 5);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+ */
+export function arrayIndexOfAll(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns all indices of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get all indices of 5 in the 'scores' array field
+ * arrayIndexOfAll(field("scores"), 5);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+ */
+export function arrayIndexOfAll(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayIndexOfAll(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayIndexOfAll(valueToDefaultExpr(search));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that filters an array based on a predicate.
+ *
+ * @example
+ * ```typescript
+ * // Filter "scores" to include only values greater than 50
+ * arrayFilter("scores", "score", field("score").greaterThan(50));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to filter.
+ * @param variable - The variable name to bind to each element.
+ * @param predicate - The predicate expression to filter by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  fieldName: string,
+  variable: string,
+  predicate: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that filters an array based on a predicate.
+ *
+ * @example
+ * ```typescript
+ * // Filter "scores" to include only values greater than 50
+ * arrayFilter(field("scores"), "score", field("score").greaterThan(50));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to filter.
+ * @param variable - The variable name to bind to each element.
+ * @param predicate - The predicate expression to filter by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  arrayExpression: Expression,
+  variable: string,
+  predicate: Expression
+): FunctionExpression;
+export function arrayFilter(
+  array: Expression | string,
+  variable: string,
+  predicate: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFilter(variable, predicate);
 }
 
 /**

@@ -169,7 +169,12 @@ export {
   arrayMaximum,
   arrayMaximumN,
   arrayMinimum,
-  arrayMinimumN
+  arrayMinimumN,
+  arraySlice,
+  arrayIndexOf,
+  arrayLastIndexOf,
+  arrayIndexOfAll,
+  arrayFilter
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

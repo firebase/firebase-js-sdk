@@ -46,12 +46,19 @@ export declare abstract class Expression
 |  [arrayContainsAll(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
 |  [arrayContainsAny(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
 |  [arrayContainsAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayFilter(variable, predicate)](./firestore_lite_pipelines.expression.md#expressionarrayfilter) |  | <b><i>(Public Preview)</i></b> Returns a filtered array containing only elements that match the predicate. |
 |  [arrayFirst()](./firestore_lite_pipelines.expression.md#expressionarrayfirst) |  | <b><i>(Public Preview)</i></b> Returns the first element of the array. |
 |  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
 |  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
 |  [arrayGet(offset)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  [arrayGet(offsetExpr)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or null if not found. |
+|  [arrayIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or null if not found. |
+|  [arrayIndexOfAll(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
+|  [arrayIndexOfAll(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
 |  [arrayLast()](./firestore_lite_pipelines.expression.md#expressionarraylast) |  | <b><i>(Public Preview)</i></b> Returns the last element of the array. |
+|  [arrayLastIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or null if not found. |
+|  [arrayLastIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or null if not found. |
 |  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
 |  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
 |  [arrayLength()](./firestore_lite_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
@@ -62,6 +69,8 @@ export declare abstract class Expression
 |  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
 |  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
 |  [arrayReverse()](./firestore_lite_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
+|  [arraySlice(start, end)](./firestore_lite_pipelines.expression.md#expressionarrayslice) |  | <b><i>(Public Preview)</i></b> Returns a slice of the array. |
+|  [arraySlice(start, end)](./firestore_lite_pipelines.expression.md#expressionarrayslice) |  | <b><i>(Public Preview)</i></b> Returns a slice of the array. |
 |  [arraySum()](./firestore_lite_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [as(name)](./firestore_lite_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
 |  [asBoolean()](./firestore_lite_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
@@ -494,6 +503,41 @@ field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
 
 ```
 
+## Expression.arrayFilter()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns a filtered array containing only elements that match the predicate.
+
+<b>Signature:</b>
+
+```typescript
+arrayFilter(variable: string, predicate: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  variable | string | The variable name to bind to each element. |
+|  predicate | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The predicate expression to filter by. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the filtered array.
+
+### Example
+
+
+```typescript
+// Get a filtered array of the 'myArray' field containing only elements that match the predicate.
+field("myArray").arrayFilter("element", element.eq(3));
+
+```
+
 ## Expression.arrayFirst()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -658,6 +702,142 @@ field('tags').arrayGet(field('favoriteTag'));
 
 ```
 
+## Expression.arrayIndexOf()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the first index of the search value in the array, or null if not found.
+
+<b>Signature:</b>
+
+```typescript
+arrayIndexOf(search: unknown): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | unknown | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the first index of the value 3 in the 'myArray' field.
+field("myArray").arrayIndexOf(3);
+
+```
+
+## Expression.arrayIndexOf()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the first index of the search value in the array, or null if not found.
+
+<b>Signature:</b>
+
+```typescript
+arrayIndexOf(search: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the first index of the value in 'searchVal' field in the 'myArray' field.
+field("myArray").arrayIndexOf(field("searchVal"));
+
+```
+
+## Expression.arrayIndexOfAll()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns all indices of the search value in the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayIndexOfAll(search: unknown): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | unknown | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the indices.
+
+### Example
+
+
+```typescript
+// Get all indices of the value 3 in the 'myArray' field.
+field("myArray").arrayIndexOfAll(3);
+
+```
+
+## Expression.arrayIndexOfAll()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns all indices of the search value in the array.
+
+<b>Signature:</b>
+
+```typescript
+arrayIndexOfAll(search: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the indices.
+
+### Example
+
+
+```typescript
+// Get all indices of the value in 'searchVal' field in the 'myArray' field.
+field("myArray").arrayIndexOfAll(field("searchVal"));
+
+```
+
 ## Expression.arrayLast()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -682,6 +862,65 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Get the last element of the 'myArray' field.
 field("myArray").arrayLast();
+
+```
+
+## Expression.arrayLastIndexOf()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the last index of the search value in the array, or null if not found.
+
+<b>Signature:</b>
+
+```typescript
+arrayLastIndexOf(search: unknown): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | unknown | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+## Expression.arrayLastIndexOf()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns the last index of the search value in the array, or null if not found.
+
+<b>Signature:</b>
+
+```typescript
+arrayLastIndexOf(search: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the last index of the value in 'searchVal' field in the 'myArray' field.
+field("myArray").arrayLastIndexOf(field("searchVal"));
 
 ```
 
@@ -994,6 +1233,77 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Reverse the value of the 'myArray' field.
 field("myArray").arrayReverse();
+
+```
+
+## Expression.arraySlice()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns a slice of the array.
+
+<b>Signature:</b>
+
+```typescript
+arraySlice(start: number, end?: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  start | number | The index to start the slice. |
+|  end | number | The index to end the slice (inclusive). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the slice.
+
+### Example
+
+
+```typescript
+// Get a slice of the 'myArray' field from index 1 to 3 (inclusive).
+field("myArray").arraySlice(1, 3);
+
+```
+
+## Expression.arraySlice()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns a slice of the array.
+
+<b>Signature:</b>
+
+```typescript
+arraySlice(start: Expression, end?: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  start | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the index to start the slice. |
+|  end | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the index to end the slice (inclusive). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the slice.
+
+### Example
+
+
+```typescript
+// Get a slice of the 'myArray' field from index value in 'start' field to
+index value in 'end' field (inclusive).
+field("myArray").arraySlice(field("start"), field("end"));
 
 ```
 
