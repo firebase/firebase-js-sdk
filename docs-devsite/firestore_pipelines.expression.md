@@ -1887,7 +1887,7 @@ field("title").arrayContains(1).isError();
 
 Creates an expression that checks if the result of this expression is of the given type.
 
-Evaluated strictly on the backend as an AST. It will not execute via local conditional `if` statements, but only inside pipeline evaluations (e.g., `where()`<!-- -->, `conditional()`<!-- -->). Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
 
 <b>Signature:</b>
 
