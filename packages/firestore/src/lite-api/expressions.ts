@@ -55,7 +55,7 @@ export type ExpressionType =
   | 'ListOfExpressions'
   | 'AliasedExpression';
 
-export type SearchMode = 'SemanticSearch' | 'LiteralSearch';
+export type SearchMode = 'SemanticSearch' | 'StandardSearch';
 
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
