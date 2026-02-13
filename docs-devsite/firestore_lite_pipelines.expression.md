@@ -52,13 +52,13 @@ export declare abstract class Expression
 |  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
 |  [arrayGet(offset)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  [arrayGet(offsetExpr)](./firestore_lite_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or null if not found. |
-|  [arrayIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or null if not found. |
+|  [arrayIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or -1 if not found. |
+|  [arrayIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or -1 if not found. |
 |  [arrayIndexOfAll(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
 |  [arrayIndexOfAll(search)](./firestore_lite_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
 |  [arrayLast()](./firestore_lite_pipelines.expression.md#expressionarraylast) |  | <b><i>(Public Preview)</i></b> Returns the last element of the array. |
-|  [arrayLastIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or null if not found. |
-|  [arrayLastIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or null if not found. |
+|  [arrayLastIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or -1 if not found. |
+|  [arrayLastIndexOf(search)](./firestore_lite_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or -1 if not found. |
 |  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
 |  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
 |  [arrayLength()](./firestore_lite_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
@@ -707,7 +707,7 @@ field('tags').arrayGet(field('favoriteTag'));
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Returns the first index of the search value in the array, or null if not found.
+Returns the first index of the search value in the array, or -1 if not found.
 
 <b>Signature:</b>
 
@@ -741,7 +741,7 @@ field("myArray").arrayIndexOf(3);
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Returns the first index of the search value in the array, or null if not found.
+Returns the first index of the search value in the array, or -1 if not found.
 
 <b>Signature:</b>
 
@@ -870,7 +870,7 @@ field("myArray").arrayLast();
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Returns the last index of the search value in the array, or null if not found.
+Returns the last index of the search value in the array, or -1 if not found.
 
 <b>Signature:</b>
 
@@ -890,12 +890,21 @@ arrayLastIndexOf(search: unknown): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
 
+### Example
+
+
+```typescript
+// Get the last index of the value 3 in the 'myArray' field.
+field("myArray").arrayLastIndexOf(3);
+
+```
+
 ## Expression.arrayLastIndexOf()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Returns the last index of the search value in the array, or null if not found.
+Returns the last index of the search value in the array, or -1 if not found.
 
 <b>Signature:</b>
 

@@ -1539,7 +1539,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Returns the first index of the search value in the array, or null if not found.
+   * Returns the first index of the search value in the array, or -1 if not found.
    *
    * @example
    * ```typescript
@@ -1554,7 +1554,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Returns the first index of the search value in the array, or null if not found.
+   * Returns the first index of the search value in the array, or -1 if not found.
    *
    * @example
    * ```typescript
@@ -1576,7 +1576,13 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Returns the last index of the search value in the array, or null if not found.
+   * Returns the last index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the last index of the value 3 in the 'myArray' field.
+   * field("myArray").arrayLastIndexOf(3);
+   * ```
    *
    * @param search - The value to search for.
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
@@ -1585,7 +1591,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Returns the last index of the search value in the array, or null if not found.
+   * Returns the last index of the search value in the array, or -1 if not found.
    *
    * @example
    * ```typescript
@@ -6805,7 +6811,7 @@ export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
  * arrayMinimumN(field("scores"), field("count"));
  * ```
  *
- * @param arrayExpression - The name of the field containing the array.
+ * @param fieldName - The name of the field containing the array.
  * @param n - The expression representing the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
  */
@@ -6987,6 +6993,7 @@ export function arrayLastIndexOf(
  * @beta
  *
  * Creates an expression that returns the last index of the search value in an array.
+ * Returns -1 if the value is not found.
  *
  * @example
  * ```typescript

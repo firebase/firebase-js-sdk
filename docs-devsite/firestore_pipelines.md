@@ -36,7 +36,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayIndexOf(arrayExpression, search)](./firestore_pipelines.md#arrayindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
 |  [arrayIndexOfAll(arrayExpression, search)](./firestore_pipelines.md#arrayindexofall_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns all indices of the search value in an array. |
 |  [arrayLast(arrayExpression)](./firestore_pipelines.md#arraylast_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last element of an array. |
-|  [arrayLastIndexOf(arrayExpression, search)](./firestore_pipelines.md#arraylastindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last index of the search value in an array. |
+|  [arrayLastIndexOf(arrayExpression, search)](./firestore_pipelines.md#arraylastindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
 |  [arrayLastN(arrayExpression, n)](./firestore_pipelines.md#arraylastn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayLastN(arrayExpression, n)](./firestore_pipelines.md#arraylastn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayMaximum(arrayExpression)](./firestore_pipelines.md#arraymaximum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
@@ -1049,7 +1049,7 @@ arrayLast(field("tags"));
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the last index of the search value in an array.
+Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found.
 
 <b>Signature:</b>
 
@@ -4534,7 +4534,7 @@ export declare function arrayMinimumN(fieldName: string, n: Expression): Functio
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  fieldName | string |  |
+|  fieldName | string | The name of the field containing the array. |
 |  n | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
 
 <b>Returns:</b>
