@@ -513,28 +513,28 @@ Returns a filtered array containing only elements that match the predicate.
 <b>Signature:</b>
 
 ```typescript
-arrayFilter(variable: string, predicate: Expression): FunctionExpression;
+arrayFilter(variable: string, predicate: BooleanExpression): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  variable | string | The variable name to bind to each element. |
-|  predicate | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The predicate expression to filter by. |
+|  variable | string | The variable name to bind to each element in the array. This variable name can be used in the <code>predicate</code> expression to refer to the current element. |
+|  predicate | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the filtered array.
+A new `Expression` representing the filtered array.
 
 ### Example
 
 
 ```typescript
-// Get a filtered array of the 'myArray' field containing only elements that match the predicate.
-field("myArray").arrayFilter("element", element.eq(3));
+// Get a filtered array of the 'scores' field containing only elements greater than 50.
+field("scores").arrayFilter("score", field("score").greaterThan(50));
 
 ```
 
@@ -554,7 +554,7 @@ arrayFirst(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first element.
+A new `Expression` representing the first element.
 
 ### Example
 
@@ -588,7 +588,7 @@ arrayFirstN(n: number): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+A new `Expression` representing the first `n` elements.
 
 ### Example
 
@@ -616,13 +616,13 @@ arrayFirstN(n: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+A new `Expression` representing the first `n` elements.
 
 ### Example
 
@@ -725,7 +725,7 @@ arrayIndexOf(search: unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+A new `Expression` representing the index.
 
 ### Example
 
@@ -753,13 +753,13 @@ arrayIndexOf(search: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the value to search for. |
+|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the value to search for. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+A new `Expression` representing the index.
 
 ### Example
 
@@ -793,7 +793,7 @@ arrayIndexOfAll(search: unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the indices.
+A new `Expression` representing the indices.
 
 ### Example
 
@@ -821,13 +821,13 @@ arrayIndexOfAll(search: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the value to search for. |
+|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the value to search for. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the indices.
+A new `Expression` representing the indices.
 
 ### Example
 
@@ -854,7 +854,7 @@ arrayLast(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last element.
+A new `Expression` representing the last element.
 
 ### Example
 
@@ -888,7 +888,7 @@ arrayLastIndexOf(search: unknown): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+A new `Expression` representing the index.
 
 ### Example
 
@@ -916,13 +916,13 @@ arrayLastIndexOf(search: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the value to search for. |
+|  search | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the value to search for. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+A new `Expression` representing the index.
 
 ### Example
 
@@ -956,7 +956,7 @@ arrayLastN(n: number): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+A new `Expression` representing the last `n` elements.
 
 ### Example
 
@@ -984,13 +984,13 @@ arrayLastN(n: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+A new `Expression` representing the last `n` elements.
 
 ### Example
 
@@ -1044,7 +1044,7 @@ arrayMaximum(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the maximum value.
+A new `Expression` representing the maximum value.
 
 ### Example
 
@@ -1078,7 +1078,7 @@ arrayMaximumN(n: number): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+A new `Expression` representing the largest `n` elements.
 
 ### Example
 
@@ -1106,13 +1106,13 @@ arrayMaximumN(n: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+A new `Expression` representing the largest `n` elements.
 
 ### Example
 
@@ -1139,7 +1139,7 @@ arrayMinimum(): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the minimum value.
+A new `Expression` representing the minimum value.
 
 ### Example
 
@@ -1173,7 +1173,7 @@ arrayMinimumN(n: number): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+A new `Expression` representing the smallest `n` elements.
 
 ### Example
 
@@ -1201,13 +1201,13 @@ arrayMinimumN(n: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+A new `Expression` representing the smallest `n` elements.
 
 ### Example
 
@@ -1269,7 +1269,7 @@ arraySlice(start: number, end?: number): FunctionExpression;
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the slice.
+A new `Expression` representing the slice.
 
 ### Example
 
@@ -1297,21 +1297,21 @@ arraySlice(start: Expression, end?: Expression): FunctionExpression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  start | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the index to start the slice. |
-|  end | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the index to end the slice (inclusive). |
+|  start | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the index to start the slice. |
+|  end | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the index to end the slice (inclusive). |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the slice.
+A new `Expression` representing the slice.
 
 ### Example
 
 
 ```typescript
 // Get a slice of the 'myArray' field from index value in 'start' field to
-index value in 'end' field (inclusive).
+// index value in 'end' field (inclusive).
 field("myArray").arraySlice(field("start"), field("end"));
 
 ```

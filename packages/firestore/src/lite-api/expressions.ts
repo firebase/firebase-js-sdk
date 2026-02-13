@@ -1292,7 +1292,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayFirst();
    * ```
    *
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+   * @returns A new `Expression` representing the first element.
    */
   arrayFirst(): FunctionExpression {
     return new FunctionExpression('array_first', [this], 'arrayFirst');
@@ -1309,7 +1309,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param n - The number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+   * @returns A new `Expression` representing the first `n` elements.
    */
   arrayFirstN(n: number): FunctionExpression;
 
@@ -1323,8 +1323,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayFirstN(field("count"));
    * ```
    *
-   * @param n - The expression representing the number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the first `n` elements.
    */
   arrayFirstN(n: Expression): FunctionExpression;
   arrayFirstN(n: number | Expression): FunctionExpression {
@@ -1345,7 +1345,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayLast();
    * ```
    *
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+   * @returns A new `Expression` representing the last element.
    */
   arrayLast(): FunctionExpression {
     return new FunctionExpression('array_last', [this], 'arrayLast');
@@ -1362,7 +1362,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param n - The number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+   * @returns A new `Expression` representing the last `n` elements.
    */
   arrayLastN(n: number): FunctionExpression;
 
@@ -1376,8 +1376,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayLastN(field("count"));
    * ```
    *
-   * @param n - The expression representing the number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the last `n` elements.
    */
   arrayLastN(n: Expression): FunctionExpression;
   arrayLastN(n: number | Expression): FunctionExpression {
@@ -1398,7 +1398,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayMaximum();
    * ```
    *
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+   * @returns A new `Expression` representing the maximum value.
    */
   arrayMaximum(): FunctionExpression {
     return new FunctionExpression('maximum', [this], 'arrayMaximum');
@@ -1415,7 +1415,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param n - The number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+   * @returns A new `Expression` representing the largest `n` elements.
    */
   arrayMaximumN(n: number): FunctionExpression;
 
@@ -1429,8 +1429,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayMaximumN(field("count"));
    * ```
    *
-   * @param n - The expression representing the number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the largest `n` elements.
    */
   arrayMaximumN(n: Expression): FunctionExpression;
   arrayMaximumN(n: number | Expression): FunctionExpression {
@@ -1451,7 +1451,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayMinimum();
    * ```
    *
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+   * @returns A new `Expression` representing the minimum value.
    */
   arrayMinimum(): FunctionExpression {
     return new FunctionExpression('minimum', [this], 'arrayMinimum');
@@ -1468,7 +1468,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param n - The number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+   * @returns A new `Expression` representing the smallest `n` elements.
    */
   arrayMinimumN(n: number): FunctionExpression;
 
@@ -1482,8 +1482,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayMinimumN(field("count"));
    * ```
    *
-   * @param n - The expression representing the number of elements to return.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the smallest `n` elements.
    */
   arrayMinimumN(n: Expression): FunctionExpression;
   arrayMinimumN(n: number | Expression): FunctionExpression {
@@ -1506,7 +1506,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @param start - The index to start the slice.
    * @param end - The index to end the slice (inclusive).
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
+   * @returns A new `Expression` representing the slice.
    */
   arraySlice(start: number, end?: number): FunctionExpression;
 
@@ -1517,13 +1517,13 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Get a slice of the 'myArray' field from index value in 'start' field to
-   * index value in 'end' field (inclusive).
+   * // index value in 'end' field (inclusive).
    * field("myArray").arraySlice(field("start"), field("end"));
    * ```
    *
-   * @param start - The expression representing the index to start the slice.
-   * @param end - The expression representing the index to end the slice (inclusive).
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
+   * @param start - An expression evaluating to the index to start the slice.
+   * @param end - An expression evaluating to the index to end the slice (inclusive).
+   * @returns A new `Expression` representing the slice.
    */
   arraySlice(start: Expression, end?: Expression): FunctionExpression;
   arraySlice(
@@ -1548,7 +1548,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param search - The value to search for.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   * @returns A new `Expression` representing the index.
    */
   arrayIndexOf(search: unknown): FunctionExpression;
 
@@ -1562,8 +1562,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayIndexOf(field("searchVal"));
    * ```
    *
-   * @param search - The expression representing the value to search for.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the index.
    */
   arrayIndexOf(search: Expression): FunctionExpression;
   arrayIndexOf(search: unknown | Expression): FunctionExpression {
@@ -1585,7 +1585,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param search - The value to search for.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   * @returns A new `Expression` representing the index.
    */
   arrayLastIndexOf(search: unknown): FunctionExpression;
 
@@ -1599,8 +1599,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayLastIndexOf(field("searchVal"));
    * ```
    *
-   * @param search - The expression representing the value to search for.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the index.
    */
   arrayLastIndexOf(search: Expression): FunctionExpression;
   arrayLastIndexOf(search: unknown | Expression): FunctionExpression {
@@ -1622,7 +1622,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param search - The value to search for.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+   * @returns A new `Expression` representing the indices.
    */
   arrayIndexOfAll(search: unknown): FunctionExpression;
 
@@ -1636,8 +1636,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("myArray").arrayIndexOfAll(field("searchVal"));
    * ```
    *
-   * @param search - The expression representing the value to search for.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the indices.
    */
   arrayIndexOfAll(search: Expression): FunctionExpression;
   arrayIndexOfAll(search: unknown | Expression): FunctionExpression {
@@ -1654,15 +1654,19 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @example
    * ```typescript
-   * // Get a filtered array of the 'myArray' field containing only elements that match the predicate.
-   * field("myArray").arrayFilter("element", element.eq(3));
+   * // Get a filtered array of the 'scores' field containing only elements greater than 50.
+   * field("scores").arrayFilter("score", field("score").greaterThan(50));
    * ```
    *
-   * @param variable - The variable name to bind to each element.
-   * @param predicate - The predicate expression to filter by.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+   * @param variable - The variable name to bind to each element in the array. This variable name
+   * can be used in the `predicate` expression to refer to the current element.
+   * @param predicate - The predicate boolean expression to filter by.
+   * @returns A new `Expression` representing the filtered array.
    */
-  arrayFilter(variable: string, predicate: Expression): FunctionExpression {
+  arrayFilter(
+    variable: string,
+    predicate: BooleanExpression
+  ): FunctionExpression {
     return new FunctionExpression(
       'array_filter',
       [this, valueToDefaultExpr(variable), predicate],
@@ -6458,7 +6462,7 @@ export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
  * ```
  *
  * @param fieldName - The name of the field containing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
  */
 export function arrayFirstN(
@@ -6498,7 +6502,7 @@ export function arrayFirstN(
  * ```
  *
  * @param arrayExpression - The expression representing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
  */
 export function arrayFirstN(
@@ -6576,7 +6580,7 @@ export function arrayLastN(fieldName: string, n: number): FunctionExpression;
  * ```
  *
  * @param fieldName - The name of the field containing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
  */
 export function arrayLastN(
@@ -6616,7 +6620,7 @@ export function arrayLastN(
  * ```
  *
  * @param arrayExpression - The expression representing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
  */
 export function arrayLastN(
@@ -6694,7 +6698,7 @@ export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
  * ```
  *
  * @param fieldName - The name of the field containing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
  */
 export function arrayMaximumN(
@@ -6734,7 +6738,7 @@ export function arrayMaximumN(
  * ```
  *
  * @param arrayExpression - The expression representing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
  */
 export function arrayMaximumN(
@@ -6812,7 +6816,7 @@ export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
  * ```
  *
  * @param fieldName - The name of the field containing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
  */
 export function arrayMinimumN(
@@ -6852,7 +6856,7 @@ export function arrayMinimumN(
  * ```
  *
  * @param arrayExpression - The expression representing the array.
- * @param n - The expression representing the number of elements to return.
+ * @param n - An expression evaluating to the number of elements to return.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
  */
 export function arrayMinimumN(
@@ -7074,14 +7078,15 @@ export function arrayIndexOfAll(
  * ```
  *
  * @param fieldName - The name of the field containing the array to filter.
- * @param variable - The variable name to bind to each element.
- * @param predicate - The predicate expression to filter by.
+ * @param variable - The variable name to bind to each element in the array. This variable name
+ * can be used in the `predicate` expression to refer to the current element.
+ * @param predicate - The predicate boolean expression to filter by.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
  */
 export function arrayFilter(
   fieldName: string,
   variable: string,
-  predicate: Expression
+  predicate: BooleanExpression
 ): FunctionExpression;
 
 /**
@@ -7096,19 +7101,20 @@ export function arrayFilter(
  * ```
  *
  * @param arrayExpression - The expression representing the array to filter.
- * @param variable - The variable name to bind to each element.
- * @param predicate - The predicate expression to filter by.
+ * @param variable - The variable name to bind to each element in the array. This variable name
+ * can be used in the `predicate` expression to refer to the current element.
+ * @param predicate - The predicate boolean expression to filter by.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
  */
 export function arrayFilter(
   arrayExpression: Expression,
   variable: string,
-  predicate: Expression
+  predicate: BooleanExpression
 ): FunctionExpression;
 export function arrayFilter(
   array: Expression | string,
   variable: string,
-  predicate: Expression
+  predicate: BooleanExpression
 ): FunctionExpression {
   return fieldOrExpression(array).arrayFilter(variable, predicate);
 }

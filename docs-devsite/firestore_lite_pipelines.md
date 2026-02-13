@@ -27,7 +27,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAny(array, values)](./firestore_lite_pipelines.md#arraycontainsany_c381a96) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains any of the specified elements. |
 |  [arrayLength(array)](./firestore_lite_pipelines.md#arraylength_195e339) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array expression. |
 |  <b>function(arrayExpression, ...)</b> |
-|  [arrayFilter(arrayExpression, variable, predicate)](./firestore_lite_pipelines.md#arrayfilter_e51f789) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array based on a predicate. |
+|  [arrayFilter(arrayExpression, variable, predicate)](./firestore_lite_pipelines.md#arrayfilter_10199f4) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array based on a predicate. |
 |  [arrayFirst(arrayExpression)](./firestore_lite_pipelines.md#arrayfirst_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayfirstn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayfirstn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -134,7 +134,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAll(fieldName, arrayExpression)](./firestore_lite_pipelines.md#arraycontainsall_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions. |
 |  [arrayContainsAny(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsany_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
 |  [arrayContainsAny(fieldName, values)](./firestore_lite_pipelines.md#arraycontainsany_1b4f7cd) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
-|  [arrayFilter(fieldName, variable, predicate)](./firestore_lite_pipelines.md#arrayfilter_8b982b2) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array based on a predicate. |
+|  [arrayFilter(fieldName, variable, predicate)](./firestore_lite_pipelines.md#arrayfilter_2b08477) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array based on a predicate. |
 |  [arrayFirst(fieldName)](./firestore_lite_pipelines.md#arrayfirst_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_lite_pipelines.md#arrayfirstn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_lite_pipelines.md#arrayfirstn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -723,7 +723,7 @@ arrayLength(field("cart"));
 
 ## function(arrayExpression, ...)
 
-### arrayFilter(arrayExpression, variable, predicate) {:#arrayfilter_e51f789}
+### arrayFilter(arrayExpression, variable, predicate) {:#arrayfilter_10199f4}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -733,7 +733,7 @@ Creates an expression that filters an array based on a predicate.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFilter(arrayExpression: Expression, variable: string, predicate: Expression): FunctionExpression;
+export declare function arrayFilter(arrayExpression: Expression, variable: string, predicate: BooleanExpression): FunctionExpression;
 ```
 
 #### Parameters
@@ -741,8 +741,8 @@ export declare function arrayFilter(arrayExpression: Expression, variable: strin
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array to filter. |
-|  variable | string | The variable name to bind to each element. |
-|  predicate | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The predicate expression to filter by. |
+|  variable | string | The variable name to bind to each element in the array. This variable name can be used in the <code>predicate</code> expression to refer to the current element. |
+|  predicate | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
 
 <b>Returns:</b>
 
@@ -846,7 +846,7 @@ export declare function arrayFirstN(arrayExpression: Expression, n: Expression):
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -1126,7 +1126,7 @@ export declare function arrayLastN(arrayExpression: Expression, n: Expression): 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -1230,7 +1230,7 @@ export declare function arrayMaximumN(arrayExpression: Expression, n: Expression
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -1334,7 +1334,7 @@ export declare function arrayMinimumN(arrayExpression: Expression, n: Expression
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -3955,7 +3955,7 @@ arrayContainsAny("categories", array([field("cate1"), "Science"]));
 
 ```
 
-### arrayFilter(fieldName, variable, predicate) {:#arrayfilter_8b982b2}
+### arrayFilter(fieldName, variable, predicate) {:#arrayfilter_2b08477}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -3965,7 +3965,7 @@ Creates an expression that filters an array based on a predicate.
 <b>Signature:</b>
 
 ```typescript
-export declare function arrayFilter(fieldName: string, variable: string, predicate: Expression): FunctionExpression;
+export declare function arrayFilter(fieldName: string, variable: string, predicate: BooleanExpression): FunctionExpression;
 ```
 
 #### Parameters
@@ -3973,8 +3973,8 @@ export declare function arrayFilter(fieldName: string, variable: string, predica
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the array to filter. |
-|  variable | string | The variable name to bind to each element. |
-|  predicate | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The predicate expression to filter by. |
+|  variable | string | The variable name to bind to each element in the array. This variable name can be used in the <code>predicate</code> expression to refer to the current element. |
+|  predicate | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
 
 <b>Returns:</b>
 
@@ -4078,7 +4078,7 @@ export declare function arrayFirstN(fieldName: string, n: Expression): FunctionE
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -4287,7 +4287,7 @@ export declare function arrayLastN(fieldName: string, n: Expression): FunctionEx
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -4425,7 +4425,7 @@ export declare function arrayMaximumN(fieldName: string, n: Expression): Functio
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 
@@ -4529,7 +4529,7 @@ export declare function arrayMinimumN(fieldName: string, n: Expression): Functio
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field containing the array. |
-|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the number of elements to return. |
+|  n | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
 
 <b>Returns:</b>
 

@@ -108,10 +108,10 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
-export function arrayFilter(fieldName: string, variable: string, predicate: Expression): FunctionExpression;
+export function arrayFilter(fieldName: string, variable: string, predicate: BooleanExpression): FunctionExpression;
 
 // @beta
-export function arrayFilter(arrayExpression: Expression, variable: string, predicate: Expression): FunctionExpression;
+export function arrayFilter(arrayExpression: Expression, variable: string, predicate: BooleanExpression): FunctionExpression;
 
 // @beta
 export function arrayFirst(fieldName: string): FunctionExpression;
@@ -493,7 +493,7 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
-    arrayFilter(variable: string, predicate: Expression): FunctionExpression;
+    arrayFilter(variable: string, predicate: BooleanExpression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayFirst(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
