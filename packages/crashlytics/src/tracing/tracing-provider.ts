@@ -67,7 +67,8 @@ export function createTracingProvider(
     endpointUrl = endpointUrl.slice(0, -1);
   }
 
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  // const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  const otlpEndpoint = 'http://localhost:4318/v1/traces';
 
   const traceExporter = new OTLPTraceExporter(
     {
