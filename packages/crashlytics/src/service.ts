@@ -18,12 +18,17 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
   private _frameworkAttributesProvider?: () => Record<string, string>;
 
-  constructor(public app: FirebaseApp, public loggerProvider: LoggerProvider) {}
+  constructor(
+    public app: FirebaseApp,
+    public loggerProvider: LoggerProvider,
+    public tracingProvider: WebTracerProvider
+  ) { }
 
   _delete(): Promise<void> {
     return Promise.resolve();

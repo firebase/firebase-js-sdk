@@ -18,6 +18,8 @@
 import {
   WebTracerProvider,
   BatchSpanProcessor,
+  SimpleSpanProcessor,
+  ConsoleSpanExporter,
   ReadableSpan,
   SpanExporter
 } from '@opentelemetry/sdk-trace-web';
@@ -81,7 +83,10 @@ export function createTracingProvider(
 
   const provider = new WebTracerProvider({
     resource,
-    spanProcessors: [new BatchSpanProcessor(traceExporter)]
+    spanProcessors: [
+      new SimpleSpanProcessor(new ConsoleSpanExporter()),
+      new BatchSpanProcessor(traceExporter)
+    ]
   });
 
   provider.register({

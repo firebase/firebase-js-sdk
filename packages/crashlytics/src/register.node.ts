@@ -21,6 +21,7 @@ import { CRASHLYTICS_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
+import { createTracingProvider } from './tracing/tracing-provider';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -34,13 +35,15 @@ export function registerCrashlytics(): void {
         }
 
         // TODO: change to default endpoint once it exists
-        const endpointUrl = instanceIdentifier || 'http://localhost';
+        const loggingUrl = instanceIdentifier || 'http://localhost';
+        const tracingUrl = instanceIdentifier || 'http://localhost:4318/v1/traces';
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider(app, endpointUrl);
+        const loggerProvider = createLoggerProvider(app, loggingUrl);
+        const tracingProvider = createTracingProvider(app, tracingUrl);
 
-        return new CrashlyticsService(app, loggerProvider);
+        return new CrashlyticsService(app, loggerProvider, tracingProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)
