@@ -126,19 +126,24 @@ jobs:
         echo "BASE_VERSION=$BASE_VERSION" >> $GITHUB_OUTPUT
     - name: Echo versions in shell
       run: |
-        echo "Staging release ${{ steps.get-version.outputs.STAGING_VERSION }}"
-        echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
+        echo "Staging release ${STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION}"
+        echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
+      env:
+        STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION: ${{ steps.get-version.outputs.STAGING_VERSION }}
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
     - name: Launch E2E tests workflow
       # Trigger e2e-test.yml
       run: |
         OSS_BOT_GITHUB_TOKEN=${{ secrets.OSS_BOT_GITHUB_TOKEN }}
-        VERSION_OR_TAG=${{ steps.get-version.outputs.STAGING_VERSION }}
+        VERSION_OR_TAG=${STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION}
         curl -X POST \
         -H "Content-Type:application/json" \
         -H "Accept:application/vnd.github.v3+json" \
         -H "Authorization:Bearer $OSS_BOT_GITHUB_TOKEN" \
         -d "{\"event_type\":\"staging-tests\", \"client_payload\":{\"versionOrTag\":\"$VERSION_OR_TAG\"}}" \
         https://api.github.com/repos/firebase/firebase-js-sdk/dispatches
+      env:
+        STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION: ${{ steps.get-version.outputs.STAGING_VERSION }}
     - name: Check for changes requiring a reference doc publish
       id: docs-check
       # If a diff is found (length of DIFF_CONTENTS > 0) it will write DOCS_NEEDED=true
@@ -156,11 +161,15 @@ jobs:
       if: ${{ always() }}
       run: |
         DATE=$(date +'%m/%d/%Y')
-        BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
-        STAGING_VERSION=${{ steps.get-version.outputs.STAGING_VERSION }}
-        OPERATOR=${{ github.actor }}
+        BASE_VERSION=${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}
+        STAGING_VERSION=${STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION}
+        OPERATOR=${GITHUB_ACTOR}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
-        DOCS_NEEDED=${{ steps.docs-check.outputs.DOCS_NEEDED }}
+        DOCS_NEEDED=${STEPS_DOCS_CHECK_OUTPUTS_DOCS_NEEDED}
         curl -X POST -H "Content-Type:application/json" \
         -d "{\"version\":\"$BASE_VERSION\",\"tag\":\"$STAGING_VERSION\",\"date\":\"$DATE\",\"operator\":\"$OPERATOR\",\"docs_needed\":\"$DOCS_NEEDED\"}" \
         $RELEASE_TRACKER_URL/logStaging
+      env:
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
+        STEPS_GET_VERSION_OUTPUTS_STAGING_VERSION: ${{ steps.get-version.outputs.STAGING_VERSION }}
+        STEPS_DOCS_CHECK_OUTPUTS_DOCS_NEEDED: ${{ steps.docs-check.outputs.DOCS_NEEDED }}
