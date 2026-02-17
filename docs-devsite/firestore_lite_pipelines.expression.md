@@ -164,6 +164,9 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [toLower()](./firestore_lite_pipelines.expression.md#expressiontolower) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to lowercase. |
 |  [toUpper()](./firestore_lite_pipelines.expression.md#expressiontoupper) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to uppercase. |
 |  [trim(valueToTrim)](./firestore_lite_pipelines.expression.md#expressiontrim) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array. |
+|  [trunc()](./firestore_lite_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value to an integer. |
+|  [trunc(decimalPlaces)](./firestore_lite_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [trunc(decimalPlaces)](./firestore_lite_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
 |  [type()](./firestore_lite_pipelines.expression.md#expressiontype) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of this expression's result, as a string. |
 |  [unixMicrosToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixmicrostotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  [unixMillisToTimestamp()](./firestore_lite_pipelines.expression.md#expressionunixmillistotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
@@ -4021,6 +4024,101 @@ field("userInput").trim();
 
 // Trim quotes from the 'userInput' field
 field("userInput").trim('"');
+
+```
+
+## Expression.trunc()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates the numeric value to an integer.
+
+<b>Signature:</b>
+
+```typescript
+trunc(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the 'rating' field
+field("rating").trunc();
+
+```
+
+## Expression.trunc()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric value to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+trunc(decimalPlaces: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  decimalPlaces | number | A constant specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+field("rating").trunc(2);
+
+```
+
+## Expression.trunc()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric value to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+trunc(decimalPlaces: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  decimalPlaces | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | An expression specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+field("rating").trunc(constant(2));
 
 ```
 

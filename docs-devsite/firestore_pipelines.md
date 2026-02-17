@@ -18,6 +18,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function()</b> |
 |  [countAll()](./firestore_pipelines.md#countall) | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the total number of stage inputs. |
 |  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the current server timestamp. |
+|  [rand()](./firestore_pipelines.md#rand) | <b><i>(Public Preview)</i></b> Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_a00ea48) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains a specific element. |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_7328608) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains a specific element. |
@@ -101,6 +102,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [sqrt(expression)](./firestore_pipelines.md#sqrt_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
 |  [subtract(expression, value)](./firestore_pipelines.md#subtract_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from an expression. |
 |  [sum(expression)](./firestore_pipelines.md#sum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of values from an expression across multiple stage inputs. |
+|  [trunc(expression)](./firestore_pipelines.md#trunc_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value of an expression to an integer. |
+|  [trunc(expression, decimalPlaces)](./firestore_pipelines.md#trunc_a3a92d0) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
 |  [type(expression)](./firestore_pipelines.md#type_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of an expression's result. |
 |  <b>function(field, ...)</b> |
 |  [isAbsent(field)](./firestore_pipelines.md#isabsent_0fb8cd4) | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if a field is absent. Otherwise, returns <code>false</code> even if the field value is <code>null</code>. |
@@ -203,6 +206,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [toLower(fieldName)](./firestore_pipelines.md#tolower_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a string field to lowercase. |
 |  [toUpper(fieldName)](./firestore_pipelines.md#toupper_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a string field to uppercase. |
 |  [trim(fieldName, valueToTrim)](./firestore_pipelines.md#trim_c9f90ee) | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing whitespace from a string or byte array. |
+|  [trunc(fieldName)](./firestore_pipelines.md#trunc_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value of a field to an integer. |
+|  [trunc(fieldName, decimalPlaces)](./firestore_pipelines.md#trunc_07d0cf0) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric expression to the specified number of decimal places. |
 |  [type(fieldName)](./firestore_pipelines.md#type_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of the data in the specified field. |
 |  [unixMicrosToTimestamp(fieldName)](./firestore_pipelines.md#unixmicrostotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  [unixMillisToTimestamp(fieldName)](./firestore_pipelines.md#unixmillistotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
@@ -444,6 +449,33 @@ A new Expression representing the current server timestamp.
 ```typescript
 // Get the current server timestamp
 currentTimestamp()
+
+```
+
+### rand() {:#rand}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0.
+
+<b>Signature:</b>
+
+```typescript
+export declare function rand(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the rand operation.
+
+### Example
+
+
+```typescript
+// Generate a random number between 0.0 and 1.0.
+rand();
 
 ```
 
@@ -2869,6 +2901,75 @@ A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefu
 ```typescript
 // Calculate the total revenue from a set of orders
 sum(field("orderAmount")).as("totalRevenue");
+
+```
+
+### trunc(expression) {:#trunc_1138a27}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates the numeric value of an expression to an integer.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(expression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to a numeric value, which will be truncated. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field.
+trunc(field("rating"));
+
+```
+
+### trunc(expression, decimalPlaces) {:#trunc_a3a92d0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric value to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to a numeric value, which will be truncated. |
+|  decimalPlaces | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | A constant or expression specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+trunc(field("rating"), constant(2));
 
 ```
 
@@ -6332,6 +6433,75 @@ trim("userInput");
 
 // Trim quotes from the 'userInput' field
 trim("userInput", '"');
+
+```
+
+### trunc(fieldName) {:#trunc_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates the numeric value of a field to an integer.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(fieldName: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the number to truncate. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field
+trunc("rating");
+
+```
+
+### trunc(fieldName, decimalPlaces) {:#trunc_07d0cf0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric expression to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to truncate. |
+|  decimalPlaces | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | A constant or expression specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+trunc("rating", 2);
 
 ```
 

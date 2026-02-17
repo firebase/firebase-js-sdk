@@ -619,6 +619,12 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    trunc(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     type(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     unixMicrosToTimestamp(): FunctionExpression;
@@ -1055,6 +1061,9 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
 export function pow(base: string, exponent: number): FunctionExpression;
 
 // @beta
+export function rand(): FunctionExpression;
+
+// @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
 
 // @beta
@@ -1311,6 +1320,18 @@ export function trim(fieldName: string, valueToTrim?: string | Expression): Func
 
 // @beta
 export function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
 
 // @beta
 export function type(fieldName: string): FunctionExpression;
