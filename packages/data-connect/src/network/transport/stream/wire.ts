@@ -25,7 +25,7 @@ export interface DataConnectStreamResponse<Data> {
   requestId: string;
   data: Data;
   extensions: DataConnectExtensions;
-  dataEtag: string; // TODO(stephenarosaj): actually a hash
+  dataEtag: string;
   errors: Error[];
   cancelled: boolean;
 }
@@ -37,15 +37,29 @@ export interface DataConnectStreamResponse<Data> {
 export interface StreamRequest {
   /** connectorResourcePath - only required on initial connection */
   name?: string;
+  /** optional headers for this request, for authentication + telemetry */
+  headers?: StreamRequestHeaders;
   /** monotonically increasing integer. starts at 1 */
   requestId: string;
-  /** only required if initially authenticating or re-authenticating */
-  authToken?: string; // TODO(stephenarosaj): type
-  /** only required if initially authenticating or re-authenticating */
-  appCheckToken?: string; // TODO(stephenarosaj): type
-  //TODO(stephenarosaj): flesh out comment: /** only required if... */
-  dataEtag?: string; // TODO(stephenarosaj): type
+  /** received from server on previous response, included to optimize bandwidth */
+  dataEtag?: string;
 }
+
+/**
+ * Optional headers for a stream request, for authentication + telemetry
+ * @internal
+ */
+export interface StreamRequestHeaders {
+  /** used to initially authenticate or re-authenticate */
+  authToken?: string;
+  /** used to initially authenticate or re-authenticate */
+  appCheckToken?: string;
+  /** SDK telemetry header */
+  'X-Goog-Api-Client'?: string; // TODO(stephenarosaj): should this be X-Goog-Api-Client (like the actual HTTP header key) or xGoogApiClient
+  /** firebase appid */
+  'x-firebase-gmpid'?: string; // TODO(stephenarosaj): should this be x-firebase-gmpid (like the actual HTTP header key) or xFirebaseGmpid
+}
+
 /**
  * Fields for an execute request payload.
  * @internal

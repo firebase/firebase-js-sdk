@@ -19,28 +19,9 @@ import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../../core/version';
 import { logDebug } from '../../logger';
 import { urlBuilder } from '../../util/url';
-
-/**
- * enum representing different flavors of the SDK used by developers
- * use the CallerSdkType for type-checking, and the CallerSdkTypeEnum for value-checking/assigning
- */
-export type CallerSdkType =
-  | 'Base' // Core JS SDK
-  | 'Generated' // Generated JS SDK
-  | 'TanstackReactCore' // Tanstack non-generated React SDK
-  | 'GeneratedReact' // Generated React SDK
-  | 'TanstackAngularCore' // Tanstack non-generated Angular SDK
-  | 'GeneratedAngular'; // Generated Angular SDK
-export const CallerSdkTypeEnum = {
-  Base: 'Base', // Core JS SDK
-  Generated: 'Generated', // Generated JS SDK
-  TanstackReactCore: 'TanstackReactCore', // Tanstack non-generated React SDK
-  GeneratedReact: 'GeneratedReact', // Tanstack non-generated Angular SDK
-  TanstackAngularCore: 'TanstackAngularCore', // Tanstack non-generated Angular SDK
-  GeneratedAngular: 'GeneratedAngular' // Generated Angular SDK
-} as const;
 
 export interface DataConnectEntityArray {
   entityIds: string[];
@@ -62,6 +43,46 @@ export interface DataConnectResponse<T> {
   data: T;
   errors: Error[];
   extensions: DataConnectExtensions;
+}
+
+/**
+ * enum representing different flavors of the SDK used by developers
+ * use the CallerSdkType for type-checking, and the CallerSdkTypeEnum for value-checking/assigning
+ */
+export type CallerSdkType =
+  | 'Base' // Core JS SDK
+  | 'Generated' // Generated JS SDK
+  | 'TanstackReactCore' // Tanstack non-generated React SDK
+  | 'GeneratedReact' // Generated React SDK
+  | 'TanstackAngularCore' // Tanstack non-generated Angular SDK
+  | 'GeneratedAngular'; // Generated Angular SDK
+export const CallerSdkTypeEnum = {
+  Base: 'Base', // Core JS SDK
+  Generated: 'Generated', // Generated JS SDK
+  TanstackReactCore: 'TanstackReactCore', // Tanstack non-generated React SDK
+  GeneratedReact: 'GeneratedReact', // Tanstack non-generated Angular SDK
+  TanstackAngularCore: 'TanstackAngularCore', // Tanstack non-generated Angular SDK
+  GeneratedAngular: 'GeneratedAngular' // Generated Angular SDK
+} as const;
+
+/**
+ * Constructs the value for the X-Goog-Api-Client header
+ * @internal
+ */
+export function getGoogApiClientValue(
+  _isUsingGen: boolean,
+  _callerSdkType: CallerSdkType
+): string {
+  let str = 'gl-js/ fire/' + SDK_VERSION;
+  if (
+    _callerSdkType !== CallerSdkTypeEnum.Base &&
+    _callerSdkType !== CallerSdkTypeEnum.Generated
+  ) {
+    str += ' js/' + _callerSdkType.toLowerCase();
+  } else if (_isUsingGen || _callerSdkType === CallerSdkTypeEnum.Generated) {
+    str += ' js/gen';
+  }
+  return str;
 }
 
 /**

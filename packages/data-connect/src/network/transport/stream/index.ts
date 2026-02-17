@@ -18,6 +18,7 @@
 import {
   DataConnectResponse,
   DataConnectTransportClass,
+  getGoogApiClientValue,
   SubscribeNotificationHook
 } from '..';
 import { Code, DataConnectError } from '../../../core/error';
@@ -26,6 +27,7 @@ import {
   CancelStreamRequest,
   DataConnectStreamRequest,
   ExecuteStreamRequest,
+  StreamRequestHeaders,
   SubscribeStreamRequest
 } from './wire';
 
@@ -183,21 +185,33 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     return (this._requestNumber++).toString();
   }
 
-  protected _attachHeaders<
+  /**
+   * Attaches headers and adds fields required for initial request
+   * @returns the requestBody, with attached headers or initial request fields
+   */
+  protected _prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
   >(requestBody: StreamBody): StreamBody {
-    if (requestBody.requestId === FIRST_REQUEST_ID.toString()) {
-      // body.appCheckToken = '...'; // TODO
-      requestBody.name = this.connectorResourcePath;
-      // eslint-disable-next-line no-console
-      console.log(`attaching for requestid ${requestBody.requestId}`); // DEBUGGING
+    const headers: StreamRequestHeaders = {};
+
+    headers['X-Goog-Api-Client'] = getGoogApiClientValue(
+      this._isUsingGen,
+      this._callerSdkType
+    );
+    if (this.appId) {
+      headers['x-firebase-gmpid'] = this.appId;
     }
+
     if (this._shouldIncludeAuth) {
-      // body.authToken = '...'; // TODO
+      // headers.authToken = '...'; // TODO
     }
-    // eslint-disable-next-line no-console
-    console.log('HEADERS:', requestBody); // DEBUGGING
+    if (requestBody.requestId === FIRST_REQUEST_ID.toString()) {
+      // headers.appCheckToken = '...'; // TODO
+      requestBody.name = this.connectorResourcePath;
+    }
+
+    requestBody.headers = headers;
     return requestBody;
   }
 
@@ -219,7 +233,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   protected _sendMessageWithHeaders<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): void {
-    const body = this._attachHeaders(requestBody);
+    const body = this._prepareMessage(requestBody);
+    // eslint-disable-next-line no-console
+    console.log('SENDING MESSAGE:', requestBody); // DEBUGGING
     this.sendMessage(body);
   }
 

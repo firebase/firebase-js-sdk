@@ -19,9 +19,9 @@ import { isCloudWorkstation } from '@firebase/util';
 
 import {
   CallerSdkType,
-  CallerSdkTypeEnum,
   DataConnectExtensions,
-  DataConnectResponse
+  DataConnectResponse,
+  getGoogApiClientValue
 } from '..';
 import {
   Code,
@@ -29,27 +29,11 @@ import {
   DataConnectOperationError,
   DataConnectOperationFailureResponse
 } from '../../../core/error';
-import { SDK_VERSION } from '../../../core/version';
 import { logError } from '../../../logger';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
-}
-function getGoogApiClientValue(
-  _isUsingGen: boolean,
-  _callerSdkType: CallerSdkType
-): string {
-  let str = 'gl-js/ fire/' + SDK_VERSION;
-  if (
-    _callerSdkType !== CallerSdkTypeEnum.Base &&
-    _callerSdkType !== CallerSdkTypeEnum.Generated
-  ) {
-    str += ' js/' + _callerSdkType.toLowerCase();
-  } else if (_isUsingGen || _callerSdkType === CallerSdkTypeEnum.Generated) {
-    str += ' js/gen';
-  }
-  return str;
 }
 export interface DataConnectFetchBody<T> {
   name: string;
