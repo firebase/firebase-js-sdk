@@ -26,16 +26,18 @@ import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
 import { DataConnectStreamTransportClass } from '.';
 
 /**
- * A Transport implementation that uses WebSockets to stream requests and responses.
+ * A StreamTransport implementation that uses WebSockets to stream requests and responses.
  * This class handles the lifecycle of the WebSocket connection, including automatic
  * reconnection and request correlation.
  * @internal
  */
-export class StreamTransport extends DataConnectStreamTransportClass {
+export class WebsocketTransport extends DataConnectStreamTransportClass {
   // TODO(stephenarosaj): handle app check and auth... in RESTTransport there are providers that get called... probably have to do something like that here, too
 
   /** The current established connection to the server. Undefined if disconnected. */
   private _connection: WebSocket | undefined = undefined;
+
+  protected _streamIsSupported = true;
 
   /**
    * Tracks any ongoing connection attempt. This ensures we don't open multiple streams if multiple
@@ -78,6 +80,8 @@ export class StreamTransport extends DataConnectStreamTransportClass {
       return this._connectionAttempt;
     }
     this._connectionAttempt = new Promise<void>((resolve, reject) => {
+      // eslint-disable-next-line no-console
+      console.log(this.endpointUrl); // DEBUGGING
       const ws = new WebSocket(this.endpointUrl);
       ws.onopen = () => {
         this._connection = ws;
@@ -123,7 +127,7 @@ export class StreamTransport extends DataConnectStreamTransportClass {
     // server will drop all requests on disconnect
     // TODO(stephenarosaj): requeue all requests for when connection comes back online
     // TODO(stephenarosaj): what do we do with pending execute requests? do we resolve them as failed after a timeout (if reconnect before timeout, stop the timeout)?
-    // TODO(stephenarosaj): NOTE: if we are re-requesting, the first request needs to have auth and app check, and 
+    // TODO(stephenarosaj): NOTE: if we are re-requesting, the first request needs to have auth and app check, and
     // TODO(stephenarosaj): use ev.code and ev.wasClean to figure out what kind of disconnect this was and what to do next
   }
 
@@ -141,19 +145,14 @@ export class StreamTransport extends DataConnectStreamTransportClass {
   ): void {
     this._ensureConnection()
       .then(() => {
-        // TODO(stephenarosaj): save some bytes. no need to re-send tokens if not refreshing, and no need to re-send connector/service name for existing stream
-        if (this._accessToken && requestBody.authToken) {
-          requestBody.authToken = this._accessToken;
-        }
-        if (this._appCheckToken && requestBody.appCheckToken) {
-          requestBody.appCheckToken = this._appCheckToken;
-        }
+        // eslint-disable-next-line no-console
+        console.log('\nsendMessage:\n', requestBody); // DEBUGGING
         this._connection!.send(JSON.stringify(requestBody));
       })
       .catch(err => {
         throw new DataConnectError(
           Code.OTHER,
-          `Failed to send message: ${err}`
+          `Failed to send message: ${JSON.stringify(err)}`
         );
       });
   }
@@ -166,27 +165,13 @@ export class StreamTransport extends DataConnectStreamTransportClass {
     const result = this._parseWebSocketData(ev.data);
     const requestId = result.requestId;
 
-    const dataConnectResponse: DataConnectResponse<unknown> = {
+    const response: DataConnectResponse<unknown> = {
       data: result.data,
       errors: result.errors,
       extensions: { dataConnect: [] } // TODO(stephenarosaj): actually fill this... it should be coming from result.extensions... right?
     };
 
-    if (this._executeRequestPromises.has(requestId)) {
-      // TODO(stephenarosaj): when do we use reject? if there was an ERROR error, like something really went wrong with the stream? in that case, it probably won't get called when handling a message, but rather in catach statements of stream-related functions, right...?
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { resolve, reject } = this._executeRequestPromises.get(requestId)!;
-      resolve(dataConnectResponse);
-      this._executeRequestPromises.delete(requestId);
-    } else if (this._subscribeNotificationHooks.has(requestId)) {
-      const notifyQueryManager = this._subscribeNotificationHooks.get(requestId)!;
-      notifyQueryManager(dataConnectResponse);
-    } else {
-      throw new DataConnectError(
-        Code.OTHER,
-        `Unrecognized requestId '${requestId}'`
-      );
-    }
+    this._handleMessage(requestId, response);
   }
 
   /**
@@ -200,7 +185,7 @@ export class StreamTransport extends DataConnectStreamTransportClass {
   ): DataConnectStreamResponse<Data> {
     const webSocketMessage = JSON.parse(data);
     // eslint-disable-next-line no-console
-    console.log('\nMESSAGE:\n', webSocketMessage); // DEBUGGING
+    console.log('\n_parseWebSocketData:\n', webSocketMessage); // DEBUGGING
     if (!('result' in webSocketMessage)) {
       throw new DataConnectError(
         Code.OTHER,

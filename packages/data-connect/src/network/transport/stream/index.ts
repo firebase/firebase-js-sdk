@@ -20,6 +20,7 @@ import {
   DataConnectTransportClass,
   SubscribeNotificationHook
 } from '..';
+import { Code, DataConnectError } from '../../../core/error';
 
 import {
   CancelStreamRequest,
@@ -36,9 +37,6 @@ export interface ActiveRequest<Data, Variables> {
   variables?: Variables;
   requestBody: DataConnectStreamRequest<Data>;
 }
-const EXECUTE_STR = 'exec';
-const SUBSCRIBE_STR = 'sub';
-type RequestType = typeof EXECUTE_STR | typeof SUBSCRIBE_STR;
 
 /**
  * Key to identify requests coming from the operation layer.
@@ -49,10 +47,25 @@ interface ActiveRequestKey {
   variables?: unknown;
 }
 
+/** the request id of the first request over the stream */
+const FIRST_REQUEST_ID = 1;
+
 /**
+ * Internal class for abstract management of logical streams (requests), authentication, data routing
+ * to query layer, and all other non-connection-specific implementation of streaming protocol and functionality.
  * @internal
  */
 export abstract class DataConnectStreamTransportClass extends DataConnectTransportClass {
+  /** should the next request include auth token? */
+  protected _shouldIncludeAuth = true;
+
+  /** is this connection pending close? */
+  protected _pendingClose = false;
+  /** current connection close timeout from setTimeout(), if any */
+  protected _closeTimeout: NodeJS.Timeout | null = null;
+  /** has the close timeout finished? */
+  protected _closeTimeoutFinished = false;
+
   /**
    * Map of active execute requests to their request bodies.
    */
@@ -69,6 +82,14 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     SubscribeStreamRequest<unknown>
   >();
 
+  protected get _hasActiveSubscribeRequests(): boolean {
+    return this._activeSubscribeRequests.size === 0;
+  }
+
+  protected get _hasActiveExecuteRequests(): boolean {
+    return this._activeExecuteRequests.size === 0;
+  }
+
   /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
    */
@@ -80,7 +101,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reject: (err: any) => void;
       promise: Promise<DataConnectResponse<unknown>>;
-    } // TODO(stephenarosaj): can type better?
+    }
   >();
 
   /**
@@ -100,20 +121,85 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     return `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
   }
 
-  /** Monotonically increasing sequence number for execution requests */
-  private _executionRequestNumber = 1;
-
-  /**
-   * Create a unique id for a request over the stream.
-   * @returns the request id as a string
-   */
-  private _makeRequestId(requestType: RequestType): string {
-    return `${requestType}-${this._executionRequestNumber++}`;
-  }
+  /** Monotonically increasing sequence number for request ids. starts at 1 */
+  private _requestNumber = FIRST_REQUEST_ID;
 
   protected abstract openConnection(): Promise<void>;
 
   protected abstract closeConnection(): void;
+
+  /**
+   * Begin closing the connection. Waits for and cleans up all active requests, and waits for 1 minute.
+   */
+  protected _prepareToClose(): void {
+    if (this._pendingClose) {
+      return;
+    }
+    this._pendingClose = true;
+
+    this._activeSubscribeRequests.forEach(requestBody => {
+      this.invokeUnsubscribe(
+        requestBody.subscribe.operationName,
+        requestBody.subscribe.variables
+      );
+    });
+
+    const waitTime = 1000 * 60; // 1 minute
+    this._closeTimeout = setTimeout(() => {
+      this._closeTimeoutFinished = true;
+      this._attemptClose();
+    }, waitTime);
+  }
+
+  /**
+   * Attempt to close the connection. Will only close if there are no active requests preventing it
+   * from doing so.
+   */
+  protected _attemptClose(): void {
+    if (this._hasActiveSubscribeRequests || this._hasActiveExecuteRequests) {
+      // any subscriptions will prepare to close once they are cancelled
+      // if we are pending close, the active execute requests will re-attempt once they resolve
+      // TODO(stephenarosaj): if we are in fact pending close, should we set a fallback, like a 3 minute time so that if the execute requests don't resolve then we will close without waiting forever for a response?
+      return;
+    }
+    this.closeConnection();
+  }
+
+  /**
+   * Cancel closing the connection.
+   */
+  protected _cancelClose(): void {
+    if (this._closeTimeout) {
+      clearTimeout(this._closeTimeout);
+    }
+    this._pendingClose = false;
+    this._closeTimeoutFinished = false;
+  }
+
+  /**
+   * Generated and returns the next request ID.
+   */
+  protected _nextRequestId(): string {
+    return (this._requestNumber++).toString();
+  }
+
+  protected _attachHeaders<
+    Variables,
+    StreamBody extends DataConnectStreamRequest<Variables>
+  >(requestBody: StreamBody): StreamBody {
+    if (requestBody.requestId === FIRST_REQUEST_ID.toString()) {
+      // body.appCheckToken = '...'; // TODO
+      requestBody.name = this.connectorResourcePath;
+      // eslint-disable-next-line no-console
+      console.log(`attaching for requestid ${requestBody.requestId}`); // DEBUGGING
+    }
+    if (this._shouldIncludeAuth) {
+      // body.authToken = '...'; // TODO
+    }
+    // eslint-disable-next-line no-console
+    console.log('HEADERS:', requestBody); // DEBUGGING
+    return requestBody;
+  }
 
   /**
    * Queues a message to be sent over the stream.
@@ -126,13 +212,25 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   ): void;
 
   /**
+   * Attaches headers before sending message.
+   * @param requestBody The body of the message to be sent.
+   * @throws DataConnectError if sending fails.
+   */
+  protected _sendMessageWithHeaders<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
+  ): void {
+    const body = this._attachHeaders(requestBody);
+    this.sendMessage(body);
+  }
+
+  /**
    * Internal helper to queue a message to execute a one-off query or mutation.
    * @param body The execution payload.
    */
   protected _sendExecuteMessage<Variables>(
     body: ExecuteStreamRequest<Variables>
   ): void {
-    this.sendMessage(body);
+    this._sendMessageWithHeaders(body);
   }
 
   /**
@@ -142,7 +240,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   protected _sendSubscribeMessage<Variables>(
     subscribeRequestBody: SubscribeStreamRequest<Variables>
   ): void {
-    this.sendMessage(subscribeRequestBody);
+    this._sendMessageWithHeaders(subscribeRequestBody);
   }
 
   /**
@@ -150,14 +248,44 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
    * @param cancelStreamRequest The cancel/unsubscription payload.
    */
   protected _sendCancelMessage(cancelStreamRequest: CancelStreamRequest): void {
-    this.sendMessage(cancelStreamRequest);
+    this._sendMessageWithHeaders(cancelStreamRequest);
+  }
+
+  /**
+   * Handle a response message from the server.
+   * @param requestId the requestId associated with this response.
+   * @param response the response from the server.
+   */
+  protected _handleMessage<Data>(
+    requestId: string,
+    response: DataConnectResponse<Data>
+  ): void {
+    if (this._executeRequestPromises.has(requestId)) {
+      // TODO(stephenarosaj): when do we use reject? if there was an ERROR error, like something really went wrong with the stream? in that case, it probably won't get called when handling a message, but rather in catach statements of stream-related functions, right...?
+      const { resolve } = this._executeRequestPromises.get(requestId)!;
+      resolve(response);
+      this._executeRequestPromises.delete(requestId);
+      // if we are waiting to close the stream, see if resolving this request will finally let us do so
+      if (this._pendingClose && this._closeTimeoutFinished) {
+        this._attemptClose();
+      }
+    } else if (this._subscribeNotificationHooks.has(requestId)) {
+      const notifyQueryManager =
+        this._subscribeNotificationHooks.get(requestId)!;
+      notifyQueryManager(response);
+    } else {
+      throw new DataConnectError(
+        Code.OTHER,
+        `Unrecognized requestId '${requestId}'`
+      );
+    }
   }
 
   invokeQuery<Data, Variables>(
     queryName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this._makeRequestId(EXECUTE_STR);
+    const requestId = this._nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
     const activeRequest = this._activeExecuteRequests.get(activeRequestKey);
     if (activeRequest) {
@@ -210,7 +338,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     mutationName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this._makeRequestId(EXECUTE_STR);
+    const requestId = this._nextRequestId();
     const activeRequestKey = { operationName: mutationName, variables };
     // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
@@ -261,11 +389,14 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
         );
       }
     }
-    const requestId = this._makeRequestId(SUBSCRIBE_STR);
+
+    // if we are waiting to close the stream, cancel closing!
+    this._cancelClose();
+
+    const requestId = this._nextRequestId();
 
     // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: SubscribeStreamRequest<Variables> = {
-      'name': this.connectorResourcePath,
       requestId,
       'subscribe': activeRequestKey
     };
@@ -308,6 +439,11 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     this._sendCancelMessage(body);
     this._activeSubscribeRequests.delete(activeRequestKey);
     this._subscribeNotificationHooks.delete(requestId);
+
+    /** close stream if no more subscriptions */
+    if (!this._hasActiveSubscribeRequests) {
+      this._prepareToClose();
+    }
   }
 
   // TODO(stephenarosaj): type better

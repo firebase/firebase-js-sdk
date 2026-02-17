@@ -47,7 +47,7 @@ import {
   TransportClass
 } from '../network';
 // import { RESTTransport } from '../network/transport/rest';
-import { StreamTransport } from '../network/transport/stream/websocket';
+import { WebsocketTransport } from '../network/transport/stream/websocket';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
@@ -181,7 +181,7 @@ export class DataConnect {
     if (this._transportClass === undefined) {
       // TODO(stephenarosaj): first, REST, then STREAM only when we start subscribing...
       logDebug('USING STREAM TRANSPORT!'); // DEBUGGING
-      this._transportClass = StreamTransport;
+      this._transportClass = WebsocketTransport;
     }
 
     this._authTokenProvider = new FirebaseAuthProvider(

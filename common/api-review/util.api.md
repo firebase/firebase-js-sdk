@@ -223,7 +223,7 @@ export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' |
 
 // Warning: (ae-missing-release-tag) "generateSHA256HashBrowser" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
+// @public
 export function generateSHA256HashBrowser(input: string): Promise<string>;
 
 // @public

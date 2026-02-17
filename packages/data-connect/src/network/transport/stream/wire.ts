@@ -37,6 +37,7 @@ export interface DataConnectStreamResponse<Data> {
 export interface StreamRequest {
   /** connectorResourcePath - only required on initial connection */
   name?: string;
+  /** monotonically increasing integer. starts at 1 */
   requestId: string;
   /** only required if initially authenticating or re-authenticating */
   authToken?: string; // TODO(stephenarosaj): type
