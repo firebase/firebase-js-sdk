@@ -7883,6 +7883,7 @@ export function pow(
  * // Generate a random number between 0.0 and 1.0.
  * rand();
  * ```
+ *
  * @returns A new `Expression` representing the rand operation.
  */
 export function rand(): FunctionExpression {
