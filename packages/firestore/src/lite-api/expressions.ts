@@ -2219,7 +2219,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param decimalPlaces - An expression specifying the truncation precision in decimal places.
-   *
    * @returns A new `Expression` representing the truncated value.
    */
   trunc(decimalPlaces: Expression): FunctionExpression;
