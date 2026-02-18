@@ -250,8 +250,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(mapExpression, ...)</b> |
 |  [mapEntries(mapExpression)](./firestore_lite_pipelines.md#mapentries_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
 |  [mapGet(mapExpression, subField)](./firestore_lite_pipelines.md#mapget_688c050) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) expression using the provided key. |
-|  [mapKeys(mapExpression)](./firestore_lite_pipelines.md#mapkeys_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
-|  [mapSet(mapExpression, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_45b48ff) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use . |
+|  [mapKeys(mapExpression)](./firestore_lite_pipelines.md#mapkeys_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
+|  [mapSet(mapExpression, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_45b48ff) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use <code>mapRemove</code>. |
 |  [mapValues(mapExpression)](./firestore_lite_pipelines.md#mapvalues_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(mapField, ...)</b> |
 |  [mapEntries(mapField)](./firestore_lite_pipelines.md#mapentries_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
@@ -259,7 +259,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [mapMerge(mapField, secondMap, otherMaps)](./firestore_lite_pipelines.md#mapmerge_70a564b) | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(mapField, key)](./firestore_lite_pipelines.md#mapremove_bd5726e) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map at the specified field name. |
 |  [mapRemove(mapField, keyExpr)](./firestore_lite_pipelines.md#mapremove_8406d13) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map at the specified field name. |
-|  [mapSet(mapField, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_baadc2a) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use . |
+|  [mapSet(mapField, key, value, moreKeyValues)](./firestore_lite_pipelines.md#mapset_baadc2a) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use <code>mapRemove</code>. |
 |  [mapValues(mapField)](./firestore_lite_pipelines.md#mapvalues_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
 |  [field(name)](./firestore_lite_pipelines.md#field_1eaaff4) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
@@ -7619,7 +7619,7 @@ mapGet(field("address"), "city");
 
 Creates an expression that returns the keys of a map.
 
-Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
 
 <b>Signature:</b>
 
@@ -7655,7 +7655,7 @@ mapKeys(map({"city": "San Francisco"}));
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
-Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use .
+Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`<!-- -->.
 
 <b>Signature:</b>
 
@@ -7706,7 +7706,7 @@ export declare function mapValues(mapExpression: Expression): FunctionExpression
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  mapExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
+|  mapExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the map to get the values of. |
 
 <b>Returns:</b>
 
@@ -7903,7 +7903,7 @@ mapRemove('address', constant('city'));
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
-Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use .
+Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`<!-- -->.
 
 <b>Signature:</b>
 

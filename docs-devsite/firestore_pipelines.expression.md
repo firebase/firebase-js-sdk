@@ -113,12 +113,12 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
 |  [mapEntries()](./firestore_pipelines.expression.md#expressionmapentries) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
 |  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
-|  [mapKeys()](./firestore_pipelines.expression.md#expressionmapkeys) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
+|  [mapKeys()](./firestore_pipelines.expression.md#expressionmapkeys) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
 |  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
 |  [mapRemove(keyExpr)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
 |  [mapSet(key, value, moreKeyValues)](./firestore_pipelines.expression.md#expressionmapset) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated. |
-|  [mapValues()](./firestore_pipelines.expression.md#expressionmapvalues) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
+|  [mapValues()](./firestore_pipelines.expression.md#expressionmapvalues) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  [maximum()](./firestore_pipelines.expression.md#expressionmaximum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
 |  [minimum()](./firestore_pipelines.expression.md#expressionminimum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
 |  [mod(expression)](./firestore_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression. |
@@ -2377,7 +2377,7 @@ field("address").mapGet("city");
 
 Creates an expression that returns the keys of a map.
 
-Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
 
 <b>Signature:</b>
 
@@ -2511,7 +2511,7 @@ map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
-Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use .
+Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`
 
 <b>Signature:</b>
 
@@ -2549,7 +2549,7 @@ field("address").mapSet("city", "San Francisco");
 
 Creates an expression that returns the values of a map.
 
-Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
 
 <b>Signature:</b>
 

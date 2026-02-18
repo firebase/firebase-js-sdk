@@ -1389,8 +1389,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @remarks
    * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
-   * will retain the key with a `null` value. To remove a key entirely, use
-   * {@link @firebase/firestore/pipelines#mapRemove | mapRemove}.
+   * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`
    *
    * @example
    * ```typescript
@@ -1421,7 +1420,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the keys of a map.
    *
-   * Note: While the backend generally preserves insertion order, relying on the
+   * @remarks
+   * While the backend generally preserves insertion order, relying on the
    * order of the output array is not guaranteed and should be avoided.
    *
    * @example
@@ -1440,7 +1440,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an expression that returns the values of a map.
    *
-   * Note: While the backend generally preserves insertion order, relying on the
+   * @remarks
+   * While the backend generally preserves insertion order, relying on the
    * order of the output array is not guaranteed and should be avoided.
    *
    * @example
@@ -6868,8 +6869,7 @@ export function mapGet(
  * Creates an expression that returns a new map with the specified entries added or updated.
  *
  * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
- * will retain the key with a `null` value. To remove a key entirely, use
- * {@link @firebase/firestore/pipelines#mapRemove | mapRemove}.
+ * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
  *
  * @example
  * ```typescript
@@ -6895,8 +6895,7 @@ export function mapSet(
  * Creates an expression that returns a new map with the specified entries added or updated.
  *
  * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
- * will retain the key with a `null` value. To remove a key entirely, use
- * {@link @firebase/firestore/pipelines#mapRemove | mapRemove}.
+ * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
  *
  * @example
  * ```typescript
@@ -6948,7 +6947,8 @@ export function mapKeys(mapField: string): FunctionExpression;
  * @beta
  * Creates an expression that returns the keys of a map.
  *
- * Note: While the backend generally preserves insertion order, relying on the
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
  * order of the output array is not guaranteed and should be avoided.
  *
  * @example
@@ -6998,7 +6998,7 @@ export function mapValues(mapField: string): FunctionExpression;
  * mapValues(map({"city": "San Francisco"}));
  * ```
  *
- * @param map - The expression representing the map to get the values of.
+ * @param mapExpression - The expression representing the map to get the values of.
  * @returns A new `Expression` representing the values of the map.
  */
 export function mapValues(mapExpression: Expression): FunctionExpression;
