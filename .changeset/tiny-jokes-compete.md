@@ -1,5 +1,5 @@
 ---
-'firestore': minor
+'firebase': minor
 '@firebase/firestore': minor
 ---
 
