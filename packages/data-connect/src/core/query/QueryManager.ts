@@ -177,7 +177,7 @@ export class QueryManager {
 
     const cachingEnabled = this.cache && !!this.cache.cacheSettings;
 
-    // create a callback the transport layer can use to notify us of realtime updates
+    // create a callback the transport layer can use to notify us of updates
     const notificationHook = async (
       response: DataConnectResponse<Data>
     ): Promise<void> => {

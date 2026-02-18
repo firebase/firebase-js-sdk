@@ -62,7 +62,7 @@ describe('parseEntityIds', () => {
       // New! SDKs should parse this. Only present when Connector.clientCache.includeEntityId is true (can be set via the control plane soon; CLI will set it according to YAML later)
       extensions: {
         // Unique top-level key to avoid (future) conflicts with other GQL extensions
-        // Not called "cache" since it can be used for realtime and pagination too later
+        // Not called "cache" since it can be used for more later
         dataConnect: [
           // This is a list, each item contains a path and properties for that path.
           {
