@@ -106,6 +106,7 @@ export {
   maximum,
   first,
   last,
+  arrayAgg,
   cosineDistance,
   dotProduct,
   euclideanDistance,

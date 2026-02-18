@@ -101,6 +101,7 @@ import {
   maximum,
   first,
   last,
+  arrayAgg,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -970,6 +971,19 @@ describe.skipClassic('Firestore Pipelines', () => {
           firstBookTitle: 'Pride and Prejudice',
           lastBookRating: 4.1,
           lastBookTitle: "The Handmaid's Tale"
+        });
+      });
+
+      it('returns arrayAgg accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('published').ascending())
+            .aggregate(arrayAgg('rating').as('allRatings'))
+        );
+        expectResults(snapshot, {
+          allRatings: [4.5, 4.3, 4.0, 4.2, 4.7, 4.2, 4.6, 4.3, 4.2, 4.1]
         });
       });
 
