@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
+import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
 import {
@@ -52,6 +53,18 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
+  const fakeTracingProvider = {
+    getTracer: () => ({
+      startActiveSpan: (name: string, fn: (span: any) => any) =>
+        fn({
+          end: () => { },
+          spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+        })
+    }),
+    register: () => { },
+    shutdown: () => Promise.resolve()
+  } as unknown as WebTracerProvider;
+
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
       name: 'DEFAULT',
@@ -61,7 +74,8 @@ describe('helpers', () => {
         appId: 'my-appid'
       }
     },
-    loggerProvider: fakeLoggerProvider
+    loggerProvider: fakeLoggerProvider,
+    tracingProvider: fakeTracingProvider
   };
 
   beforeEach(() => {
@@ -136,7 +150,8 @@ describe('helpers', () => {
     it('should log app version from telemetry options', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider
+        fakeLoggerProvider,
+        fakeTracingProvider
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
