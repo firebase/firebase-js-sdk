@@ -47,9 +47,13 @@ jobs:
         yarn ts-node-script scripts/ci/check_changeset.ts
       id: check-changeset
     - name: Print changeset checker output
-      run: echo "${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}"
+      run: echo "${STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE}"
+      env:
+        STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE: ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Print blocking failure status
-      run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
+      run: echo "${STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE}"
+      env:
+        STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
     - name: Find Comment
       uses: peter-evans/find-comment@v1
       id: fc
