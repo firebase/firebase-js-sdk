@@ -21,7 +21,7 @@ import { CRASHLYTICS_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
-import { createTracingProvider } from './tracing/tracing-provider';
+import { createTracingProvider } from './tracing/tracing-provider.node';
 
 export function registerCrashlytics(): void {
   _registerComponent(
