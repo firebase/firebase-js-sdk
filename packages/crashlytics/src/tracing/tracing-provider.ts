@@ -95,13 +95,15 @@ export function createTracingProvider(
     })
   });
 
-  registerInstrumentations({
-    instrumentations: [
-      new DocumentLoadInstrumentation(),
-      new FetchInstrumentation(),
-      new UserInteractionInstrumentation()
-    ]
-  });
+  if (typeof window !== 'undefined') {
+    registerInstrumentations({
+      instrumentations: [
+        new DocumentLoadInstrumentation(),
+        new FetchInstrumentation(),
+        new UserInteractionInstrumentation()
+      ]
+    });
+  }
 
   return provider;
 }
