@@ -17,12 +17,6 @@
 
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
-import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
-import type { OTLPExporterConfigBase } from '@opentelemetry/otlp-exporter-base';
-import {
-  OTLPExporterBase,
-  createOtlpNetworkExportDelegate
-} from '@opentelemetry/otlp-exporter-base';
 import {
   CompositePropagator,
   W3CTraceContextPropagator,
@@ -40,7 +34,7 @@ import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-docu
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
-
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { FetchTransport } from '../logging/fetch-transport';
 import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
@@ -62,7 +56,7 @@ export function createTracingProvider(
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: 'firebase_telemetry_service',
+    [ATTR_SERVICE_NAME]: appId,
     'gcp.project_id': projectId,
     'cloud.provider': 'gcp'
   });
@@ -71,18 +65,16 @@ export function createTracingProvider(
     endpointUrl = endpointUrl.slice(0, -1);
   }
 
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  const otlpEndpoint = `http://localhost:4318/v1/traces`; //`${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
 
   const traceExporter = new OTLPTraceExporter(
     {
       url: otlpEndpoint,
       headers: {
-        'Content-Type': 'application/json',
         'X-Goog-User-Project': projectId || '',
         ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
       }
-    },
-    dynamicHeaderProviders
+    }
   );
 
   const provider = new WebTracerProvider({
@@ -109,35 +101,4 @@ export function createTracingProvider(
   });
 
   return provider;
-}
-
-/** OTLP exporter that uses custom FetchTransport. */
-class OTLPTraceExporter extends OTLPExporterBase<ReadableSpan[]> {
-  constructor(
-    config: OTLPExporterConfigBase = {},
-    dynamicHeaderProviders: DynamicHeaderProvider[] = []
-  ) {
-    super(
-      createOtlpNetworkExportDelegate(
-        {
-          timeoutMillis: 10000,
-          concurrencyLimit: 5,
-          compression: 'none'
-        },
-        JsonTraceSerializer,
-        new FetchTransport({
-          url: config.url!,
-          headers: new Headers(config.headers),
-          dynamicHeaderProviders
-        })
-      )
-    );
-  }
-
-  override export(
-    spans: ReadableSpan[],
-    resultCallback: (result: ExportResult) => void
-  ): void {
-    super.export(spans, resultCallback);
-  }
 }
