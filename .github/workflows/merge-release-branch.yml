@@ -21,7 +21,9 @@ jobs:
           echo "::set-output name=RELEASE_VERSION::$VERSION"
       - name: Echo version in shell
         run: |
-          echo "Merging release ${{ steps.get-version.outputs.RELEASE_VERSION }}"
+          echo "Merging release ${STEPS_GET_VERSION_OUTPUTS_RELEASE_VERSION}"
+        env:
+          STEPS_GET_VERSION_OUTPUTS_RELEASE_VERSION: ${{ steps.get-version.outputs.RELEASE_VERSION }}
       - name: Merge to master
         uses: actions/github-script@v6
         with:
