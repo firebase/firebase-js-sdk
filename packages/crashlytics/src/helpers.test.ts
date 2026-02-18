@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
+import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
 import {
@@ -63,7 +63,7 @@ describe('helpers', () => {
     }),
     register: () => {},
     shutdown: () => Promise.resolve()
-  } as unknown as WebTracerProvider;
+  } as unknown as TracerProvider;
 
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
