@@ -20,7 +20,6 @@ import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
   W3CTraceContextPropagator,
-  ExportResult
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
 import {
@@ -33,10 +32,7 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { FetchTransport } from '../logging/fetch-transport';
-import { DynamicHeaderProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 
 /**
@@ -47,7 +43,6 @@ import { FirebaseApp } from '@firebase/app';
 export function createTracingProvider(
   app: FirebaseApp,
   endpointUrl: string,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
