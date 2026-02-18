@@ -15,14 +15,6 @@
  * limitations under the License.
  */
 
-import {
-  WebTracerProvider,
-  BatchSpanProcessor,
-  SimpleSpanProcessor,
-  ConsoleSpanExporter,
-  ReadableSpan,
-  SpanExporter
-} from '@opentelemetry/sdk-trace-web';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
@@ -36,10 +28,7 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
+import { TracerProvider, trace } from '@opentelemetry/api';
 
 import { FetchTransport } from '../logging/fetch-transport';
 import { DynamicHeaderProvider } from '../types';
@@ -54,7 +43,19 @@ export function createTracingProvider(
   app: FirebaseApp,
   endpointUrl: string,
   dynamicHeaderProviders: DynamicHeaderProvider[] = []
-): WebTracerProvider {
+): TracerProvider {
+  if (typeof window === 'undefined') {
+    return trace.getTracerProvider();
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const {
+    WebTracerProvider,
+    BatchSpanProcessor,
+    SimpleSpanProcessor,
+    ConsoleSpanExporter
+  } = require('@opentelemetry/sdk-trace-web');
+
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
@@ -95,24 +96,36 @@ export function createTracingProvider(
     })
   });
 
-  if (typeof window !== 'undefined') {
-    registerInstrumentations({
-      instrumentations: [
-        new DocumentLoadInstrumentation(),
-        new FetchInstrumentation(),
-        new UserInteractionInstrumentation()
-      ]
-    });
-  }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const {
+    registerInstrumentations
+  } = require('@opentelemetry/instrumentation');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const {
+    DocumentLoadInstrumentation
+  } = require('@opentelemetry/instrumentation-document-load');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const {
+    FetchInstrumentation
+  } = require('@opentelemetry/instrumentation-fetch');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const {
+    UserInteractionInstrumentation
+  } = require('@opentelemetry/instrumentation-user-interaction');
+
+  registerInstrumentations({
+    instrumentations: [
+      new DocumentLoadInstrumentation(),
+      new FetchInstrumentation(),
+      new UserInteractionInstrumentation()
+    ]
+  });
 
   return provider;
 }
 
 /** OTLP exporter that uses custom FetchTransport. */
-class OTLPTraceExporter
-  extends OTLPExporterBase<ReadableSpan[]>
-  implements SpanExporter
-{
+class OTLPTraceExporter extends OTLPExporterBase<any> {
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = []
@@ -135,7 +148,7 @@ class OTLPTraceExporter
   }
 
   override export(
-    spans: ReadableSpan[],
+    spans: any[],
     resultCallback: (result: ExportResult) => void
   ): void {
     super.export(spans, resultCallback);
