@@ -6868,7 +6868,8 @@ export function mapGet(
  * @beta
  * Creates an expression that returns a new map with the specified entries added or updated.
  *
- * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
+ * @remarks
+ * This only performs shallow updates to the map. Setting a value to `null`
  * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
  *
  * @example
@@ -6894,7 +6895,8 @@ export function mapSet(
  * @beta
  * Creates an expression that returns a new map with the specified entries added or updated.
  *
- * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
+ * @remarks
+ * This only performs shallow updates to the map. Setting a value to `null`
  * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
  *
  * @example
@@ -7014,6 +7016,10 @@ export function mapValues(
  * where each map contains a `"k"` property for the key and a `"v"` property for the value.
  * For example: `[{ k: "key1", v: "value1" }, ...]`.
  *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
  * @example
  * ```typescript
  * // Get the entries of the 'address' map field
@@ -7030,6 +7036,10 @@ export function mapEntries(mapField: string): FunctionExpression;
  * Creates an expression that returns the entries of a map as an array of maps,
  * where each map contains a `"k"` property for the key and a `"v"` property for the value.
  * For example: `[{ k: "key1", v: "value1" }, ...]`.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
  *
  * @example
  * ```typescript
