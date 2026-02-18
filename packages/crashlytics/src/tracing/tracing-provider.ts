@@ -19,7 +19,7 @@ import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
-  W3CTraceContextPropagator,
+  W3CTraceContextPropagator
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
 import {
@@ -62,15 +62,13 @@ export function createTracingProvider(
 
   const otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
 
-  const traceExporter = new OTLPTraceExporter(
-    {
-      url: otlpEndpoint,
-      headers: {
-        'X-Goog-User-Project': projectId || '',
-        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
-      }
+  const traceExporter = new OTLPTraceExporter({
+    url: otlpEndpoint,
+    headers: {
+      'X-Goog-User-Project': projectId || '',
+      ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
     }
-  );
+  });
 
   const provider = new WebTracerProvider({
     resource,
@@ -85,7 +83,6 @@ export function createTracingProvider(
       propagators: [new W3CTraceContextPropagator()]
     })
   });
-
 
   registerInstrumentations({
     instrumentations: [
