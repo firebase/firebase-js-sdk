@@ -112,13 +112,17 @@ jobs:
         echo "BASE_VERSION=$VERSION" >> $GITHUB_OUTPUT
     - name: Echo version in shell
       run: |
-        echo "Base version: ${{ steps.get-version.outputs.BASE_VERSION }}"
+        echo "Base version: ${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}"
+      env:
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
     - name: Log to release tracker
       # Sends release information to cloud functions endpoint of release tracker.
       run: |
         DATE=$(date +'%m/%d/%Y')
-        BASE_VERSION=${{ steps.get-version.outputs.BASE_VERSION }}
+        BASE_VERSION=${STEPS_GET_VERSION_OUTPUTS_BASE_VERSION}
         RELEASE_TRACKER_URL=${{ secrets.RELEASE_TRACKER_URL }}
         curl -X POST -H "Content-Type:application/json" \
         -d "{\"version\":\"$BASE_VERSION\",\"date\":\"$DATE\"}" \
         $RELEASE_TRACKER_URL/logProduction
+      env:
+        STEPS_GET_VERSION_OUTPUTS_BASE_VERSION: ${{ steps.get-version.outputs.BASE_VERSION }}
