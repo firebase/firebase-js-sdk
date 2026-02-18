@@ -29,6 +29,17 @@ import {
   ExportResult
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
+import {
+  WebTracerProvider,
+  BatchSpanProcessor,
+  SimpleSpanProcessor,
+  ConsoleSpanExporter
+} from '@opentelemetry/sdk-trace-web';
+import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
+import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 import { FetchTransport } from '../logging/fetch-transport';
 import { DynamicHeaderProvider } from '../types';
@@ -47,14 +58,6 @@ export function createTracingProvider(
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {
-    WebTracerProvider,
-    BatchSpanProcessor,
-    SimpleSpanProcessor,
-    ConsoleSpanExporter
-  } = require('@opentelemetry/sdk-trace-web');
 
   const { projectId, appId, apiKey } = app.options;
 
@@ -96,22 +99,6 @@ export function createTracingProvider(
     })
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {
-    registerInstrumentations
-  } = require('@opentelemetry/instrumentation');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {
-    DocumentLoadInstrumentation
-  } = require('@opentelemetry/instrumentation-document-load');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {
-    FetchInstrumentation
-  } = require('@opentelemetry/instrumentation-fetch');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const {
-    UserInteractionInstrumentation
-  } = require('@opentelemetry/instrumentation-user-interaction');
 
   registerInstrumentations({
     instrumentations: [
@@ -125,7 +112,7 @@ export function createTracingProvider(
 }
 
 /** OTLP exporter that uses custom FetchTransport. */
-class OTLPTraceExporter extends OTLPExporterBase<any> {
+class OTLPTraceExporter extends OTLPExporterBase<ReadableSpan[]> {
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = []
@@ -148,7 +135,7 @@ class OTLPTraceExporter extends OTLPExporterBase<any> {
   }
 
   override export(
-    spans: any[],
+    spans: ReadableSpan[],
     resultCallback: (result: ExportResult) => void
   ): void {
     super.export(spans, resultCallback);

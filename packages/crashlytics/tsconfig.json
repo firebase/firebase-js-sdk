@@ -4,5 +4,12 @@
     "outDir": "dist",
     "jsx": "react"
   },
-  "exclude": ["dist/**/*"]
+  "exclude": [
+    "dist/**/*"
+  ],
+  "include": [
+    "src/**/*",
+    "index.ts",
+    "index.node.ts"
+  ]
 }
