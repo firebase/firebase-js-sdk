@@ -144,6 +144,8 @@ export {
   countAll,
   minimum,
   maximum,
+  first,
+  last,
   cosineDistance,
   dotProduct,
   euclideanDistance,

@@ -104,6 +104,8 @@ export {
   or,
   minimum,
   maximum,
+  first,
+  last,
   cosineDistance,
   dotProduct,
   euclideanDistance,
