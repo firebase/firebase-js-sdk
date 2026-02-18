@@ -62,7 +62,7 @@ export function registerCrashlytics(): void {
           dynamicLogAttributeProviders
         );
 
-        const tracingProvider = createTracingProvider(app, tracingUrl, []);
+        const tracingProvider = createTracingProvider(app, tracingUrl);
 
         const crashlyticsService = new CrashlyticsService(
           app,
