@@ -52,9 +52,11 @@ jobs:
           echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
       - name: Yarn install
         run: |
-          echo "Installing firebase@${{ github.event.client_payload.versionOrTag }}"
-          yarn add firebase@${{ github.event.client_payload.versionOrTag }}
+          echo "Installing firebase@${GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG}"
+          yarn add firebase@${GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG}
           yarn
+        env:
+          GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG: ${{ github.event.client_payload.versionOrTag }}
       - name: Deploy "callTest" cloud function
         run: |
           pushd functions
