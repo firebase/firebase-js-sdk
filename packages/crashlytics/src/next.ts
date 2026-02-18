@@ -17,7 +17,6 @@
 
 import { getApp } from '@firebase/app';
 import { recordError, getCrashlytics } from './api';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
 
