@@ -27,7 +27,7 @@ jobs:
         - name: Yarn install
           run: yarn
         - name: Deploy prerelease
-          run: yarn release custom -p ${{ github.event.inputs.prereleaseName }} -t ${{ github.event.inputs.npmTag }}
+          run: yarn release custom -p ${GITHUB_EVENT_INPUTS_PRERELEASENAME} -t ${GITHUB_EVENT_INPUTS_NPMTAG}
           env:
             NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
             NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
@@ -65,4 +65,6 @@ jobs:
             NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
             NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
             CI: true
+            GITHUB_EVENT_INPUTS_PRERELEASENAME: ${{ github.event.inputs.prereleaseName }}
+            GITHUB_EVENT_INPUTS_NPMTAG: ${{ github.event.inputs.npmTag }}
     
