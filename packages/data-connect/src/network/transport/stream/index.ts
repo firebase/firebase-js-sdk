@@ -27,6 +27,7 @@ import {
   CancelStreamRequest,
   DataConnectStreamRequest,
   ExecuteStreamRequest,
+  ResumeStreamRequest,
   StreamRequestHeaders,
   SubscribeStreamRequest
 } from './wire';
@@ -71,11 +72,19 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _closeTimeoutFinished = false;
 
   /**
-   * Map of active execute requests to their request bodies.
+   * Map of active query execute/resume requests to their request bodies.
    */
-  private _activeExecuteRequests = new Map<
+  private _activeQueryExecuteRequests = new Map<
     ActiveRequestKey,
-    ExecuteStreamRequest<unknown>
+    ExecuteStreamRequest<unknown> | ResumeStreamRequest
+  >();
+
+  /**
+   * Map of active mutation execute requests to their request bodies.
+   */
+  private _activeMutationExecuteRequests = new Map<
+    ActiveRequestKey,
+    Array<ExecuteStreamRequest<unknown>>
   >();
 
   /**
@@ -86,12 +95,20 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     SubscribeStreamRequest<unknown>
   >();
 
+  /**
+   * Set of subscriptions that are pending cancellation.
+   */
+  private _pendingCancellations = new Set<ActiveRequestKey>();
+
   private get _hasActiveSubscribeRequests(): boolean {
     return this._activeSubscribeRequests.size === 0;
   }
 
   private get _hasActiveExecuteRequests(): boolean {
-    return this._activeExecuteRequests.size === 0;
+    return (
+      this._activeQueryExecuteRequests.size === 0 &&
+      this._activeMutationExecuteRequests.size === 0
+    );
   }
 
   /**
@@ -181,7 +198,79 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   /**
    * Forcefully close the connection and re-establish it, re-requesting all currently active requests.
    */
-  private async _forceReconnect(): Promise<void> {}
+  private async _forceReconnect(): Promise<void> {
+    // reset the connection
+    await this.closeConnection();
+    this._requestNumber = FIRST_REQUEST_ID;
+    await this.openConnection();
+
+    // re-request existing subscriptions
+    for (const [activeRequestKey, subscribeRequestBody] of this
+      ._activeSubscribeRequests) {
+      this._activeSubscribeRequests.delete(activeRequestKey);
+      const oldRequestId = subscribeRequestBody.requestId;
+      const notificationHook =
+        this._subscribeNotificationHooks.get(oldRequestId);
+      this._subscribeNotificationHooks.delete(oldRequestId);
+      if (notificationHook) {
+        // re-invoke subscription
+        this.invokeSubscribe(
+          notificationHook,
+          activeRequestKey.operationName,
+          activeRequestKey.variables
+        );
+      } else {
+        // edge case - no active notification hook somehow, although we were actively subscribed
+        console.warn(
+          `While reconnecting, found query '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active subscribe request with requestId '${oldRequestId}', but requestId did not have any tracked notification hook. Dropping subscription.`
+        );
+      }
+    }
+
+    // re-request existing mutations
+    for (const [activeRequestKey, mutationRequestSet] of this
+      ._activeMutationExecuteRequests) {
+      this._activeMutationExecuteRequests.delete(activeRequestKey);
+      for (const mutationRequestBody of mutationRequestSet) {
+        const oldRequestId = mutationRequestBody.requestId;
+        const oldPromise = this._executeRequestPromises.get(oldRequestId);
+        this._executeRequestPromises.delete(oldRequestId);
+        if (oldPromise) {
+          // re-invoke mutation, and connect new promise to old promise
+          void this.invokeMutation(
+            activeRequestKey.operationName,
+            activeRequestKey.variables
+          ).then(response => oldPromise.resolve(response));
+        } else {
+          // edge case - no active execution promise somehow, although this was an active execution request
+          console.warn(
+            `While reconnecting, found mutation '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active execution request with requestId '${oldRequestId}', but requestId did not have any tracked execution promises. Dropping execution.`
+          );
+        }
+      }
+    }
+
+    // re-request existing queries
+    for (const [activeRequestKey, queryRequestBody] of this
+      ._activeQueryExecuteRequests) {
+      this._activeQueryExecuteRequests.delete(activeRequestKey);
+      const oldRequestId = queryRequestBody.requestId;
+      const oldPromise = this._executeRequestPromises.get(oldRequestId);
+      this._executeRequestPromises.delete(oldRequestId);
+      if (oldPromise) {
+        // re-invoke query, and connect new promise to old promise
+        void this.invokeQuery(
+          activeRequestKey.operationName,
+          activeRequestKey.variables
+        ).then(response => oldPromise.resolve(response));
+      } else {
+        // edge case - no active execution promise somehow, although this was an active execution request
+        console.warn(
+          `While reconnecting, found query '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active execution request with requestId '${oldRequestId}', but requestId did not have any tracked execution promises. Dropping execution.`
+        );
+      }
+    }
+  }
 
   /**
    * Cancel closing the connection.
@@ -306,39 +395,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
   }
 
-  invokeQuery<Data, Variables>(
-    queryName: string,
-    variables?: Variables
+  private _makeNewExecutePromise<Data>(
+    requestId: string
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this._nextRequestId();
-    const activeRequestKey = { operationName: queryName, variables };
-    const activeRequest = this._activeExecuteRequests.get(activeRequestKey);
-    if (activeRequest) {
-      // there is already an active execute request for this queryName + variables
-      // do not duplicate requests. return the already pending promise
-      const activeRequestPromise = this._executeRequestPromises.get(requestId);
-      if (activeRequestPromise) {
-        return activeRequestPromise.promise as Promise<
-          DataConnectResponse<Data>
-        >;
-      } else {
-        // edge case - no active request promise, so make a new one and re-request from server
-        console.warn(
-          `invokeQuery for operation '${queryName}' with variables ${variables} found activeRequest with requestId '${requestId}', but requestId did not have any tracked executeRequestPromise. Re-requesting from server.`
-        );
-      }
-    }
-    // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
-    const body: ExecuteStreamRequest<Variables> = {
-      requestId,
-      'execute': activeRequestKey
-    };
-    this._sendExecuteMessage<Variables>(body);
-    this._activeExecuteRequests.set(activeRequestKey, body);
-
-    // track and returna a promise so that transport layer can update query layer when results come
-    // in, and de-duplicate identical requests that come in before server responds
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let resolveFn: (data: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -358,6 +417,42 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     return responsePromise;
   }
 
+  invokeQuery<Data, Variables>(
+    queryName: string,
+    variables?: Variables
+  ): Promise<DataConnectResponse<Data>> {
+    const requestId = this._nextRequestId();
+    const activeRequestKey = { operationName: queryName, variables };
+    const activeRequest =
+      this._activeQueryExecuteRequests.get(activeRequestKey);
+    if (activeRequest) {
+      // there is already an active execute request for this queryName + variables
+      // do not duplicate requests. return the already pending promise
+      const activeRequestPromise = this._executeRequestPromises.get(requestId);
+      if (activeRequestPromise) {
+        return activeRequestPromise.promise as Promise<
+          DataConnectResponse<Data>
+        >;
+      } else {
+        // edge case - no active request promise somehow, so make a new one and re-request from server
+        console.warn(
+          `invokeQuery for operation '${queryName}' with variables ${variables} found activeRequest with requestId '${requestId}', but requestId did not have any tracked executeRequestPromise. Re-requesting from server.`
+        );
+      }
+    }
+
+    // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
+    const body: ExecuteStreamRequest<Variables> = {
+      requestId,
+      'execute': activeRequestKey
+    };
+    this._sendExecuteMessage<Variables>(body);
+
+    this._activeQueryExecuteRequests.set(activeRequestKey, body);
+
+    return this._makeNewExecutePromise<Data>(requestId);
+  }
+
   invokeMutation<Data, Variables>(
     mutationName: string,
     variables?: Variables
@@ -370,25 +465,16 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       'execute': activeRequestKey
     };
     this._sendExecuteMessage<Variables>(body);
-    this._activeExecuteRequests.set(activeRequestKey, body);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
-    const responsePromise = new Promise<DataConnectResponse<Data>>(
-      (resolve, reject) => {
-        resolveFn = resolve;
-        rejectFn = reject;
-      }
+    const mutationRequestBodies =
+      this._activeMutationExecuteRequests.get(activeRequestKey) || [];
+    mutationRequestBodies.push(body);
+    this._activeMutationExecuteRequests.set(
+      activeRequestKey,
+      mutationRequestBodies
     );
-    this._executeRequestPromises.set(requestId, {
-      resolve: resolveFn!,
-      reject: rejectFn!,
-      promise: responsePromise as Promise<DataConnectResponse<unknown>>
-    });
 
-    return responsePromise;
+    return this._makeNewExecutePromise<Data>(requestId);
   }
 
   invokeSubscribe<Data, Variables>(

@@ -155,7 +155,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
    * Handles incoming WebSocket messages.
    * @param ev The MessageEvent from the WebSocket.
    */
-  private _handleWebSocketMessage(ev: MessageEvent): void {
+  private async _handleWebSocketMessage(ev: MessageEvent): Promise<void> {
     const result = this._parseWebSocketData(ev.data);
     const requestId = result.requestId;
 
@@ -165,7 +165,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
       extensions: { dataConnect: [] } // TODO(stephenarosaj): actually fill this... it should be coming from result.extensions... right?
     };
 
-    this._handleMessage(requestId, response);
+    await this._handleMessage(requestId, response);
   }
 
   /**
