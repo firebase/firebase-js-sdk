@@ -160,6 +160,7 @@
     "typescript": "5.5.4",
     "watch": "1.0.2",
     "webpack": "5.104.1",
-    "yargs": "17.7.2"
+    "yargs": "17.7.2",
+    "@opentelemetry/exporter-trace-otlp-proto": "0.203.0"
   }
 }
