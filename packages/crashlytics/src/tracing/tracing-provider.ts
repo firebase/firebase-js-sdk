@@ -32,7 +32,7 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FirebaseApp } from '@firebase/app';
 
 /**
@@ -42,7 +42,7 @@ import { FirebaseApp } from '@firebase/app';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  tracingUrl: string,
+  tracingUrl: string
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
