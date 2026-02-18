@@ -28,7 +28,6 @@ import { DynamicHeaderProvider } from '../types';
 export function createTracingProvider(
   app: FirebaseApp,
   endpointUrl: string,
-  _dynamicHeaderProviders: DynamicHeaderProvider[] = []
 ): TracerProvider {
   return trace.getTracerProvider();
 }
