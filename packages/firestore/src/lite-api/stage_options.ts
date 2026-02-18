@@ -343,3 +343,76 @@ export type SortStageOptions = StageOptions & {
    */
   orderings: Ordering[];
 };
+
+/**
+ * @beta
+ * Options defining how a WriteStage is evaluated.
+ */
+export type WriteStageOptions = StageOptions & {
+  /**
+   * @beta
+   * Whether the write should be performed in a transaction.
+   */
+  transactional?: boolean;
+};
+
+/**
+ * @beta
+ * Options defining how a DeleteStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(delete:1)}.
+ */
+export type DeleteStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Specifies what to return from the delete operation.
+   */
+  returns?: 'empty' | 'document_id';
+};
+
+/**
+ * @beta
+ * Options defining how an UpsertStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(upsert:1)}.
+ */
+export type UpsertStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Name or reference to the collection where documents will be upserted.
+   */
+  collection?: string | CollectionReference;
+  /**
+   * @beta
+   * Specifies what to return from the upsert operation.
+   */
+  returns?: 'empty' | 'document_id';
+  /**
+   * @beta
+   * Specifies the conflict resolution strategy.
+   */
+  conflictResolution?: 'overwrite' | 'merge' | 'fail' | 'keep';
+  /**
+   * @beta
+   * Expressions to apply during the upsert.
+   */
+  transformations?: Selectable[];
+};
+
+/**
+ * @beta
+ * Options defining how an InsertStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(insert:1)}.
+ */
+export type InsertStageOptions = WriteStageOptions & {
+  /**
+   * @beta
+   * Name or reference to the collection where documents will be inserted.
+   */
+  collection: string | CollectionReference;
+  /**
+   * @beta
+   * Specifies what to return from the insert operation.
+   */
+  returns?: 'empty' | 'document_id';
+  /**
+   * @beta
+   * Expressions to apply during the insert.
+   */
+  transformations?: Selectable[];
+};
