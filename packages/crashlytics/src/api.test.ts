@@ -66,6 +66,18 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
+const fakeTracingProvider = {
+  getTracer: () => ({
+    startActiveSpan: (name: string, fn: (span: any) => any) =>
+      fn({
+        end: () => { },
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      })
+  }),
+  register: () => { },
+  shutdown: () => Promise.resolve()
+} as unknown as WebTracerProvider;
+
 const fakeCrashlytics: CrashlyticsInternal = {
   app: {
     name: 'DEFAULT',
@@ -75,7 +87,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
       appId: APP_ID
     }
   },
-  loggerProvider: fakeLoggerProvider
+  loggerProvider: fakeLoggerProvider,
+  tracingProvider: fakeTracingProvider
 };
 
 describe('Top level API', () => {
@@ -146,16 +159,16 @@ describe('Top level API', () => {
       );
     });
 
-    it('works with options: endpointUrl set', () => {
+    it('works with options: loggingUrl set', () => {
       const app = getFakeApp();
-      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1' })).to.equal(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      expect(getCrashlytics(app, { loggingUrl: 'http://endpoint1' })).to.equal(
+        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
       );
       expect(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, { endpointUrl: 'http://endpoint2' }));
+        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
+      ).not.to.equal(getCrashlytics(app, { loggingUrl: 'http://endpoint2' }));
       expect(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
       ).not.to.equal(getCrashlytics(app, {}));
     });
   });
@@ -310,7 +323,8 @@ describe('Top level API', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
       const crashlytics = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider
+        fakeLoggerProvider,
+        fakeTracingProvider
       );
       crashlytics.options = {
         appVersion: '1.0.0'
