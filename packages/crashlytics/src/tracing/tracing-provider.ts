@@ -111,7 +111,8 @@ export function createTracingProvider(
 /** OTLP exporter that uses custom FetchTransport. */
 class OTLPTraceExporter
   extends OTLPExporterBase<ReadableSpan[]>
-  implements SpanExporter {
+  implements SpanExporter
+{
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = []

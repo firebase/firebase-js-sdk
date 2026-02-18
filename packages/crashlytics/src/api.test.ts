@@ -70,11 +70,11 @@ const fakeTracingProvider = {
   getTracer: () => ({
     startActiveSpan: (name: string, fn: (span: any) => any) =>
       fn({
-        end: () => { },
+        end: () => {},
         spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
       })
   }),
-  register: () => { },
+  register: () => {},
   shutdown: () => Promise.resolve()
 } as unknown as WebTracerProvider;
 
