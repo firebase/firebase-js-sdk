@@ -839,7 +839,10 @@ export function logicalMinimum(fieldName: string, second: Expression | unknown, 
 export function map(elements: Record<string, unknown>): FunctionExpression;
 
 // @beta
-export function mapEntries(map: unknown): FunctionExpression;
+export function mapEntries(mapField: string): FunctionExpression;
+
+// @beta
+export function mapEntries(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapGet(fieldName: string, subField: string): FunctionExpression;
@@ -848,7 +851,10 @@ export function mapGet(fieldName: string, subField: string): FunctionExpression;
 export function mapGet(mapExpression: Expression, subField: string): FunctionExpression;
 
 // @beta
-export function mapKeys(map: unknown): FunctionExpression;
+export function mapKeys(mapField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -869,10 +875,16 @@ export function mapRemove(mapField: string, keyExpr: Expression): FunctionExpres
 export function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
 
 // @beta
-export function mapSet(map: unknown, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+export function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
 
 // @beta
-export function mapValues(map: unknown): FunctionExpression;
+export function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapValues(mapField: string): FunctionExpression;
+
+// @beta
+export function mapValues(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function maximum(expression: Expression): AggregateFunction;

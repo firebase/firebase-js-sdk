@@ -245,20 +245,23 @@ https://github.com/firebase/firebase-js-sdk
 |  [notEqual(left, right)](./firestore_pipelines.md#notequal_b3c3382) | <b><i>(Public Preview)</i></b> Creates an expression that checks if two expressions are not equal. |
 |  [pipelineResultEqual(left, right)](./firestore_pipelines.md#pipelineresultequal_707a755) | <b><i>(Public Preview)</i></b> Test equality of two PipelineResults. |
 |  [subtract(left, right)](./firestore_pipelines.md#subtract_b3c3382) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts two expressions. |
-|  <b>function(map, ...)</b> |
-|  [mapEntries(map)](./firestore_pipelines.md#mapentries_4df9194) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
-|  [mapKeys(map)](./firestore_pipelines.md#mapkeys_4df9194) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
-|  [mapSet(map, key, value, moreKeyValues)](./firestore_pipelines.md#mapset_2adc208) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use . |
-|  [mapValues(map)](./firestore_pipelines.md#mapvalues_4df9194) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
 |  <b>function(mapExpr, ...)</b> |
 |  [mapRemove(mapExpr, key)](./firestore_pipelines.md#mapremove_23c7d51) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating an expression. |
 |  [mapRemove(mapExpr, keyExpr)](./firestore_pipelines.md#mapremove_9fbcaa3) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating an expression. |
 |  <b>function(mapExpression, ...)</b> |
+|  [mapEntries(mapExpression)](./firestore_pipelines.md#mapentries_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
 |  [mapGet(mapExpression, subField)](./firestore_pipelines.md#mapget_688c050) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) expression using the provided key. |
+|  [mapKeys(mapExpression)](./firestore_pipelines.md#mapkeys_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map.<!-- -->Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided. |
+|  [mapSet(mapExpression, key, value, moreKeyValues)](./firestore_pipelines.md#mapset_45b48ff) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use . |
+|  [mapValues(mapExpression)](./firestore_pipelines.md#mapvalues_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(mapField, ...)</b> |
+|  [mapEntries(mapField)](./firestore_pipelines.md#mapentries_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
+|  [mapKeys(mapField)](./firestore_pipelines.md#mapkeys_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
 |  [mapMerge(mapField, secondMap, otherMaps)](./firestore_pipelines.md#mapmerge_70a564b) | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(mapField, key)](./firestore_pipelines.md#mapremove_bd5726e) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map at the specified field name. |
 |  [mapRemove(mapField, keyExpr)](./firestore_pipelines.md#mapremove_8406d13) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map at the specified field name. |
+|  [mapSet(mapField, key, value, moreKeyValues)](./firestore_pipelines.md#mapset_baadc2a) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated.<!-- -->Note that <code>mapSet</code> only performs shallow updates to the map. Setting a value to <code>null</code> will retain the key with a <code>null</code> value. To remove a key entirely, use . |
+|  [mapValues(mapField)](./firestore_pipelines.md#mapvalues_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
 |  [field(name)](./firestore_pipelines.md#field_1eaaff4) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
 |  <b>function(options, ...)</b> |
@@ -7498,153 +7501,6 @@ subtract(field("price"), field("discount"));
 
 ```
 
-## function(map, ...)
-
-### mapEntries(map) {:#mapentries_4df9194}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
-
-<b>Signature:</b>
-
-```typescript
-export declare function mapEntries(map: unknown): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  map | unknown | The map to get the entries of. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the entries of the map.
-
-### Example
-
-
-```typescript
-// Get the entries of the 'address' map field
-mapEntries("address");
-
-```
-
-### mapKeys(map) {:#mapkeys_4df9194}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns the keys of a map.
-
-Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
-
-<b>Signature:</b>
-
-```typescript
-export declare function mapKeys(map: unknown): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  map | unknown | The map to get the keys of. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the keys of the map.
-
-### Example
-
-
-```typescript
-// Get the keys of the 'address' map field
-mapKeys("address");
-
-```
-
-### mapSet(map, key, value, moreKeyValues) {:#mapset_2adc208}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns a new map with the specified entries added or updated.
-
-Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use .
-
-<b>Signature:</b>
-
-```typescript
-export declare function mapSet(map: unknown, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  map | unknown | The map to set entries in. |
-|  key | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
-|  value | unknown | The value to set. |
-|  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the map with the entries set.
-
-### Example
-
-
-```typescript
-// Set the 'city' to "San Francisco" in the 'address' map field
-mapSet("address", "city", "San Francisco");
-
-```
-
-### mapValues(map) {:#mapvalues_4df9194}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns the values of a map.
-
-Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
-
-<b>Signature:</b>
-
-```typescript
-export declare function mapValues(map: unknown): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  map | unknown | The map to get the values of. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the values of the map.
-
-### Example
-
-
-```typescript
-// Get the values of the 'address' map field
-mapValues("address");
-
-```
-
 ## function(mapExpr, ...)
 
 ### mapRemove(mapExpr, key) {:#mapremove_23c7d51}
@@ -7717,6 +7573,40 @@ mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
 
 ## function(mapExpression, ...)
 
+### mapEntries(mapExpression) {:#mapentries_9cf124c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapEntries(mapExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map to get the entries of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the entries of the map.
+
+### Example
+
+
+```typescript
+// Get the entries of the map expression
+mapEntries(map({"city": "San Francisco"}));
+
+```
+
 ### mapGet(mapExpression, subField) {:#mapget_688c050}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -7752,7 +7642,188 @@ mapGet(field("address"), "city");
 
 ```
 
+### mapKeys(mapExpression) {:#mapkeys_9cf124c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the keys of a map.
+
+Note: While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapKeys(mapExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map to get the keys of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the keys of the map.
+
+### Example
+
+
+```typescript
+// Get the keys of the map expression
+mapKeys(map({"city": "San Francisco"}));
+
+```
+
+### mapSet(mapExpression, key, value, moreKeyValues) {:#mapset_45b48ff}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns a new map with the specified entries added or updated.
+
+Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use .
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map. |
+|  key | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
+|  value | unknown | The value to set. |
+|  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the map with the entries set.
+
+### Example
+
+
+```typescript
+// Set the 'city' to "San Francisco"
+mapSet(map({"state": "California"}), "city", "San Francisco");
+
+```
+
+### mapValues(mapExpression) {:#mapvalues_9cf124c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the values of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapValues(mapExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) |  |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the values of the map.
+
+### Example
+
+
+```typescript
+// Get the values of the map expression
+mapValues(map({"city": "San Francisco"}));
+
+```
+
 ## function(mapField, ...)
+
+### mapEntries(mapField) {:#mapentries_83ad836}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapEntries(mapField: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to get the entries of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the entries of the map.
+
+### Example
+
+
+```typescript
+// Get the entries of the 'address' map field
+mapEntries("address");
+
+```
+
+### mapKeys(mapField) {:#mapkeys_83ad836}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the keys of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapKeys(mapField: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to get the keys of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the keys of the map.
+
+### Example
+
+
+```typescript
+// Get the keys of the 'address' map field
+mapKeys("address");
+
+```
 
 ### mapMerge(mapField, secondMap, otherMaps) {:#mapmerge_70a564b}
 
@@ -7852,6 +7923,81 @@ export declare function mapRemove(mapField: string, keyExpr: Expression): Functi
 ```
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', constant('city'));
+
+```
+
+### mapSet(mapField, key, value, moreKeyValues) {:#mapset_baadc2a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns a new map with the specified entries added or updated.
+
+Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use .
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to set entries in. |
+|  key | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
+|  value | unknown | The value to set. |
+|  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the map with the entries set.
+
+### Example
+
+
+```typescript
+// Set the 'city' to 'San Francisco' in the 'address' map field
+mapSet("address", "city", "San Francisco");
+
+```
+
+### mapValues(mapField) {:#mapvalues_83ad836}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the values of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapValues(mapField: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to get the values of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the values of the map.
+
+### Example
+
+
+```typescript
+// Get the values of the 'address' map field
+mapValues("address");
 
 ```
 

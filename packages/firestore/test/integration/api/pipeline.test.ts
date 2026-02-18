@@ -2851,8 +2851,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .replaceWith(map({}))
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
           .addFields(
+            mapSet('existingField', 'bar', 2).as('modifiedField'),
             mapSet(map({}), 'a', 1).as('simple'),
             mapSet(map({ a: 1 }), 'b', 2).as('add'),
             mapSet(map({ a: 1 }), 'a', 2).as('overwrite'),
@@ -2869,6 +2870,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
       );
       expectResults(snapshot, {
+        existingField: { foo: 1 },
+        modifiedField: { foo: 1, bar: 2 },
         simple: { a: 1 },
         add: { a: 1, b: 2 },
         overwrite: { a: 2 },
@@ -2889,18 +2892,17 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .replaceWith(map({ a: 1, b: 2, c: 3 }))
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
           .addFields(
+            mapKeys('existingField').as('existingKeys'),
             mapKeys(map({ a: 1, b: 2 })).as('keys'),
             mapKeys(map({})).as('empty_keys'),
             mapKeys(map({ a: { nested: true } })).as('nested_keys')
           )
       );
 
-      // Map iteration order is generally insertion order but not strictly guaranteed by JSON.
-      // However, our backend implementation (LinkedHashMap) preserves insertion order.
-      // We'll check for containment to be safe if order flakes, but expecting order for now.
       const res = snapshot.results[0].data();
+      expect(res.existingKeys).to.have.members(['foo']);
       expect(res.keys).to.have.members(['a', 'b']);
       expect(res.empty_keys).to.deep.equal([]);
       expect(res.nested_keys).to.have.members(['a']);
@@ -2912,14 +2914,16 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .replaceWith(map({ a: 1, b: 2 }))
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
           .addFields(
+            mapValues('existingField').as('existingValues'),
             mapValues(map({ a: 1, b: 2 })).as('values'),
             mapValues(map({})).as('empty_values'),
             mapValues(map({ a: { nested: true } })).as('nested_values')
           )
       );
       const res = snapshot.results[0].data();
+      expect(res.existingValues).to.have.members([1]);
       expect(res.values).to.have.members([1, 2]);
       expect(res.empty_values).to.deep.equal([]);
       expect(res.nested_values).to.deep.include.members([{ nested: true }]);
@@ -2931,14 +2935,16 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection(randomCol.path)
           .limit(1)
-          .replaceWith(map({ a: 1, b: 2 }))
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
           .addFields(
+            mapEntries('existingField').as('existingEntries'),
             mapEntries(map({ a: 1, b: 2 })).as('entries'),
             mapEntries(map({})).as('empty_entries'),
             mapEntries(map({ a: { nested: true } })).as('nested_entries')
           )
       );
       const res = snapshot.results[0].data();
+      expect(res.existingEntries).to.deep.include.members([{ k: 'foo', v: 1 }]);
       expect(res.entries).to.deep.include.members([
         { k: 'a', v: 1 },
         { k: 'b', v: 2 }
