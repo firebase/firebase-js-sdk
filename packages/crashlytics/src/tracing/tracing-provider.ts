@@ -42,7 +42,7 @@ import { FirebaseApp } from '@firebase/app';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  endpointUrl: string,
+  tracingUrl: string,
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -56,11 +56,11 @@ export function createTracingProvider(
     'cloud.provider': 'gcp'
   });
 
-  if (endpointUrl.endsWith('/')) {
-    endpointUrl = endpointUrl.slice(0, -1);
+  if (tracingUrl.endsWith('/')) {
+    tracingUrl = tracingUrl.slice(0, -1);
   }
 
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  const otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
 
   const traceExporter = new OTLPTraceExporter(
     {
