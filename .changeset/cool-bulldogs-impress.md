@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Added automatic function calling capability when using ChatSession.
+Added automatic function calling capability when using `ChatSession`.
