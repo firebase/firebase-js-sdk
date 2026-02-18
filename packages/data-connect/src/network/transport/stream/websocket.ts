@@ -67,6 +67,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
     );
   }
 
+  // TODO(stephenarosaj): idea - what if ensure connection was implementation-independent, using _connectionAttempt and such, and open() was actually the implementation-specific stuff...?
   /**
    * Ensures that that there is an open connection. If there is none, it initiates a new one.
    * If a connection attempt is already in progress, it returns the existing promise.
@@ -89,7 +90,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
       };
       ws.onerror = err => {
         this._connectionAttempt = null;
-        reject(err);
+        reject(`Could not open websocket connection: ${JSON.stringify(err)}`);
       };
       ws.onmessage = ev => this._handleWebSocketMessage(ev);
       ws.onclose = ev => this._handleDisconnect(ev);
@@ -107,12 +108,14 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
     });
   }
 
-  closeConnection(): void {
-    if (this._connection) {
-      this._connection.close();
-      this._connection = undefined;
-      this._connectionAttempt = null;
+  closeConnection(): Promise<void> {
+    if (!this._connection) {
+      return Promise.resolve();
     }
+    this._connection.close();
+    this._connection = undefined;
+    this._connectionAttempt = null;
+    return Promise.resolve();
   }
 
   /**
@@ -131,25 +134,16 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
     // TODO(stephenarosaj): use ev.code and ev.wasClean to figure out what kind of disconnect this was and what to do next
   }
 
-  /**
-   * Forces a reconnection by closing the existing connection and opening a new one.
-   */
-  // TODO(stephenarosaj): add algorithmic backoff, etc.
-  private _reconnect(): Promise<void> {
-    this.closeConnection();
-    return this.openConnection();
-  }
-
   sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): void {
     this._ensureConnection()
       .then(() => {
-        // eslint-disable-next-line no-console
-        console.log('\nsendMessage:\n', requestBody); // DEBUGGING
         this._connection!.send(JSON.stringify(requestBody));
       })
       .catch(err => {
+        // eslint-disable-next-line no-console
+        console.log('\nCONNECTION:\n', this._connection);
         throw new DataConnectError(
           Code.OTHER,
           `Failed to send message: ${JSON.stringify(err)}`

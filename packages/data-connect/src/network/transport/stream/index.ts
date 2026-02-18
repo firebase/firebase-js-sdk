@@ -58,20 +58,22 @@ const FIRST_REQUEST_ID = 1;
  * @internal
  */
 export abstract class DataConnectStreamTransportClass extends DataConnectTransportClass {
+  /** current auth uid. used to detect if a different user logs in */
+  private _authUid: string | null | undefined;
   /** should the next request include auth token? */
-  protected _shouldIncludeAuth = true;
+  private _shouldIncludeAuth = true;
 
   /** is this connection pending close? */
-  protected _pendingClose = false;
+  private _pendingClose = false;
   /** current connection close timeout from setTimeout(), if any */
-  protected _closeTimeout: NodeJS.Timeout | null = null;
+  private _closeTimeout: NodeJS.Timeout | null = null;
   /** has the close timeout finished? */
-  protected _closeTimeoutFinished = false;
+  private _closeTimeoutFinished = false;
 
   /**
    * Map of active execute requests to their request bodies.
    */
-  protected _activeExecuteRequests = new Map<
+  private _activeExecuteRequests = new Map<
     ActiveRequestKey,
     ExecuteStreamRequest<unknown>
   >();
@@ -79,23 +81,23 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   /**
    * Map of active subscribe requests to their request bodies.
    */
-  protected _activeSubscribeRequests = new Map<
+  private _activeSubscribeRequests = new Map<
     ActiveRequestKey,
     SubscribeStreamRequest<unknown>
   >();
 
-  protected get _hasActiveSubscribeRequests(): boolean {
+  private get _hasActiveSubscribeRequests(): boolean {
     return this._activeSubscribeRequests.size === 0;
   }
 
-  protected get _hasActiveExecuteRequests(): boolean {
+  private get _hasActiveExecuteRequests(): boolean {
     return this._activeExecuteRequests.size === 0;
   }
 
   /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
    */
-  protected _executeRequestPromises = new Map<
+  private _executeRequestPromises = new Map<
     string,
     {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -126,14 +128,23 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   /** Monotonically increasing sequence number for request ids. starts at 1 */
   private _requestNumber = FIRST_REQUEST_ID;
 
+  /**
+   * Open a physical connection to the server.
+   * @returns a promise which resolves when the connection is ready, or rejects if it fails to open.
+   */
   protected abstract openConnection(): Promise<void>;
 
-  protected abstract closeConnection(): void;
+  /**
+   * Close the physical connection with the server. Handles no cleanup - simply closes the
+   * implementation-specific connection.
+   * @returns a promise which resolves when the connection is ready, or rejects if it fails to open.
+   */
+  protected abstract closeConnection(): Promise<void>;
 
   /**
    * Begin closing the connection. Waits for and cleans up all active requests, and waits for 1 minute.
    */
-  protected _prepareToClose(): void {
+  private _prepareToClose(): void {
     if (this._pendingClose) {
       return;
     }
@@ -147,9 +158,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     });
 
     const waitTime = 1000 * 60; // 1 minute
-    this._closeTimeout = setTimeout(() => {
+    this._closeTimeout = setTimeout(async () => {
       this._closeTimeoutFinished = true;
-      this._attemptClose();
+      await this._attemptClose();
     }, waitTime);
   }
 
@@ -157,20 +168,25 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
    * Attempt to close the connection. Will only close if there are no active requests preventing it
    * from doing so.
    */
-  protected _attemptClose(): void {
+  private async _attemptClose(): Promise<void> {
     if (this._hasActiveSubscribeRequests || this._hasActiveExecuteRequests) {
       // any subscriptions will prepare to close once they are cancelled
       // if we are pending close, the active execute requests will re-attempt once they resolve
       // TODO(stephenarosaj): if we are in fact pending close, should we set a fallback, like a 3 minute time so that if the execute requests don't resolve then we will close without waiting forever for a response?
       return;
     }
-    this.closeConnection();
+    await this.closeConnection();
   }
+
+  /**
+   * Forcefully close the connection and re-establish it, re-requesting all currently active requests.
+   */
+  private async _forceReconnect(): Promise<void> {}
 
   /**
    * Cancel closing the connection.
    */
-  protected _cancelClose(): void {
+  private _cancelClose(): void {
     if (this._closeTimeout) {
       clearTimeout(this._closeTimeout);
     }
@@ -181,7 +197,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   /**
    * Generated and returns the next request ID.
    */
-  protected _nextRequestId(): string {
+  private _nextRequestId(): string {
     return (this._requestNumber++).toString();
   }
 
@@ -189,7 +205,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
    * Attaches headers and adds fields required for initial request
    * @returns the requestBody, with attached headers or initial request fields
    */
-  protected _prepareMessage<
+  private _prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
   >(requestBody: StreamBody): StreamBody {
@@ -203,21 +219,24 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       headers['x-firebase-gmpid'] = this.appId;
     }
 
-    if (this._shouldIncludeAuth) {
-      // headers.authToken = '...'; // TODO
+    if (this._shouldIncludeAuth && this._lastToken) {
+      headers.authToken = this._lastToken; // TODO(stephenarosaj)
     }
-    if (requestBody.requestId === FIRST_REQUEST_ID.toString()) {
-      // headers.appCheckToken = '...'; // TODO
+    if (
+      requestBody.requestId === FIRST_REQUEST_ID.toString() &&
+      this._appCheckToken
+    ) {
+      headers.appCheckToken = this._appCheckToken;
       requestBody.name = this.connectorResourcePath;
     }
 
-    requestBody.headers = headers;
+    // requestBody.headers = headers; // TODO(stephenarosaj): add this in when the backend is ready
     return requestBody;
   }
 
   /**
-   * Queues a message to be sent over the stream.
-   * Automatically ensures the connection is open before sending.
+   * Connection-specific implementation that queues a message to be sent over the stream.
+   * Must ensure the connection is open and ready before sending.
    * @param requestBody The body of the message to be sent.
    * @throws DataConnectError if sending fails.
    */
@@ -226,56 +245,46 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   ): void;
 
   /**
-   * Attaches headers before sending message.
-   * @param requestBody The body of the message to be sent.
-   * @throws DataConnectError if sending fails.
-   */
-  protected _sendMessageWithHeaders<Variables>(
-    requestBody: DataConnectStreamRequest<Variables>
-  ): void {
-    const body = this._prepareMessage(requestBody);
-    // eslint-disable-next-line no-console
-    console.log('SENDING MESSAGE:', requestBody); // DEBUGGING
-    this.sendMessage(body);
-  }
-
-  /**
    * Internal helper to queue a message to execute a one-off query or mutation.
-   * @param body The execution payload.
+   * @param executeRequestBody The execution payload.
    */
-  protected _sendExecuteMessage<Variables>(
-    body: ExecuteStreamRequest<Variables>
+  private _sendExecuteMessage<Variables>(
+    executeRequestBody: ExecuteStreamRequest<Variables>
   ): void {
-    this._sendMessageWithHeaders(body);
+    const requestBody = this._prepareMessage(executeRequestBody);
+    this.sendMessage(requestBody);
   }
 
   /**
    * Internal helper to queue a message to subscribe to a query.
    * @param subscribeRequestBody The subscription payload.
    */
-  protected _sendSubscribeMessage<Variables>(
+  private _sendSubscribeMessage<Variables>(
     subscribeRequestBody: SubscribeStreamRequest<Variables>
   ): void {
-    this._sendMessageWithHeaders(subscribeRequestBody);
+    const requestBody = this._prepareMessage(subscribeRequestBody);
+    this.sendMessage(requestBody);
   }
 
   /**
    * Internal helper to queue a message to unsubscribe to a query.
-   * @param cancelStreamRequest The cancel/unsubscription payload.
+   * @param cancelRequestBody The cancel/unsubscription payload.
    */
-  protected _sendCancelMessage(cancelStreamRequest: CancelStreamRequest): void {
-    this._sendMessageWithHeaders(cancelStreamRequest);
+  private _sendCancelMessage(cancelRequestBody: CancelStreamRequest): void {
+    const requestBody = this._prepareMessage(cancelRequestBody);
+    this.sendMessage(requestBody);
   }
 
   /**
-   * Handle a response message from the server.
+   * Handle a response message from the server. Called by the connection-specific implementation after
+   * it's transformed a message from the server into a DataConnectResponse.
    * @param requestId the requestId associated with this response.
    * @param response the response from the server.
    */
-  protected _handleMessage<Data>(
+  protected async _handleMessage<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
-  ): void {
+  ): Promise<void> {
     if (this._executeRequestPromises.has(requestId)) {
       // TODO(stephenarosaj): when do we use reject? if there was an ERROR error, like something really went wrong with the stream? in that case, it probably won't get called when handling a message, but rather in catach statements of stream-related functions, right...?
       const { resolve } = this._executeRequestPromises.get(requestId)!;
@@ -283,7 +292,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       this._executeRequestPromises.delete(requestId);
       // if we are waiting to close the stream, see if resolving this request will finally let us do so
       if (this._pendingClose && this._closeTimeoutFinished) {
-        this._attemptClose();
+        await this._attemptClose();
       }
     } else if (this._subscribeNotificationHooks.has(requestId)) {
       const notifyQueryManager =
@@ -321,7 +330,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
     // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
-      'name': this.connectorResourcePath,
       requestId,
       'execute': activeRequestKey
     };
@@ -358,7 +366,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     const activeRequestKey = { operationName: mutationName, variables };
     // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
     const body: ExecuteStreamRequest<Variables> = {
-      'name': this.connectorResourcePath,
       requestId,
       'execute': activeRequestKey
     };
@@ -448,7 +455,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
 
     const body: CancelStreamRequest = {
-      name: this.connectorResourcePath,
       requestId,
       cancel: {}
     };
@@ -462,11 +468,24 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
   }
 
-  // TODO(stephenarosaj): type better
-  // TODO(stephenarosaj): tear down stream, open new one + reauthenticate
-  // TODO(stephenarosaj): what about app check token?
-  onAuthTokenChanged(newToken: string | null): void {
+  /**
+   * Handle auth token change event - send new token with next request, or if this new token is for
+   * a different user, tear down and reconnect the stream.
+   */
+  async onAuthTokenChanged(newToken: string | null): Promise<void> {
+    const oldAuthToken = this._accessToken;
     this._accessToken = newToken;
-    throw new Error('Method not implemented.');
+
+    const oldAuthUid = this._authUid;
+    const newAuthUid = this.authProvider?.getAuth().getUid();
+    this._authUid = newAuthUid;
+
+    if (
+      (oldAuthToken && newToken === null) ||
+      (oldAuthUid && newAuthUid !== oldAuthUid)
+    ) {
+      // (user logged out) || (old user was logged in previously, now new user is logged in)
+      await this._forceReconnect();
+    }
   }
 }

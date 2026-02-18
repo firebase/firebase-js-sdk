@@ -231,7 +231,7 @@ export abstract class DataConnectTransportClass
     this._connectorName = connector;
     this.authProvider?.addTokenChangeListener(token => {
       logDebug(`New Token Available: ${token}`);
-      this._accessToken = token;
+      this.onAuthTokenChanged(token);
     });
     this.appCheckProvider?.addTokenChangeListener(result => {
       const { token } = result;

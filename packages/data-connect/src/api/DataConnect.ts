@@ -46,7 +46,7 @@ import {
   DataConnectTransport,
   TransportClass
 } from '../network';
-// import { RESTTransport } from '../network/transport/rest';
+// import { RESTTransport } from '../network/transport/rest'; // TODO(stephenarosaj): need some sort of transport manager
 import { WebsocketTransport } from '../network/transport/stream/websocket';
 import { PROD_HOST } from '../util/url';
 
