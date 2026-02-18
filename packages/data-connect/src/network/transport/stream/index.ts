@@ -27,6 +27,7 @@ import {
   CancelStreamRequest,
   DataConnectStreamRequest,
   ExecuteStreamRequest,
+  queryRequestIsResume,
   ResumeStreamRequest,
   StreamRequestHeaders,
   SubscribeStreamRequest
@@ -72,7 +73,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _closeTimeoutFinished = false;
 
   /**
-   * Map of active query execute/resume requests to their request bodies.
+   * Map of query/variables to their active execute/resume request bodies.
    */
   private _activeQueryExecuteRequests = new Map<
     ActiveRequestKey,
@@ -80,7 +81,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   >();
 
   /**
-   * Map of active mutation execute requests to their request bodies.
+   * Map of mutation/variables to their their active execute request bodies.
    */
   private _activeMutationExecuteRequests = new Map<
     ActiveRequestKey,
@@ -88,7 +89,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   >();
 
   /**
-   * Map of active subscribe requests to their request bodies.
+   * Map of query/variables to their their active subscribe request bodies.
    */
   private _activeSubscribeRequests = new Map<
     ActiveRequestKey,
@@ -96,9 +97,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   >();
 
   /**
-   * Set of subscriptions that are pending cancellation.
+   * Map of RequestIds for active subscriptions that are pending cancellation to their query/variables.
    */
-  private _pendingCancellations = new Set<ActiveRequestKey>();
+  private _pendingCancellations = new Map<string, ActiveRequestKey>();
 
   private get _hasActiveSubscribeRequests(): boolean {
     return this._activeSubscribeRequests.size === 0;
@@ -365,6 +366,15 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   }
 
   /**
+   * Internal helper to queue a message to resume a query.
+   * @param resumeRequestBody The resume payload.
+   */
+  private _sendResumeMessage(resumeRequestBody: ResumeStreamRequest): void {
+    const requestBody = this._prepareMessage(resumeRequestBody);
+    this.sendMessage(requestBody);
+  }
+
+  /**
    * Handle a response message from the server. Called by the connection-specific implementation after
    * it's transformed a message from the server into a DataConnectResponse.
    * @param requestId the requestId associated with this response.
@@ -379,6 +389,17 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       const { resolve } = this._executeRequestPromises.get(requestId)!;
       resolve(response);
       this._executeRequestPromises.delete(requestId);
+
+      // if we are waiting for this request to resolve to cancel a subscription, now we can do so
+      const activeRequestKey = this._pendingCancellations.get(requestId);
+      if (activeRequestKey) {
+        this._pendingCancellations.delete(requestId);
+        this.invokeUnsubscribe(
+          activeRequestKey.operationName,
+          activeRequestKey.variables
+        );
+      }
+
       // if we are waiting to close the stream, see if resolving this request will finally let us do so
       if (this._pendingClose && this._closeTimeoutFinished) {
         await this._attemptClose();
@@ -423,9 +444,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   ): Promise<DataConnectResponse<Data>> {
     const requestId = this._nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
-    const activeRequest =
+    const activeExecuteRequest =
       this._activeQueryExecuteRequests.get(activeRequestKey);
-    if (activeRequest) {
+    if (activeExecuteRequest) {
       // there is already an active execute request for this queryName + variables
       // do not duplicate requests. return the already pending promise
       const activeRequestPromise = this._executeRequestPromises.get(requestId);
@@ -441,12 +462,26 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       }
     }
 
-    // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
-    const body: ExecuteStreamRequest<Variables> = {
-      requestId,
-      'execute': activeRequestKey
-    };
-    this._sendExecuteMessage<Variables>(body);
+    let body: ExecuteStreamRequest<Variables> | ResumeStreamRequest;
+    const activeSubscribeRequest =
+      this._activeSubscribeRequests.get(activeRequestKey);
+    if (activeSubscribeRequest) {
+      // there is already an active subscribe request for this queryName + variables
+      // do not use an execute request. use a resume request
+      body = {
+        requestId,
+        'resume': {}
+      };
+      this._sendResumeMessage(body);
+    } else {
+      // there is no active subscribe request - use an execut request
+      // TODO(stephenarosaj): "To save bandwidth, the Data Connect SDK should include data_etag of cached data in subsequent requests, so the backend can avoid sending redundant data already in SDK cache.
+      body = {
+        requestId,
+        'execute': activeRequestKey
+      };
+      this._sendExecuteMessage<Variables>(body);
+    }
 
     this._activeQueryExecuteRequests.set(activeRequestKey, body);
 
@@ -523,7 +558,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     const subscribeRequest =
       this._activeSubscribeRequests.get(activeRequestKey);
     if (!subscribeRequest) {
-      // TODO(stephenarosaj): should we do anything else in this case? - EDGE CASE #1
       console.warn(
         `Requested unsubscription of query which is not currently being subscribed to: '${queryName}' with variables ${variables}`
       );
@@ -531,12 +565,20 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
     const requestId = subscribeRequest.requestId;
 
+    const executeRequest =
+      this._activeQueryExecuteRequests.get(activeRequestKey);
+    if (executeRequest && queryRequestIsResume(executeRequest)) {
+      // there is an existing resume request for the active subscription - we must wait for it to resolve
+      this._pendingCancellations.set(requestId, activeRequestKey);
+      return;
+    }
+
     const notifyQueryManager = this._subscribeNotificationHooks.get(requestId);
     if (!notifyQueryManager) {
       // edge case - no notification hook, so no way for transport layer to update query layer of
       // new data from server. we don't want updates anymore anyways, so just log and continue.
       console.warn(
-        `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked notification hook`
+        `Requested unsubscription found valid requestId '${requestId}', but requestId did not have any tracked notification hook. Cancelling anyways.`
       );
     }
 

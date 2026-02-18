@@ -134,3 +134,15 @@ export type DataConnectStreamRequest<Variables> =
   | SubscribeStreamRequest<Variables>
   | ResumeStreamRequest
   | CancelStreamRequest;
+
+  /**
+   * Determines whether the provided request to execute a query is an execution request or a resume
+   * request
+   * @returns true if the requestBody is a resume request
+   * @internal
+   */
+export function queryRequestIsResume<Variables>(
+  requestBody: ExecuteStreamRequest<Variables> | ResumeStreamRequest
+): requestBody is ResumeStreamRequest {
+  return 'resume' in requestBody;
+}
