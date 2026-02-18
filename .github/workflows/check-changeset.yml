@@ -52,10 +52,14 @@ jobs:
     - name: Print changeset checker output
       run: |
         cat << 'eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE'
-        ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        ${STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE}
         eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE
+      env:
+        STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE: ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
     - name: Print blocking failure status
-      run: echo "${{steps.check-changeset.outputs.BLOCKING_FAILURE}}"
+      run: echo "${STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE}"
+      env:
+        STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
     - name: Find Comment
       # This commit represents v3.1.0
       uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
