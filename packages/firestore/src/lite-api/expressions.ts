@@ -1389,7 +1389,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @remarks
    * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
-   * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`
+   * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
    *
    * @example
    * ```typescript

@@ -2511,7 +2511,7 @@ map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
-Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`
+Note that `mapSet` only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`<!-- -->.
 
 <b>Signature:</b>
 
