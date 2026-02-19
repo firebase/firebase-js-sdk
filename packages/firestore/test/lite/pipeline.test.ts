@@ -102,6 +102,7 @@ import {
   first,
   last,
   arrayAgg,
+  arrayAggDistinct,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -984,6 +985,20 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
         expectResults(snapshot, {
           allRatings: [4.5, 4.3, 4.0, 4.2, 4.7, 4.2, 4.6, 4.3, 4.2, 4.1]
+        });
+      });
+
+      it('returns arrayAggDistinct accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(arrayAggDistinct('rating').as('allDistinctRatings'))
+        );
+        const data = snapshot.results[0].data();
+        data['allDistinctRatings'].sort((a: number, b: number) => a - b);
+        expect(data).to.deep.equal({
+          allDistinctRatings: [4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7]
         });
       });
 

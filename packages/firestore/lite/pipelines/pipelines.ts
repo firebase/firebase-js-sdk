@@ -147,6 +147,7 @@ export {
   first,
   last,
   arrayAgg,
+  arrayAggDistinct,
   cosineDistance,
   dotProduct,
   euclideanDistance,

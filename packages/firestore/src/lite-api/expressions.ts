@@ -1516,6 +1516,23 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an aggregation that collects all distinct values of an expression across multiple stage
+   * inputs into an array.
+   *
+   * @example
+   * ```typescript
+   * // Collect all distinct tags from books into an array
+   * field("tags").arrayAggDistinct().as("allDistinctTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg_distinct' aggregation.
+   */
+  arrayAggDistinct(): AggregateFunction {
+    return AggregateFunction._create('array_agg_distinct', [this], 'arrayAggDistinct');
+  }
+
+  /**
+   * @beta
    * Creates an aggregation that counts the number of distinct values of the expression or field.
    *
    * @example
@@ -7121,6 +7138,41 @@ export function arrayAgg(expression: Expression): AggregateFunction;
 export function arrayAgg(fieldName: string): AggregateFunction;
 export function arrayAgg(value: Expression | string): AggregateFunction {
   return fieldOrExpression(value).arrayAgg();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that collects all distinct values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct(field("tags")).as("allDistinctTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that collects all distinct values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct("tags").as("allDistinctTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+export function arrayAggDistinct(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).arrayAggDistinct();
 }
 
 /**
