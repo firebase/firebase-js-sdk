@@ -118,6 +118,12 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   return aiInstance;
 }
 
+const hybridParamKeys: Array<keyof HybridParams> = [
+  'mode',
+  'onDeviceParams',
+  'inCloudParams'
+];
+
 /**
  * Returns a {@link GenerativeModel} class with methods for inference
  * and other functionality.
@@ -133,12 +139,7 @@ export function getGenerativeModel(
   const hybridParams = modelParams as HybridParams;
   let inCloudParams: ModelParams;
   if (hybridParams.mode) {
-    const hybridParamKeys: Array<keyof HybridParams> = [
-      'mode',
-      'onDeviceParams',
-      'inCloudParams'
-    ];
-    for (const param in modelParams) {
+    for (const param of Object.keys(modelParams)) {
       if (!hybridParamKeys.includes(param as keyof HybridParams)) {
         logger.warn(
           `When a hybrid inference mode is specified (mode is currently set` +

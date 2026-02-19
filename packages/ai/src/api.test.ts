@@ -167,6 +167,7 @@ describe('Top level API', () => {
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
     expect(warnStub).to.be.calledWithMatch(InferenceMode.PREFER_ON_DEVICE);
     expect(warnStub).to.be.calledWithMatch('generationConfig');
+    warnStub.restore();
   });
   it('getImagenModel throws if no model is provided', () => {
     try {
