@@ -21,7 +21,6 @@ import { ResultTree } from './ResultTree';
 export interface InternalCacheProvider {
   getEntityData(globalId: string): Promise<EntityDataObject>;
   updateEntityData(entityData: EntityDataObject): Promise<void>;
-  createGlobalId(): Promise<string>;
   getResultTree(queryId: string): Promise<ResultTree | undefined>;
   setResultTree(queryId: string, resultTree: ResultTree): Promise<void>;
   close(): void;

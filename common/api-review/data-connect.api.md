@@ -129,16 +129,6 @@ export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings
 }
 
 // @public (undocumented)
-export interface DataConnectResponse<T> {
-    // (undocumented)
-    data: T;
-    // (undocumented)
-    errors: Error[];
-    // (undocumented)
-    extensions: Extensions;
-}
-
-// @public (undocumented)
 export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
     // (undocumented)
     ref: OperationRef<Data, Variables>;
@@ -330,7 +320,7 @@ export const SOURCE_SERVER = "SERVER";
 
 // @public (undocumented)
 export const StorageType: {
-    MEMORY: string;
+    readonly MEMORY: "MEMORY";
 };
 
 // @public (undocumented)

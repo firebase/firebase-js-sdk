@@ -30,9 +30,6 @@ export class InMemoryCacheProvider implements InternalCacheProvider {
   async getResultTree(queryId: string): Promise<ResultTree | undefined> {
     return this.resultTrees.get(queryId);
   }
-  async createGlobalId(): Promise<string> {
-    return crypto.randomUUID();
-  }
   async updateEntityData(entityData: EntityDataObject): Promise<void> {
     this.edos.set(entityData.globalID, entityData);
   }

@@ -33,7 +33,7 @@ export class ResultTree {
   }
   constructor(
     private rootStub: EntityNode,
-    private maxAge: number = 30,
+    private maxAge: number = 0, // TODO(mtewani): Check if this is retrieved properly from the server.
     public readonly cachedAt: Date,
     private _lastAccessed: Date
   ) {}

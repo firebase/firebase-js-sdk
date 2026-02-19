@@ -413,7 +413,7 @@ export function terminate(dataConnect: DataConnect): Promise<void> {
 }
 export const StorageType = {
   MEMORY: 'MEMORY'
-};
+} as const;
 
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 

@@ -97,12 +97,8 @@ export class EntityNode {
               }
             }
             if (scalarArray.length > 0 && objArray.length > 0) {
-              throw new DataConnectError(
-                Code.INVALID_ARGUMENT,
-                'Sparse array detected.'
-              );
-            }
-            if (scalarArray.length > 0) {
+              this.scalars[key] = values[key];
+            } else if (scalarArray.length > 0) {
               if (this.entityData) {
                 const impactedRefs = this.entityData.updateServerValue(
                   key,
