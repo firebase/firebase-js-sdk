@@ -83,9 +83,7 @@ export function createTracingProvider(
   });
 
   registerInstrumentations({
-    instrumentations: [
-      new DocumentLoadInstrumentation(),
-    ]
+    instrumentations: [new DocumentLoadInstrumentation()]
   });
 
   return provider;
