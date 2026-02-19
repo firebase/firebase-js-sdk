@@ -1528,7 +1528,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @returns A new `AggregateFunction` representing the 'array_agg_distinct' aggregation.
    */
   arrayAggDistinct(): AggregateFunction {
-    return AggregateFunction._create('array_agg_distinct', [this], 'arrayAggDistinct');
+    return AggregateFunction._create(
+      'array_agg_distinct',
+      [this],
+      'arrayAggDistinct'
+    );
   }
 
   /**
@@ -7171,7 +7175,9 @@ export function arrayAggDistinct(expression: Expression): AggregateFunction;
  * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
  */
 export function arrayAggDistinct(fieldName: string): AggregateFunction;
-export function arrayAggDistinct(value: Expression | string): AggregateFunction {
+export function arrayAggDistinct(
+  value: Expression | string
+): AggregateFunction {
   return fieldOrExpression(value).arrayAggDistinct();
 }
 
