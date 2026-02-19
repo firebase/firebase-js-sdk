@@ -16,7 +16,7 @@
  */
 
 import { type DataConnect } from '../../api/DataConnect';
-import { QueryRef, QueryResult } from '../../api/query';
+import { InternalQueryResult, QueryRef, QueryResult } from '../../api/query';
 import {
   OperationRef,
   QUERY_STR,
@@ -29,7 +29,7 @@ import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { EncodingMode } from '../../cache/EntityNode';
 import { logDebug } from '../../logger';
-import { DataConnectTransport } from '../../network';
+import { DataConnectExtension, DataConnectTransport, Extensions } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
@@ -40,6 +40,7 @@ import {
   OnResultSubscription
 } from './subscribe';
 import { parseEntityIds } from '../../cache/cacheUtils';
+import { DataConnectExtensionWithMaxAge, ExtensionsWithMaxAge } from '../../network/transport';
 
 export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -92,11 +93,19 @@ export class QueryManager {
   }
 
   async updateCache<Data, Variables>(
-    result: QueryResult<Data, Variables>
+    result: QueryResult<Data, Variables>,
+    extensions?: DataConnectExtensionWithMaxAge[]
   ): Promise<string[]> {
     await this.waitForQueuedWrites();
     if (this.cache) {
       const entityIds = parseEntityIds(result);
+      // TODO: Check if the path is empty, then we should check for properties like maxAge.
+      const updatedMaxAge = getMaxAgeFromExtensions(
+        extensions
+      );
+      if (updatedMaxAge !== undefined) {
+        this.cache.cacheSettings.maxAgeSeconds = updatedMaxAge;
+      }
       return this.cache.update(
         encoderImpl({
           name: result.ref.name,
@@ -227,7 +236,7 @@ export class QueryManager {
           fetchTime,
           ref: queryRef,
           source: SOURCE_SERVER,
-          extensions: response.extensions,
+          extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
           toJSON: getRefSerializer(
             queryRef,
             response.data,
@@ -235,7 +244,7 @@ export class QueryManager {
             fetchTime
           )
         };
-        impactedQueries = await this.updateCache(queryResult);
+        impactedQueries = await this.updateCache(queryResult, response.extensions.dataConnect);
       } catch (e: unknown) {
         this.publishErrorToSubscribers(key, e);
         throw e;
@@ -347,3 +356,27 @@ export class QueryManager {
     this.transport.useEmulator(host, port);
   }
 }
+
+export function getMaxAgeFromExtensions(
+  extensions: DataConnectExtensionWithMaxAge[] | undefined
+): number | undefined {
+  if (!extensions) {
+    return;
+  }
+  for (const extension of extensions) {
+    if ('maxAge' in extension && extension.maxAge !== undefined) {
+      if (extension.maxAge.endsWith('s')) {
+        return parseInt(
+          extension.maxAge.substring(0, extension.maxAge.length - 1)
+        );
+      }
+      return parseInt(extension.maxAge);
+    }
+  }
+}
+function getDataConnectExtensionsWithoutMaxAge(extensions: ExtensionsWithMaxAge): Extensions | undefined {
+  return {
+    dataConnect: extensions.dataConnect?.filter(extension => 'entityId' in extension || 'entityIds' in extension)
+  }
+}
+

@@ -16,6 +16,7 @@
  */
 
 import { ExecuteQueryOptions } from '../core/query/queryOptions';
+import { DataConnectExtensionWithMaxAge } from '../network/transport';
 
 import { DataConnect, getDataConnect } from './DataConnect';
 import {
@@ -32,6 +33,14 @@ export interface QueryRef<Data, Variables>
   extends OperationRef<Data, Variables> {
   refType: typeof QUERY_STR;
 }
+
+/** @internal */
+export type InternalQueryResult<Data, Variables> = QueryResult<Data, Variables> & Omit<DataConnectResult<Data, Variables>, 'extensions'> & {
+  extensions?: {
+    dataConnect?: DataConnectExtensionWithMaxAge[];
+  };
+}
+
 /**
  * Result of `executeQuery`
  */

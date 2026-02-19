@@ -49,13 +49,13 @@ export class DataConnectCache {
     private projectId: string,
     private connectorConfig: ConnectorConfig,
     private host: string,
-    public readonly cacheSettings: CacheSettings
+    public cacheSettings: CacheSettings
   ) {
     this.authProvider.addTokenChangeListener(async _ => {
       const newUid = this.authProvider.getAuth().getUid();
       // We should only close if the token changes and so does the new UID
       if (this.uid !== newUid) {
-        await this.cacheProvider?.close();
+        this.cacheProvider?.close();
         this.uid = newUid;
         const identifier = await this.getIdentifier(this.uid);
         this.cacheProvider = this.initializeNewProviders(identifier);

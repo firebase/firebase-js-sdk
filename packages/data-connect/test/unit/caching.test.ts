@@ -164,7 +164,6 @@ describe('caching', () => {
     });
     expect(genreResult.data.movies).to.deep.eq([
       {
-        genre: 'sci-fi',
         title: 'the matrix'
       }
     ]);

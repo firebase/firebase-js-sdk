@@ -47,18 +47,48 @@ export interface DataConnectSingleEntity {
   entityId: string;
 }
 
+
 export type DataConnectExtension = {
   path: Array<string | number>;
-} & (DataConnectEntityArray | DataConnectSingleEntity);
+} & (
+  | DataConnectEntityArray
+  | DataConnectSingleEntity
+);
+
+/**@internal */
+interface DataConnectMaxAge {
+  maxAge: string;
+}
+
+/**@internal */
+export type DataConnectExtensionWithMaxAge = {
+  path: Array<string | number>;
+} & (
+  | DataConnectEntityArray
+  | DataConnectSingleEntity
+  | DataConnectMaxAge
+)
 
 export interface Extensions {
   dataConnect?: DataConnectExtension[];
+}
+
+/** @internal */
+export interface ExtensionsWithMaxAge {
+  dataConnect?: DataConnectExtensionWithMaxAge[];
 }
 
 export interface DataConnectResponse<T> {
   data: T;
   errors: Error[];
   extensions: Extensions;
+}
+
+/** @internal */
+export interface DataConnectResponseWithMaxAge<T> {
+  data: T;
+  errors: Error[];
+  extensions: ExtensionsWithMaxAge;
 }
 
 /**
@@ -68,7 +98,7 @@ export interface DataConnectTransport {
   invokeQuery<T, U>(
     queryName: string,
     body?: U
-  ): Promise<DataConnectResponse<T>>;
+  ): Promise<DataConnectResponseWithMaxAge<T>>;
   invokeMutation<T, U>(
     queryName: string,
     body?: U
