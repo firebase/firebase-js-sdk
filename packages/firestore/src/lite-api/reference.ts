@@ -520,7 +520,7 @@ export function collection<AppModelType, DbModelType extends DocumentData>(
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Expected first argument to collection() to be a CollectionReference, ' +
-          'a DocumentReference or FirebaseFirestore'
+          'a DocumentReference or Firestore'
       );
     }
     const absolutePath = parent._path.child(
@@ -658,7 +658,7 @@ export function doc<AppModelType, DbModelType extends DocumentData>(
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Expected first argument to doc() to be a CollectionReference, ' +
-          'a DocumentReference or FirebaseFirestore'
+          'a DocumentReference or Firestore'
       );
     }
     const absolutePath = parent._path.child(
