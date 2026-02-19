@@ -65,14 +65,10 @@ export function createLoggerProvider(
     dynamicLogAttributeProviders
   );
 
-  const loggerProvider = new LoggerProvider({
-    resource
+  return new LoggerProvider({
+    resource,
+    processors: [new BatchLogRecordProcessor(logExporter)]
   });
-  loggerProvider.addLogRecordProcessor(
-    new BatchLogRecordProcessor(logExporter)
-  );
-
-  return loggerProvider;
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
@@ -95,7 +91,11 @@ class OTLPLogExporter
         JsonLogsSerializer,
         new FetchTransport({
           url: config.url!,
-          headers: new Headers(config.headers as Record<string, string>),
+          headers: new Headers(
+            typeof config.headers === 'object'
+              ? (config.headers as Record<string, string>)
+              : {}
+          ),
           dynamicHeaderProviders
         })
       )
