@@ -141,9 +141,12 @@ export function getGenerativeModel(
     for (const param in modelParams) {
       if (!hybridParamKeys.includes(param as keyof HybridParams)) {
         logger.warn(
-          `When a hybrid inference mode is specified, ${param} cannot be ` +
-            `configured at the top level. Configuration for cloud and ` +
-            `on-device must be done separately in inCloudParams and onDeviceParams.`
+          `When a hybrid inference mode is specified (mode is currently set` +
+            ` to ${hybridParams.mode}), "${param}" cannot be ` +
+            `configured at the top level. Configuration for in-cloud and ` +
+            `on-device must be done separately in inCloudParams and onDeviceParams. ` +
+            `Configuration values set outside of inCloudParams and onDeviceParams will` +
+            ` be ignored.`
         );
       }
     }
