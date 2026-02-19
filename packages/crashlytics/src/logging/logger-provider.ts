@@ -69,7 +69,9 @@ export function createLoggerProvider(
   const loggerProvider = new LoggerProvider({
     resource
   });
-  loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(logExporter));
+  loggerProvider.addLogRecordProcessor(
+    new BatchLogRecordProcessor(logExporter)
+  );
 
   return loggerProvider;
 }
