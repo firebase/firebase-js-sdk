@@ -1,5 +1,20 @@
 # @firebase/ai
 
+## 2.8.0
+
+### Minor Changes
+
+- [`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c) [#9461](https://github.com/firebase/firebase-js-sdk/pull/9461) - AI Logic: Extend the `LiveSession.receive()` return types to include a `LiveServiceGoingAwayNotice`
+  which signifies that the service will soon close the session.
+
+- [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8) [#9475](https://github.com/firebase/firebase-js-sdk/pull/9475) - Remove "preview" tags from code execution and URL context documentation.
+
+- [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59) [#9462](https://github.com/firebase/firebase-js-sdk/pull/9462) - Add params on `UsageMetadata` that provide cache-related usage data when the implicit caching feature is used.
+
+### Patch Changes
+
+- [`691a506`](https://github.com/firebase/firebase-js-sdk/commit/691a506ecaa10ac3f0354313f5de5a47f4c85199) [#9469](https://github.com/firebase/firebase-js-sdk/pull/9469) - Internal: Add tag to log requests made to cloud while in hybrid mode.
+
 ## 2.7.0
 
 ### Minor Changes

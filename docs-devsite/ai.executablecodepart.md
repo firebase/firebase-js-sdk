@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ExecutableCodePart interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents the code that is executed by the model.
 
 <b>Signature:</b>
@@ -25,19 +22,16 @@ export interface ExecutableCodePart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecutionResult](./ai.executablecodepart.md#executablecodepartcodeexecutionresult) | never | <b><i>(Public Preview)</i></b> |
-|  [executableCode](./ai.executablecodepart.md#executablecodepartexecutablecode) | [ExecutableCode](./ai.executablecode.md#executablecode_interface) | <b><i>(Public Preview)</i></b> |
-|  [fileData](./ai.executablecodepart.md#executablecodepartfiledata) | never | <b><i>(Public Preview)</i></b> |
-|  [functionCall](./ai.executablecodepart.md#executablecodepartfunctioncall) | never | <b><i>(Public Preview)</i></b> |
-|  [functionResponse](./ai.executablecodepart.md#executablecodepartfunctionresponse) | never | <b><i>(Public Preview)</i></b> |
-|  [inlineData](./ai.executablecodepart.md#executablecodepartinlinedata) | never | <b><i>(Public Preview)</i></b> |
-|  [text](./ai.executablecodepart.md#executablecodeparttext) | never | <b><i>(Public Preview)</i></b> |
-|  [thought](./ai.executablecodepart.md#executablecodepartthought) | never | <b><i>(Public Preview)</i></b> |
+|  [codeExecutionResult](./ai.executablecodepart.md#executablecodepartcodeexecutionresult) | never |  |
+|  [executableCode](./ai.executablecodepart.md#executablecodepartexecutablecode) | [ExecutableCode](./ai.executablecode.md#executablecode_interface) |  |
+|  [fileData](./ai.executablecodepart.md#executablecodepartfiledata) | never |  |
+|  [functionCall](./ai.executablecodepart.md#executablecodepartfunctioncall) | never |  |
+|  [functionResponse](./ai.executablecodepart.md#executablecodepartfunctionresponse) | never |  |
+|  [inlineData](./ai.executablecodepart.md#executablecodepartinlinedata) | never |  |
+|  [text](./ai.executablecodepart.md#executablecodeparttext) | never |  |
+|  [thought](./ai.executablecodepart.md#executablecodepartthought) | never |  |
 
 ## ExecutableCodePart.codeExecutionResult
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -47,9 +41,6 @@ codeExecutionResult?: never;
 
 ## ExecutableCodePart.executableCode
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -57,9 +48,6 @@ executableCode?: ExecutableCode;
 ```
 
 ## ExecutableCodePart.fileData
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -69,9 +57,6 @@ fileData: never;
 
 ## ExecutableCodePart.functionCall
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -79,9 +64,6 @@ functionCall?: never;
 ```
 
 ## ExecutableCodePart.functionResponse
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -91,9 +73,6 @@ functionResponse?: never;
 
 ## ExecutableCodePart.inlineData
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -102,9 +81,6 @@ inlineData?: never;
 
 ## ExecutableCodePart.text
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -112,9 +88,6 @@ text?: never;
 ```
 
 ## ExecutableCodePart.thought
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

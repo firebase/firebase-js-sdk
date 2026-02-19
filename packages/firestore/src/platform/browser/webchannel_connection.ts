@@ -408,6 +408,17 @@ export class WebChannelConnection extends RestConnection {
             const status: string = error.status;
             let code = mapCodeFromRpcStatus(status);
             let message = error.message;
+            if (
+              status === 'NOT_FOUND' &&
+              message.includes('database') &&
+              message.includes('does not exist') &&
+              message.includes(this.databaseId.database)
+            ) {
+              logWarn(
+                `Database '${this.databaseId.database}' not found. Please check your project configuration.`
+              );
+            }
+
             if (code === undefined) {
               code = Code.INTERNAL;
               message =

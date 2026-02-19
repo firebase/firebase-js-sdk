@@ -77,6 +77,8 @@ import {
   notEqual,
   or,
   regexContains,
+  regexFind,
+  regexFindAll,
   regexMatch,
   startsWith,
   stringConcat,
@@ -2500,6 +2502,41 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expect(snapshot.results.length).to.equal(5);
     });
 
+    it('testRegexFind', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(regexFind('title', '^\\w+').as('firstWordInTitle'))
+          .select('firstWordInTitle')
+          .sort(field('firstWordInTitle').ascending())
+          .limit(3)
+      );
+      expectResults(
+        snapshot,
+        { firstWordInTitle: '1984' },
+        { firstWordInTitle: 'Crime' },
+        { firstWordInTitle: 'Dune' }
+      );
+    });
+
+    it('testRegexFindAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(regexFindAll('title', '\\w+').as('wordsInTitle'))
+          .select('wordsInTitle')
+          .sort(field('wordsInTitle').ascending())
+          .limit(3)
+      );
+      expectResults(
+        snapshot,
+        { wordsInTitle: ['1984'] },
+        { wordsInTitle: ['Crime', 'and', 'Punishment'] },
+        { wordsInTitle: ['Dune'] }
+      );
+    });
     it('testRegexMatches', async () => {
       const snapshot = await execute(
         firestore

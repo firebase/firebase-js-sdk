@@ -44,11 +44,13 @@ const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
  *
  * @param response - Response from a fetch call
  */
-export function processStream(
+export async function processStream(
   response: Response,
   apiSettings: ApiSettings,
   inferenceSource?: InferenceSource
-): GenerateContentStreamResult {
+): Promise<
+  GenerateContentStreamResult & { firstValue?: GenerateContentResponse }
+> {
   const inputStream = response.body!.pipeThrough(
     new TextDecoderStream('utf8', { fatal: true })
   );
@@ -59,10 +61,51 @@ export function processStream(
   // We split the stream so the user can iterate over partial results (stream1)
   // while we aggregate the full result for history/final response (stream2).
   const [stream1, stream2] = responseStream.tee();
-
+  const { response: internalResponse, firstValue } =
+    await processStreamInternal(stream2, apiSettings, inferenceSource);
   return {
     stream: generateResponseSequence(stream1, apiSettings, inferenceSource),
-    response: getResponsePromise(stream2, apiSettings, inferenceSource)
+    response: internalResponse,
+    firstValue
+  };
+}
+
+/**
+ * Consumes streams teed from the input stream for internal needs.
+ * The streams need to be teed because each stream can only be consumed
+ * by one reader.
+ *
+ * "streamForPeek"
+ * This tee is used to peek at the first value for relevant information
+ * that we need to evaluate before returning the stream handle to the
+ * client. For example, we need to check if the response is a function
+ * call that may need to be handled by automatic function calling before
+ * returning a response to the client.
+ *
+ * "streamForAggregation"
+ * We iterate through this tee independently from the user and aggregate
+ * it into a single response when the stream is complete. We need this
+ * aggregate object to add to chat history when using ChatSession. It's
+ * also provided to the user if they want it.
+ */
+async function processStreamInternal(
+  stream: ReadableStream<GenerateContentResponse>,
+  apiSettings: ApiSettings,
+  inferenceSource?: InferenceSource
+): Promise<{
+  firstValue?: GenerateContentResponse;
+  response: Promise<EnhancedGenerateContentResponse>;
+}> {
+  const [streamForPeek, streamForAggregation] = stream.tee();
+  const reader = streamForPeek.getReader();
+  const { value } = await reader.read();
+  return {
+    firstValue: value,
+    response: getResponsePromise(
+      streamForAggregation,
+      apiSettings,
+      inferenceSource
+    )
   };
 }
 

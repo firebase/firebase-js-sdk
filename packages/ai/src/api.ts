@@ -171,7 +171,15 @@ export function getGenerativeModel(
     hybridParams.onDeviceParams
   );
 
-  return new GenerativeModel(ai, inCloudParams, requestOptions, chromeAdapter);
+  const generativeModel = new GenerativeModel(
+    ai,
+    inCloudParams,
+    requestOptions,
+    chromeAdapter
+  );
+
+  generativeModel._apiSettings.inferenceMode = hybridParams.mode;
+  return generativeModel;
 }
 
 /**
