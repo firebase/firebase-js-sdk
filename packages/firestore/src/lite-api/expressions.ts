@@ -1502,6 +1502,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an aggregation that collects all values of an expression across multiple stage inputs
    * into an array.
    *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
    * @example
    * ```typescript
    * // Collect all tags from books into an array
@@ -1518,6 +1522,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Creates an aggregation that collects all distinct values of an expression across multiple stage
    * inputs into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
    *
    * @example
    * ```typescript
@@ -7114,6 +7122,10 @@ export function last(value: Expression | string): AggregateFunction {
  * Creates an aggregation that collects all values of an expression across multiple stage
  * inputs into an array.
  *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
  * @example
  * ```typescript
  * // Collect all tags from books into an array
@@ -7129,6 +7141,10 @@ export function arrayAgg(expression: Expression): AggregateFunction;
  * @beta
  * Creates an aggregation that collects all values of a field across multiple stage inputs
  * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
  *
  * @example
  * ```typescript
@@ -7149,6 +7165,10 @@ export function arrayAgg(value: Expression | string): AggregateFunction {
  * Creates an aggregation that collects all distinct values of an expression across multiple stage
  * inputs into an array.
  *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
  * @example
  * ```typescript
  * // Collect all distinct tags from books into an array
@@ -7164,6 +7184,10 @@ export function arrayAggDistinct(expression: Expression): AggregateFunction;
  * @beta
  * Creates an aggregation that collects all distinct values of a field across multiple stage inputs
  * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
  *
  * @example
  * ```typescript

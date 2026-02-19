@@ -1842,6 +1842,8 @@ unixSecondsToTimestamp(field("seconds"));
 
 Creates an aggregation that collects all values of an expression across multiple stage inputs into an array.
 
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1875,6 +1877,8 @@ arrayAgg(field("tags")).as("allTags");
 > 
 
 Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
 
 <b>Signature:</b>
 
@@ -3267,6 +3271,8 @@ add("quantity", field("reserve"));
 
 Creates an aggregation that collects all values of a field across multiple stage inputs into an array.
 
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
 <b>Signature:</b>
 
 ```typescript
@@ -3300,6 +3306,8 @@ arrayAgg("tags").as("allTags");
 > 
 
 Creates an aggregation that collects all distinct values of a field across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
 
 <b>Signature:</b>
 

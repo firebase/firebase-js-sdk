@@ -253,6 +253,8 @@ field("quantity").add(field("reserve"));
 
 Creates an aggregation that collects all values of an expression across multiple stage inputs into an array.
 
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
 <b>Signature:</b>
 
 ```typescript
@@ -279,6 +281,8 @@ field("tags").arrayAgg().as("allTags");
 > 
 
 Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
 
 <b>Signature:</b>
 
