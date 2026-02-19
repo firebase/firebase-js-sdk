@@ -27,7 +27,7 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
   constructor(
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
-    public tracingProvider: TracerProvider
+    public tracingProvider: TracerProvider | null
   ) {}
 
   _delete(): Promise<void> {
