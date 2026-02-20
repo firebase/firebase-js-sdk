@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { generateSHA256HashBrowser } from '@firebase/util';
+import { generateSHA256Hash } from '@firebase/util';
 
 import {
   CacheProvider,
@@ -76,7 +76,7 @@ export class DataConnectCache {
     }-${this.projectId}-${this.connectorConfig.service}-${
       this.connectorConfig.connector
     }-${this.connectorConfig.location}-${uid}-${this.host}`;
-    const sha256 = await generateSHA256HashBrowser(identifier);
+    const sha256 = await generateSHA256Hash(identifier);
     return sha256;
   }
 

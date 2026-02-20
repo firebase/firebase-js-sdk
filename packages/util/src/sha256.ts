@@ -15,7 +15,14 @@
  * limitations under the License.
  */
 
-export async function generateSHA256HashBrowser(
+/**
+ * @public
+ * Generates a SHA-256 hash for the given input string.
+ *
+ * @param input The string to hash.
+ * @returns A promise that resolves to the SHA-256 hash as a hex string.
+ */
+export async function generateSHA256Hash(
   input: string
 ): Promise<string> {
   const textEncoder = new TextEncoder();

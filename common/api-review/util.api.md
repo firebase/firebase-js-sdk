@@ -221,10 +221,8 @@ export class FirebaseError extends Error {
 // @public
 export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' | 'anonymous' | 'google.com' | 'facebook.com' | 'github.com' | 'twitter.com' | 'microsoft.com' | 'apple.com';
 
-// Warning: (ae-missing-release-tag) "generateSHA256HashBrowser" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
 // @public
-export function generateSHA256HashBrowser(input: string): Promise<string>;
+export function generateSHA256Hash(input: string): Promise<string>;
 
 // @public
 export const getDefaultAppConfig: () => Record<string, string> | undefined;
