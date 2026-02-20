@@ -37,11 +37,10 @@ export * from '../public-types';
  * @example
  * Basic usage:
  * ```typescript
- * import { ErrorHandler } from '@angular/core';
+ * import { ApplicationConfig, ErrorHandler } from '@angular/core';
  * import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
  *
- * @NgModule({
- *   // ...
+ * export const appConfig: ApplicationConfig = {
  *   providers: [
  *     {
  *       provide: ErrorHandler,
@@ -49,18 +48,16 @@ export * from '../public-types';
  *     }
  *   ],
  *   // ...
- * })
- * export class AppModule { }
+ * };
  * ```
  *
  * @example
  * Providing telemetry options:
  * ```typescript
- * import { ErrorHandler } from '@angular/core';
+ * import { ApplicationConfig, ErrorHandler } from '@angular/core';
  * import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
  *
- * @NgModule({
- *   // ...
+ * export const appConfig: ApplicationConfig = {
  *   providers: [
  *     {
  *       provide: ErrorHandler,
@@ -68,8 +65,7 @@ export * from '../public-types';
  *     }
  *   ],
  *   // ...
- * })
- * export class AppModule { }
+ * };
  * ```
  *
  * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
