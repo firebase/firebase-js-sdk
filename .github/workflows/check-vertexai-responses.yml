@@ -27,7 +27,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Clone mock responses
         run: scripts/update_vertexai_responses.sh
       - name: Find cloned and latest versions
