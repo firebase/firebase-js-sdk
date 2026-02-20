@@ -52,7 +52,7 @@ jobs:
       with:
         node-version: 22.10.0
     - name: Merge main into release
-      uses: actions/github-script@v7
+      uses: actions/github-script@v8
       with:
         github-token: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
         script: |
