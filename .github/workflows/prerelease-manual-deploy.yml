@@ -25,6 +25,7 @@ on:
                 required: true
 jobs:
     deploy:
+        environment: release
         name: Prerelease Deploy
         runs-on: ubuntu-latest
     
