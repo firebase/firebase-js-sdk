@@ -55,7 +55,7 @@ describe('Query Manager Tests', () => {
 
     const error = new DataConnectError(
       Code.INVALID_ARGUMENT,
-      `ExecuteQuery can only execute query operation`
+      'ExecuteQuery can only execute query operations'
     );
 
     // @ts-ignore

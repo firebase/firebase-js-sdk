@@ -47,27 +47,19 @@ export interface DataConnectSingleEntity {
   entityId: string;
 }
 
-
 export type DataConnectExtension = {
   path: Array<string | number>;
-} & (
-  | DataConnectEntityArray
-  | DataConnectSingleEntity
-);
+} & (DataConnectEntityArray | DataConnectSingleEntity);
 
-/**@internal */
-interface DataConnectMaxAge {
+/** @internal */
+export interface DataConnectMaxAge {
   maxAge: string;
 }
 
-/**@internal */
+/** @internal */
 export type DataConnectExtensionWithMaxAge = {
   path: Array<string | number>;
-} & (
-  | DataConnectEntityArray
-  | DataConnectSingleEntity
-  | DataConnectMaxAge
-)
+} & (DataConnectEntityArray | DataConnectSingleEntity | DataConnectMaxAge);
 
 export interface Extensions {
   dataConnect?: DataConnectExtension[];

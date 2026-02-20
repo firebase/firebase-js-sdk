@@ -129,13 +129,18 @@ export async function dcFetch<T, U>(
       failureResponse
     );
   }
+  if (!jsonResponse.extensions) {
+    jsonResponse.extensions = {
+      dataConnect: []
+    };
+  }
   return jsonResponse as DataConnectResponse<T>;
 }
 interface JsonResponse<T> {
   message?: string;
   errors: [];
   data: Record<string, unknown> | T | null;
-  extensions: Extensions;
+  extensions?: Extensions;
 }
 function getErrorMessage(obj: JsonResponse<unknown>): string {
   if ('message' in obj && obj.message) {

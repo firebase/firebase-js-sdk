@@ -16,9 +16,8 @@
  */
 
 import { type DataConnect } from '../../api/DataConnect';
-import { InternalQueryResult, QueryRef, QueryResult } from '../../api/query';
+import { QueryRef, QueryResult } from '../../api/query';
 import {
-  OperationRef,
   QUERY_STR,
   SerializedRef,
   SOURCE_SERVER,
@@ -27,20 +26,22 @@ import {
 } from '../../api/Reference';
 import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
+import { parseEntityIds } from '../../cache/cacheUtils';
 import { EncodingMode } from '../../cache/EntityNode';
 import { logDebug } from '../../logger';
-import { DataConnectExtension, DataConnectTransport, Extensions } from '../../network';
+import { DataConnectTransport, Extensions } from '../../network';
+import {
+  DataConnectExtensionWithMaxAge,
+  ExtensionsWithMaxAge
+} from '../../network/transport';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
-import { ExecuteQueryOptions, QueryFetchPolicy } from './queryOptions';
 import {
   OnCompleteSubscription,
   OnErrorSubscription,
   OnResultSubscription
 } from './subscribe';
-import { parseEntityIds } from '../../cache/cacheUtils';
-import { DataConnectExtensionWithMaxAge, ExtensionsWithMaxAge } from '../../network/transport';
 
 export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
@@ -66,6 +67,17 @@ export function getRefSerializer<Data, Variables>(
 }
 
 export class QueryManager {
+  async preferCacheResults<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>,
+    allowStale = false
+  ): Promise<QueryResult<Data, Variables>> {
+    try {
+      const cacheResult = await this.fetchCacheResults(queryRef, allowStale);
+      return cacheResult;
+    } catch {
+      return this.fetchServerResults(queryRef);
+    }
+  }
   private callbacks = new Map<
     string,
     Array<DataConnectSubscription<unknown, unknown>>
@@ -99,10 +111,7 @@ export class QueryManager {
     await this.waitForQueuedWrites();
     if (this.cache) {
       const entityIds = parseEntityIds(result);
-      // TODO: Check if the path is empty, then we should check for properties like maxAge.
-      const updatedMaxAge = getMaxAgeFromExtensions(
-        extensions
-      );
+      const updatedMaxAge = getMaxAgeFromExtensions(extensions);
       if (updatedMaxAge !== undefined) {
         this.cache.cacheSettings.maxAgeSeconds = updatedMaxAge;
       }
@@ -166,9 +175,7 @@ export class QueryManager {
         queryRef.variables
       )}. Calling executeQuery.`
     );
-    const promise = this.maybeExecuteQuery(
-      queryRef as QueryRef<Data, Variables>
-    );
+    const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
     promise.then(undefined, err => {});
 
@@ -181,86 +188,183 @@ export class QueryManager {
 
     return unsubscribe;
   }
-  async maybeExecuteQuery<Data, Variables>(
-    queryRef: QueryRef<Data, Variables>,
-    options?: ExecuteQueryOptions
+
+  async fetchServerResults<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
   ): Promise<QueryResult<Data, Variables>> {
     await this.waitForQueuedWrites();
-    if (queryRef.refType !== QUERY_STR) {
-      throw new DataConnectError(
-        Code.INVALID_ARGUMENT,
-        `ExecuteQuery can only execute query operations`
-      );
-    }
-    let queryResult: QueryResult<Data, Variables> | undefined;
-    const cachingEnabled = this.cache && !!this.cache.cacheSettings;
-    let shouldExecute = false;
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    if (options?.fetchPolicy === QueryFetchPolicy.SERVER_ONLY) {
-      // definitely execute query
-      // queryResult = await this.executeQuery(queryRef, options);
-      shouldExecute = true;
-    } else {
-      if (cachingEnabled) {
-        if (
-          !(await this.cache?.containsResultTree(key)) ||
-          (await this.cache?.getResultTree(key))!.isStale()
-        ) {
-          shouldExecute = true;
-        } else {
-          queryResult = await this.getFromResultTreeCache(key, queryRef);
-        }
-      } else {
-        // read from subscriber cache.
-        const fromSubscriberCache = await this.getFromSubscriberCache(key);
-        if (!fromSubscriberCache) {
-          shouldExecute = true;
-        }
-        queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
-      }
-    }
-    let impactedQueries: string[] = [key];
-    if (shouldExecute) {
-      try {
-        const response = await this.transport.invokeQuery<Data, Variables>(
-          queryRef.name,
-          queryRef.variables
-        );
-        const fetchTime = new Date().toISOString();
-        queryResult = {
-          data: response.data,
-          fetchTime,
-          ref: queryRef,
-          source: SOURCE_SERVER,
-          extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
-          toJSON: getRefSerializer(
-            queryRef,
-            response.data,
-            SOURCE_SERVER,
-            fetchTime
-          )
-        };
-        impactedQueries = await this.updateCache(queryResult, response.extensions.dataConnect);
-      } catch (e: unknown) {
-        this.publishErrorToSubscribers(key, e);
-        throw e;
-      }
-    }
-    if (cachingEnabled) {
-      await this.publishCacheResultsToSubscribers(
-        impactedQueries,
-        queryResult!.fetchTime
+    try {
+      const result = await this.transport.invokeQuery<Data, Variables>(
+        queryRef.name,
+        queryRef.variables
       );
-    } else {
-      this.subscriptionCache.set(key, queryResult!);
-      this.publishDataToSubscribers(key, queryResult!);
+      const fetchTime = Date.now().toString();
+      const originalExtensions = result.extensions;
+      const queryResult: QueryResult<Data, Variables> = {
+        ...result,
+        ref: queryRef,
+        source: SOURCE_SERVER,
+        fetchTime,
+        data: result.data,
+        extensions: getDataConnectExtensionsWithoutMaxAge(originalExtensions),
+        toJSON: getRefSerializer(
+          queryRef,
+          result.data,
+          SOURCE_SERVER,
+          fetchTime
+        )
+      };
+      const updatedKeys = await this.updateCache(
+        queryResult,
+        originalExtensions?.dataConnect
+      );
+      if (this.cache) {
+        await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
+      } else {
+        this.subscriptionCache.set(key, queryResult);
+        this.publishDataToSubscribers(key, queryResult);
+      }
+      return queryResult;
+    } catch (e) {
+      this.publishErrorToSubscribers(key, e);
+      throw e;
     }
-    return queryResult!;
   }
+
+  async fetchCacheResults<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>,
+    allowStale = false
+  ): Promise<QueryResult<Data, Variables>> {
+    await this.waitForQueuedWrites();
+    let result: QueryResult<Data, Variables> | undefined | null;
+    if (!this.cache) {
+      result = await this.getFromSubscriberCache(queryRef);
+    } else {
+      result = await this.getFromResultTreeCache(queryRef, allowStale);
+    }
+    if (!result) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'No cache entry found for query: ' + queryRef.name
+      );
+    }
+    const fetchTime = Date.now().toString();
+    const queryResult: QueryResult<Data, Variables> = {
+      ...result,
+      ref: queryRef,
+      source: SOURCE_CACHE,
+      fetchTime,
+      data: result.data,
+      extensions: result.extensions,
+      toJSON: getRefSerializer(queryRef, result.data, SOURCE_CACHE, fetchTime)
+    };
+    if (this.cache) {
+      const key = encoderImpl({
+        name: queryRef.name,
+        variables: queryRef.variables,
+        refType: QUERY_STR
+      });
+      await this.publishCacheResultsToSubscribers([key], fetchTime);
+    } else {
+      const key = encoderImpl({
+        name: queryRef.name,
+        variables: queryRef.variables,
+        refType: QUERY_STR
+      });
+      this.subscriptionCache.set(key, queryResult);
+      this.publishDataToSubscribers(key, queryResult);
+    }
+
+    return queryResult;
+  }
+  // async maybeExecuteQuery<Data, Variables>(
+  //   queryRef: QueryRef<Data, Variables>,
+  //   options?: ExecuteQueryOptions
+  // ): Promise<QueryResult<Data, Variables>> {
+  //   await this.waitForQueuedWrites();
+  //   let queryResult: QueryResult<Data, Variables> | undefined;
+  //   const key = encoderImpl({
+  //     name: queryRef.name,
+  //     variables: queryRef.variables,
+  //     refType: QUERY_STR
+  //   });
+  //   switch(options?.fetchPolicy) {
+  //     case QueryFetchPolicy.SERVER_ONLY:
+  //       const cachedResult = await this.getFromResultTreeCache(key, queryRef);
+  //       if(cachedResult) {
+  //         return cachedResult;
+  //       } else {
+  //         const serverResults = await this.fetchServerResults();
+  //       }
+  //       // TODO: Handle the case where the server results are not available.
+  //   }
+
+  //   // if (options?.fetchPolicy === QueryFetchPolicy.SERVER_ONLY) {
+  //   //   // definitely execute query
+  //   //   // queryResult = await this.executeQuery(queryRef, options);
+  //   //   shouldExecute = true;
+  //   // } else {
+  //   //   if (cachingEnabled) {
+  //   //     if (
+  //   //       !(await this.cache?.containsResultTree(key)) ||
+  //   //       (await this.cache?.getResultTree(key))!.isStale()
+  //   //     ) {
+  //   //       shouldExecute = true;
+  //   //     } else {
+  //   //       queryResult = await this.getFromResultTreeCache(key, queryRef);
+  //   //     }
+  //   //   } else {
+  //   //     // read from subscriber cache.
+  //   //     const fromSubscriberCache = await this.getFromSubscriberCache(key);
+  //   //     if (!fromSubscriberCache) {
+  //   //       shouldExecute = true;
+  //   //     }
+  //   //     queryResult = fromSubscriberCache as QueryResult<Data, Variables>;
+  //   //   }
+  //   // }
+  //   // let impactedQueries: string[] = [key];
+  //   // if (shouldExecute) {
+  //   //   try {
+  //   //     const response = await this.transport.invokeQuery<Data, Variables>(
+  //   //       queryRef.name,
+  //   //       queryRef.variables
+  //   //     );
+  //   //     const fetchTime = new Date().toISOString();
+  //   //     queryResult = {
+  //   //       data: response.data,
+  //   //       fetchTime,
+  //   //       ref: queryRef,
+  //   //       source: SOURCE_SERVER,
+  //   //       extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
+  //   //       toJSON: getRefSerializer(
+  //   //         queryRef,
+  //   //         response.data,
+  //   //         SOURCE_SERVER,
+  //   //         fetchTime
+  //   //       )
+  //   //     };
+  //   //     impactedQueries = await this.updateCache(queryResult, response.extensions.dataConnect);
+  //   //   } catch (e: unknown) {
+  //   //     this.publishErrorToSubscribers(key, e);
+  //   //     throw e;
+  //   //   }
+  //   // }
+  //   // if (cachingEnabled) {
+  //   //   await this.publishCacheResultsToSubscribers(
+  //   //     impactedQueries,
+  //   //     queryResult!.fetchTime
+  //   //   );
+  //   // } else {
+  //   //   this.subscriptionCache.set(key, queryResult!);
+  //   //   this.publishDataToSubscribers(key, queryResult!);
+  //   // }
+  //   return queryResult!;
+  // }
   publishErrorToSubscribers(key: string, err: unknown): void {
     this.callbacks.get(key)?.forEach(subscription => {
       if (subscription.errCallback) {
@@ -268,12 +372,21 @@ export class QueryManager {
       }
     });
   }
+
   async getFromResultTreeCache<Data, Variables>(
-    key: string,
-    queryRef: QueryRef<Data, Variables>
-  ): Promise<QueryResult<Data, Variables>> {
+    queryRef: QueryRef<Data, Variables>,
+    allowStale = false
+  ): Promise<QueryResult<Data, Variables> | null> {
+    const key = encoderImpl({
+      name: queryRef.name,
+      variables: queryRef.variables,
+      refType: QUERY_STR
+    });
     const cacheResult: Data = (await this.cache!.getResultJSON(key)) as Data;
     const resultTree = await this.cache!.getResultTree(key);
+    if (!allowStale && resultTree!.isStale()) {
+      return null;
+    }
     const result: QueryResult<Data, Variables> = {
       source: SOURCE_CACHE,
       ref: queryRef,
@@ -289,9 +402,14 @@ export class QueryManager {
     (await this.cache!.getResultTree(key))!.updateAccessed();
     return result;
   }
-  async getFromSubscriberCache(
-    key: string
-  ): Promise<QueryResult<unknown, unknown> | undefined> {
+  async getFromSubscriberCache<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<QueryResult<Data, Variables> | undefined> {
+    const key = encoderImpl({
+      name: queryRef.name,
+      variables: queryRef.variables,
+      refType: QUERY_STR
+    });
     if (!this.subscriptionCache.has(key)) {
       return;
     }
@@ -303,7 +421,7 @@ export class QueryManager {
       SOURCE_CACHE,
       result!.fetchTime
     );
-    return result;
+    return result as QueryResult<Data, Variables>;
   }
 
   publishDataToSubscribers(
@@ -366,17 +484,19 @@ export function getMaxAgeFromExtensions(
   for (const extension of extensions) {
     if ('maxAge' in extension && extension.maxAge !== undefined) {
       if (extension.maxAge.endsWith('s')) {
-        return parseInt(
+        return Number(
           extension.maxAge.substring(0, extension.maxAge.length - 1)
         );
       }
-      return parseInt(extension.maxAge);
     }
   }
 }
-function getDataConnectExtensionsWithoutMaxAge(extensions: ExtensionsWithMaxAge): Extensions | undefined {
+function getDataConnectExtensionsWithoutMaxAge(
+  extensions: ExtensionsWithMaxAge
+): Extensions | undefined {
   return {
-    dataConnect: extensions.dataConnect?.filter(extension => 'entityId' in extension || 'entityIds' in extension)
-  }
+    dataConnect: extensions.dataConnect?.filter(
+      extension => 'entityId' in extension || 'entityIds' in extension
+    )
+  };
 }
-

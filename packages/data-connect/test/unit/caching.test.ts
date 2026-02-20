@@ -31,7 +31,6 @@ import {
   OpResult
 } from '../../src';
 import { initializeFetch } from '../../src/network/fetch';
-import { encoderImpl } from '../../src/util/encoder';
 
 describe('caching', () => {
   let dc: DataConnect;
@@ -164,7 +163,8 @@ describe('caching', () => {
     });
     expect(genreResult.data.movies).to.deep.eq([
       {
-        title: 'the matrix'
+        title: 'the matrix',
+        genre: 'sci-fi'
       }
     ]);
   });
@@ -268,11 +268,11 @@ describe('caching', () => {
     ]);
   });
   it('retrieve entity data when multiple queries have the same entity id', async () => {
-    type Q1Data = {
+    interface Q1Data {
       movie: {
         title: string;
       };
-    };
+    }
     const titleResponse: OpResult<Q1Data> = {
       data: {
         movie: {
@@ -291,11 +291,11 @@ describe('caching', () => {
       }
     };
 
-    type Q2Data = {
+    interface Q2Data {
       movie: {
         genre: string;
       };
-    };
+    }
     const genreResponse: OpResult<Q2Data> = {
       data: {
         movie: {
@@ -326,7 +326,6 @@ describe('caching', () => {
       titleResponse.extensions?.dataConnect
     );
     const resultTree = await dc._queryManager.getFromResultTreeCache(
-      encoderImpl({ name: titleQueryId, refType: 'query' }),
       queryRef<Q1Data>(dc, titleQueryId)
     );
     expect(resultTree?.data).to.deep.eq(titleResponse.data);
@@ -342,7 +341,6 @@ describe('caching', () => {
       genreResponse.extensions?.dataConnect
     );
     const resultTree2 = await dc._queryManager.getFromResultTreeCache(
-      encoderImpl({ name: genreQueryId, refType: 'query' }),
       queryRef<Q2Data>(dc, genreQueryId)
     );
     expect(resultTree2?.data).to.deep.eq({

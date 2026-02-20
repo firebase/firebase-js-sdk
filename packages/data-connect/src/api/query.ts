@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { ExecuteQueryOptions } from '../core/query/queryOptions';
+import { Code, DataConnectError } from '../core/error';
+import {
+  ExecuteQueryOptions,
+  QueryFetchPolicy
+} from '../core/query/queryOptions';
 import { DataConnectExtensionWithMaxAge } from '../network/transport';
 
 import { DataConnect, getDataConnect } from './DataConnect';
@@ -35,11 +39,15 @@ export interface QueryRef<Data, Variables>
 }
 
 /** @internal */
-export type InternalQueryResult<Data, Variables> = QueryResult<Data, Variables> & Omit<DataConnectResult<Data, Variables>, 'extensions'> & {
-  extensions?: {
-    dataConnect?: DataConnectExtensionWithMaxAge[];
+export type InternalQueryResult<Data, Variables> = QueryResult<
+  Data,
+  Variables
+> &
+  Omit<DataConnectResult<Data, Variables>, 'extensions'> & {
+    extensions?: {
+      dataConnect?: DataConnectExtensionWithMaxAge[];
+    };
   };
-}
 
 /**
  * Result of `executeQuery`
@@ -66,10 +74,29 @@ export function executeQuery<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
   options?: ExecuteQueryOptions
 ): QueryPromise<Data, Variables> {
-  return queryRef.dataConnect._queryManager.maybeExecuteQuery(
-    queryRef,
-    options
-  );
+  if (queryRef.refType !== QUERY_STR) {
+    return Promise.reject(
+      new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `ExecuteQuery can only execute query operations`
+      )
+    );
+  }
+  const queryManager = queryRef.dataConnect._queryManager;
+  const fetchPolicy = options?.fetchPolicy ?? QueryFetchPolicy.PREFER_CACHE;
+  switch (fetchPolicy) {
+    case QueryFetchPolicy.SERVER_ONLY:
+      return queryManager.fetchServerResults(queryRef);
+    case QueryFetchPolicy.CACHE_ONLY:
+      return queryManager.fetchCacheResults(queryRef, true);
+    case QueryFetchPolicy.PREFER_CACHE:
+      return queryManager.preferCacheResults(queryRef, false);
+    default:
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `Invalid fetch policy: ${fetchPolicy}`
+      );
+  }
 }
 
 /**

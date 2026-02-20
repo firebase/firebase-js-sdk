@@ -18,7 +18,6 @@
 import { Extensions } from '../network';
 
 import { DataConnect, DataConnectOptions } from './DataConnect';
-import { QueryResult } from './query';
 export const QUERY_STR = 'query';
 export const MUTATION_STR = 'mutation';
 export type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
