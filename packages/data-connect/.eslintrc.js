@@ -49,17 +49,7 @@ module.exports = {
         'alphabetize': { 'order': 'asc', 'caseInsensitive': true }
       }
     ],
-    'no-restricted-globals': [
-      'error',
-      {
-        'name': 'window',
-        'message': 'Use `PlatformSupport.getPlatform().window` instead.'
-      },
-      {
-        'name': 'document',
-        'message': 'Use `PlatformSupport.getPlatform().document` instead.'
-      }
-    ]
+    'no-restricted-globals': ['error']
   },
   overrides: [
     {

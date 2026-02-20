@@ -222,6 +222,9 @@ export class FirebaseError extends Error {
 export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' | 'anonymous' | 'google.com' | 'facebook.com' | 'github.com' | 'twitter.com' | 'microsoft.com' | 'apple.com';
 
 // @public
+export function generateSHA256Hash(input: string): Promise<string>;
+
+// @public
 export const getDefaultAppConfig: () => Record<string, string> | undefined;
 
 // @public
