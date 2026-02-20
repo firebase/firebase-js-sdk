@@ -52,7 +52,8 @@ export function createLoggerProvider(
     endpointUrl = endpointUrl.slice(0, -1);
   }
   const { projectId, appId, apiKey } = app.options;
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/logs`;
+  // TODO(abarone): Wire in location as optional parameter.
+  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/logs`;
   const logExporter = new OTLPLogExporter(
     {
       url: otlpEndpoint,
