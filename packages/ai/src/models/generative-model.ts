@@ -117,7 +117,7 @@ export class GenerativeModel extends AIModel {
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     const formattedParams = formatGenerateContentInput(request);
-    return generateContentStream(
+    const { stream, response } = await generateContentStream(
       this._apiSettings,
       this.model,
       {
@@ -135,6 +135,7 @@ export class GenerativeModel extends AIModel {
         ...singleRequestOptions
       }
     );
+    return { stream, response };
   }
 
   /**
