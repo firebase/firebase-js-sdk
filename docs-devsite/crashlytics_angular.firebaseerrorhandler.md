@@ -73,11 +73,10 @@ void
 Basic usage:
 
 ```typescript
-import { ErrorHandler } from '@angular/core';
+import { ApplicationConfig, ErrorHandler } from '@angular/core';
 import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
 
-@NgModule({
-  // ...
+export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: ErrorHandler,
@@ -85,8 +84,7 @@ import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
     }
   ],
   // ...
-})
-export class AppModule { }
+};
 
 ```
 
@@ -95,11 +93,10 @@ export class AppModule { }
 Providing telemetry options:
 
 ```typescript
-import { ErrorHandler } from '@angular/core';
+import { ApplicationConfig, ErrorHandler } from '@angular/core';
 import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
 
-@NgModule({
-  // ...
+export const appConfig: ApplicationConfig = {
   providers: [
     {
       provide: ErrorHandler,
@@ -107,8 +104,7 @@ import { FirebaseErrorHandler } from 'firebase/crashlytics-angular';
     }
   ],
   // ...
-})
-export class AppModule { }
+};
 
 ```
 

@@ -42,6 +42,7 @@ env:
 
 jobs:
   deploy:
+    environment: release
     name: Staging Release
     runs-on: ubuntu-latest
     # Block this workflow if run on a non-release branch.
