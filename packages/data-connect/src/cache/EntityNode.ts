@@ -184,7 +184,6 @@ export class EntityNode {
       // Get JSON representation of dehydrated list
       if (this.entityData) {
         resultObject[GLOBAL_ID_KEY] = this.entityData.globalID;
-        // TODO: Check the object for the list of keys that need to be retrieved from the entity data object.
       }
 
       resultObject[ENTITY_DATA_KEYS_KEY] = Array.from(this.entityDataKeys);
