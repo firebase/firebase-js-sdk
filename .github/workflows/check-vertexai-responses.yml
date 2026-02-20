@@ -39,7 +39,7 @@ jobs:
         working-directory: packages/ai/test-utils/vertexai-sdk-test-data
       - name: Find comment from previous run if exists
         # This commit represents v3.1.0
-        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
+        uses: peter-evans/find-comment@a4ef349b8c29f841860ce94ed82b20f0a39b6961
         id: fc
         with:
           issue-number: ${{github.event.number}}
