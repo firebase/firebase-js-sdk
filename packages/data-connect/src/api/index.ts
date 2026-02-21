@@ -16,7 +16,17 @@
  */
 
 export * from '../network';
-export * from './DataConnect';
+export {
+  ConnectorConfig,
+  DataConnect,
+  TransportOptions,
+  areTransportOptionsEqual,
+  connectDataConnectEmulator,
+  getDataConnect,
+  parseOptions,
+  terminate,
+  validateDCOptions
+} from './DataConnect';
 export * from './Reference';
 export * from './Mutation';
 export * from './query';

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnect, DataConnectOptions } from './DataConnect';
+import { ConnectorConfig, DataConnect } from './DataConnect';
 export const QUERY_STR = 'query';
 export const MUTATION_STR = 'mutation';
 export type ReferenceType = typeof QUERY_STR | typeof MUTATION_STR;
@@ -48,7 +48,7 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
 export interface RefInfo<Variables> {
   name: string;
   variables: Variables;
-  connectorConfig: DataConnectOptions;
+  connectorConfig: ConnectorConfig;
 }
 /**
  * Serialized Ref as a result of `QueryResult.toJSON()`

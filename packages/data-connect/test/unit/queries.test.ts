@@ -22,7 +22,8 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { DataConnectOptions, QueryRef, queryRef, subscribe } from '../../src';
+import { QueryRef, queryRef, subscribe } from '../../src';
+import { DataConnectOptions } from '../../src/api/DataConnect';
 import {
   AuthTokenListener,
   AuthTokenProvider

@@ -68,7 +68,6 @@ function getRefSerializer<Data, Variables>(
         name: queryRef.name,
         variables: queryRef.variables,
         connectorConfig: {
-          projectId: queryRef.dataConnect.app.options.projectId!,
           ...queryRef.dataConnect.getSettings()
         }
       },
