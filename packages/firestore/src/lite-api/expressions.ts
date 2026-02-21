@@ -1218,6 +1218,56 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the beginning of the 'userInput' field
+   * field("userInput").ltrim();
+   *
+   * // Trim quotes from the beginning of the 'userInput' field
+   * field("userInput").ltrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string.
+   */
+  ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('ltrim', args, 'ltrim');
+  }
+
+  /**
+   * @beta
+   * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the end of the 'userInput' field
+   * field("userInput").rtrim();
+   *
+   * // Trim quotes from the end of the 'userInput' field
+   * field("userInput").rtrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string or byte array.
+   */
+  rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('rtrim', args, 'rtrim');
+  }
+
+  /**
+   * @beta
    * Creates an expression that concatenates string expressions together.
    *
    * @example
@@ -1240,6 +1290,98 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       'string_concat',
       [this, ...exprs],
       'stringConcat'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+   *
+   * @example
+   * ```typescript
+   * // Find the index of "foo" in the 'text' field
+   * field("text").stringIndexOf("foo");
+   * ```
+   *
+   * @param search - The substring or byte sequence to search for.
+   * @returns A new `Expression` representing the index of the first occurrence.
+   */
+  stringIndexOf(search: string | Expression | Bytes): FunctionExpression {
+    return new FunctionExpression(
+      'string_index_of',
+      [this, valueToDefaultExpr(search)],
+      'stringIndexOf'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that repeats a string or byte array a specified number of times.
+   *
+   * @example
+   * ```typescript
+   * // Repeat the 'label' field 3 times
+   * field("label").stringRepeat(3);
+   * ```
+   *
+   * @param repetitions - The number of times to repeat the string or byte array.
+   * @returns A new `Expression` representing the repeated string or byte array.
+   */
+  stringRepeat(repetitions: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'string_repeat',
+      [this, valueToDefaultExpr(repetitions)],
+      'stringRepeat'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+   *
+   * @example
+   * ```typescript
+   * // Replace all occurrences of "foo" with "bar" in the 'text' field
+   * field("text").stringReplaceAll("foo", "bar");
+   * ```
+   *
+   * @param find - The substring or byte sequence to search for.
+   * @param replacement - The replacement string or byte sequence.
+   * @returns A new `Expression` representing the string or byte array with replacements.
+   */
+  stringReplaceAll(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'string_replace_all',
+      [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
+      'stringReplaceAll'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+   *
+   * @example
+   * ```typescript
+   * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+   * field("text").stringReplaceOne("foo", "bar");
+   * ```
+   *
+   * @param find - The substring or byte sequence to search for.
+   * @param replacement - The replacement string or byte sequence.
+   * @returns A new `Expression` representing the string or byte array with the replacement.
+   */
+  stringReplaceOne(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'string_replace_one',
+      [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
+      'stringReplaceOne'
     );
   }
 
@@ -6679,6 +6821,110 @@ export function trim(
 
 /**
  * @beta
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function ltrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).ltrim(valueToTrim);
+}
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function rtrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).rtrim(valueToTrim);
+}
+
+/**
+ * @beta
  *
  * Creates an expression that concatenates string functions, fields or constants together.
  *
@@ -6728,6 +6974,192 @@ export function stringConcat(
     valueToDefaultExpr(second),
     ...elements.map(valueToDefaultExpr)
   );
+}
+
+/**
+ * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf("text", "foo");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  fieldName: string,
+  search: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf(field("text"), "foo");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  expression: Expression,
+  search: string | Expression | Bytes
+): FunctionExpression;
+export function stringIndexOf(
+  expr: Expression | string,
+  search: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringIndexOf(search);
+}
+
+/**
+ * @beta
+ * Creates an expression that repeats a string or byte array a specified number of times.
+ *
+ * @example
+ * ```typescript
+ * // Repeat the 'label' field 3 times
+ * stringRepeat("label", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param repetitions - The number of times to repeat the string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the repeated string or byte array.
+ */
+export function stringRepeat(
+  fieldName: string,
+  repetitions: number | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that repeats a string or byte array a specified number of times.
+ *
+ * @example
+ * ```typescript
+ * // Repeat the 'label' field 3 times
+ * stringRepeat(field("label"), 3);
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param repetitions - The number of times to repeat the string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the repeated string or byte array.
+ */
+export function stringRepeat(
+  expression: Expression,
+  repetitions: number | Expression
+): FunctionExpression;
+export function stringRepeat(
+  expr: Expression | string,
+  repetitions: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(expr).stringRepeat(repetitions);
+}
+
+/**
+ * @beta
+ * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace all occurrences of "foo" with "bar" in the 'text' field
+ * stringReplaceAll("text", "foo", "bar");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with replacements.
+ */
+export function stringReplaceAll(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace all occurrences of "foo" with "bar" in the 'text' field
+ * stringReplaceAll(field("text"), "foo", "bar");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with replacements.
+ */
+export function stringReplaceAll(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+export function stringReplaceAll(
+  expr: Expression | string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringReplaceAll(find, replacement);
+}
+
+/**
+ * @beta
+ * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+ * stringReplaceOne("text", "foo", "bar");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with the replacement.
+ */
+export function stringReplaceOne(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+ * stringReplaceOne(field("text"), "foo", "bar");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with the replacement.
+ */
+export function stringReplaceOne(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+export function stringReplaceOne(
+  expr: Expression | string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringReplaceOne(find, replacement);
 }
 
 /**
