@@ -181,7 +181,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [log10(fieldName)](./firestore_lite_pipelines.md#log10_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
 |  [logicalMaximum(fieldName, second, others)](./firestore_lite_pipelines.md#logicalmaximum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
 |  [logicalMinimum(fieldName, second, others)](./firestore_lite_pipelines.md#logicalminimum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering. |
-|  [ltrim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#ltrim_c0e3211) | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
+|  [ltrim(fieldName, valueToTrim)](./firestore_lite_pipelines.md#ltrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [mapGet(fieldName, subField)](./firestore_lite_pipelines.md#mapget_06663cf) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
 |  [maximum(fieldName)](./firestore_lite_pipelines.md#maximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
 |  [minimum(fieldName)](./firestore_lite_pipelines.md#minimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
@@ -5585,6 +5585,9 @@ logicalMinimum("field1", field("field2"), 1000);
 ```
 
 ### ltrim(fieldName, valueToTrim) {:#ltrim_c0e3211}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
 

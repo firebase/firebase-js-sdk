@@ -885,10 +885,7 @@ export function logicalMinimum(first: Expression, second: Expression | unknown, 
 // @beta
 export function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "ltrim" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "ltrim" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
-//
-// @public
+// @beta
 export function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 // @beta

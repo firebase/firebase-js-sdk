@@ -1250,6 +1250,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
    *
    * @example
@@ -7016,6 +7017,7 @@ export function trim(
 }
 
 /**
+ * @beta
  * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
  *
  * @example
