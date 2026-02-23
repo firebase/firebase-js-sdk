@@ -22,9 +22,7 @@
  * @param input The string to hash.
  * @returns A promise that resolves to the SHA-256 hash as a hex string.
  */
-export async function generateSHA256Hash(
-  input: string
-): Promise<string> {
+export async function generateSHA256Hash(input: string): Promise<string> {
   const textEncoder = new TextEncoder();
   const data = textEncoder.encode(input);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
