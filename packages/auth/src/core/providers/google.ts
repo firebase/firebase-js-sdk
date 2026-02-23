@@ -82,7 +82,7 @@ export class GoogleAuthProvider extends BaseOAuthProvider {
    *
    * @example
    * ```javascript
-   * // \`googleUser\` from the onsuccess Google Sign In callback.
+   * // ID token obtained from Google Identity Services (GIS) sign-in flow.
    * const credential = GoogleAuthProvider.credential(googleUser.getAuthResponse().id_token);
    * const result = await signInWithCredential(credential);
    * ```
