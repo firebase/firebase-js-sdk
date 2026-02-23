@@ -10,6 +10,7 @@ import { WebsocketTransport } from './stream/websocket';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../../core/error';
 
 /**
  * Manages routing between the REST transport (default) and the Stream transport
@@ -73,8 +74,7 @@ export class TransportManager implements DataConnectTransport {
   }
 
   /**
-   * Returns true if there are active subscriptions that require the stream
-   * transport to remain operational.
+   * Returns true if the stream is in a healthy, ready connection state and has active subscriptions.
    */
   private shouldUseStream(): boolean {
     return (
@@ -90,7 +90,19 @@ export class TransportManager implements DataConnectTransport {
     body?: Variables
   ): Promise<DataConnectResponse<Data>> {
     if (this.shouldUseStream()) {
-      return this.streamTransport!.invokeQuery(queryName, body);
+      return this.streamTransport!.invokeQuery<Data, Variables>(
+        queryName,
+        body
+      ).catch(err => {
+        if (this.streamTransport?.isUnableToConnect) {
+          // If the stream died while we were waiting, fall back to REST transparently
+          return this.restTransport.invokeQuery<Data, Variables>(
+            queryName,
+            body
+          );
+        }
+        throw err;
+      });
     }
     return this.restTransport.invokeQuery(queryName, body);
   }
@@ -100,7 +112,19 @@ export class TransportManager implements DataConnectTransport {
     body?: Variables
   ): Promise<DataConnectResponse<Data>> {
     if (this.shouldUseStream()) {
-      return this.streamTransport!.invokeMutation(queryName, body);
+      return this.streamTransport!.invokeMutation<Data, Variables>(
+        queryName,
+        body
+      ).catch(err => {
+        if (this.streamTransport?.isUnableToConnect) {
+          // If the stream died while we were waiting, fall back to REST transparently
+          return this.restTransport.invokeMutation<Data, Variables>(
+            queryName,
+            body
+          );
+        }
+        throw err;
+      });
     }
     return this.restTransport.invokeMutation(queryName, body);
   }
@@ -111,6 +135,14 @@ export class TransportManager implements DataConnectTransport {
     body?: Variables
   ): void {
     const streamTransport = this.initStreamTransport();
+
+    if (streamTransport.isUnableToConnect) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'Unable to connect streaming connection to server. Subscriptions are unavailable.'
+      );
+    }
+
     streamTransport.invokeSubscribe(notificationHook, queryName, body);
   }
 

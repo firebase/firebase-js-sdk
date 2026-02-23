@@ -82,8 +82,15 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   /** should the next request include auth token? */
   private _shouldIncludeAuth = true;
 
+  /** True if the physical stream connection is fully open and ready to transmit data. */
+  abstract get streamConnected(): boolean;
+
   /** is this connection closing down? */
   private _pendingClose = false;
+  /** True if the stream connection has been requested to close */
+  get isPendingClose(): boolean {
+    return this._pendingClose;
+  }
   /** current connection close timeout from setTimeout(), if any */
   private _closeTimeout: NodeJS.Timeout | null = null;
   /** has the close timeout finished? */
@@ -96,6 +103,15 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _stableConnectionTimer: NodeJS.Timeout | null = null;
   /** callback fired when the stream finishes closing */
   onGracefulStreamClose?: () => void;
+
+  /** Consecutive failed connection attempts before we give up */
+  private readonly MAX_CONNECTION_ATTEMPTS = 3;
+  /** Current number of failed connection attempts in this instance of stream transport */
+  private _failedConnectionAttempts = 0;
+  /** True if the stream completely failed to establish connection after MAX_CONNECTION_ATTEMPTS */
+  get isUnableToConnect() {
+    return this._failedConnectionAttempts >= this.MAX_CONNECTION_ATTEMPTS;
+  }
 
   /**
    * Tracks if the next message to be sent is the first message of the stream.
@@ -154,16 +170,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   get hasActiveSubscriptions(): boolean {
     return this._hasActiveSubscribeRequests;
   }
-
-  /**
-   * True if the stream connection has been requested to close
-   */
-  get isPendingClose(): boolean {
-    return this._pendingClose;
-  }
-
-  /** True if the physical stream connection is fully open and ready to transmit data. */
-  abstract get streamConnected(): boolean;
 
   /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
@@ -245,9 +251,25 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       return;
     }
 
+    if (this.isUnableToConnect) {
+      // stop trying to reconnect if we've completely given up
+      return;
+    }
+
     if (this._stableConnectionTimer) {
       clearTimeout(this._stableConnectionTimer);
       this._stableConnectionTimer = null;
+    }
+
+    this._failedConnectionAttempts++;
+    if (this.isUnableToConnect) {
+      this._clearAllPendingRequests(
+        new DataConnectError(
+          Code.OTHER,
+          `Failed to establish a streaming connection after ${this.MAX_CONNECTION_ATTEMPTS} attempts. WebSockets may not be supported in this environment.`
+        )
+      );
+      return;
     }
 
     // randomize delay to avoid thundering herd
@@ -281,6 +303,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       }
       this._stableConnectionTimer = setTimeout(() => {
         this._backoffDelay = BACKOFF_INITIAL_DELAY_MS;
+        this._failedConnectionAttempts = 0;
       }, BACKOFF_RESET_DELAY_MS);
 
       // resend active requests
@@ -447,6 +470,30 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
 
     await this.openConnection();
+  }
+
+  /**
+   * Reject all pending execute promises and subscribe hooks with the given error. Clear active request
+   * tracking maps without cancelling or re-invoking any requests.
+   */
+  private _clearAllPendingRequests(error: DataConnectError): void {
+    this._activeQueryExecuteRequests.clear();
+    this._activeMutationExecuteRequests.clear();
+    this._activeSubscribeRequests.clear();
+
+    for (const [requestId, { reject }] of this._executeRequestPromises) {
+      this._executeRequestPromises.delete(requestId);
+      reject(error);
+    }
+
+    for (const [requestId, notifyHook] of this._subscribeNotificationHooks) {
+      this._subscribeNotificationHooks.delete(requestId);
+      notifyHook({
+        data: null,
+        errors: [error],
+        extensions: {}
+      });
+    }
   }
 
   /**
