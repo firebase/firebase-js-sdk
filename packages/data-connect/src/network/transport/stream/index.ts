@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+import { CallerSdkType, CallerSdkTypeEnum } from '..';
+import { DataConnectOptions, TransportOptions } from '../../../api/DataConnect';
+import { AppCheckTokenProvider } from '../../../core/AppCheckTokenProvider';
+import { AuthTokenProvider } from '../../../core/FirebaseAuthProvider';
+
 import {
   DataConnectResponse,
   DataConnectTransportClass,
@@ -54,6 +59,18 @@ interface ActiveRequestKey {
 /** the request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
+/** Initial backoff time in milliseconds after an error. */
+const BACKOFF_INITIAL_DELAY_MS = 1000;
+
+/** The multiplier to use to determine the extended base delay after each reconnection attempt. */
+const BACKOFF_FACTOR = 1.3;
+
+/** Maximum backoff time in milliseconds */
+const BACKOFF_MAX_DELAY_MS = 30 * 1000;
+
+/** Reset delay back to MIN_DELAY after being connected for 30sec. */
+const BACKOFF_RESET_DELAY_MS = 30000;
+
 /**
  * Internal class for abstract management of logical streams (requests), authentication, data routing
  * to query layer, and all other non-connection-specific implementation of streaming protocol and functionality.
@@ -71,6 +88,12 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _closeTimeout: NodeJS.Timeout | null = null;
   /** has the close timeout finished? */
   private _closeTimeoutFinished = false;
+  /** current backoff delay in ms */
+  private _backoffDelay = BACKOFF_INITIAL_DELAY_MS;
+  /** current backoff timer from setTimeout(), if any */
+  private _backoffTimer: NodeJS.Timeout | null = null;
+  /** current stable connection timer from setTimeout(), if any */
+  private _stableConnectionTimer: NodeJS.Timeout | null = null;
 
   /**
    * Map of query/variables to their active execute/resume request bodies.
@@ -143,6 +166,36 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     return `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
   }
 
+  constructor(
+    options: DataConnectOptions,
+    protected apiKey?: string | undefined,
+    protected appId?: string | null,
+    protected authProvider?: AuthTokenProvider | undefined,
+    protected appCheckProvider?: AppCheckTokenProvider | undefined,
+    transportOptions?: TransportOptions | undefined,
+    protected _isUsingGen = false,
+    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
+  ) {
+    super(
+      options,
+      apiKey,
+      appId,
+      authProvider,
+      appCheckProvider,
+      transportOptions,
+      _isUsingGen,
+      _callerSdkType
+    );
+
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      // TODO(stephenarosaj): handle Cordova quirks if necessary (see packages/database/src/core/util/OnlineMonitor.ts)
+      window.addEventListener('online', () => this._onOnline());
+      document.addEventListener('visibilitychange', () =>
+        this._onVisibilityChange()
+      );
+    }
+  }
+
   /** Monotonically increasing sequence number for request ids. starts at 1 */
   private _requestNumber = FIRST_REQUEST_ID;
 
@@ -151,6 +204,159 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
    * @returns a promise which resolves when the connection is ready, or rejects if it fails to open.
    */
   protected abstract openConnection(): Promise<void>;
+
+  /**
+   * Called when the connection is lost/closed by the server or network.
+   * Handles exponential backoff and reconnection logic.
+   */
+  protected _handleConnectionLost(): void {
+    if (this._pendingClose) {
+      // expected close
+      return;
+    }
+
+    if (this._stableConnectionTimer) {
+      clearTimeout(this._stableConnectionTimer);
+      this._stableConnectionTimer = null;
+    }
+
+    // randomize delay to avoid thundering herd
+    const jitter = (Math.random() - 0.5) * this._backoffDelay;
+    const delay = Math.max(0, this._backoffDelay + jitter);
+
+    if (this._backoffTimer) {
+      clearTimeout(this._backoffTimer);
+    }
+    this._backoffTimer = setTimeout(() => {
+      this._attemptReconnect();
+    }, delay);
+
+    // increase backoff for next time
+    this._backoffDelay = Math.min(
+      this._backoffDelay * BACKOFF_FACTOR,
+      BACKOFF_MAX_DELAY_MS
+    );
+  }
+
+  /**
+   * Attempt to reconnect to the server.
+   */
+  private async _attemptReconnect(): Promise<void> {
+    try {
+      await this.openConnection();
+
+      // if successful, reset backoff after a stable period
+      if (this._stableConnectionTimer) {
+        clearTimeout(this._stableConnectionTimer);
+      }
+      this._stableConnectionTimer = setTimeout(() => {
+        this._backoffDelay = BACKOFF_INITIAL_DELAY_MS;
+      }, BACKOFF_RESET_DELAY_MS);
+
+      // resend active requests
+      await this._resendActiveRequests();
+    } catch (err) {
+      // if failed, try again with backoff
+      this._handleConnectionLost();
+    }
+  }
+
+  private _onOnline(): void {
+    this._triggerInstantReconnect();
+  }
+
+  private _onVisibilityChange(): void {
+    if (!document.hidden) {
+      this._triggerInstantReconnect();
+    }
+  }
+
+  /**
+   * If not connected, bypass backoff and try to connect immediately.
+   */
+  private _triggerInstantReconnect(): void {
+    if (this._backoffTimer && !this._pendingClose) {
+      clearTimeout(this._backoffTimer);
+      this._backoffTimer = null;
+      // reset backoff delay since we are triggered by environment
+      this._backoffDelay = BACKOFF_INITIAL_DELAY_MS;
+      this._attemptReconnect();
+    }
+  }
+
+  /**
+   * Resend all active requests. Used after a reconnection.
+   */
+  private async _resendActiveRequests(): Promise<void> {
+    this._requestNumber = FIRST_REQUEST_ID;
+
+    // re-request existing subscriptions
+    for (const [activeRequestKey, subscribeRequestBody] of this
+      ._activeSubscribeRequests) {
+      this._activeSubscribeRequests.delete(activeRequestKey);
+      const oldRequestId = subscribeRequestBody.requestId;
+      const notificationHook =
+        this._subscribeNotificationHooks.get(oldRequestId);
+      this._subscribeNotificationHooks.delete(oldRequestId);
+      if (notificationHook) {
+        // re-invoke subscription
+        this.invokeSubscribe(
+          notificationHook,
+          activeRequestKey.operationName,
+          activeRequestKey.variables
+        );
+      } else {
+        // edge case
+        console.warn(
+          `While reconnecting, found query '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active subscribe request with requestId '${oldRequestId}', but requestId did not have any tracked notification hook. Dropping subscription.`
+        );
+      }
+    }
+
+    // re-request existing mutations
+    for (const [activeRequestKey, mutationRequestSet] of this
+      ._activeMutationExecuteRequests) {
+      this._activeMutationExecuteRequests.delete(activeRequestKey);
+      for (const mutationRequestBody of mutationRequestSet) {
+        const oldRequestId = mutationRequestBody.requestId;
+        const oldPromise = this._executeRequestPromises.get(oldRequestId);
+        this._executeRequestPromises.delete(oldRequestId);
+        if (oldPromise) {
+          // re-invoke mutation, and connect new promise to old promise
+          void this.invokeMutation(
+            activeRequestKey.operationName,
+            activeRequestKey.variables
+          ).then(response => oldPromise.resolve(response));
+        } else {
+          // edge case
+          console.warn(
+            `While reconnecting, found mutation '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active execution request with requestId '${oldRequestId}', but requestId did not have any tracked execution promises. Dropping execution.`
+          );
+        }
+      }
+    }
+
+    // re-request existing queries
+    for (const [activeRequestKey, queryRequestBody] of this
+      ._activeQueryExecuteRequests) {
+      this._activeQueryExecuteRequests.delete(activeRequestKey);
+      const oldRequestId = queryRequestBody.requestId;
+      const oldPromise = this._executeRequestPromises.get(oldRequestId);
+      this._executeRequestPromises.delete(oldRequestId);
+      if (oldPromise) {
+        // re-invoke query, and connect new promise to old promise
+        void this.invokeQuery(
+          activeRequestKey.operationName,
+          activeRequestKey.variables
+        ).then(response => oldPromise.resolve(response));
+      } else {
+        // edge case
+        console.warn(
+          `While reconnecting, found query '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active execution request with requestId '${oldRequestId}', but requestId did not have any tracked execution promises. Dropping execution.`
+        );
+      }
+    }
+  }
 
   /**
    * Close the physical connection with the server. Handles no cleanup - simply closes the
@@ -200,77 +406,16 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
    * Forcefully close the connection and re-establish it, re-requesting all currently active requests.
    */
   private async _forceReconnect(): Promise<void> {
-    // reset the connection
-    await this.closeConnection();
-    this._requestNumber = FIRST_REQUEST_ID;
+    // prevent auto-reconnect logic from triggering during this explicit reconnect
+    this._pendingClose = true;
+    try {
+      await this.closeConnection();
+    } finally {
+      this._pendingClose = false;
+    }
+
     await this.openConnection();
-
-    // re-request existing subscriptions
-    for (const [activeRequestKey, subscribeRequestBody] of this
-      ._activeSubscribeRequests) {
-      this._activeSubscribeRequests.delete(activeRequestKey);
-      const oldRequestId = subscribeRequestBody.requestId;
-      const notificationHook =
-        this._subscribeNotificationHooks.get(oldRequestId);
-      this._subscribeNotificationHooks.delete(oldRequestId);
-      if (notificationHook) {
-        // re-invoke subscription
-        this.invokeSubscribe(
-          notificationHook,
-          activeRequestKey.operationName,
-          activeRequestKey.variables
-        );
-      } else {
-        // edge case - no active notification hook somehow, although we were actively subscribed
-        console.warn(
-          `While reconnecting, found query '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active subscribe request with requestId '${oldRequestId}', but requestId did not have any tracked notification hook. Dropping subscription.`
-        );
-      }
-    }
-
-    // re-request existing mutations
-    for (const [activeRequestKey, mutationRequestSet] of this
-      ._activeMutationExecuteRequests) {
-      this._activeMutationExecuteRequests.delete(activeRequestKey);
-      for (const mutationRequestBody of mutationRequestSet) {
-        const oldRequestId = mutationRequestBody.requestId;
-        const oldPromise = this._executeRequestPromises.get(oldRequestId);
-        this._executeRequestPromises.delete(oldRequestId);
-        if (oldPromise) {
-          // re-invoke mutation, and connect new promise to old promise
-          void this.invokeMutation(
-            activeRequestKey.operationName,
-            activeRequestKey.variables
-          ).then(response => oldPromise.resolve(response));
-        } else {
-          // edge case - no active execution promise somehow, although this was an active execution request
-          console.warn(
-            `While reconnecting, found mutation '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active execution request with requestId '${oldRequestId}', but requestId did not have any tracked execution promises. Dropping execution.`
-          );
-        }
-      }
-    }
-
-    // re-request existing queries
-    for (const [activeRequestKey, queryRequestBody] of this
-      ._activeQueryExecuteRequests) {
-      this._activeQueryExecuteRequests.delete(activeRequestKey);
-      const oldRequestId = queryRequestBody.requestId;
-      const oldPromise = this._executeRequestPromises.get(oldRequestId);
-      this._executeRequestPromises.delete(oldRequestId);
-      if (oldPromise) {
-        // re-invoke query, and connect new promise to old promise
-        void this.invokeQuery(
-          activeRequestKey.operationName,
-          activeRequestKey.variables
-        ).then(response => oldPromise.resolve(response));
-      } else {
-        // edge case - no active execution promise somehow, although this was an active execution request
-        console.warn(
-          `While reconnecting, found query '${activeRequestKey.operationName}' with variables ${activeRequestKey.variables} with active execution request with requestId '${oldRequestId}', but requestId did not have any tracked execution promises. Dropping execution.`
-        );
-      }
-    }
+    await this._resendActiveRequests();
   }
 
   /**

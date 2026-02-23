@@ -81,8 +81,6 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
       return this._connectionAttempt;
     }
     this._connectionAttempt = new Promise<void>((resolve, reject) => {
-      // eslint-disable-next-line no-console
-      console.log(this.endpointUrl); // DEBUGGING
       const ws = new WebSocket(this.endpointUrl);
       ws.onopen = () => {
         this._connection = ws;
@@ -126,12 +124,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
   private _handleDisconnect(ev: CloseEvent): void {
     this._connection = undefined;
     this._connectionAttempt = null;
-
-    // server will drop all requests on disconnect
-    // TODO(stephenarosaj): requeue all requests for when connection comes back online
-    // TODO(stephenarosaj): what do we do with pending execute requests? do we resolve them as failed after a timeout (if reconnect before timeout, stop the timeout)?
-    // TODO(stephenarosaj): NOTE: if we are re-requesting, the first request needs to have auth and app check, and
-    // TODO(stephenarosaj): use ev.code and ev.wasClean to figure out what kind of disconnect this was and what to do next
+    this._handleConnectionLost();
   }
 
   sendMessage<Variables>(
@@ -142,8 +135,6 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
         this._connection!.send(JSON.stringify(requestBody));
       })
       .catch(err => {
-        // eslint-disable-next-line no-console
-        console.log('\nCONNECTION:\n', this._connection);
         throw new DataConnectError(
           Code.OTHER,
           `Failed to send message: ${JSON.stringify(err)}`
@@ -178,8 +169,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
     data: any // TODO(stephenarosaj): type better
   ): DataConnectStreamResponse<Data> {
     const webSocketMessage = JSON.parse(data);
-    // eslint-disable-next-line no-console
-    console.log('\n_parseWebSocketData:\n', webSocketMessage); // DEBUGGING
+
     if (!('result' in webSocketMessage)) {
       throw new DataConnectError(
         Code.OTHER,
