@@ -88,9 +88,7 @@ export function parseOptions(fullHost: string): TransportOptions {
 /**
  * DataConnectOptions including project id
  */
-export interface DataConnectOptions
-  extends ConnectorConfig,
-    DataConnectSettings {
+export interface DataConnectOptions extends ConnectorConfig {
   projectId: string;
 }
 
@@ -109,6 +107,7 @@ export class DataConnect {
   _isUsingGeneratedSdk: boolean = false;
   _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base;
   private _appCheckTokenProvider?: AppCheckTokenProvider;
+  private _cacheSettings?: CacheSettings;
   /**
    * @internal
    */
@@ -168,7 +167,7 @@ export class DataConnect {
    * @internal
    */
   setCacheSettings(cacheSettings: CacheSettings): void {
-    this.dataConnectOptions.cacheSettings = cacheSettings;
+    this._cacheSettings = cacheSettings;
   }
 
   // @internal
@@ -191,13 +190,13 @@ export class DataConnect {
       service: this.dataConnectOptions.service,
       location: this.dataConnectOptions.location
     };
-    if (this.dataConnectOptions.cacheSettings) {
+    if (this._cacheSettings) {
       this.cache = new DataConnectCache(
         this._authTokenProvider,
         this.app.options.projectId!,
         connectorConfig,
         this._transportOptions?.host || PROD_HOST,
-        this.dataConnectOptions.cacheSettings
+        this._cacheSettings
       );
     }
 
@@ -369,15 +368,18 @@ export function getDataConnect(
 
   logDebug('Creating new DataConnect instance');
   // Initialize with options.
-  return provider.initialize({
+  const dataConnect = provider.initialize({
     instanceIdentifier: identifier,
     options: Object.fromEntries(
       Object.entries({
-        ...realSettings,
         ...sortedSerialized
       }).sort()
     )
   });
+  if (realSettings?.cacheSettings) {
+    dataConnect.setCacheSettings(realSettings.cacheSettings);
+  }
+  return dataConnect;
 }
 
 /**

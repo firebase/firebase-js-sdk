@@ -123,7 +123,7 @@ export interface DataConnectOperationFailureResponseErrorInfo {
 }
 
 // @public
-export interface DataConnectOptions extends ConnectorConfig, DataConnectSettings {
+export interface DataConnectOptions extends ConnectorConfig {
     // (undocumented)
     projectId: string;
 }

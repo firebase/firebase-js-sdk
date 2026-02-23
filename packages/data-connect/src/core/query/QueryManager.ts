@@ -28,7 +28,6 @@ import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { parseEntityIds } from '../../cache/cacheUtils';
 import { EncodingMode } from '../../cache/EntityNode';
-import { logDebug } from '../../logger';
 import { DataConnectTransport, Extensions } from '../../network';
 import {
   DataConnectExtensionWithMaxAge,
@@ -71,12 +70,16 @@ export class QueryManager {
     queryRef: QueryRef<Data, Variables>,
     allowStale = false
   ): Promise<QueryResult<Data, Variables>> {
+    let cacheResult: QueryResult<Data, Variables> | undefined;
     try {
-      const cacheResult = await this.fetchCacheResults(queryRef, allowStale);
-      return cacheResult;
-    } catch {
-      return this.fetchServerResults(queryRef);
+      cacheResult = await this.fetchCacheResults(queryRef, allowStale);
+    } catch (e) {
+      // Ignore the error and try to fetch from the server.
     }
+    if (cacheResult) {
+      return cacheResult;
+    }
+    return this.fetchServerResults(queryRef);
   }
   private callbacks = new Map<
     string,
@@ -168,13 +171,6 @@ export class QueryManager {
       this.updateSSR(initialCache);
     }
 
-    logDebug(
-      `Cache not available for query ${
-        queryRef.name
-      } with variables ${JSON.stringify(
-        queryRef.variables
-      )}. Calling executeQuery.`
-    );
     const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
     promise.then(undefined, err => {});
@@ -219,15 +215,16 @@ export class QueryManager {
           fetchTime
         )
       };
-      const updatedKeys = await this.updateCache(
+      let updatedKeys: string[] = [];
+      updatedKeys = await this.updateCache(
         queryResult,
         originalExtensions?.dataConnect
       );
+      this.publishDataToSubscribers(key, queryResult);
       if (this.cache) {
         await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
       } else {
         this.subscriptionCache.set(key, queryResult);
-        this.publishDataToSubscribers(key, queryResult);
       }
       return queryResult;
     } catch (e) {
@@ -300,6 +297,9 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
+    if (!this.cache || !(await this.cache.containsResultTree(key))) {
+      return null;
+    }
     const cacheResult: Data = (await this.cache!.getResultJSON(key)) as Data;
     const resultTree = await this.cache!.getResultTree(key);
     if (!allowStale && resultTree!.isStale()) {
@@ -381,7 +381,7 @@ export class QueryManager {
       };
       this.publishDataToSubscribers(query, {
         data: newJson,
-        fetchTime: new Date().toISOString(),
+        fetchTime,
         ref: queryRef,
         source: SOURCE_CACHE,
         toJSON: getRefSerializer(queryRef, newJson, SOURCE_CACHE, fetchTime)
@@ -400,7 +400,11 @@ export function getMaxAgeFromExtensions(
     return;
   }
   for (const extension of extensions) {
-    if ('maxAge' in extension && extension.maxAge !== undefined) {
+    if (
+      'maxAge' in extension &&
+      extension.maxAge !== undefined &&
+      extension.maxAge !== null
+    ) {
       if (extension.maxAge.endsWith('s')) {
         return Number(
           extension.maxAge.substring(0, extension.maxAge.length - 1)

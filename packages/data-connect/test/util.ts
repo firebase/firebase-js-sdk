@@ -19,7 +19,8 @@ import {
   connectDataConnectEmulator,
   ConnectorConfig,
   DataConnect,
-  getDataConnect
+  getDataConnect,
+  makeMemoryCacheProvider
 } from '../src';
 
 export const EMULATOR_PORT = process.env.DC_EMULATOR_PORT;
@@ -38,7 +39,11 @@ export function getConnectionConfig(): ConnectorConfig {
 
 // Seed the database to have the proper fields to query, such as a list of tasks.
 export function initDatabase(): DataConnect {
-  const instance = getDataConnect(getConnectionConfig());
+  const instance = getDataConnect(getConnectionConfig(), {
+    cacheSettings: {
+      cacheProvider: makeMemoryCacheProvider()
+    }
+  });
   if (USE_EMULATOR) {
     connectDataConnectEmulator(instance, 'localhost', Number(EMULATOR_PORT));
   }
