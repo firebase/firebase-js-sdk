@@ -66,11 +66,11 @@ const fakeTracingProvider = {
   getTracer: () => ({
     startActiveSpan: (name: string, fn: (span: any) => any) =>
       fn({
-        end: () => {},
+        end: () => { },
         spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
       })
   }),
-  register: () => {},
+  register: () => { },
   shutdown: () => Promise.resolve()
 } as unknown as TracerProvider;
 
@@ -155,16 +155,16 @@ describe('Top level API', () => {
       );
     });
 
-    it('works with options: loggingUrl set', () => {
+    it('works with options: endpointUrl set', () => {
       const app = getFakeApp();
-      expect(getCrashlytics(app, { loggingUrl: 'http://endpoint1' })).to.equal(
-        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
+      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1' })).to.equal(
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
       );
       expect(
-        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, { loggingUrl: 'http://endpoint2' }));
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      ).not.to.equal(getCrashlytics(app, { endpointUrl: 'http://endpoint2' }));
       expect(
-        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
       ).not.to.equal(getCrashlytics(app, {}));
     });
   });
@@ -392,7 +392,7 @@ describe('Top level API', () => {
           getItem: () => {
             throw new Error('SecurityError');
           },
-          setItem: () => {}
+          setItem: () => { }
         };
 
         Object.defineProperty(global, 'sessionStorage', {
@@ -451,10 +451,10 @@ function getFakeApp(): FirebaseApp {
     new Component(
       'installations-internal',
       () =>
-        ({
-          getId: async () => 'iid',
-          getToken: async () => 'authToken'
-        } as _FirebaseInstallationsInternal),
+      ({
+        getId: async () => 'iid',
+        getToken: async () => 'authToken'
+      } as _FirebaseInstallationsInternal),
       ComponentType.PUBLIC
     )
   );
@@ -480,7 +480,7 @@ function getFakeApp(): FirebaseApp {
       // @ts-ignore
       () => {
         return {
-          triggerHeartbeat: () => {}
+          triggerHeartbeat: () => { }
         };
       },
       ComponentType.PUBLIC
