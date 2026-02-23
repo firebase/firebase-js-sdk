@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,5 +15,13 @@
  * limitations under the License.
  */
 
-export * from './core/query/subscribe';
-export { makeMemoryCacheProvider, CacheProvider } from './api/DataConnect';
+import { EntityDataObject } from './EntityDataObject';
+import { ResultTree } from './ResultTree';
+
+export interface InternalCacheProvider {
+  getEntityData(globalId: string): Promise<EntityDataObject>;
+  updateEntityData(entityData: EntityDataObject): Promise<void>;
+  getResultTree(queryId: string): Promise<ResultTree | undefined>;
+  setResultTree(queryId: string, resultTree: ResultTree): Promise<void>;
+  close(): void;
+}
