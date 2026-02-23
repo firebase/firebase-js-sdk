@@ -51,7 +51,6 @@ export function getCrashlytics(
   app: FirebaseApp = getApp(),
   options?: CrashlyticsOptions
 ): Crashlytics {
-  console.log('getCrashlytics called');
   const crashlyticsProvider: Provider<'crashlytics'> = _getProvider(
     app,
     CRASHLYTICS_TYPE
