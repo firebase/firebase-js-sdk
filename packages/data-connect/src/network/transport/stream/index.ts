@@ -94,6 +94,16 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _backoffTimer: NodeJS.Timeout | null = null;
   /** current stable connection timer from setTimeout(), if any */
   private _stableConnectionTimer: NodeJS.Timeout | null = null;
+  /**
+   * Tracks if the next message to be sent is the first message of the stream.
+   * If true, we must include the 'name' field in the request body.
+   */
+  private _isFirstStreamMessage = true;
+  /**
+   * Tracks the last auth token sent to the server.
+   * Used to detect if the token has changed and needs to be resent.
+   */
+  private _lastSentAccessToken: string | null = null;
 
   /**
    * Map of query/variables to their active execute/resume request bodies.
@@ -430,6 +440,15 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   }
 
   /**
+   * Called by the concrete transport implementation when the physical connection is ready.
+   * Resets stream state variables.
+   */
+  protected onConnectionReady(): void {
+    this._isFirstStreamMessage = true;
+    this._lastSentAccessToken = null;
+  }
+
+  /**
    * Generated and returns the next request ID.
    */
   private _nextRequestId(): string {
@@ -454,15 +473,23 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       headers['x-firebase-gmpid'] = this.appId;
     }
 
-    if (this._shouldIncludeAuth && this._lastToken) {
-      headers.authToken = this._lastToken; // TODO(stephenarosaj)
+    const accessToken = this._accessToken;
+    if (this._shouldIncludeAuth && accessToken) {
+      if (
+        this._isFirstStreamMessage ||
+        accessToken !== this._lastSentAccessToken
+      ) {
+        headers.authToken = accessToken;
+        this._lastSentAccessToken = accessToken;
+      }
     }
-    if (
-      requestBody.requestId === FIRST_REQUEST_ID.toString() &&
-      this._appCheckToken
-    ) {
-      headers.appCheckToken = this._appCheckToken;
+
+    if (this._isFirstStreamMessage) {
+      if (this._appCheckToken) {
+        headers.appCheckToken = this._appCheckToken;
+      }
       requestBody.name = this.connectorResourcePath;
+      this._isFirstStreamMessage = false;
     }
 
     // requestBody.headers = headers; // TODO(stephenarosaj): add this in when the backend is ready

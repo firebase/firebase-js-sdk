@@ -84,6 +84,7 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
       const ws = new WebSocket(this.endpointUrl);
       ws.onopen = () => {
         this._connection = ws;
+        this.onConnectionReady();
         resolve();
       };
       ws.onerror = err => {
