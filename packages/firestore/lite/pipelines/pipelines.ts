@@ -141,6 +141,8 @@ export {
   trim,
   ltrim,
   rtrim,
+  type,
+  isType,
   stringConcat,
   stringIndexOf,
   stringRepeat,
@@ -193,7 +195,6 @@ export {
   arraySum,
   split,
   timestampTruncate,
-  type,
   AliasedExpression,
   Field,
   Constant,
@@ -204,5 +205,6 @@ export {
   Selectable,
   BooleanExpression,
   AggregateFunction,
-  TimeGranularity
+  TimeGranularity,
+  Type
 } from '../../src/lite-api/expressions';

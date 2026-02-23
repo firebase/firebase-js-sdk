@@ -66,6 +66,7 @@ import {
   ifError,
   isAbsent,
   isError,
+  isType,
   or,
   map,
   length,
@@ -134,6 +135,7 @@ import {
   toLower,
   toUpper,
   trim,
+  type,
   byteLength,
   arrayGet,
   abs,
@@ -4123,6 +4125,133 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, {
         indexOfGuide: 17,
         indexOfByte: 1
+      });
+    });
+    it('testType', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(
+                Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+              ),
+              docRef: constant(doc(firestore, 'foo', 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                'number': 1,
+                'string': 'a string'
+              }),
+              list: array([1, '2', true])
+            })
+          )
+          .select(
+            type(field('int')).as('int'),
+            field('float').type().as('float'),
+            type('str').as('str'),
+            field('bool').type().as('bool'),
+            type('null').as('null'),
+            field('geoPoint').type().as('geoPoint'),
+            type('timestamp').as('timestamp'),
+            field('bytes').type().as('bytes'),
+            type('docRef').as('docRef'),
+            field('vector').type().as('vector'),
+            type('map').as('map'),
+            field('list').type().as('list')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        int: 'int64',
+        float: 'float64',
+        str: 'string',
+        bool: 'boolean',
+        null: 'null',
+        geoPoint: 'geo_point',
+        timestamp: 'timestamp',
+        bytes: 'bytes',
+        docRef: 'reference',
+        vector: 'vector',
+        map: 'map',
+        list: 'array'
+      });
+    });
+
+    it('testIsType', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]))),
+              docRef: constant(doc(firestore, randomCol.path, 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                numberK: 1,
+                stringK: 'a string'
+              }),
+              array: array([1, '2', true])
+            })
+          )
+          .select(
+            isType(field('int'), 'int64').as('isInt64'),
+            isType(field('int'), 'number').as('isInt64IsNumber'),
+            isType(field('int'), 'decimal128').as('isInt64IsDecimal128'),
+            field('float').isType('float64').as('isFloat64'),
+            field('float').isType('number').as('isFloat64IsNumber'),
+            field('float').isType('decimal128').as('isFloat64IsDecimal128'),
+            isType('str', 'string').as('isStr'),
+            isType('int', 'string').as('isNumStr'),
+            field('bool').isType('boolean').as('isBool'),
+            isType('null', 'null').as('isNull'),
+            field('geoPoint').isType('geo_point').as('isGeoPoint'),
+            isType('timestamp', 'timestamp').as('isTimestamp'),
+            field('bytes').isType('bytes').as('isBytes'),
+            isType('docRef', 'reference').as('isDocRef'),
+            field('vector').isType('vector').as('isVector'),
+            isType('map', 'map').as('isMap'),
+            field('array').isType('array').as('isArray'),
+            field('str').isType('int64').as('isStrNum')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        isInt64: true,
+        isInt64IsNumber: true,
+        isInt64IsDecimal128: false,
+        isFloat64: true,
+        isFloat64IsNumber: true,
+        isFloat64IsDecimal128: false,
+        isStr: true,
+        isNumStr: false,
+        isBool: true,
+        isNull: true,
+        isGeoPoint: true,
+        isTimestamp: true,
+        isBytes: true,
+        isDocRef: true,
+        isVector: true,
+        isMap: true,
+        isArray: true,
+        isStrNum: false
       });
     });
 

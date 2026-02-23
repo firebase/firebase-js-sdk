@@ -101,6 +101,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [ifError(catchValue)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
 |  [isAbsent()](./firestore_lite_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
 |  [isError()](./firestore_lite_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
+|  [isType(type)](./firestore_lite_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
 |  [join(delimiterExpression)](./firestore_lite_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(delimiter)](./firestore_lite_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
 |  [last()](./firestore_lite_pipelines.expression.md#expressionlast) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
@@ -1974,6 +1975,42 @@ A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpr
 ```typescript
 // Check if the result of a calculation is an error
 field("title").arrayContains(1).isError();
+
+```
+
+## Expression.isType()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the result of this expression is of the given type.
+
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+
+<b>Signature:</b>
+
+```typescript
+isType(type: Type): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  type | [Type](./firestore_lite_pipelines.md#type) | The type to check for. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+
+### Example
+
+
+```typescript
+// Check if the 'price' field is specifically an integer (not just 'number')
+field('price').isType('int64');
 
 ```
 
@@ -4462,6 +4499,8 @@ field("rating").trunc(constant(2));
 > 
 
 Creates an expression that returns the data type of this expression's result, as a string.
+
+This is evaluated on the backend. This means: 1. Generic typed elements (like `array<string>`<!-- -->) evaluate strictly to the primitive `'array'`<!-- -->. 2. Any custom `FirestoreDataConverter` mappings are ignored. 3. For numeric values, the backend does not yield the JavaScript `"number"` type; it evaluates precisely as `"int64"` or `"float64"`<!-- -->. 4. For date or timestamp objects, the backend evaluates to `"timestamp"`<!-- -->.
 
 <b>Signature:</b>
 
