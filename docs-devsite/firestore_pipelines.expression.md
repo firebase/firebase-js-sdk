@@ -39,6 +39,8 @@ export declare abstract class Expression
 |  --- | --- | --- |
 |  [abs()](./firestore_pipelines.expression.md#expressionabs) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
 |  [add(second)](./firestore_pipelines.expression.md#expressionadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds this expression to another expression. |
+|  [arrayAgg()](./firestore_pipelines.expression.md#expressionarrayagg) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
+|  [arrayAggDistinct()](./firestore_pipelines.expression.md#expressionarrayaggdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
 |  [arrayConcat(secondArray, otherArrays)](./firestore_pipelines.expression.md#expressionarrayconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates an array expression with one or more other arrays. |
 |  [arrayContains(expression)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific element. |
 |  [arrayContains(value)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific value. |
@@ -80,6 +82,7 @@ export declare abstract class Expression
 |  [euclideanDistance(vector)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
 |  [exists()](./firestore_pipelines.expression.md#expressionexists) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists in the document. |
 |  [exp()](./firestore_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression. |
+|  [first()](./firestore_pipelines.expression.md#expressionfirst) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
 |  [floor()](./firestore_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
 |  [greaterThan(expression)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression. |
 |  [greaterThan(value)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
@@ -101,6 +104,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
 |  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
+|  [last()](./firestore_pipelines.expression.md#expressionlast) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
 |  [length()](./firestore_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
 |  [lessThan(experession)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than another expression. |
 |  [lessThan(value)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than a constant value. |
@@ -112,6 +116,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [log10()](./firestore_pipelines.expression.md#expressionlog10) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
 |  [logicalMaximum(second, others)](./firestore_pipelines.expression.md#expressionlogicalmaximum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
 |  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
+|  [ltrim(valueToTrim)](./firestore_pipelines.expression.md#expressionltrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
 |  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
@@ -139,6 +144,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [round()](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
 |  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
 |  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(valueToTrim)](./firestore_pipelines.expression.md#expressionrtrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
 |  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
 |  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
 |  [sqrt()](./firestore_pipelines.expression.md#expressionsqrt) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
@@ -147,6 +153,10 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [stringConcat(secondString, otherStrings)](./firestore_pipelines.expression.md#expressionstringconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string expressions together. |
 |  [stringContains(substring)](./firestore_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified substring. |
 |  [stringContains(expr)](./firestore_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains the string represented by another expression. |
+|  [stringIndexOf(search)](./firestore_pipelines.expression.md#expressionstringindexof) |  | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(repetitions)](./firestore_pipelines.expression.md#expressionstringrepeat) |  | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceall) |  | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceone) |  | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
 |  [stringReverse()](./firestore_pipelines.expression.md#expressionstringreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses a string. |
 |  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
 |  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
@@ -165,6 +175,9 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [toLower()](./firestore_pipelines.expression.md#expressiontolower) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to lowercase. |
 |  [toUpper()](./firestore_pipelines.expression.md#expressiontoupper) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to uppercase. |
 |  [trim(valueToTrim)](./firestore_pipelines.expression.md#expressiontrim) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array. |
+|  [trunc()](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value to an integer. |
+|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
 |  [type()](./firestore_pipelines.expression.md#expressiontype) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of this expression's result, as a string. |
 |  [unixMicrosToTimestamp()](./firestore_pipelines.expression.md#expressionunixmicrostotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  [unixMillisToTimestamp()](./firestore_pipelines.expression.md#expressionunixmillistotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
@@ -240,6 +253,64 @@ A new `Expression` representing the addition operation.
 ```typescript
 // Add the value of the 'quantity' field and the 'reserve' field.
 field("quantity").add(field("reserve"));
+
+```
+
+## Expression.arrayAgg()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+arrayAgg(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'array\_agg' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all tags from books into an array
+field("tags").arrayAgg().as("allTags");
+
+```
+
+## Expression.arrayAggDistinct()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+arrayAggDistinct(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'array\_agg\_distinct' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all distinct tags from books into an array
+field("tags").arrayAggDistinct().as("allDistinctTags");
 
 ```
 
@@ -1525,6 +1596,33 @@ field("value").exp();
 
 ```
 
+## Expression.first()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the first value of an expression across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+first(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'first' aggregation.
+
+### Example
+
+
+```typescript
+// Find the first value of the 'rating' field
+field("rating").first().as("firstRating");
+
+```
+
 ## Expression.floor()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -1984,6 +2082,33 @@ field("tags").join(", ")
 
 ```
 
+## Expression.last()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the last value of an expression across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+last(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'last' aggregation.
+
+### Example
+
+
+```typescript
+// Find the last value of the 'rating' field
+field("rating").last().as("lastRating");
+
+```
+
 ## Expression.length()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -2339,6 +2464,43 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Returns the smaller value between the 'timestamp' field and the current timestamp.
 field("timestamp").logicalMinimum(Function.currentTimestamp());
+
+```
+
+## Expression.ltrim()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the trimmed string.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the beginning of the 'userInput' field
+field("userInput").ltrim();
+
+// Trim quotes from the beginning of the 'userInput' field
+field("userInput").ltrim('"');
 
 ```
 
@@ -3243,6 +3405,43 @@ field("price").round(constant(2));
 
 ```
 
+## Expression.rtrim()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the end of the 'userInput' field
+field("userInput").rtrim();
+
+// Trim quotes from the end of the 'userInput' field
+field("userInput").rtrim('"');
+
+```
+
 ## Expression.split()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -3506,6 +3705,144 @@ A new `Expression` representing the 'contains' comparison.
 ```typescript
 // Check if the 'description' field contains the value of the 'keyword' field.
 field("description").stringContains(field("keyword"));
+
+```
+
+## Expression.stringIndexOf()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+
+<b>Signature:</b>
+
+```typescript
+stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the index of the first occurrence.
+
+### Example
+
+
+```typescript
+// Find the index of "foo" in the 'text' field
+field("text").stringIndexOf("foo");
+
+```
+
+## Expression.stringRepeat()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that repeats a string or byte array a specified number of times.
+
+<b>Signature:</b>
+
+```typescript
+stringRepeat(repetitions: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  repetitions | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The number of times to repeat the string or byte array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the repeated string or byte array.
+
+### Example
+
+
+```typescript
+// Repeat the 'label' field 3 times
+field("label").stringRepeat(3);
+
+```
+
+## Expression.stringReplaceAll()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the string or byte array with replacements.
+
+### Example
+
+
+```typescript
+// Replace all occurrences of "foo" with "bar" in the 'text' field
+field("text").stringReplaceAll("foo", "bar");
+
+```
+
+## Expression.stringReplaceOne()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the string or byte array with the replacement.
+
+### Example
+
+
+```typescript
+// Replace the first occurrence of "foo" with "bar" in the 'text' field
+field("text").stringReplaceOne("foo", "bar");
 
 ```
 
@@ -4058,6 +4395,101 @@ field("userInput").trim();
 
 // Trim quotes from the 'userInput' field
 field("userInput").trim('"');
+
+```
+
+## Expression.trunc()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates the numeric value to an integer.
+
+<b>Signature:</b>
+
+```typescript
+trunc(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the 'rating' field
+field("rating").trunc();
+
+```
+
+## Expression.trunc()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric value to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+trunc(decimalPlaces: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  decimalPlaces | number | A constant specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+field("rating").trunc(2);
+
+```
+
+## Expression.trunc()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric value to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+trunc(decimalPlaces: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  decimalPlaces | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+field("rating").trunc(constant(2));
 
 ```
 

@@ -184,8 +184,11 @@ export function getText(
  * Returns every {@link FunctionCall} associated with first candidate.
  */
 export function getFunctionCalls(
-  response: GenerateContentResponse
+  response?: GenerateContentResponse
 ): FunctionCall[] | undefined {
+  if (!response) {
+    return undefined;
+  }
   const functionCalls: FunctionCall[] = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {

@@ -1250,6 +1250,55 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the beginning of the 'userInput' field
+   * field("userInput").ltrim();
+   *
+   * // Trim quotes from the beginning of the 'userInput' field
+   * field("userInput").ltrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string.
+   */
+  ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('ltrim', args, 'ltrim');
+  }
+
+  /**
+   * @beta
+   * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the end of the 'userInput' field
+   * field("userInput").rtrim();
+   *
+   * // Trim quotes from the end of the 'userInput' field
+   * field("userInput").rtrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string or byte array.
+   */
+  rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('rtrim', args, 'rtrim');
+  }
+
+  /**
    * @beta
    * Creates an expression that returns the data type of this expression's result, as a string.
    *
@@ -1320,6 +1369,98 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       'string_concat',
       [this, ...exprs],
       'stringConcat'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+   *
+   * @example
+   * ```typescript
+   * // Find the index of "foo" in the 'text' field
+   * field("text").stringIndexOf("foo");
+   * ```
+   *
+   * @param search - The substring or byte sequence to search for.
+   * @returns A new `Expression` representing the index of the first occurrence.
+   */
+  stringIndexOf(search: string | Expression | Bytes): FunctionExpression {
+    return new FunctionExpression(
+      'string_index_of',
+      [this, valueToDefaultExpr(search)],
+      'stringIndexOf'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that repeats a string or byte array a specified number of times.
+   *
+   * @example
+   * ```typescript
+   * // Repeat the 'label' field 3 times
+   * field("label").stringRepeat(3);
+   * ```
+   *
+   * @param repetitions - The number of times to repeat the string or byte array.
+   * @returns A new `Expression` representing the repeated string or byte array.
+   */
+  stringRepeat(repetitions: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'string_repeat',
+      [this, valueToDefaultExpr(repetitions)],
+      'stringRepeat'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+   *
+   * @example
+   * ```typescript
+   * // Replace all occurrences of "foo" with "bar" in the 'text' field
+   * field("text").stringReplaceAll("foo", "bar");
+   * ```
+   *
+   * @param find - The substring or byte sequence to search for.
+   * @param replacement - The replacement string or byte sequence.
+   * @returns A new `Expression` representing the string or byte array with replacements.
+   */
+  stringReplaceAll(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'string_replace_all',
+      [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
+      'stringReplaceAll'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+   *
+   * @example
+   * ```typescript
+   * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+   * field("text").stringReplaceOne("foo", "bar");
+   * ```
+   *
+   * @param find - The substring or byte sequence to search for.
+   * @param replacement - The replacement string or byte sequence.
+   * @returns A new `Expression` representing the string or byte array with the replacement.
+   */
+  stringReplaceOne(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'string_replace_one',
+      [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
+      'stringReplaceOne'
     );
   }
 
@@ -1543,6 +1684,84 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   maximum(): AggregateFunction {
     return AggregateFunction._create('maximum', [this], 'maximum');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that finds the first value of an expression across multiple stage inputs.
+   *
+   * @example
+   * ```typescript
+   * // Find the first value of the 'rating' field
+   * field("rating").first().as("firstRating");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'first' aggregation.
+   */
+  first(): AggregateFunction {
+    return AggregateFunction._create('first', [this], 'first');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that finds the last value of an expression across multiple stage inputs.
+   *
+   * @example
+   * ```typescript
+   * // Find the last value of the 'rating' field
+   * field("rating").last().as("lastRating");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'last' aggregation.
+   */
+  last(): AggregateFunction {
+    return AggregateFunction._create('last', [this], 'last');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that collects all values of an expression across multiple stage inputs
+   * into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
+   * @example
+   * ```typescript
+   * // Collect all tags from books into an array
+   * field("tags").arrayAgg().as("allTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg' aggregation.
+   */
+  arrayAgg(): AggregateFunction {
+    return AggregateFunction._create('array_agg', [this], 'arrayAgg');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that collects all distinct values of an expression across multiple stage
+   * inputs into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
+   * @example
+   * ```typescript
+   * // Collect all distinct tags from books into an array
+   * field("tags").arrayAggDistinct().as("allDistinctTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg_distinct' aggregation.
+   */
+  arrayAggDistinct(): AggregateFunction {
+    return AggregateFunction._create(
+      'array_agg_distinct',
+      [this],
+      'arrayAggDistinct'
+    );
   }
 
   /**
@@ -2257,6 +2476,61 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   pow(exponent: number): FunctionExpression;
   pow(exponent: number | Expression): FunctionExpression {
     return new FunctionExpression('pow', [this, valueToDefaultExpr(exponent)]);
+  }
+
+  /**
+   * @beta
+   * Creates an expression that truncates the numeric value to an integer.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the 'rating' field
+   * field("rating").trunc();
+   * ```
+   *
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that truncates a numeric value to the specified number of decimal places.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the value of the 'rating' field to two decimal places.
+   * field("rating").trunc(2);
+   * ```
+   *
+   * @param decimalPlaces - A constant specifying the truncation precision in decimal places.
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(decimalPlaces: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that truncates a numeric value to the specified number of decimal places.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the value of the 'rating' field to two decimal places.
+   * field("rating").trunc(constant(2));
+   * ```
+   *
+   * @param decimalPlaces - An expression specifying the truncation precision in decimal places.
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(decimalPlaces: Expression): FunctionExpression;
+  trunc(decimalPlaces?: number | Expression): FunctionExpression {
+    if (decimalPlaces === undefined) {
+      return new FunctionExpression('trunc', [this]);
+    } else {
+      return new FunctionExpression(
+        'trunc',
+        [this, valueToDefaultExpr(decimalPlaces)],
+        'trunc'
+      );
+    }
   }
 
   /**
@@ -6742,6 +7016,109 @@ export function trim(
 }
 
 /**
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function ltrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).ltrim(valueToTrim);
+}
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function rtrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).rtrim(valueToTrim);
+}
+
+/**
  * @beta
  * Creates an expression that returns the data type of the data in the specified field.
  *
@@ -6870,6 +7247,192 @@ export function stringConcat(
     valueToDefaultExpr(second),
     ...elements.map(valueToDefaultExpr)
   );
+}
+
+/**
+ * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf("text", "foo");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  fieldName: string,
+  search: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf(field("text"), "foo");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  expression: Expression,
+  search: string | Expression | Bytes
+): FunctionExpression;
+export function stringIndexOf(
+  expr: Expression | string,
+  search: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringIndexOf(search);
+}
+
+/**
+ * @beta
+ * Creates an expression that repeats a string or byte array a specified number of times.
+ *
+ * @example
+ * ```typescript
+ * // Repeat the 'label' field 3 times
+ * stringRepeat("label", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param repetitions - The number of times to repeat the string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the repeated string or byte array.
+ */
+export function stringRepeat(
+  fieldName: string,
+  repetitions: number | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that repeats a string or byte array a specified number of times.
+ *
+ * @example
+ * ```typescript
+ * // Repeat the 'label' field 3 times
+ * stringRepeat(field("label"), 3);
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param repetitions - The number of times to repeat the string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the repeated string or byte array.
+ */
+export function stringRepeat(
+  expression: Expression,
+  repetitions: number | Expression
+): FunctionExpression;
+export function stringRepeat(
+  expr: Expression | string,
+  repetitions: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(expr).stringRepeat(repetitions);
+}
+
+/**
+ * @beta
+ * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace all occurrences of "foo" with "bar" in the 'text' field
+ * stringReplaceAll("text", "foo", "bar");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with replacements.
+ */
+export function stringReplaceAll(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace all occurrences of "foo" with "bar" in the 'text' field
+ * stringReplaceAll(field("text"), "foo", "bar");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with replacements.
+ */
+export function stringReplaceAll(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+export function stringReplaceAll(
+  expr: Expression | string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringReplaceAll(find, replacement);
+}
+
+/**
+ * @beta
+ * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+ * stringReplaceOne("text", "foo", "bar");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with the replacement.
+ */
+export function stringReplaceOne(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+ * stringReplaceOne(field("text"), "foo", "bar");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with the replacement.
+ */
+export function stringReplaceOne(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+export function stringReplaceOne(
+  expr: Expression | string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringReplaceOne(find, replacement);
 }
 
 /**
@@ -7111,6 +7674,162 @@ export function maximum(expression: Expression): AggregateFunction;
 export function maximum(fieldName: string): AggregateFunction;
 export function maximum(value: Expression | string): AggregateFunction {
   return fieldOrExpression(value).maximum();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that finds the first value of an expression across multiple stage
+ * inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the first value of the 'rating' field
+ * first(field("rating")).as("firstRating");
+ * ```
+ *
+ * @param expression - The expression to find the first value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'first' aggregation.
+ */
+export function first(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that finds the first value of a field across multiple stage inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the first value of the 'rating' field
+ * first("rating").as("firstRating");
+ * ```
+ *
+ * @param fieldName - The name of the field to find the first value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'first' aggregation.
+ */
+export function first(fieldName: string): AggregateFunction;
+export function first(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).first();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that finds the last value of an expression across multiple stage
+ * inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the last value of the 'rating' field
+ * last(field("rating")).as("lastRating");
+ * ```
+ *
+ * @param expression - The expression to find the last value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'last' aggregation.
+ */
+export function last(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that finds the last value of a field across multiple stage inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the last value of the 'rating' field
+ * last("rating").as("lastRating");
+ * ```
+ *
+ * @param fieldName - The name of the field to find the last value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'last' aggregation.
+ */
+export function last(fieldName: string): AggregateFunction;
+export function last(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).last();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that collects all values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all tags from books into an array
+ * arrayAgg(field("tags")).as("allTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg' aggregation.
+ */
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that collects all values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all tags from books into an array
+ * arrayAgg("tags").as("allTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg' aggregation.
+ */
+export function arrayAgg(fieldName: string): AggregateFunction;
+export function arrayAgg(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).arrayAgg();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that collects all distinct values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct(field("tags")).as("allDistinctTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that collects all distinct values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct("tags").as("allDistinctTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+export function arrayAggDistinct(
+  value: Expression | string
+): AggregateFunction {
+  return fieldOrExpression(value).arrayAggDistinct();
 }
 
 /**
@@ -7961,6 +8680,23 @@ export function pow(
 
 /**
  * @beta
+ *
+ * Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0.
+ *
+ * @example
+ * ```typescript
+ * // Generate a random number between 0.0 and 1.0.
+ * rand();
+ * ```
+ *
+ * @returns A new `Expression` representing the rand operation.
+ */
+export function rand(): FunctionExpression {
+  return new FunctionExpression('rand', [], 'rand');
+}
+
+/**
+ * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
  * @example
@@ -8034,6 +8770,84 @@ export function round(
     return fieldOrExpression(expr).round();
   } else {
     return fieldOrExpression(expr).round(valueToDefaultExpr(decimalPlaces));
+  }
+}
+
+/**
+ * @beta
+ * Creates an expression that truncates the numeric value of a field to an integer.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field
+ * trunc("rating");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the number to truncate.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that truncates the numeric value of an expression to an integer.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field.
+ * trunc(field("rating"));
+ * ```
+ *
+ * @param expression - An expression evaluating to a numeric value, which will be truncated.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(expression: Expression): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that truncates a numeric expression to the specified number of decimal places.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field to two decimal places.
+ * trunc("rating", 2);
+ * ```
+ *
+ * @param fieldName - The name of the field to truncate.
+ * @param decimalPlaces - A constant or expression specifying the truncation precision in decimal places.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(
+  fieldName: string,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that truncates a numeric value to the specified number of decimal places.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field to two decimal places.
+ * trunc(field("rating"), constant(2));
+ * ```
+ *
+ * @param expression - An expression evaluating to a numeric value, which will be truncated.
+ * @param decimalPlaces - A constant or expression specifying the truncation precision in decimal places.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(
+  expression: Expression,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+export function trunc(
+  expr: Expression | string,
+  decimalPlaces?: number | Expression
+): FunctionExpression {
+  if (decimalPlaces === undefined) {
+    return fieldOrExpression(expr).trunc();
+  } else {
+    return fieldOrExpression(expr).trunc(valueToDefaultExpr(decimalPlaces));
   }
 }
 
