@@ -25,6 +25,7 @@ on:
 
 jobs:
   deploy:
+    environment: release
     name: Production Release
     runs-on: ubuntu-latest
     # Allow GITHUB_TOKEN to have write permissions
