@@ -62,7 +62,9 @@ export async function generateContentStream(
   params: GenerateContentRequest,
   chromeAdapter?: ChromeAdapter,
   singleRequestOptions?: SingleRequestOptions
-): Promise<GenerateContentStreamResult> {
+): Promise<
+  GenerateContentStreamResult & { firstValue?: GenerateContentResponse }
+> {
   const callResult = await callCloudOrDevice(
     params,
     chromeAdapter,

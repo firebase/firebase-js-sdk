@@ -530,6 +530,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -584,6 +586,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     split(delimiter: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     split(delimiter: Expression): FunctionExpression;
@@ -599,6 +603,14 @@ export abstract class Expression {
     stringContains(substring: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     stringContains(expr: Expression): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
+    stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringRepeat(repetitions: number | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     stringReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -635,6 +647,12 @@ export abstract class Expression {
     toUpper(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     type(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -857,6 +875,12 @@ export function logicalMinimum(first: Expression, second: Expression | unknown, 
 export function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 
 // @beta
+export function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export function map(elements: Record<string, unknown>): FunctionExpression;
 
 // @beta
@@ -1050,6 +1074,9 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
 export function pow(base: string, exponent: number): FunctionExpression;
 
 // @beta
+export function rand(): FunctionExpression;
+
+// @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
 
 // @beta
@@ -1124,6 +1151,12 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @beta
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export type SampleStageOptions = StageOptions & OneOf<{
@@ -1201,6 +1234,30 @@ export function stringContains(stringExpression: Expression, substring: string):
 
 // @beta
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
+
+// @beta
+export function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export function stringReverse(stringExpression: Expression): FunctionExpression;
@@ -1306,6 +1363,18 @@ export function trim(fieldName: string, valueToTrim?: string | Expression): Func
 
 // @beta
 export function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
 
 // @beta
 export function type(fieldName: string): FunctionExpression;
