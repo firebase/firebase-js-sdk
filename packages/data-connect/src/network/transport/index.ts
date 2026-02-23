@@ -352,3 +352,5 @@ export abstract class DataConnectTransportClass
     this._callerSdkType = callerSdkType;
   }
 }
+
+export * from './manager';

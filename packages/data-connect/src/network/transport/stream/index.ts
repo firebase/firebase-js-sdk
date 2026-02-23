@@ -82,7 +82,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   /** should the next request include auth token? */
   private _shouldIncludeAuth = true;
 
-  /** is this connection pending close? */
+  /** is this connection closing down? */
   private _pendingClose = false;
   /** current connection close timeout from setTimeout(), if any */
   private _closeTimeout: NodeJS.Timeout | null = null;
@@ -94,6 +94,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _backoffTimer: NodeJS.Timeout | null = null;
   /** current stable connection timer from setTimeout(), if any */
   private _stableConnectionTimer: NodeJS.Timeout | null = null;
+  /** callback fired when the stream finishes closing */
+  onGracefulStreamClose?: () => void;
+
   /**
    * Tracks if the next message to be sent is the first message of the stream.
    * If true, we must include the 'name' field in the request body.
@@ -135,15 +138,32 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private _pendingCancellations = new Map<string, ActiveRequestKey>();
 
   private get _hasActiveSubscribeRequests(): boolean {
-    return this._activeSubscribeRequests.size === 0;
+    return this._activeSubscribeRequests.size > 0;
   }
 
   private get _hasActiveExecuteRequests(): boolean {
     return (
-      this._activeQueryExecuteRequests.size === 0 &&
-      this._activeMutationExecuteRequests.size === 0
+      this._activeQueryExecuteRequests.size > 0 ||
+      this._activeMutationExecuteRequests.size > 0
     );
   }
+
+  /**
+   * True if there are active subscriptions on the stream
+   */
+  get hasActiveSubscriptions(): boolean {
+    return this._hasActiveSubscribeRequests;
+  }
+
+  /**
+   * True if the stream connection has been requested to close
+   */
+  get isPendingClose(): boolean {
+    return this._pendingClose;
+  }
+
+  /** True if the physical stream connection is fully open and ready to transmit data. */
+  abstract get streamConnected(): boolean;
 
   /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
@@ -377,6 +397,7 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
 
   /**
    * Begin closing the connection. Waits for and cleans up all active requests, and waits for 1 minute.
+   * Will be called when there are no more active subscriptions.
    */
   private _prepareToClose(): void {
     if (this._pendingClose) {
@@ -405,15 +426,16 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
   private async _attemptClose(): Promise<void> {
     if (this._hasActiveSubscribeRequests || this._hasActiveExecuteRequests) {
       // any subscriptions will prepare to close once they are cancelled
-      // if we are pending close, the active execute requests will re-attempt once they resolve
-      // TODO(stephenarosaj): if we are in fact pending close, should we set a fallback, like a 3 minute time so that if the execute requests don't resolve then we will close without waiting forever for a response?
+      // if we are pending close, any active execute requests will re-attempt once they resolve
+      // TODO(stephenarosaj): if we are in fact pending close, should we set a fallback? like a 3 minute time so that if the execute requests don't resolve then we will close without waiting forever for a response?
       return;
     }
     await this.closeConnection();
+    this.onGracefulStreamClose?.();
   }
 
   /**
-   * Forcefully close the connection and re-establish it, re-requesting all currently active requests.
+   * Forcefully close the connection and re-establish it.
    */
   private async _forceReconnect(): Promise<void> {
     // prevent auto-reconnect logic from triggering during this explicit reconnect
@@ -425,7 +447,6 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
     }
 
     await this.openConnection();
-    await this._resendActiveRequests();
   }
 
   /**
@@ -785,7 +806,9 @@ export abstract class DataConnectStreamTransportClass extends DataConnectTranspo
       (oldAuthUid && newAuthUid !== oldAuthUid)
     ) {
       // (user logged out) || (old user was logged in previously, now new user is logged in)
-      await this._forceReconnect();
+      if (this._hasActiveSubscribeRequests || this._hasActiveExecuteRequests) {
+        await this._forceReconnect();
+      }
     }
   }
 }

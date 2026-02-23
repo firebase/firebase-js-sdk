@@ -37,6 +37,10 @@ export class WebsocketTransport extends DataConnectStreamTransportClass {
   /** The current established connection to the server. Undefined if disconnected. */
   private _connection: WebSocket | undefined = undefined;
 
+  get streamConnected(): boolean {
+    return this._connection?.readyState === WebSocket.OPEN;
+  }
+
   protected _streamIsSupported = true;
 
   /**

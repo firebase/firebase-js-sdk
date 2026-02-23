@@ -43,11 +43,9 @@ import { logDebug, logError } from '../logger';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
-  DataConnectTransport,
-  TransportClass
+  DataConnectTransport
 } from '../network';
-// import { RESTTransport } from '../network/transport/rest'; // TODO(stephenarosaj): need some sort of transport manager
-import { WebsocketTransport } from '../network/transport/stream/websocket';
+import { TransportManager } from '../network/transport/manager';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
@@ -105,7 +103,6 @@ export class DataConnect {
   isEmulator = false;
   _initialized = false;
   private _transport!: DataConnectTransport;
-  private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
   _isUsingGeneratedSdk: boolean = false;
@@ -178,11 +175,6 @@ export class DataConnect {
     if (this._initialized) {
       return;
     }
-    if (this._transportClass === undefined) {
-      // TODO(stephenarosaj): first, REST, then STREAM only when we start subscribing...
-      logDebug('USING STREAM TRANSPORT!'); // DEBUGGING
-      this._transportClass = WebsocketTransport;
-    }
 
     this._authTokenProvider = new FirebaseAuthProvider(
       this.app.name,
@@ -211,7 +203,7 @@ export class DataConnect {
       );
     }
 
-    this._transport = new this._transportClass(
+    this._transport = new TransportManager(
       this.dataConnectOptions,
       this.app.options.apiKey,
       this.app.options.appId,
