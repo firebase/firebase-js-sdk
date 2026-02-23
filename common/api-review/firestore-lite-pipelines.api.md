@@ -66,6 +66,18 @@ export function and(first: BooleanExpression, second: BooleanExpression, ...more
 export function array(elements: unknown[]): FunctionExpression;
 
 // @beta
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAgg(fieldName: string): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+
+// @beta
 export function arrayConcat(firstArray: Expression, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
 
 // @beta
@@ -377,6 +389,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     add(second: Expression | unknown): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayAgg(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    arrayAggDistinct(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayContains(expression: Expression): BooleanExpression;
@@ -462,6 +478,8 @@ export abstract class Expression {
     // (undocumented)
     abstract readonly expressionType: ExpressionType;
     /* Excluded from this release type: _readUserData */
+    first(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
@@ -487,6 +505,8 @@ export abstract class Expression {
     join(delimiterExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
     join(delimiter: string): Expression;
+    /* Excluded from this release type: _readUserData */
+    last(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
     length(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -678,6 +698,12 @@ export type FindNearestStageOptions = StageOptions & {
 };
 
 // @beta
+export function first(expression: Expression): AggregateFunction;
+
+// @beta
+export function first(fieldName: string): AggregateFunction;
+
+// @beta
 export function floor(expr: Expression): FunctionExpression;
 
 // @beta
@@ -756,6 +782,12 @@ export function join(arrayExpression: Expression, delimiter: string): Expression
 
 // @beta
 export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
+
+// @beta
+export function last(expression: Expression): AggregateFunction;
+
+// @beta
+export function last(fieldName: string): AggregateFunction;
 
 // @beta
 function length_2(fieldName: string): FunctionExpression;

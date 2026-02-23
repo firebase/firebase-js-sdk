@@ -39,6 +39,8 @@ export declare abstract class Expression
 |  --- | --- | --- |
 |  [abs()](./firestore_pipelines.expression.md#expressionabs) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
 |  [add(second)](./firestore_pipelines.expression.md#expressionadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds this expression to another expression. |
+|  [arrayAgg()](./firestore_pipelines.expression.md#expressionarrayagg) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
+|  [arrayAggDistinct()](./firestore_pipelines.expression.md#expressionarrayaggdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
 |  [arrayConcat(secondArray, otherArrays)](./firestore_pipelines.expression.md#expressionarrayconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates an array expression with one or more other arrays. |
 |  [arrayContains(expression)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific element. |
 |  [arrayContains(value)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific value. |
@@ -80,6 +82,7 @@ export declare abstract class Expression
 |  [euclideanDistance(vector)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
 |  [exists()](./firestore_pipelines.expression.md#expressionexists) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists in the document. |
 |  [exp()](./firestore_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression. |
+|  [first()](./firestore_pipelines.expression.md#expressionfirst) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
 |  [floor()](./firestore_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
 |  [greaterThan(expression)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression. |
 |  [greaterThan(value)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
@@ -100,6 +103,7 @@ field("optional_field").ifAbsent(field('default_field'))
 |  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
 |  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
+|  [last()](./firestore_pipelines.expression.md#expressionlast) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
 |  [length()](./firestore_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
 |  [lessThan(experession)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than another expression. |
 |  [lessThan(value)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than a constant value. |
@@ -248,6 +252,64 @@ A new `Expression` representing the addition operation.
 ```typescript
 // Add the value of the 'quantity' field and the 'reserve' field.
 field("quantity").add(field("reserve"));
+
+```
+
+## Expression.arrayAgg()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+arrayAgg(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'array\_agg' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all tags from books into an array
+field("tags").arrayAgg().as("allTags");
+
+```
+
+## Expression.arrayAggDistinct()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+arrayAggDistinct(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'array\_agg\_distinct' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all distinct tags from books into an array
+field("tags").arrayAggDistinct().as("allDistinctTags");
 
 ```
 
@@ -1533,6 +1595,33 @@ field("value").exp();
 
 ```
 
+## Expression.first()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the first value of an expression across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+first(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'first' aggregation.
+
+### Example
+
+
+```typescript
+// Find the first value of the 'rating' field
+field("rating").first().as("firstRating");
+
+```
+
 ## Expression.floor()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -1953,6 +2042,33 @@ A new Expression representing the join operation.
 ```typescript
 // Join the elements of the 'tags' field with a comma and space.
 field("tags").join(", ")
+
+```
+
+## Expression.last()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the last value of an expression across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+last(): AggregateFunction;
+```
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new `AggregateFunction` representing the 'last' aggregation.
+
+### Example
+
+
+```typescript
+// Find the last value of the 'rating' field
+field("rating").last().as("lastRating");
 
 ```
 

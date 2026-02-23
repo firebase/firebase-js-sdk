@@ -1609,6 +1609,84 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an aggregation that finds the first value of an expression across multiple stage inputs.
+   *
+   * @example
+   * ```typescript
+   * // Find the first value of the 'rating' field
+   * field("rating").first().as("firstRating");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'first' aggregation.
+   */
+  first(): AggregateFunction {
+    return AggregateFunction._create('first', [this], 'first');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that finds the last value of an expression across multiple stage inputs.
+   *
+   * @example
+   * ```typescript
+   * // Find the last value of the 'rating' field
+   * field("rating").last().as("lastRating");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'last' aggregation.
+   */
+  last(): AggregateFunction {
+    return AggregateFunction._create('last', [this], 'last');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that collects all values of an expression across multiple stage inputs
+   * into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
+   * @example
+   * ```typescript
+   * // Collect all tags from books into an array
+   * field("tags").arrayAgg().as("allTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg' aggregation.
+   */
+  arrayAgg(): AggregateFunction {
+    return AggregateFunction._create('array_agg', [this], 'arrayAgg');
+  }
+
+  /**
+   * @beta
+   * Creates an aggregation that collects all distinct values of an expression across multiple stage
+   * inputs into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
+   * @example
+   * ```typescript
+   * // Collect all distinct tags from books into an array
+   * field("tags").arrayAggDistinct().as("allDistinctTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg_distinct' aggregation.
+   */
+  arrayAggDistinct(): AggregateFunction {
+    return AggregateFunction._create(
+      'array_agg_distinct',
+      [this],
+      'arrayAggDistinct'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an aggregation that counts the number of distinct values of the expression or field.
    *
    * @example
@@ -7456,6 +7534,162 @@ export function maximum(expression: Expression): AggregateFunction;
 export function maximum(fieldName: string): AggregateFunction;
 export function maximum(value: Expression | string): AggregateFunction {
   return fieldOrExpression(value).maximum();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that finds the first value of an expression across multiple stage
+ * inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the first value of the 'rating' field
+ * first(field("rating")).as("firstRating");
+ * ```
+ *
+ * @param expression - The expression to find the first value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'first' aggregation.
+ */
+export function first(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that finds the first value of a field across multiple stage inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the first value of the 'rating' field
+ * first("rating").as("firstRating");
+ * ```
+ *
+ * @param fieldName - The name of the field to find the first value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'first' aggregation.
+ */
+export function first(fieldName: string): AggregateFunction;
+export function first(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).first();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that finds the last value of an expression across multiple stage
+ * inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the last value of the 'rating' field
+ * last(field("rating")).as("lastRating");
+ * ```
+ *
+ * @param expression - The expression to find the last value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'last' aggregation.
+ */
+export function last(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that finds the last value of a field across multiple stage inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the last value of the 'rating' field
+ * last("rating").as("lastRating");
+ * ```
+ *
+ * @param fieldName - The name of the field to find the last value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'last' aggregation.
+ */
+export function last(fieldName: string): AggregateFunction;
+export function last(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).last();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that collects all values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all tags from books into an array
+ * arrayAgg(field("tags")).as("allTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg' aggregation.
+ */
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that collects all values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all tags from books into an array
+ * arrayAgg("tags").as("allTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg' aggregation.
+ */
+export function arrayAgg(fieldName: string): AggregateFunction;
+export function arrayAgg(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).arrayAgg();
+}
+
+/**
+ * @beta
+ * Creates an aggregation that collects all distinct values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct(field("tags")).as("allDistinctTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+/**
+ * @beta
+ * Creates an aggregation that collects all distinct values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct("tags").as("allDistinctTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+export function arrayAggDistinct(
+  value: Expression | string
+): AggregateFunction {
+  return fieldOrExpression(value).arrayAggDistinct();
 }
 
 /**
