@@ -2323,6 +2323,61 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an expression that truncates the numeric value to an integer.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the 'rating' field
+   * field("rating").trunc();
+   * ```
+   *
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that truncates a numeric value to the specified number of decimal places.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the value of the 'rating' field to two decimal places.
+   * field("rating").trunc(2);
+   * ```
+   *
+   * @param decimalPlaces - A constant specifying the truncation precision in decimal places.
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(decimalPlaces: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that truncates a numeric value to the specified number of decimal places.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the value of the 'rating' field to two decimal places.
+   * field("rating").trunc(constant(2));
+   * ```
+   *
+   * @param decimalPlaces - An expression specifying the truncation precision in decimal places.
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(decimalPlaces: Expression): FunctionExpression;
+  trunc(decimalPlaces?: number | Expression): FunctionExpression {
+    if (decimalPlaces === undefined) {
+      return new FunctionExpression('trunc', [this]);
+    } else {
+      return new FunctionExpression(
+        'trunc',
+        [this, valueToDefaultExpr(decimalPlaces)],
+        'trunc'
+      );
+    }
+  }
+
+  /**
+   * @beta
    * Creates an expression that rounds a numeric value to the nearest whole number.
    *
    * @example
@@ -8251,6 +8306,23 @@ export function pow(
 
 /**
  * @beta
+ *
+ * Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0.
+ *
+ * @example
+ * ```typescript
+ * // Generate a random number between 0.0 and 1.0.
+ * rand();
+ * ```
+ *
+ * @returns A new `Expression` representing the rand operation.
+ */
+export function rand(): FunctionExpression {
+  return new FunctionExpression('rand', [], 'rand');
+}
+
+/**
+ * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
  * @example
@@ -8324,6 +8396,84 @@ export function round(
     return fieldOrExpression(expr).round();
   } else {
     return fieldOrExpression(expr).round(valueToDefaultExpr(decimalPlaces));
+  }
+}
+
+/**
+ * @beta
+ * Creates an expression that truncates the numeric value of a field to an integer.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field
+ * trunc("rating");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the number to truncate.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that truncates the numeric value of an expression to an integer.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field.
+ * trunc(field("rating"));
+ * ```
+ *
+ * @param expression - An expression evaluating to a numeric value, which will be truncated.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(expression: Expression): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that truncates a numeric expression to the specified number of decimal places.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field to two decimal places.
+ * trunc("rating", 2);
+ * ```
+ *
+ * @param fieldName - The name of the field to truncate.
+ * @param decimalPlaces - A constant or expression specifying the truncation precision in decimal places.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(
+  fieldName: string,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that truncates a numeric value to the specified number of decimal places.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field to two decimal places.
+ * trunc(field("rating"), constant(2));
+ * ```
+ *
+ * @param expression - An expression evaluating to a numeric value, which will be truncated.
+ * @param decimalPlaces - A constant or expression specifying the truncation precision in decimal places.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(
+  expression: Expression,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+export function trunc(
+  expr: Expression | string,
+  decimalPlaces?: number | Expression
+): FunctionExpression {
+  if (decimalPlaces === undefined) {
+    return fieldOrExpression(expr).trunc();
+  } else {
+    return fieldOrExpression(expr).trunc(valueToDefaultExpr(decimalPlaces));
   }
 }
 

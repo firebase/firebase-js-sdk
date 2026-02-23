@@ -139,11 +139,13 @@ import {
   floor,
   exp,
   pow,
+  rand,
   round,
   collectionId,
   ln,
   log,
   sqrt,
+  trunc,
   stringReverse,
   log10,
   concat,
@@ -3338,6 +3340,21 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
     });
 
+    it('testRand', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(rand().as('randomNumber'))
+          .limit(1)
+      );
+      expect(snapshot.results.length).to.equal(1);
+      const randomNumber = snapshot.results[0].data()['randomNumber'] as number;
+      expect(randomNumber).to.be.a('number');
+      expect(randomNumber).to.be.gte(0);
+      expect(randomNumber).to.be.lt(1);
+    });
+
     it('can round a numeric value', async () => {
       const snapshot = await execute(
         firestore
@@ -3419,6 +3436,60 @@ describe.skipClassic('Firestore Pipelines', () => {
         '1': 4.1,
         '2': 4.12,
         '4': 4.1235
+      });
+    });
+
+    it('can truncate a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('Pride and Prejudice'))
+          .limit(1)
+          .select(field('rating').trunc().as('truncatedRating'))
+      );
+      expectResults(snapshot, {
+        truncatedRating: 4
+      });
+    });
+
+    it('can truncate a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('Pride and Prejudice'))
+          .limit(1)
+          .select(trunc('rating').as('truncatedRating'))
+      );
+      expectResults(snapshot, {
+        truncatedRating: 4
+      });
+    });
+
+    it('can truncate a numeric value to specified precision', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              foo: 4.123456
+            })
+          )
+          .select(
+            field('foo').trunc(0).as('0'),
+            trunc('foo', 1).as('1'),
+            trunc('foo', constant(2)).as('2'),
+            trunc(field('foo'), 4).as('4')
+          )
+      );
+      expectResults(snapshot, {
+        '0': 4,
+        '1': 4.1,
+        '2': 4.12,
+        '4': 4.1234
       });
     });
 
