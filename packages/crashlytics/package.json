@@ -1,6 +1,6 @@
 {
   "name": "@firebase/crashlytics",
-  "version": "0.0.2",
+  "version": "0.0.1",
   "description": "The Firebase Web Telemetry package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
