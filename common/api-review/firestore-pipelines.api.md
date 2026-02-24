@@ -537,13 +537,21 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    mapEntries(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapKeys(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(key: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(keyExpr: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapSet(key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapValues(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     maximum(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
@@ -895,10 +903,22 @@ export function ltrim(expression: Expression, valueToTrim?: string | Expression 
 export function map(elements: Record<string, unknown>): FunctionExpression;
 
 // @beta
+export function mapEntries(mapField: string): FunctionExpression;
+
+// @beta
+export function mapEntries(mapExpression: Expression): FunctionExpression;
+
+// @beta
 export function mapGet(fieldName: string, subField: string): FunctionExpression;
 
 // @beta
 export function mapGet(mapExpression: Expression, subField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -917,6 +937,18 @@ export function mapRemove(mapField: string, keyExpr: Expression): FunctionExpres
 
 // @beta
 export function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
+
+// @beta
+export function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapValues(mapField: string): FunctionExpression;
+
+// @beta
+export function mapValues(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function maximum(expression: Expression): AggregateFunction;
