@@ -23,8 +23,10 @@ export interface ParsedToken
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [auth\_time](./auth.parsedtoken.md#parsedtokenauth_time) | string | Time at which authentication was performed. |
+|  [email](./auth.parsedtoken.md#parsedtokenemail) | string | The user's primary email. |
+|  [email_verified](./auth.parsedtoken.md#parsedtokenemail_verified) | boolean | The user's email verification status. |
 |  [exp](./auth.parsedtoken.md#parsedtokenexp) | string | Expiration time of the token. |
-|  [firebase](./auth.parsedtoken.md#parsedtokenfirebase) | { 'sign\_in\_provider'?: string; 'sign\_in\_second\_factor'?: string; 'identities'?: Record&lt;string, string&gt;; } | Firebase specific claims, containing the provider(s) used to authenticate the user. |
+|  [firebase](./auth.parsedtoken.md#parsedtokenfirebase) | { 'sign\_in\_provider'?: string; 'sign\_in\_second\_factor'?: string; 'sign\_in\_attributes'?: Record&lt;string, unknown&gt;; 'identities'?: Record&lt;string, string[]&gt;; 'tenant'?: string; } | Firebase specific claims, containing the provider(s) used to authenticate the user. |
 |  [iat](./auth.parsedtoken.md#parsedtokeniat) | string | Issuance time of the token. |
 |  [sub](./auth.parsedtoken.md#parsedtokensub) | string | UID of the user. |
 
@@ -38,6 +40,25 @@ Time at which authentication was performed.
 'auth_time'?: string;
 ```
 
+## ParsedToken.email
+
+The user's primary email.
+
+<b>Signature:</b>
+
+```typescript
+'email'?: string;
+```
+
+## ParsedToken.email_verified
+
+The user's email verification status.
+
+<b>Signature:</b>
+
+```typescript
+'email_verified'?: boolean;
+```
 ## ParsedToken.exp
 
 Expiration time of the token.
@@ -58,7 +79,9 @@ Firebase specific claims, containing the provider(s) used to authenticate the us
 'firebase'?: {
         'sign_in_provider'?: string;
         'sign_in_second_factor'?: string;
-        'identities'?: Record<string, string>;
+        'sign_in_attributes'?: Record<string, unknown>;
+        'identities'?: Record<string, string[]>;
+        'tenant'?: string;
     };
 ```
 
