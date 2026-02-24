@@ -66,6 +66,18 @@ export function and(first: BooleanExpression, second: BooleanExpression, ...more
 export function array(elements: unknown[]): FunctionExpression;
 
 // @beta
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAgg(fieldName: string): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+
+// @beta
 export function arrayConcat(firstArray: Expression, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
 
 // @beta
@@ -380,6 +392,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     add(second: Expression | unknown): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayAgg(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    arrayAggDistinct(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayContains(expression: Expression): BooleanExpression;
@@ -465,6 +481,8 @@ export abstract class Expression {
     // (undocumented)
     abstract readonly expressionType: ExpressionType;
     /* Excluded from this release type: _readUserData */
+    first(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
@@ -487,9 +505,13 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     isError(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    isType(type: Type): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
     join(delimiterExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
     join(delimiter: string): Expression;
+    /* Excluded from this release type: _readUserData */
+    last(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
     length(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -513,13 +535,23 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapEntries(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapKeys(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(key: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(keyExpr: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapSet(key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapValues(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     maximum(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
@@ -567,6 +599,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     split(delimiter: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     split(delimiter: Expression): FunctionExpression;
@@ -582,6 +616,14 @@ export abstract class Expression {
     stringContains(substring: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     stringContains(expr: Expression): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
+    stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringRepeat(repetitions: number | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     stringReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -618,6 +660,12 @@ export abstract class Expression {
     toUpper(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     type(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -661,6 +709,12 @@ export type FindNearestStageOptions = StageOptions & {
     limit?: number;
     distanceField?: string;
 };
+
+// @beta
+export function first(expression: Expression): AggregateFunction;
+
+// @beta
+export function first(fieldName: string): AggregateFunction;
 
 // @beta
 export function floor(expr: Expression): FunctionExpression;
@@ -731,6 +785,12 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @beta
+export function isType(fieldName: string, type: Type): BooleanExpression;
+
+// @beta
+export function isType(expression: Expression, type: Type): BooleanExpression;
+
+// @beta
 export function join(arrayFieldName: string, delimiter: string): Expression;
 
 // @beta
@@ -741,6 +801,12 @@ export function join(arrayExpression: Expression, delimiter: string): Expression
 
 // @beta
 export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
+
+// @beta
+export function last(expression: Expression): AggregateFunction;
+
+// @beta
+export function last(fieldName: string): AggregateFunction;
 
 // @beta
 function length_2(fieldName: string): FunctionExpression;
@@ -828,13 +894,31 @@ export function logicalMinimum(first: Expression, second: Expression | unknown, 
 export function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 
 // @beta
+export function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export function map(elements: Record<string, unknown>): FunctionExpression;
+
+// @beta
+export function mapEntries(mapField: string): FunctionExpression;
+
+// @beta
+export function mapEntries(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapGet(fieldName: string, subField: string): FunctionExpression;
 
 // @beta
 export function mapGet(mapExpression: Expression, subField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -853,6 +937,18 @@ export function mapRemove(mapField: string, keyExpr: Expression): FunctionExpres
 
 // @beta
 export function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
+
+// @beta
+export function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapValues(mapField: string): FunctionExpression;
+
+// @beta
+export function mapValues(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function maximum(expression: Expression): AggregateFunction;
@@ -1055,6 +1151,9 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
 export function pow(base: string, exponent: number): FunctionExpression;
 
 // @beta
+export function rand(): FunctionExpression;
+
+// @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
 
 // @beta
@@ -1129,6 +1228,12 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @beta
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export type SampleStageOptions = StageOptions & OneOf<{
@@ -1206,6 +1311,30 @@ export function stringContains(stringExpression: Expression, substring: string):
 
 // @beta
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
+
+// @beta
+export function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export function stringReverse(stringExpression: Expression): FunctionExpression;
@@ -1311,6 +1440,21 @@ export function trim(fieldName: string, valueToTrim?: string | Expression): Func
 
 // @beta
 export function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 
 // @beta
 export function type(fieldName: string): FunctionExpression;

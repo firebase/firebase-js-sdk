@@ -15,4 +15,5 @@
  * limitations under the License.
  */
 
-export { subscribe } from './api.browser';
+export * from './core/query/subscribe';
+export { makeMemoryCacheProvider, CacheProvider } from './api/DataConnect';
