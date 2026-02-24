@@ -1,5 +1,17 @@
 # @firebase/ai
 
+## 2.9.0
+
+### Minor Changes
+
+- [`47f8521`](https://github.com/firebase/firebase-js-sdk/commit/47f85219d570f05c196e0085f2892d1297308fed) [#9489](https://github.com/firebase/firebase-js-sdk/pull/9489) - Added automatic function calling capability when using `ChatSession`.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
 ## 2.8.0
 
 ### Minor Changes
