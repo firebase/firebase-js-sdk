@@ -91,9 +91,9 @@ export interface RecaptchaParameters {
  * @public
  */
 export interface ParsedToken {
-  /** Email address of the user. */
+  /** The user's primary email. */
   'email'?: string;
-  /** Email verification status of the user. */
+  /** The user's email verification status. */
   'email_verified'?: boolean;
   /** Expiration time of the token. */
   'exp'?: string;
