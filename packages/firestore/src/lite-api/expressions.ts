@@ -1496,49 +1496,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Returns a slice of the array.
-   *
-   * @example
-   * ```typescript
-   * // Get a slice of the 'myArray' field from index 1 to 3 (inclusive).
-   * field("myArray").arraySlice(1, 3);
-   * ```
-   *
-   * @param start - The index to start the slice.
-   * @param end - The index to end the slice (inclusive).
-   * @returns A new `Expression` representing the slice.
-   */
-  arraySlice(start: number, end?: number): FunctionExpression;
-
-  /**
-   * @beta
-   * Returns a slice of the array.
-   *
-   * @example
-   * ```typescript
-   * // Get a slice of the 'myArray' field from index value in 'start' field to
-   * // index value in 'end' field (inclusive).
-   * field("myArray").arraySlice(field("start"), field("end"));
-   * ```
-   *
-   * @param start - An expression evaluating to the index to start the slice.
-   * @param end - An expression evaluating to the index to end the slice (inclusive).
-   * @returns A new `Expression` representing the slice.
-   */
-  arraySlice(start: Expression, end?: Expression): FunctionExpression;
-  arraySlice(
-    start: number | Expression,
-    end?: number | Expression
-  ): FunctionExpression {
-    const args = [this, valueToDefaultExpr(start)];
-    if (end !== undefined) {
-      args.push(valueToDefaultExpr(end));
-    }
-    return new FunctionExpression('array_slice', args, 'arraySlice');
-  }
-
-  /**
-   * @beta
    * Returns the first index of the search value in the array, or -1 if not found.
    *
    * @example
@@ -1645,32 +1602,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       'array_index_of_all',
       [this, valueToDefaultExpr(search)],
       'arrayIndexOfAll'
-    );
-  }
-
-  /**
-   * @beta
-   * Returns a filtered array containing only elements that match the predicate.
-   *
-   * @example
-   * ```typescript
-   * // Get a filtered array of the 'scores' field containing only elements greater than 50.
-   * field("scores").arrayFilter("score", field("score").greaterThan(50));
-   * ```
-   *
-   * @param variable - The variable name to bind to each element in the array. This variable name
-   * can be used in the `predicate` expression to refer to the current element.
-   * @param predicate - The predicate boolean expression to filter by.
-   * @returns A new `Expression` representing the filtered array.
-   */
-  arrayFilter(
-    variable: string,
-    predicate: BooleanExpression
-  ): FunctionExpression {
-    return new FunctionExpression(
-      'array_filter',
-      [this, valueToDefaultExpr(variable), predicate],
-      'arrayFilter'
     );
   }
 
@@ -6873,60 +6804,6 @@ export function arrayMinimumN(
 /**
  * @beta
  *
- * Creates an expression that returns a slice of an array.
- *
- * @example
- * ```typescript
- * // Get the first 3 elements of the 'tags' array field
- * arraySlice("tags", 0, 3);
- * ```
- *
- * @param fieldName - The name of the field containing the array to slice.
- * @param start - The index to start the slice.
- * @param end - The index to end the slice (inclusive).
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
- */
-export function arraySlice(
-  fieldName: string,
-  start: number | Expression,
-  end?: number | Expression
-): FunctionExpression;
-
-/**
- * @beta
- *
- * Creates an expression that returns a slice of an array.
- *
- * @example
- * ```typescript
- * // Get the first 3 elements of the 'tags' array field
- * arraySlice(field("tags"), 0, 3);
- * ```
- *
- * @param arrayExpression - The expression representing the array to slice.
- * @param start - The index to start the slice.
- * @param end - The index to end the slice (inclusive).
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the slice.
- */
-export function arraySlice(
-  arrayExpression: Expression,
-  start: number | Expression,
-  end?: number | Expression
-): FunctionExpression;
-export function arraySlice(
-  array: Expression | string,
-  start: number | Expression,
-  end?: number | Expression
-): FunctionExpression {
-  return fieldOrExpression(array).arraySlice(
-    valueToDefaultExpr(start),
-    end === undefined ? undefined : valueToDefaultExpr(end)
-  );
-}
-
-/**
- * @beta
- *
  * Creates an expression that returns the first index of the search value in an array.
  * Returns -1 if the value is not found.
  *
@@ -7064,59 +6941,6 @@ export function arrayIndexOfAll(
   search: unknown | Expression
 ): FunctionExpression {
   return fieldOrExpression(array).arrayIndexOfAll(valueToDefaultExpr(search));
-}
-
-/**
- * @beta
- *
- * Creates an expression that filters an array based on a predicate.
- *
- * @example
- * ```typescript
- * // Filter "scores" to include only values greater than 50
- * arrayFilter("scores", "score", field("score").greaterThan(50));
- * ```
- *
- * @param fieldName - The name of the field containing the array to filter.
- * @param variable - The variable name to bind to each element in the array. This variable name
- * can be used in the `predicate` expression to refer to the current element.
- * @param predicate - The predicate boolean expression to filter by.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
- */
-export function arrayFilter(
-  fieldName: string,
-  variable: string,
-  predicate: BooleanExpression
-): FunctionExpression;
-
-/**
- * @beta
- *
- * Creates an expression that filters an array based on a predicate.
- *
- * @example
- * ```typescript
- * // Filter "scores" to include only values greater than 50
- * arrayFilter(field("scores"), "score", field("score").greaterThan(50));
- * ```
- *
- * @param arrayExpression - The expression representing the array to filter.
- * @param variable - The variable name to bind to each element in the array. This variable name
- * can be used in the `predicate` expression to refer to the current element.
- * @param predicate - The predicate boolean expression to filter by.
- * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
- */
-export function arrayFilter(
-  arrayExpression: Expression,
-  variable: string,
-  predicate: BooleanExpression
-): FunctionExpression;
-export function arrayFilter(
-  array: Expression | string,
-  variable: string,
-  predicate: BooleanExpression
-): FunctionExpression {
-  return fieldOrExpression(array).arrayFilter(variable, predicate);
 }
 
 /**

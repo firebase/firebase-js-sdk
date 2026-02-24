@@ -27,7 +27,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAny(array, values)](./firestore_pipelines.md#arraycontainsany_c381a96) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains any of the specified elements. |
 |  [arrayLength(array)](./firestore_pipelines.md#arraylength_195e339) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array expression. |
 |  <b>function(arrayExpression, ...)</b> |
-|  [arrayFilter(arrayExpression, variable, predicate)](./firestore_pipelines.md#arrayfilter_10199f4) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array based on a predicate. |
 |  [arrayFirst(arrayExpression)](./firestore_pipelines.md#arrayfirst_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -45,7 +44,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(arrayExpression)](./firestore_pipelines.md#arrayminimum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
-|  [arraySlice(arrayExpression, start, end)](./firestore_pipelines.md#arrayslice_50ffbdc) | <b><i>(Public Preview)</i></b> Creates an expression that returns a slice of an array. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_pipelines.md#join_313e6aa) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayExpression, delimiter)](./firestore_pipelines.md#join_d088d29) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
@@ -134,7 +132,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAll(fieldName, arrayExpression)](./firestore_pipelines.md#arraycontainsall_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_1b4f7cd) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
-|  [arrayFilter(fieldName, variable, predicate)](./firestore_pipelines.md#arrayfilter_2b08477) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array based on a predicate. |
 |  [arrayFirst(fieldName)](./firestore_pipelines.md#arrayfirst_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -151,7 +148,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(fieldName)](./firestore_pipelines.md#arrayminimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array. |
-|  [arraySlice(fieldName, start, end)](./firestore_pipelines.md#arrayslice_b4afabc) | <b><i>(Public Preview)</i></b> Creates an expression that returns a slice of an array. |
 |  [arraySum(fieldName)](./firestore_pipelines.md#arraysum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [ascending(fieldName)](./firestore_pipelines.md#ascending_e5b0480) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_pipelines.md#average_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
@@ -728,42 +724,6 @@ arrayLength(field("cart"));
 ```
 
 ## function(arrayExpression, ...)
-
-### arrayFilter(arrayExpression, variable, predicate) {:#arrayfilter_10199f4}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that filters an array based on a predicate.
-
-<b>Signature:</b>
-
-```typescript
-export declare function arrayFilter(arrayExpression: Expression, variable: string, predicate: BooleanExpression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array to filter. |
-|  variable | string | The variable name to bind to each element in the array. This variable name can be used in the <code>predicate</code> expression to refer to the current element. |
-|  predicate | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the filtered array.
-
-### Example
-
-
-```typescript
-// Filter "scores" to include only values greater than 50
-arrayFilter(field("scores"), "score", field("score").greaterThan(50));
-
-```
 
 ### arrayFirst(arrayExpression) {:#arrayfirst_f574e12}
 
@@ -1354,42 +1314,6 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Get the bottom n scores from the 'scores' array field
 arrayMinimumN(field("scores"), field("count"));
-
-```
-
-### arraySlice(arrayExpression, start, end) {:#arrayslice_50ffbdc}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns a slice of an array.
-
-<b>Signature:</b>
-
-```typescript
-export declare function arraySlice(arrayExpression: Expression, start: number | Expression, end?: number | Expression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array to slice. |
-|  start | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The index to start the slice. |
-|  end | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The index to end the slice (inclusive). |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the slice.
-
-### Example
-
-
-```typescript
-// Get the first 3 elements of the 'tags' array field
-arraySlice(field("tags"), 0, 3);
 
 ```
 
@@ -3961,42 +3885,6 @@ arrayContainsAny("categories", array([field("cate1"), "Science"]));
 
 ```
 
-### arrayFilter(fieldName, variable, predicate) {:#arrayfilter_2b08477}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that filters an array based on a predicate.
-
-<b>Signature:</b>
-
-```typescript
-export declare function arrayFilter(fieldName: string, variable: string, predicate: BooleanExpression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  fieldName | string | The name of the field containing the array to filter. |
-|  variable | string | The variable name to bind to each element in the array. This variable name can be used in the <code>predicate</code> expression to refer to the current element. |
-|  predicate | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the filtered array.
-
-### Example
-
-
-```typescript
-// Filter "scores" to include only values greater than 50
-arrayFilter("scores", "score", field("score").greaterThan(50));
-
-```
-
 ### arrayFirst(fieldName) {:#arrayfirst_e5b0480}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -4549,42 +4437,6 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Get the bottom n scores from the 'scores' array field
 arrayMinimumN(field("scores"), field("count"));
-
-```
-
-### arraySlice(fieldName, start, end) {:#arrayslice_b4afabc}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns a slice of an array.
-
-<b>Signature:</b>
-
-```typescript
-export declare function arraySlice(fieldName: string, start: number | Expression, end?: number | Expression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  fieldName | string | The name of the field containing the array to slice. |
-|  start | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The index to start the slice. |
-|  end | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The index to end the slice (inclusive). |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the slice.
-
-### Example
-
-
-```typescript
-// Get the first 3 elements of the 'tags' array field
-arraySlice("tags", 0, 3);
 
 ```
 

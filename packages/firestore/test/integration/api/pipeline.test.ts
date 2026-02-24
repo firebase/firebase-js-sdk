@@ -98,11 +98,9 @@ import {
   trim,
   isAbsent,
   timestampSubtract,
-  arraySlice,
   arrayIndexOf,
   arrayLastIndexOf,
   arrayIndexOfAll,
-  arrayFilter,
   mapRemove,
   mapMerge,
   documentId,
@@ -3366,52 +3364,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expectResults(snapshot, ...expectedResults);
     });
 
-    it('supports arraySlice', async () => {
-      let snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(field('rating').descending())
-          .limit(1)
-          .select(
-            arraySlice('tags', 0, 1).as('slice1'), // inclusive start and end
-            arraySlice('tags', 1, 100).as('slice2'), // overflow end
-            arraySlice('tags', 1).as('slice3'), // slice to end
-            field('tags').arraySlice(1, 2).as('slice4'), // class method
-            arraySlice('empty', 0, 1).as('sliceEmpty') // null array
-          )
-      );
-
-      const expectedResults = [
-        {
-          slice1: ['adventure', 'magic'],
-          slice2: ['magic', 'epic'],
-          slice3: ['magic', 'epic'],
-          slice4: ['magic', 'epic'],
-          sliceEmpty: null
-        }
-      ];
-      expectResults(snapshot, ...expectedResults);
-
-      // Test with expressions
-      snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .sort(field('rating').descending())
-          .limit(1)
-          .select(
-            arraySlice('tags', field('tags').arrayLength().subtract(2)).as(
-              'slice'
-            )
-          )
-      );
-      // length of tags is 3. slice(1) -> ['magic', 'epic']
-      expectResults(snapshot, {
-        slice: ['magic', 'epic']
-      });
-    });
-
     it('supports arrayIndexOf', async () => {
       const snapshot = await execute(
         firestore
@@ -3557,173 +3509,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expectResults(snapshotDuplicates, {
         indices1: [0, 4],
         indices2: [1, 3]
-      });
-    });
-
-    describe('arrayFilter', () => {
-      it('supports arrayFilter simple', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [1, 2, 3, 4, 5],
-                arr2: [10, 20],
-                empty: [],
-                nullArr: null,
-                notArr: [1, 2, 3, 4, 5]
-              })
-            )
-            .select(
-              field('arr')
-                .arrayFilter('element', field('element').greaterThan(3))
-                .as('result1'),
-              arrayFilter(
-                'arr2',
-                'element',
-                field('element').greaterThan(3)
-              ).as('result2'),
-              arrayFilter(
-                'empty',
-                'element',
-                field('element').greaterThan(3)
-              ).as('result3'),
-              arrayFilter(
-                'nullArr',
-                'element',
-                field('element').greaterThan(3)
-              ).as('result4')
-            )
-        );
-
-        expectResults(snapshot, {
-          result1: [4, 5],
-          result2: [10, 20],
-          result3: [],
-          result4: null
-        });
-      });
-
-      it('supports arrayFilter on map property', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [{ a: { b: 1 } }, { a: { b: 2 } }, { a: { b: 3 } }]
-              })
-            )
-            .select(
-              arrayFilter('arr', 'element', field('element.a.b').equal(2)).as(
-                'result'
-              )
-            )
-        );
-
-        expectResults(snapshot, {
-          result: [{ a: { b: 2 } }]
-        });
-      });
-
-      it('supports arrayFilter nested child references parent', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [
-                  { outerVal: 2, innerArr: [1, 2, 3] },
-                  { outerVal: 5, innerArr: [4, 5, 6] },
-                  { outerVal: 9, innerArr: [7, 8] }
-                ]
-              })
-            )
-            .select(
-              arrayFilter(
-                field('arr'),
-                'parent',
-                field('parent.innerArr')
-                  .arrayFilter(
-                    'child',
-                    field('child').equal(field('parent.outerVal'))
-                  )
-                  .length()
-                  .greaterThan(0)
-              ).as('result')
-            )
-        );
-
-        expectResults(snapshot, {
-          result: [
-            { outerVal: 2, innerArr: [1, 2, 3] },
-            { outerVal: 5, innerArr: [4, 5, 6] }
-          ]
-        });
-      });
-
-      it('supports arrayFilter nested child references other fields', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                otherField: 2,
-                arr: [{ nested: [1, 2, 3] }, { nested: [4, 5, 6] }]
-              })
-            )
-            .select(
-              field('__name__'),
-              arrayFilter(
-                field('arr'),
-                'outer',
-                arrayContains(
-                  arrayFilter(
-                    field('outer.nested'),
-                    'inner',
-                    field('otherField').equal(constant(2))
-                  ),
-                  constant(1)
-                )
-              ).as('result')
-            )
-        );
-
-        expectResults(snapshot, {
-          result: [{ nested: [1, 2, 3] }]
-        });
-      });
-
-      it('supports arrayFilter edge case missing property in map', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [{ a: 1 }, { b: 2 }, { a: 3 }]
-              })
-            )
-            .select(
-              arrayFilter(
-                'arr',
-                'element',
-                field('element.a').greaterThan(1)
-              ).as('result')
-            )
-        );
-
-        expectResults(snapshot, {
-          result: [{ a: 3 }]
-        });
       });
     });
 

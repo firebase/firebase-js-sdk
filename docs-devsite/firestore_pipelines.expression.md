@@ -46,7 +46,6 @@ export declare abstract class Expression
 |  [arrayContainsAll(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
 |  [arrayContainsAny(values)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
 |  [arrayContainsAny(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
-|  [arrayFilter(variable, predicate)](./firestore_pipelines.expression.md#expressionarrayfilter) |  | <b><i>(Public Preview)</i></b> Returns a filtered array containing only elements that match the predicate. |
 |  [arrayFirst()](./firestore_pipelines.expression.md#expressionarrayfirst) |  | <b><i>(Public Preview)</i></b> Returns the first element of the array. |
 |  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
 |  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
@@ -69,8 +68,6 @@ export declare abstract class Expression
 |  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
 |  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
 |  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
-|  [arraySlice(start, end)](./firestore_pipelines.expression.md#expressionarrayslice) |  | <b><i>(Public Preview)</i></b> Returns a slice of the array. |
-|  [arraySlice(start, end)](./firestore_pipelines.expression.md#expressionarrayslice) |  | <b><i>(Public Preview)</i></b> Returns a slice of the array. |
 |  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
 |  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
@@ -500,41 +497,6 @@ A new `Expression` representing the 'array\_contains\_any' comparison.
 // Check if the 'groups' array contains either the value from the 'userGroup' field
 // or the value "guest"
 field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
-
-```
-
-## Expression.arrayFilter()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Returns a filtered array containing only elements that match the predicate.
-
-<b>Signature:</b>
-
-```typescript
-arrayFilter(variable: string, predicate: BooleanExpression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  variable | string | The variable name to bind to each element in the array. This variable name can be used in the <code>predicate</code> expression to refer to the current element. |
-|  predicate | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the filtered array.
-
-### Example
-
-
-```typescript
-// Get a filtered array of the 'scores' field containing only elements greater than 50.
-field("scores").arrayFilter("score", field("score").greaterThan(50));
 
 ```
 
@@ -1242,77 +1204,6 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Reverse the value of the 'myArray' field.
 field("myArray").arrayReverse();
-
-```
-
-## Expression.arraySlice()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Returns a slice of the array.
-
-<b>Signature:</b>
-
-```typescript
-arraySlice(start: number, end?: number): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  start | number | The index to start the slice. |
-|  end | number | The index to end the slice (inclusive). |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the slice.
-
-### Example
-
-
-```typescript
-// Get a slice of the 'myArray' field from index 1 to 3 (inclusive).
-field("myArray").arraySlice(1, 3);
-
-```
-
-## Expression.arraySlice()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Returns a slice of the array.
-
-<b>Signature:</b>
-
-```typescript
-arraySlice(start: Expression, end?: Expression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  start | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the index to start the slice. |
-|  end | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the index to end the slice (inclusive). |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the slice.
-
-### Example
-
-
-```typescript
-// Get a slice of the 'myArray' field from index value in 'start' field to
-// index value in 'end' field (inclusive).
-field("myArray").arraySlice(field("start"), field("end"));
 
 ```
 
