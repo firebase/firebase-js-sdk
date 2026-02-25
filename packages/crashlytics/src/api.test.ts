@@ -155,16 +155,16 @@ describe('Top level API', () => {
       );
     });
 
-    it('works with options: loggingUrl set', () => {
+    it('works with options: endpointUrl set', () => {
       const app = getFakeApp();
-      expect(getCrashlytics(app, { loggingUrl: 'http://endpoint1' })).to.equal(
-        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
+      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1' })).to.equal(
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
       );
       expect(
-        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, { loggingUrl: 'http://endpoint2' }));
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      ).not.to.equal(getCrashlytics(app, { endpointUrl: 'http://endpoint2' }));
       expect(
-        getCrashlytics(app, { loggingUrl: 'http://endpoint1' })
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
       ).not.to.equal(getCrashlytics(app, {}));
     });
   });

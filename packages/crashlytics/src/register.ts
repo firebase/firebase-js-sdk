@@ -43,7 +43,9 @@ export function registerCrashlytics(): void {
 
         // TODO: change to default endpoint once it exists
         const loggingUrl = instanceIdentifier || 'http://localhost';
-        const tracingUrl = instanceIdentifier || 'http://localhost';
+        // Traces will only be sent when running locally; change to instanceIdentifier once we can
+        // send trace data through the Crashlytics backend
+        const tracingUrl = 'http://localhost:4318';
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
