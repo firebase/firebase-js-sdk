@@ -20,6 +20,7 @@ import { recordError, getCrashlytics } from './api';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
+import { NEXTJS_REQUEST_LABEL_KEYS } from './constants';
 
 export { Instrumentation };
 
@@ -45,11 +46,11 @@ export function nextOnRequestError(
     const crashlytics = getCrashlytics(getApp(), crashlyticsOptions);
 
     const attributes = {
-      'nextjs_path': errorRequest.path,
-      'nextjs_method': errorRequest.method,
-      'nextjs_router_kind': errorContext.routerKind,
-      'nextjs_route_path': errorContext.routePath,
-      'nextjs_route_type': errorContext.routeType
+      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_PATH]: errorRequest.path,
+      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_METHOD]: errorRequest.method,
+      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_ROUTER_KIND]: errorContext.routerKind,
+      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_ROUTE_PATH]: errorContext.routePath,
+      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_ROUTE_TYPE]: errorContext.routeType
     };
 
     recordError(crashlytics, error, attributes);
