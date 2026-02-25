@@ -2785,6 +2785,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
    * return the result of this expression evaluation.
    *
+   * @example
    * ```typescript
    * // Returns the value of the optional field 'optional_field', or if that is
    * // absent, then returns the value of the field `

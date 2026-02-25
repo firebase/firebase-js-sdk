@@ -89,14 +89,7 @@ export declare abstract class Expression
 |  [greaterThanOrEqual(expression)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression. |
 |  [greaterThanOrEqual(value)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to a constant value. |
 |  [ifAbsent(elseValue)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of the this expression evaluation. |
-|  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation.
-```typescript
-// Returns the value of the optional field 'optional_field', or if that is
-// absent, then returns the value of the field `
-field("optional_field").ifAbsent(field('default_field'))
-
-```
- |
+|  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
 |  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
 |  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
 |  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
@@ -1832,13 +1825,6 @@ field("optional_field").ifAbsent("default_value")
 
 Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else return the result of this expression evaluation.
 
-```typescript
-// Returns the value of the optional field 'optional_field', or if that is
-// absent, then returns the value of the field `
-field("optional_field").ifAbsent(field('default_field'))
-
-```
-
 <b>Signature:</b>
 
 ```typescript
@@ -1856,6 +1842,16 @@ ifAbsent(elseExpression: unknown): Expression;
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
 A new \[Expression\] representing the ifAbsent operation.
+
+### Example
+
+
+```typescript
+// Returns the value of the optional field 'optional_field', or if that is
+// absent, then returns the value of the field `
+field("optional_field").ifAbsent(field('default_field'))
+
+```
 
 ## Expression.ifError()
 
