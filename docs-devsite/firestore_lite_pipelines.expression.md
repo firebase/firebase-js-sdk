@@ -62,11 +62,11 @@ export declare abstract class Expression
 |  [arrayLastN(n)](./firestore_lite_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
 |  [arrayLength()](./firestore_lite_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
 |  [arrayMaximum()](./firestore_lite_pipelines.expression.md#expressionarraymaximum) |  | <b><i>(Public Preview)</i></b> Returns the maximum value in the array. |
-|  [arrayMaximumN(n)](./firestore_lite_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array. |
-|  [arrayMaximumN(n)](./firestore_lite_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array. |
+|  [arrayMaximumN(n)](./firestore_lite_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array.<!-- -->Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(n)](./firestore_lite_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array.<!-- -->Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimum()](./firestore_lite_pipelines.expression.md#expressionarrayminimum) |  | <b><i>(Public Preview)</i></b> Returns the minimum value in the array. |
-|  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
-|  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array. |
+|  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayReverse()](./firestore_lite_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
 |  [arraySum()](./firestore_lite_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [as(name)](./firestore_lite_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
@@ -1024,6 +1024,8 @@ field("myArray").arrayMaximum();
 
 Returns the largest `n` elements of the array.
 
+Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1057,6 +1059,8 @@ field("myArray").arrayMaximumN(3);
 > 
 
 Returns the largest `n` elements of the array.
+
+Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
 
 <b>Signature:</b>
 
@@ -1119,6 +1123,8 @@ field("myArray").arrayMinimum();
 
 Returns the smallest `n` elements of the array.
 
+Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
 <b>Signature:</b>
 
 ```typescript
@@ -1152,6 +1158,8 @@ field("myArray").arrayMinimumN(3);
 > 
 
 Returns the smallest `n` elements of the array.
+
+Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
 
 <b>Signature:</b>
 

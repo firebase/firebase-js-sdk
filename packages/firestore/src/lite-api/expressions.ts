@@ -1408,6 +1408,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Returns the largest `n` elements of the array.
    *
+   * Returns the n largest non-null elements in the array, in descending order.
+   * This does not use a stable sort, meaning the order of equivalent elements
+   * is undefined.
+   *
    * @example
    * ```typescript
    * // Get the largest 3 elements of the 'myArray' field.
@@ -1422,6 +1426,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   /**
    * @beta
    * Returns the largest `n` elements of the array.
+   *
+   * Returns the n largest non-null elements in the array, in descending order.
+   * This does not use a stable sort, meaning the order of equivalent elements
+   * is undefined.
    *
    * @example
    * ```typescript
@@ -1461,6 +1469,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @beta
    * Returns the smallest `n` elements of the array.
    *
+   * Note: Returns the n smallest non-null elements in the array, in ascending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
    * @example
    * ```typescript
    * // Get the smallest 3 elements of the 'myArray' field.
@@ -1475,6 +1487,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   /**
    * @beta
    * Returns the smallest `n` elements of the array.
+   *
+   * Note: Returns the n smallest non-null elements in the array, in ascending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
    *
    * @example
    * ```typescript
@@ -6605,6 +6621,10 @@ export function arrayMaximum(array: Expression | string): FunctionExpression {
  *
  * Creates an expression that returns the largest `n` elements of an array.
  *
+ * Returns the n largest non-null elements in the array, in descending order.
+ * This does not use a stable sort, meaning the order of equivalent elements
+ * is undefined.
+ *
  * @example
  * ```typescript
  * // Get the top 3 scores from the 'scores' array field
@@ -6621,6 +6641,10 @@ export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
  * @beta
  *
  * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Returns the n largest non-null elements in the array, in descending order.
+ * This does not use a stable sort, meaning the order of equivalent elements
+ * is undefined.
  *
  * @example
  * ```typescript
@@ -6642,6 +6666,10 @@ export function arrayMaximumN(
  *
  * Creates an expression that returns the largest `n` elements of an array.
  *
+ * Returns the n largest non-null elements in the array, in descending order.
+ * This does not use a stable sort, meaning the order of equivalent elements
+ * is undefined.
+ *
  * @example
  * ```typescript
  * // Get the top 3 elements from an array expression
@@ -6661,6 +6689,10 @@ export function arrayMaximumN(
  * @beta
  *
  * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Returns the n largest non-null elements in the array, in descending order.
+ * This does not use a stable sort, meaning the order of equivalent elements
+ * is undefined.
  *
  * @example
  * ```typescript
@@ -6723,6 +6755,10 @@ export function arrayMinimum(array: Expression | string): FunctionExpression {
  *
  * Creates an expression that returns the smallest `n` elements of an array.
  *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
  * @example
  * ```typescript
  * // Get the bottom 3 scores from the 'scores' array field
@@ -6739,6 +6775,10 @@ export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
  * @beta
  *
  * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
  *
  * @example
  * ```typescript
@@ -6760,6 +6800,10 @@ export function arrayMinimumN(
  *
  * Creates an expression that returns the smallest `n` elements of an array.
  *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
  * @example
  * ```typescript
  * // Get the bottom 3 scores from the 'scores' array field
@@ -6779,6 +6823,10 @@ export function arrayMinimumN(
  * @beta
  *
  * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
  *
  * @example
  * ```typescript
