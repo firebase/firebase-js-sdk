@@ -16,6 +16,8 @@
  */
 
 import { FirebaseApp, getApp, _getProvider } from '@firebase/app';
+import { TrustedResourceUrl, trustedResourceUrl } from 'safevalues';
+import { setScriptSrc } from 'safevalues/dom';
 
 import {
   initializeAuth,
@@ -120,11 +122,11 @@ function getScriptParentElement(): HTMLDocument | HTMLHeadElement {
 }
 
 _setExternalJSProvider({
-  loadJS(url: string): Promise<Event> {
+  loadJS(url: TrustedResourceUrl): Promise<Event> {
     // TODO: consider adding timeout support & cancellation
     return new Promise((resolve, reject) => {
-      const el = document.createElement('script');
-      el.setAttribute('src', url);
+      const el = document.createElement('script') as HTMLScriptElement;
+      setScriptSrc(el, url);
       el.onload = resolve;
       el.onerror = e => {
         const error = _createError(AuthErrorCode.INTERNAL_ERROR);
@@ -137,10 +139,10 @@ _setExternalJSProvider({
     });
   },
 
-  gapiScript: 'https://apis.google.com/js/api.js',
-  recaptchaV2Script: 'https://www.google.com/recaptcha/api.js',
+  gapiScript: trustedResourceUrl`https://apis.google.com/js/api.js`,
+  recaptchaV2Script: trustedResourceUrl`https://www.google.com/recaptcha/api.js`,
   recaptchaEnterpriseScript:
-    'https://www.google.com/recaptcha/enterprise.js?render='
+    trustedResourceUrl`https://www.google.com/recaptcha/enterprise.js`
 });
 
 registerAuth(ClientPlatform.BROWSER);

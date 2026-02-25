@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { appendParams } from 'safevalues';
+
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
 import { Delay } from '../../core/util/delay';
@@ -104,7 +106,7 @@ function loadGapi(auth: AuthInternal): Promise<gapi.iframes.Context> {
       };
       // Load GApi loader.
       return js
-        ._loadJS(`${js._gapiScriptUrl()}?onload=${cbName}`)
+        ._loadJS(appendParams(js._gapiScriptUrl(), new Map([['onload', cbName]])))
         .catch(e => reject(e));
     }
   }).catch(error => {
