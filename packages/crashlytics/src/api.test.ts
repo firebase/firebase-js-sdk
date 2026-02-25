@@ -143,6 +143,7 @@ describe('Top level API', () => {
       );
     });
 
+<<<<<<< HEAD
     it('works with options: config values set', () => {
       const app = getFakeApp();
       expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })).to.equal(
@@ -154,6 +155,19 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
+=======
+    it('works with options: endpointUrl set', () => {
+      const app = getFakeApp();
+      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1' })).to.equal(
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      );
+      expect(
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      ).not.to.equal(getCrashlytics(app, { endpointUrl: 'http://endpoint2' }));
+      expect(
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      ).not.to.equal(getCrashlytics(app, {}));
+>>>>>>> 8d9ca766f (Crashlytics tracing onboarding improvements (#9587))
     });
   });
 

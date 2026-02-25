@@ -56,7 +56,6 @@ export function getCrashlytics(
     app,
     CRASHLYTICS_TYPE
   );
-
   if (crashlyticsProvider.isInitialized()) {
     const existingInstance = crashlyticsProvider.getImmediate();
     if (deepEqual(options || {}, crashlyticsProvider.getOptions())) {

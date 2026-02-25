@@ -31,10 +31,7 @@ import {
   ConsoleSpanExporter
 } from '@opentelemetry/sdk-trace-web';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { UserInteractionInstrumentation } from '@opentelemetry/instrumentation-user-interaction';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
 import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider } from '../types';
@@ -91,11 +88,7 @@ export function createTracingProvider(
 
 
   registerInstrumentations({
-    instrumentations: [
-      new DocumentLoadInstrumentation(),
-      new FetchInstrumentation(),
-      new UserInteractionInstrumentation()
-    ]
+    instrumentations: [new FetchInstrumentation()]
   });
 
   return provider;

@@ -23,7 +23,8 @@ export interface CrashlyticsOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [appVersion](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
-|  [endpointUrl](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
+|  [endpointUrl](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionsendpointUrl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
+|  [tracingUrl](./crashlytics_react-router.crashlyticsoptions.md#crashlyticsoptionstracingurl) | string | The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 
 ## CrashlyticsOptions.appVersion
 
@@ -43,4 +44,14 @@ The URL for the endpoint to which Crashlytics data should be sent, in the OpenTe
 
 ```typescript
 endpointUrl?: string;
+```
+
+## CrashlyticsOptions.tracingUrl
+
+The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase.
+
+<b>Signature:</b>
+
+```typescript
+tracingUrl?: string;
 ```
