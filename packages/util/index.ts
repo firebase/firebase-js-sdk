@@ -38,3 +38,4 @@ export * from './src/formatters';
 export * from './src/compat';
 export * from './src/global';
 export * from './src/url';
+export * from './src/sha256';
