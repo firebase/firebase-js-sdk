@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import { DataConnectError, Code } from '../../../core/error';
+import { addToken } from '../../../util/url';
 import {
   CallerSdkType,
   DataConnectResponse,
   DataConnectTransportClass
-} from '../../..';
-import { DataConnectError, Code } from '../../../core/error';
-import { addToken } from '../../../util/url';
+} from '../DataConnectTransport';
 
 import { dcFetch } from './fetch';
 

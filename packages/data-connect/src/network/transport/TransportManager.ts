@@ -1,25 +1,26 @@
+import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
+import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../../core/error';
+import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+
 import {
   CallerSdkType,
   DataConnectResponse,
   DataConnectTransport,
   SubscribeNotificationHook
-} from './index';
-import { RESTTransport } from './rest/rest';
-import { DataConnectStreamTransportClass } from './stream';
-import { WebsocketTransport } from './stream/websocket';
-import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
-import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
-import { Code, DataConnectError } from '../../core/error';
+} from './DataConnectTransport';
+import { RESTTransport } from './rest/RESTTransport';
+import { DataConnectStreamManager } from './stream';
+import { WebSocketTransport } from './stream/WebSocketTransport';
 
 /**
  * Manages routing between the REST transport (default) and the Stream transport
  * (lazy-loaded for subscriptions). Implements the DataConnectTransport interface.
  * @internal
  */
-export class TransportManager implements DataConnectTransport {
+export class DataConnectTransportManager implements DataConnectTransport {
   private restTransport: RESTTransport;
-  private streamTransport?: DataConnectStreamTransportClass;
+  private streamTransport?: DataConnectStreamManager;
   private _isUsingEmulator = false;
 
   constructor(
@@ -47,9 +48,9 @@ export class TransportManager implements DataConnectTransport {
   /**
    * Initializes the stream transport if it hasn't been already.
    */
-  private initStreamTransport(): DataConnectStreamTransportClass {
+  private initStreamTransport(): DataConnectStreamManager {
     if (!this.streamTransport) {
-      this.streamTransport = new WebsocketTransport(
+      this.streamTransport = new WebSocketTransport(
         this.options,
         this.apiKey,
         this.appId,
@@ -161,10 +162,10 @@ export class TransportManager implements DataConnectTransport {
     }
   }
 
-  onAuthTokenChanged(token: string | null): void {
+  async onAuthTokenChanged(token: string | null): Promise<void> {
     this.restTransport.onAuthTokenChanged(token);
     if (this.streamTransport) {
-      this.streamTransport.onAuthTokenChanged(token);
+      await this.streamTransport.onAuthTokenChanged(token);
     }
   }
 

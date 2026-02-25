@@ -15,15 +15,18 @@
  * limitations under the License.
  */
 
-import { CallerSdkType, CallerSdkTypeEnum, DataConnectResponse } from '..';
 import { DataConnectOptions, TransportOptions } from '../../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../../core/error';
 import { AuthTokenProvider } from '../../../core/FirebaseAuthProvider';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectResponse
+} from '../DataConnectTransport';
 
+import { DataConnectStreamManager } from './DataConnectStreamManager';
 import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
-
-import { DataConnectStreamTransportClass } from '.';
 
 /**
  * A StreamTransport implementation that uses WebSockets to stream requests and responses.
@@ -31,7 +34,7 @@ import { DataConnectStreamTransportClass } from '.';
  * reconnection and request correlation.
  * @internal
  */
-export class WebsocketTransport extends DataConnectStreamTransportClass {
+export class WebSocketTransport extends DataConnectStreamManager {
   // TODO(stephenarosaj): handle app check and auth... in RESTTransport there are providers that get called... probably have to do something like that here, too
 
   /** The current established connection to the server. Undefined if disconnected. */

@@ -45,7 +45,7 @@ import {
   CallerSdkTypeEnum,
   DataConnectTransport
 } from '../network';
-import { TransportManager } from '../network/transport/manager';
+import { DataConnectTransportManager } from '../network/transport/TransportManager';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
@@ -203,7 +203,7 @@ export class DataConnect {
       );
     }
 
-    this._transport = new TransportManager(
+    this._transport = new DataConnectTransportManager(
       this.dataConnectOptions,
       this.app.options.apiKey,
       this.app.options.appId,

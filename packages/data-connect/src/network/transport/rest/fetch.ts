@@ -18,18 +18,18 @@
 import { isCloudWorkstation } from '@firebase/util';
 
 import {
-  CallerSdkType,
-  DataConnectExtensions,
-  DataConnectResponse,
-  getGoogApiClientValue
-} from '..';
-import {
   Code,
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
 } from '../../../core/error';
 import { logError } from '../../../logger';
+import {
+  CallerSdkType,
+  DataConnectExtensions,
+  DataConnectResponse,
+  getGoogApiClientValue
+} from '../DataConnectTransport';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
