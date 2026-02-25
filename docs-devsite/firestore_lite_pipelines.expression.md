@@ -88,7 +88,7 @@ export declare abstract class Expression
 |  [greaterThan(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
 |  [greaterThanOrEqual(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression. |
 |  [greaterThanOrEqual(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to a constant value. |
-|  [ifAbsent(elseValue)](./firestore_lite_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of the this expression evaluation. |
+|  [ifAbsent(elseValue)](./firestore_lite_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
 |  [ifAbsent(elseExpression)](./firestore_lite_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
 |  [ifError(catchExpr)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
 |  [ifError(catchValue)](./firestore_lite_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
@@ -1788,7 +1788,7 @@ field("score").greaterThanOrEqual(80);
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else return the result of the this expression evaluation.
+Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else return the result of this expression evaluation.
 
 <b>Signature:</b>
 
@@ -1848,7 +1848,7 @@ A new \[Expression\] representing the ifAbsent operation.
 
 ```typescript
 // Returns the value of the optional field 'optional_field', or if that is
-// absent, then returns the value of the field `
+// absent, then returns the value of the field `default_field`.
 field("optional_field").ifAbsent(field('default_field'))
 
 ```
