@@ -55,7 +55,7 @@ export function getCrashlytics(
     app,
     CRASHLYTICS_TYPE
   );
-  const identifier = options?.loggingUrl || '';
+  const identifier = options?.endpointUrl || '';
   const crashlytics: CrashlyticsService = crashlyticsProvider.getImmediate({
     identifier
   });

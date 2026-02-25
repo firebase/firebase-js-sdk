@@ -4,11 +4,7 @@
     "outDir": "dist",
     "jsx": "react",
     "baseUrl": ".",
-    "paths": {
-      "@opentelemetry/exporter-trace-otlp-proto": [
-        "../../node_modules/@opentelemetry/exporter-trace-otlp-proto"
-      ]
-    }
+    "paths": {}
   },
   "exclude": [
     "dist/**/*"
