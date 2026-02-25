@@ -28,8 +28,8 @@ import {
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
   isCloudWorkstation,
-  pingServer,
-  updateEmulatorBanner
+  updateEmulatorBanner,
+  pingServer
 } from '@firebase/util';
 
 import {
@@ -143,6 +143,7 @@ export class Firestore implements FirestoreService {
 
   _freezeSettings(): FirestoreSettingsImpl {
     this._settingsFrozen = true;
+    updateEmulatorBanner('Firestore', this._settings.isUsingEmulator);
     return this._settings;
   }
 
@@ -358,6 +359,11 @@ export function connectFirestoreEmulator(
   }
 
   firestore._setSettings(newConfig);
+
+  if (useSsl) {
+    void pingServer(`https://${newHostSetting}`);
+    updateEmulatorBanner('Firestore', true);
+  }
 
   if (options.mockUserToken) {
     let token: string;

@@ -185,7 +185,7 @@ export function connectFunctionsEmulator(
   }://${host}:${port}`;
   // Workaround to get cookies in Firebase Studio
   if (useSsl) {
-    void pingServer(functionsInstance.emulatorOrigin + '/backends');
+    void pingServer(functionsInstance.emulatorOrigin);
     updateEmulatorBanner('Functions', true);
   }
 }

@@ -258,6 +258,10 @@ export class Database implements _FirebaseService {
         this.app.options['databaseAuthVariableOverride']
       );
       this._instanceStarted = true;
+      updateEmulatorBanner(
+        'Database',
+        this._repo.repoInfo_.emulatorOptions !== null
+      );
     }
     return this._repoInternal;
   }
