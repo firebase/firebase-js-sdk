@@ -21,9 +21,22 @@ export const CRASHLYTICS_TYPE = 'crashlytics';
 /** Key for storing the session ID in sessionStorage. */
 export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
-/** Keys for attributes in log entries. */
+/** Label keys that we write in telemetry log entries. */
 export const LOG_ENTRY_ATTRIBUTE_KEYS = {
-  USER_ID: 'user.id',
-  SESSION_ID: 'session.id',
-  APP_VERSION: 'app.version'
+  APP_VERSION: 'app_version',
+  SESSION_ID: 'session_id',
+  USER_ID: 'user_id'
+};
+
+const NEXTJS_LABEL_NAMESPACE = 'nextjs';
+
+/**
+ * The namespace for Next.js request attributes that we write in telemetry log entries.
+ */
+export const NEXTJS_REQUEST_LABEL_KEYS = {
+  NEXTJS_PATH: `${NEXTJS_LABEL_NAMESPACE}.path`,
+  NEXTJS_METHOD: `${NEXTJS_LABEL_NAMESPACE}.method`,
+  NEXTJS_ROUTER_KIND: `${NEXTJS_LABEL_NAMESPACE}.router_kind`,
+  NEXTJS_ROUTE_PATH: `${NEXTJS_LABEL_NAMESPACE}.route_path`,
+  NEXTJS_ROUTE_TYPE: `${NEXTJS_LABEL_NAMESPACE}.route_type`
 };
