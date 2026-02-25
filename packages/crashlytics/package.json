@@ -121,7 +121,6 @@
     "@opentelemetry/exporter-logs-otlp-http": "0.203.0",
     "@opentelemetry/exporter-trace-otlp-proto": "0.212.0",
     "@opentelemetry/instrumentation": "0.55.0",
-    "@opentelemetry/instrumentation-document-load": "0.46.0",
     "@opentelemetry/instrumentation-fetch": "0.55.0",
     "@opentelemetry/instrumentation-user-interaction": "0.45.0",
     "@opentelemetry/otlp-exporter-base": "0.205.0",
