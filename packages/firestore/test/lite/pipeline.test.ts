@@ -3383,6 +3383,29 @@ describe.skipClassic('Firestore Pipelines', () => {
         firstIndex: 1,
         lastIndex: 3
       });
+
+      // Test with null values
+      const snapshotNulls = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3, 2, 1],
+              nullArr: null
+            })
+          )
+          .select(
+            arrayIndexOf('arr', null).as('firstIndex'),
+            arrayIndexOf('nullArr', null).as('firstIndexNull')
+          )
+      );
+
+      expectResults(snapshotNulls, {
+        firstIndex: 1,
+        firstIndexNull: null
+      });
     });
 
     it('supports arrayLastIndexOf', async () => {
@@ -3443,10 +3466,10 @@ describe.skipClassic('Firestore Pipelines', () => {
           .sort(field('rating').descending())
           .limit(1)
           .select(
-            arrayIndexOfAll('tags', 'adventure').as('indicesFirst'), // [0]
-            arrayIndexOfAll(field('tags'), 'epic').as('indicesLast'), // [2]
-            field('tags').arrayIndexOfAll('nonexistent').as('indicesNone'), // []
-            arrayIndexOfAll('empty', 'anything').as('indicesEmpty') // []
+            arrayIndexOfAll('tags', 'adventure').as('indicesFirst'),
+            arrayIndexOfAll(field('tags'), 'epic').as('indicesLast'),
+            field('tags').arrayIndexOfAll('nonexistent').as('indicesNone'),
+            arrayIndexOfAll('empty', 'anything').as('indicesEmpty')
           )
       );
 
@@ -3480,6 +3503,29 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshotDuplicates, {
         indices1: [0, 4],
         indices2: [1, 3]
+      });
+
+      // Test with null values
+      const snapshotNulls = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3, null, 1],
+              nullArr: null
+            })
+          )
+          .select(
+            arrayIndexOfAll('arr', null).as('indices1'),
+            arrayIndexOfAll('nullArr', null).as('indicesNull')
+          )
+      );
+
+      expectResults(snapshotNulls, {
+        indices1: [1, 3],
+        indicesNull: null
       });
     });
 

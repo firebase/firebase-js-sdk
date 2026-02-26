@@ -56,6 +56,17 @@ export type ExpressionType =
   | 'AliasedExpression';
 
 /**
+ * Direction of array index.
+ *
+ * @private
+ * @internal
+ */
+enum ArrayIndexDirection {
+  FIRST = 'first',
+  LAST = 'last'
+}
+
+/**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  *
@@ -1542,7 +1553,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   arrayIndexOf(search: unknown | Expression): FunctionExpression {
     return new FunctionExpression(
       'array_index_of',
-      [this, valueToDefaultExpr(search), valueToDefaultExpr('first')],
+      [
+        this,
+        valueToDefaultExpr(search),
+        valueToDefaultExpr(ArrayIndexDirection.FIRST)
+      ],
       'arrayIndexOf'
     );
   }
@@ -1579,7 +1594,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   arrayLastIndexOf(search: unknown | Expression): FunctionExpression {
     return new FunctionExpression(
       'array_index_of',
-      [this, valueToDefaultExpr(search), valueToDefaultExpr('last')],
+      [
+        this,
+        valueToDefaultExpr(search),
+        valueToDefaultExpr(ArrayIndexDirection.LAST)
+      ],
       'arrayLastIndexOf'
     );
   }
