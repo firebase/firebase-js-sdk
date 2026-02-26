@@ -11,6 +11,20 @@ import { FirebaseError } from '@firebase/util';
 import { LogLevelString } from '@firebase/logger';
 import { Provider } from '@firebase/component';
 
+// @public (undocumented)
+export interface CacheProvider<T extends StorageType> {
+    // (undocumented)
+    type: T;
+}
+
+// @public (undocumented)
+export interface CacheSettings {
+    // (undocumented)
+    cacheProvider: CacheProvider<StorageType>;
+    // (undocumented)
+    maxAgeSeconds?: number;
+}
+
 // @public
 export type CallerSdkType = 'Base' | 'Generated' | 'TanstackReactCore' | 'GeneratedReact' | 'TanstackAngularCore' | 'GeneratedAngular';
 
@@ -66,6 +80,12 @@ export class DataConnect {
     setInitialized(): void;
 }
 
+// @public (undocumented)
+export interface DataConnectEntityArray {
+    // (undocumented)
+    entityIds: string[];
+}
+
 // @public
 export class DataConnectError extends FirebaseError {
     /* Excluded from this release type: name */
@@ -74,6 +94,11 @@ export class DataConnectError extends FirebaseError {
 
 // @public (undocumented)
 export type DataConnectErrorCode = 'other' | 'already-initialized' | 'not-initialized' | 'not-supported' | 'invalid-argument' | 'partial-error' | 'unauthorized';
+
+// @public (undocumented)
+export type DataConnectExtension = {
+    path: Array<string | number>;
+} & (DataConnectEntityArray | DataConnectSingleEntity);
 
 // @public
 export class DataConnectOperationError extends DataConnectError {
@@ -110,19 +135,62 @@ export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
 }
 
 // @public (undocumented)
+export interface DataConnectSettings {
+    // (undocumented)
+    cacheSettings?: CacheSettings;
+}
+
+// @public (undocumented)
+export interface DataConnectSingleEntity {
+    // (undocumented)
+    entityId: string;
+}
+
+// @public
+export interface DataConnectSubscription<Data, Variables> {
+    // (undocumented)
+    errCallback?: (e?: DataConnectError) => void;
+    // (undocumented)
+    unsubscribe: () => void;
+    // (undocumented)
+    userCallback: OnResultSubscription<Data, Variables>;
+}
+
+// @public (undocumented)
 export type DataSource = typeof SOURCE_CACHE | typeof SOURCE_SERVER;
 
 // @public
 export function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, Variables>): MutationPromise<Data, Variables>;
 
 // @public
-export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>): QueryPromise<Data, Variables>;
+export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>, options?: ExecuteQueryOptions): QueryPromise<Data, Variables>;
+
+// @public (undocumented)
+export interface ExecuteQueryOptions {
+    // (undocumented)
+    fetchPolicy: QueryFetchPolicy;
+}
+
+// @public (undocumented)
+export interface Extensions {
+    // (undocumented)
+    dataConnect?: DataConnectExtension[];
+}
 
 // @public
+export function getDataConnect(options: ConnectorConfig, settings?: DataConnectSettings): DataConnect;
+
+// @public (undocumented)
 export function getDataConnect(options: ConnectorConfig): DataConnect;
 
 // @public
-export function getDataConnect(app: FirebaseApp, options: ConnectorConfig): DataConnect;
+export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig): DataConnect;
+
+// @public
+export function getDataConnect(app: FirebaseApp, connectorConfig: ConnectorConfig, settings: DataConnectSettings): DataConnect;
+
+// @public (undocumented)
+export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'>;
 
 // @public (undocumented)
 export const MUTATION_STR = "mutation";
@@ -175,6 +243,8 @@ export interface OpResult<Data> {
     // (undocumented)
     data: Data;
     // (undocumented)
+    extensions?: Extensions;
+    // (undocumented)
     fetchTime: string;
     // (undocumented)
     source: DataSource;
@@ -182,6 +252,16 @@ export interface OpResult<Data> {
 
 // @public (undocumented)
 export const QUERY_STR = "query";
+
+// @public
+export const QueryFetchPolicy: {
+    readonly PREFER_CACHE: "PREFER_CACHE";
+    readonly CACHE_ONLY: "CACHE_ONLY";
+    readonly SERVER_ONLY: "SERVER_ONLY";
+};
+
+// @public (undocumented)
+export type QueryFetchPolicy = (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
 
 // @public
 export interface QueryPromise<Data, Variables> extends Promise<QueryResult<Data, Variables>> {
@@ -237,6 +317,14 @@ export const SOURCE_CACHE = "CACHE";
 
 // @public (undocumented)
 export const SOURCE_SERVER = "SERVER";
+
+// @public (undocumented)
+export const StorageType: {
+    readonly MEMORY: "MEMORY";
+};
+
+// @public (undocumented)
+export type StorageType = (typeof StorageType)[keyof typeof StorageType];
 
 // @public
 export function subscribe<Data, Variables>(queryRefOrSerializedResult: QueryRef<Data, Variables> | SerializedRef<Data, Variables>, observer: SubscriptionOptions<Data, Variables>): QueryUnsubscribe;
