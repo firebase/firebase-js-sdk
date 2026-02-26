@@ -40,8 +40,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayLastN(arrayExpression, n)](./firestore_lite_pipelines.md#arraylastn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayLastN(arrayExpression, n)](./firestore_lite_pipelines.md#arraylastn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayMaximum(arrayExpression)](./firestore_lite_pipelines.md#arraymaximum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
-|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(arrayExpression, n)](./firestore_lite_pipelines.md#arraymaximumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimum(arrayExpression)](./firestore_lite_pipelines.md#arrayminimum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
@@ -159,8 +159,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayLastN(fieldName, n)](./firestore_lite_pipelines.md#arraylastn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayLength(fieldName)](./firestore_lite_pipelines.md#arraylength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array in a specified field. |
 |  [arrayMaximum(fieldName)](./firestore_lite_pipelines.md#arraymaximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
-|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(fieldName, n)](./firestore_lite_pipelines.md#arraymaximumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimum(fieldName)](./firestore_lite_pipelines.md#arrayminimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
@@ -1207,7 +1207,7 @@ arrayMaximum(field("scores"));
 
 Creates an expression that returns the largest `n` elements of an array.
 
-Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
 
 <b>Signature:</b>
 
@@ -1244,7 +1244,7 @@ arrayMaximumN(field("scores"), 3);
 
 Creates an expression that returns the largest `n` elements of an array.
 
-Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
 
 <b>Signature:</b>
 
@@ -4874,7 +4874,7 @@ arrayMaximum("scores");
 
 Creates an expression that returns the largest `n` elements of an array.
 
-Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
 
 <b>Signature:</b>
 
@@ -4911,7 +4911,7 @@ arrayMaximumN("scores", 3);
 
 Creates an expression that returns the largest `n` elements of an array.
 
-Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
 
 <b>Signature:</b>
 
