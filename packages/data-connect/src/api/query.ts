@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { DataConnectError } from '../core/error';
+import { Code, DataConnectError } from '../core/error';
+import {
+  ExecuteQueryOptions,
+  QueryFetchPolicy
+} from '../core/query/queryOptions';
+import { DataConnectExtensionWithMaxAge } from '../network/transport';
 
 import { DataConnect, getDataConnect } from './DataConnect';
 import {
@@ -26,27 +31,24 @@ import {
 } from './Reference';
 
 /**
- * Signature for `OnResultSubscription` for `subscribe`
- */
-export type OnResultSubscription<Data, Variables> = (
-  res: QueryResult<Data, Variables>
-) => void;
-/**
- * Signature for `OnErrorSubscription` for `subscribe`
- */
-export type OnErrorSubscription = (err?: DataConnectError) => void;
-/**
- * Signature for unsubscribe from `subscribe`
- */
-export type QueryUnsubscribe = () => void;
-
-/**
  * QueryRef object
  */
 export interface QueryRef<Data, Variables>
   extends OperationRef<Data, Variables> {
   refType: typeof QUERY_STR;
 }
+
+/** @internal */
+export type InternalQueryResult<Data, Variables> = QueryResult<
+  Data,
+  Variables
+> &
+  Omit<DataConnectResult<Data, Variables>, 'extensions'> & {
+    extensions?: {
+      dataConnect?: DataConnectExtensionWithMaxAge[];
+    };
+  };
+
 /**
  * Result of `executeQuery`
  */
@@ -69,9 +71,32 @@ export interface QueryPromise<Data, Variables>
  * @returns `QueryPromise`
  */
 export function executeQuery<Data, Variables>(
-  queryRef: QueryRef<Data, Variables>
+  queryRef: QueryRef<Data, Variables>,
+  options?: ExecuteQueryOptions
 ): QueryPromise<Data, Variables> {
-  return queryRef.dataConnect._queryManager.executeQuery(queryRef);
+  if (queryRef.refType !== QUERY_STR) {
+    return Promise.reject(
+      new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `ExecuteQuery can only execute query operations`
+      )
+    );
+  }
+  const queryManager = queryRef.dataConnect._queryManager;
+  const fetchPolicy = options?.fetchPolicy ?? QueryFetchPolicy.PREFER_CACHE;
+  switch (fetchPolicy) {
+    case QueryFetchPolicy.SERVER_ONLY:
+      return queryManager.fetchServerResults(queryRef);
+    case QueryFetchPolicy.CACHE_ONLY:
+      return queryManager.fetchCacheResults(queryRef, true);
+    case QueryFetchPolicy.PREFER_CACHE:
+      return queryManager.preferCacheResults(queryRef, false);
+    default:
+      throw new DataConnectError(
+        Code.INVALID_ARGUMENT,
+        `Invalid fetch policy: ${fetchPolicy}`
+      );
+  }
 }
 
 /**
@@ -111,7 +136,9 @@ export function queryRef<Data, Variables>(
   initialCache?: QueryResult<Data, Variables>
 ): QueryRef<Data, Variables> {
   dcInstance.setInitialized();
-  dcInstance._queryManager.track(queryName, variables, initialCache);
+  if (initialCache !== undefined) {
+    dcInstance._queryManager.updateSSR(initialCache);
+  }
   return {
     dataConnect: dcInstance,
     refType: QUERY_STR,
@@ -131,16 +158,4 @@ export function toQueryRef<Data, Variables>(
     refInfo: { name, variables, connectorConfig }
   } = serializedRef;
   return queryRef(getDataConnect(connectorConfig), name, variables);
-}
-/**
- * `OnCompleteSubscription`
- */
-export type OnCompleteSubscription = () => void;
-/**
- * Representation of full observer options in `subscribe`
- */
-export interface SubscriptionOptions<Data, Variables> {
-  onNext?: OnResultSubscription<Data, Variables>;
-  onErr?: OnErrorSubscription;
-  onComplete?: OnCompleteSubscription;
 }

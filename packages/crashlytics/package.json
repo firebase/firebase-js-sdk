@@ -88,9 +88,9 @@
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
     "@types/react": ">= 16.8.0",
+    "next": ">= 13.0.0",
     "react": ">= 16.8.0",
-    "react-router-dom": ">= 6.0.0",
-    "next": ">= 13.0.0"
+    "react-router-dom": ">= 6.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -121,7 +121,6 @@
     "@opentelemetry/exporter-logs-otlp-http": "0.212.0",
     "@opentelemetry/exporter-trace-otlp-proto": "0.212.0",
     "@opentelemetry/instrumentation": "0.212.0",
-    "@opentelemetry/instrumentation-document-load": "0.57.0",
     "@opentelemetry/instrumentation-fetch": "0.212.0",
     "@opentelemetry/instrumentation-user-interaction": "0.56.0",
     "@opentelemetry/otlp-exporter-base": "0.212.0",

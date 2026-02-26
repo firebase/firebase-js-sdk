@@ -39,6 +39,50 @@ export const CallerSdkTypeEnum = {
   GeneratedAngular: 'GeneratedAngular' // Generated Angular SDK
 } as const;
 
+export interface DataConnectEntityArray {
+  entityIds: string[];
+}
+
+export interface DataConnectSingleEntity {
+  entityId: string;
+}
+
+export type DataConnectExtension = {
+  path: Array<string | number>;
+} & (DataConnectEntityArray | DataConnectSingleEntity);
+
+/** @internal */
+export interface DataConnectMaxAge {
+  maxAge: string;
+}
+
+/** @internal */
+export type DataConnectExtensionWithMaxAge = {
+  path: Array<string | number>;
+} & (DataConnectEntityArray | DataConnectSingleEntity | DataConnectMaxAge);
+
+export interface Extensions {
+  dataConnect?: DataConnectExtension[];
+}
+
+/** @internal */
+export interface ExtensionsWithMaxAge {
+  dataConnect?: DataConnectExtensionWithMaxAge[];
+}
+
+export interface DataConnectResponse<T> {
+  data: T;
+  errors: Error[];
+  extensions: Extensions;
+}
+
+/** @internal */
+export interface DataConnectResponseWithMaxAge<T> {
+  data: T;
+  errors: Error[];
+  extensions: ExtensionsWithMaxAge;
+}
+
 /**
  * @internal
  */
@@ -46,11 +90,11 @@ export interface DataConnectTransport {
   invokeQuery<T, U>(
     queryName: string,
     body?: U
-  ): Promise<{ data: T; errors: Error[] }>;
+  ): Promise<DataConnectResponseWithMaxAge<T>>;
   invokeMutation<T, U>(
     queryName: string,
     body?: U
-  ): Promise<{ data: T; errors: Error[] }>;
+  ): Promise<DataConnectResponse<T>>;
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
   onTokenChanged: (token: string | null) => void;
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
