@@ -75,11 +75,11 @@ describe('nextOnRequestError', () => {
       fakeCrashlytics,
       error,
       {
-        'nextjs_path': '/test-path?some=param',
-        'nextjs_method': 'GET',
-        'nextjs_router_kind': 'Pages Router',
-        'nextjs_route_path': '/test-path',
-        'nextjs_route_type': 'render'
+        'nextjs.path': '/test-path?some=param',
+        'nextjs.method': 'GET',
+        'nextjs.router_kind': 'Pages Router',
+        'nextjs.route_path': '/test-path',
+        'nextjs.route_type': 'render'
       }
     );
   });
