@@ -15,4 +15,5 @@
  * limitations under the License.
  */
 
-export * from './transport';
+export * from './DataConnectTransport';
+export * from './TransportManager';

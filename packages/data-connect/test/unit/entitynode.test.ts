@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+
 import { makeMemoryCacheProvider } from '../../src';
 import {
   EncodingMode,

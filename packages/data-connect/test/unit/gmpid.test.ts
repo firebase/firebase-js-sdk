@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
-import { initializeFetch } from '../../src/network/fetch';
+import { initializeFetch } from '../../src/network/rest/fetch';
 
 use(sinonChai);
 const json = {

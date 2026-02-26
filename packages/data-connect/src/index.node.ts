@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { initializeFetch } from './network/transport/rest/fetch';
+import { initializeFetch } from './network/rest/fetch';
 import { registerDataConnect } from './register';
 
 export * from './api';

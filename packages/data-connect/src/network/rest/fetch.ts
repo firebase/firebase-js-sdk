@@ -22,8 +22,8 @@ import {
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
-} from '../../../core/error';
-import { logError } from '../../../logger';
+} from '../../core/error';
+import { logError } from '../../logger';
 import {
   CallerSdkType,
   DataConnectExtensions,

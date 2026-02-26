@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnectTransport } from '../network/transport';
+import { DataConnectTransport } from '../network';
 
 import { DataConnect } from './DataConnect';
 import {

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { DataConnectError, Code } from '../../../core/error';
-import { addToken } from '../../../util/url';
+import { DataConnectError, Code } from '../../core/error';
+import { addToken } from '../../util/url';
 import {
   CallerSdkType,
   DataConnectResponse,

@@ -20,8 +20,8 @@ import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
-import { dcFetch, initializeFetch } from '../../src/network/fetch';
-import { CallerSdkType, CallerSdkTypeEnum } from '../../src/network/transport';
+import { CallerSdkType, CallerSdkTypeEnum } from '../../src/network';
+import { dcFetch, initializeFetch } from '../../src/network/rest/fetch';
 use(chaiAsPromised);
 use(sinonChai);
 function mockFetch(json: object, reject: boolean): sinon.SinonStub {

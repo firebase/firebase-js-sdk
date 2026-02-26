@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
-import { Code, DataConnectError } from '../../core/error';
-import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
-import { SDK_VERSION } from '../../core/version';
-import { logDebug } from '../../logger';
-import { urlBuilder } from '../../util/url';
+import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
+import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../core/error';
+import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
+import { SDK_VERSION } from '../core/version';
+import { logDebug } from '../logger';
+import { urlBuilder } from '../util/url';
 
 export interface DataConnectEntityArray {
   entityIds: string[];

@@ -30,7 +30,7 @@ import {
   DataConnectExtension,
   OpResult
 } from '../../src';
-import { initializeFetch } from '../../src/network/fetch';
+import { initializeFetch } from '../../src/network/rest/fetch';
 import { encoderImpl } from '../../src/util/encoder';
 
 describe('caching', () => {

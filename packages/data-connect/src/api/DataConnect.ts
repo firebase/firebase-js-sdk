@@ -45,7 +45,7 @@ import {
   CallerSdkTypeEnum,
   DataConnectTransport
 } from '../network';
-import { DataConnectTransportManager } from '../network/transport/TransportManager';
+import { DataConnectTransportManager } from '../network/TransportManager';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
