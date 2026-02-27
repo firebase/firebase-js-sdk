@@ -139,4 +139,35 @@ describe('CrashlyticsRoutes', () => {
 
     consoleErrorStub.restore();
   });
+
+  it('filters empty paths and normalizes leading slashes', () => {
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter initialEntries={['/about']}>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/">
+              <Route path="" />
+              <Route path="about" element={<ThrowingComponent />} />
+            </Route>
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
+    );
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error')),
+      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/about' })
+    );
+
+    // Verify re-throw
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
+  });
 });
