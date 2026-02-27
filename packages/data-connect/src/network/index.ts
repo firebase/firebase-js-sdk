@@ -15,13 +15,4 @@
  * limitations under the License.
  */
 
-export {
-  CallerSdkType,
-  CallerSdkTypeEnum,
-  DataConnectTransport,
-  DataConnectEntityArray,
-  DataConnectSingleEntity,
-  DataConnectExtension,
-  Extensions,
-  TransportClass
-} from './transport';
+export * from './DataConnectTransport';

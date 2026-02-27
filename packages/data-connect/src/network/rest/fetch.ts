@@ -18,20 +18,19 @@
 import { isCloudWorkstation } from '@firebase/util';
 
 import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectResponse,
+  Extensions
+} from '..';
+import {
   Code,
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
-} from '../core/error';
-import { SDK_VERSION } from '../core/version';
-import { logError } from '../logger';
-
-import {
-  CallerSdkType,
-  CallerSdkTypeEnum,
-  Extensions,
-  DataConnectResponse
-} from './transport';
+} from '../../core/error';
+import { SDK_VERSION } from '../../core/version';
+import { logError } from '../../logger';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {

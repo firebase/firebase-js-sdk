@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
-import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
+import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
+import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 /**
  * enum representing different flavors of the SDK used by developers
@@ -70,6 +70,7 @@ export interface ExtensionsWithMaxAge {
   dataConnect?: DataConnectExtensionWithMaxAge[];
 }
 
+/** @internal */
 export interface DataConnectResponse<T> {
   data: T;
   errors: Error[];

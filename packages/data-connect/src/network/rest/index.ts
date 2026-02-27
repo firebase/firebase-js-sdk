@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,5 @@
  * limitations under the License.
  */
 
-import { initializeFetch } from './network/rest';
-import { registerDataConnect } from './register';
-
-export * from './api';
-export * from './api.node';
-initializeFetch(fetch);
-
-registerDataConnect('node');
+export * from './fetch';
+export * from './RestTransport';
