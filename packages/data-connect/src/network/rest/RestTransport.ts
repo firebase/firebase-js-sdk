@@ -83,10 +83,13 @@ export class RESTTransport extends DataConnectTransportClass {
     return withAuth;
   };
 
-  invokeMutation<Data, Variables>(
-    mutationName: string,
+  invokeMutation: <Data, Variables>(
+    queryName: string,
     body?: Variables
-  ): Promise<DataConnectResponse<Data>> {
+  ) => Promise<DataConnectResponse<Data>> = <Data, Variables = unknown>(
+    mutationName: string,
+    body: Variables
+  ) => {
     const abortController = new AbortController();
     const taskResult = this.withRetry(() => {
       return dcFetch<Data, Variables>(
@@ -94,7 +97,7 @@ export class RESTTransport extends DataConnectTransportClass {
         {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: mutationName,
-          variables: body as Variables
+          variables: body
         },
         abortController,
         this.appId,
@@ -106,7 +109,7 @@ export class RESTTransport extends DataConnectTransportClass {
       );
     });
     return taskResult;
-  }
+  };
 
   invokeSubscribe<Data, Variables>(
     notificationHook: SubscribeNotificationHook<Data>,
