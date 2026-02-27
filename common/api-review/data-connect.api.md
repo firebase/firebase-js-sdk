@@ -356,8 +356,6 @@ export interface TransportOptions {
     port?: number;
     // (undocumented)
     sslEnabled?: boolean;
-    // (undocumented)
-    streamEnabled?: boolean;
 }
 
 

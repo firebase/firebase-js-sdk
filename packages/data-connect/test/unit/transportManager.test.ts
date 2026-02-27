@@ -11,9 +11,6 @@ import {
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { RESTTransport } from '../../src/network/rest/RestTransport';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Any = any;
-
 use(chaiAsPromised);
 use(sinonChai);
 
@@ -30,45 +27,65 @@ describe('DataConnectTransportManager', () => {
     sinon.restore();
   });
 
+  interface TestVariables {
+    key: string;
+  }
+  const testVariables: TestVariables = { key: 'one' };
+
+  interface TestData {
+    value: number;
+  }
+  const testData: TestData = { value: 1 };
+
   it('should delegate invokeQuery to RESTTransport', async () => {
     const stub = sinon
       .stub(RESTTransport.prototype, 'invokeQuery')
-      .resolves({ data: {} } as DataConnectResponse<Any>);
+      .resolves({ data: testData } as DataConnectResponse<TestData>);
     manager = new DataConnectTransportManager(options);
 
-    await manager.invokeQuery('testQuery', { a: 1 });
+    await manager.invokeQuery<TestData, TestVariables>(
+      'testQuery',
+      testVariables
+    );
 
-    expect(stub).to.have.been.calledOnceWith('testQuery', { a: 1 });
+    expect(stub).to.have.been.calledOnceWith('testQuery', testVariables);
   });
 
   it('should delegate invokeMutation to RESTTransport', async () => {
     const stub = sinon
       .stub(RESTTransport.prototype, 'invokeMutation')
-      .resolves({ data: {} } as DataConnectResponse<Any>);
+      .resolves({ data: testData } as DataConnectResponse<TestData>);
     manager = new DataConnectTransportManager(options);
 
-    await manager.invokeMutation('testMutation', { b: 2 });
+    await manager.invokeMutation<TestData, TestVariables>(
+      'testMutation',
+      testVariables
+    );
 
-    expect(stub).to.have.been.calledOnceWith('testMutation', { b: 2 });
+    expect(stub).to.have.been.calledOnceWith('testMutation', testVariables);
   });
 
   it('should delegate invokeSubscribe to RESTTransport', () => {
     const stub = sinon.stub(RESTTransport.prototype, 'invokeSubscribe');
     manager = new DataConnectTransportManager(options);
 
-    const hook: SubscribeNotificationHook<Any> = () => {};
-    manager.invokeSubscribe(hook, 'testSub', { c: 3 });
+    const hook: SubscribeNotificationHook<TestData> = () => {};
+    manager.invokeSubscribe<TestData, TestVariables>(
+      hook,
+      'testSub',
+      testVariables
+    );
 
-    expect(stub).to.have.been.calledOnceWith(hook, 'testSub', { c: 3 });
+    expect(stub).to.have.been.calledOnceWith(hook, 'testSub', testVariables);
   });
 
   it('should delegate invokeUnsubscribe to RESTTransport', () => {
     const stub = sinon.stub(RESTTransport.prototype, 'invokeUnsubscribe');
     manager = new DataConnectTransportManager(options);
 
-    manager.invokeUnsubscribe('testSub', { c: 3 });
+    manager.invokeUnsubscribe<TestVariables>('testSub', testVariables);
 
-    expect(stub).to.have.been.calledOnceWith('testSub', { c: 3 });
+    expect(stub).to.have.been.calledOnceWith('testSub', testVariables);
   });
 
   it('should delegate useEmulator to RESTTransport', () => {
