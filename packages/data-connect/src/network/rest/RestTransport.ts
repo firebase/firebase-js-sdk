@@ -53,10 +53,13 @@ export class RESTTransport extends DataConnectTransportClass {
     );
   }
 
-  invokeQuery<Data, Variables>(
+  invokeQuery: <Data, Variables>(
     queryName: string,
     body?: Variables
-  ): Promise<DataConnectResponse<Data>> {
+  ) => Promise<DataConnectResponse<Data>> = <Data, Variables = unknown>(
+    queryName: string,
+    body: Variables
+  ) => {
     const abortController = new AbortController();
 
     // TODO(mtewani): Update to proper value
@@ -66,7 +69,7 @@ export class RESTTransport extends DataConnectTransportClass {
         {
           name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
           operationName: queryName,
-          variables: body as Variables
+          variables: body
         },
         abortController,
         this.appId,
@@ -78,7 +81,7 @@ export class RESTTransport extends DataConnectTransportClass {
       )
     );
     return withAuth;
-  }
+  };
 
   invokeMutation<Data, Variables>(
     mutationName: string,
