@@ -16,7 +16,7 @@ packages/database-compat @maneesht @aashishpatil-g @firebase/jssdk-global-approv
 packages/database-types @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
 
 # Data Connect Code
-packages/data-connect @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/data-connect @stephenarosaj @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
