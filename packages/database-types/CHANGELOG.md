@@ -1,5 +1,12 @@
 # @firebase/database-types
 
+## 1.0.17
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+
 ## 1.0.16
 
 ### Patch Changes

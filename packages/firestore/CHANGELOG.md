@@ -1,5 +1,25 @@
 # @firebase/firestore
 
+## 4.12.0
+
+### Minor Changes
+
+- [`14d9745`](https://github.com/firebase/firebase-js-sdk/commit/14d974550c1df023e563c22619dc68b9182946e0) [#9483](https://github.com/firebase/firebase-js-sdk/pull/9483) - Support added for `mapSet`, `mapValues`, `mapEntries`, `mapKeys` Pipelines expressions.
+
+- [`f8996c4`](https://github.com/firebase/firebase-js-sdk/commit/f8996c4cec849db4d6f9dad1df728a49cc063b96) [#9479](https://github.com/firebase/firebase-js-sdk/pull/9479) - Support added for the following string Pipeline expressions: `stringRepeat`, `stringReplaceOne`, `stringReplaceAll`, `stringIndexOf`, `ltrim`, `rtrim`.
+
+- [`659d9bb`](https://github.com/firebase/firebase-js-sdk/commit/659d9bb7987c1fb7bc9f3d772fe1c467f7e4f80f) [#9576](https://github.com/firebase/firebase-js-sdk/pull/9576) - Add support for first, last, array_agg and array_agg_distinct expressions
+
+- [`852162b`](https://github.com/firebase/firebase-js-sdk/commit/852162bc94935a826b548e71ac124749ab3e799f) [#9498](https://github.com/firebase/firebase-js-sdk/pull/9498) - Add support for rand and trunc pipeline expressions
+
+- [`6041509`](https://github.com/firebase/firebase-js-sdk/commit/60415091e1cb2481255343122a18c9f2845ca505) [#9484](https://github.com/firebase/firebase-js-sdk/pull/9484) - feat(firestore): Support added for the `isType` Pipeline expression.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
 ## 4.11.0
 
 ### Minor Changes

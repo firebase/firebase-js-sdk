@@ -1,5 +1,11 @@
 # @firebase/util
 
+## 1.14.0
+
+### Minor Changes
+
+- [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca) [#9439](https://github.com/firebase/firebase-js-sdk/pull/9439) - Add Memory-Based caching to Queries in Firebase Data Connect.
+
 ## 1.13.0
 
 ### Minor Changes
