@@ -184,7 +184,8 @@ export function viewProcessorApplyOperation(
       oldViewCache,
       operation.path,
       writesCache,
-      accumulator
+      accumulator,
+      operation.source.tagged
     );
   } else {
     throw assertionError('Unknown operation type: ' + operation.type);
@@ -752,14 +753,17 @@ function viewProcessorListenComplete(
   viewCache: ViewCache,
   path: Path,
   writesCache: WriteTreeRef,
-  accumulator: ChildChangeAccumulator
+  accumulator: ChildChangeAccumulator,
+  isTagged: boolean
 ): ViewCache {
   const oldServerNode = viewCache.serverCache;
   const newViewCache = viewCacheUpdateServerSnap(
     viewCache,
     oldServerNode.getNode(),
     oldServerNode.isFullyInitialized() || pathIsEmpty(path),
-    oldServerNode.isFiltered()
+    // If the query is tagged, it essentially means we are filtering it on the server.
+    // This is to fix the issue where if a tagged query doesn't have data, it's assumed that the data is not filtered on the server and therefore complete
+    oldServerNode.isFiltered() || isTagged
   );
   return viewProcessorGenerateEventCacheAfterServerEvent(
     viewProcessor,
