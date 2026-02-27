@@ -39,7 +39,7 @@ jobs:
       - name: Setup Node.js 20.x
         uses: actions/setup-node@master
         with:
-          node-version: 22.10.0
+          node-version: 22.22.0
 
       - name: Install Dependencies
         run: yarn
