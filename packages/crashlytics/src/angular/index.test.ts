@@ -38,6 +38,7 @@ import {
   platformBrowserTesting
 } from '@angular/platform-browser/testing';
 import { CrashlyticsService } from '../service';
+import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -102,7 +103,7 @@ describe('FirebaseErrorHandler', () => {
       expect(
         (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
       ).to.deep.equal({
-        'angular_route_path': '/static-route'
+        [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/static-route'
       });
     });
 
@@ -112,7 +113,7 @@ describe('FirebaseErrorHandler', () => {
       expect(
         (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider!()
       ).to.deep.equal({
-        'angular_route_path': '/dynamic/:id/route'
+        [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/dynamic/:id/route'
       });
     });
   });

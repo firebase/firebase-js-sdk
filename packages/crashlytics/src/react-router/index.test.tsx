@@ -26,6 +26,7 @@ import { CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
+import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -101,7 +102,7 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ route: '/' })
+      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/' })
     );
 
     // Verify the error was caught by our TestErrorBoundary (meaning it was re-thrown)
@@ -130,7 +131,7 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ route: '/users/:id' })
+      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id' })
     );
 
     // Verify re-throw
