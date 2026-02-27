@@ -22,7 +22,7 @@ import sinonChai from 'sinon-chai';
 
 import { DataConnect, executeQuery, getDataConnect, queryRef } from '../../src';
 import { SDK_VERSION } from '../../src/core/version';
-import { initializeFetch } from '../../src/network/fetch';
+import { initializeFetch } from '../../src/network/rest';
 
 use(sinonChai);
 const json = {

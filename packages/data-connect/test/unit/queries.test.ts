@@ -31,8 +31,7 @@ import {
   AuthTokenListener,
   AuthTokenProvider
 } from '../../src/core/FirebaseAuthProvider';
-import { initializeFetch } from '../../src/network/fetch';
-import { RESTTransport } from '../../src/network/transport/rest';
+import { initializeFetch, RESTTransport } from '../../src/network/rest';
 import { initDatabase } from '../util';
 chai.use(chaiAsPromised);
 chai.use(sinonChai);

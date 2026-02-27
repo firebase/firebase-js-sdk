@@ -46,7 +46,7 @@ import {
   DataConnectTransport,
   TransportClass
 } from '../network';
-import { RESTTransport } from '../network/transport/rest';
+import { RESTTransport } from '../network/rest';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';

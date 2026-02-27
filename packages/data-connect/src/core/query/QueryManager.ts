@@ -28,11 +28,12 @@ import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { parseEntityIds } from '../../cache/cacheUtils';
 import { EncodingMode } from '../../cache/EntityNode';
-import { DataConnectTransport, Extensions } from '../../network';
 import {
+  DataConnectTransport,
+  Extensions,
   DataConnectExtensionWithMaxAge,
   ExtensionsWithMaxAge
-} from '../../network/transport';
+} from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
 
