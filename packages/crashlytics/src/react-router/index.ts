@@ -95,11 +95,14 @@ export function CrashlyticsRoutes({
   // Example: `/users/:id/details`
   const routes = createRoutesFromChildren(children);
   const matches = matchRoutes(routes, location);
-  const pattern =
+  const pathFromRoot =
     matches
       ?.map(m => (m.route.path === '/' ? '' : m.route.path))
-      .filter(p => p !== undefined)
-      .join('/') || '/';
+      .filter(p => p !== undefined && p !== '')
+      .join('/') || '';
+  const pattern = pathFromRoot.startsWith('/')
+    ? pathFromRoot
+    : `/${pathFromRoot}`;
 
   const onError = (error: Error): void => {
     recordError(crashlytics, error, {
