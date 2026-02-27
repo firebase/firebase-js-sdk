@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 
+import { Firestore, runTransaction } from '../../../lite/index';
 import {
   DocumentData,
   DocumentReference,
@@ -45,6 +46,10 @@ interface MyObjectType {
   nullProperty: null;
   undefinedProperty: undefined;
   unionProperty: MyUnionType;
+  objectProperty: {
+    booleanProperty: boolean;
+    stringProperty: string;
+  };
 }
 
 // v9 tests cover scenarios that worked in
@@ -536,6 +541,321 @@ describe('UpdateData - v9', () => {
 
         expect(true).to.be.true;
       });
+    });
+  });
+
+  describe('given Record<string, T>', () => {
+    it('supports primitive type for T', () => {
+      let _: UpdateData<Record<string, number>>;
+
+      _ = {
+        numberProperty: 1
+      };
+
+      _ = {
+        // @ts-expect-error Unsupported type
+        numberProperty: false
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it('supports object type for T', () => {
+      let _: UpdateData<Record<string, Omit<MyObjectType, 'nullProperty'>>>;
+
+      _ = {};
+
+      _ = {
+        indexedProperty: {}
+      };
+
+      _ = {
+        indexedProperty: {
+          numberProperty: 1,
+          booleanProperty: true
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectProperty: {}
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectProperty: {
+            booleanProperty: true
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          stringProperty: 'string'
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          numberProperty: 1,
+          booleanProperty: true,
+          stringProperty: 'string',
+          // @ts-expect-error Unsupported type
+          nullProperty: null,
+          undefinedProperty: undefined,
+          unionProperty: 1,
+          objectProperty: {
+            stringProperty: 'string',
+            booleanProperty: true
+          }
+        }
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: false
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: 'string'
+      };
+
+      // It prevents types that are not a
+      // child property type.
+      _ = {
+        // @ts-expect-error Unsupported type
+        indexedProperty: null
+      };
+
+      // It allows dot notation to set nested properties
+      _ = {
+        'indexedProperty.stringProperty': 'string'
+      };
+
+      // It allows dot notation to set nested properties,
+      // but only enforces types to any of the child properties
+      // of the indexed property.
+      _ = {
+        'indexedProperty.stringProperty': true,
+        'indexedProperty.booleanProperty': 'string',
+        // @ts-expect-error Unsupported type
+        'indexedProperty.undefinedProperty': null
+      };
+
+      // But still enforces property types
+      // when the child type is object
+      _ = {
+        objectProperty: {
+          // @ts-expect-error Unsupported type
+          numberProperty: false
+        }
+      };
+
+      _ = {
+        objectProperty: {
+          // @ts-expect-error Unsupported type
+          unknownProperty: false
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+
+    it('supports object with nested index for T', () => {
+      let _: UpdateData<
+        Record<
+          string,
+          {
+            objectWithIndexProperty: {
+              [key: string]: boolean;
+            };
+            deepObjectWithIndexProperty: {
+              [key: string]: {
+                stringProperty: string;
+                numberProperty: number;
+              };
+            };
+          }
+        >
+      >;
+
+      _ = {};
+
+      _ = {
+        indexedProperty: {}
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {},
+          deepObjectWithIndexProperty: {}
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {}
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {
+            indexedProperty: true
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          deepObjectWithIndexProperty: {
+            indexedProperty: {}
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          deepObjectWithIndexProperty: {
+            indexedProperty: {
+              stringProperty: 'string'
+            }
+          }
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          stringProperty: 'string'
+        }
+      };
+
+      _ = {
+        indexedProperty: {
+          objectWithIndexProperty: {
+            indexedProperty: true
+          },
+          deepObjectWithIndexProperty: {
+            indexedProperty: {
+              stringProperty: 'string',
+              numberProperty: 1
+            }
+          }
+        }
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: false
+      };
+
+      // It allows any child property type
+      // when the property is indexed.
+      _ = {
+        indexedProperty: 'string'
+      };
+
+      // It prevents types that are not a
+      // child property type.
+      _ = {
+        // @ts-expect-error Unsupported type
+        indexedProperty: null
+      };
+
+      // It allows dot notation to set nested properties
+      _ = {
+        'indexedProperty.stringProperty': 'string'
+      };
+
+      // It allows dot notation to set nested properties,
+      // but only enforces types to any of the child properties
+      // of the indexed property.
+      _ = {
+        'indexedProperty.stringProperty': true,
+        'indexedProperty.booleanProperty': 'string',
+        // @ts-expect-error Unsupported type
+        'indexedProperty.undefinedProperty': null
+      };
+
+      // But still enforces property types
+      // when the child type is object
+      _ = {
+        indexedProperty: {
+          // @ts-expect-error Unsupported type
+          numberProperty: null
+        }
+      };
+
+      expect(true).to.be.true;
+    });
+  });
+
+  describe('Customer reports', () => {
+    it('fixes issues/7813', () => {
+      interface TType {
+        prop: Record<string, { id: string }>;
+      }
+      const update: UpdateData<TType> = {};
+      const value: { [key: string]: { id: string } } = {
+        key: { id: '' }
+      };
+
+      update.prop = value;
+
+      expect(true).to.be.true;
+    });
+
+    it('fixes node issues/1745#issuecomment-1289292949', () => {
+      interface TestType {
+        foo: {
+          [key: string]: {
+            bar: string;
+          };
+        };
+      }
+      // The intent of the function below is to test TypeScript compile and not execute.
+      async function _(docRef: DocumentReference<TestType>): Promise<void> {
+        const key = 'aKey';
+        await updateDoc(docRef, {
+          [`foo.${key}.bar`]: 'test'
+        });
+      }
+
+      expect(true).to.be.true;
+    });
+
+    it('fixes node issues/1890', () => {
+      interface MyDoc {
+        nestedA: Record<string, number>;
+        nestedB: Record<string, string>;
+      }
+
+      async function _(
+        db: Firestore,
+        docRef: DocumentReference<MyDoc>
+      ): Promise<void> {
+        const goodKey = 'nestedA.test';
+        const badKey = 'nestedA.' + 'test';
+
+        await runTransaction(db, async t => {
+          t.update(docRef, {
+            [goodKey]: 3
+          });
+        });
+
+        await runTransaction(db, async t => {
+          t.update(docRef, {
+            [badKey]: 3
+          });
+        });
+      }
+
+      expect(true).to.be.true;
     });
   });
 });
