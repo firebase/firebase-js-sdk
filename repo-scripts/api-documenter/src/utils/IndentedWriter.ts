@@ -147,7 +147,7 @@ export class IndentedWriter {
    */
   public peekLastCharacter(): string {
     if (this._latestChunk !== undefined) {
-      return this._latestChunk.substr(-1, 1);
+      return this._latestChunk.slice(-1);
     }
     return '';
   }
@@ -159,10 +159,10 @@ export class IndentedWriter {
   public peekSecondLastCharacter(): string {
     if (this._latestChunk !== undefined) {
       if (this._latestChunk.length > 1) {
-        return this._latestChunk.substr(-2, 1);
+        return this._latestChunk.slice(-2, -1);
       }
       if (this._previousChunk !== undefined) {
-        return this._previousChunk.substr(-1, 1);
+        return this._previousChunk.slice(-1);
       }
     }
     return '';

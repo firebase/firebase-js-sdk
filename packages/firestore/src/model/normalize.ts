@@ -50,7 +50,7 @@ export function normalizeTimestamp(date: Timestamp): {
     if (fraction[1]) {
       // Pad the fraction out to 9 digits (nanos).
       let nanoStr = fraction[1];
-      nanoStr = (nanoStr + '000000000').substr(0, 9);
+      nanoStr = (nanoStr + '000000000').slice(0, 9);
       nanos = Number(nanoStr);
     }
 
