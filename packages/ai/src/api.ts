@@ -41,6 +41,7 @@ import { GoogleAIBackend } from './backend';
 import { WebSocketHandlerImpl } from './websocket';
 import { TemplateGenerativeModel } from './models/template-generative-model';
 import { TemplateImagenModel } from './models/template-imagen-model';
+import { logger } from './logger';
 
 export { ChatSession } from './methods/chat-session';
 export { LiveSession } from './methods/live-session';
@@ -117,6 +118,12 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   return aiInstance;
 }
 
+const hybridParamKeys: Array<keyof HybridParams> = [
+  'mode',
+  'onDeviceParams',
+  'inCloudParams'
+];
+
 /**
  * Returns a {@link GenerativeModel} class with methods for inference
  * and other functionality.
@@ -132,6 +139,18 @@ export function getGenerativeModel(
   const hybridParams = modelParams as HybridParams;
   let inCloudParams: ModelParams;
   if (hybridParams.mode) {
+    for (const param of Object.keys(modelParams)) {
+      if (!hybridParamKeys.includes(param as keyof HybridParams)) {
+        logger.warn(
+          `When a hybrid inference mode is specified (mode is currently set` +
+            ` to ${hybridParams.mode}), "${param}" cannot be ` +
+            `configured at the top level. Configuration for in-cloud and ` +
+            `on-device must be done separately in inCloudParams and onDeviceParams. ` +
+            `Configuration values set outside of inCloudParams and onDeviceParams will` +
+            ` be ignored.`
+        );
+      }
+    }
     inCloudParams = hybridParams.inCloudParams || {
       model: DEFAULT_HYBRID_IN_CLOUD_MODEL
     };
