@@ -165,7 +165,6 @@ export interface DataConnectTransport {
   _setCallerSdkType(callerSdkType: CallerSdkType): void;
 }
 
-
 /**
  * Type signature of a transport class constructor.
  * @internal
