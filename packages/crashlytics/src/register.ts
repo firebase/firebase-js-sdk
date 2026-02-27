@@ -20,6 +20,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
+import { createTracingProvider } from './tracing/tracing-provider';
 import { AppCheckProvider } from './logging/appcheck-provider';
 import { InstallationIdProvider } from './logging/installation-id-provider';
 import { CRASHLYTICS_TYPE } from './constants';
@@ -41,7 +42,10 @@ export function registerCrashlytics(): void {
         }
 
         // TODO: change to default endpoint once it exists
-        const endpointUrl = instanceIdentifier || 'http://localhost';
+        const loggingUrl = instanceIdentifier || 'http://localhost';
+        // Traces will only be sent when running locally; change to instanceIdentifier once we can
+        // send trace data through the Crashlytics backend
+        const tracingUrl = 'http://localhost:4318';
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
@@ -55,12 +59,18 @@ export function registerCrashlytics(): void {
         ];
         const loggerProvider = createLoggerProvider(
           app,
-          endpointUrl,
+          loggingUrl,
           dynamicHeaderProviders,
           dynamicLogAttributeProviders
         );
 
-        const crashlyticsService = new CrashlyticsService(app, loggerProvider);
+        const tracingProvider = createTracingProvider(app, tracingUrl);
+
+        const crashlyticsService = new CrashlyticsService(
+          app,
+          loggerProvider,
+          tracingProvider
+        );
 
         // Immediately track this as a new client session (if one doesn't exist yet)
         if (!getSessionId()) {

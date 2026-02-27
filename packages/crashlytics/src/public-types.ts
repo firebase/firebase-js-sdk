@@ -44,6 +44,12 @@ export interface CrashlyticsOptions {
   endpointUrl?: string;
 
   /**
+   * The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format.
+   * By default, data will be sent to Firebase.
+   */
+  tracingUrl?: string;
+
+  /**
    * The version of the application. This should be a unique string that identifies the snapshot of
    * code to be deployed, such as "1.0.2". If not specified, other default locations will be checked
    * for an identifier. Setting a value here takes precedence over any other values.

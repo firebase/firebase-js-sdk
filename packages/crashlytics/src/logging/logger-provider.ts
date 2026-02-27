@@ -68,8 +68,7 @@ export function createLoggerProvider(
 
   return new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)],
-    logRecordLimits: {}
+    processors: [new BatchLogRecordProcessor(logExporter)]
   });
 }
 
@@ -93,7 +92,11 @@ class OTLPLogExporter
         JsonLogsSerializer,
         new FetchTransport({
           url: config.url!,
-          headers: new Headers(config.headers),
+          headers: new Headers(
+            typeof config.headers === 'object'
+              ? (config.headers as Record<string, string>)
+              : {}
+          ),
           dynamicHeaderProviders
         })
       )
@@ -118,5 +121,15 @@ class OTLPLogExporter
       });
     }
     super.export(logs, resultCallback);
+  }
+
+  async shutdown(): Promise<void> {
+    // Basic implementation of shutdown for interface compliance
+    console.log('OTLPLogExporter: shutdown called');
+  }
+
+  async forceFlush(): Promise<void> {
+    // Basic implementation of forceFlush for interface compliance
+    console.log('OTLPLogExporter: forceFlush called');
   }
 }
