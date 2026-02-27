@@ -40,6 +40,11 @@ import { name, version } from '../../package.json';
 const WindowMessagingFactory: InstanceFactory<'messaging'> = (
   container: ComponentContainer
 ) => {
+  if (!navigator.serviceWorker) {
+    console.warn("Service workers are not supported in this environment.");
+    return;
+  }
+
   const messaging = new MessagingService(
     container.getProvider('app').getImmediate(),
     container.getProvider('installations-internal').getImmediate(),
