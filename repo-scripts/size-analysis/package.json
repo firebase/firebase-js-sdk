@@ -34,7 +34,7 @@
     "rollup": "2.79.2",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.36.0",
-    "typescript": "5.5.4",
+    "typescript": "5.9.3",
     "webpack": "5.98.0",
     "webpack-virtual-modules": "0.6.2",
     "yargs": "17.7.2"
