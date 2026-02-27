@@ -83,6 +83,7 @@ export function recordError(
   const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
     'error-logger'
   );
+  const currentSessionSpan = (crashlytics as CrashlyticsInternal).currentSessionSpan;
   const customAttributes: AnyValueMap = {};
 
   // Add framework-specific metadata
@@ -94,7 +95,8 @@ export function recordError(
   }
 
   // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
+  const activeSpanContext = currentSessionSpan?.spanContext();
+  //trace.getActiveSpan()?.spanContext();
   if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
     customAttributes[
       'logging.googleapis.com/trace'
@@ -104,6 +106,9 @@ export function recordError(
         activeSpanContext.spanId;
     }
   }
+  console.log('customAttributes', customAttributes);
+  console.log('activeSpanContext', activeSpanContext);
+  //console.log('trace', trace.getTracer());
 
   // Add app version metadata
   customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] =

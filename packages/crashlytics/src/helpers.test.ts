@@ -55,6 +55,10 @@ describe('helpers', () => {
 
   const fakeTracingProvider = {
     getTracer: () => ({
+      startSpan: () => ({
+        setAttribute: () => { },
+        end: () => { }
+      }),
       startActiveSpan: (name: string, fn: (span: any) => any) =>
         fn({
           end: () => {},
@@ -135,6 +139,7 @@ describe('helpers', () => {
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
       });
+      expect(fakeCrashlytics.currentSessionSpan).to.not.be.undefined;
     });
 
     it('should log app version from AUTO_CONSTANTS', () => {
@@ -145,6 +150,7 @@ describe('helpers', () => {
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3'
       });
+      expect(fakeCrashlytics.currentSessionSpan).to.not.be.undefined;
     });
 
     it('should log app version from telemetry options', () => {
@@ -161,6 +167,7 @@ describe('helpers', () => {
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9'
       });
+      expect(telemetryWithVersion.currentSessionSpan).to.not.be.undefined;
     });
   });
 
@@ -185,13 +192,39 @@ describe('helpers', () => {
       });
 
       it('should flush logs when the pagehide event fires', () => {
-        registerListeners(fakeCrashlytics);
+        let spanEnded = false;
+        const mockSpan = {
+          setAttribute: () => { },
+          end: () => {
+            spanEnded = true;
+          }
+        };
+        const mockTracer = {
+          startSpan: () => mockSpan,
+          startActiveSpan: (name: string, fn: (span: any) => any) =>
+            fn({
+              end: () => { },
+              spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+            })
+        };
+        // Override getTracer to return our mock tracer
+        const originalGetTracer = fakeTracingProvider.getTracer;
+        fakeTracingProvider.getTracer = () => mockTracer as any;
 
-        expect(flushed).to.be.false;
+        try {
+          startNewSession(fakeCrashlytics);
+          registerListeners(fakeCrashlytics);
 
-        window.dispatchEvent(new Event('pagehide'));
+          expect(flushed).to.be.false;
+          expect(spanEnded).to.be.false;
 
-        expect(flushed).to.be.true;
+          window.dispatchEvent(new Event('pagehide'));
+
+          expect(flushed).to.be.true;
+          expect(spanEnded).to.be.true;
+        } finally {
+          fakeTracingProvider.getTracer = originalGetTracer;
+        }
       });
     }
   });

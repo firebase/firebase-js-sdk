@@ -16,7 +16,7 @@
  */
 
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { TracerProvider } from '@opentelemetry/api';
+import { TracerProvider, Span } from '@opentelemetry/api';
 import { Crashlytics } from './public-types';
 
 /**
@@ -27,6 +27,7 @@ import { Crashlytics } from './public-types';
 export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
   tracingProvider: TracerProvider;
+  currentSessionSpan?: Span;
 }
 
 type KeyValuePair = [key: string, value: string];

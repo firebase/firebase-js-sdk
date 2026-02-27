@@ -70,6 +70,7 @@ export function createTracingProvider(
 
   const provider = new WebTracerProvider({
     resource,
+    // TODO: LEt's investigate creating a CrashSpanProcessor that attaches session id to spans
     spanProcessors: [
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
