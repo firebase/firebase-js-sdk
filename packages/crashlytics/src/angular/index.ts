@@ -22,6 +22,7 @@ import { recordError, getCrashlytics } from '../api';
 import { Crashlytics, CrashlyticsOptions } from '../public-types';
 import { FirebaseApp } from '@firebase/app';
 import { CrashlyticsService } from '../service';
+import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
 registerCrashlytics();
 
@@ -92,7 +93,7 @@ export class FirebaseErrorHandler implements ErrorHandler {
    */
   private getAttributes(): Record<string, string> {
     return {
-      'angular_route_path': this.getSafeRoutePath(this.router)
+      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: this.getSafeRoutePath(this.router)
     };
   }
 

@@ -26,6 +26,7 @@ import { CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
+import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -101,7 +102,7 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ route: '/' })
+      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/' })
     );
 
     // Verify the error was caught by our TestErrorBoundary (meaning it was re-thrown)
@@ -130,7 +131,38 @@ describe('CrashlyticsRoutes', () => {
       sinon.match
         .instanceOf(Error)
         .and(sinon.match.has('message', 'render error')),
-      sinon.match({ route: '/users/:id' })
+      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id' })
+    );
+
+    // Verify re-throw
+    expect(container.firstChild).to.be.null;
+
+    consoleErrorStub.restore();
+  });
+
+  it('filters empty paths and normalizes leading slashes', () => {
+    const consoleErrorStub = stub(console, 'error');
+
+    const { container } = render(
+      <TestErrorBoundary>
+        <MemoryRouter initialEntries={['/about']}>
+          <CrashlyticsRoutes firebaseApp={fakeApp}>
+            <Route path="/">
+              <Route path="" />
+              <Route path="about" element={<ThrowingComponent />} />
+            </Route>
+          </CrashlyticsRoutes>
+        </MemoryRouter>
+      </TestErrorBoundary>
+    );
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(recordErrorStub).to.have.been.calledWith(
+      fakeCrashlytics,
+      sinon.match
+        .instanceOf(Error)
+        .and(sinon.match.has('message', 'render error')),
+      sinon.match({ [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/about' })
     );
 
     // Verify re-throw

@@ -19,7 +19,10 @@ import { getApp } from '@firebase/app';
 import { recordError, getCrashlytics } from './api';
 import { Instrumentation } from 'next';
 import { CrashlyticsOptions } from './public-types';
-import { NEXTJS_REQUEST_LABEL_KEYS } from './constants';
+import {
+  FRAMEWORK_ATTRIBUTE_KEYS,
+  NEXTJS_REQUEST_ATTRIBUTE_KEYS
+} from './constants';
 
 export { Instrumentation };
 
@@ -45,11 +48,11 @@ export function nextOnRequestError(
     const crashlytics = getCrashlytics(getApp(), crashlyticsOptions);
 
     const attributes = {
-      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_PATH]: errorRequest.path,
-      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_METHOD]: errorRequest.method,
-      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_ROUTER_KIND]: errorContext.routerKind,
-      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_ROUTE_PATH]: errorContext.routePath,
-      [NEXTJS_REQUEST_LABEL_KEYS.NEXTJS_ROUTE_TYPE]: errorContext.routeType
+      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: errorContext.routePath,
+      [NEXTJS_REQUEST_ATTRIBUTE_KEYS.PATH]: errorRequest.path,
+      [NEXTJS_REQUEST_ATTRIBUTE_KEYS.METHOD]: errorRequest.method,
+      [NEXTJS_REQUEST_ATTRIBUTE_KEYS.ROUTER_KIND]: errorContext.routerKind,
+      [NEXTJS_REQUEST_ATTRIBUTE_KEYS.ROUTE_TYPE]: errorContext.routeType
     };
 
     recordError(crashlytics, error, attributes);
