@@ -142,7 +142,7 @@ export interface DataConnectTransport {
    * @param queryName The name of the query to unsubscribe from.
    * @param body The variables associated with the subscription.
    */
-  invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void;
+  invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void;
 
   /**
    * Configures the transport to use a local Data Connect emulator.

@@ -19,6 +19,7 @@ export class DataConnectTransportManager implements DataConnectTransport {
   private restTransport: RESTTransport;
   private _isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
 
+  // TODO(stephenarosaj): these unused fields will be used in a future PR.
   constructor(
     private options: DataConnectOptions,
     private apiKey?: string,
@@ -63,8 +64,8 @@ export class DataConnectTransportManager implements DataConnectTransport {
     this.restTransport.invokeSubscribe(notificationHook, queryName, body);
   }
 
-  invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
-    this.restTransport.invokeUnsubscribe(queryName, variables);
+  invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
+    this.restTransport.invokeUnsubscribe(queryName, body);
   }
 
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void {

@@ -9,7 +9,7 @@ import {
   SubscribeNotificationHook
 } from '../../src/network/DataConnectTransport';
 import { DataConnectTransportManager } from '../../src/network/manager';
-import { RESTTransport } from '../../src/network/rest/RestTransport';
+import { RESTTransport } from '../../src/network/rest';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -38,10 +38,13 @@ describe('DataConnectTransportManager', () => {
   const testData: TestData = { value: 1 };
 
   it('should delegate invokeQuery to RESTTransport', async () => {
-    const stub = sinon
-      .stub(RESTTransport.prototype, 'invokeQuery')
-      .resolves({ data: testData } as DataConnectResponse<TestData>);
     manager = new DataConnectTransportManager(options);
+    const stub = sinon
+      .stub(
+        (manager as unknown as { restTransport: RESTTransport }).restTransport,
+        'invokeQuery'
+      )
+      .resolves({ data: testData } as DataConnectResponse<TestData>);
 
     await manager.invokeQuery<TestData, TestVariables>(
       'testQuery',
@@ -52,10 +55,13 @@ describe('DataConnectTransportManager', () => {
   });
 
   it('should delegate invokeMutation to RESTTransport', async () => {
-    const stub = sinon
-      .stub(RESTTransport.prototype, 'invokeMutation')
-      .resolves({ data: testData } as DataConnectResponse<TestData>);
     manager = new DataConnectTransportManager(options);
+    const stub = sinon
+      .stub(
+        (manager as unknown as { restTransport: RESTTransport }).restTransport,
+        'invokeMutation'
+      )
+      .resolves({ data: testData } as DataConnectResponse<TestData>);
 
     await manager.invokeMutation<TestData, TestVariables>(
       'testMutation',
@@ -66,8 +72,11 @@ describe('DataConnectTransportManager', () => {
   });
 
   it('should delegate invokeSubscribe to RESTTransport', () => {
-    const stub = sinon.stub(RESTTransport.prototype, 'invokeSubscribe');
     manager = new DataConnectTransportManager(options);
+    const stub = sinon.stub(
+      (manager as unknown as { restTransport: RESTTransport }).restTransport,
+      'invokeSubscribe'
+    );
 
     const hook: SubscribeNotificationHook<TestData> = () => {};
     manager.invokeSubscribe<TestData, TestVariables>(
@@ -80,8 +89,11 @@ describe('DataConnectTransportManager', () => {
   });
 
   it('should delegate invokeUnsubscribe to RESTTransport', () => {
-    const stub = sinon.stub(RESTTransport.prototype, 'invokeUnsubscribe');
     manager = new DataConnectTransportManager(options);
+    const stub = sinon.stub(
+      (manager as unknown as { restTransport: RESTTransport }).restTransport,
+      'invokeUnsubscribe'
+    );
 
     manager.invokeUnsubscribe<TestVariables>('testSub', testVariables);
 
@@ -89,8 +101,11 @@ describe('DataConnectTransportManager', () => {
   });
 
   it('should delegate useEmulator to RESTTransport', () => {
-    const stub = sinon.stub(RESTTransport.prototype, 'useEmulator');
     manager = new DataConnectTransportManager(options);
+    const stub = sinon.stub(
+      (manager as unknown as { restTransport: RESTTransport }).restTransport,
+      'useEmulator'
+    );
 
     manager.useEmulator('localhost', 9000, false);
 
@@ -98,8 +113,11 @@ describe('DataConnectTransportManager', () => {
   });
 
   it('should delegate onAuthTokenChanged to RESTTransport', () => {
-    const stub = sinon.stub(RESTTransport.prototype, 'onAuthTokenChanged');
     manager = new DataConnectTransportManager(options);
+    const stub = sinon.stub(
+      (manager as unknown as { restTransport: RESTTransport }).restTransport,
+      'onAuthTokenChanged'
+    );
 
     manager.onAuthTokenChanged('new-token');
 

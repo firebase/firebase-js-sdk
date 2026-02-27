@@ -122,7 +122,7 @@ export class RESTTransport extends DataConnectTransportClass {
     );
   }
 
-  invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
+  invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
     throw new DataConnectError(
       Code.NOT_SUPPORTED,
       'Unsubscriptions are not supported using REST!'
