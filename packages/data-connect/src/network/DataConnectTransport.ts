@@ -70,6 +70,7 @@ export interface ExtensionsWithMaxAge {
   dataConnect?: DataConnectExtensionWithMaxAge[];
 }
 
+/** @internal */
 export interface DataConnectResponse<T> {
   data: T;
   errors: Error[];

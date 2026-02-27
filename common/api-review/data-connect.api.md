@@ -129,16 +129,6 @@ export interface DataConnectOptions extends ConnectorConfig {
 }
 
 // @public (undocumented)
-export interface DataConnectResponse<T> {
-    // (undocumented)
-    data: T;
-    // (undocumented)
-    errors: Error[];
-    // (undocumented)
-    extensions: Extensions;
-}
-
-// @public (undocumented)
 export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
     // (undocumented)
     ref: OperationRef<Data, Variables>;
