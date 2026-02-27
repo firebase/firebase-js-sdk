@@ -154,7 +154,7 @@
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
     "protobufjs": "7.4.0",
-    "rollup": "2.79.2",
+    "rollup": "2.80.0",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-copy-assets": "2.0.3",
     "rollup-plugin-replace": "2.2.0",
