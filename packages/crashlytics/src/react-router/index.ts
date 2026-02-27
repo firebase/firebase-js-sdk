@@ -28,6 +28,7 @@ import {
   matchRoutes
 } from 'react-router-dom';
 import { CrashlyticsErrorBoundary } from './types';
+import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
 registerCrashlytics();
 
@@ -102,7 +103,7 @@ export function CrashlyticsRoutes({
 
   const onError = (error: Error): void => {
     recordError(crashlytics, error, {
-      route: pattern || 'unknown'
+      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: pattern
     });
   };
 

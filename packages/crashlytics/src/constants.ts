@@ -21,22 +21,31 @@ export const CRASHLYTICS_TYPE = 'crashlytics';
 /** Key for storing the session ID in sessionStorage. */
 export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
-/** Label keys that we write in telemetry log entries. */
+/** Label keys that we write in all telemetry log entries. */
 export const LOG_ENTRY_ATTRIBUTE_KEYS = {
   APP_VERSION: 'app_version',
   SESSION_ID: 'session_id',
   USER_ID: 'user_id'
 };
 
-const NEXTJS_LABEL_NAMESPACE = 'nextjs';
+/**
+ * Label keys that we write in log entries stemming from web framework wrappers.
+ */
+export const FRAMEWORK_ATTRIBUTE_KEYS = {
+  ROUTE_PATH: 'route_path'
+};
 
 /**
  * The namespace for Next.js request attributes that we write in telemetry log entries.
  */
-export const NEXTJS_REQUEST_LABEL_KEYS = {
-  NEXTJS_PATH: `${NEXTJS_LABEL_NAMESPACE}.path`,
-  NEXTJS_METHOD: `${NEXTJS_LABEL_NAMESPACE}.method`,
-  NEXTJS_ROUTER_KIND: `${NEXTJS_LABEL_NAMESPACE}.router_kind`,
-  NEXTJS_ROUTE_PATH: `${NEXTJS_LABEL_NAMESPACE}.route_path`,
-  NEXTJS_ROUTE_TYPE: `${NEXTJS_LABEL_NAMESPACE}.route_type`
+const NEXTJS_ATTRIBUTE_NAMESPACE = 'nextjs';
+
+/**
+ * The keys for Next.js request attributes that we write in telemetry log entries.
+ */
+export const NEXTJS_REQUEST_ATTRIBUTE_KEYS = {
+  PATH: `${NEXTJS_ATTRIBUTE_NAMESPACE}.path`,
+  METHOD: `${NEXTJS_ATTRIBUTE_NAMESPACE}.method`,
+  ROUTER_KIND: `${NEXTJS_ATTRIBUTE_NAMESPACE}.router_kind`,
+  ROUTE_TYPE: `${NEXTJS_ATTRIBUTE_NAMESPACE}.route_type`
 };
