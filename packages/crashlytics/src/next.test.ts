@@ -75,10 +75,10 @@ describe('nextOnRequestError', () => {
       fakeCrashlytics,
       error,
       {
+        'route_path': '/test-path',
         'nextjs.path': '/test-path?some=param',
         'nextjs.method': 'GET',
         'nextjs.router_kind': 'Pages Router',
-        'nextjs.route_path': '/test-path',
         'nextjs.route_type': 'render'
       }
     );

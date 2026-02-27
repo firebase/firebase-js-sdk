@@ -18,6 +18,7 @@
 import { InstallationIdProvider } from './installation-id-provider';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { expect } from 'chai';
+import { LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
 
 describe('InstallationIdProvider', () => {
   it('should cache the installation id after the first call', async () => {
@@ -37,11 +38,11 @@ describe('InstallationIdProvider', () => {
     const provider = new InstallationIdProvider(mockProvider);
 
     const attr1 = await provider.getAttribute();
-    expect(attr1).to.deep.equal(['user.id', 'iid-123']);
+    expect(attr1).to.deep.equal([LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, 'iid-123']);
     expect(callCount).to.equal(1);
 
     const attr2 = await provider.getAttribute();
-    expect(attr2).to.deep.equal(['user.id', 'iid-123']);
+    expect(attr2).to.deep.equal([LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, 'iid-123']);
     expect(callCount).to.equal(1); // Should still be 1
   });
 
@@ -68,12 +69,12 @@ describe('InstallationIdProvider', () => {
 
     returnValue = 'iid-456';
     const attr2 = await provider.getAttribute();
-    expect(attr2).to.deep.equal(['user.id', 'iid-456']);
+    expect(attr2).to.deep.equal([LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, 'iid-456']);
     expect(callCount).to.equal(2);
 
     // Should cache now
     const attr3 = await provider.getAttribute();
-    expect(attr3).to.deep.equal(['user.id', 'iid-456']);
+    expect(attr3).to.deep.equal([LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, 'iid-456']);
     expect(callCount).to.equal(2);
   });
 });
