@@ -24,6 +24,7 @@ import {
 import { Crashlytics } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { sessionContextManager } from './tracing/tracing-provider';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -37,18 +38,7 @@ export function getAppVersion(crashlytics: Crashlytics): string {
   return 'unset';
 }
 
-/**
- * Returns the session ID stored in sessionStorage, if available.
- */
-export function getSessionId(): string | undefined {
-  if (typeof sessionStorage !== 'undefined') {
-    try {
-      return sessionStorage.getItem(CRASHLYTICS_SESSION_ID_KEY) || undefined;
-    } catch (e) {
-      // Ignore errors accessing sessionStorage (e.g. security restrictions)
-    }
-  }
-}
+export { getSessionId } from './session';
 
 /**
  * Generate a new session UUID. We record it in two places:
@@ -57,7 +47,9 @@ export function getSessionId(): string | undefined {
  */
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, tracingProvider } = crashlytics as CrashlyticsInternal;
+  console.log('Attempted to start session');
+
   if (
     typeof sessionStorage !== 'undefined' &&
     typeof crypto?.randomUUID === 'function'
@@ -65,6 +57,17 @@ export function startNewSession(crashlytics: Crashlytics): void {
     try {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
+      console.log('Session started with ID: ', sessionId);
+
+      const tracer = tracingProvider.getTracer('session-tracer');
+      const span = tracer.startSpan('session-start');
+      span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(
+        LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION,
+        getAppVersion(crashlytics)
+      );
+      (crashlytics as CrashlyticsInternal).currentSessionSpan = span;
+      sessionContextManager.setSessionSpan(span);
 
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
@@ -73,7 +76,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
         body: 'Session created',
         attributes: {
           [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics)
+          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
+          ['logging.googleapis.com/trace']: `${span.spanContext().traceId}`,
+          ['logging.googleapis.com/spanId']: `${span.spanContext().spanId}`
         }
       });
     } catch (e) {
@@ -90,10 +95,12 @@ export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
+        (crashlytics as CrashlyticsInternal).currentSessionSpan?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
+      (crashlytics as CrashlyticsInternal).currentSessionSpan?.end();
       await flush(crashlytics);
     });
   }

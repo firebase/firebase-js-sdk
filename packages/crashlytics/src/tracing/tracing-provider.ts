@@ -21,7 +21,7 @@ import {
   CompositePropagator,
   W3CTraceContextPropagator
 } from '@opentelemetry/core';
-import { TracerProvider, trace } from '@opentelemetry/api';
+import { TracerProvider, trace, Context, Span } from '@opentelemetry/api';
 import {
   WebTracerProvider,
   BatchSpanProcessor,
@@ -32,7 +32,34 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { FirebaseApp } from '@firebase/app';
+import { SessionSpanProcessor } from './session-span-processor';
+
+/**
+ * A custom ContextManager that ensures the session span is the default parent.
+ */
+class SessionContextManager extends ZoneContextManager {
+  private _sessionSpan: Span | undefined;
+
+  setSessionSpan(span: Span | undefined): void {
+    this._sessionSpan = span;
+  }
+
+  override active(): Context {
+    const context = super.active();
+    if (this._sessionSpan && !trace.getSpan(context)) {
+      return trace.setSpan(context, this._sessionSpan);
+    }
+    return context;
+  }
+}
+
+/**
+ * Global instance of the SessionContextManager.
+ * @internal
+ */
+export const sessionContextManager = new SessionContextManager();
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -71,13 +98,16 @@ export function createTracingProvider(
 
   const provider = new WebTracerProvider({
     resource,
+    // TODO: LEt's investigate creating a CrashSpanProcessor that attaches session id to spans
     spanProcessors: [
+      new SessionSpanProcessor(),
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
     ]
   });
 
   provider.register({
+    contextManager: sessionContextManager,
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })

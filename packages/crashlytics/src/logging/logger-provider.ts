@@ -19,7 +19,9 @@ import {
   LoggerProvider,
   BatchLogRecordProcessor,
   ReadableLogRecord,
-  LogRecordExporter
+  LogRecordExporter,
+  ConsoleLogRecordExporter,
+  SimpleLogRecordProcessor
 } from '@opentelemetry/sdk-logs';
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
@@ -68,7 +70,10 @@ export function createLoggerProvider(
 
   return new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)]
+    processors: [
+      new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
+      new BatchLogRecordProcessor(logExporter)
+    ]
   });
 }
 

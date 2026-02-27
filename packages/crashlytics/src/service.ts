@@ -18,11 +18,12 @@
 import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { TracerProvider } from '@opentelemetry/api';
+import { TracerProvider, Span } from '@opentelemetry/api';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
   private _frameworkAttributesProvider?: () => Record<string, string>;
+  public currentSessionSpan?: Span;
 
   constructor(
     public app: FirebaseApp,

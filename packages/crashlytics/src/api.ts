@@ -20,7 +20,7 @@ import { LOG_ENTRY_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
-import { trace } from '@opentelemetry/api';
+import { trace, context } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
 import { flush, getAppVersion, getSessionId } from './helpers';
 import { CrashlyticsInternal } from './types';
@@ -83,66 +83,75 @@ export function recordError(
   const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
     'error-logger'
   );
+  const currentSessionSpan = (crashlytics as CrashlyticsInternal).currentSessionSpan;
   const customAttributes: AnyValueMap = {};
 
-  // Add framework-specific metadata
-  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
-    .frameworkAttributesProvider;
-  if (frameworkAttributesProvider) {
-    const frameworkAttributes = frameworkAttributesProvider();
-    Object.assign(customAttributes, frameworkAttributes);
-  }
-
-  // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
-    customAttributes[
-      'logging.googleapis.com/trace'
-    ] = `projects/${crashlytics.app.options.projectId}/traces/${activeSpanContext.traceId}`;
-    if (activeSpanContext?.spanId) {
-      customAttributes['logging.googleapis.com/spanId'] =
-        activeSpanContext.spanId;
+  const logError = (): void => {
+    // Add framework-specific metadata
+    const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
+      .frameworkAttributesProvider;
+    if (frameworkAttributesProvider) {
+      const frameworkAttributes = frameworkAttributesProvider();
+      Object.assign(customAttributes, frameworkAttributes);
     }
-  }
 
-  // Add app version metadata
-  customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] =
-    getAppVersion(crashlytics);
-
-  // Add session ID metadata
-  const sessionId = getSessionId();
-  if (sessionId) {
-    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-  }
-
-  // Merge in any additional attributes. Explicitly provided attributes take precedence over
-  // automatically added attributes.
-  if (attributes) {
-    Object.assign(customAttributes, attributes);
-  }
-
-  if (error instanceof Error) {
-    logger.emit({
-      severityNumber: SeverityNumber.ERROR,
-      body: error.message,
-      attributes: {
-        'error.type': error.name || 'Error',
-        'error.stack': error.stack || 'No stack trace available',
-        ...customAttributes
+    // Add trace metadata
+    const activeSpanContext = trace.getActiveSpan()?.spanContext();
+    if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
+      customAttributes[
+        'logging.googleapis.com/trace'
+      ] = `projects/${crashlytics.app.options.projectId}/traces/${activeSpanContext.traceId}`;
+      if (activeSpanContext?.spanId) {
+        customAttributes['logging.googleapis.com/spanId'] =
+          activeSpanContext.spanId;
       }
-    });
-  } else if (typeof error === 'string') {
-    logger.emit({
-      severityNumber: SeverityNumber.ERROR,
-      body: error,
-      attributes: customAttributes
-    });
+    }
+
+    // Add app version metadata
+    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] =
+      getAppVersion(crashlytics);
+
+    // Add session ID metadata
+    const sessionId = getSessionId();
+    if (sessionId) {
+      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
+    }
+
+    // Merge in any additional attributes. Explicitly provided attributes take precedence over
+    // automatically added attributes.
+    if (attributes) {
+      Object.assign(customAttributes, attributes);
+    }
+
+    if (error instanceof Error) {
+      logger.emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: error.message,
+        attributes: {
+          'error.type': error.name || 'Error',
+          'error.stack': error.stack || 'No stack trace available',
+          ...customAttributes
+        }
+      });
+    } else if (typeof error === 'string') {
+      logger.emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: error,
+        attributes: customAttributes
+      });
+    } else {
+      logger.emit({
+        severityNumber: SeverityNumber.ERROR,
+        body: `Unknown error type: ${typeof error}`,
+        attributes: customAttributes
+      });
+    }
+  };
+
+  if (!trace.getActiveSpan() && currentSessionSpan) {
+    context.with(trace.setSpan(context.active(), currentSessionSpan), logError);
   } else {
-    logger.emit({
-      severityNumber: SeverityNumber.ERROR,
-      body: `Unknown error type: ${typeof error}`,
-      attributes: customAttributes
-    });
+    logError();
   }
 }
 
