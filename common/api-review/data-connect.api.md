@@ -177,6 +177,9 @@ export interface Extensions {
     dataConnect?: DataConnectExtension[];
 }
 
+// @public (undocumented)
+export const fdcSymbol: unique symbol;
+
 // @public
 export function getDataConnect(options: ConnectorConfig, settings?: DataConnectSettings): DataConnect;
 
@@ -227,7 +230,9 @@ export type OnErrorSubscription = (err?: DataConnectError) => void;
 export type OnResultSubscription<Data, Variables> = (res: QueryResult<Data, Variables>) => void;
 
 // @public (undocumented)
-export interface OperationRef<_Data, Variables> {
+export interface OperationRef<Data, Variables> {
+    // (undocumented)
+    [fdcSymbol]?: Data;
     // (undocumented)
     dataConnect: DataConnect;
     // (undocumented)

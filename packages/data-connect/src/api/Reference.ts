@@ -33,11 +33,14 @@ export interface OpResult<Data> {
   extensions?: Extensions;
 }
 
-export interface OperationRef<_Data, Variables> {
+export const fdcSymbol = Symbol();
+
+export interface OperationRef<Data, Variables> {
   name: string;
   variables: Variables;
   refType: ReferenceType;
   dataConnect: DataConnect;
+  [fdcSymbol]?: Data; // Never used, just here to ensure that the Data type doesn't get erased.
 }
 
 export interface DataConnectResult<Data, Variables> extends OpResult<Data> {
