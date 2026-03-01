@@ -23,7 +23,7 @@
     "@firebase/util": "1.14.0",
     "child-process-promise": "2.2.1",
     "glob": "7.2.3",
-    "tmp": "0.2.3",
+    "tmp": "0.2.4",
     "gzip-size": "6.0.0",
     "memfs": "3.5.3",
     "terser": "5.37.0",
