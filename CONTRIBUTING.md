@@ -206,8 +206,13 @@ Reference docs for the Firebase [JS SDK](https://firebase.google.com/docs/refere
 [Typedoc](https://typedoc.org/).
 
 Typedoc generates this documentation from the main
-[firebase index.d.ts type definition file](packages/firebase/compat/index.d.ts).  Any updates to
-documentation should be made in that file.
+[firebase index.d.ts type definition file](packages/firebase/compat/index.d.ts). Any updates to
+documentation should be made in source code comments and/or exported types (not by editing
+`docs-devsite/*.md` directly).
+
+> **Important:** files under `docs-devsite/` are generated artifacts. If you open a page like
+> `docs-devsite/ai.aimodel.md`, follow the “DO NOT EDIT” note in that file and update the source
+> declarations/comments instead, then run doc generation.
 
 If any pages are added or removed by your change (by adding or removing a class or interface), the
 [js/toc.yaml](scripts/docgen/content-sources/js/toc.yaml) and/or
