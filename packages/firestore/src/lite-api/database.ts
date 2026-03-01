@@ -315,7 +315,7 @@ export function getFirestore(
  * @param firestore - The `Firestore` instance to configure to connect to the
  * emulator.
  * @param host - the emulator host (ex: localhost).
- * @param port - the emulator port (ex: 9000).
+ * @param port - the emulator port (ex: 8080).
  * @param options.mockUserToken - the mock auth token to use for unit testing
  * Security Rules.
  */
