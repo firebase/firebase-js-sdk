@@ -70,7 +70,7 @@ jobs:
     - name: Create comment (missing packages)
       if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
+      uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
       with:
         issue-number: ${{github.event.number}}
         body: |
@@ -79,7 +79,7 @@ jobs:
     - name: Update comment (missing packages)
       if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
+      uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
@@ -89,7 +89,7 @@ jobs:
     - name: Update comment (no missing packages)
       if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
       # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
+      uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
       with:
         comment-id: ${{steps.fc.outputs.comment-id}}
         edit-mode: replace
