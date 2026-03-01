@@ -181,6 +181,209 @@ describe('Generate Content', function () {
           expect(groundingSupport.segment?.text).to.exist;
           // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
         });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding prompt location', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: {} }]
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee near Arlington, MA?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding prompt location enableWidget true', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: { enableWidget: true } }]
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee in New York City?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
+      });
+
+      it('generateContent: google maps grounding prompt location enableWidget false', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: { enableWidget: false } }]
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee in New York City?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding with lat long', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: {} }],
+          toolConfig: {
+            retrievalConfig: {
+              latLng: {
+                latitude: 42.4154,
+                longitude: 71.1565
+              }
+            }
+          }
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee near here?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding with lat long enableWidget true', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: { enableWidget: true } }],
+          toolConfig: {
+            retrievalConfig: {
+              latLng: {
+                latitude: 42.4154,
+                longitude: 71.1565
+              }
+            }
+          }
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee near here?'
+          //'Where is the closest starbucks?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
       });
 
       describe('URL Context', async () => {

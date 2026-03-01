@@ -310,6 +310,7 @@ export interface SingleRequestOptions extends RequestOptions {
  */
 export type Tool =
   | FunctionDeclarationsTool
+  | GoogleMapsTool
   | GoogleSearchTool
   | CodeExecutionTool
   | URLContextTool;
@@ -374,6 +375,29 @@ export interface GoogleSearchTool {
 }
 
 /**
+ * A tool that allows a Gemini model to connect to Google Maps to access and incorporate
+ * location-based information into its responses.
+ *
+ * Important: If using Grounding with Google Maps, you are required to comply with the
+ * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * @public
+ */
+export interface GoogleMapsTool {
+  /**
+   * Specifies the Google Maps configuration.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Maps"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * section within the Service Specific Terms).
+   */
+  googleMaps: GoogleMaps;
+}
+
+/**
  * A tool that enables the model to use code execution.
  *
  * @beta
@@ -394,6 +418,18 @@ export interface CodeExecutionTool {
  * @public
  */
 export interface GoogleSearch {}
+
+/**
+ * Specifies the Google Maps configuration.
+ *
+ * @public
+ */
+export interface GoogleMaps {
+  /*
+   *  If true, include the widget context token in the response.
+   */
+  enableWidget?: boolean;
+}
 
 /**
  * A tool that allows you to provide additional context to the models in the form of public web
@@ -437,11 +473,28 @@ export interface FunctionDeclarationsTool {
 }
 
 /**
+ * An object that represents a latitude/longitude pair.
+ * @public
+ */
+export interface LatLng {
+  /**
+   * The latitude in degrees. It must be in the range [-90.0, +90.0].
+   */
+  latitude?: number;
+
+  /**
+   * The longitude in degrees. It must be in the range [-180.0, +180.0].
+   */
+  longitude?: number;
+}
+
+/**
  * Tool config. This config is shared for all tools provided in the request.
  * @public
  */
 export interface ToolConfig {
   functionCallingConfig?: FunctionCallingConfig;
+  retrievalConfig?: RetrievalConfig;
 }
 
 /**
@@ -450,6 +503,21 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * @public
+ */
+export interface RetrievalConfig {
+  /**
+   * The location of the user.
+   */
+  latLng?: LatLng;
+
+  /**
+   * The language code of the user.
+   */
+  languageCode?: string;
 }
 
 /**
