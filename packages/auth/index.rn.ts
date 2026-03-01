@@ -76,7 +76,7 @@ export function getAuth(app: FirebaseApp = getApp()): Auth {
   }
 
   // Only warn if getAuth() is called before initializeAuth()
-  _logWarn(NO_PERSISTENCE_WARNING);
+  _logWarn('getAuth() has been called before initializeAuth(). Make sure to call initializeAuth() first.');
 
   return initializeAuthOriginal(app);
 }
