@@ -65,6 +65,9 @@ import {
   Sort,
   Stage,
   Union,
+  Delete,
+  Upsert,
+  Insert,
   Unnest,
   Where
 } from './stage';
@@ -82,11 +85,15 @@ import {
   SortStageOptions,
   StageOptions,
   UnionStageOptions,
+  DeleteStageOptions,
+  UpsertStageOptions,
+  InsertStageOptions,
   UnnestStageOptions,
   WhereStageOptions
 } from './stage_options';
 import { UserDataReader, UserDataSource } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
+import { CollectionReference } from './reference';
 
 /**
  * @beta
@@ -1499,6 +1506,118 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     stages: Stage[]
   ): Pipeline {
     return new Pipeline(db, userDataReader, userDataWriter, stages);
+  }
+  /**
+   * @beta
+   * Deletes the documents resulting from the pipeline.
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().collection('books').where(field('rating').lt(2)).delete();
+   * ```
+   *
+   * @param options - Optional parameters for the stage.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  delete(): Pipeline;
+  delete(options: DeleteStageOptions): Pipeline;
+  delete(options?: DeleteStageOptions): Pipeline {
+    const stage = new Delete(options || {});
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'delete'
+    );
+    stage._readUserData(parseContext);
+
+    return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Upserts the documents resulting from the pipeline.
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().collection('new_books').upsert('books');
+   * ```
+   *
+   * @param collectionOrOptions - The target collection or options for the stage.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  upsert(): Pipeline;
+  upsert(collection: string | CollectionReference): Pipeline;
+  upsert(options: UpsertStageOptions): Pipeline;
+  upsert(
+    collectionOrOptions?: string | CollectionReference | UpsertStageOptions
+  ): Pipeline {
+    let options: UpsertStageOptions;
+    if (
+      typeof collectionOrOptions === 'string' ||
+      (typeof collectionOrOptions === 'object' &&
+        'type' in collectionOrOptions &&
+        collectionOrOptions.type === 'collection')
+    ) {
+      options = { collection: collectionOrOptions as string | CollectionReference };
+    } else {
+      options = (collectionOrOptions as UpsertStageOptions) || {};
+    }
+
+    const stage = new Upsert(options);
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'upsert'
+    );
+    stage._readUserData(parseContext);
+
+    return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Inserts the documents resulting from the pipeline.
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().collection('new_books').insert('books');
+   * ```
+   *
+   * @param collectionOrOptions - The target collection or options for the stage.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  insert(collection: string | CollectionReference): Pipeline;
+  insert(options: InsertStageOptions): Pipeline;
+  insert(
+    collectionOrOptions: string | CollectionReference | InsertStageOptions
+  ): Pipeline {
+    let options: InsertStageOptions;
+    if (
+      typeof collectionOrOptions === 'string' ||
+      (typeof collectionOrOptions === 'object' &&
+        'type' in collectionOrOptions &&
+        collectionOrOptions.type === 'collection')
+    ) {
+      options = { collection: collectionOrOptions as string | CollectionReference };
+    } else {
+      options = collectionOrOptions as InsertStageOptions;
+    }
+
+    const stage = new Insert(options);
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'insert'
+    );
+    stage._readUserData(parseContext);
+
+    return this._addStage(stage);
   }
 }
 

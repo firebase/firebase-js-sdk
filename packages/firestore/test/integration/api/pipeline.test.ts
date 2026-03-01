@@ -4878,4 +4878,83 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
   });
+  describe('DML operations', () => {
+    it('executes delete stage without errors', async () => {
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+          .delete()
+      );
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+          .delete({
+            returns: 'document_id',
+            transactional: true,
+            rawOptions: {
+              batch_size: 10
+            }
+          })
+      );
+    });
+
+    it('executes upsert stage without errors', async () => {
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .upsert()
+      );
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .upsert(randomCol.path)
+      );
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .upsert({
+            collection: randomCol.path,
+            returns: 'document_id',
+            transactional: true,
+            conflictResolution: 'merge',
+            rawOptions: {
+              batch_size: 10
+            }
+          })
+      );
+    });
+
+    it('executes insert stage without errors', async () => {
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .insert(randomCol.path)
+      );
+
+      await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .insert({
+            collection: randomCol.path,
+            returns: 'document_id',
+            transactional: true,
+            rawOptions: {
+              batch_size: 10
+            }
+          })
+      );
+    });
+  });
 });
