@@ -28,6 +28,7 @@ env:
   artifactRetentionDays: 14
   # Bump Node memory limit
   NODE_OPTIONS: "--max_old_space_size=4096"
+  PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
 
 jobs:
   build:
@@ -46,7 +47,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: yarn build
       run: yarn build
@@ -85,7 +86,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -132,7 +133,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -172,7 +173,7 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         yarn
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
@@ -213,7 +214,7 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
-    - run: cp config/ci.config.json config/project.json
+    - run: echo $PROJECT_CONFIG > config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore

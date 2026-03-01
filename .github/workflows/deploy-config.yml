@@ -45,3 +45,4 @@ jobs:
       run: yarn ts-node scripts/ci-test/deploy-if-needed.ts
       env:
         FIREBASE_CLI_TOKEN: ${{secrets.FIREBASE_CLI_TOKEN}}
+        PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}

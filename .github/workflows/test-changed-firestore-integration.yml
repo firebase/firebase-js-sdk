@@ -46,8 +46,10 @@ jobs:
       uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
     - name: Terraform Init
       if: ${{ fromJSON(env.run_terraform_steps) }}
+      env:
+        PROJECT_CONFIG: ${{ secrets.TEST_PROJECT_CONFIG }}
       run: |
-        cp config/ci.config.json config/project.json
+        echo $PROJECT_CONFIG > config/project.json
         cd packages/firestore
         terraform init
       continue-on-error: true
