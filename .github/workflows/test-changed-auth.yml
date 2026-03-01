@@ -52,7 +52,7 @@ jobs:
         run: |
          echo $CHROME_VERSION_NOTES=$CHROME_VERSION_MISMATCH_MESSAGE
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
@@ -77,7 +77,7 @@ jobs:
       - name: install Firefox stable
         run: npx @puppeteer/browsers install firefox@stable
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # This makes Actions fetch all Git history so run-changed script can diff properly.
           fetch-depth: 0
@@ -102,7 +102,7 @@ jobs:
 
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Set up Node (22)
