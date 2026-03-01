@@ -10,12 +10,12 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "18.19.83",
+    "@types/node": "18.19.130",
     "ts-node": "^10.9.2",
     "tslib": "^2.1.0",
     "typescript": "5.5.4"
   },
   "dependencies": {
-    "firebase": "11.8.1"
+    "firebase": "11.10.0"
   }
 }
