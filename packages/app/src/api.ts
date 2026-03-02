@@ -523,14 +523,14 @@ export function setLogLevel(logLevel: LogLevelString): void {
 
 const appInitCallbacks: ((app: FirebaseApp) => void)[] = [];
 
-export function onAppInit(callback: (app: FirebaseApp) => void){
+export function onAppInit(callback: (app: FirebaseApp) => void) {
   appInitCallbacks.push(callback);
   const defaultApp = getApps()[0];
-  if(defaultApp) {
+  if (defaultApp) {
     callback(defaultApp);
   }
 }
 
-export function offAppInit(callback: (app: FirebaseApp) => void){
+export function offAppInit(callback: (app: FirebaseApp) => void) {
   appInitCallbacks.splice(appInitCallbacks.indexOf(callback), 1);
 }

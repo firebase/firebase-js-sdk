@@ -91,7 +91,7 @@ describe('FirebaseAppNext', () => {
     });
     expect(called).to.be.false;
     const app = initializeApp({
-      apiKey: 'APIKEY',
+      apiKey: 'APIKEY'
     });
     expect(called).to.be.true;
     deleteApp(app);
@@ -105,7 +105,7 @@ describe('FirebaseAppNext', () => {
     expect(called).to.be.false;
     offAppInit(callback);
     initializeApp({
-      apiKey: 'APIKEY',
+      apiKey: 'APIKEY'
     });
     expect(called).to.be.false;
   });
