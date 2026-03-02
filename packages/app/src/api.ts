@@ -190,7 +190,7 @@ export function initializeApp(
 
   _apps.set(name, newApp);
 
-  for (const callback of appInitCallbacks.get(newApp.name) || []) {
+  for (const callback of appInitCallbacks) {
     callback(newApp);
   }
 
@@ -523,34 +523,19 @@ export function setLogLevel(logLevel: LogLevelString): void {
 
 type AppInitCallback = (app: FirebaseApp) => void;
 
-const appInitCallbacks: Map<string, AppInitCallback[]> = new Map();
+const appInitCallbacks: AppInitCallback[] = [];
 
-export function onAppInit(
-  callback: (app: FirebaseApp) => void,
-  appName = DEFAULT_ENTRY_NAME
-): void {
-  if (appInitCallbacks.has(appName)) {
-    appInitCallbacks.get(appName)!.push(callback);
-  } else {
-    appInitCallbacks.set(appName, [callback]);
-  }
-  const app = _apps.get(appName);
+export function onAppInit(callback: (app: FirebaseApp) => void): void {
+  const app = _apps.get(DEFAULT_ENTRY_NAME);
   if (app) {
     callback(app);
   }
+  appInitCallbacks.push(callback);
 }
 
-export function offAppInit(
-  callback: (app: FirebaseApp) => void,
-  appName = DEFAULT_ENTRY_NAME
-): void {
-  const callbacks = appInitCallbacks.get(appName);
-  if (callbacks) {
-    const finalCallbacks = callbacks.filter(cb => cb !== callback);
-    if (finalCallbacks.length === 0) {
-      appInitCallbacks.delete(appName);
-    } else {
-      appInitCallbacks.set(appName, finalCallbacks);
-    }
+export function offAppInit(callback: (app: FirebaseApp) => void): void {
+  const index = appInitCallbacks.indexOf(callback);
+  if (index > -1) {
+    appInitCallbacks.splice(index, 1);
   }
 }

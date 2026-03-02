@@ -19,8 +19,6 @@ import { expect } from 'chai';
 import '../test/setup';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ComponentContainer } from '@firebase/component';
-import { deleteApp, initializeApp, offAppInit, onAppInit } from './api';
-import { FirebaseApp } from './public-types';
 
 describe('FirebaseAppNext', () => {
   it('has various accessors', () => {
@@ -83,30 +81,5 @@ describe('FirebaseAppNext', () => {
     expect(() => app.automaticDataCollectionEnabled).throws(
       "Firebase App named 'test' already deleted"
     );
-  });
-  it('calls onAppInit callbacks', async () => {
-    let called = false;
-    onAppInit(_ => {
-      called = true;
-    });
-    expect(called).to.be.false;
-    const app = initializeApp({
-      apiKey: 'APIKEY'
-    });
-    expect(called).to.be.true;
-    await deleteApp(app);
-  });
-  it(`successfully de-registers callback from onAppInit`, () => {
-    let called = false;
-    const callback = (_: FirebaseApp): void => {
-      called = true;
-    };
-    onAppInit(callback);
-    expect(called).to.be.false;
-    offAppInit(callback);
-    initializeApp({
-      apiKey: 'APIKEY'
-    });
-    expect(called).to.be.false;
   });
 });

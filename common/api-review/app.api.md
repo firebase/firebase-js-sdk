@@ -125,10 +125,10 @@ export function _isFirebaseServerApp(obj: FirebaseApp | FirebaseServerApp | null
 export function _isFirebaseServerAppSettings(obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings): obj is FirebaseServerAppSettings;
 
 // @public (undocumented)
-export function offAppInit(callback: (app: FirebaseApp) => void, appName?: string): void;
+export function offAppInit(callback: (app: FirebaseApp) => void): void;
 
 // @public (undocumented)
-export function onAppInit(callback: (app: FirebaseApp) => void, appName?: string): void;
+export function onAppInit(callback: (app: FirebaseApp) => void): void;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;
