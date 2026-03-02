@@ -30,11 +30,11 @@ interface ParsedArgs<Variables> {
 }
 
 /**
- * The generated SDK will allow the user to pass in either the variables or the data connect instance 
- * with the variables, and/or options. This function validates the variables and returns back the 
+ * The generated SDK will allow the user to pass in either the variables or the data connect instance
+ * with the variables, and/or options. This function validates the variables and returns back the
  * DataConnect instance and variables, and potentially options, based on the arguments passed in.
  *
- * Generated SDKs generated from versions 3.2.0 and lower of the Data Connect emulator binary are not 
+ * Generated SDKs generated from versions 3.2.0 and lower of the Data Connect emulator binary are not
  * concerned with any options, and they will never provide the {hasVars} parameter.
  *
  * @param connectorConfig
@@ -48,8 +48,8 @@ interface ParsedArgs<Variables> {
  */
 export function validateArgs<Variables extends object>(
   connectorConfig: ConnectorConfig,
-  dcOrVarsOrOptions?: DataConnect | Variables,
-  varsOrOptions?: Variables,
+  dcOrVarsOrOptions?: DataConnect | Variables | ExecuteQueryOptions,
+  varsOrOptions?: Variables | ExecuteQueryOptions,
   variablesRequired?: boolean,
   hasVars?: boolean,
   options?: ExecuteQueryOptions
