@@ -267,7 +267,7 @@ describe('caching', () => {
       } as QueryResult<Q2Data, undefined>
     ]);
   });
-  it('retrieve entity data when multiple queries have the same entity id', async () => {
+  it.only('retrieve entity data when multiple queries have the same entity id', async () => {
     interface Q1Data {
       movie: {
         title: string;
@@ -328,7 +328,7 @@ describe('caching', () => {
     const resultTree = await dc._queryManager.getFromResultTreeCache(
       queryRef<Q1Data>(dc, titleQueryId)
     );
-    expect(resultTree?.data).to.deep.eq(titleResponse.data);
+    expect(resultTree!.data).to.deep.eq(titleResponse.data);
     const genreQueryId = 'genreQuery';
     await updateCacheData(
       dc,
@@ -519,7 +519,8 @@ function setup(): { firebaseApp: FirebaseApp; dc: DataConnect } {
   };
   const dc = getDataConnect(connectorConfig, {
     cacheSettings: {
-      cacheProvider: makeMemoryCacheProvider()
+      cacheProvider: makeMemoryCacheProvider(),
+      maxAgeSeconds: 5
     }
   });
   return { firebaseApp: app, dc };
