@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ImagenModelParams, ModelParams, AIErrorCode } from './types';
+import {
+  ImagenModelParams,
+  ModelParams,
+  AIErrorCode,
+  InferenceMode
+} from './types';
 import { AIError } from './errors';
 import {
   getAI,
@@ -28,12 +33,17 @@ import {
   getTemplateImagenModel,
   TemplateImagenModel
 } from './api';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
+import { stub } from 'sinon';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
 import { getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
+import { logger } from './logger';
+import sinonChai from 'sinon-chai';
+
+use(sinonChai);
 
 const fakeAI: AI = {
   app: {
@@ -147,6 +157,17 @@ describe('Top level API', () => {
     const genModel = getGenerativeModel(fakeAI, { model: 'my-model' });
     expect(genModel).to.be.an.instanceOf(GenerativeModel);
     expect(genModel.model).to.equal('publishers/google/models/my-model');
+  });
+  it('getGenerativeModel warns in hybrid mode if top-level params are set', () => {
+    const warnStub = stub(logger, 'warn');
+    const genModel = getGenerativeModel(fakeAI, {
+      mode: InferenceMode.PREFER_ON_DEVICE,
+      generationConfig: {}
+    });
+    expect(genModel).to.be.an.instanceOf(GenerativeModel);
+    expect(warnStub).to.be.calledWithMatch(InferenceMode.PREFER_ON_DEVICE);
+    expect(warnStub).to.be.calledWithMatch('generationConfig');
+    warnStub.restore();
   });
   it('getImagenModel throws if no model is provided', () => {
     try {
