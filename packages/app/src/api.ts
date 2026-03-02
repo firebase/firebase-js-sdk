@@ -528,7 +528,7 @@ const appInitCallbacks: Map<string, AppInitCallback[]> = new Map();
 export function onAppInit(
   callback: (app: FirebaseApp) => void,
   appName = DEFAULT_ENTRY_NAME
-) {
+): void {
   if (appInitCallbacks.has(appName)) {
     appInitCallbacks.get(appName)!.push(callback);
   } else {
@@ -543,7 +543,7 @@ export function onAppInit(
 export function offAppInit(
   callback: (app: FirebaseApp) => void,
   appName = DEFAULT_ENTRY_NAME
-) {
+): void {
   const callbacks = appInitCallbacks.get(appName);
   if (callbacks) {
     const finalCallbacks = callbacks.filter(cb => cb !== callback);

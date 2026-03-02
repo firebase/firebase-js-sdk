@@ -84,7 +84,7 @@ describe('FirebaseAppNext', () => {
       "Firebase App named 'test' already deleted"
     );
   });
-  it('calls onAppInit callbacks', () => {
+  it('calls onAppInit callbacks', async () => {
     let called = false;
     onAppInit(_ => {
       called = true;
@@ -94,11 +94,11 @@ describe('FirebaseAppNext', () => {
       apiKey: 'APIKEY'
     });
     expect(called).to.be.true;
-    deleteApp(app);
+    await deleteApp(app);
   });
   it(`successfully de-registers callback from onAppInit`, () => {
     let called = false;
-    const callback = (_: FirebaseApp) => {
+    const callback = (_: FirebaseApp): void => {
       called = true;
     };
     onAppInit(callback);
