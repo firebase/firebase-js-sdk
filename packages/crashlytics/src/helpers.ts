@@ -37,18 +37,7 @@ export function getAppVersion(crashlytics: Crashlytics): string {
   return 'unset';
 }
 
-/**
- * Returns the session ID stored in sessionStorage, if available.
- */
-export function getSessionId(): string | undefined {
-  if (typeof sessionStorage !== 'undefined') {
-    try {
-      return sessionStorage.getItem(CRASHLYTICS_SESSION_ID_KEY) || undefined;
-    } catch (e) {
-      // Ignore errors accessing sessionStorage (e.g. security restrictions)
-    }
-  }
-}
+export { getSessionId } from './session';
 
 /**
  * Generate a new session UUID. We record it in two places:

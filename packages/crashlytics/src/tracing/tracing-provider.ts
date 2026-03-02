@@ -32,6 +32,7 @@ import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FirebaseApp } from '@firebase/app';
+import { SessionSpanProcessor } from './session-span-processor';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -72,7 +73,8 @@ export function createTracingProvider(
     resource,
     // TODO: LEt's investigate creating a CrashSpanProcessor that attaches session id to spans
     spanProcessors: [
-      new SimpleSpanProcessor(new ConsoleSpanExporter()),
+      new SessionSpanProcessor(new ConsoleSpanExporter()),
+      //new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
     ]
   });
