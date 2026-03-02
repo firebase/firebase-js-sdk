@@ -267,7 +267,7 @@ describe('caching', () => {
       } as QueryResult<Q2Data, undefined>
     ]);
   });
-  it.only('retrieve entity data when multiple queries have the same entity id', async () => {
+  it('retrieve entity data when multiple queries have the same entity id', async () => {
     interface Q1Data {
       movie: {
         title: string;
