@@ -37,12 +37,12 @@ import {
 import { QueryManager } from '../core/query/QueryManager';
 import { logDebug, logError } from '../logger';
 import {
+  DataConnectTransportInterface,
+  TransportClass,
   CallerSdkType,
-  CallerSdkTypeEnum,
-  DataConnectTransport,
-  TransportClass
+  CallerSdkTypeEnum
 } from '../network';
-import { RESTTransport } from '../network/rest';
+import { DataConnectTransportManager } from '../network/manager';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';
@@ -96,7 +96,7 @@ export class DataConnect {
   _mutationManager!: MutationManager;
   isEmulator = false;
   _initialized = false;
-  private _transport!: DataConnectTransport;
+  private _transport!: DataConnectTransportInterface;
   private _transportClass: TransportClass | undefined;
   private _transportOptions?: TransportOptions;
   private _authTokenProvider?: AuthTokenProvider;
@@ -173,7 +173,7 @@ export class DataConnect {
     }
     if (this._transportClass === undefined) {
       logDebug('transportClass not provided. Defaulting to RESTTransport.');
-      this._transportClass = RESTTransport;
+      this._transportClass = DataConnectTransportManager;
     }
 
     this._authTokenProvider = new FirebaseAuthProvider(

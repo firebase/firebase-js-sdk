@@ -29,7 +29,7 @@ import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { parseEntityIds } from '../../cache/cacheUtils';
 import { EncodingMode } from '../../cache/EntityNode';
 import {
-  DataConnectTransport,
+  DataConnectTransportInterface,
   Extensions,
   DataConnectExtensionWithMaxAge,
   ExtensionsWithMaxAge
@@ -88,7 +88,7 @@ export class QueryManager {
   >();
   private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
   constructor(
-    private transport: DataConnectTransport,
+    private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
   ) {}
