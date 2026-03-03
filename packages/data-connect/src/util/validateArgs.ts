@@ -31,73 +31,87 @@ interface ParsedArgs<Variables> {
 
 /**
  * The generated SDK will allow the user to pass in either the variables or the data connect instance
+ * with the variables. This function validates the variables and returns back the DataConnect instance
+ * and variables based on the arguments passed in.
+ *
+ * Generated SDKs generated from versions 3.2.0 and lower of the Data Connect emulator binary are
+ * NOT concerned with options, and will use this function to validate arguments.
+ *
+ * @param connectorConfig
+ * @param dcOrVars
+ * @param vars
+ * @param variablesRequired
+ * @returns {DataConnect} and {Variables} instance
+ * @internal
+ */
+export function validateArgs<Variables extends object>(
+  connectorConfig: ConnectorConfig,
+  dcOrVars?: DataConnect | Variables,
+  vars?: Variables,
+  variablesRequired?: boolean
+): ParsedArgs<Variables> {
+  let dcInstance: DataConnect;
+  let realVars: Variables;
+
+  const dcFirstArg = dcOrVars && 'enableEmulator' in dcOrVars;
+
+  if (dcFirstArg) {
+    dcInstance = dcOrVars as DataConnect;
+    realVars = vars as Variables;
+  } else {
+    dcInstance = getDataConnect(connectorConfig);
+    realVars = dcOrVars as Variables;
+  }
+
+  if (!dcInstance || (!realVars && variablesRequired)) {
+    throw new DataConnectError(Code.INVALID_ARGUMENT, 'Variables required.');
+  }
+
+  return { dc: dcInstance, vars: realVars };
+}
+
+/**
+ * The generated SDK will allow the user to pass in either the variables or the data connect instance
  * with the variables, and/or options. This function validates the variables and returns back the
  * DataConnect instance and variables, and potentially options, based on the arguments passed in.
  *
- * Generated SDKs generated from versions 3.2.0 and lower of the Data Connect emulator binary are not
- * concerned with any options, and they will never provide the {hasVars} parameter.
+ * Generated SDKs generated from versions 3.2.0 and higher of the Data Connect emulator binary are
+ * in fact concerned with options, and will use this function to validate arguments.
  *
  * @param connectorConfig
  * @param dcOrVarsOrOptions
  * @param varsOrOptions
  * @param variablesRequired
- * @param hasVars - only provided by generated SDKs using Data Connect emulator binary version higher than 3.2.0
- * @param options - only provided by generated SDKs using Data Connect emulator binary version higher than 3.2.0
+ * @param options
  * @returns {DataConnect} and {Variables} instance, and optionally {ExecuteQueryOptions}
  * @internal
  */
-export function validateArgs<Variables extends object>(
+export function validateArgsWithOptions<Variables extends object>(
   connectorConfig: ConnectorConfig,
   dcOrVarsOrOptions?: DataConnect | Variables | ExecuteQueryOptions,
   varsOrOptions?: Variables | ExecuteQueryOptions,
-  variablesRequired?: boolean,
-  hasVars?: boolean,
-  options?: ExecuteQueryOptions
+  options?: ExecuteQueryOptions,
+  variablesRequired?: boolean
 ): ParsedArgs<Variables> {
   let dcInstance: DataConnect;
   let realVars: Variables;
   let realOptions: ExecuteQueryOptions;
 
-  const legacyNoOptions = typeof hasVars === 'undefined';
-
   const dcFirstArg = dcOrVarsOrOptions && 'enableEmulator' in dcOrVarsOrOptions;
 
-  if (legacyNoOptions) {
-    // legacy gen SDKs are not concerned with options - just dc and variables
-    if (dcFirstArg) {
-      dcInstance = dcOrVarsOrOptions as DataConnect;
-      realVars = varsOrOptions as Variables;
-    } else {
-      dcInstance = getDataConnect(connectorConfig);
-      realVars = dcOrVarsOrOptions as Variables;
-    }
-    if (!dcInstance || (!realVars && variablesRequired)) {
-      throw new DataConnectError(Code.INVALID_ARGUMENT, 'Variables required.');
-    }
-    return { dc: dcInstance, vars: realVars };
+  if (dcFirstArg) {
+    dcInstance = dcOrVarsOrOptions as DataConnect;
+    realVars = varsOrOptions as Variables;
+    realOptions = options as ExecuteQueryOptions;
   } else {
-    if (dcFirstArg) {
-      dcInstance = dcOrVarsOrOptions as DataConnect;
-      if (hasVars) {
-        realVars = varsOrOptions as Variables;
-        realOptions = options as ExecuteQueryOptions;
-      } else {
-        realVars = undefined as unknown as Variables;
-        realOptions = varsOrOptions as ExecuteQueryOptions;
-      }
-    } else {
-      dcInstance = getDataConnect(connectorConfig);
-      if (hasVars) {
-        realVars = dcOrVarsOrOptions as Variables;
-        realOptions = varsOrOptions as ExecuteQueryOptions;
-      } else {
-        realVars = undefined as unknown as Variables;
-        realOptions = dcOrVarsOrOptions as ExecuteQueryOptions;
-      }
-    }
-    if (!dcInstance || (!realVars && variablesRequired)) {
-      throw new DataConnectError(Code.INVALID_ARGUMENT, 'Variables required.');
-    }
-    return { dc: dcInstance, vars: realVars, options: realOptions };
+    dcInstance = getDataConnect(connectorConfig);
+    realVars = dcOrVarsOrOptions as Variables;
+    realOptions = varsOrOptions as ExecuteQueryOptions;
   }
+
+  if (!dcInstance || (!realVars && variablesRequired)) {
+    throw new DataConnectError(Code.INVALID_ARGUMENT, 'Variables required.');
+  }
+
+  return { dc: dcInstance, vars: realVars, options: realOptions };
 }
