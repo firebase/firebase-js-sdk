@@ -16,4 +16,4 @@
  */
 
 export * from './fetch';
-export * from './RestTransport';
+export * from './restTransport';
