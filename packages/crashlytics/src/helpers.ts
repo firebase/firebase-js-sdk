@@ -58,14 +58,14 @@ export function startNewSession(crashlytics: Crashlytics): void {
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
       console.log('Session started with ID: ', sessionId);
 
-      const tracer = tracingProvider.getTracer('session-tracer');
+      /*const tracer = tracingProvider.getTracer('session-tracer');
       const span = tracer.startSpan('session-start');
       span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
       span.setAttribute(
         LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION,
         getAppVersion(crashlytics)
       );
-      (crashlytics as CrashlyticsInternal).currentSessionSpan = span;
+      (crashlytics as CrashlyticsInternal).currentSessionSpan = span;*/
 
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
@@ -75,8 +75,8 @@ export function startNewSession(crashlytics: Crashlytics): void {
         attributes: {
           [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
           [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
-          ['logging.googleapis.com/trace']: `${span.spanContext().traceId}`,
-          ['logging.googleapis.com/spanId']: `${span.spanContext().spanId}`
+          //   ['logging.googleapis.com/trace']: `${span.spanContext().traceId}`,
+          //  ['logging.googleapis.com/spanId']: `${span.spanContext().spanId}`
         }
       });
     } catch (e) {

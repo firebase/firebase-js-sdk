@@ -31,6 +31,7 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { FirebaseApp } from '@firebase/app';
 import { SessionSpanProcessor } from './session-span-processor';
 
@@ -80,6 +81,7 @@ export function createTracingProvider(
   });
 
   provider.register({
+    contextManager: new ZoneContextManager(),
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })
