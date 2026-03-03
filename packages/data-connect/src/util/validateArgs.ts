@@ -91,6 +91,7 @@ export function validateArgsWithOptions<Variables extends object>(
   dcOrVarsOrOptions?: DataConnect | Variables | ExecuteQueryOptions,
   varsOrOptions?: Variables | ExecuteQueryOptions,
   options?: ExecuteQueryOptions,
+  hasVars?: boolean,
   variablesRequired?: boolean
 ): ParsedArgs<Variables> {
   let dcInstance: DataConnect;
@@ -101,12 +102,22 @@ export function validateArgsWithOptions<Variables extends object>(
 
   if (dcFirstArg) {
     dcInstance = dcOrVarsOrOptions as DataConnect;
-    realVars = varsOrOptions as Variables;
-    realOptions = options as ExecuteQueryOptions;
+    if (hasVars) {
+      realVars = varsOrOptions as Variables;
+      realOptions = options as ExecuteQueryOptions;
+    } else {
+      realVars = undefined as unknown as Variables;
+      realOptions = varsOrOptions as ExecuteQueryOptions;
+    }
   } else {
     dcInstance = getDataConnect(connectorConfig);
-    realVars = dcOrVarsOrOptions as Variables;
-    realOptions = varsOrOptions as ExecuteQueryOptions;
+    if (hasVars) {
+      realVars = dcOrVarsOrOptions as Variables;
+      realOptions = varsOrOptions as ExecuteQueryOptions;
+    } else {
+      realVars = undefined as unknown as Variables;
+      realOptions = dcOrVarsOrOptions as ExecuteQueryOptions;
+    }
   }
 
   if (!dcInstance || (!realVars && variablesRequired)) {
