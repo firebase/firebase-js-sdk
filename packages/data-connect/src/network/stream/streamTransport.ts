@@ -28,7 +28,7 @@ import { DataConnectStreamRequest } from './wire';
 /**
  * The base class for all DataConnectStreamTransport implementations. Handles management of logical
  * streams (requests), authentication, data routing to query layer, etc. Concrete stream transport
- * implementations should extend this class and implement the abstract {@link DataConnectStreamTransportInterface} methods.
+ * implementations should extend this class and implement the abstract methods.
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
