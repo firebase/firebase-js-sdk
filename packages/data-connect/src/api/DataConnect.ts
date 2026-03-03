@@ -41,12 +41,12 @@ import {
 import { QueryManager } from '../core/query/QueryManager';
 import { logDebug, logError } from '../logger';
 import {
-  CallerSdkType,
-  CallerSdkTypeEnum,
   DataConnectTransportInterface,
   TransportClass,
-  DataConnectTransportManager
+  CallerSdkType,
+  CallerSdkTypeEnum
 } from '../network';
+import { DataConnectTransportManager } from '../network/manager';
 import { PROD_HOST } from '../util/url';
 
 import { MutationManager } from './Mutation';

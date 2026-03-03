@@ -16,4 +16,3 @@
  */
 
 export * from './DataConnectTransport';
-export * from './manager';
