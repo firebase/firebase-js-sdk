@@ -19,6 +19,7 @@ import {
   CallerSdkType,
   CallerSdkTypeEnum,
   DataConnectResponse,
+  DataConnectResponseWithMaxAge,
   AbstractDataConnectTransport,
   SubscribeNotificationHook
 } from '..';
@@ -60,7 +61,10 @@ export class RESTTransport extends AbstractDataConnectTransport {
   invokeQuery: <Data, Variables>(
     queryName: string,
     body?: Variables
-  ) => Promise<DataConnectResponse<Data>> = <Data, Variables = unknown>(
+  ) => Promise<DataConnectResponseWithMaxAge<Data>> = <
+    Data,
+    Variables = unknown
+  >(
     queryName: string,
     body: Variables
   ) => {
