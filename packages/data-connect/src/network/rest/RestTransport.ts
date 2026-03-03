@@ -19,7 +19,7 @@ import {
   CallerSdkType,
   CallerSdkTypeEnum,
   DataConnectResponse,
-  DataConnectTransportClass,
+  AbstractDataConnectTransport,
   SubscribeNotificationHook
 } from '..';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
@@ -30,7 +30,11 @@ import { addToken } from '../../util/url';
 
 import { dcFetch } from './fetch';
 
-export class RESTTransport extends DataConnectTransportClass {
+/**
+ * Fetch-based REST implementation of {@link AbstractDataConnectTransport}.
+ * @internal
+ */
+export class RESTTransport extends AbstractDataConnectTransport {
   constructor(
     options: DataConnectOptions,
     apiKey?: string | undefined,

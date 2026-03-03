@@ -98,10 +98,10 @@ export type SubscribeNotificationHook<Data> = (
 ) => void;
 
 /**
- * Interface defining the public API of the transport layer.
+ * Interface defining the external API of the transport layer.
  * @internal
  */
-export interface DataConnectTransport {
+export interface DataConnectTransportInterface {
   /**
    * Invoke a query execution request.
    * @param queryName The name of the query to execute.
@@ -178,7 +178,7 @@ export type TransportClass = new (
   transportOptions?: TransportOptions,
   _isUsingGen?: boolean,
   _callerSdkType?: CallerSdkType
-) => DataConnectTransport;
+) => DataConnectTransportInterface;
 
 /**
  * Constructs the value for the X-Goog-Api-Client header
@@ -201,12 +201,13 @@ export function getGoogApiClientValue(
 }
 
 /**
- * The base class for all DataConnectTransport implementations. Handles common logic such as
- * URL construction, auth token management, and emulator usage.
+ * The base class for all DataConnectTransportInterface implementations. Handles common logic such as
+ * URL construction, auth token management, and emulator usage. Concrete transport implementations
+ * should extend this class and implement the abstract {@link DataConnectTransportInterface} methods.
  * @internal
  */
-export abstract class DataConnectTransportClass
-  implements DataConnectTransport
+export abstract class AbstractDataConnectTransport
+  implements DataConnectTransportInterface
 {
   protected _host = '';
   protected _port: number | undefined;

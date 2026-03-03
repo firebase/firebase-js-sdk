@@ -23,9 +23,9 @@ import sinonChai from 'sinon-chai';
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import {
   DataConnectResponse,
+  DataConnectTransportManager,
   SubscribeNotificationHook
-} from '../../src/network/DataConnectTransport';
-import { DataConnectTransportManager } from '../../src/network/manager';
+} from '../../src/network';
 import { RESTTransport } from '../../src/network/rest';
 
 use(chaiAsPromised);

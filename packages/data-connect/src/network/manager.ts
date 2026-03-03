@@ -23,16 +23,18 @@ import {
   CallerSdkType,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
-  DataConnectTransport,
+  DataConnectTransportInterface,
   SubscribeNotificationHook
 } from './DataConnectTransport';
-import { RESTTransport } from './rest/RestTransport';
+import { RESTTransport } from './rest';
 
 /**
  * Entry point for the transport layer. Manages routing between transport implementations.
  * @internal
  */
-export class DataConnectTransportManager implements DataConnectTransport {
+export class DataConnectTransportManager
+  implements DataConnectTransportInterface
+{
   private restTransport: RESTTransport;
   private _isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
 
