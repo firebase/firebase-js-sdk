@@ -48,10 +48,44 @@ const browserPlugins = [
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
   json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
+  terser(util.manglePrivatePropertiesOptions),
+  util.cleanupNameCache(util.manglePrivatePropertiesOptions.nameCache)
 ];
 
 const allBuilds = [
+  // Workaround for https://github.com/rollup/plugins/issues/1970
+  // We invoke this intermediate browser build twice. The first
+  // invocation will not properly mangle property names because of the
+  // rollup/plugin-terser issue #1970, however it will output a nameCache
+  // mapping all of the mangled names to new names. The second invocation
+  // will use the nameCache from the first, and consistently mangle
+  // all property names.
+  //
+  // This is the first invocation of the intermediate browser build.
+  // It must run before any other build using `browserPlugins`.
+  // TODO Remove this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  {
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
+    output: {
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].browser.js',
+      chunkFileNames: 'common-[hash].browser.js',
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: [
+      alias(util.generateAliasConfig('browser_lite')),
+      ...browserPlugins,
+      // setting it to empty string because browser is the default env
+      replace({
+        '__RUNTIME_ENV__': ''
+      })
+    ],
+    external: util.resolveBrowserExterns,
+    treeshake: {
+      moduleSideEffects: false
+    }
+  },
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -129,6 +163,9 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
+  // This is the second invocation of the intermediate browser build.
+  // Keep this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  //
   // Intermediate browser build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
