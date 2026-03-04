@@ -20,10 +20,14 @@ import {
   AbstractDataConnectTransport,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
-  SubscribeNotificationHook
+  SubscribeNotificationHook,
+  getGoogApiClientValue
 } from '../transport';
 
-import { DataConnectStreamRequest } from './wire';
+import { DataConnectStreamRequest, StreamRequestHeaders } from './wire';
+
+/** the request id of the first request over the stream */
+const FIRST_REQUEST_ID = 1;
 
 /**
  * The base class for all DataConnectStreamTransport implementations. Handles management of logical
@@ -46,13 +50,95 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   protected abstract closeConnection(): Promise<void>;
 
   /**
-   * Queue a message to be sent over the stream.
+   * Queue a message to be sent over the stream. Implemented by the concrete transport implementation.
    * @param requestBody The body of the message to be sent.
    * @throws DataConnectError if sending fails.
    */
   protected abstract sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): void;
+
+  /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
+  private _requestNumber = FIRST_REQUEST_ID;
+  /**
+   * Generated and returns the next request ID.
+   */
+  private _nextRequestId(): string {
+    return (this._requestNumber++).toString();
+  }
+
+  /**
+   * Tracks if the next message to be sent is the first message of the stream.
+   */
+  private _isFirstStreamMessage = true;
+  /**
+   * Tracks the last auth token sent to the server.
+   * Used to detect if the token has changed and needs to be resent.
+   */
+  private _lastSentAuthToken: string | null = null;
+  /**
+   * Indicates whether we should include the auth token in the next message.
+   */
+  private get _shouldIncludeAuth(): boolean {
+    return (
+      this._authToken !== this._lastSentAuthToken || this._isFirstStreamMessage
+    );
+  }
+  /**
+   * The resource path for requests from this Data Connect instance. Used in the opening request of
+   * the stream.
+   */
+  get connectorResourcePath(): string {
+    return `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
+  }
+
+  /**
+   * Called by the concrete transport implementation when the physical connection is ready.
+   */
+  protected onConnectionReady(): void {
+    this._isFirstStreamMessage = true;
+    this._lastSentAuthToken = null;
+  }
+
+  /**
+   * Prepares a stream request by adding necessary headers and metadata.
+   * If this is the first message on the stream, it includes the resource name, auth token, and App Check token.
+   * If the auth token has changed since the last message, it includes the new auth token.
+   * @returns the requestBody, with attached headers and initial request fields
+   */
+  private _prepareMessage<
+    Variables,
+    StreamBody extends DataConnectStreamRequest<Variables>
+  >(requestBody: StreamBody): StreamBody {
+    const headers: StreamRequestHeaders = {};
+    let hasHeaders = false;
+    if (this._shouldIncludeAuth) {
+      if (this._authToken) {
+        headers.authToken = this._authToken;
+      }
+      this._lastSentAuthToken = this._authToken;
+      hasHeaders = true;
+    }
+    if (this._isFirstStreamMessage) {
+      if (this._appCheckToken) {
+        headers.appCheckToken = this._appCheckToken;
+      }
+      if (this.appId) {
+        headers['x-firebase-gmpid'] = this.appId;
+      }
+      headers['X-Goog-Api-Client'] = getGoogApiClientValue(
+        this._isUsingGen,
+        this._callerSdkType
+      );
+      requestBody.name = this.connectorResourcePath;
+      hasHeaders = true;
+    }
+    if (hasHeaders) {
+      requestBody.headers = headers;
+    }
+    this._isFirstStreamMessage = false;
+    return requestBody;
+  }
 
   invokeQuery<Data, Variables>(
     queryName: string,
@@ -78,9 +164,5 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
     throw new DataConnectError(Code.OTHER, 'Not yet implemented');
-  }
-
-  onAuthTokenChanged(newToken: string | null): void {
-    this._authToken = newToken;
   }
 }
