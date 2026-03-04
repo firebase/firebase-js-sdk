@@ -66,7 +66,8 @@ import {
   Stage,
   Union,
   Unnest,
-  Where
+  Where,
+  Search
 } from './stage';
 import {
   AddFieldsStageOptions,
@@ -933,14 +934,29 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   }
 
   /**
-   * @beta
-   * TODO(search)
+   * Add a search stage to the Pipeline.
    *
-   * @param options - An object that specifies required and optional parameters for the stage.
+   * @remarks This must be the first stage of the pipeline.
+   * @remarks A limited set of expressions are supported in the search stage.
+   *
+   * @param options - An object that specifies required and optional parameters
+   *                  for the stage.
    * @return A new `Pipeline` object with this stage appended to the stage list.
    */
   search(options: SearchStageOptions): Pipeline {
-    throw 'not implemented';
+    // Create stage object
+    const stage = new Search(options);
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'sort'
+    );
+    stage._readUserData(parseContext);
+
+    // Add stage to the pipeline
+    return this._addStage(stage);
   }
 
   /**

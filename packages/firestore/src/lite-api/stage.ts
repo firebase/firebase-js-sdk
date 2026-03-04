@@ -49,7 +49,7 @@ import { isUserData, UserData } from './user_data_reader';
  */
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
-   * Store optionsProto parsed by _readUserData.
+   * Store _optionsProto parsed by _readUserData.
    * @private
    * @internal
    * @protected
@@ -698,6 +698,59 @@ export class Replace extends Stage {
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.map, context);
+  }
+}
+
+/**
+ * @beta
+ */
+export class Search extends Stage {
+  get _name(): string {
+    return 'search';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      query: {
+        serverName: 'query'
+      },
+      limit: {
+        serverName: 'limit'
+      },
+      maxToScore: {
+        serverName: 'max_to_score'
+      },
+      sort: {
+        serverName: 'sort'
+      },
+      addFields: {
+        serverName: 'add_fields'
+      },
+      select: {
+        serverName: 'select'
+      },
+      offset: {
+        serverName: 'offset'
+      },
+      queryExpansion: {
+        serverName: 'query_expansion'
+      }
+    });
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
   }
 }
 

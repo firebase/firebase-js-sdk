@@ -142,7 +142,9 @@ import {
   PipelineSnapshot,
   timestampTruncate,
   split,
-  type
+  type,
+  queryMatch,
+  queryScore
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -197,121 +199,130 @@ apiDescribe.skipClassic('Pipelines', persistence => {
     }
   }
 
-  async function setupBookDocs(): Promise<CollectionReference<DocumentData>> {
-    const bookDocs: { [id: string]: DocumentData } = {
-      book1: {
-        title: "The Hitchhiker's Guide to the Galaxy",
-        author: 'Douglas Adams',
-        genre: 'Science Fiction',
-        published: 1979,
-        rating: 4.2,
-        tags: ['comedy', 'space', 'adventure'],
-        awards: {
-          hugo: true,
-          nebula: false,
-          others: { unknown: { year: 1980 } }
-        },
-        nestedField: { 'level.1': { 'level.2': true } },
-        embedding: vector([10, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+  const bookDocs: { [id: string]: DocumentData } = {
+    book1: {
+      title: "The Hitchhiker's Guide to the Galaxy",
+      author: 'Douglas Adams',
+      genre: 'Science Fiction',
+      published: 1979,
+      rating: 4.2,
+      tags: ['comedy', 'space', 'adventure'],
+      awards: {
+        hugo: true,
+        nebula: false,
+        others: { unknown: { year: 1980 } }
       },
-      book2: {
-        title: 'Pride and Prejudice',
-        author: 'Jane Austen',
-        genre: 'Romance',
-        published: 1813,
-        rating: 4.5,
-        tags: ['classic', 'social commentary', 'love'],
-        awards: { none: true },
-        embedding: vector([1, 10, 1, 1, 1, 1, 1, 1, 1, 1])
-      },
-      book3: {
-        title: 'One Hundred Years of Solitude',
-        author: 'Gabriel García Márquez',
-        genre: 'Magical Realism',
-        published: 1967,
-        rating: 4.3,
-        tags: ['family', 'history', 'fantasy'],
-        awards: { nobel: true, nebula: false },
-        embedding: vector([1, 1, 10, 1, 1, 1, 1, 1, 1, 1])
-      },
-      book4: {
-        title: 'The Lord of the Rings',
-        author: 'J.R.R. Tolkien',
-        genre: 'Fantasy',
-        published: 1954,
-        rating: 4.7,
-        tags: ['adventure', 'magic', 'epic'],
-        awards: { hugo: false, nebula: false },
-        remarks: null,
-        cost: NaN,
-        embedding: vector([1, 1, 1, 10, 1, 1, 1, 1, 1, 1])
-      },
-      book5: {
-        title: "The Handmaid's Tale",
-        author: 'Margaret Atwood',
-        genre: 'Dystopian',
-        published: 1985,
-        rating: 4.1,
-        tags: ['feminism', 'totalitarianism', 'resistance'],
-        awards: { 'arthur c. clarke': true, 'booker prize': false },
-        embedding: vector([1, 1, 1, 1, 10, 1, 1, 1, 1, 1])
-      },
-      book6: {
-        title: 'Crime and Punishment',
-        author: 'Fyodor Dostoevsky',
-        genre: 'Psychological Thriller',
-        published: 1866,
-        rating: 4.3,
-        tags: ['philosophy', 'crime', 'redemption'],
-        awards: { none: true },
-        embedding: vector([1, 1, 1, 1, 1, 10, 1, 1, 1, 1])
-      },
-      book7: {
-        title: 'To Kill a Mockingbird',
-        author: 'Harper Lee',
-        genre: 'Southern Gothic',
-        published: 1960,
-        rating: 4.2,
-        tags: ['racism', 'injustice', 'coming-of-age'],
-        awards: { pulitzer: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 10, 1, 1, 1])
-      },
-      book8: {
-        title: '1984',
-        author: 'George Orwell',
-        genre: 'Dystopian',
-        published: 1949,
-        rating: 4.2,
-        tags: ['surveillance', 'totalitarianism', 'propaganda'],
-        awards: { prometheus: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
-      },
-      book9: {
-        title: 'The Great Gatsby',
-        author: 'F. Scott Fitzgerald',
-        genre: 'Modernist',
-        published: 1925,
-        rating: 4.0,
-        tags: ['wealth', 'american dream', 'love'],
-        awards: { none: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 10, 1])
-      },
-      book10: {
-        title: 'Dune',
-        author: 'Frank Herbert',
-        genre: 'Science Fiction',
-        published: 1965,
-        rating: 4.6,
-        tags: ['politics', 'desert', 'ecology'],
-        awards: { hugo: true, nebula: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
-      }
-    };
-    return testCollectionWithDocs(bookDocs);
+      nestedField: { 'level.1': { 'level.2': true } },
+      embedding: vector([10, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    },
+    book2: {
+      title: 'Pride and Prejudice',
+      author: 'Jane Austen',
+      genre: 'Romance',
+      published: 1813,
+      rating: 4.5,
+      tags: ['classic', 'social commentary', 'love'],
+      awards: { none: true },
+      embedding: vector([1, 10, 1, 1, 1, 1, 1, 1, 1, 1])
+    },
+    book3: {
+      title: 'One Hundred Years of Solitude',
+      author: 'Gabriel García Márquez',
+      genre: 'Magical Realism',
+      published: 1967,
+      rating: 4.3,
+      tags: ['family', 'history', 'fantasy'],
+      awards: { nobel: true, nebula: false },
+      embedding: vector([1, 1, 10, 1, 1, 1, 1, 1, 1, 1])
+    },
+    book4: {
+      title: 'The Lord of the Rings',
+      author: 'J.R.R. Tolkien',
+      genre: 'Fantasy',
+      published: 1954,
+      rating: 4.7,
+      tags: ['adventure', 'magic', 'epic'],
+      awards: { hugo: false, nebula: false },
+      remarks: null,
+      cost: NaN,
+      embedding: vector([1, 1, 1, 10, 1, 1, 1, 1, 1, 1])
+    },
+    book5: {
+      title: "The Handmaid's Tale",
+      author: 'Margaret Atwood',
+      genre: 'Dystopian',
+      published: 1985,
+      rating: 4.1,
+      tags: ['feminism', 'totalitarianism', 'resistance'],
+      awards: { 'arthur c. clarke': true, 'booker prize': false },
+      embedding: vector([1, 1, 1, 1, 10, 1, 1, 1, 1, 1])
+    },
+    book6: {
+      title: 'Crime and Punishment',
+      author: 'Fyodor Dostoevsky',
+      genre: 'Psychological Thriller',
+      published: 1866,
+      rating: 4.3,
+      tags: ['philosophy', 'crime', 'redemption'],
+      awards: { none: true },
+      embedding: vector([1, 1, 1, 1, 1, 10, 1, 1, 1, 1])
+    },
+    book7: {
+      title: 'To Kill a Mockingbird',
+      author: 'Harper Lee',
+      genre: 'Southern Gothic',
+      published: 1960,
+      rating: 4.2,
+      tags: ['racism', 'injustice', 'coming-of-age'],
+      awards: { pulitzer: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 10, 1, 1, 1])
+    },
+    book8: {
+      title: '1984',
+      author: 'George Orwell',
+      genre: 'Dystopian',
+      published: 1949,
+      rating: 4.2,
+      tags: ['surveillance', 'totalitarianism', 'propaganda'],
+      awards: { prometheus: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
+    },
+    book9: {
+      title: 'The Great Gatsby',
+      author: 'F. Scott Fitzgerald',
+      genre: 'Modernist',
+      published: 1925,
+      rating: 4.0,
+      tags: ['wealth', 'american dream', 'love'],
+      awards: { none: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 10, 1])
+    },
+    book10: {
+      title: 'Dune',
+      author: 'Frank Herbert',
+      genre: 'Science Fiction',
+      published: 1965,
+      rating: 4.6,
+      tags: ['politics', 'desert', 'ecology'],
+      awards: { hugo: true, nebula: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
+    }
+  };
+
+  let activeDocs: { [id: string]: DocumentData } | undefined;
+
+  async function setupTestDocs(): Promise<unknown> {
+    if (activeDocs) {
+      return testCollectionWithDocs(activeDocs);
+    }
   }
 
   let testDeferred: Deferred<void> | undefined;
   let withTestCollectionPromise: Promise<unknown> | undefined;
+
+  before(() => {
+    activeDocs = bookDocs;
+  });
 
   beforeEach(async () => {
     const setupDeferred = new Deferred<void>();
@@ -322,7 +333,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       async (collectionRef, firestoreInstance) => {
         randomCol = collectionRef;
         firestore = firestoreInstance;
-        await setupBookDocs();
+        await setupTestDocs();
         setupDeferred.resolve();
 
         return testDeferred?.promise;
@@ -2192,6 +2203,97 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             computedDistance: 12.041594578792296
           }
         );
+      });
+    });
+
+    describe('search stage', () => {
+      it('document contains text', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: queryMatch('waffles')
+          });
+      });
+
+      it('field contains text', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('description').queryMatch('waffles')
+          });
+      });
+
+      it('geo near query', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('location')
+              .geoDistance(new GeoPoint(38.989177, -107.065076))
+              .lessThan(1000 /* m */)
+          });
+      });
+
+      it('geo near query with ordering by query/geo-distance', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('location')
+              .geoDistance(new GeoPoint(38.989177, -107.065076))
+              .lessThan(1000 /* m */),
+            sort: field('location')
+              .geoDistance(new GeoPoint(38.989177, -107.065076))
+              .ascending()
+          });
+      });
+
+      it('sort by geo-distance with unrelated query', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('description').queryMatch('waffles'),
+            sort: field('location')
+              .geoDistance(new GeoPoint(38.989177, -107.065076))
+              .ascending()
+          });
+      });
+
+      it('conjunction of query predicates', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: and(
+              field('description').queryMatch('waffles'),
+              field('location')
+                .geoDistance(new GeoPoint(38.989177, -107.065076))
+                .lessThan(1000)
+            )
+          });
+      });
+
+      it('everything bagel', async () => {
+        firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('menu').queryMatch('waffles'),
+            addFields: [
+              field('menu')
+                .snippet({
+                  rquery: 'waffles',
+                  maxSnippetWidth: 2000,
+                  maxSnippets: 2,
+                  separator: '...'
+                })
+                .as('snippet')
+            ],
+            queryExpansion: 'enabled'
+          });
       });
     });
   });
@@ -4377,6 +4479,557 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           })
         );
         expect(snapshot.results.length).to.equal(10);
+      });
+    });
+  });
+
+  describe('search', () => {
+    let previousDocs: { [id: string]: DocumentData } | undefined;
+
+    // Search tests will use restaurant docs
+    before(() => {
+      previousDocs = activeDocs;
+      activeDocs = {
+        'sunnySideUp': {
+          'name': 'The Sunny Side Up',
+          'description':
+            'A cozy neighborhood diner serving classic breakfast favorites all day long, from fluffy pancakes to savory omelets.',
+          'location': new GeoPoint(39.7541, -105.0002),
+          'menu':
+            '<h3>Breakfast Classics</h3><ul><li>Denver Omelet - $12</li><li>Buttermilk Pancakes - $10</li><li>Steak and Eggs - $16</li></ul><h3>Sides</h3><ul><li>Hash Browns - $4</li><li>Thick-cut Bacon - $5</li><li>Drip Coffee - $2</li></ul>',
+          'average_price_per_person': 15
+        },
+        'goldenWaffle': {
+          'name': 'The Golden Waffle',
+          'description':
+            'Specializing exclusively in Belgian-style waffles. Open daily from 6:00 AM to 11:00 AM.',
+          'location': new GeoPoint(39.7183, -104.9621),
+          'menu':
+            '<h3>Signature Waffles</h3><ul><li>Strawberry Delight - $11</li><li>Chicken and Waffles - $14</li><li>Chocolate Chip Crunch - $10</li></ul><h3>Drinks</h3><ul><li>Fresh OJ - $4</li><li>Artisan Coffee - $3</li></ul>',
+          'average_price_per_person': 13
+        },
+        'lotusBlossomThai': {
+          'name': 'Lotus Blossom Thai',
+          'description':
+            'Authentic Thai cuisine featuring hand-crushed spices and traditional family recipes from the Chiang Mai region.',
+          'location': new GeoPoint(39.7315, -104.9847),
+          'menu':
+            '<h3>Appetizers</h3><ul><li>Spring Rolls - $7</li><li>Chicken Satay - $9</li></ul><h3>Main Course</h3><ul><li>Pad Thai - $15</li><li>Green Curry - $16</li><li>Drunken Noodles - $15</li></ul>',
+          'average_price_per_person': 22
+        },
+        'mileHighCatch': {
+          'name': 'Mile High Catch',
+          'description':
+            'Freshly sourced seafood offering a wide variety of Pacific fish and Atlantic shellfish in an upscale atmosphere.',
+          'location': new GeoPoint(39.7401, -104.9903),
+          'menu':
+            '<h3>From the Raw Bar</h3><ul><li>Oysters (Half Dozen) - $18</li><li>Lobster Cocktail - $22</li></ul><h3>Entrees</h3><ul><li>Pan-Seared Salmon - $28</li><li>King Crab Legs - $45</li><li>Fish and Chips - $19</li></ul>',
+          'average_price_per_person': 45
+        },
+        'peakBurgers': {
+          'name': 'Peak Burgers',
+          'description':
+            'Casual burger joint focused on locally sourced Colorado beef and hand-cut fries.',
+          'location': new GeoPoint(39.7622, -105.0125),
+          'menu':
+            '<h3>Burgers</h3><ul><li>The Peak Double - $12</li><li>Bison Burger - $15</li><li>Veggie Stack - $11</li></ul><h3>Sides</h3><ul><li>Truffle Fries - $6</li><li>Onion Rings - $5</li></ul>',
+          'average_price_per_person': 18
+        },
+        'solTacos': {
+          'name': 'El Sol Tacos',
+          'description':
+            'A vibrant street-side taco stand serving up quick, delicious, and traditional Mexican street food.',
+          'location': new GeoPoint(39.6952, -105.0274),
+          'menu':
+            '<h3>Tacos ($3.50 each)</h3><ul><li>Al Pastor</li><li>Carne Asada</li><li>Pollo Asado</li><li>Nopales (Cactus)</li></ul><h3>Beverages</h3><ul><li>Horchata - $4</li><li>Mexican Coke - $3</li></ul>',
+          'average_price_per_person': 12
+        },
+        'eastsideTacos': {
+          'name': 'Eastside Cantina',
+          'description':
+            'Authentic street tacos and hand-shaken margaritas on the vibrant east side of the city.',
+          'location': new GeoPoint(39.735, -104.885),
+          'menu':
+            '<h3>Tacos</h3><ul><li>Carnitas Tacos - $4</li><li>Barbacoa Tacos - $4.50</li><li>Shrimp Tacos - $5</li></ul><h3>Drinks</h3><ul><li>House Margarita - $9</li><li>Jarritos - $3</li></ul>',
+          'average_price_per_person': 18
+        },
+        'eastsideChicken': {
+          'name': 'Eastside Chicken',
+          'description': 'Fried chicken to go - next to Eastside Cantina.',
+          'location': new GeoPoint(39.735, -104.885),
+          'menu':
+            '<h3>Fried Chicken</h3><ul><li>Drumstick - $4</li><li>Wings - $1</li><li>Sandwich - $9</li></ul><h3>Drinks</h3><ul><li>House Margarita - $9</li><li>Jarritos - $3</li></ul>',
+          'average_price_per_person': 12
+        }
+      };
+    });
+
+    // Search tests will restore previous test docs after the search tests
+    after(() => {
+      activeDocs = previousDocs;
+    });
+
+    describe('search stage', () => {
+      describe('DISABLE query expansion', () => {
+        describe('query', () => {
+          it('search full document', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: queryMatch('waffles'),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'goldenWaffle');
+          });
+
+          it('search a specific field', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('waffles'),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'goldenWaffle');
+          });
+
+          it('geo near query', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('location')
+                  .geoDistance(new GeoPoint(39.6985, -105.024))
+                  .lessThan(1000 /* m */),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'solTacos');
+          });
+
+          it('conjunction of text search predicates', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: and(
+                  field('menu').queryMatch('waffles'),
+                  field('description').queryMatch('diner')
+                ),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+          });
+
+          it('conjunction of text search and geo near', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: and(
+                  field('menu').queryMatch('tacos'),
+                  field('location')
+                    .geoDistance(new GeoPoint(39.6985, -105.024))
+                    .lessThan(10_000 /* meters */)
+                ),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'solTacos');
+          });
+
+          it('negate match', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('-waffles'),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(
+              snapshot,
+              'eastSideTacos',
+              'solTacos',
+              'peakBurgers',
+              'mileHighCatch',
+              'lotusBlossomThai',
+              'sunnySideUp'
+            );
+          });
+
+          it('rquery search the document with conjunction and disjunction', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: queryMatch('(waffles OR pancakes) AND coffee'),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+          });
+
+          it('rquery as query param', async () => {
+            const ppl = firestore.pipeline().collection('restaurants').search({
+              query: '(waffles OR pancakes) AND coffee',
+              queryExpansion: 'disabled'
+            });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+          });
+
+          it('rquery supports field paths', async () => {
+            const ppl = firestore.pipeline().collection('restaurants').search({
+              query:
+                'menu:(waffles OR pancakes) AND description:"breakfast all day"',
+              queryExpansion: 'disabled'
+            });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'sunnySideUp');
+          });
+
+          it('conjunction of rquery and expression', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: and(
+                  queryMatch('tacos'),
+                  field('average_price_per_person').between(8, 15)
+                ),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'solTacos');
+          });
+        });
+
+        describe('addFields', () => {
+          it('topicality score and snippet', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('waffles'),
+                addFields: [
+                  queryScore().as('searchScore'),
+                  field('menu').snippet('waffles').as('snippet')
+                ],
+                queryExpansion: 'disabled'
+              })
+              .select('name', 'searchScore', 'snippet');
+
+            const snapshot = await execute(ppl);
+            expect(snapshot.results.length).to.equal(1);
+            expect(snapshot.results[0].get('name')).to.equal(
+              'The Golden Waffle'
+            );
+            expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+            expect(
+              snapshot.results[0].get('snippet')?.length
+            ).to.be.greaterThan(0);
+          });
+        });
+
+        describe('select', () => {
+          it('topicality score and snippet', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('waffles'),
+                select: [
+                  field('name'),
+                  'location',
+                  queryScore().as('searchScore'),
+                  field('menu').snippet('waffles').as('snippet')
+                ],
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expect(snapshot.results.length).to.equal(1);
+            expect(snapshot.results[0].get('name')).to.equal(
+              'The Golden Waffle'
+            );
+            expect(snapshot.results[0].get('location')).to.equal(
+              new GeoPoint(39.7183, -104.9621)
+            );
+            expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+            expect(
+              snapshot.results[0].get('snippet')?.length
+            ).to.be.greaterThan(0);
+            expect(
+              Object.keys(snapshot.results[0].data()).sort()
+            ).to.deep.equal(['location', 'name', 'searchScore', 'snippet']);
+          });
+        });
+
+        describe('sort', () => {
+          it('by topicality', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('tacos'),
+                sort: queryScore().descending(),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'eastsideTacos', 'solTacos');
+          });
+
+          it('by distance', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('tacos'),
+                sort: field('location')
+                  .geoDistance(new GeoPoint(39.6985, -105.024))
+                  .ascending(),
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'solTacos', 'eastsideTacos');
+          });
+
+          it('by multiple orderings', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch('tacos OR chicken'),
+                sort: [
+                  field('location')
+                    .geoDistance(new GeoPoint(39.6985, -105.024))
+                    .ascending(),
+                  queryScore().descending()
+                ],
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(
+              snapshot,
+              'solTacos',
+              'eastsideTacos',
+              'eastsideChicken'
+            );
+          });
+        });
+
+        describe('limit', () => {
+          it('limits the number of documents returned', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                sort: field('location')
+                  .geoDistance(new GeoPoint(39.6985, -105.024))
+                  .ascending(),
+                limit: 5,
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(
+              snapshot,
+              'solTacos',
+              'lotusBlossomThai',
+              'goldenWaffle'
+            );
+          });
+
+          it('limits the number of documents scored', async () => {
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: field('menu').queryMatch(
+                  'chicken OR tacos OR fish OR waffles'
+                ),
+                maxToScore: 6,
+                queryExpansion: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(
+              snapshot,
+              'eastsideChicken',
+              'eastsideTacos',
+              'solTacos',
+              'mileHighCatch'
+            );
+          });
+        });
+
+        describe('offset', () => {
+          it('skips N documents', async () => {
+            const ppl = firestore.pipeline().collection('restaurants').search({
+              limit: 2,
+              offset: 2,
+              queryExpansion: 'disabled'
+            });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'eastsideChicken', 'eastsideTacos');
+          });
+        });
+      });
+
+      describe('ENABLE query expansion', () => {
+        it('search full document', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection('restaurants')
+            .search({
+              query: queryMatch('waffles'),
+              queryExpansion: 'enabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+        });
+
+        it('search a specific field', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection('restaurants')
+            .search({
+              query: field('menu').queryMatch('waffles'),
+              queryExpansion: 'enabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+        });
+      });
+    });
+
+    describe('snippet', () => {
+      it('snippet options', async () => {
+        const ppl1 = firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('menu').queryMatch('waffles'),
+            addFields: [
+              field('menu')
+                .snippet({
+                  rquery: 'waffles',
+                  maxSnippetWidth: 10
+                })
+                .as('snippet')
+            ],
+            queryExpansion: 'disabled'
+          });
+
+        const snapshot1 = await execute(ppl1);
+        expect(snapshot1.results.length).to.equal(1);
+        expect(snapshot1.results[0].get('name')).to.equal('The Golden Waffle');
+        expect(snapshot1.results[0].get('snippet')?.length).to.be.greaterThan(
+          0
+        );
+
+        const ppl2 = firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: field('menu').queryMatch('waffles'),
+            addFields: [
+              field('menu')
+                .snippet({
+                  rquery: 'waffles',
+                  maxSnippetWidth: 1000
+                })
+                .as('snippet')
+            ],
+            queryExpansion: 'disabled'
+          });
+
+        const snapshot2 = await execute(ppl2);
+        expect(snapshot2.results.length).to.equal(1);
+        expect(snapshot2.results[0].get('name')).to.equal('The Golden Waffle');
+        expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+          0
+        );
+
+        expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+          snapshot2.results[0].get('snippet')?.length
+        );
+      });
+
+      it('snippet on multiple fields', async () => {
+        // Get snippet from 1 field
+        const ppl1 = firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: queryMatch('waffle'),
+            addFields: [
+              field('menu')
+                .snippet({
+                  rquery: 'waffles',
+                  maxSnippetWidth: 2000
+                })
+                .as('snippet')
+            ],
+            queryExpansion: 'disabled'
+          });
+
+        const snapshot1 = await execute(ppl1);
+        expect(snapshot1.results.length).to.equal(1);
+        expect(snapshot1.results[0].get('name')).to.equal('The Golden Waffle');
+        expect(snapshot1.results[0].get('snippet')?.length).to.be.greaterThan(
+          0
+        );
+
+        // Get snippet from 2 fields
+        const ppl2 = firestore
+          .pipeline()
+          .collection('restaurants')
+          .search({
+            query: queryMatch('waffle'),
+            addFields: [
+              concat(field('menu'), field('description'))
+                .snippet({
+                  rquery: 'waffles',
+                  maxSnippetWidth: 2000
+                })
+                .as('snippet')
+            ],
+            queryExpansion: 'disabled'
+          });
+
+        const snapshot2 = await execute(ppl2);
+        expect(snapshot2.results.length).to.equal(1);
+        expect(snapshot2.results[0].get('name')).to.equal('The Golden Waffle');
+        expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+          0
+        );
+
+        // Expect snippet from 2 fields to be longer than snippet from one field
+        expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+          snapshot2.results[0].get('snippet')?.length
+        );
       });
     });
   });

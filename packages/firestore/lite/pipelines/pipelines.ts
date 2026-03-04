@@ -80,7 +80,9 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions,
+  QueryExpansion
 } from '../../src/lite-api/stage_options';
 
 export {
@@ -182,6 +184,11 @@ export {
   split,
   timestampTruncate,
   type,
+  snippet,
+  SnippetOptions,
+  queryScore,
+  queryMatch,
+  geoDistance,
   AliasedExpression,
   Field,
   Constant,

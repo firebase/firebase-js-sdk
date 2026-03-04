@@ -261,13 +261,25 @@ export type FindNearestStageOptions = StageOptions & {
    */
   distanceField?: string;
 };
+
 /**
- * @beta
- * Options defining how a SearchStage is evaluated. See {@link Pipeline.search}.
+ * Specifies if the `queryMatch` and `snippet` expressions will expand the user
+ * provided query to perform matching of synonyms, misspellings, lemmatization,
+ * stemming.
+ *
+ * ExpansionEnabled - search will fail if the query expansion times out or if the query
+ *                    expansion is not supported by the project's DRZ compliance
+ *                    requirements.
+ * ExpansionPreferred - search will fall back to the unexpanded user provided query if
+ *                    the query expansion fails.
+ */
+export type QueryExpansion = 'disabled' | 'enabled' | 'preferred';
+
+/**
+ * Options defining how a SearchStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
  */
 export type SearchStageOptions = StageOptions & {
   /**
-   * @beta
    * Specifies the search query that will be used to query and score documents
    * by the search stage.
    *
@@ -293,42 +305,40 @@ export type SearchStageOptions = StageOptions & {
    *   query: 'menu:(waffle and coffee) OR breakfast'
    * })
    * ```
-   *
-   * See TODO(search) link to list of supported expressions in search query.
    */
-  query?: Expression | string;
+  query?: BooleanExpression | string;
   /**
-   * @beta
    * The maximum number of documents to return from the Search stage.
    */
   limit?: number;
   /**
-   * @beta
    * The maximum number of documents for the search stage to score. Documents
    * will be processed in the pre-sort order specified by the search index.
    */
   maxToScore?: number;
   /**
-   * @beta
    * Orderings specify how the input documents are sorted.
    * One or more ordering are required.
    */
   sort?: Ordering | Ordering[];
   /**
-   * @beta
-   * The fields to add to each document, specified as a {@link Selectable}.
+   * The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
    */
   addFields?: Selectable[];
   /**
    * The fields to keep or add to each document,
-   * specified as an array of {@link Selectable}.
+   * specified as an array of {@link @firebase/firestore/pipelines#Selectable}.
    */
-  select?: Selectable[];
+  select?: Array<Selectable | string>;
   /**
-   * @beta
    * The number of documents to skip.
    */
   offset?: number;
+  /**
+   * Define the query expansion behavior used by full-text search expressions
+   * in this search stage.
+   */
+  queryExpansion?: QueryExpansion;
 };
 /**
  * @beta

@@ -51,7 +51,8 @@ export {
   UnionStageOptions,
   UnnestStageOptions,
   SortStageOptions,
-  SearchStageOptions
+  SearchStageOptions,
+  QueryExpansion
 } from './lite-api/stage_options';
 
 export {
@@ -153,9 +154,9 @@ export {
   split,
   type,
   snippet,
-  topicalityScore,
-  searchDocumentFor,
-  searchFor,
+  SnippetOptions,
+  queryScore,
+  queryMatch,
   geoDistance,
   Expression,
   AliasedExpression,

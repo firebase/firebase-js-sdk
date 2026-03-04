@@ -17,11 +17,16 @@
 
 import { FirestoreError } from '../api';
 import { ParseContext } from '../api/parse_context';
+import { OptionsUtil } from '../core/options_util';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
 } from '../model/path';
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import {
+  ApiClientObjectMap,
+  firestoreV1ApiClientInterfaces,
+  Value as ProtoValue
+} from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoValueSerializable,
@@ -54,8 +59,6 @@ export type ExpressionType =
   | 'AggregateFunction'
   | 'ListOfExpressions'
   | 'AliasedExpression';
-
-export type SearchMode = 'SemanticSearch' | 'StandardSearch';
 
 /**
  * Converts a value to an Expression, Returning either a Constant, MapFunction,
@@ -118,7 +121,6 @@ function fieldOrExpression(value: unknown): Expression {
     return valueToDefaultExpr(value);
   }
 }
-
 /**
  * @beta
  *
@@ -2571,31 +2573,44 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
 
   between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
-    throw 'not implemented';
+    return new FunctionExpression('between', [
+      this,
+      valueToDefaultExpr(lowerBound),
+      valueToDefaultExpr(upperBound)
+    ]).asBoolean();
   }
 
   /**
-   * Evaluates to an HTML-formatted text snippet that highlights terms matching
+   * Evaluates to an HTML-formatted text snippet that renders terms matching
    * the search query in `<b>bold</b>`.
    *
    * @remarks This Expression can only be used within a `Search` stage.
    *
    * @param rquery Define the search query using the search DTS (TODO(search) link).
    */
-  snippet(rquery: string): BooleanExpression;
+  snippet(rquery: string): Expression;
 
   /**
-   * Evaluates to an HTML-formatted text snippet that highlights terms matching
+   * Evaluates to an HTML-formatted text snippet that renders terms matching
    * the search query in `<b>bold</b>`.
    *
    * @remarks This Expression can only be used within a `Search` stage.
    *
    * @param options Define how snippeting behaves.
    */
-  snippet(options: SnippetOptions): BooleanExpression;
+  snippet(options: SnippetOptions): Expression;
 
-  snippet(optionsOrRQuery: string | SnippetOptions): BooleanExpression {
-    throw 'not implemented';
+  snippet(queryOrOptions: string | SnippetOptions): Expression {
+    const options: SnippetOptions = isString(queryOrOptions)
+      ? { rquery: queryOrOptions }
+      : queryOrOptions;
+    const rquery = options.rquery;
+    const internalOptions = {
+      maxSnippetWidth: options.maxSnippetWidth,
+      maxSnippets: options.maxSnippets,
+      separator: options.separator
+    };
+    return new SnippetExpression([this, constant(rquery)], internalOptions);
   }
 
   // TODO(new-expression): Add new expression method definitions above this line
@@ -2910,11 +2925,14 @@ export class Field extends Expression implements Selectable {
    *
    * @remarks This Expression can only be used within a `Search` stage.
    *
-   * @param query Define the search query using the search DTS (TODO(search) link).
-   * @param searchMode Define the search behavior.
+   * @param rquery Define the search query using the rquery DTS.
    */
-  searchFor(query: string, searchMode?: SearchMode): BooleanExpression {
-    throw 'Not implemented';
+  queryMatch(rquery: string | Expression): BooleanExpression {
+    return new FunctionExpression(
+      'query_match',
+      [this, valueToDefaultExpr(rquery)],
+      'queryMatch'
+    ).asBoolean();
   }
 
   /**
@@ -2925,8 +2943,12 @@ export class Field extends Expression implements Selectable {
    *
    * @param location - Compute distance to this GeoPoint.
    */
-  geoDistance(location: GeoPoint): Expression {
-    throw 'Not implemented';
+  geoDistance(location: GeoPoint | Expression): Expression {
+    return new FunctionExpression(
+      'geo_distance',
+      [this, valueToDefaultExpr(location)],
+      'geoDistance'
+    ).asBoolean();
   }
 
   /**
@@ -3230,18 +3252,62 @@ export class FunctionExpression extends Expression {
   readonly expressionType: ExpressionType = 'Function';
 
   constructor(name: string, params: Expression[]);
+
+  /**
+   * @hideconstructor
+   */
   constructor(
     name: string,
     params: Expression[],
-    _methodName: string | undefined
+    _methodName?: string,
+    options?: {}
   );
+
   constructor(
     private name: string,
     private params: Expression[],
-    readonly _methodName?: string
+    methodNameOrOptions?: string | {},
+    options?: {}
   ) {
     super();
+
+    if (isString(methodNameOrOptions)) {
+      this._methodName = methodNameOrOptions;
+    }
+    if (options !== undefined) {
+      this._options = options;
+    } else {
+      this._options = methodNameOrOptions;
+    }
   }
+
+  /**
+   * @private
+   * @internal
+   */
+  _methodName: string | undefined;
+
+  /**
+   * @private
+   * @internal
+   */
+  private _options: {} | undefined;
+
+  /**
+   * @private
+   * @internal
+   */
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _optionsProto:
+    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
+    | undefined = undefined;
 
   /**
    * @private
@@ -3251,7 +3317,8 @@ export class FunctionExpression extends Expression {
     return {
       functionValue: {
         name: this.name,
-        args: this.params.map(p => p._toProto(serializer))
+        args: this.params.map(p => p._toProto(serializer)),
+        options: this._optionsProto
       }
     };
   }
@@ -3267,6 +3334,12 @@ export class FunctionExpression extends Expression {
     this.params.forEach(expr => {
       return expr._readUserData(context);
     });
+    if (this._options) {
+      this._optionsProto = this._optionsUtil.getOptionsProto(
+        context,
+        this._options
+      );
+    }
   }
 }
 
@@ -3460,6 +3533,37 @@ export class BooleanField extends BooleanExpression {
   readonly expressionType: ExpressionType = 'Field';
   constructor(readonly _expr: Field) {
     super();
+  }
+}
+
+/**
+ * SnippetExpression extends from FunctionExpression because it
+ * supports options and requires the options util.
+ */
+export class SnippetExpression extends FunctionExpression {
+  /**
+   * @private
+   * @internal
+   */
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      maxSnippetWidth: {
+        serverName: 'max_snippet_width'
+      },
+      maxSnippets: {
+        serverName: 'max_snippets'
+      },
+      separator: {
+        serverName: 'separator'
+      }
+    });
+  }
+
+  /**
+   * @hideconstructor
+   */
+  constructor(params: Expression[], options?: {}) {
+    super('snippet', params);
   }
 }
 
@@ -8757,51 +8861,73 @@ export function type(
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
- * @param fieldName Search the specified field.
- * @param rquery Define the search query using the search DTS (TODO(search) link).
- * @param searchMode Specific the search behavior.
+ * @param searchField Search the specified field.
+ * @param rquery Define the search query using the search DTS.
  */
-export function searchFor(
-  fieldName: string | Field,
-  rquery: string,
-  searchMode?: SearchMode
-): BooleanExpression {
-  throw 'Not implemented';
-}
+export function queryMatch(
+  searchField: string | Field,
+  rquery: string | Expression
+): BooleanExpression;
 
 /**
- * Perform a full-text search on the the document.
+ * Perform a full-text search on the document.
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
- * @param rquery Define the search query using the search DTS (TODO(search) link).
- * @param searchMode
+ * @param rquery Define the search query using the rquery DTS.
  */
-export function searchDocumentFor(
-  rquery: string,
-  searchMode?: SearchMode
+export function queryMatch(rquery: string | Expression): BooleanExpression;
+
+export function queryMatch(
+  searchFieldOrRquery: string | Field | Expression,
+  rquery?: string | Expression
 ): BooleanExpression {
-  throw 'Not implemented';
+  if (rquery === undefined) {
+    // Searching the document
+    rquery = searchFieldOrRquery;
+    return new FunctionExpression(
+      'query_match',
+      [valueToDefaultExpr(rquery)],
+      'queryMatch'
+    ).asBoolean();
+  } else if (
+    isString(searchFieldOrRquery) ||
+    searchFieldOrRquery instanceof Field
+  ) {
+    // Searching a field
+    const searchField: Field = toField(searchFieldOrRquery);
+    return searchField.queryMatch(rquery);
+  } else {
+    // This case is not allowed by the TypeScript API, but JS will permit
+    throw new FirestoreError(
+      'invalid-argument',
+      'You cannot search a field with an undefined rquery'
+    );
+  }
 }
 
 /**
- * Evaluates to the search score that refelects the topicality of the document
- * to all of the text predicates (`containsText` and `documentContainsText`)
+ * Evaluates to the search score that reflects the topicality of the document
+ * to all of the text predicates (`queryMatch`)
  * in the search query. If `SearchOptions.query` is not set or does not contain
  * any text predicates, then this topicality score will always be `0`.
  *
  * @remarks This Expression can only be used within a `Search` stage.
  */
-export function topicalityScore(): Expression {
-  throw 'not implemented';
+export function queryScore(): Expression {
+  return new FunctionExpression(
+    'topicality_score',
+    [],
+    'queryScore'
+  ).asBoolean();
 }
 
 /**
  * Options defining how a snippet expression is evaluated.
  */
-export type SnippetOptions = {
+export interface SnippetOptions {
   /**
-   * Define the search query using the search DTS (TODO(search) link).
+   * Define the search query using the search DTS.
    */
   rquery: string;
 
@@ -8821,13 +8947,7 @@ export type SnippetOptions = {
    * The string to join the pieces. The default value is '\n'
    */
   separator?: string;
-
-  /**
-   * Specify the search mode use for identifying matching terms.
-   * This should match the searchMode provided to {@link searchFor} or {@link searchDocumentFor};
-   */
-  searchMode?: SearchMode;
-};
+}
 
 /**
  * Evaluates to an HTML-formatted text snippet that highlights terms matching
@@ -8835,29 +8955,34 @@ export type SnippetOptions = {
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
- * @param fieldName Search the specified field for matching terms.
- * @param query Define the search query using the search DTS (TODO(search) link).
- */
-export function snippet(fieldName: string | Field, rquery: string): Expression;
-
-/**
- * Evaluates to an HTML-formatted text snippet that highlights terms matching
- * the search query in `<b>bold</b>`.
- *
- * @remarks This Expression can only be used within a `Search` stage.
- *
- * @param fieldName Search the specified field for matching terms.
- * @param query Define the search query using the search DTS (TODO(search) link).
+ * @param searchField Search the specified field for matching terms.
+ * @param rquery Define the search query using the search DTS (TODO(search) link).
  */
 export function snippet(
-  fieldName: string | Field,
+  searchField: string | Field,
+  rquery: string
+): Expression;
+
+/**
+ * Evaluates to an HTML-formatted text snippet that highlights terms matching
+ * the search query in `<b>bold</b>`.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @param searchField Search the specified field for matching terms.
+ * @param options Define the search query using the search DTS (TODO(search) link).
+ */
+export function snippet(
+  searchField: string | Field,
   options: SnippetOptions
 ): Expression;
 export function snippet(
   field: string | Field,
   queryOrOptions: string | SnippetOptions
 ): Expression {
-  throw 'Not implemented';
+  return toField(field).snippet(
+    isString(queryOrOptions) ? { rquery: queryOrOptions } : queryOrOptions
+  );
 }
 
 /**
@@ -8872,9 +8997,9 @@ export function snippet(
  */
 export function geoDistance(
   fieldName: string | Field,
-  location: GeoPoint
+  location: GeoPoint | Expression
 ): Expression {
-  throw 'Not implemented';
+  return toField(fieldName).geoDistance(location);
 }
 
 /**
@@ -8974,7 +9099,7 @@ export function between(
   lowerBound: unknown,
   upperBound: unknown
 ): BooleanExpression {
-  throw 'Not implemented';
+  return fieldOrExpression(expression).between(lowerBound, upperBound);
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
