@@ -95,6 +95,26 @@ describe('requestStsToken', () => {
     );
   });
 
+  it('should use credentials: include when using Firebase Studio', async () => {
+    const mock = fetch.mock(endpoint, {
+      'access_token': 'new-access-token',
+      'expires_in': '3600',
+      'refresh_token': 'new-refresh-token'
+    });
+
+    auth._logFramework('Mythical');
+    auth.emulatorConfig = {
+      host: 'something.cloudworkstations.dev',
+      port: 443,
+      options: { disableWarnings: false },
+      protocol: 'https'
+    };
+    await requestStsToken(auth, 'some-refresh-token');
+    expect(mock.calls[0].fullRequest?.credentials).to.eq('include');
+
+    auth.emulatorConfig = null;
+  });
+
   it('should include whatever headers come from auth impl', async () => {
     sinon.stub(auth, '_getAdditionalHeaders').returns(
       Promise.resolve({

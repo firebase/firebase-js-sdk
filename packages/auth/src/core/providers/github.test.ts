@@ -35,6 +35,11 @@ describe('core/providers/github', () => {
     expect(cred.signInMethod).to.eq(SignInMethod.GITHUB);
   });
 
+  it('generates Github provider', () => {
+    const provider = new GithubAuthProvider();
+    expect(provider.providerId).to.eq(ProviderId.GITHUB);
+  });
+
   it('credentialFromResult creates the cred from a tagged result', async () => {
     const auth = await testAuth();
     const userCred = new UserCredentialImpl({
@@ -65,5 +70,66 @@ describe('core/providers/github', () => {
     expect(cred.accessToken).to.eq('access-token');
     expect(cred.providerId).to.eq(ProviderId.GITHUB);
     expect(cred.signInMethod).to.eq(SignInMethod.GITHUB);
+  });
+
+  it('returns null when _tokenResponse is missing', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+    error.customData = {}; // no _tokenResponse
+
+    const cred = GithubAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+  });
+
+  it('returns null when _tokenResponse is missing oauthAccessToken key', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+    error.customData = {
+      _tokenResponse: {
+        // intentionally missing oauthAccessToken
+        idToken: 'some-id-token',
+        oauthAccessToken: null
+      }
+    };
+
+    const cred = GithubAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+  });
+
+  it('returns null when GithubAuthProvider.credential throws', () => {
+    // Temporarily stub credential method to throw
+    const original = GithubAuthProvider.credential;
+    GithubAuthProvider.credential = () => {
+      throw new Error('Simulated failure');
+    };
+
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+    error.customData = {
+      _tokenResponse: {
+        oauthAccessToken: 'valid-token'
+      }
+    };
+
+    const cred = GithubAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
+
+    // Restore original method
+    GithubAuthProvider.credential = original;
+  });
+
+  it('returns null when error.customData is undefined (falls back to empty object)', () => {
+    const error = _createError(AuthErrorCode.NEED_CONFIRMATION, {
+      appName: 'foo'
+    });
+
+    // Don't set `customData` at all → fallback to {}
+    delete (error as any).customData;
+
+    const cred = GithubAuthProvider.credentialFromError(error);
+    expect(cred).to.be.null;
   });
 });

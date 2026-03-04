@@ -16,7 +16,7 @@
  */
 
 import {
-  createWebChannelTransport,
+  createWebChannelTransport as internalCreateWebChannelTransport,
   ErrorCode,
   EventType,
   WebChannel,
@@ -27,7 +27,8 @@ import {
   EventTarget,
   StatEvent,
   Event,
-  Stat
+  Stat,
+  WebChannelTransport
 } from '@firebase/webchannel-wrapper/webchannel-blob';
 
 import { Token } from '../../api/credentials';
@@ -53,11 +54,36 @@ const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 
 const XHR_TIMEOUT_SECS = 15;
 
+// Closure events are guarded and exceptions are swallowed, so catch any
+// exception and rethrow using a setTimeout so they become visible again.
+// Note that eventually this function could go away if we are confident
+// enough the code is exception free.
+const unguardedEventListen = <T>(
+  target: EventTarget,
+  type: string | number,
+  fn: (param: T) => void
+): void => {
+  // TODO(dimond): closure typing seems broken because WebChannel does
+  // not implement goog.events.Listenable
+  target.listen(type, (param: unknown) => {
+    try {
+      fn(param as T);
+    } catch (e) {
+      setTimeout(() => {
+        throw e;
+      }, 0);
+    }
+  });
+};
+
 export class WebChannelConnection extends RestConnection {
   private readonly forceLongPolling: boolean;
   private readonly autoDetectLongPolling: boolean;
   private readonly useFetchStreams: boolean;
   private readonly longPollingOptions: ExperimentalLongPollingOptions;
+
+  /** A collection of open WebChannel instances */
+  private openWebChannels: WebChannel[] = [];
 
   constructor(info: DatabaseInfo) {
     super(info);
@@ -67,11 +93,35 @@ export class WebChannelConnection extends RestConnection {
     this.longPollingOptions = info.longPollingOptions;
   }
 
+  /**
+   * Track if the STAT_EVENT listener has been initialized.
+   */
+  static statEventListenerInitialized: boolean = false;
+
+  /**
+   * Initialize STAT_EVENT listener once. Subsequent calls are a no-op.
+   * getStatEventTarget() returns the same target every time.
+   */
+  static ensureStatEventListenerInitialized(): void {
+    if (!WebChannelConnection.statEventListenerInitialized) {
+      const requestStats = getStatEventTarget();
+      unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
+        if (event.stat === Stat.PROXY) {
+          logDebug(LOG_TAG, `STAT_EVENT: detected buffering proxy`);
+        } else if (event.stat === Stat.NOPROXY) {
+          logDebug(LOG_TAG, `STAT_EVENT: detected no buffering proxy`);
+        }
+      });
+      WebChannelConnection.statEventListenerInitialized = true;
+    }
+  }
+
   protected performRPCRequest<Req, Resp>(
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: Req
+    body: Req,
+    _forwardCredentials: boolean
   ): Promise<Resp> {
     const streamId = generateUniqueDebugId();
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
@@ -142,12 +192,14 @@ export class WebChannelConnection extends RestConnection {
               break;
             default:
               fail(
-                `RPC '${rpcName}' ${streamId} ` +
-                  'failed with unanticipated webchannel error: ' +
-                  xhr.getLastErrorCode() +
-                  ': ' +
-                  xhr.getLastError() +
-                  ', giving up.'
+                0x235f,
+                'RPC failed with unanticipated webchannel error. Giving up.',
+                {
+                  rpcName,
+                  streamId,
+                  lastErrorCode: xhr.getLastErrorCode(),
+                  lastError: xhr.getLastError()
+                }
               );
           }
         } finally {
@@ -175,8 +227,7 @@ export class WebChannelConnection extends RestConnection {
       rpcName,
       '/channel'
     ];
-    const webchannelTransport = createWebChannelTransport();
-    const requestStats = getStatEventTarget();
+    const webchannelTransport = this.createWebChannelTransport();
     const request: WebChannelOptions = {
       // Required for backend stickiness, routing behavior is based on this
       // parameter.
@@ -236,6 +287,7 @@ export class WebChannelConnection extends RestConnection {
       request
     );
     const channel = webchannelTransport.createWebChannel(url, request);
+    this.addOpenWebChannel(channel);
 
     // WebChannel supports sending the first message with the handshake - saving
     // a network round trip. However, it will have to call send in the same
@@ -278,28 +330,6 @@ export class WebChannelConnection extends RestConnection {
       closeFn: () => channel.close()
     });
 
-    // Closure events are guarded and exceptions are swallowed, so catch any
-    // exception and rethrow using a setTimeout so they become visible again.
-    // Note that eventually this function could go away if we are confident
-    // enough the code is exception free.
-    const unguardedEventListen = <T>(
-      target: EventTarget,
-      type: string | number,
-      fn: (param: T) => void
-    ): void => {
-      // TODO(dimond): closure typing seems broken because WebChannel does
-      // not implement goog.events.Listenable
-      target.listen(type, (param: unknown) => {
-        try {
-          fn(param as T);
-        } catch (e) {
-          setTimeout(() => {
-            throw e;
-          }, 0);
-        }
-      });
-    };
-
     unguardedEventListen(channel, WebChannel.EventType.OPEN, () => {
       if (!closed) {
         logDebug(
@@ -318,6 +348,7 @@ export class WebChannelConnection extends RestConnection {
           `RPC '${rpcName}' stream ${streamId} transport closed`
         );
         streamBridge.callOnClose();
+        this.removeOpenWebChannel(channel);
       }
     });
 
@@ -326,8 +357,10 @@ export class WebChannelConnection extends RestConnection {
         closed = true;
         logWarn(
           LOG_TAG,
-          `RPC '${rpcName}' stream ${streamId} transport errored:`,
-          err
+          `RPC '${rpcName}' stream ${streamId} transport errored. Name:`,
+          err.name,
+          'Message:',
+          err.message
         );
         streamBridge.callOnClose(
           new FirestoreError(
@@ -351,7 +384,11 @@ export class WebChannelConnection extends RestConnection {
       msg => {
         if (!closed) {
           const msgData = msg.data[0];
-          hardAssert(!!msgData, 'Got a webchannel message without data.');
+          hardAssert(
+            !!msgData,
+            0x3fdd,
+            'Got a webchannel message without data.'
+          );
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
@@ -371,6 +408,17 @@ export class WebChannelConnection extends RestConnection {
             const status: string = error.status;
             let code = mapCodeFromRpcStatus(status);
             let message = error.message;
+            if (
+              status === 'NOT_FOUND' &&
+              message.includes('database') &&
+              message.includes('does not exist') &&
+              message.includes(this.databaseId.database)
+            ) {
+              logWarn(
+                `Database '${this.databaseId.database}' not found. Please check your project configuration.`
+              );
+            }
+
             if (code === undefined) {
               code = Code.INTERNAL;
               message =
@@ -395,19 +443,8 @@ export class WebChannelConnection extends RestConnection {
       }
     );
 
-    unguardedEventListen<StatEvent>(requestStats, Event.STAT_EVENT, event => {
-      if (event.stat === Stat.PROXY) {
-        logDebug(
-          LOG_TAG,
-          `RPC '${rpcName}' stream ${streamId} detected buffering proxy`
-        );
-      } else if (event.stat === Stat.NOPROXY) {
-        logDebug(
-          LOG_TAG,
-          `RPC '${rpcName}' stream ${streamId} detected no buffering proxy`
-        );
-      }
-    });
+    // Ensure that event listeners are configured for STAT_EVENTs.
+    WebChannelConnection.ensureStatEventListenerInitialized();
 
     setTimeout(() => {
       // Technically we could/should wait for the WebChannel opened event,
@@ -417,5 +454,58 @@ export class WebChannelConnection extends RestConnection {
       streamBridge.callOnOpen();
     }, 0);
     return streamBridge;
+  }
+
+  /**
+   * Closes and cleans up any resources associated with the connection.
+   */
+  terminate(): void {
+    // If the Firestore instance is terminated, we will explicitly
+    // close any remaining open WebChannel instances.
+    this.openWebChannels.forEach(webChannel => webChannel.close());
+    this.openWebChannels = [];
+  }
+
+  /**
+   * Add a WebChannel instance to the collection of open instances.
+   * @param webChannel
+   */
+  addOpenWebChannel(webChannel: WebChannel): void {
+    this.openWebChannels.push(webChannel);
+  }
+
+  /**
+   * Remove a WebChannel instance from the collection of open instances.
+   * @param webChannel
+   */
+  removeOpenWebChannel(webChannel: WebChannel): void {
+    this.openWebChannels = this.openWebChannels.filter(
+      instance => instance === webChannel
+    );
+  }
+
+  /**
+   * Modifies the headers for a request, adding the api key if present,
+   * and then calling super.modifyHeadersForRequest
+   */
+  protected modifyHeadersForRequest(
+    headers: StringMap,
+    authToken: Token | null,
+    appCheckToken: Token | null
+  ): void {
+    super.modifyHeadersForRequest(headers, authToken, appCheckToken);
+
+    // For web channel streams, we want to send the api key in the headers.
+    if (this.databaseInfo.apiKey) {
+      headers['x-goog-api-key'] = this.databaseInfo.apiKey;
+    }
+  }
+
+  /**
+   * Wrapped for mocking.
+   * @protected
+   */
+  protected createWebChannelTransport(): WebChannelTransport {
+    return internalCreateWebChannelTransport();
   }
 }

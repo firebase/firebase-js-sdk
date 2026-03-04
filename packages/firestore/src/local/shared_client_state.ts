@@ -182,7 +182,7 @@ export interface SharedClientState {
    * Notifies other clients when remote documents have changed due to loading
    * a bundle.
    *
-   * @param collectionGroups The collection groups affected by this bundle.
+   * @param collectionGroups - The collection groups affected by this bundle.
    */
   notifyBundleLoaded(collectionGroups: Set<string>): void;
 }
@@ -1085,7 +1085,9 @@ function fromWebStorageSequenceNumber(
       const parsed = JSON.parse(seqString);
       hardAssert(
         typeof parsed === 'number',
-        'Found non-numeric sequence number'
+        0x77ac,
+        'Found non-numeric sequence number',
+        { seqString }
       );
       sequenceNumber = parsed;
     } catch (e) {

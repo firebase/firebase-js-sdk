@@ -1,17 +1,17 @@
 {
   "name": "@firebase/messaging-compat",
-  "version": "0.2.17",
+  "version": "0.2.24",
   "license": "Apache-2.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
-  "browser": "dist/esm/index.esm2017.js",
-  "module": "dist/esm/index.esm2017.js",
+  "browser": "dist/esm/index.esm.js",
+  "module": "dist/esm/index.esm.js",
   "exports": {
     ".": {
       "types": "./dist/src/index.d.ts",
       "require": "./dist/index.cjs.js",
-      "default": "./dist/esm/index.esm2017.js"
+      "default": "./dist/esm/index.esm.js"
     },
     "./package.json": "./package.json"
   },
@@ -38,13 +38,13 @@
     "@firebase/app-compat": "0.x"
   },
   "dependencies": {
-    "@firebase/messaging": "0.12.17",
-    "@firebase/component": "0.6.13",
-    "@firebase/util": "1.11.0",
+    "@firebase/messaging": "0.12.24",
+    "@firebase/component": "0.7.1",
+    "@firebase/util": "1.14.0",
     "tslib": "^2.1.0"
   },
   "devDependencies": {
-    "@firebase/app-compat": "0.2.52",
+    "@firebase/app-compat": "0.5.9",
     "@rollup/plugin-json": "6.1.0",
     "rollup-plugin-typescript2": "0.36.0",
     "ts-essentials": "9.4.2",

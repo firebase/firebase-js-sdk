@@ -96,7 +96,7 @@ export interface DocumentOverlayCache {
    * Only overlays that contain a change past `sinceBatchId` are returned.
    * @param count - The number of overlays to return. Can be exceeded if the last
    * batch contains more entries.
-   * @return Mapping of each document key in the collection group to its overlay.
+   * @returns Mapping of each document key in the collection group to its overlay.
    */
   getOverlaysForCollectionGroup(
     transaction: PersistenceTransaction,

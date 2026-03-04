@@ -68,7 +68,8 @@ export function getFakeInstallations(): _FirebaseInstallationsInternal {
 
 export function getFakeAnalyticsProvider(): Provider<FirebaseAnalyticsInternalName> {
   const analytics: FirebaseAnalyticsInternal = {
-    logEvent() {}
+    logEvent() {},
+    setUserProperties() {}
   };
 
   return {

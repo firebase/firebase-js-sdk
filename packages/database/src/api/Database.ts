@@ -29,7 +29,9 @@ import {
   createMockUserToken,
   deepEqual,
   EmulatorMockTokenOptions,
-  getDefaultEmulatorHostnameAndPort
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation,
+  pingServer
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -89,9 +91,12 @@ function repoManagerApplyEmulatorSettings(
   emulatorOptions: RepoInfoEmulatorOptions,
   tokenProvider?: AuthTokenProvider
 ): void {
+  const portIndex = hostAndPort.lastIndexOf(':');
+  const host = hostAndPort.substring(0, portIndex);
+  const useSsl = isCloudWorkstation(host);
   repo.repoInfo_ = new RepoInfo(
     hostAndPort,
-    /* secure= */ false,
+    /* secure= */ useSsl,
     repo.repoInfo_.namespace,
     repo.repoInfo_.webSocketOnly,
     repo.repoInfo_.nodeAdmin,
@@ -352,6 +357,7 @@ export function connectDatabaseEmulator(
 ): void {
   db = getModularInstance(db);
   db._checkNotDeleted('useEmulator');
+
   const hostAndPort = `${host}:${port}`;
   const repo = db._repoInternal;
   if (db._instanceStarted) {
@@ -382,6 +388,11 @@ export function connectDatabaseEmulator(
         ? options.mockUserToken
         : createMockUserToken(options.mockUserToken, db.app.options.projectId);
     tokenProvider = new EmulatorTokenProvider(token);
+  }
+
+  // Workaround to get cookies in Firebase Studio
+  if (isCloudWorkstation(host)) {
+    void pingServer(host);
   }
 
   // Modify the repo to apply emulator settings

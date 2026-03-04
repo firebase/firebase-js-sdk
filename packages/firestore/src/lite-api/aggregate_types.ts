@@ -16,8 +16,13 @@
  */
 
 import { AggregateType } from '../core/aggregate';
+import { ObjectValue } from '../model/object_value';
 import { FieldPath as InternalFieldPath } from '../model/path';
-import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
+import {
+  ApiClientObjectMap,
+  firestoreV1ApiClientInterfaces,
+  Value
+} from '../protos/firestore_proto_api';
 
 import { average, count, sum } from './aggregate';
 import { DocumentData, Query } from './reference';
@@ -38,8 +43,8 @@ export class AggregateField<T> {
 
   /**
    * Create a new AggregateField<T>
-   * @param aggregateType Specifies the type of aggregation operation to perform.
-   * @param _internalFieldPath Optionally specifies the field that is aggregated.
+   * @param aggregateType - Specifies the type of aggregation operation to perform.
+   * @param _internalFieldPath - Optionally specifies the field that is aggregated.
    * @internal
    */
   constructor(
@@ -115,5 +120,23 @@ export class AggregateQuerySnapshot<
     return this._userDataWriter.convertObjectMap(
       this._data
     ) as AggregateSpecData<AggregateSpecType>;
+  }
+
+  /**
+   * @internal
+   * @private
+   *
+   * Retrieves all fields in the snapshot as a proto value.
+   *
+   * @returns An `Object` containing all fields in the snapshot.
+   */
+  _fieldsProto(): { [key: string]: firestoreV1ApiClientInterfaces.Value } {
+    // Wrap data in an ObjectValue to clone it.
+    const dataClone = new ObjectValue({
+      mapValue: { fields: this._data }
+    }).clone();
+
+    // Return the cloned value to prevent manipulation of the Snapshot's data
+    return dataClone.value.mapValue.fields!;
   }
 }

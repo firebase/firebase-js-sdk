@@ -30,7 +30,7 @@ describe('core/action_code_url', () => {
         'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
         'continueUrl=' +
         encodeURIComponent(continueUrl) +
-        '&languageCode=en&tenantId=TENANT_ID&state=bla';
+        '&lang=en&tenantId=TENANT_ID&state=bla';
       const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
       expect(actionCodeUrl!.operation).to.eq(ActionCodeOperation.EMAIL_SIGNIN);
       expect(actionCodeUrl!.code).to.eq('CODE');
@@ -46,7 +46,7 @@ describe('core/action_code_url', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
-          'languageCode=en';
+          'lang=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           ActionCodeOperation.EMAIL_SIGNIN
@@ -57,7 +57,7 @@ describe('core/action_code_url', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=verifyAndChangeEmail&apiKey=API_KEY&' +
-          'languageCode=en';
+          'lang=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           ActionCodeOperation.VERIFY_AND_CHANGE_EMAIL
@@ -68,7 +68,7 @@ describe('core/action_code_url', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=verifyEmail&apiKey=API_KEY&' +
-          'languageCode=en';
+          'lang=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           ActionCodeOperation.VERIFY_EMAIL
@@ -79,7 +79,7 @@ describe('core/action_code_url', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=recoverEmail&apiKey=API_KEY&' +
-          'languageCode=en';
+          'lang=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           ActionCodeOperation.RECOVER_EMAIL
@@ -90,7 +90,7 @@ describe('core/action_code_url', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=resetPassword&apiKey=API_KEY&' +
-          'languageCode=en';
+          'lang=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           ActionCodeOperation.PASSWORD_RESET
@@ -101,7 +101,7 @@ describe('core/action_code_url', () => {
         const actionLink =
           'https://www.example.com/finishSignIn?' +
           'oobCode=CODE&mode=revertSecondFactorAddition&apiKey=API_KEY&' +
-          'languageCode=en';
+          'lang=en';
         const actionCodeUrl = ActionCodeURL.parseLink(actionLink);
         expect(actionCodeUrl!.operation).to.eq(
           ActionCodeOperation.REVERT_SECOND_FACTOR_ADDITION

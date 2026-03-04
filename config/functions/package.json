@@ -4,10 +4,10 @@
   "dependencies": {
     "cors": "2.8.5",
     "firebase-admin": "11.11.1",
-    "firebase-functions": "3.24.1"
+    "firebase-functions": "^7.0.0"
   },
   "private": true,
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -16,10 +16,11 @@
  */
 
 import { deleteApp } from '@firebase/app';
-import { Deferred } from '@firebase/util';
+import { Deferred, isNode } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { it } from '../../util/mocha_extensions';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,
@@ -33,6 +34,7 @@ import {
   DocumentData,
   documentId,
   DocumentSnapshot,
+  documentSnapshotFromJSON,
   enableIndexedDbPersistence,
   enableNetwork,
   getDoc,
@@ -42,6 +44,7 @@ import {
   initializeFirestore,
   limit,
   onSnapshot,
+  onSnapshotResume,
   onSnapshotsInSync,
   orderBy,
   query,
@@ -66,6 +69,7 @@ import {
   newTestApp,
   FirestoreError,
   QuerySnapshot,
+  querySnapshotFromJSON,
   vector,
   getDocsFromServer
 } from '../util/firebase_export';
@@ -780,7 +784,11 @@ apiDescribe('Database', persistence => {
 
         return withTestCollection(persistence, docs, async randomCol => {
           const orderedQuery = query(randomCol, orderBy('embedding'));
-          await checkOnlineAndOfflineResultsMatch(orderedQuery, ...documentIds);
+          await checkOnlineAndOfflineResultsMatch(
+            randomCol,
+            orderedQuery,
+            ...documentIds
+          );
 
           const orderedQueryLessThan = query(
             randomCol,
@@ -788,6 +796,7 @@ apiDescribe('Database', persistence => {
             where('embedding', '<', vector([1, 2, 100, 4, 4]))
           );
           await checkOnlineAndOfflineResultsMatch(
+            randomCol,
             orderedQueryLessThan,
             ...documentIds.slice(2, 11)
           );
@@ -798,6 +807,7 @@ apiDescribe('Database', persistence => {
             where('embedding', '>', vector([1, 2, 100, 4, 4]))
           );
           await checkOnlineAndOfflineResultsMatch(
+            randomCol,
             orderedQueryGreaterThan,
             ...documentIds.slice(12, 13)
           );
@@ -1200,6 +1210,429 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('DocumentSnapshot events for snapshot created by a bundle', async () => {
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(
+            db,
+            doc.toJSON(),
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              console.error('DEDB accumulator event 1');
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
+        }
+      );
+    }
+  });
+
+  it('DocumentSnapshot updated doc events in snapshot created by a bundle accumulator', async () => {
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(
+            db,
+            doc.toJSON(),
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
+        }
+      );
+    }
+  });
+
+  it('DocumentSnapshot observer events for snapshot created by a bundle', async () => {
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(db, doc.toJSON(), {
+            next: accumulator.storeEvent
+          });
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
+        }
+      );
+    }
+  });
+
+  it('DocumentSnapshot error events for snapshot created by a bundle', async () => {
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'DocumentSnapshot'
+      };
+      const deferred = new Deferred();
+      const unsubscribe = onSnapshotResume(
+        db,
+        json,
+        ds => {
+          expect(ds).to.not.exist;
+          deferred.resolve();
+        },
+        err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      );
+      await deferred.promise;
+      unsubscribe();
+    });
+  });
+
+  it('DocumentSnapshot observer error events for snapshot created by a bundle', async () => {
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'QuerySnapshot'
+      };
+      const deferred = new Deferred();
+      const unsubscribe = onSnapshotResume(db, json, {
+        next: ds => {
+          expect(ds).to.not.exist;
+          deferred.resolve();
+        },
+        error: err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      });
+      await deferred.promise;
+      unsubscribe();
+    });
+  });
+
+  it('DocumentSnapshot updated doc events in snapshot created by fromJSON bundle', async () => {
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const fromJsonDoc = documentSnapshotFromJSON(db, doc.toJSON());
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshotResume(
+            db,
+            fromJsonDoc.toJSON(),
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
+        }
+      );
+    }
+  });
+
+  it('DocumentSnapshot updated doc events in snapshot created by fromJSON doc ref', async () => {
+    if (isNode()) {
+      const initialData = { a: 1 };
+      const finalData = { a: 2 };
+      await withTestDocAndInitialData(
+        persistence,
+        initialData,
+        async (docRef, db) => {
+          const doc = await getDoc(docRef);
+          const fromJsonDoc = documentSnapshotFromJSON(db, doc.toJSON());
+          const accumulator = new EventsAccumulator<DocumentSnapshot>();
+          const unsubscribe = onSnapshot(
+            fromJsonDoc.ref,
+            accumulator.storeEvent
+          );
+          await accumulator
+            .awaitEvent()
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(initialData);
+            })
+            .then(() => setDoc(docRef, finalData))
+            .then(() => accumulator.awaitEvent())
+            .then(snap => {
+              expect(snap.exists()).to.be.true;
+              expect(snap.data()).to.deep.equal(finalData);
+            });
+          unsubscribe();
+        }
+      );
+    }
+  });
+
+  it('Querysnapshot events for snapshot created by a bundle', async () => {
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshotResume(
+          db,
+          querySnap.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator.awaitEvent().then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        });
+        unsubscribe();
+      });
+    }
+  });
+
+  it('Querysnapshot observer events for snapshot created by a bundle', async () => {
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshotResume(db, querySnap.toJSON(), {
+          next: accumulator.storeEvent
+        });
+        await accumulator.awaitEvent().then(snap => {
+          expect(snap.docs).not.to.be.null;
+          expect(snap.docs.length).to.equal(2);
+          expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+          expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+        });
+        unsubscribe();
+      });
+    }
+  });
+
+  it('QuerySnapshot error events for snapshot created by a bundle', async () => {
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'QuerySnapshot'
+      };
+      const deferred = new Deferred();
+      const unsubscribe = onSnapshotResume(
+        db,
+        json,
+        qs => {
+          expect(qs).to.not.exist;
+          deferred.resolve();
+        },
+        err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      );
+      await deferred.promise;
+      unsubscribe();
+    });
+  });
+
+  it('QuerySnapshot observer error events for snapshot created by a bundle', async () => {
+    return withTestDb(persistence, async db => {
+      const json = {
+        bundle: 'BadData',
+        bundleName: 'bundleName',
+        bundleSource: 'QuerySnapshot'
+      };
+      const deferred = new Deferred();
+      const unsubscribe = onSnapshotResume(db, json, {
+        next: qs => {
+          expect(qs).to.not.exist;
+          deferred.resolve();
+        },
+        error: err => {
+          expect(err.name).to.exist;
+          expect(err.message).to.exist;
+          deferred.resolve();
+        }
+      });
+      await deferred.promise;
+      unsubscribe();
+    });
+  });
+
+  it('QuerySnapshot updated doc events in snapshot created by a bundle', async () => {
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const refForDocA = querySnap.docs[0].ref;
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshotResume(
+          db,
+          querySnap.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          })
+          .then(() => setDoc(refForDocA, { foo: 0 }))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          });
+        unsubscribe();
+      });
+    }
+  });
+
+  it('QuerySnapshot updated doc events in snapshot created by fromJSON ', async () => {
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const querySnapFromJson = querySnapshotFromJSON(db, querySnap.toJSON());
+        const refForDocA = querySnapFromJson.docs[0].ref;
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+
+        const unsubscribe = onSnapshotResume(
+          db,
+          querySnapFromJson.toJSON(),
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          })
+          .then(() => setDoc(refForDocA, { foo: 0 }))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          });
+        unsubscribe();
+      });
+    }
+  });
+
+  it('QuerySnapshot updated doc events in snapshot created by fromJSON query ref', async () => {
+    if (isNode()) {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { bar: 2 }
+      };
+      await withTestCollection(persistence, testDocs, async (coll, db) => {
+        const querySnap = await getDocs(query(coll, orderBy(documentId())));
+        const querySnapFromJson = querySnapshotFromJSON(db, querySnap.toJSON());
+        const refForDocA = querySnapFromJson.docs[0].ref;
+        const accumulator = new EventsAccumulator<QuerySnapshot>();
+        const unsubscribe = onSnapshot(
+          querySnapFromJson.query,
+          accumulator.storeEvent
+        );
+        await accumulator
+          .awaitEvent()
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal(testDocs.a);
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          })
+          .then(() => setDoc(refForDocA, { foo: 0 }))
+          .then(() => accumulator.awaitEvent())
+          .then(snap => {
+            expect(snap.docs).not.to.be.null;
+            expect(snap.docs.length).to.equal(2);
+            expect(snap.docs[0].data()).to.deep.equal({ foo: 0 });
+            expect(snap.docs[1].data()).to.deep.equal(testDocs.b);
+          });
+        unsubscribe();
+      });
+    }
+  });
+
   it('Metadata only changes are not fired when no options provided', () => {
     return withTestDoc(persistence, docRef => {
       const secondUpdateFound = new Deferred();
@@ -1468,6 +1901,7 @@ apiDescribe('Database', persistence => {
         const firestore2 = newTestFirestore(
           newTestApp(options.projectId!, name),
           DEFAULT_SETTINGS,
+          // @ts-ignore internal API usage
           firestore._databaseId.database
         );
         await enableIndexedDbPersistence(firestore2);
@@ -1513,6 +1947,7 @@ apiDescribe('Database', persistence => {
         const firestore2 = newTestFirestore(
           newTestApp(options.projectId!, name),
           undefined,
+          // @ts-ignore internal API usage
           docRef.firestore._databaseId.database
         );
         await enableIndexedDbPersistence(firestore2);
@@ -1677,6 +2112,7 @@ apiDescribe('Database', persistence => {
       const deferred: Deferred<FirestoreError> = new Deferred();
       const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
 
+      // @ts-ignore internal API usage
       await firestore._restart();
 
       await expect(deferred.promise)
@@ -2301,58 +2737,10 @@ apiDescribe('Database', persistence => {
       });
     });
 
-    it('snapshot listener sorts filtered query by DocumentId same way as get query', async () => {
-      const testDocs = {
-        'A': { a: 1 },
-        'a': { a: 1 },
-        'Aa': { a: 1 },
-        '7': { a: 1 },
-        '12': { a: 1 },
-        '__id7__': { a: 1 },
-        '__id12__': { a: 1 },
-        '__id-2__': { a: 1 },
-        '_id1__': { a: 1 },
-        '__id1_': { a: 1 },
-        '__id': { a: 1 },
-        // largest long numbers
-        '__id9223372036854775807__': { a: 1 },
-        '__id9223372036854775806__': { a: 1 },
-        // smallest long numbers
-        '__id-9223372036854775808__': { a: 1 },
-        '__id-9223372036854775807__': { a: 1 }
-      };
-
-      return withTestCollection(persistence, testDocs, async collectionRef => {
-        const filteredQuery = query(
-          collectionRef,
-          orderBy(documentId()),
-          where(documentId(), '>', '__id7__'),
-          where(documentId(), '<=', 'Aa')
-        );
-        const expectedDocs = [
-          '__id12__',
-          '__id9223372036854775806__',
-          '__id9223372036854775807__',
-          '12',
-          '7',
-          'A',
-          'Aa'
-        ];
-
-        const getSnapshot = await getDocsFromServer(filteredQuery);
-        expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
-
-        const storeEvent = new EventsAccumulator<QuerySnapshot>();
-        const unsubscribe = onSnapshot(filteredQuery, storeEvent.storeEvent);
-        const watchSnapshot = await storeEvent.awaitEvent();
-        expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
-        unsubscribe();
-      });
-    });
-
-    // eslint-disable-next-line no-restricted-properties
-    (persistence.gc === 'lru' ? describe : describe.skip)('offline', () => {
-      it('SDK orders query the same way online and offline', async () => {
+    // Enterprise does not sort numeric IDs before string
+    it.skipEnterprise(
+      'snapshot listener sorts filtered query by DocumentId same way as get query',
+      async () => {
         const testDocs = {
           'A': { a: 1 },
           'a': { a: 1 },
@@ -2377,36 +2765,13 @@ apiDescribe('Database', persistence => {
           persistence,
           testDocs,
           async collectionRef => {
-            const orderedQuery = query(collectionRef, orderBy(documentId()));
-            let expectedDocs = [
-              '__id-9223372036854775808__',
-              '__id-9223372036854775807__',
-              '__id-2__',
-              '__id7__',
-              '__id12__',
-              '__id9223372036854775806__',
-              '__id9223372036854775807__',
-              '12',
-              '7',
-              'A',
-              'Aa',
-              '__id',
-              '__id1_',
-              '_id1__',
-              'a'
-            ];
-            await checkOnlineAndOfflineResultsMatch(
-              orderedQuery,
-              ...expectedDocs
-            );
-
             const filteredQuery = query(
               collectionRef,
               orderBy(documentId()),
               where(documentId(), '>', '__id7__'),
               where(documentId(), '<=', 'Aa')
             );
-            expectedDocs = [
+            const expectedDocs = [
               '__id12__',
               '__id9223372036854775806__',
               '__id9223372036854775807__',
@@ -2415,13 +2780,100 @@ apiDescribe('Database', persistence => {
               'A',
               'Aa'
             ];
-            await checkOnlineAndOfflineResultsMatch(
+
+            const getSnapshot = await getDocsFromServer(filteredQuery);
+            expect(toIds(getSnapshot)).to.deep.equal(expectedDocs);
+
+            const storeEvent = new EventsAccumulator<QuerySnapshot>();
+            const unsubscribe = onSnapshot(
               filteredQuery,
-              ...expectedDocs
+              storeEvent.storeEvent
             );
+            const watchSnapshot = await storeEvent.awaitEvent();
+            expect(toIds(watchSnapshot)).to.deep.equal(expectedDocs);
+            unsubscribe();
           }
         );
-      });
+      }
+    );
+
+    // eslint-disable-next-line no-restricted-properties
+    (persistence.gc === 'lru' ? describe : describe.skip)('offline', () => {
+      it.skipEnterprise(
+        'SDK orders query the same way online and offline',
+        async () => {
+          const testDocs = {
+            'A': { a: 1 },
+            'a': { a: 1 },
+            'Aa': { a: 1 },
+            '7': { a: 1 },
+            '12': { a: 1 },
+            '__id7__': { a: 1 },
+            '__id12__': { a: 1 },
+            '__id-2__': { a: 1 },
+            '_id1__': { a: 1 },
+            '__id1_': { a: 1 },
+            '__id': { a: 1 },
+            // largest long numbers
+            '__id9223372036854775807__': { a: 1 },
+            '__id9223372036854775806__': { a: 1 },
+            // smallest long numbers
+            '__id-9223372036854775808__': { a: 1 },
+            '__id-9223372036854775807__': { a: 1 }
+          };
+
+          return withTestCollection(
+            persistence,
+            testDocs,
+            async collectionRef => {
+              const orderedQuery = query(collectionRef, orderBy(documentId()));
+              let expectedDocs = [
+                '__id-9223372036854775808__',
+                '__id-9223372036854775807__',
+                '__id-2__',
+                '__id7__',
+                '__id12__',
+                '__id9223372036854775806__',
+                '__id9223372036854775807__',
+                '12',
+                '7',
+                'A',
+                'Aa',
+                '__id',
+                '__id1_',
+                '_id1__',
+                'a'
+              ];
+              await checkOnlineAndOfflineResultsMatch(
+                collectionRef,
+                orderedQuery,
+                ...expectedDocs
+              );
+
+              const filteredQuery = query(
+                collectionRef,
+                orderBy(documentId()),
+                where(documentId(), '>', '__id7__'),
+                where(documentId(), '<=', 'Aa')
+              );
+              expectedDocs = [
+                '__id12__',
+                '__id9223372036854775806__',
+                '__id9223372036854775807__',
+                '12',
+                '7',
+                'A',
+                'Aa'
+              ];
+              await checkOnlineAndOfflineResultsMatch(
+                collectionRef,
+                filteredQuery,
+                ...expectedDocs
+              );
+            }
+          );
+        }
+      );
     });
   });
 
@@ -2467,7 +2919,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2499,7 +2955,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2531,7 +2991,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2563,7 +3027,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 
@@ -2608,7 +3076,11 @@ apiDescribe('Database', persistence => {
 
         unsubscribe();
 
-        await checkOnlineAndOfflineResultsMatch(orderedQuery, ...expectedDocs);
+        await checkOnlineAndOfflineResultsMatch(
+          collectionRef,
+          orderedQuery,
+          ...expectedDocs
+        );
       });
     });
 

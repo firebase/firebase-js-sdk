@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "11.5.0",
+  "version": "12.10.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -131,6 +131,18 @@
       },
       "default": "./firestore/dist/esm/index.esm.js"
     },
+    "./firestore/pipelines": {
+      "types": "./firestore/pipelines/dist/firestore/pipelines/index.d.ts",
+      "node": {
+        "require": "./firestore/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/pipelines/dist/pipelines.mjs"
+      },
+      "browser": {
+        "require": "./firestore/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/pipelines/dist/esm/pipelines.esm.js"
+      },
+      "default": "./firestore/pipelines/dist/esm/pipelines.esm.js"
+    },
     "./firestore/lite": {
       "types": "./firestore/lite/dist/firestore/lite/index.d.ts",
       "node": {
@@ -142,6 +154,18 @@
         "import": "./firestore/lite/dist/esm/index.esm.js"
       },
       "default": "./firestore/lite/dist/esm/index.esm.js"
+    },
+    "./firestore/lite/pipelines": {
+      "types": "./firestore/lite/pipelines/dist/firestore/lite/pipelines/index.d.ts",
+      "node": {
+        "require": "./firestore/lite/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/lite/pipelines/dist/pipelines.mjs"
+      },
+      "browser": {
+        "require": "./firestore/lite/pipelines/dist/pipelines.cjs.js",
+        "import": "./firestore/lite/pipelines/dist/esm/pipelines.esm.js"
+      },
+      "default": "./firestore/lite/pipelines/dist/esm/pipelines.esm.js"
     },
     "./functions": {
       "types": "./functions/dist/functions/index.d.ts",
@@ -227,17 +251,17 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./vertexai": {
-      "types": "./vertexai/dist/vertexai/index.d.ts",
+    "./ai": {
+      "types": "./ai/dist/ai/index.d.ts",
       "node": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/index.mjs"
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/index.mjs"
       },
       "browser": {
-        "require": "./vertexai/dist/index.cjs.js",
-        "import": "./vertexai/dist/esm/index.esm.js"
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/esm/index.esm.js"
       },
-      "default": "./vertexai/dist/esm/index.esm.js"
+      "default": "./ai/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -399,34 +423,34 @@
     "trusted-type-check": "tsec -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@firebase/app": "0.11.3",
-    "@firebase/app-compat": "0.2.52",
+    "@firebase/ai": "2.9.0",
+    "@firebase/app": "0.14.9",
+    "@firebase/app-compat": "0.5.9",
     "@firebase/app-types": "0.9.3",
-    "@firebase/auth": "1.9.1",
-    "@firebase/auth-compat": "0.5.19",
-    "@firebase/data-connect": "0.3.2",
-    "@firebase/database": "1.0.14",
-    "@firebase/database-compat": "2.0.5",
-    "@firebase/firestore": "4.7.10",
-    "@firebase/firestore-compat": "0.3.45",
-    "@firebase/functions": "0.12.3",
-    "@firebase/functions-compat": "0.3.20",
-    "@firebase/installations": "0.6.13",
-    "@firebase/installations-compat": "0.2.13",
-    "@firebase/messaging": "0.12.17",
-    "@firebase/messaging-compat": "0.2.17",
-    "@firebase/storage": "0.13.7",
-    "@firebase/storage-compat": "0.3.17",
-    "@firebase/performance": "0.7.2",
-    "@firebase/performance-compat": "0.2.15",
-    "@firebase/remote-config": "0.6.0",
-    "@firebase/remote-config-compat": "0.2.13",
-    "@firebase/analytics": "0.10.12",
-    "@firebase/analytics-compat": "0.2.18",
-    "@firebase/app-check": "0.8.13",
-    "@firebase/app-check-compat": "0.3.20",
-    "@firebase/util": "1.11.0",
-    "@firebase/vertexai": "1.2.0"
+    "@firebase/auth": "1.12.1",
+    "@firebase/auth-compat": "0.6.3",
+    "@firebase/data-connect": "0.4.0",
+    "@firebase/database": "1.1.1",
+    "@firebase/database-compat": "2.1.1",
+    "@firebase/firestore": "4.12.0",
+    "@firebase/firestore-compat": "0.4.6",
+    "@firebase/functions": "0.13.2",
+    "@firebase/functions-compat": "0.4.2",
+    "@firebase/installations": "0.6.20",
+    "@firebase/installations-compat": "0.2.20",
+    "@firebase/messaging": "0.12.24",
+    "@firebase/messaging-compat": "0.2.24",
+    "@firebase/storage": "0.14.1",
+    "@firebase/storage-compat": "0.4.1",
+    "@firebase/performance": "0.7.10",
+    "@firebase/performance-compat": "0.2.23",
+    "@firebase/remote-config": "0.8.1",
+    "@firebase/remote-config-compat": "0.2.22",
+    "@firebase/analytics": "0.10.20",
+    "@firebase/analytics-compat": "0.2.26",
+    "@firebase/app-check": "0.11.1",
+    "@firebase/app-check-compat": "0.4.1",
+    "@firebase/util": "1.14.0"
   },
   "devDependencies": {
     "rollup": "2.79.2",
@@ -443,6 +467,7 @@
     "rollup-plugin-license": "3.5.3"
   },
   "components": [
+    "ai",
     "analytics",
     "app",
     "app-check",
@@ -452,6 +477,8 @@
     "functions",
     "firestore",
     "firestore/lite",
+    "firestore/pipelines",
+    "firestore/lite/pipelines",
     "installations",
     "storage",
     "performance",
@@ -459,7 +486,6 @@
     "messaging",
     "messaging/sw",
     "database",
-    "vertexai",
     "data-connect"
   ],
   "typings": "empty.d.ts"

@@ -53,6 +53,7 @@ const config = {
 
   // Doing 65 seconds to allow for the 20 second firestore tests
   browserNoActivityTimeout: 65000,
+  browserDisconnectTimeout: 65000,
 
   // Preprocess matching files before serving them to the browser.
   // Available preprocessors:
@@ -67,7 +68,7 @@ const config = {
   // test results reporter to use
   // possible values: 'dots', 'progress'
   // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-  reporters: ['mocha', 'coverage-istanbul'],
+  reporters: ['coverage-istanbul', 'mocha'],
 
   // web server port
   port: 8089,

@@ -17,7 +17,7 @@
 
 const assert = require('assert');
 const cors = require('cors')({ origin: true });
-const functions = require('firebase-functions');
+const functions = require('firebase-functions/v1');
 
 /*
  * These backend test helpers are copied from the iOS and Android SDKs, but are

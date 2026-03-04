@@ -23,7 +23,12 @@ import { logDebug } from '../../logger';
 import { addToken, urlBuilder } from '../../util/url';
 import { dcFetch } from '../fetch';
 
-import { CallerSdkType, CallerSdkTypeEnum, DataConnectTransport } from '.';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectResponse,
+  DataConnectTransport
+} from '.';
 
 export class RESTTransport implements DataConnectTransport {
   private _host = '';
@@ -34,12 +39,13 @@ export class RESTTransport implements DataConnectTransport {
   private _project = 'p';
   private _serviceName: string;
   private _accessToken: string | null = null;
-  private _appCheckToken: string | null = null;
+  private _appCheckToken: string | null | undefined = null;
   private _lastToken: string | null = null;
+  private _isUsingEmulator = false;
   constructor(
     options: DataConnectOptions,
     private apiKey?: string | undefined,
-    private appId?: string,
+    private appId?: string | null,
     private authProvider?: AuthTokenProvider | undefined,
     private appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
@@ -93,6 +99,7 @@ export class RESTTransport implements DataConnectTransport {
   }
   useEmulator(host: string, port?: number, isSecure?: boolean): void {
     this._host = host;
+    this._isUsingEmulator = true;
     if (typeof port === 'number') {
       this._port = port;
     }
@@ -104,12 +111,15 @@ export class RESTTransport implements DataConnectTransport {
     this._accessToken = newToken;
   }
 
-  async getWithAuth(forceToken = false): Promise<string> {
+  async getWithAuth(forceToken = false): Promise<string | null> {
     let starterPromise: Promise<string | null> = new Promise(resolve =>
       resolve(this._accessToken)
     );
     if (this.appCheckProvider) {
-      this._appCheckToken = (await this.appCheckProvider.getToken())?.token;
+      const appCheckToken = await this.appCheckProvider.getToken();
+      if (appCheckToken) {
+        this._appCheckToken = appCheckToken.token;
+      }
     }
     if (this.authProvider) {
       starterPromise = this.authProvider
@@ -132,9 +142,9 @@ export class RESTTransport implements DataConnectTransport {
   }
 
   withRetry<T>(
-    promiseFactory: () => Promise<{ data: T; errors: Error[] }>,
+    promiseFactory: () => Promise<DataConnectResponse<T>>,
     retry = false
-  ): Promise<{ data: T; errors: Error[] }> {
+  ): Promise<DataConnectResponse<T>> {
     let isNewToken = false;
     return this.getWithAuth(retry)
       .then(res => {
@@ -162,7 +172,7 @@ export class RESTTransport implements DataConnectTransport {
   invokeQuery: <T, U>(
     queryName: string,
     body?: U
-  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<DataConnectResponse<T>> = <T, U = unknown>(
     queryName: string,
     body: U
   ) => {
@@ -182,7 +192,8 @@ export class RESTTransport implements DataConnectTransport {
         this._accessToken,
         this._appCheckToken,
         this._isUsingGen,
-        this._callerSdkType
+        this._callerSdkType,
+        this._isUsingEmulator
       )
     );
     return withAuth;
@@ -190,7 +201,7 @@ export class RESTTransport implements DataConnectTransport {
   invokeMutation: <T, U>(
     queryName: string,
     body?: U
-  ) => Promise<{ data: T; errors: Error[] }> = <T, U = unknown>(
+  ) => Promise<DataConnectResponse<T>> = <T, U = unknown>(
     mutationName: string,
     body: U
   ) => {
@@ -208,7 +219,8 @@ export class RESTTransport implements DataConnectTransport {
         this._accessToken,
         this._appCheckToken,
         this._isUsingGen,
-        this._callerSdkType
+        this._callerSdkType,
+        this._isUsingEmulator
       );
     });
     return taskResult;

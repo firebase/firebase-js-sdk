@@ -56,9 +56,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].node.mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
@@ -77,9 +79,14 @@ const allBuilds = [
   },
   // Node CJS build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: [
+      'dist/intermediate/lite/index.node.mjs',
+      'dist/intermediate/lite/pipelines.node.mjs'
+    ],
     output: {
-      file: path.resolve('./lite', pkg.main),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].cjs.js',
+      chunkFileNames: 'common-[hash].node.cjs.js',
       format: 'cjs',
       sourcemap: true
     },
@@ -93,7 +100,7 @@ const allBuilds = [
       }),
       json(),
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -102,15 +109,20 @@ const allBuilds = [
   },
   // Node ESM build
   {
-    input: path.resolve('./lite', pkg['main-esm']),
+    input: [
+      'dist/intermediate/lite/index.node.mjs',
+      'dist/intermediate/lite/pipelines.node.mjs'
+    ],
     output: {
-      file: path.resolve('./lite', pkg['main-esm']),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].mjs',
+      chunkFileNames: 'common-[hash].node.mjs',
       format: 'es',
       sourcemap: true
     },
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveNodeExterns,
     treeshake: {
@@ -121,9 +133,11 @@ const allBuilds = [
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg.browser),
+      dir: 'dist/intermediate/lite/',
+      entryFileNames: '[name].browser.js',
+      chunkFileNames: 'common-[hash].browser.js',
       format: 'es',
       sourcemap: true
     },
@@ -140,38 +154,48 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
-  // Convert es2017 build to CJS
+  // Convert es2020 build to CJS
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: [
+      'dist/intermediate/lite/index.browser.js',
+      'dist/intermediate/lite/pipelines.browser.js'
+    ],
     output: [
       {
-        file: './dist/lite/index.cjs.js',
+        dir: 'dist/lite/',
+        entryFileNames: '[name].cjs.js',
+        chunkFileNames: 'common-[hash].cjs.js',
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
       moduleSideEffects: false
     }
   },
-  // Browser es2017 build
+  // Browser es2020 build
   {
-    input: path.resolve('./lite', pkg.browser),
+    input: [
+      'dist/intermediate/lite/index.browser.js',
+      'dist/intermediate/lite/pipelines.browser.js'
+    ],
     output: [
       {
-        file: path.resolve('./lite', pkg.browser),
+        dir: 'dist/lite/',
+        entryFileNames: '[name].esm.js',
+        chunkFileNames: 'common-[hash].esm.js',
         format: 'es',
         sourcemap: true
       }
     ],
     plugins: [
       sourcemaps(),
-      replace(generateBuildTargetReplaceConfig('esm', 2017))
+      replace(generateBuildTargetReplaceConfig('esm', 2020))
     ],
     external: util.resolveBrowserExterns,
     treeshake: {
@@ -180,9 +204,11 @@ const allBuilds = [
   },
   // RN build
   {
-    input: './lite/index.ts',
+    input: ['./lite/index.ts', './lite/pipelines/pipelines.ts'],
     output: {
-      file: path.resolve('./lite', pkg['react-native']),
+      dir: 'dist/lite/',
+      entryFileNames: '[name].rn.esm.js',
+      chunkFileNames: 'common-[hash].rn.esm.js',
       format: 'es',
       sourcemap: true
     },
@@ -190,7 +216,7 @@ const allBuilds = [
       alias(util.generateAliasConfig('rn_lite')),
       ...browserPlugins,
       replace({
-        ...generateBuildTargetReplaceConfig('esm', 2017),
+        ...generateBuildTargetReplaceConfig('esm', 2020),
         '__RUNTIME_ENV__': 'rn'
       })
     ],

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isCloudWorkstation } from '@firebase/util';
+
 import { SDK_VERSION } from '../../src/core/version';
 import { Token } from '../api/credentials';
 import {
@@ -44,6 +46,7 @@ RPC_NAME_URL_MAPPING['BatchGetDocuments'] = 'batchGet';
 RPC_NAME_URL_MAPPING['Commit'] = 'commit';
 RPC_NAME_URL_MAPPING['RunQuery'] = 'runQuery';
 RPC_NAME_URL_MAPPING['RunAggregationQuery'] = 'runAggregationQuery';
+RPC_NAME_URL_MAPPING['ExecutePipeline'] = 'executePipeline';
 
 const RPC_URL_VERSION = 'v1';
 
@@ -68,7 +71,7 @@ export abstract class RestConnection implements Connection {
     return false;
   }
 
-  constructor(private readonly databaseInfo: DatabaseInfo) {
+  constructor(protected readonly databaseInfo: DatabaseInfo) {
     this.databaseId = databaseInfo.databaseId;
     const proto = databaseInfo.ssl ? 'https' : 'http';
     const projectId = encodeURIComponent(this.databaseId.projectId);
@@ -98,7 +101,15 @@ export abstract class RestConnection implements Connection {
     };
     this.modifyHeadersForRequest(headers, authToken, appCheckToken);
 
-    return this.performRPCRequest<Req, Resp>(rpcName, url, headers, req).then(
+    const { host } = new URL(url);
+    const forwardCredentials = isCloudWorkstation(host);
+    return this.performRPCRequest<Req, Resp>(
+      rpcName,
+      url,
+      headers,
+      req,
+      forwardCredentials
+    ).then(
       response => {
         logDebug(LOG_TAG, `Received RPC '${rpcName}' ${streamId}: `, response);
         return response;
@@ -179,16 +190,21 @@ export abstract class RestConnection implements Connection {
     rpcName: string,
     url: string,
     headers: StringMap,
-    body: Req
+    body: Req,
+    _forwardCredentials: boolean
   ): Promise<Resp>;
 
-  private makeUrl(rpcName: string, path: string): string {
+  protected makeUrl(rpcName: string, path: string): string {
     const urlRpcName = RPC_NAME_URL_MAPPING[rpcName];
     debugAssert(
       urlRpcName !== undefined,
       'Unknown REST mapping for: ' + rpcName
     );
-    return `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+    let url = `${this.baseUrl}/${RPC_URL_VERSION}/${path}:${urlRpcName}`;
+    if (this.databaseInfo.apiKey) {
+      url = `${url}?key=${encodeURIComponent(this.databaseInfo.apiKey)}`;
+    }
+    return url;
   }
 
   /**

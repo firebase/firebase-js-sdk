@@ -86,6 +86,7 @@ apiDescribe('Bundles', persistence => {
 
     // Extract elements from BUNDLE_TEMPLATE and replace the project ID.
     const elements = BUNDLE_TEMPLATE.map(e =>
+      // @ts-ignore internal API usage
       e.replace('{0}', projectId).replace('(default)', db._databaseId.database)
     );
 

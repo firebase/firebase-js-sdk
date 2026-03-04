@@ -42,3 +42,5 @@ export * from './src/exponential_backoff';
 export * from './src/formatters';
 export * from './src/compat';
 export * from './src/global';
+export * from './src/url';
+export * from './src/sha256';

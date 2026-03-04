@@ -21,7 +21,12 @@ import {
   FirebaseApp,
   getApp
 } from '@firebase/app';
-import { deepEqual, getDefaultEmulatorHostnameAndPort } from '@firebase/util';
+import {
+  deepEqual,
+  getDefaultEmulatorHostnameAndPort,
+  isCloudWorkstation,
+  pingServer
+} from '@firebase/util';
 
 import { User } from '../auth/user';
 import {
@@ -194,6 +199,11 @@ export function initializeFirestore(
     );
   }
 
+  // Workaround to get cookies in Firebase Studio
+  if (settings.host && isCloudWorkstation(settings.host)) {
+    void pingServer(settings.host);
+  }
+
   return provider.initialize({
     options: settings,
     instanceIdentifier: databaseId
@@ -292,6 +302,7 @@ export function configureFirestore(firestore: Firestore): void {
     firestore._databaseId,
     firestore._app?.options.appId || '',
     firestore._persistenceKey,
+    firestore._app?.options.apiKey,
     settings
   );
   if (!firestore._componentsProvider) {

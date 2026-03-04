@@ -48,7 +48,7 @@ const esmBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('esm', 2017)),
+      replace(generateBuildTargetReplaceConfig('esm', 2020)),
       emitModulePackageFile()
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -76,7 +76,7 @@ const cjsBuilds = [
     },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
@@ -91,7 +91,7 @@ const cjsBuilds = [
     output: { file: pkg['sw-main'], format: 'cjs', sourcemap: true },
     plugins: [
       ...buildPlugins,
-      replace(generateBuildTargetReplaceConfig('cjs', 2017))
+      replace(generateBuildTargetReplaceConfig('cjs', 2020))
     ],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }

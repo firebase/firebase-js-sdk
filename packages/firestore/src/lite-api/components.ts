@@ -75,6 +75,7 @@ export function getDatastore(firestore: FirestoreService): Datastore {
       firestore._databaseId,
       firestore.app.options.appId || '',
       firestore._persistenceKey,
+      firestore.app.options.apiKey,
       firestore._freezeSettings()
     );
     const connection = newConnection(databaseInfo);
@@ -108,6 +109,7 @@ export function makeDatabaseInfo(
   databaseId: DatabaseId,
   appId: string,
   persistenceKey: string,
+  apiKey: string | undefined,
   settings: FirestoreSettingsImpl
 ): DatabaseInfo {
   return new DatabaseInfo(
@@ -119,6 +121,8 @@ export function makeDatabaseInfo(
     settings.experimentalForceLongPolling,
     settings.experimentalAutoDetectLongPolling,
     cloneLongPollingOptions(settings.experimentalLongPollingOptions),
-    settings.useFetchStreams
+    settings.useFetchStreams,
+    settings.isUsingEmulator,
+    apiKey
   );
 }

@@ -43,7 +43,6 @@ export class DataConnectError extends FirebaseError {
   /** @internal */
   readonly name: string = 'DataConnectError';
 
-  /** @hideconstructor */
   constructor(code: Code, message: string) {
     super(code, message);
 

@@ -630,6 +630,31 @@ describe('internal api', () => {
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 
+    it('exchanges debug token only once if debug mode with no cached token', async () => {
+      const exchangeTokenStub: SinonStub = stub(
+        client,
+        'exchangeToken'
+      ).returns(Promise.resolve(fakeRecaptchaAppCheckToken));
+      const debugState = getDebugState();
+      debugState.enabled = true;
+      debugState.token = new Deferred();
+      debugState.token.resolve('my-debug-token');
+      const appCheck = initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
+      });
+      const appCheckService = appCheck as AppCheckService;
+      const [token1, token2] = await Promise.all([
+        getToken(appCheckService),
+        getToken(appCheckService)
+      ]);
+      expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
+        'my-debug-token'
+      );
+      expect(token1).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(token2).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
+      expect(exchangeTokenStub).to.be.calledOnce;
+    });
+
     it('throttles for a period less than 1d on 503', async () => {
       // More detailed check of exponential backoff in providers.test.ts
       const appCheck = initializeAppCheck(app, {

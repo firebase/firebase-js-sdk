@@ -246,6 +246,7 @@ export class MemoryMutationQueue implements MutationQueue {
     const batchIndex = this.indexOfExistingBatchId(batch.batchId, 'removed');
     hardAssert(
       batchIndex === 0,
+      0xd6db,
       'Can only remove the first entry of the mutation queue'
     );
     this.mutationQueue.shift();

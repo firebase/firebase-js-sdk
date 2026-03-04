@@ -15,17 +15,21 @@
  * limitations under the License.
  */
 
-import { AggregateField, AggregateSpec, DocumentData, Query } from '../api';
 import { AggregateImpl } from '../core/aggregate';
 import { firestoreClientRunAggregateQuery } from '../core/firestore_client';
 import { count } from '../lite-api/aggregate';
-import { AggregateQuerySnapshot } from '../lite-api/aggregate_types';
+import {
+  AggregateField,
+  AggregateQuerySnapshot,
+  AggregateSpec
+} from '../lite-api/aggregate_types';
+import { DocumentData, Query } from '../lite-api/reference';
 import { ApiClientObjectMap, Value } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { ExpUserDataWriter } from './reference_impl';
+import { ExpUserDataWriter } from './user_data_writer';
 
 export {
   aggregateQuerySnapshotEqual,
@@ -51,7 +55,7 @@ export {
  * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query The query whose result set size is calculated.
+ * @param query - The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
@@ -91,8 +95,8 @@ export function getCountFromServer<
  * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query The query whose result set is aggregated over.
- * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * @param query - The query whose result set is aggregated over.
+ * @param aggregateSpec - An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.
  * @example
@@ -143,7 +147,7 @@ export function getAggregateFromServer<
  * Converts the core aggregation result to an `AggregateQuerySnapshot`
  * that can be returned to the consumer.
  * @param query
- * @param aggregateResult Core aggregation result
+ * @param aggregateResult - Core aggregation result
  * @internal
  */
 function convertToAggregateQuerySnapshot<

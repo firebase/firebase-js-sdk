@@ -38,6 +38,7 @@ interface SecondaryConfig {
   transportKey?: string;
   tracesSamplingRate?: number;
   networkRequestsSamplingRate?: number;
+  logMaxFlushSize?: number;
 }
 
 // These values will be used if the remote config object is successfully
@@ -56,6 +57,7 @@ interface RemoteConfigTemplate {
   fpr_vc_network_request_sampling_rate?: string;
   fpr_vc_trace_sampling_rate?: string;
   fpr_vc_session_sampling_rate?: string;
+  fpr_log_max_flush_size?: string;
 }
 /* eslint-enable camelcase */
 
@@ -220,6 +222,14 @@ function processConfig(
   } else if (DEFAULT_CONFIGS.tracesSamplingRate !== undefined) {
     settingsServiceInstance.tracesSamplingRate =
       DEFAULT_CONFIGS.tracesSamplingRate;
+  }
+
+  if (entries.fpr_log_max_flush_size) {
+    settingsServiceInstance.logMaxFlushSize = Number(
+      entries.fpr_log_max_flush_size
+    );
+  } else if (DEFAULT_CONFIGS.logMaxFlushSize) {
+    settingsServiceInstance.logMaxFlushSize = DEFAULT_CONFIGS.logMaxFlushSize;
   }
   // Set the per session trace and network logging flags.
   settingsServiceInstance.logTraceAfterSampling = shouldLogAfterSampling(

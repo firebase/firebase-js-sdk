@@ -30,13 +30,13 @@ jobs:
 
     defaults:
       run:
-        # Run any command steps in the /e2e subdir
-        working-directory: './e2e'
+        # Run any command steps in the /e2e/smoke-tests subdir
+        working-directory: './e2e/smoke-tests'
 
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v4
-      - name: Set up Node (20)
+      - name: Set up Node (22)
         uses: actions/setup-node@master
         with:
           node-version: 22.10.0
@@ -52,21 +52,26 @@ jobs:
           echo "export const config = $PROJECT_CONFIG; export const testAccount = $TEST_ACCOUNT" > firebase-config.js
       - name: Poll npm until version to test is available for install
         run: |
-          echo "Polling npm for firebase@${{ github.event.client_payload.versionOrTag }}"
-          node ../scripts/release/poll-npm-publish.js
+          echo "Polling npm for firebase@${GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG}"
+          node ./scripts/release/poll-npm-publish.js
+        # run in root
+        working-directory: '.'
         env:
           VERSION: ${{ github.event.client_payload.versionOrTag }}
+          GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG: ${{ github.event.client_payload.versionOrTag }}
       - name: Yarn install
         run: |
-          echo "Installing firebase@${{ github.event.client_payload.versionOrTag }}"
-          yarn add firebase@${{ github.event.client_payload.versionOrTag }}
+          echo "Installing firebase@${GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG}"
+          yarn add firebase@${GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG}
           yarn
+        env:
+          GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG: ${{ github.event.client_payload.versionOrTag }}
       - name: Deploy "callTest" cloud function
         run: |
           pushd functions
           npm install
           popd
-          npx firebase-tools@13.0.2 deploy --only functions:callTest --project jscore-sandbox-141b5 --token $FIREBASE_CLI_TOKEN
+          npx firebase-tools@14.24.2 deploy --only functions:callTest --project jscore-sandbox-141b5 --token $FIREBASE_CLI_TOKEN
         working-directory: ./config
         env:
           FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}

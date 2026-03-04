@@ -1,5 +1,169 @@
 # @firebase/app-compat
 
+## 0.5.9
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/app@0.14.9
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 0.5.8
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.8
+
+## 0.5.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.7
+
+## 0.5.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.6
+
+## 0.5.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.5
+
+## 0.5.4
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.4
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.3
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.2
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.14.1
+
+## 0.5.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`d91169f`](https://github.com/firebase/firebase-js-sdk/commit/d91169f061bf1dcbfe78a8c8a7f739677608fcb7), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+  - @firebase/app@0.14.0
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83), [`bb57947`](https://github.com/firebase/firebase-js-sdk/commit/bb57947c942e44b39e5b0254324bee6bf665fd4e)]:
+  - @firebase/util@1.12.1
+  - @firebase/app@0.13.2
+  - @firebase/component@0.6.18
+
+## 0.4.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.13.1
+
+## 0.4.0
+
+### Minor Changes
+
+- [`6be75f7`](https://github.com/firebase/firebase-js-sdk/commit/6be75f74dec92d1b84f77f79ccb770a3e23280b7) [#9010](https://github.com/firebase/firebase-js-sdk/pull/9010) - Default `automaticDataCollectionEnabled` to true without changing App Check's default behavior.
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27), [`6be75f7`](https://github.com/firebase/firebase-js-sdk/commit/6be75f74dec92d1b84f77f79ccb770a3e23280b7)]:
+  - @firebase/util@1.12.0
+  - @firebase/app@0.13.0
+  - @firebase/component@0.6.17
+
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/app@0.12.3
+  - @firebase/component@0.6.16
+
+## 0.3.2
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/app@0.12.2
+  - @firebase/component@0.6.15
+
+## 0.3.1
+
+### Patch Changes
+
+- [`51e7b48`](https://github.com/firebase/firebase-js-sdk/commit/51e7b489d8aadd531453f882421903da8727b19d) [#9007](https://github.com/firebase/firebase-js-sdk/pull/9007) - Revert https://github.com/firebase/firebase-js-sdk/pull/8999
+
+- Updated dependencies [[`51e7b48`](https://github.com/firebase/firebase-js-sdk/commit/51e7b489d8aadd531453f882421903da8727b19d)]:
+  - @firebase/app@0.12.1
+
+## 0.3.0
+
+### Minor Changes
+
+- [`3789b5a`](https://github.com/firebase/firebase-js-sdk/commit/3789b5ad16ffd462fce1d0b9c2e9ffae373bc6eb) [#8999](https://github.com/firebase/firebase-js-sdk/pull/8999) - Default automaticDataCollectionEnabled to true without changing App Check's default behavior.
+
+### Patch Changes
+
+- Updated dependencies [[`3789b5a`](https://github.com/firebase/firebase-js-sdk/commit/3789b5ad16ffd462fce1d0b9c2e9ffae373bc6eb), [`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/app@0.12.0
+  - @firebase/util@1.11.1
+  - @firebase/component@0.6.14
+
+## 0.2.54
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.11.5
+
+## 0.2.53
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/app@0.11.4
+
 ## 0.2.52
 
 ### Patch Changes

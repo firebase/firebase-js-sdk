@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { isSafariOrWebkit } from '@firebase/util';
+
 import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -277,6 +279,22 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       });
     }
 
+    if (fromVersion < 18 && toVersion >= 18) {
+      // Clear the IndexEntryStores on WebKit and Safari to remove possibly
+      // corrupted index entries
+      if (isSafariOrWebkit()) {
+        p = p
+          .next(() => {
+            const indexStateStore = txn.objectStore(DbIndexStateStore);
+            indexStateStore.clear();
+          })
+          .next(() => {
+            const indexEntryStore = txn.objectStore(DbIndexEntryStore);
+            indexEntryStore.clear();
+          });
+      }
+    }
+
     return p;
   }
 
@@ -326,7 +344,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
               (dbBatch: DbMutationBatch) => {
                 hardAssert(
                   dbBatch.userId === queue.userId,
-                  `Cannot process batch ${dbBatch.batchId} from unexpected user`
+                  0x48da,
+                  `Cannot process batch from unexpected user`,
+                  { batchId: dbBatch.batchId }
                 );
                 const batch = fromDbMutationBatch(this.serializer, dbBatch);
 
@@ -772,6 +792,6 @@ function extractKey(remoteDoc: DbRemoteDocumentLegacy): DocumentKey {
   } else if (remoteDoc.unknownDocument) {
     return DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
   } else {
-    return fail('Unexpected DbRemoteDocument');
+    return fail(0x8faf, 'Unexpected DbRemoteDocument');
   }
 }

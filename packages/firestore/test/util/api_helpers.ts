@@ -32,7 +32,7 @@ import {
   EmptyAppCheckTokenProvider,
   EmptyAuthCredentialsProvider
 } from '../../src/api/credentials';
-import { ExpUserDataWriter } from '../../src/api/reference_impl';
+import { ExpUserDataWriter } from '../../src/api/user_data_writer';
 import { DatabaseId } from '../../src/core/database_info';
 import { newQueryForPath, Query as InternalQuery } from '../../src/core/query';
 import {
@@ -79,8 +79,10 @@ export function documentReference(path: string): DocumentReference {
 export function documentSnapshot(
   path: string,
   data: JsonObject<unknown> | null,
-  fromCache: boolean
+  fromCache: boolean,
+  hasPendingWrites?: boolean
 ): DocumentSnapshot {
+  hasPendingWrites = !!hasPendingWrites;
   const db = firestore();
   const userDataWriter = new ExpUserDataWriter(db);
   if (data) {
@@ -89,7 +91,7 @@ export function documentSnapshot(
       userDataWriter,
       key(path),
       doc(path, 1, data),
-      new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+      new SnapshotMetadata(hasPendingWrites, fromCache),
       /* converter= */ null
     );
   } else {
@@ -98,7 +100,7 @@ export function documentSnapshot(
       userDataWriter,
       key(path),
       null,
-      new SnapshotMetadata(/* hasPendingWrites= */ false, fromCache),
+      new SnapshotMetadata(hasPendingWrites, fromCache),
       /* converter= */ null
     );
   }

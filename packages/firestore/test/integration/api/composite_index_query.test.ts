@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { it } from '../../util/mocha_extensions';
 import { CompositeIndexTestHelper } from '../util/composite_index_test_helper';
 import {
   where,
@@ -73,6 +74,7 @@ apiDescribe('Composite Index Queries', persistence => {
       return testHelper.withTestDocs(persistence, testDocs, async coll => {
         // a == 1, limit 2, b - desc
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.query(
             coll,
             where('a', '==', 1),
@@ -97,6 +99,7 @@ apiDescribe('Composite Index Queries', persistence => {
       return testHelper.withTestDocs(persistence, testDocs, async coll => {
         // with one inequality: a>2 || b==1.
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '>', 2), where('b', '==', 1))
@@ -108,6 +111,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
         // Test with limits (implicit order by ASC): (a==1) || (b > 0) LIMIT 2
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 1), where('b', '>', 0)),
@@ -120,6 +124,7 @@ apiDescribe('Composite Index Queries', persistence => {
         // Test with limits (explicit order by): (a==1) || (b > 0) LIMIT_TO_LAST 2
         // Note: The public query API does not allow implicit ordering when limitToLast is used.
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 1), where('b', '>', 0)),
@@ -132,6 +137,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
         // Test with limits (explicit order by ASC): (a==2) || (b == 1) ORDER BY a LIMIT 1
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 2), where('b', '==', 1)),
@@ -143,6 +149,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
         // Test with limits (explicit order by DESC): (a==2) || (b == 1) ORDER BY a LIMIT_TO_LAST 1
         await testHelper.assertOnlineAndOfflineResultsMatch(
+          coll,
           testHelper.compositeQuery(
             coll,
             or(where('a', '==', 2), where('b', '==', 1)),
@@ -190,27 +197,33 @@ apiDescribe('Composite Index Queries', persistence => {
       });
     });
 
-    it('performs aggregations on documents with all aggregated fields using getAggregationFromServer', () => {
-      const testDocs = {
-        a: { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
-        b: { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
-        c: { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
-        d: { author: 'authorD', title: 'titleD', pages: 50 }
-      };
-      const testHelper = new CompositeIndexTestHelper();
-      return testHelper.withTestDocs(persistence, testDocs, async coll => {
-        const snapshot = await getAggregateFromServer(testHelper.query(coll), {
-          totalPages: sum('pages'),
-          averagePages: average('pages'),
-          averageYear: average('year'),
-          count: count()
+    it.skipEmulator.skipEnterprise(
+      'performs aggregations on documents with all aggregated fields using getAggregationFromServer',
+      () => {
+        const testDocs = {
+          a: { author: 'authorA', title: 'titleA', pages: 100, year: 1980 },
+          b: { author: 'authorB', title: 'titleB', pages: 50, year: 2020 },
+          c: { author: 'authorC', title: 'titleC', pages: 150, year: 2021 },
+          d: { author: 'authorD', title: 'titleD', pages: 50 }
+        };
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestDocs(persistence, testDocs, async coll => {
+          const snapshot = await getAggregateFromServer(
+            testHelper.query(coll),
+            {
+              totalPages: sum('pages'),
+              averagePages: average('pages'),
+              averageYear: average('year'),
+              count: count()
+            }
+          );
+          expect(snapshot.data().totalPages).to.equal(300);
+          expect(snapshot.data().averagePages).to.equal(100);
+          expect(snapshot.data().averageYear).to.equal(2007);
+          expect(snapshot.data().count).to.equal(3);
         });
-        expect(snapshot.data().totalPages).to.equal(300);
-        expect(snapshot.data().averagePages).to.equal(100);
-        expect(snapshot.data().averageYear).to.equal(2007);
-        expect(snapshot.data().count).to.equal(3);
-      });
-    });
+      }
+    );
 
     it('performs aggregates on multiple fields where one aggregate could cause short-circuit due to NaN using getAggregationFromServer', () => {
       const testDocs = {
@@ -256,56 +269,62 @@ apiDescribe('Composite Index Queries', persistence => {
       });
     });
 
-    it('performs aggregates when using `array-contains-any` operator getAggregationFromServer', () => {
-      const testDocs = {
-        a: {
-          author: 'authorA',
-          title: 'titleA',
-          pages: 100,
-          year: 1980,
-          rating: [5, 1000]
-        },
-        b: {
-          author: 'authorB',
-          title: 'titleB',
-          pages: 50,
-          year: 2020,
-          rating: [4]
-        },
-        c: {
-          author: 'authorC',
-          title: 'titleC',
-          pages: 100,
-          year: 1980,
-          rating: [2222, 3]
-        },
-        d: {
-          author: 'authorD',
-          title: 'titleD',
-          pages: 50,
-          year: 2020,
-          rating: [0]
-        }
-      };
-      const testHelper = new CompositeIndexTestHelper();
-      return testHelper.withTestDocs(persistence, testDocs, async coll => {
-        const snapshot = await getAggregateFromServer(
-          testHelper.query(coll, where('rating', 'array-contains-any', [5, 3])),
-          {
-            totalRating: sum('rating'),
-            averageRating: average('rating'),
-            totalPages: sum('pages'),
-            averagePages: average('pages'),
-            countOfDocs: count()
+    it.skipEnterprise(
+      'performs aggregates when using `array-contains-any` operator getAggregationFromServer',
+      () => {
+        const testDocs = {
+          a: {
+            author: 'authorA',
+            title: 'titleA',
+            pages: 100,
+            year: 1980,
+            rating: [5, 1000]
+          },
+          b: {
+            author: 'authorB',
+            title: 'titleB',
+            pages: 50,
+            year: 2020,
+            rating: [4]
+          },
+          c: {
+            author: 'authorC',
+            title: 'titleC',
+            pages: 100,
+            year: 1980,
+            rating: [2222, 3]
+          },
+          d: {
+            author: 'authorD',
+            title: 'titleD',
+            pages: 50,
+            year: 2020,
+            rating: [0]
           }
-        );
-        expect(snapshot.data().totalRating).to.equal(0);
-        expect(snapshot.data().averageRating).to.be.null;
-        expect(snapshot.data().totalPages).to.equal(200);
-        expect(snapshot.data().averagePages).to.equal(100);
-        expect(snapshot.data().countOfDocs).to.equal(2);
-      });
-    });
+        };
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestDocs(persistence, testDocs, async coll => {
+          const snapshot = await getAggregateFromServer(
+            testHelper.query(
+              coll,
+              where('rating', 'array-contains-any', [5, 3])
+            ),
+            {
+              totalRating: sum('rating'),
+              averageRating: average('rating'),
+              totalPages: sum('pages'),
+              averagePages: average('pages'),
+              countOfDocs: count()
+            }
+          );
+          expect(snapshot.data().totalRating).to.equal(0);
+          expect(snapshot.data().averageRating).to.be.null;
+          expect(snapshot.data().totalPages).to.equal(200);
+          expect(snapshot.data().averagePages).to.equal(100);
+          expect(snapshot.data().countOfDocs).to.equal(2);
+        });
+      }
+    );
   });
 
   describe('Multiple Inequality', () => {
@@ -857,12 +876,14 @@ apiDescribe('Composite Index Queries', persistence => {
         return testHelper.withTestDocs(persistence, testDocs, async coll => {
           // implicit AND: a != 1 && b < 2
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.query(coll, where('a', '!=', 1), where('b', '<', 2)),
             'doc2'
           );
 
           // explicit AND: a != 1 && b < 2
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.compositeQuery(
               coll,
               and(where('a', '!=', 1), where('b', '<', 2))
@@ -873,6 +894,7 @@ apiDescribe('Composite Index Queries', persistence => {
           // explicit AND: a < 3 && b not-in [2, 3]
           // Implicitly ordered by: a asc, b asc, __name__ asc
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.compositeQuery(
               coll,
               and(where('a', '<', 3), where('b', 'not-in', [2, 3]))
@@ -884,6 +906,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
           // a <3 && b != 0, implicitly ordered by: a asc, b asc, __name__ asc
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.query(
               coll,
               where('b', '!=', 0),
@@ -896,6 +919,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
           // a <3 && b != 0, ordered by: b desc, a desc, __name__ desc
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.query(
               coll,
               where('a', '<', 3),
@@ -909,6 +933,7 @@ apiDescribe('Composite Index Queries', persistence => {
 
           // explicit OR: multiple inequality: a>2 || b<1.
           await testHelper.assertOnlineAndOfflineResultsMatch(
+            coll,
             testHelper.compositeQuery(
               coll,
               or(where('a', '>', 2), where('b', '<', 1))
@@ -938,18 +963,24 @@ apiDescribe('Composite Index Queries', persistence => {
       });
     });
 
-    it('inequality query will reject if document key appears only in equality filter', () => {
-      const testHelper = new CompositeIndexTestHelper();
-      return testHelper.withTestCollection(persistence, async coll => {
-        const query_ = testHelper.query(
-          coll,
-          where('key', '!=', 42),
-          where(documentId(), '==', 'doc1')
-        );
-        await expect(testHelper.getDocs(query_)).to.be.eventually.rejectedWith(
-          'Equality on key is not allowed if there are other inequality fields and key does not appear in inequalities.'
-        );
-      });
-    });
+    //
+    it.skipEnterprise(
+      'inequality query will reject if document key appears only in equality filter',
+      () => {
+        const testHelper = new CompositeIndexTestHelper();
+        return testHelper.withTestCollection(persistence, async coll => {
+          const query_ = testHelper.query(
+            coll,
+            where('key', '!=', 42),
+            where(documentId(), '==', 'doc1')
+          );
+          await expect(
+            testHelper.getDocs(query_)
+          ).to.be.eventually.rejectedWith(
+            'Equality on key is not allowed if there are other inequality fields and key does not appear in inequalities.'
+          );
+        });
+      }
+    );
   });
 });

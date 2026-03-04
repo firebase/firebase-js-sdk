@@ -48,7 +48,8 @@ function copyTests() {
         testBase + '/integration/util/settings.ts',
         testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
-        testBase + '/util/promise.ts'
+        testBase + '/util/promise.ts',
+        testBase + '/util/mocha_extensions.ts'
       ],
       { base: '../../packages/firestore' }
     )
@@ -67,6 +68,16 @@ if (typeof process === 'undefined') {
   process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
 }
 `
+      )
+    )
+    .pipe(
+      replace(
+        /**
+         * This regex is designed to match the Firebase import in our
+         * integration tests.
+         */
+        /\s+from '\.(\.\/util)?\/pipeline_export';/,
+        ` from '${resolve(__dirname, './pipeline_export')}';`
       )
     )
     .pipe(

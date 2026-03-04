@@ -67,7 +67,9 @@ describe('RestConnection', () => {
     /*forceLongPolling=*/ false,
     /*autoDetectLongPolling=*/ false,
     /*longPollingOptions=*/ {},
-    /*useFetchStreams=*/ false
+    /*useFetchStreams=*/ false,
+    /*isUsingEmulator=*/ false,
+    'rest-connection-test-api-key'
   );
   const connection = new TestRestConnection(testDatabaseInfo);
 
@@ -82,7 +84,7 @@ describe('RestConnection', () => {
       null
     );
     expect(connection.lastUrl).to.equal(
-      'http://example.com/v1/projects/testproject/databases/(default)/documents:commit'
+      'http://example.com/v1/projects/testproject/databases/(default)/documents:commit?key=rest-connection-test-api-key'
     );
   });
 

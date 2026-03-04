@@ -58,6 +58,7 @@ body:
       description: Select the Firebase product(s) relevant to your issue. You can select multiple options in the dropdown.
       multiple: true
       options:
+        - AI
         - Analytics
         - AppCheck
         - Auth
@@ -72,7 +73,6 @@ body:
         - Performance
         - Remote-Config
         - Storage
-        - VertexAI
     validations:
       required: true
   - type: textarea

@@ -86,7 +86,7 @@ export async function extractDependenciesAndSize(
     input,
     plugins: [
       resolve({
-        mainFields: ['esm2017', 'module', 'main']
+        mainFields: ['module', 'main']
       }),
       commonjs()
     ]
@@ -499,16 +499,13 @@ export async function generateReportForModule(
  * @param pkgJson package.json of the module.
  *
  * This function implements a fallback of locating module's bundle file.
- * It first looks at esm2017 field of package.json, then module field. Main
+ * It first looks at the module field. Main
  * field at the last.
  *
  */
 function retrieveBundleFileLocation(pkgJson: {
   [key: string]: string;
 }): string {
-  if (pkgJson['esm2017']) {
-    return pkgJson['esm2017'];
-  }
   if (pkgJson['module']) {
     return pkgJson['module'];
   }

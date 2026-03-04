@@ -24,6 +24,11 @@ const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
 const MAX_EVENT_COUNT_PER_REQUEST = 1000;
 const DEFAULT_REMAINING_TRIES = 3;
 
+// Most browsers have a max payload of 64KB for sendbeacon/keep alive payload.
+const MAX_SEND_BEACON_PAYLOAD_SIZE = 65536;
+
+const TEXT_ENCODER = new TextEncoder();
+
 let remainingTries = DEFAULT_REMAINING_TRIES;
 
 interface BatchEvent {
@@ -90,23 +95,7 @@ function dispatchQueueEvents(): void {
   // for next attempt.
   const staged = queue.splice(0, MAX_EVENT_COUNT_PER_REQUEST);
 
-  /* eslint-disable camelcase */
-  // We will pass the JSON serialized event to the backend.
-  const log_event: Log[] = staged.map(evt => ({
-    source_extension_json_proto3: evt.message,
-    event_time_ms: String(evt.eventTime)
-  }));
-
-  const data: TransportBatchLogFormat = {
-    request_time_ms: String(Date.now()),
-    client_info: {
-      client_type: 1, // 1 is JS
-      js_client_info: {}
-    },
-    log_source: SettingsService.getInstance().logSource,
-    log_event
-  };
-  /* eslint-enable camelcase */
+  const data = buildPayload(staged);
 
   postToFlEndpoint(data)
     .then(() => {
@@ -122,18 +111,46 @@ function dispatchQueueEvents(): void {
     });
 }
 
-function postToFlEndpoint(data: TransportBatchLogFormat): Promise<void> {
+function buildPayload(events: BatchEvent[]): string {
+  /* eslint-disable camelcase */
+  // We will pass the JSON serialized event to the backend.
+  const log_event: Log[] = events.map(evt => ({
+    source_extension_json_proto3: evt.message,
+    event_time_ms: String(evt.eventTime)
+  }));
+
+  const transportBatchLog: TransportBatchLogFormat = {
+    request_time_ms: String(Date.now()),
+    client_info: {
+      client_type: 1, // 1 is JS
+      js_client_info: {}
+    },
+    log_source: SettingsService.getInstance().logSource,
+    log_event
+  };
+  /* eslint-enable camelcase */
+
+  return JSON.stringify(transportBatchLog);
+}
+
+/** Sends to Firelog. Atempts to use sendBeacon otherwsise uses fetch. */
+function postToFlEndpoint(body: string): Promise<void | Response> {
   const flTransportFullUrl =
     SettingsService.getInstance().getFlTransportFullUrl();
-  const body = JSON.stringify(data);
+  const size = TEXT_ENCODER.encode(body).length;
 
-  return navigator.sendBeacon && navigator.sendBeacon(flTransportFullUrl, body)
-    ? Promise.resolve()
-    : fetch(flTransportFullUrl, {
-        method: 'POST',
-        body,
-        keepalive: true
-      }).then();
+  if (
+    size <= MAX_SEND_BEACON_PAYLOAD_SIZE &&
+    navigator.sendBeacon &&
+    navigator.sendBeacon(flTransportFullUrl, body)
+  ) {
+    return Promise.resolve();
+  } else {
+    return fetch(flTransportFullUrl, {
+      method: 'POST',
+      body
+    });
+  }
 }
 
 function addToQueue(evt: BatchEvent): void {
@@ -159,11 +176,36 @@ export function transportHandler(
 }
 
 /**
- * Force flush the queued events. Useful at page unload time to ensure all
- * events are uploaded.
+ * Force flush the queued events. Useful at page unload time to ensure all events are uploaded.
+ * Flush will attempt to use sendBeacon to send events async and defaults back to fetch as soon as a
+ * sendBeacon fails. Firefox
  */
 export function flushQueuedEvents(): void {
+  const flTransportFullUrl =
+    SettingsService.getInstance().getFlTransportFullUrl();
+
   while (queue.length > 0) {
-    dispatchQueueEvents();
+    // Send the last events first to prioritize page load traces
+    const staged = queue.splice(-SettingsService.getInstance().logMaxFlushSize);
+    const body = buildPayload(staged);
+
+    if (
+      navigator.sendBeacon &&
+      navigator.sendBeacon(flTransportFullUrl, body)
+    ) {
+      continue;
+    } else {
+      queue = [...queue, ...staged];
+      break;
+    }
+  }
+  if (queue.length > 0) {
+    const body = buildPayload(queue);
+    fetch(flTransportFullUrl, {
+      method: 'POST',
+      body
+    }).catch(() => {
+      consoleLogger.info(`Failed flushing queued events.`);
+    });
   }
 }

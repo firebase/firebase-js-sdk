@@ -1,5 +1,16 @@
 # @firebase/rules-unit-testing
 
+## 5.0.0
+
+### Minor Changes
+
+- [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113) [#9128](https://github.com/firebase/firebase-js-sdk/pull/9128) - Update node "engines" version to a minimum of Node 20.
+
+### Patch Changes
+
+- Updated dependencies [[`a4ccd25`](https://github.com/firebase/firebase-js-sdk/commit/a4ccd254dd1ecb63aa010ca010ad50d4b8a8316a), [`5200f7b`](https://github.com/firebase/firebase-js-sdk/commit/5200f7bb777cf2260dcd396fbd19ac6cc7cb44c4), [`6ab4e13`](https://github.com/firebase/firebase-js-sdk/commit/6ab4e13a1665dab4be89ecc141b4584a5a6df569), [`91fa484`](https://github.com/firebase/firebase-js-sdk/commit/91fa484b5a6081ad9c59d3b62416a2b5252b95a6), [`e59cd7d`](https://github.com/firebase/firebase-js-sdk/commit/e59cd7da1f375ec89f237ceb684c9f450d65cd34), [`cb19688`](https://github.com/firebase/firebase-js-sdk/commit/cb19688bf3d339a46c4964cb30b6263af08526e6), [`d91169f`](https://github.com/firebase/firebase-js-sdk/commit/d91169f061bf1dcbfe78a8c8a7f739677608fcb7), [`ec5f374`](https://github.com/firebase/firebase-js-sdk/commit/ec5f37403d9ebe28d3d71a7789d59edfb12762df), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - firebase@12.0.0
+
 ## 4.0.1
 
 ### Patch Changes

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp, FirebaseError } from '@firebase/app';
 
 /**
  * The Firebase Remote Config service interface.
@@ -52,9 +52,38 @@ export interface RemoteConfig {
 
 /**
  * Defines a self-descriptive reference for config key-value pairs.
+ *
+ *  @public
  */
 export interface FirebaseRemoteConfigObject {
   [key: string]: string;
+}
+
+/**
+ * Defines experiment and variant attached to a config parameter.
+ *
+ * @public
+ */
+export interface FirebaseExperimentDescription {
+  // A string of max length 22 characters and of format: _exp_<experiment_id>
+  experimentId: string;
+
+  // The variant of the experiment assigned to the app instance.
+  variantId: string;
+
+  // When the experiment was started.
+  experimentStartTime: string;
+
+  // How long the experiment can remain in STANDBY state. Valid range from 1 ms
+  // to 6 months.
+  triggerTimeoutMillis: string;
+
+  // How long the experiment can remain in ON state. Valid range from 1 ms to 6
+  // months.
+  timeToLiveMillis: string;
+
+  // Which all parameters are affected by this experiment.
+  affectedParameterKeys?: string[];
 }
 
 /**
@@ -62,6 +91,8 @@ export interface FirebaseRemoteConfigObject {
  *
  * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
  * use case.
+ *
+ * @public
  */
 export interface FetchResponse {
   /**
@@ -90,8 +121,17 @@ export interface FetchResponse {
    */
   config?: FirebaseRemoteConfigObject;
 
-  // Note: we're not extracting experiment metadata until
-  // ABT and Analytics have Web SDKs.
+  /**
+   * The version number of the config template fetched from the server.
+   */
+  templateVersion?: number;
+
+  /**
+   * Metadata for A/B testing and Remote Config Rollout experiments.
+   *
+   * @remarks Only defined for 200 responses.
+   */
+  experiments?: FirebaseExperimentDescription[];
 }
 
 /**
@@ -211,6 +251,63 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 export interface CustomSignals {
   [key: string]: string | number | null;
 }
+
+/**
+ * Contains information about which keys have been updated.
+ *
+ * @public
+ */
+export interface ConfigUpdate {
+  /**
+   * Parameter keys whose values have been updated from the currently activated values.
+   * Includes keys that are added, deleted, or whose value, value source, or metadata has changed.
+   */
+  getUpdatedKeys(): Set<string>;
+}
+
+/**
+ * Observer interface for receiving real-time Remote Config update notifications.
+ *
+ * NOTE: Although an `complete` callback can be provided, it will
+ * never be called because the ConfigUpdate stream is never-ending.
+ *
+ * @public
+ */
+export interface ConfigUpdateObserver {
+  /**
+   * Called when a new ConfigUpdate is available.
+   */
+  next: (configUpdate: ConfigUpdate) => void;
+
+  /**
+   * Called if an error occurs during the stream.
+   */
+  error: (error: FirebaseError) => void;
+
+  /**
+   * Called when the stream is gracefully terminated.
+   */
+  complete: () => void;
+}
+
+/**
+ * A function that unsubscribes from a real-time event stream.
+ *
+ * @public
+ */
+export type Unsubscribe = () => void;
+
+/**
+ * Indicates the type of fetch request.
+ *
+ * <ul>
+ *   <li>"BASE" indicates a standard fetch request.</li>
+ *   <li>"REALTIME" indicates a fetch request triggered by a real-time update.</li>
+ * </ul>
+ *
+ * @public
+ */
+export type FetchType = 'BASE' | 'REALTIME';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {

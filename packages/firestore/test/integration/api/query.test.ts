@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
+import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { it } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -31,15 +33,16 @@ import {
   doc,
   DocumentChange,
   DocumentChangeType,
-  DocumentData,
   documentId,
   enableNetwork,
   endAt,
   endBefore,
   GeoPoint,
+  getDocFromCache,
   getDocs,
   limit,
   limitToLast,
+  loadBundle,
   onSnapshot,
   or,
   orderBy,
@@ -58,21 +61,57 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
-  RetryError,
   toChangesArray,
   toDataArray,
-  PERSISTENCE_MODE_UNSPECIFIED,
   withEmptyTestCollection,
-  withRetry,
   withTestCollection,
   withTestDb,
   checkOnlineAndOfflineResultsMatch
 } from '../util/helpers';
-import { USE_EMULATOR } from '../util/settings';
-import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
+
+  it('QuerySnapshot.toJSON bundle getDocFromCache', async () => {
+    if (isNode()) {
+      let path: string | null = null;
+      let jsonBundle: object | null = null;
+      const testDocs = {
+        a: { k: 'a' },
+        b: { k: 'b' },
+        c: { k: 'c' }
+      };
+      // Write an initial document in an isolated Firestore instance so it's not stored in the cache.
+      await withTestCollection(persistence, testDocs, async collection => {
+        await getDocs(query(collection)).then(querySnapshot => {
+          expect(querySnapshot.docs.length).to.equal(3);
+          // Find the path to a known doc.
+          querySnapshot.docs.forEach(docSnapshot => {
+            if (docSnapshot.ref.path.endsWith('a')) {
+              path = docSnapshot.ref.path;
+            }
+          });
+          expect(path).to.not.be.null;
+          jsonBundle = querySnapshot.toJSON();
+        });
+      });
+      expect(jsonBundle).to.not.be.null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const json = (jsonBundle as any).bundle;
+      expect(json).to.exist;
+      expect(json.length).to.be.greaterThan(0);
+
+      if (path !== null) {
+        await withTestDb(persistence, async db => {
+          const docRef = doc(db, path!);
+          await loadBundle(db, json);
+          const docSnap = await getDocFromCache(docRef);
+          expect(docSnap.exists);
+          expect(docSnap.data()).to.deep.equal(testDocs.a);
+        });
+      }
+    }
+  });
 
   it('can issue limit queries', () => {
     const testDocs = {
@@ -667,7 +706,7 @@ apiDescribe('Queries', persistence => {
   });
 
   // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
+  it.skipEmulator.skipEnterprise(
     'can catch error message for missing index with error handler',
     () => {
       return withEmptyTestCollection(persistence, async coll => {
@@ -686,6 +725,7 @@ apiDescribe('Queries', persistence => {
           err => {
             expect(err.code).to.equal('failed-precondition');
             expect(err.message).to.exist;
+            // @ts-ignore internal API usage
             if (coll.firestore._databaseId.isDefaultDatabase) {
               expect(err.message).to.match(
                 /index.*https:\/\/console\.firebase\.google\.com/
@@ -942,7 +982,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('can use IN filters', async () => {
+  it.skipEnterprise('can use IN filters', async () => {
     const testDocs = {
       a: { zip: 98101 },
       b: { zip: 91102 },
@@ -1101,7 +1141,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('can use array-contains-any filters', async () => {
+  it.skipEnterprise('can use array-contains-any filters', async () => {
     const testDocs = {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },
@@ -1357,6 +1397,7 @@ apiDescribe('Queries', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         // a == 1
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, where('a', '==', 1)),
           'doc1',
           'doc4',
@@ -1365,18 +1406,21 @@ apiDescribe('Queries', persistence => {
 
         // Implicit AND: a == 1 && b == 3
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, where('a', '==', 1), where('b', '==', 3)),
           'doc4'
         );
 
         // explicit AND: a == 1 && b == 3
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, and(where('a', '==', 1), where('b', '==', 3))),
           'doc4'
         );
 
         // a == 1, limit 2
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, where('a', '==', 1), limit(2)),
           'doc1',
           'doc4'
@@ -1384,6 +1428,7 @@ apiDescribe('Queries', persistence => {
 
         // explicit OR: a == 1 || b == 1 with limit 2
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', '==', 1), where('b', '==', 1)), limit(2)),
           'doc1',
           'doc2'
@@ -1391,6 +1436,7 @@ apiDescribe('Queries', persistence => {
 
         // only limit 2
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, limit(2)),
           'doc1',
           'doc2'
@@ -1398,6 +1444,7 @@ apiDescribe('Queries', persistence => {
 
         // limit 2 and order by b desc
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, limit(2), orderBy('b', 'desc')),
           'doc4',
           'doc3'
@@ -1417,6 +1464,7 @@ apiDescribe('Queries', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         // Two equalities: a==1 || b==1.
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', '==', 1), where('b', '==', 1))),
           'doc1',
           'doc2',
@@ -1426,6 +1474,7 @@ apiDescribe('Queries', persistence => {
 
         // (a==1 && b==0) || (a==3 && b==2)
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             or(
@@ -1439,6 +1488,7 @@ apiDescribe('Queries', persistence => {
 
         // a==1 && (b==0 || b==3).
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1452,6 +1502,7 @@ apiDescribe('Queries', persistence => {
 
         // (a==2 || b==2) && (a==3 || b==3)
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1464,6 +1515,7 @@ apiDescribe('Queries', persistence => {
 
         // Test with limits without orderBy (the __name__ ordering is the tie breaker).
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', '==', 2), where('b', '==', 1)), limit(1)),
           'doc2'
         );
@@ -1483,6 +1535,7 @@ apiDescribe('Queries', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         // a==2 || b in [2,3]
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', '==', 2), where('b', 'in', [2, 3]))),
           'doc3',
           'doc4',
@@ -1504,6 +1557,7 @@ apiDescribe('Queries', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         // a==2 || b array-contains 7
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', '==', 2), where('b', 'array-contains', 7))),
           'doc3',
           'doc4',
@@ -1512,6 +1566,7 @@ apiDescribe('Queries', persistence => {
 
         // a==2 || b array-contains-any [0, 3]
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             or(where('a', '==', 2), where('b', 'array-contains-any', [0, 3]))
@@ -1535,6 +1590,7 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             or(
@@ -1549,6 +1605,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1560,6 +1617,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             or(
@@ -1573,6 +1631,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1598,6 +1657,7 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             or(where('a', 'in', [2, 3]), where('b', 'array-contains', 3))
@@ -1608,6 +1668,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(where('a', 'in', [2, 3]), where('b', 'array-contains', 7))
@@ -1616,6 +1677,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             or(
@@ -1629,6 +1691,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1653,6 +1716,7 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, where('a', '==', 1), orderBy('a')),
           'doc1',
           'doc4',
@@ -1660,6 +1724,7 @@ apiDescribe('Queries', persistence => {
         );
 
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, where('a', 'in', [2, 3]), orderBy('a')),
           'doc6',
           'doc3'
@@ -1680,6 +1745,7 @@ apiDescribe('Queries', persistence => {
       return withTestCollection(persistence, testDocs, async coll => {
         // Two IN operations on different fields with disjunction.
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc1',
           'doc3',
@@ -1688,6 +1754,7 @@ apiDescribe('Queries', persistence => {
 
         // Two IN operations on different fields with conjunction.
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc3'
         );
@@ -1695,6 +1762,7 @@ apiDescribe('Queries', persistence => {
         // Two IN operations on the same field.
         // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(where('a', 'in', [1, 2, 3]), where('a', 'in', [0, 1, 4]))
@@ -1707,6 +1775,7 @@ apiDescribe('Queries', persistence => {
         // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
         // empty set.
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(where('a', 'in', [2, 3]), where('a', 'in', [0, 1, 4]))
@@ -1715,6 +1784,7 @@ apiDescribe('Queries', persistence => {
 
         // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
           'doc3',
           'doc6'
@@ -1722,6 +1792,7 @@ apiDescribe('Queries', persistence => {
 
         // Nested composite filter on the same field.
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1737,6 +1808,7 @@ apiDescribe('Queries', persistence => {
 
         // Nested composite filter on the different fields.
         await checkOnlineAndOfflineResultsMatch(
+          coll,
           query(
             coll,
             and(
@@ -1749,6 +1821,104 @@ apiDescribe('Queries', persistence => {
           ),
           'doc4'
         );
+      });
+    });
+
+    it('sdk uses != filter same as backend', async () => {
+      const testDocs = {
+        a: { zip: Number.NaN },
+        b: { zip: 91102 },
+        c: { zip: 98101 },
+        d: { zip: '98101' },
+        e: { zip: [98101] },
+        f: { zip: [98101, 98102] },
+        g: { zip: ['98101', { zip: 98101 }] },
+        h: { zip: { code: 500 } },
+        i: { zip: null },
+        j: { code: 500 }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        // populate cache with all documents first to ensure getDocsFromCache() scans all docs
+        await getDocs(coll);
+
+        let testQuery = query(coll, where('zip', '!=', 98101));
+        await checkOnlineAndOfflineResultsMatch(
+          coll,
+          testQuery,
+          'a',
+          'b',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
+
+        testQuery = query(coll, where('zip', '!=', Number.NaN));
+        await checkOnlineAndOfflineResultsMatch(
+          coll,
+          testQuery,
+          'b',
+          'c',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
+
+        testQuery = query(coll, where('zip', '!=', null));
+        await checkOnlineAndOfflineResultsMatch(
+          coll,
+          testQuery,
+          'a',
+          'b',
+          'c',
+          'd',
+          'e',
+          'f',
+          'g',
+          'h'
+        );
+      });
+    });
+
+    it('sdk uses not-in filter same as backend', async () => {
+      const testDocs = {
+        a: { zip: Number.NaN },
+        b: { zip: 91102 },
+        c: { zip: 98101 },
+        d: { zip: '98101' },
+        e: { zip: [98101] },
+        f: { zip: [98101, 98102] },
+        g: { zip: ['98101', { zip: 98101 }] },
+        h: { zip: { code: 500 } },
+        i: { zip: null },
+        j: { code: 500 }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        // populate cache with all documents first to ensure getDocsFromCache() scans all docs
+        await getDocs(coll);
+
+        let testQuery = query(
+          coll,
+          where('zip', 'not-in', [98101, 98103, [98101, 98102]])
+        );
+        await checkOnlineAndOfflineResultsMatch(
+          coll,
+          testQuery,
+          'a',
+          'b',
+          'd',
+          'e',
+          'g',
+          'h'
+        );
+
+        testQuery = query(coll, where('zip', 'not-in', [null]));
+        await checkOnlineAndOfflineResultsMatch(coll, testQuery);
       });
     });
   });
@@ -1794,429 +1964,6 @@ apiDescribe('Queries', persistence => {
       });
     });
   });
-
-  // TODO(b/291365820): Stop skipping this test when running against the
-  // Firestore emulator once the emulator is improved to include a bloom filter
-  // in the existence filter messages that it sends.
-  // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
-    'resuming a query should use bloom filter to avoid full requery',
-    async () => {
-      // Prepare the names and contents of the 100 documents to create.
-      const testDocs: { [key: string]: object } = {};
-      for (let i = 0; i < 100; i++) {
-        testDocs['doc' + (1000 + i)] = { key: 42 };
-      }
-
-      // Ensure that the local cache is configured to use LRU garbage
-      // collection (rather than eager garbage collection) so that the resume
-      // token and document data does not get prematurely evicted.
-      const lruPersistence = persistence.toLruGc();
-
-      return withRetry(async attemptNumber => {
-        return withTestCollection(
-          lruPersistence,
-          testDocs,
-          async (coll, db) => {
-            // Run a query to populate the local cache with the 100 documents
-            // and a resume token.
-            const snapshot1 = await getDocs(coll);
-            expect(snapshot1.size, 'snapshot1.size').to.equal(100);
-            const createdDocuments = snapshot1.docs.map(
-              snapshot => snapshot.ref
-            );
-
-            // Delete 50 of the 100 documents. Use a different Firestore
-            // instance to avoid affecting the local cache.
-            const deletedDocumentIds = new Set<string>();
-            await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
-              const batch = writeBatch(db2);
-              for (let i = 0; i < createdDocuments.length; i += 2) {
-                const documentToDelete = doc(db2, createdDocuments[i].path);
-                batch.delete(documentToDelete);
-                deletedDocumentIds.add(documentToDelete.id);
-              }
-              await batch.commit();
-            });
-
-            // Wait for 10 seconds, during which Watch will stop tracking the
-            // query and will send an existence filter rather than "delete"
-            // events when the query is resumed.
-            await new Promise(resolve => setTimeout(resolve, 10000));
-
-            // Resume the query and save the resulting snapshot for
-            // verification. Use some internal testing hooks to "capture" the
-            // existence filter mismatches to verify that Watch sent a bloom
-            // filter, and it was used to avert a full requery.
-            const [existenceFilterMismatches, snapshot2] =
-              await captureExistenceFilterMismatches(() => getDocs(coll));
-
-            // Verify that the snapshot from the resumed query contains the
-            // expected documents; that is, that it contains the 50 documents
-            // that were _not_ deleted.
-            const actualDocumentIds = snapshot2.docs
-              .map(documentSnapshot => documentSnapshot.ref.id)
-              .sort();
-            const expectedDocumentIds = createdDocuments
-              .filter(documentRef => !deletedDocumentIds.has(documentRef.id))
-              .map(documentRef => documentRef.id)
-              .sort();
-            expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
-              expectedDocumentIds
-            );
-
-            // Verify that Watch sent an existence filter with the correct
-            // counts when the query was resumed.
-            expect(
-              existenceFilterMismatches,
-              'existenceFilterMismatches'
-            ).to.have.length(1);
-            const { localCacheCount, existenceFilterCount, bloomFilter } =
-              existenceFilterMismatches[0];
-            expect(localCacheCount, 'localCacheCount').to.equal(100);
-            expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
-
-            // Verify that Watch sent a valid bloom filter.
-            if (!bloomFilter) {
-              expect.fail(
-                'The existence filter should have specified a bloom filter ' +
-                  'in its `unchanged_names` field.'
-              );
-              throw new Error('should never get here');
-            }
-
-            expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(
-              0
-            );
-            expect(
-              bloomFilter.bitmapLength,
-              'bloomFilter.bitmapLength'
-            ).to.be.above(0);
-            expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
-            expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
-
-            // Verify that the bloom filter was successfully used to avert a
-            // full requery. If a false positive occurred then retry the entire
-            // test. Although statistically rare, false positives are expected
-            // to happen occasionally. When a false positive _does_ happen, just
-            // retry the test with a different set of documents. If that retry
-            // also_ experiences a false positive, then fail the test because
-            // that is so improbable that something must have gone wrong.
-            if (attemptNumber === 1 && !bloomFilter.applied) {
-              throw new RetryError();
-            }
-
-            expect(
-              bloomFilter.applied,
-              `bloomFilter.applied with attemptNumber=${attemptNumber}`
-            ).to.be.true;
-          }
-        );
-      });
-    }
-  ).timeout('90s');
-
-  // TODO(b/291365820): Stop skipping this test when running against the
-  // Firestore emulator once the emulator is improved to include a bloom filter
-  // in the existence filter messages that it sends.
-  // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
-    'bloom filter should avert a full re-query when documents were added, ' +
-      'deleted, removed, updated, and unchanged since the resume token',
-    async () => {
-      // Prepare the names and contents of the 20 documents to create.
-      const testDocs: { [key: string]: object } = {};
-      for (let i = 0; i < 20; i++) {
-        testDocs['doc' + (1000 + i)] = {
-          key: 42,
-          removed: false
-        };
-      }
-
-      // Ensure that the local cache is configured to use LRU garbage
-      // collection (rather than eager garbage collection) so that the resume
-      // token and document data does not get prematurely evicted.
-      const lruPersistence = persistence.toLruGc();
-
-      return withRetry(async attemptNumber => {
-        return withTestCollection(lruPersistence, testDocs, async coll => {
-          // Run a query to populate the local cache with the 20 documents
-          // and a resume token.
-          const snapshot1 = await getDocs(
-            query(coll, where('removed', '==', false))
-          );
-          expect(snapshot1.size, 'snapshot1.size').to.equal(20);
-          const createdDocuments = snapshot1.docs.map(snapshot => snapshot.ref);
-
-          // Out of the 20 existing documents, leave 5 docs untouched, delete 5 docs,
-          // remove 5 docs, update 5 docs, and add 15 new docs.
-          const deletedDocumentIds = new Set<string>();
-          const removedDocumentIds = new Set<string>();
-          const updatedDocumentIds = new Set<string>();
-          const addedDocumentIds: string[] = [];
-
-          // Use a different Firestore instance to avoid affecting the local cache.
-          await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
-            const batch = writeBatch(db2);
-
-            for (let i = 0; i < createdDocuments.length; i += 4) {
-              const documentToDelete = doc(db2, createdDocuments[i].path);
-              batch.delete(documentToDelete);
-              deletedDocumentIds.add(documentToDelete.id);
-            }
-            expect(deletedDocumentIds.size).to.equal(5);
-
-            // Update 5 documents to no longer match the query.
-            for (let i = 1; i < createdDocuments.length; i += 4) {
-              const documentToModify = doc(db2, createdDocuments[i].path);
-              batch.update(documentToModify, {
-                removed: true
-              });
-              removedDocumentIds.add(documentToModify.id);
-            }
-            expect(removedDocumentIds.size).to.equal(5);
-
-            // Update 5 documents, but ensure they still match the query.
-            for (let i = 2; i < createdDocuments.length; i += 4) {
-              const documentToModify = doc(db2, createdDocuments[i].path);
-              batch.update(documentToModify, {
-                key: 43
-              });
-              updatedDocumentIds.add(documentToModify.id);
-            }
-            expect(updatedDocumentIds.size).to.equal(5);
-
-            for (let i = 0; i < 15; i += 1) {
-              const documentToAdd = doc(
-                db2,
-                coll.path + '/newDoc' + (1000 + i)
-              );
-              batch.set(documentToAdd, {
-                key: 42,
-                removed: false
-              });
-              addedDocumentIds.push(documentToAdd.id);
-            }
-
-            // Ensure the sets above are disjoint.
-            const mergedSet = new Set<string>();
-            [
-              deletedDocumentIds,
-              removedDocumentIds,
-              updatedDocumentIds,
-              addedDocumentIds
-            ].forEach(set => {
-              set.forEach(documentId => mergedSet.add(documentId));
-            });
-            expect(mergedSet.size).to.equal(30);
-
-            await batch.commit();
-          });
-
-          // Wait for 10 seconds, during which Watch will stop tracking the
-          // query and will send an existence filter rather than "delete"
-          // events when the query is resumed.
-          await new Promise(resolve => setTimeout(resolve, 10000));
-
-          // Resume the query and save the resulting snapshot for
-          // verification. Use some internal testing hooks to "capture" the
-          // existence filter mismatches to verify that Watch sent a bloom
-          // filter, and it was used to avert a full requery.
-          const [existenceFilterMismatches, snapshot2] =
-            await captureExistenceFilterMismatches(() =>
-              getDocs(query(coll, where('removed', '==', false)))
-            );
-
-          // Verify that the snapshot from the resumed query contains the
-          // expected documents; that is, 10 existing documents that still
-          // match the query, and 15 documents that are newly added.
-          const actualDocumentIds = snapshot2.docs
-            .map(documentSnapshot => documentSnapshot.ref.id)
-            .sort();
-          const expectedDocumentIds = createdDocuments
-            .map(documentRef => documentRef.id)
-            .filter(documentId => !deletedDocumentIds.has(documentId))
-            .filter(documentId => !removedDocumentIds.has(documentId))
-            .concat(addedDocumentIds)
-            .sort();
-
-          expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
-            expectedDocumentIds
-          );
-          expect(actualDocumentIds.length).to.equal(25);
-
-          // Verify that Watch sent an existence filter with the correct
-          // counts when the query was resumed.
-          expect(
-            existenceFilterMismatches,
-            'existenceFilterMismatches'
-          ).to.have.length(1);
-          const { localCacheCount, existenceFilterCount, bloomFilter } =
-            existenceFilterMismatches[0];
-          expect(localCacheCount, 'localCacheCount').to.equal(35);
-          expect(existenceFilterCount, 'existenceFilterCount').to.equal(25);
-
-          // Verify that Watch sent a valid bloom filter.
-          if (!bloomFilter) {
-            expect.fail(
-              'The existence filter should have specified a bloom filter ' +
-                'in its `unchanged_names` field.'
-            );
-            throw new Error('should never get here');
-          }
-
-          // Verify that the bloom filter was successfully used to avert a
-          // full requery. If a false positive occurred then retry the entire
-          // test. Although statistically rare, false positives are expected
-          // to happen occasionally. When a false positive _does_ happen, just
-          // retry the test with a different set of documents. If that retry
-          // also_ experiences a false positive, then fail the test because
-          // that is so improbable that something must have gone wrong.
-          if (attemptNumber === 1 && !bloomFilter.applied) {
-            throw new RetryError();
-          }
-
-          expect(
-            bloomFilter.applied,
-            `bloomFilter.applied with attemptNumber=${attemptNumber}`
-          ).to.be.true;
-        });
-      });
-    }
-  ).timeout('90s');
-
-  // TODO(b/291365820): Stop skipping this test when running against the
-  // Firestore emulator once the emulator is improved to include a bloom filter
-  // in the existence filter messages that it sends.
-  // eslint-disable-next-line no-restricted-properties
-  (USE_EMULATOR ? it.skip : it)(
-    'bloom filter should correctly encode complex Unicode characters',
-    async () => {
-      // Firestore does not do any Unicode normalization on the document IDs.
-      // Therefore, two document IDs that are canonically-equivalent (i.e. they
-      // visually appear identical) but are represented by a different sequence
-      // of Unicode code points are treated as distinct document IDs.
-      const testDocIds = [
-        'DocumentToDelete',
-        // The next two strings both end with "e" with an accent: the first uses
-        // the dedicated Unicode code point for this character, while the second
-        // uses the standard lowercase "e" followed by the accent combining
-        // character.
-        'LowercaseEWithAcuteAccent_\u00E9',
-        'LowercaseEWithAcuteAccent_\u0065\u0301',
-        // The next two strings both end with an "e" with two different accents
-        // applied via the following two combining characters. The combining
-        // characters are specified in a different order and Firestore treats
-        // these document IDs as unique, despite the order of the combining
-        // characters being irrelevant.
-        'LowercaseEWithMultipleAccents_\u0065\u0301\u0327',
-        'LowercaseEWithMultipleAccents_\u0065\u0327\u0301',
-        // The next string contains a character outside the BMP (the "basic
-        // multilingual plane"); that is, its code point is greater than 0xFFFF.
-        // In UTF-16 (which JavaScript uses to store Unicode strings) this
-        // requires a surrogate pair, two 16-bit code units, to represent this
-        // character. Make sure that its presence is correctly tested in the
-        // bloom filter, which uses UTF-8 encoding.
-        'Smiley_\u{1F600}'
-      ];
-
-      // Verify assumptions about the equivalence of strings in `testDocIds`.
-      expect(testDocIds[1].normalize()).equals(testDocIds[2].normalize());
-      expect(testDocIds[3].normalize()).equals(testDocIds[4].normalize());
-      expect(testDocIds[5]).equals('Smiley_\uD83D\uDE00');
-
-      // Create the mapping from document ID to document data for the document
-      // IDs specified in `testDocIds`.
-      const testDocs = testDocIds.reduce((map, docId) => {
-        map[docId] = { foo: 42 };
-        return map;
-      }, {} as { [key: string]: DocumentData });
-
-      // Ensure that the local cache is configured to use LRU garbage collection
-      // (rather than eager garbage collection) so that the resume token and
-      // document data does not get prematurely evicted.
-      const lruPersistence = persistence.toLruGc();
-
-      return withTestCollection(lruPersistence, testDocs, async (coll, db) => {
-        // Run a query to populate the local cache with documents that have
-        // names with complex Unicode characters.
-        const snapshot1 = await getDocs(coll);
-        const snapshot1DocumentIds = snapshot1.docs.map(
-          documentSnapshot => documentSnapshot.id
-        );
-        expect(snapshot1DocumentIds, 'snapshot1DocumentIds').to.have.members(
-          testDocIds
-        );
-
-        // Delete one of the documents so that the next call to getDocs() will
-        // experience an existence filter mismatch. Use a different Firestore
-        // instance to avoid affecting the local cache.
-        const documentToDelete = doc(coll, 'DocumentToDelete');
-        await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
-          await deleteDoc(doc(db2, documentToDelete.path));
-        });
-
-        // Wait for 10 seconds, during which Watch will stop tracking the query
-        // and will send an existence filter rather than "delete" events when
-        // the query is resumed.
-        await new Promise(resolve => setTimeout(resolve, 10000));
-
-        // Resume the query and save the resulting snapshot for verification.
-        // Use some internal testing hooks to "capture" the existence filter
-        // mismatches.
-        const [existenceFilterMismatches, snapshot2] =
-          await captureExistenceFilterMismatches(() => getDocs(coll));
-        const snapshot2DocumentIds = snapshot2.docs.map(
-          documentSnapshot => documentSnapshot.id
-        );
-        const testDocIdsMinusDeletedDocId = testDocIds.filter(
-          documentId => documentId !== documentToDelete.id
-        );
-        expect(snapshot2DocumentIds, 'snapshot2DocumentIds').to.have.members(
-          testDocIdsMinusDeletedDocId
-        );
-
-        // Verify that Watch sent an existence filter with the correct counts.
-        expect(
-          existenceFilterMismatches,
-          'existenceFilterMismatches'
-        ).to.have.length(1);
-        const existenceFilterMismatch = existenceFilterMismatches[0];
-        expect(
-          existenceFilterMismatch.localCacheCount,
-          'localCacheCount'
-        ).to.equal(testDocIds.length);
-        expect(
-          existenceFilterMismatch.existenceFilterCount,
-          'existenceFilterCount'
-        ).to.equal(testDocIds.length - 1);
-
-        // Verify that we got a bloom filter from Watch.
-        const bloomFilter = existenceFilterMismatch.bloomFilter!;
-        expect(bloomFilter?.mightContain, 'bloomFilter.mightContain').to.not.be
-          .undefined;
-
-        // The bloom filter application should statistically be successful
-        // almost every time; the _only_ time when it would _not_ be successful
-        // is if there is a false positive when testing for 'DocumentToDelete'
-        // in the bloom filter. So verify that the bloom filter application is
-        // successful, unless there was a false positive.
-        const isFalsePositive = bloomFilter.mightContain(documentToDelete);
-        expect(bloomFilter.applied, 'bloomFilter.applied').to.equal(
-          !isFalsePositive
-        );
-
-        // Verify that the bloom filter contains the document paths with complex
-        // Unicode characters.
-        for (const testDoc of snapshot2.docs.map(snapshot => snapshot.ref)) {
-          expect(
-            bloomFilter.mightContain(testDoc),
-            `bloomFilter.mightContain('${testDoc.path}')`
-          ).to.be.true;
-        }
-      });
-    }
-  ).timeout('90s');
 
   it('can query large documents with multi-byte character strings', () => {
     function randomMultiByteCharString(length: number): string {

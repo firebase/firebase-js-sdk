@@ -128,14 +128,14 @@ describe('API tests', () => {
         {
           apiKey: 'test1'
         },
-        { automaticDataCollectionEnabled: true }
+        { automaticDataCollectionEnabled: false }
       );
       expect(() =>
         initializeApp(
           {
             apiKey: 'test1'
           },
-          { automaticDataCollectionEnabled: false }
+          { automaticDataCollectionEnabled: true }
         )
       ).throws(/\[DEFAULT\].*exists/i);
     });
@@ -146,14 +146,14 @@ describe('API tests', () => {
         {
           apiKey: 'test1'
         },
-        { name: appName, automaticDataCollectionEnabled: true }
+        { name: appName, automaticDataCollectionEnabled: false }
       );
       expect(() =>
         initializeApp(
           {
             apiKey: 'test1'
           },
-          { name: appName, automaticDataCollectionEnabled: false }
+          { name: appName, automaticDataCollectionEnabled: true }
         )
       ).throws(/'MyApp'.*exists/i);
     });
@@ -164,9 +164,14 @@ describe('API tests', () => {
       expect(app.name).to.equal(appName);
     });
 
-    it('sets automaticDataCollectionEnabled', () => {
-      const app = initializeApp({}, { automaticDataCollectionEnabled: true });
+    it('sets automaticDataCollectionEnabled to true by default', () => {
+      const app = initializeApp({});
       expect(app.automaticDataCollectionEnabled).to.be.true;
+    });
+
+    it('sets a new automaticDataCollectionEnabled value if provided', () => {
+      const app = initializeApp({}, { automaticDataCollectionEnabled: false });
+      expect(app.automaticDataCollectionEnabled).to.be.false;
     });
 
     it('adds registered components to App', () => {
@@ -211,7 +216,7 @@ describe('API tests', () => {
 
       const app = initializeServerApp(options, serverAppSettings);
       expect(app).to.not.equal(null);
-      expect(app.automaticDataCollectionEnabled).to.be.false;
+      expect(app.automaticDataCollectionEnabled).to.be.true;
       await deleteApp(app);
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });

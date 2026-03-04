@@ -18,6 +18,8 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
+import { describe } from '../../util/mocha_extensions';
+
 import {
   clearIndexedDbPersistence,
   collection,
@@ -44,6 +46,7 @@ import {
   Query,
   getDocsFromServer,
   getDocsFromCache,
+  // @ts-ignore internal API usage
   _AutoId
 } from './firebase_export';
 import {
@@ -177,7 +180,10 @@ export function isPersistenceAvailable(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 function apiDescribeInternal(
-  describeFn: Mocha.PendingSuiteFunction,
+  describeFn:
+    | Mocha.PendingSuiteFunction
+    | Mocha.SuiteFunction
+    | Mocha.ExclusiveSuiteFunction,
   message: string,
   testSuite: (persistence: PersistenceMode) => void
 ): void {
@@ -204,6 +210,9 @@ interface ApiDescribe {
   (message: string, testSuite: (persistence: PersistenceMode) => void): void;
   skip: ApiSuiteFunction;
   only: ApiSuiteFunction;
+  skipEnterprise: ApiSuiteFunction;
+  skipEmulator: ApiSuiteFunction;
+  skipClassic: ApiSuiteFunction;
 }
 
 export const apiDescribe = apiDescribeInternal.bind(
@@ -214,6 +223,15 @@ export const apiDescribe = apiDescribeInternal.bind(
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 // eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+apiDescribe.skipEnterprise = apiDescribeInternal.bind(
+  null,
+  describe.skipEnterprise
+);
+apiDescribe.skipClassic = apiDescribeInternal.bind(null, describe.skipClassic);
+apiDescribe.skipEmulator = apiDescribeInternal.bind(
+  null,
+  describe.skipEmulator
+);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(docSet: QuerySnapshot): DocumentData[] {
@@ -541,19 +559,42 @@ export function partitionedTestDocs(partitions: {
  * documents as running the query while offline. If `expectedDocs` is provided, it also checks
  * that both online and offline query result is equal to the expected documents.
  *
+ * This function first performs a "get" for the entire COLLECTION from the server.
+ * It then performs the QUERY from CACHE which, results in `executeFullCollectionScan()`
+ * It then performs the QUERY from SERVER.
+ * It then performs the QUERY from CACHE again, which results in `performQueryUsingRemoteKeys()`.
+ * It then ensure that all the above QUERY results are the same.
+ *
+ * @param collection The collection on which the query is performed.
  * @param query The query to check
  * @param expectedDocs Ordered list of document keys that are expected to match the query
  */
 export async function checkOnlineAndOfflineResultsMatch(
+  collection: Query,
   query: Query,
   ...expectedDocs: string[]
 ): Promise<void> {
+  // Note: Order matters. The following has to be done in the specific order:
+
+  // 1- Pre-populate the cache with the entire collection.
+  await getDocsFromServer(collection);
+
+  // 2- This performs the query against the cache using full collection scan.
+  const docsFromCacheFullCollectionScan = await getDocsFromCache(query);
+
+  // 3- This goes to the server (backend/emulator).
   const docsFromServer = await getDocsFromServer(query);
 
+  // 4- This performs the query against the cache using remote keys.
+  const docsFromCacheUsingRemoteKeys = await getDocsFromCache(query);
+
+  expect(toIds(docsFromServer)).to.deep.equal(
+    toIds(docsFromCacheFullCollectionScan)
+  );
+  expect(toIds(docsFromServer)).to.deep.equal(
+    toIds(docsFromCacheUsingRemoteKeys)
+  );
   if (expectedDocs.length !== 0) {
     expect(expectedDocs).to.deep.equal(toIds(docsFromServer));
   }
-
-  const docsFromCache = await getDocsFromCache(query);
-  expect(toIds(docsFromServer)).to.deep.equal(toIds(docsFromCache));
 }

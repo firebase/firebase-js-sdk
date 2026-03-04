@@ -18,10 +18,12 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
 import { dcFetch, initializeFetch } from '../../src/network/fetch';
 import { CallerSdkType, CallerSdkTypeEnum } from '../../src/network/transport';
 use(chaiAsPromised);
+use(sinonChai);
 function mockFetch(json: object, reject: boolean): sinon.SinonStub {
   const fakeFetchImpl = sinon.stub().returns(
     Promise.resolve({
@@ -40,7 +42,10 @@ describe('fetch', () => {
     mockFetch(
       {
         code: 401,
-        message
+        message,
+        extensions: {
+          dataConnect: []
+        }
       },
       true
     );
@@ -57,7 +62,8 @@ describe('fetch', () => {
         null,
         null,
         false,
-        CallerSdkTypeEnum.Base
+        CallerSdkTypeEnum.Base,
+        false
       )
     ).to.eventually.be.rejectedWith(message);
   });
@@ -81,7 +87,8 @@ describe('fetch', () => {
         null,
         null,
         false,
-        CallerSdkTypeEnum.Base
+        CallerSdkTypeEnum.Base,
+        false
       )
     ).to.eventually.be.rejectedWith(JSON.stringify(json));
   });
@@ -112,7 +119,8 @@ describe('fetch', () => {
         null,
         null,
         false,
-        CallerSdkTypeEnum.Base
+        CallerSdkTypeEnum.Base,
+        false
       )
     ).to.eventually.be.rejected.then(error => {
       expect(error.response.data).to.eq(json.data);
@@ -143,7 +151,8 @@ describe('fetch', () => {
           null,
           null,
           false, // _isUsingGen is false
-          callerSdkType as CallerSdkType
+          callerSdkType as CallerSdkType,
+          false
         );
 
         let expectedHeaderRegex: RegExp;
@@ -191,7 +200,8 @@ describe('fetch', () => {
           null,
           null,
           true, // _isUsingGen is true
-          callerSdkType as CallerSdkType
+          callerSdkType as CallerSdkType,
+          false
         );
 
         let expectedHeaderRegex: RegExp;
@@ -214,5 +224,31 @@ describe('fetch', () => {
         ).to.be.true;
       }
     }
+  });
+  it('should call credentials include if using emulator on cloud workstation', async () => {
+    const json = {
+      code: 200,
+      message1: 'success'
+    };
+    const fakeFetchImpl = mockFetch(json, false);
+    await dcFetch(
+      'https://abc.cloudworkstations.dev',
+      {
+        name: 'n',
+        operationName: 'n',
+        variables: {}
+      },
+      {} as AbortController,
+      null,
+      null,
+      null,
+      true, // _isUsingGen is true
+      CallerSdkTypeEnum.Base,
+      true
+    );
+    expect(fakeFetchImpl).to.have.been.calledWithMatch(
+      'https://abc.cloudworkstations.dev',
+      { credentials: 'include' }
+    );
   });
 });

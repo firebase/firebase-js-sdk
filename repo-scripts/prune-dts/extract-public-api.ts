@@ -69,7 +69,8 @@ function loadApiExtractorConfig(
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
   dtsRollupEnabled: boolean,
-  apiReportEnabled: boolean
+  apiReportEnabled: boolean,
+  excludeForgottenExportWarning: boolean
 ): ExtractorConfig {
   const apiExtractorJsonPath = path.resolve(tmpDir, 'api-extractor.json');
   const apiExtractorJson = {
@@ -102,7 +103,8 @@ function loadApiExtractorConfig(
           'logLevel': 'none'
         },
         'ae-forgotten-export': {
-          'logLevel': apiReportEnabled ? 'error' : 'none'
+          'logLevel': apiReportEnabled ? 'error' : 'none',
+          'addToApiReportFile': !excludeForgottenExportWarning
         }
       },
       'tsdocMessageReporting': {
@@ -141,7 +143,9 @@ export async function generateApi(
   typescriptDtsPath: string,
   rollupDtsPath: string,
   untrimmedRollupDtsPath: string,
-  publicDtsPath: string
+  publicDtsPath: string,
+  otherExportDtsPaths: string[],
+  excludeForgottenExportWarning: boolean
 ): Promise<void> {
   console.log(`Configuring API Extractor for ${packageName}`);
   writeTypeScriptConfig(packageRoot);
@@ -153,14 +157,15 @@ export async function generateApi(
     rollupDtsPath,
     untrimmedRollupDtsPath,
     /* dtsRollupEnabled= */ true,
-    /* apiReportEnabled= */ false
+    /* apiReportEnabled= */ false,
+    excludeForgottenExportWarning
   );
   Extractor.invoke(extractorConfig, {
     localBuild: true
   });
 
   console.log('Generated rollup DTS');
-  pruneDts(rollupDtsPath, publicDtsPath);
+  pruneDts(rollupDtsPath, publicDtsPath, otherExportDtsPaths);
   console.log('Pruned DTS file');
   await addBlankLines(publicDtsPath);
   console.log('Added blank lines after imports');
@@ -173,7 +178,8 @@ export async function generateApi(
     rollupDtsPath,
     untrimmedRollupDtsPath,
     /* dtsRollupEnabled= */ false,
-    /* apiReportEnabled= */ true
+    /* apiReportEnabled= */ true,
+    excludeForgottenExportWarning
   );
   Extractor.invoke(extractorConfig, { localBuild: true });
   console.log(`API report for ${packageName} written to ${reportFolder}`);
@@ -221,6 +227,18 @@ const argv = yargs
         'The output file for the customer-facing .d.ts file that only ' +
         'includes the public APIs',
       require: true
+    },
+    otherExportsPublicDtsFiles: {
+      type: 'string',
+      desc:
+        'Optional. A comma-separated list of customer-facing of .d.ts' +
+        'files for other exports from this package.',
+      require: false
+    },
+    excludeForgottenExportWarning: {
+      type: 'boolean',
+      desc: 'Optional. Do not write ae-forgotten-export warnings into the api-report',
+      require: false
     }
   })
   .parseSync();
@@ -231,5 +249,11 @@ void generateApi(
   path.resolve(argv.typescriptDts),
   path.resolve(argv.rollupDts),
   path.resolve(argv.untrimmedRollupDts),
-  path.resolve(argv.publicDts)
+  path.resolve(argv.publicDts),
+  argv.otherExportsPublicDtsFiles
+    ? argv.otherExportsPublicDtsFiles
+        .split(',')
+        .map(filePath => path.resolve(filePath))
+    : [],
+  !!argv.excludeForgottenExportWarning
 );

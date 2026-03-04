@@ -110,13 +110,19 @@ export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSett
 export function initializeApp(): FirebaseApp;
 
 // @public
-export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config: FirebaseServerAppSettings): FirebaseServerApp;
+export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config?: FirebaseServerAppSettings): FirebaseServerApp;
+
+// @public
+export function initializeServerApp(config?: FirebaseServerAppSettings): FirebaseServerApp;
 
 // @internal (undocumented)
-export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions): obj is FirebaseApp;
+export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings): obj is FirebaseApp;
 
 // @internal (undocumented)
 export function _isFirebaseServerApp(obj: FirebaseApp | FirebaseServerApp | null | undefined): obj is FirebaseServerApp;
+
+// @internal (undocumented)
+export function _isFirebaseServerAppSettings(obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings): obj is FirebaseServerAppSettings;
 
 // @public
 export function onLog(logCallback: LogCallback | null, options?: LogOptions): void;

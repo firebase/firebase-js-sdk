@@ -54,6 +54,10 @@ export class SettingsService {
   // TTL of config retrieved from remote config in hours.
   configTimeToLive = 12;
 
+  // The max number of events to send during a flush. This number is kept low to since Chrome has a
+  // shared payload limit for all sendBeacon calls in the same nav context.
+  logMaxFlushSize = 40;
+
   getFlTransportFullUrl(): string {
     return this.flTransportEndpointUrl.concat('?key=', this.transportKey);
   }

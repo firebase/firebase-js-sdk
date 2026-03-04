@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { DocumentData } from '../lite-api/reference';
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 
@@ -92,7 +93,7 @@ export function validateCollectionPath(path: ResourcePath): void {
  * Returns true if it's a non-null object without a custom prototype
  * (i.e. excludes Array, Date, etc.).
  */
-export function isPlainObject(input: unknown): boolean {
+export function isPlainObject(input: unknown): input is DocumentData {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -128,7 +129,7 @@ export function valueDescription(input: unknown): string {
   } else if (typeof input === 'function') {
     return 'a function';
   } else {
-    return fail('Unknown wrong type: ' + typeof input);
+    return fail(0x3029, 'Unknown wrong type', { type: typeof input });
   }
 }
 

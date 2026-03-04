@@ -1,5 +1,94 @@
 ## Unreleased
 
+## 0.4.0
+
+### Minor Changes
+
+- [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca) [#9439](https://github.com/firebase/firebase-js-sdk/pull/9439) - Add Memory-Based caching to Queries in Firebase Data Connect.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 0.3.12
+
+### Patch Changes
+
+- [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d) [#9349](https://github.com/firebase/firebase-js-sdk/pull/9349) (fixes [#9348](https://github.com/firebase/firebase-js-sdk/issues/9348)) - Fixed issue where onComplete wasn't triggering when the user calls `unsubscribe` on a subscription.
+
+## 0.3.11
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/component@0.7.0
+  - @firebase/logger@0.5.0
+  - @firebase/util@1.13.0
+
+## 0.3.10
+
+### Patch Changes
+
+- Updated dependencies [[`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
+## 0.3.9
+
+### Patch Changes
+
+- [`b5df4ae`](https://github.com/firebase/firebase-js-sdk/commit/b5df4ae71c1b5b54d9237e7929d0f793189b82c9) [#9055](https://github.com/firebase/firebase-js-sdk/pull/9055) - Updated to only show banner when calling connect\*Emulator
+
+## 0.3.8
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/component@0.6.17
+
+## 0.3.7
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/component@0.6.16
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/component@0.6.15
+
+## 0.3.5
+
+### Patch Changes
+
+- [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb) [#8968](https://github.com/firebase/firebase-js-sdk/pull/8968) - Fix Auth Redirects on Firebase Studio
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/util@1.11.1
+  - @firebase/component@0.6.14
+
+## 0.3.4
+
+### Patch Changes
+
+- [`1df3d26`](https://github.com/firebase/firebase-js-sdk/commit/1df3d26fbfb4db24b74d5d779825017e9ec40eaa) [#8898](https://github.com/firebase/firebase-js-sdk/pull/8898) - Fix DataConnectOperationError.
+
+## 0.3.3
+
+### Patch Changes
+
+- [`edb4001`](https://github.com/firebase/firebase-js-sdk/commit/edb40010bb480806b26f48601b65f4257ffed2df) [#8821](https://github.com/firebase/firebase-js-sdk/pull/8821) - Expose partial errors to the user.
+
 ## 0.3.2
 
 ### Patch Changes

@@ -46,7 +46,7 @@ export function validateArgs<Variables extends object>(
   let realVars: Variables;
   if (dcOrVars && 'enableEmulator' in dcOrVars) {
     dcInstance = dcOrVars as DataConnect;
-    realVars = vars;
+    realVars = vars as Variables;
   } else {
     dcInstance = getDataConnect(connectorConfig);
     realVars = dcOrVars as Variables;

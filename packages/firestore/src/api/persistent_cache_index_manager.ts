@@ -42,7 +42,7 @@ export class PersistentCacheIndexManager {
  * Returns the PersistentCache Index Manager used by the given `Firestore`
  * object.
  *
- * @return The `PersistentCacheIndexManager` instance, or `null` if local
+ * @returns The `PersistentCacheIndexManager` instance, or `null` if local
  * persistent storage is not in use.
  */
 export function getPersistentCacheIndexManager(

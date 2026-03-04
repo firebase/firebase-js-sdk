@@ -37,6 +37,8 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
+import { Bytes } from '../lite-api/bytes';
+import { GeoPoint } from '../lite-api/geo_point';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';
@@ -55,6 +57,7 @@ import {
 import { normalizeTimestamp } from '../model/normalize';
 import { ObjectValue } from '../model/object_value';
 import { FieldPath, ResourcePath } from '../model/path';
+import { PipelineStreamElement } from '../model/pipeline_stream_element';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -87,7 +90,11 @@ import {
   TargetChangeTargetChangeType as ProtoTargetChangeTargetChangeType,
   Timestamp as ProtoTimestamp,
   Write as ProtoWrite,
-  WriteResult as ProtoWriteResult
+  WriteResult as ProtoWriteResult,
+  Value as ProtoValue,
+  MapValue as ProtoMapValue,
+  ExecutePipelineResponse as ProtoExecutePipelineResponse,
+  Pipeline
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -173,7 +180,7 @@ function fromRpcStatus(status: ProtoStatus): FirestoreError {
  * our generated proto interfaces say Int32Value must be. But GRPC actually
  * expects a { value: <number> } struct.
  */
-function toInt32Proto(
+export function toInt32Proto(
   serializer: JsonProtoSerializer,
   val: number | null
 ): number | { value: number } | null {
@@ -226,7 +233,10 @@ export function toTimestamp(
   }
 }
 
-function fromTimestamp(date: ProtoTimestamp): Timestamp {
+/**
+ * Returns a Timestamp typed object given protobuf timestamp value.
+ */
+export function fromTimestamp(date: ProtoTimestamp): Timestamp {
   const timestamp = normalizeTimestamp(date);
   return new Timestamp(timestamp.seconds, timestamp.nanos);
 }
@@ -257,6 +267,7 @@ export function fromBytes(
   if (serializer.useProto3Json) {
     hardAssert(
       value === undefined || typeof value === 'string',
+      0xe30b,
       'value must be undefined or a string when using proto3 Json'
     );
     return ByteString.fromBase64String(value ? value : '');
@@ -269,6 +280,7 @@ export function fromBytes(
         // does not indicate that it extends Uint8Array.
         value instanceof Buffer ||
         value instanceof Uint8Array,
+      0x3f41,
       'value must be undefined, Buffer, or Uint8Array'
     );
     return ByteString.fromUint8Array(value ? value : new Uint8Array());
@@ -283,7 +295,7 @@ export function toVersion(
 }
 
 export function fromVersion(version: ProtoTimestamp): SnapshotVersion {
-  hardAssert(!!version, "Trying to deserialize version that isn't set");
+  hardAssert(!!version, 0xc050, "Trying to deserialize version that isn't set");
   return SnapshotVersion.fromTimestamp(fromTimestamp(version));
 }
 
@@ -306,7 +318,9 @@ function fromResourceName(name: string): ResourcePath {
   const resource = ResourcePath.fromString(name);
   hardAssert(
     isValidResourceName(resource),
-    'Tried to deserialize invalid key ' + resource.toString()
+    0x27ce,
+    'Tried to deserialize invalid key',
+    { key: resource.toString() }
   );
   return resource;
 }
@@ -389,7 +403,9 @@ function extractLocalPathFromResourceName(
 ): ResourcePath {
   hardAssert(
     resourceName.length > 4 && resourceName.get(4) === 'documents',
-    'tried to deserialize invalid key ' + resourceName.toString()
+    0x71a3,
+    'tried to deserialize invalid key',
+    { key: resourceName.toString() }
   );
   return resourceName.popFirst(5);
 }
@@ -420,6 +436,37 @@ export function toDocument(
     updateTime: toTimestamp(serializer, document.version.toTimestamp()),
     createTime: toTimestamp(serializer, document.createTime.toTimestamp())
   };
+}
+
+export function fromPipelineResponse(
+  serializer: JsonProtoSerializer,
+  proto: ProtoExecutePipelineResponse,
+  document?: ProtoDocument
+): PipelineStreamElement {
+  const output: PipelineStreamElement = {};
+  if (proto.transaction?.length) {
+    output.transaction = proto.transaction;
+  }
+  const executionTime = proto.executionTime
+    ? fromVersion(proto.executionTime)
+    : undefined;
+  output.executionTime = executionTime;
+
+  if (!!document) {
+    output.key = document.name
+      ? fromName(serializer, document.name)
+      : undefined;
+
+    output.fields = new ObjectValue({ mapValue: { fields: document.fields } });
+
+    output.createTime = document.createTime
+      ? fromVersion(document.createTime!)
+      : undefined;
+    output.updateTime = document.updateTime
+      ? fromVersion(document.updateTime!)
+      : undefined;
+  }
+  return output;
 }
 
 export function fromDocument(
@@ -454,6 +501,7 @@ function fromFound(
 ): MutableDocument {
   hardAssert(
     !!doc.found,
+    0xaa33,
     'Tried to deserialize a found document from a missing document.'
   );
   assertPresent(doc.found.name, 'doc.found.name');
@@ -473,10 +521,12 @@ function fromMissing(
 ): MutableDocument {
   hardAssert(
     !!result.missing,
+    0x0f36,
     'Tried to deserialize a missing document from a found document.'
   );
   hardAssert(
     !!result.readTime,
+    0x5995,
     'Tried to deserialize a missing document without a read time.'
   );
   const key = fromName(serializer, result.missing);
@@ -493,7 +543,7 @@ export function fromBatchGetDocumentsResponse(
   } else if ('missing' in result) {
     return fromMissing(serializer, result);
   }
-  return fail('invalid batch get response: ' + JSON.stringify(result));
+  return fail(0x1c42, 'invalid batch get response', { result });
 }
 
 export function fromWatchChange(
@@ -578,7 +628,7 @@ export function fromWatchChange(
     const targetId = filter.targetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
-    return fail('Unknown change type ' + JSON.stringify(change));
+    return fail(0x2d51, 'Unknown change type', { change });
   }
   return watchChange;
 }
@@ -597,7 +647,7 @@ function fromWatchTargetChangeState(
   } else if (state === 'RESET') {
     return WatchTargetChangeState.Reset;
   } else {
-    return fail('Got unexpected TargetChange.state: ' + state);
+    return fail(0x9991, 'Got unexpected TargetChange.state', { state });
   }
 }
 
@@ -641,7 +691,9 @@ export function toMutation(
       verify: toName(serializer, mutation.key)
     };
   } else {
-    return fail('Unknown mutation type ' + mutation.type);
+    return fail(0x40d7, 'Unknown mutation type', {
+      mutationType: mutation.type
+    });
   }
 
   if (mutation.fieldTransforms.length > 0) {
@@ -697,7 +749,7 @@ export function fromMutation(
     const key = fromName(serializer, proto.verify);
     return new VerifyMutation(key, precondition);
   } else {
-    return fail('unknown mutation proto: ' + JSON.stringify(proto));
+    return fail(0x05b7, 'unknown mutation proto', { proto });
   }
 }
 
@@ -713,7 +765,7 @@ function toPrecondition(
   } else if (precondition.exists !== undefined) {
     return { exists: precondition.exists };
   } else {
-    return fail('Unknown precondition');
+    return fail(0x6b69, 'Unknown precondition');
   }
 }
 
@@ -755,6 +807,7 @@ export function fromWriteResults(
   if (protos && protos.length > 0) {
     hardAssert(
       commitTime !== undefined,
+      0x3811,
       'Received a write result without a commit time'
     );
     return protos.map(proto => fromWriteResult(proto, commitTime));
@@ -793,7 +846,9 @@ function toFieldTransform(
       increment: transform.operand
     };
   } else {
-    throw fail('Unknown transform: ' + fieldTransform.transform);
+    throw fail(0x51c2, 'Unknown transform', {
+      transform: fieldTransform.transform
+    });
   }
 }
 
@@ -805,7 +860,9 @@ function fromFieldTransform(
   if ('setToServerValue' in proto) {
     hardAssert(
       proto.setToServerValue === 'REQUEST_TIME',
-      'Unknown server value transform proto: ' + JSON.stringify(proto)
+      0x40f6,
+      'Unknown server value transform proto',
+      { proto }
     );
     transform = new ServerTimestampTransform();
   } else if ('appendMissingElements' in proto) {
@@ -820,7 +877,7 @@ function fromFieldTransform(
       proto.increment!
     );
   } else {
-    fail('Unknown transform proto: ' + JSON.stringify(proto));
+    fail(0x40c8, 'Unknown transform proto', { proto });
   }
   const fieldPath = FieldPath.fromServerFormat(proto.fieldPath!);
   return new FieldTransform(fieldPath, transform!);
@@ -839,7 +896,11 @@ export function fromDocumentsTarget(
   const count = documentsTarget.documents!.length;
   hardAssert(
     count === 1,
-    'DocumentsTarget contained other than 1 document: ' + count
+    0x07ae,
+    'DocumentsTarget contained other than 1 document',
+    {
+      count
+    }
   );
   const name = documentsTarget.documents![0];
   return queryToTarget(newQueryForPath(fromQueryPath(name)));
@@ -969,6 +1030,7 @@ export function convertQueryTargetToQuery(target: ProtoQueryTarget): Query {
   if (fromCount > 0) {
     hardAssert(
       fromCount === 1,
+      0xfe26,
       'StructuredQuery.from with more than one collection is not supported.'
     );
     const from = query.from![0];
@@ -1045,7 +1107,7 @@ export function toLabel(purpose: TargetPurpose): string | null {
     case TargetPurpose.LimboResolution:
       return 'limbo-document';
     default:
-      return fail('Unrecognized query purpose: ' + purpose);
+      return fail(0x713b, 'Unrecognized query purpose', { purpose });
   }
 }
 
@@ -1116,7 +1178,7 @@ function fromFilter(filter: ProtoFilter): Filter {
   } else if (filter.compositeFilter !== undefined) {
     return fromCompositeFilter(filter);
   } else {
-    return fail('Unknown filter: ' + JSON.stringify(filter));
+    return fail(0x7591, 'Unknown filter', { filter });
   }
 }
 
@@ -1210,9 +1272,9 @@ export function fromOperatorName(op: ProtoFieldFilterOp): Operator {
     case 'ARRAY_CONTAINS_ANY':
       return Operator.ARRAY_CONTAINS_ANY;
     case 'OPERATOR_UNSPECIFIED':
-      return fail('Unspecified operator');
+      return fail(0xe2fe, 'Unspecified operator');
     default:
-      return fail('Unknown operator');
+      return fail(0xc54a, 'Unknown operator');
   }
 }
 
@@ -1225,7 +1287,7 @@ export function fromCompositeOperatorName(
     case 'OR':
       return CompositeOperator.OR;
     default:
-      return fail('Unknown operator');
+      return fail(0x0402, 'Unknown operator');
   }
 }
 
@@ -1261,7 +1323,7 @@ export function toFilter(filter: Filter): ProtoFilter {
   } else if (filter instanceof CompositeFilter) {
     return toCompositeFilter(filter);
   } else {
-    return fail('Unrecognized filter type ' + JSON.stringify(filter));
+    return fail(0xd65d, 'Unrecognized filter type', { filter });
   }
 }
 
@@ -1346,9 +1408,9 @@ export function fromUnaryFilter(filter: ProtoFilter): Filter {
         nullValue: 'NULL_VALUE'
       });
     case 'OPERATOR_UNSPECIFIED':
-      return fail('Unspecified filter');
+      return fail(0xef81, 'Unspecified filter');
     default:
-      return fail('Unknown filter');
+      return fail(0xed36, 'Unknown filter');
   }
 }
 
@@ -1389,4 +1451,99 @@ export function isValidResourceName(path: ResourcePath): boolean {
     path.get(0) === 'projects' &&
     path.get(2) === 'databases'
   );
+}
+
+export interface ProtoSerializable<ProtoType> {
+  _toProto(serializer: JsonProtoSerializer): ProtoType;
+}
+
+export interface ProtoValueSerializable extends ProtoSerializable<ProtoValue> {
+  // Supports runtime identification of the ProtoSerializable<ProtoValue> type.
+  _protoValueType: 'ProtoValue';
+}
+
+export function isProtoValueSerializable(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any
+): value is ProtoValueSerializable {
+  return (
+    !!value &&
+    typeof value._toProto === 'function' &&
+    value._protoValueType === 'ProtoValue'
+  );
+}
+
+export function toMapValue(
+  serializer: JsonProtoSerializer,
+  input: Map<string, ProtoSerializable<ProtoValue>>
+): ProtoValue {
+  const map: ProtoMapValue = { fields: {} };
+  input.forEach((exp: ProtoSerializable<ProtoValue>, key: string) => {
+    if (typeof key !== 'string') {
+      throw new Error(`Cannot encode map with non-string key: ${key}`);
+    }
+
+    map.fields![key] = exp._toProto(serializer)!;
+  });
+  return {
+    mapValue: map
+  };
+}
+
+export function toNullValue(value: null): ProtoValue {
+  return { nullValue: 'NULL_VALUE' };
+}
+
+export function toBooleanValue(value: boolean): ProtoValue {
+  return { booleanValue: value };
+}
+
+export function toStringValue(value: string): ProtoValue {
+  return { stringValue: value };
+}
+
+export function toPipelineValue(value: Pipeline): ProtoValue {
+  return { pipelineValue: value };
+}
+
+export function dateToTimestampValue(
+  serializer: JsonProtoSerializer,
+  value: Date
+): ProtoValue {
+  const timestamp = Timestamp.fromDate(value);
+  return {
+    timestampValue: toTimestamp(serializer, timestamp)
+  };
+}
+
+export function timestampToTimestampValue(
+  serializer: JsonProtoSerializer,
+  value: Timestamp
+): ProtoValue {
+  // Firestore backend truncates precision down to microseconds. To ensure
+  // offline mode works the same in regards to truncation, perform the
+  // truncation immediately without waiting for the backend to do that.
+  const timestamp = new Timestamp(
+    value.seconds,
+    Math.floor(value.nanoseconds / 1000) * 1000
+  );
+  return {
+    timestampValue: toTimestamp(serializer, timestamp)
+  };
+}
+
+export function toGeoPointValue(value: GeoPoint): ProtoValue {
+  return {
+    geoPointValue: {
+      latitude: value.latitude,
+      longitude: value.longitude
+    }
+  };
+}
+
+export function toBytesValue(
+  serializer: JsonProtoSerializer,
+  value: Bytes
+): ProtoValue {
+  return { bytesValue: toBytes(serializer, value._byteString) };
 }

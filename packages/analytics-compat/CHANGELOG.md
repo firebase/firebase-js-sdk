@@ -1,5 +1,77 @@
 # @firebase/analytics-compat
 
+## 0.2.26
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/analytics@0.10.20
+  - @firebase/component@0.7.1
+
+## 0.2.25
+
+### Patch Changes
+
+- Updated dependencies [[`1bcf83d`](https://github.com/firebase/firebase-js-sdk/commit/1bcf83d7f0640dff67c20939fb9af7bae6a941e0)]:
+  - @firebase/analytics@0.10.19
+
+## 0.2.24
+
+### Patch Changes
+
+- [`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9) [#9167](https://github.com/firebase/firebase-js-sdk/pull/9167) - Set build targets to ES2020.
+
+- Updated dependencies [[`f18b25f`](https://github.com/firebase/firebase-js-sdk/commit/f18b25f73a05a696b6a9ed45702a84cc9dd5c6d9), [`25b60fd`](https://github.com/firebase/firebase-js-sdk/commit/25b60fdaabe910e1538684a3c490b0900fb5f113)]:
+  - @firebase/analytics@0.10.18
+  - @firebase/component@0.7.0
+  - @firebase/util@1.13.0
+
+## 0.2.23
+
+### Patch Changes
+
+- Updated dependencies [[`13e6cce`](https://github.com/firebase/firebase-js-sdk/commit/13e6cce882d687e06c8d9bfb56895f8a77fc57b5), [`42ac401`](https://github.com/firebase/firebase-js-sdk/commit/42ac4011787db6bb7a08f8c84f364ea86ea51e83)]:
+  - @firebase/analytics@0.10.17
+  - @firebase/util@1.12.1
+  - @firebase/component@0.6.18
+
+## 0.2.22
+
+### Patch Changes
+
+- Updated dependencies [[`8a03143`](https://github.com/firebase/firebase-js-sdk/commit/8a03143b9217effdd86d68bdf195493c0979aa27)]:
+  - @firebase/util@1.12.0
+  - @firebase/analytics@0.10.16
+  - @firebase/component@0.6.17
+
+## 0.2.21
+
+### Patch Changes
+
+- Updated dependencies [[`9bcd1ea`](https://github.com/firebase/firebase-js-sdk/commit/9bcd1ea9b8cc5b55692765d40df000da8ddef02b)]:
+  - @firebase/util@1.11.3
+  - @firebase/analytics@0.10.15
+  - @firebase/component@0.6.16
+
+## 0.2.20
+
+### Patch Changes
+
+- Updated dependencies [[`8593fa0`](https://github.com/firebase/firebase-js-sdk/commit/8593fa05bd884c2f1f6f3b4ae062efa48af93d24)]:
+  - @firebase/util@1.11.2
+  - @firebase/analytics@0.10.14
+  - @firebase/component@0.6.15
+
+## 0.2.19
+
+### Patch Changes
+
+- Updated dependencies [[`ea1f913`](https://github.com/firebase/firebase-js-sdk/commit/ea1f9139e6baec0269fbb91233fd3f7f4b0d5875), [`0e12766`](https://github.com/firebase/firebase-js-sdk/commit/0e127664946ba324c6566a02b393dafd23fc1ddb)]:
+  - @firebase/util@1.11.1
+  - @firebase/analytics@0.10.13
+  - @firebase/component@0.6.14
+
 ## 0.2.18
 
 ### Patch Changes

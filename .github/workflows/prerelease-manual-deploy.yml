@@ -25,6 +25,7 @@ on:
                 required: true
 jobs:
     deploy:
+        environment: release
         name: Prerelease Deploy
         runs-on: ubuntu-latest
     
@@ -34,14 +35,14 @@ jobs:
           with:
             # Canary release script requires git history and tags.
             fetch-depth: 0
-        - name: Set up node (20)
+        - name: Set up node (22)
           uses: actions/setup-node@v4
           with:
             node-version: 22.10.0
         - name: Yarn install
           run: yarn
         - name: Deploy prerelease
-          run: yarn release custom -p ${{ github.event.inputs.prereleaseName }} -t ${{ github.event.inputs.npmTag }}
+          run: yarn release custom -p ${GITHUB_EVENT_INPUTS_PRERELEASENAME} -t ${GITHUB_EVENT_INPUTS_NPMTAG}
           env:
             NPM_TOKEN_ANALYTICS: ${{secrets.NPM_TOKEN_ANALYTICS}}
             NPM_TOKEN_ANALYTICS_INTEROP_TYPES: ${{secrets.NPM_TOKEN_ANALYTICS_INTEROP_TYPES}}
@@ -74,6 +75,7 @@ jobs:
             NPM_TOKEN_STORAGE: ${{secrets.NPM_TOKEN_STORAGE}}
             NPM_TOKEN_STORAGE_TYPES: ${{secrets.NPM_TOKEN_STORAGE_TYPES}}
             NPM_TOKEN_UTIL: ${{secrets.NPM_TOKEN_UTIL}}
+            NPM_TOKEN_AI: ${{secrets.NPM_TOKEN_AI}}
             NPM_TOKEN_VERTEXAI: ${{secrets.NPM_TOKEN_VERTEXAI}}
             NPM_TOKEN_WEBCHANNEL_WRAPPER: ${{secrets.NPM_TOKEN_WEBCHANNEL_WRAPPER}}
             NPM_TOKEN_FIREBASE: ${{secrets.NPM_TOKEN_FIREBASE}}
@@ -92,4 +94,6 @@ jobs:
             NPM_TOKEN_APP_CHECK_COMPAT: ${{ secrets.NPM_TOKEN_APP_CHECK_COMPAT }}
             NPM_TOKEN_API_DOCUMENTER: ${{ secrets.NPM_TOKEN_API_DOCUMENTER }}
             CI: true
+            GITHUB_EVENT_INPUTS_PRERELEASENAME: ${{ github.event.inputs.prereleaseName }}
+            GITHUB_EVENT_INPUTS_NPMTAG: ${{ github.event.inputs.npmTag }}
     
