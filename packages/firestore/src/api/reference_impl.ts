@@ -280,17 +280,17 @@ export function getDocsFromServer<
  * Note that the returned `Promise` does _not_ resolve until the data is
  * successfully written to the remote Firestore backend and, similarly, is not
  * rejected until the remote Firestore backend reports an error saving the given
- * data. So if the client cannot reach the backend, for example due to being
- * offline, then the returned `Promise` will not resolve for a potentially-long
- * time, for example until the client has gone back online. That being said,
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
  * the given data _will_ be immediately saved to the local cache and will be
  * incorporated into future "get" operations as if it had been successfully
- * written to the remote Firestore server. The data will _eventually_ be written
- * to the remote Firestore backend once a connection can be established.
- * Therefore, it is usually undesirable to `await` the `Promise` returned from
- * this function because the indefinite amount of time before which the promise
- * resolves/rejects can block application logic unnecessarily, instead ignoring
- * the returned `Promise` and carrying on as if it had resolved.
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
@@ -310,17 +310,17 @@ export function setDoc<AppModelType, DbModelType extends DocumentData>(
  * Note that the returned `Promise` does _not_ resolve until the data is
  * successfully written to the remote Firestore backend and, similarly, is not
  * rejected until the remote Firestore backend reports an error saving the given
- * data. So if the client cannot reach the backend, for example due to being
- * offline, then the returned `Promise` will not resolve for a potentially-long
- * time, for example until the client has gone back online. That being said,
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
  * the given data _will_ be immediately saved to the local cache and will be
  * incorporated into future "get" operations as if it had been successfully
- * written to the remote Firestore server. The data will _eventually_ be written
- * to the remote Firestore backend once a connection can be established.
- * Therefore, it is usually undesirable to `await` the `Promise` returned from
- * this function because the indefinite amount of time before which the promise
- * resolves/rejects can block application logic unnecessarily, instead ignoring
- * the returned `Promise` and carrying on as if it had resolved.
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
  *
  * @param reference - A reference to the document to write.
  * @param data - A map of the fields and values for the document.
@@ -372,17 +372,17 @@ export function setDoc<AppModelType, DbModelType extends DocumentData>(
  * Note that the returned `Promise` does _not_ resolve until the data is
  * successfully written to the remote Firestore backend and, similarly, is not
  * rejected until the remote Firestore backend reports an error saving the given
- * data. So if the client cannot reach the backend, for example due to being
- * offline, then the returned `Promise` will not resolve for a potentially-long
- * time, for example until the client has gone back online. That being said,
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
  * the given data _will_ be immediately saved to the local cache and will be
  * incorporated into future "get" operations as if it had been successfully
- * written to the remote Firestore server. The data will _eventually_ be written
- * to the remote Firestore backend once a connection can be established.
- * Therefore, it is usually undesirable to `await` the `Promise` returned from
- * this function because the indefinite amount of time before which the promise
- * resolves/rejects can block application logic unnecessarily, instead ignoring
- * the returned `Promise` and carrying on as if it had resolved.
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
  *
  * @param reference - A reference to the document to update.
  * @param data - An object containing the fields and values with which to
@@ -407,17 +407,17 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(
  * Note that the returned `Promise` does _not_ resolve until the data is
  * successfully written to the remote Firestore backend and, similarly, is not
  * rejected until the remote Firestore backend reports an error saving the given
- * data. So if the client cannot reach the backend, for example due to being
- * offline, then the returned `Promise` will not resolve for a potentially-long
- * time, for example until the client has gone back online. That being said,
+ * data. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
  * the given data _will_ be immediately saved to the local cache and will be
  * incorporated into future "get" operations as if it had been successfully
- * written to the remote Firestore server. The data will _eventually_ be written
- * to the remote Firestore backend once a connection can be established.
- * Therefore, it is usually undesirable to `await` the `Promise` returned from
- * this function because the indefinite amount of time before which the promise
- * resolves/rejects can block application logic unnecessarily, instead ignoring
- * the returned `Promise` and carrying on as if it had resolved.
+ * written to the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The data will _eventually_ be written to the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
  *
  * @param reference - A reference to the document to update.
  * @param field - The first field to update.
@@ -482,19 +482,18 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(
  *
  * Note that the returned `Promise` does _not_ resolve until the document is
  * successfully deleted from the remote Firestore backend and, similarly, is not
- * rejected until the remote Firestore backend reports an error deleting the
- * document. So if the client cannot reach the backend, for example due to being
- * offline, then the returned `Promise` will not resolve for a potentially-long
- * time, for example until the client has gone back online. That being said,
- * the given document _will_ be immediately deleted in the local cache and will
- * be reflected in future "get" operations as if it had been successfully
- * deleted from the remote Firestore server. The document will _eventually_ be
- * deleted from the remote Firestore backend once a connection can be
- * established. Therefore, it is usually undesirable to `await` the `Promise`
- * returned from this function because the indefinite amount of time before
- * which the promise resolves/rejects can block application logic unnecessarily,
- * instead ignoring the returned `Promise` and carrying on as if it had
- * resolved.
+ * rejected until the remote Firestore backend reports an error deleting the given
+ * document. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given data _will_ be immediately deleted from the local cache and will be
+ * reflected in future "get" operations as if it had been successfully
+ * deleted from the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The document will _eventually_ be deleted from the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
  *
  * @param reference - A reference to the document to delete.
  * @returns A `Promise` that resolves once the document has been successfully
@@ -514,19 +513,19 @@ export function deleteDoc<AppModelType, DbModelType extends DocumentData>(
  * assigning it a document ID automatically.
  *
  * Note that the returned `Promise` does _not_ resolve until the document is
- * successfully created in the remote Firestore backend and, similarly, is not
- * rejected until the remote Firestore backend reports an error creating the
- * document. So if the client cannot reach the backend, for example due to being
- * offline, then the returned `Promise` will not resolve for a potentially-long
- * time, for example until the client has gone back online. That being said,
- * the given data _will_ be immediately saved to the local cache and will be
+ * successfully created to the remote Firestore backend and, similarly, is not
+ * rejected until the remote Firestore backend reports an error creating the given
+ * document. So if the client cannot reach the backend (for example, due to being
+ * offline) then the returned `Promise` will not resolve for a potentially-long
+ * time (for example, until the client has gone back online). That being said,
+ * the given document _will_ be immediately created in the local cache and will be
  * incorporated into future "get" operations as if it had been successfully
- * written to the remote Firestore server. The data will _eventually_ be written
- * to the remote Firestore backend once a connection can be established.
- * Therefore, it is usually undesirable to `await` the `Promise` returned from
- * this function because the indefinite amount of time before which the promise
- * resolves/rejects can block application logic unnecessarily, instead ignoring
- * the returned `Promise` and carrying on as if it had resolved.
+ * created in the remote Firestore server, a feature of Firestore called
+ * "latency compensation". The document will _eventually_ be created in the remote
+ * Firestore backend once a connection can be established. Therefore, it is
+ * usually undesirable to `await` the `Promise` returned from this function
+ * because the indefinite amount of time before which the promise resolves or
+ * rejects can block application logic unnecessarily.
  *
  * @param reference - A reference to the collection to add this document to.
  * @param data - An Object containing the data for the new document.
