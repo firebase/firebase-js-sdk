@@ -32,72 +32,72 @@ jobs:
       pull-requests: write
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
-      with:
-        # This makes Actions fetch all Git history so check_changeset script can diff properly.
-        fetch-depth: 0
-    - name: Set up Node (22)
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.10.0
-    - name: Yarn install
-      run: yarn
-    - name: Run changeset script
-      # pull main so changeset can diff against it
-      run: |
-        git pull -f --no-rebase origin main:main
-        yarn ts-node-script scripts/ci/check_changeset.ts
-      id: check-changeset
-    - name: Print changeset checker output
-      run: |
-        cat << 'eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE'
-        ${STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE}
-        eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE
-      env:
-        STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE: ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-    - name: Print blocking failure status
-      run: echo "${STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE}"
-      env:
-        STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
-    - name: Find Comment
-      # This commit represents v3.1.0
-      uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
-      id: fc
-      with:
-        issue-number: ${{github.event.number}}
-        body-includes: Changeset File Check
-    - name: Create comment (missing packages)
-      if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
-      with:
-        issue-number: ${{github.event.number}}
-        body: |
-          ### Changeset File Check :warning:
-          ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-    - name: Update comment (missing packages)
-      if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
-      with:
-        comment-id: ${{steps.fc.outputs.comment-id}}
-        edit-mode: replace
-        body: |
-          ### Changeset File Check :warning:
-          ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-    - name: Update comment (no missing packages)
-      if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
-      # This commit represents v4.0.0
-      uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
-      with:
-        comment-id: ${{steps.fc.outputs.comment-id}}
-        edit-mode: replace
-        body: |
-          ### Changeset File Check :white_check_mark:
-          - No modified packages are missing from the changeset file.
-          - No changeset formatting errors detected.
-    # Don't want it to throw before editing the comment.
-    - name: Fail if checker script logged a blocking failure
-      if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE == 'true'}}
-      run: exit 1
+      - name: Checkout Repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+        with:
+          # This makes Actions fetch all Git history so check_changeset script can diff properly.
+          fetch-depth: 0
+      - name: Set up Node (22)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
+        with:
+          node-version: 22.10.0
+      - name: Yarn install
+        run: yarn
+      - name: Run changeset script
+        # pull main so changeset can diff against it
+        run: |
+          git pull -f --no-rebase origin main:main
+          yarn ts-node-script scripts/ci/check_changeset.ts
+        id: check-changeset
+      - name: Print changeset checker output
+        run: |
+          cat << 'eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE'
+          ${STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE}
+          eof_delimiter_that_will_never_occur_in_CHANGESET_ERROR_MESSAGE
+        env:
+          STEPS_CHECK_CHANGESET_OUTPUTS_CHANGESET_ERROR_MESSAGE: ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+      - name: Print blocking failure status
+        run: echo "${STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE}"
+        env:
+          STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
+      - name: Find Comment
+        # This commit represents v3.1.0
+        uses: peter-evans/find-comment@3eae4d37986fb5a8592848f6a574fdf654e61f9e
+        id: fc
+        with:
+          issue-number: ${{github.event.number}}
+          body-includes: Changeset File Check
+      - name: Create comment (missing packages)
+        if: ${{!steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        # This commit represents v4.0.0
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
+        with:
+          issue-number: ${{github.event.number}}
+          body: |
+            ### Changeset File Check :warning:
+            ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+      - name: Update comment (missing packages)
+        if: ${{steps.fc.outputs.comment-id && steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        # This commit represents v4.0.0
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
+        with:
+          comment-id: ${{steps.fc.outputs.comment-id}}
+          edit-mode: replace
+          body: |
+            ### Changeset File Check :warning:
+            ${{steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+      - name: Update comment (no missing packages)
+        if: ${{steps.fc.outputs.comment-id && !steps.check-changeset.outputs.CHANGESET_ERROR_MESSAGE}}
+        # This commit represents v4.0.0
+        uses: peter-evans/create-or-update-comment@71345be0265236311c031f5c7866368bd1eff043
+        with:
+          comment-id: ${{steps.fc.outputs.comment-id}}
+          edit-mode: replace
+          body: |
+            ### Changeset File Check :white_check_mark:
+            - No modified packages are missing from the changeset file.
+            - No changeset formatting errors detected.
+      # Don't want it to throw before editing the comment.
+      - name: Fail if checker script logged a blocking failure
+        if: ${{steps.check-changeset.outputs.BLOCKING_FAILURE == 'true'}}
+        run: exit 1

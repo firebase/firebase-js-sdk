@@ -14,7 +14,7 @@
 
 name: Check Vertex AI Responses
 
-on: 
+on:
   pull_request:
     paths:
       - 'packages/ai/**'
@@ -27,7 +27,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
       - name: Clone mock responses
         run: scripts/update_vertexai_responses.sh
       - name: Find cloned and latest versions
@@ -58,7 +58,7 @@ jobs:
             should be updated to clone the latest version of the responses: `${{env.latest_tag}}`
       - name: Delete comment when version gets updated
         if: ${{env.cloned_tag == env.latest_tag && steps.fc.outputs.comment-id}}
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # ratchet:actions/github-script@v7
         with:
           script: |
             github.rest.issues.deleteComment({

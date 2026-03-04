@@ -25,62 +25,62 @@ jobs:
     name: Test Firestore Integration If Changed
     runs-on: ubuntu-latest
     env:
-        run_terraform_steps: ${{ secrets.JSSDK_ACTIONS_SA_KEY != '' }}
+      run_terraform_steps: ${{ secrets.JSSDK_ACTIONS_SA_KEY != '' }}
 
     steps:
-    - name: Checkout Repo
-      uses: actions/checkout@v4
-      with:
-        # This makes Actions fetch all Git history so run-changed script can diff properly.
-        fetch-depth: 0
-    # This commit represents v0.8.3
-    - uses: 'google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d'
-      if: ${{ fromJSON(env.run_terraform_steps) }}
-      with:
-        credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
+      - name: Checkout Repo
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
+        with:
+          # This makes Actions fetch all Git history so run-changed script can diff properly.
+          fetch-depth: 0
+      # This commit represents v0.8.3
+      - uses: 'google-github-actions/auth@fc2174804b84f912b1f6d334e9463f484f1c552d'
+        if: ${{ fromJSON(env.run_terraform_steps) }}
+        with:
+          credentials_json: '${{ secrets.JSSDK_ACTIONS_SA_KEY }}'
 
-    # create composite indexes with Terraform
-    - name: Setup Terraform
-      if: ${{ fromJSON(env.run_terraform_steps) }}
-      # This commit represents v3.1.2
-      uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
-    - name: Terraform Init
-      if: ${{ fromJSON(env.run_terraform_steps) }}
-      run: |
-        cp config/ci.config.json config/project.json
-        cd packages/firestore
-        terraform init
-      continue-on-error: true
-    - name: Terraform Apply
-      if: github.event_name == 'pull_request' && fromJSON(env.run_terraform_steps)
-      run: |
-        cd packages/firestore
+      # create composite indexes with Terraform
+      - name: Setup Terraform
+        if: ${{ fromJSON(env.run_terraform_steps) }}
+        # This commit represents v3.1.2
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
+      - name: Terraform Init
+        if: ${{ fromJSON(env.run_terraform_steps) }}
+        run: |
+          cp config/ci.config.json config/project.json
+          cd packages/firestore
+          terraform init
+        continue-on-error: true
+      - name: Terraform Apply
+        if: github.event_name == 'pull_request' && fromJSON(env.run_terraform_steps)
+        run: |
+          cd packages/firestore
 
-        # Define a temporary file, redirect both stdout and stderr to it
-        output_file=$(mktemp)
-        if ! terraform apply -var-file=../../config/project.json -auto-approve > "$output_file" 2>&1 ; then
-          cat "$output_file"
-          if cat "$output_file" | grep -q "index already exists"; then
-            echo "==================================================================================="
-            echo -e "\e[93m\e[1mTerraform apply failed due to index already exists; We can safely ignore this error.\e[0m"
-            echo "==================================================================================="
+          # Define a temporary file, redirect both stdout and stderr to it
+          output_file=$(mktemp)
+          if ! terraform apply -var-file=../../config/project.json -auto-approve > "$output_file" 2>&1 ; then
+            cat "$output_file"
+            if cat "$output_file" | grep -q "index already exists"; then
+              echo "==================================================================================="
+              echo -e "\e[93m\e[1mTerraform apply failed due to index already exists; We can safely ignore this error.\e[0m"
+              echo "==================================================================================="
+            fi
+            exit 1
           fi
-          exit 1
-        fi
-        rm -f "$output_file"
-      continue-on-error: true
+          rm -f "$output_file"
+        continue-on-error: true
 
-    - name: Set up Node (22)
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.10.0
-    - name: install Chrome stable
-      run: |
-        sudo apt-get update
-        sudo apt-get install google-chrome-stable
-    - name: Test setup and yarn install
-      run: yarn
-    - name: build
-      run: yarn build:changed firestore-integration
-    - name: Run tests if firestore or its dependencies has changed
-      run: yarn test:changed firestore-integration
+      - name: Set up Node (22)
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # ratchet:actions/setup-node@v4
+        with:
+          node-version: 22.10.0
+      - name: install Chrome stable
+        run: |
+          sudo apt-get update
+          sudo apt-get install google-chrome-stable
+      - name: Test setup and yarn install
+        run: yarn
+      - name: build
+        run: yarn build:changed firestore-integration
+      - name: Run tests if firestore or its dependencies has changed
+        run: yarn test:changed firestore-integration

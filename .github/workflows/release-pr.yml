@@ -30,13 +30,13 @@ jobs:
     if: ${{ !startsWith(github.event.head_commit.message, 'Version Packages (#') }}
     steps:
       - name: Checkout Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # ratchet:actions/checkout@v4
         with:
           # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
 
       - name: Setup Node.js 20.x
-        uses: actions/setup-node@master
+        uses: actions/setup-node@60c11408891ef62846c29c28c2374afe5c91fad5 # ratchet:actions/setup-node@master
         with:
           node-version: 22.10.0
 
@@ -52,6 +52,6 @@ jobs:
           yarn ts-node-script scripts/ci/add_changeset.ts
 
       - name: Create Release Pull Request
-        uses: changesets/action@v1
+        uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf # ratchet:changesets/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.OSS_BOT_GITHUB_TOKEN }}
