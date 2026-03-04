@@ -291,6 +291,12 @@ export function documentId(documentPath: string | DocumentReference): FunctionEx
 // @beta
 export function documentId(documentPathExpr: Expression): FunctionExpression;
 
+// Warning: (ae-incompatible-release-tags) The symbol "documentMatches" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "documentMatches" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+//
+// @public
+export function documentMatches(rquery: string | Expression): BooleanExpression;
+
 // @beta
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
@@ -411,6 +417,10 @@ export abstract class Expression {
     ascending(): Ordering;
     /* Excluded from this release type: _readUserData */
     average(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
+    between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     byteLength(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -567,6 +577,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    snippet(rquery: string): Expression;
+    /* Excluded from this release type: _readUserData */
+    snippet(options: SnippetOptions): Expression;
+    /* Excluded from this release type: _readUserData */
     split(delimiter: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     split(delimiter: Expression): FunctionExpression;
@@ -643,6 +657,8 @@ export class Field extends Expression implements Selectable {
     readonly expressionType: ExpressionType;
     // (undocumented)
     get fieldName(): string;
+    geoDistance(location: GeoPoint | Expression): Expression;
+    matches(rquery: string | Expression): BooleanExpression;
     // (undocumented)
     selectable: true;
 }
@@ -671,10 +687,15 @@ export function floor(fieldName: string): FunctionExpression;
 // @beta
 export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[]);
-    constructor(name: string, params: Expression[], _methodName: string | undefined);
     // (undocumented)
     readonly expressionType: ExpressionType;
     }
+
+// Warning: (ae-incompatible-release-tags) The symbol "geoDistance" is marked as @public, but its signature references "Field" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "geoDistance" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public
+export function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
 
 // @beta
 export function greaterThan(left: Expression, right: Expression): BooleanExpression;
@@ -854,6 +875,13 @@ export function mapRemove(mapField: string, keyExpr: Expression): FunctionExpres
 // @beta
 export function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
 
+// Warning: (ae-incompatible-release-tags) The symbol "matches" is marked as @public, but its signature references "Field" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "matches" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "matches" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+//
+// @public
+export function matches(searchField: string | Field, rquery: string | Expression): BooleanExpression;
+
 // @beta
 export function maximum(expression: Expression): AggregateFunction;
 
@@ -975,6 +1003,7 @@ export class Pipeline {
     sample(documents: number): Pipeline;
     // (undocumented)
     sample(options: SampleStageOptions): Pipeline;
+    search(options: SearchStageOptions): Pipeline;
     // (undocumented)
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     // (undocumented)
@@ -1053,6 +1082,9 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
 
 // @beta
 export function pow(base: string, exponent: number): FunctionExpression;
+
+// @public
+export type QueryExpansion = 'disabled' | 'enabled' | 'preferred';
 
 // @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
@@ -1136,6 +1168,25 @@ export type SampleStageOptions = StageOptions & OneOf<{
     documents: number;
 }>;
 
+// Warning: (ae-incompatible-release-tags) The symbol "searchScore" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public
+export function searchScore(): Expression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "SearchStageOptions" is marked as @public, but its signature references "StageOptions" which is marked as @beta
+//
+// @public
+export type SearchStageOptions = StageOptions & {
+    query?: BooleanExpression | string;
+    limit?: number;
+    retrievalDepth?: number;
+    sort?: Ordering | Ordering[];
+    addFields?: Selectable[];
+    select?: Array<Selectable | string>;
+    offset?: number;
+    queryExpansion?: QueryExpansion;
+};
+
 // @beta
 export interface Selectable {
     // (undocumented)
@@ -1146,6 +1197,26 @@ export interface Selectable {
 export type SelectStageOptions = StageOptions & {
     selections: Array<Selectable | string>;
 };
+
+// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Field" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public
+export function snippet(searchField: string | Field, rquery: string): Expression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Field" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public
+export function snippet(searchField: string | Field, options: SnippetOptions): Expression;
+
+// @public
+export interface SnippetOptions {
+    maxSnippets?: number;
+    maxSnippetWidth?: number;
+    rquery: string;
+    separator?: string;
+}
 
 // @beta
 export type SortStageOptions = StageOptions & {
@@ -1361,6 +1432,13 @@ export type WhereStageOptions = StageOptions & {
 // @beta
 export function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
 
+
+// Warnings were encountered during analysis:
+//
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5955:5 - (ae-incompatible-release-tags) The symbol "query" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5969:5 - (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5973:5 - (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:5978:5 - (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

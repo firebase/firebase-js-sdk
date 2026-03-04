@@ -263,7 +263,7 @@ export type FindNearestStageOptions = StageOptions & {
 };
 
 /**
- * Specifies if the `queryMatch` and `snippet` expressions will expand the user
+ * Specifies if the `matches` and `snippet` expressions will expand the user
  * provided query to perform matching of synonyms, misspellings, lemmatization,
  * stemming.
  *
@@ -315,7 +315,7 @@ export type SearchStageOptions = StageOptions & {
    * The maximum number of documents for the search stage to score. Documents
    * will be processed in the pre-sort order specified by the search index.
    */
-  maxToScore?: number;
+  retrievalDepth?: number;
   /**
    * Orderings specify how the input documents are sorted.
    * One or more ordering are required.

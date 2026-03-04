@@ -2927,11 +2927,11 @@ export class Field extends Expression implements Selectable {
    *
    * @param rquery Define the search query using the rquery DTS.
    */
-  queryMatch(rquery: string | Expression): BooleanExpression {
+  matches(rquery: string | Expression): BooleanExpression {
     return new FunctionExpression(
-      'query_match',
+      'matches',
       [this, valueToDefaultExpr(rquery)],
-      'queryMatch'
+      'matches'
     ).asBoolean();
   }
 
@@ -8864,10 +8864,12 @@ export function type(
  * @param searchField Search the specified field.
  * @param rquery Define the search query using the search DTS.
  */
-export function queryMatch(
+export function matches(
   searchField: string | Field,
   rquery: string | Expression
-): BooleanExpression;
+): BooleanExpression {
+  return toField(searchField).matches(rquery);
+}
 
 /**
  * Perform a full-text search on the document.
@@ -8876,34 +8878,14 @@ export function queryMatch(
  *
  * @param rquery Define the search query using the rquery DTS.
  */
-export function queryMatch(rquery: string | Expression): BooleanExpression;
-
-export function queryMatch(
-  searchFieldOrRquery: string | Field | Expression,
-  rquery?: string | Expression
+export function documentMatches(
+  rquery: string | Expression
 ): BooleanExpression {
-  if (rquery === undefined) {
-    // Searching the document
-    rquery = searchFieldOrRquery;
-    return new FunctionExpression(
-      'query_match',
-      [valueToDefaultExpr(rquery)],
-      'queryMatch'
-    ).asBoolean();
-  } else if (
-    isString(searchFieldOrRquery) ||
-    searchFieldOrRquery instanceof Field
-  ) {
-    // Searching a field
-    const searchField: Field = toField(searchFieldOrRquery);
-    return searchField.queryMatch(rquery);
-  } else {
-    // This case is not allowed by the TypeScript API, but JS will permit
-    throw new FirestoreError(
-      'invalid-argument',
-      'You cannot search a field with an undefined rquery'
-    );
-  }
+  return new FunctionExpression(
+    'document_matches',
+    [valueToDefaultExpr(rquery)],
+    'documentMatches'
+  ).asBoolean();
 }
 
 /**
@@ -8914,12 +8896,8 @@ export function queryMatch(
  *
  * @remarks This Expression can only be used within a `Search` stage.
  */
-export function queryScore(): Expression {
-  return new FunctionExpression(
-    'topicality_score',
-    [],
-    'queryScore'
-  ).asBoolean();
+export function searchScore(): Expression {
+  return new FunctionExpression('search_score', [], 'searchScore').asBoolean();
 }
 
 /**

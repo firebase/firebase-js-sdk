@@ -717,8 +717,8 @@ export class Search extends Stage {
       limit: {
         serverName: 'limit'
       },
-      maxToScore: {
-        serverName: 'max_to_score'
+      retrievalDepth: {
+        serverName: 'retrieval_depth'
       },
       sort: {
         serverName: 'sort'

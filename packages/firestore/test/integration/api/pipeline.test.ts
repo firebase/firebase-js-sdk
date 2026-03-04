@@ -143,8 +143,8 @@ import {
   timestampTruncate,
   split,
   type,
-  queryMatch,
-  queryScore
+  searchScore,
+  documentMatches
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -2203,97 +2203,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             computedDistance: 12.041594578792296
           }
         );
-      });
-    });
-
-    describe('search stage', () => {
-      it('document contains text', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: queryMatch('waffles')
-          });
-      });
-
-      it('field contains text', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: field('description').queryMatch('waffles')
-          });
-      });
-
-      it('geo near query', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: field('location')
-              .geoDistance(new GeoPoint(38.989177, -107.065076))
-              .lessThan(1000 /* m */)
-          });
-      });
-
-      it('geo near query with ordering by query/geo-distance', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: field('location')
-              .geoDistance(new GeoPoint(38.989177, -107.065076))
-              .lessThan(1000 /* m */),
-            sort: field('location')
-              .geoDistance(new GeoPoint(38.989177, -107.065076))
-              .ascending()
-          });
-      });
-
-      it('sort by geo-distance with unrelated query', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: field('description').queryMatch('waffles'),
-            sort: field('location')
-              .geoDistance(new GeoPoint(38.989177, -107.065076))
-              .ascending()
-          });
-      });
-
-      it('conjunction of query predicates', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: and(
-              field('description').queryMatch('waffles'),
-              field('location')
-                .geoDistance(new GeoPoint(38.989177, -107.065076))
-                .lessThan(1000)
-            )
-          });
-      });
-
-      it('everything bagel', async () => {
-        firestore
-          .pipeline()
-          .collection('restaurants')
-          .search({
-            query: field('menu').queryMatch('waffles'),
-            addFields: [
-              field('menu')
-                .snippet({
-                  rquery: 'waffles',
-                  maxSnippetWidth: 2000,
-                  maxSnippets: 2,
-                  separator: '...'
-                })
-                .as('snippet')
-            ],
-            queryExpansion: 'enabled'
-          });
       });
     });
   });
@@ -4577,7 +4486,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: queryMatch('waffles'),
+                query: documentMatches('waffles'),
                 queryExpansion: 'disabled'
               });
 
@@ -4590,7 +4499,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('waffles'),
+                query: field('menu').matches('waffles'),
                 queryExpansion: 'disabled'
               });
 
@@ -4619,8 +4528,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: and(
-                  field('menu').queryMatch('waffles'),
-                  field('description').queryMatch('diner')
+                  field('menu').matches('waffles'),
+                  field('description').matches('diner')
                 ),
                 queryExpansion: 'disabled'
               });
@@ -4635,7 +4544,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: and(
-                  field('menu').queryMatch('tacos'),
+                  field('menu').matches('tacos'),
                   field('location')
                     .geoDistance(new GeoPoint(39.6985, -105.024))
                     .lessThan(10_000 /* meters */)
@@ -4652,7 +4561,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('-waffles'),
+                query: field('menu').matches('-waffles'),
                 queryExpansion: 'disabled'
               });
 
@@ -4673,7 +4582,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: queryMatch('(waffles OR pancakes) AND coffee'),
+                query: documentMatches('(waffles OR pancakes) AND coffee'),
                 queryExpansion: 'disabled'
               });
 
@@ -4708,7 +4617,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: and(
-                  queryMatch('tacos'),
+                  documentMatches('tacos'),
                   field('average_price_per_person').between(8, 15)
                 ),
                 queryExpansion: 'disabled'
@@ -4725,9 +4634,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('waffles'),
+                query: field('menu').matches('waffles'),
                 addFields: [
-                  queryScore().as('searchScore'),
+                  searchScore().as('searchScore'),
                   field('menu').snippet('waffles').as('snippet')
                 ],
                 queryExpansion: 'disabled'
@@ -4752,11 +4661,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('waffles'),
+                query: field('menu').matches('waffles'),
                 select: [
                   field('name'),
                   'location',
-                  queryScore().as('searchScore'),
+                  searchScore().as('searchScore'),
                   field('menu').snippet('waffles').as('snippet')
                 ],
                 queryExpansion: 'disabled'
@@ -4786,8 +4695,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('tacos'),
-                sort: queryScore().descending(),
+                query: field('menu').matches('tacos'),
+                sort: searchScore().descending(),
                 queryExpansion: 'disabled'
               });
 
@@ -4800,7 +4709,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('tacos'),
+                query: field('menu').matches('tacos'),
                 sort: field('location')
                   .geoDistance(new GeoPoint(39.6985, -105.024))
                   .ascending(),
@@ -4816,12 +4725,12 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch('tacos OR chicken'),
+                query: field('menu').matches('tacos OR chicken'),
                 sort: [
                   field('location')
                     .geoDistance(new GeoPoint(39.6985, -105.024))
                     .ascending(),
-                  queryScore().descending()
+                  searchScore().descending()
                 ],
                 queryExpansion: 'disabled'
               });
@@ -4863,10 +4772,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
-                query: field('menu').queryMatch(
+                query: field('menu').matches(
                   'chicken OR tacos OR fish OR waffles'
                 ),
-                maxToScore: 6,
+                retrievalDepth: 6,
                 queryExpansion: 'disabled'
               });
 
@@ -4901,7 +4810,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection('restaurants')
             .search({
-              query: queryMatch('waffles'),
+              query: documentMatches('waffles'),
               queryExpansion: 'enabled'
             });
 
@@ -4914,7 +4823,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .pipeline()
             .collection('restaurants')
             .search({
-              query: field('menu').queryMatch('waffles'),
+              query: field('menu').matches('waffles'),
               queryExpansion: 'enabled'
             });
 
@@ -4930,7 +4839,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection('restaurants')
           .search({
-            query: field('menu').queryMatch('waffles'),
+            query: field('menu').matches('waffles'),
             addFields: [
               field('menu')
                 .snippet({
@@ -4953,7 +4862,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection('restaurants')
           .search({
-            query: field('menu').queryMatch('waffles'),
+            query: field('menu').matches('waffles'),
             addFields: [
               field('menu')
                 .snippet({
@@ -4983,7 +4892,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection('restaurants')
           .search({
-            query: queryMatch('waffle'),
+            query: documentMatches('waffle'),
             addFields: [
               field('menu')
                 .snippet({
@@ -5007,7 +4916,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .pipeline()
           .collection('restaurants')
           .search({
-            query: queryMatch('waffle'),
+            query: documentMatches('waffle'),
             addFields: [
               concat(field('menu'), field('description'))
                 .snippet({
