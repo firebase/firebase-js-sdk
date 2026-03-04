@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/packages/*"
+      - "/integration/*"
+      - "/e2e/*"
+      - "/repo-scripts/**/*"
+    exclude-paths:
+      - "/packages/auth/demo"
+      - "/packages/auth/cordova/demo"
+      - "/packages/auth-compat/demo"
+    schedule:
+      interval: "daily"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
