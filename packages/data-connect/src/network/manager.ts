@@ -19,14 +19,14 @@ import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
+import { RESTTransport } from './rest';
 import {
   CallerSdkType,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   DataConnectTransportInterface,
   SubscribeNotificationHook
-} from './DataConnectTransport';
-import { RESTTransport } from './rest';
+} from './transport';
 
 /**
  * Entry point for the transport layer. Manages routing between transport implementations.

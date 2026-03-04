@@ -15,4 +15,4 @@
  * limitations under the License.
  */
 
-export * from './DataConnectTransport';
+export * from './transport';

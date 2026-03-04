@@ -23,6 +23,7 @@ import sinonChai from 'sinon-chai';
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import {
   DataConnectResponse,
+  DataConnectResponseWithMaxAge,
   SubscribeNotificationHook
 } from '../../src/network';
 import { DataConnectTransportManager } from '../../src/network/manager';
@@ -61,7 +62,7 @@ describe('DataConnectTransportManager', () => {
         (manager as unknown as { restTransport: RESTTransport }).restTransport,
         'invokeQuery'
       )
-      .resolves({ data: testData } as DataConnectResponse<TestData>);
+      .resolves({ data: testData } as DataConnectResponseWithMaxAge<TestData>);
 
     await manager.invokeQuery<TestData, TestVariables>(
       'testQuery',
