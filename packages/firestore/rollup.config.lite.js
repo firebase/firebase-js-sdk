@@ -69,7 +69,7 @@ const allBuilds = [
     output: {
       dir: 'dist/intermediate/lite/',
       entryFileNames: '[name].browser.js',
-      chunkFileNames: 'common-[hash].browser.js',
+      chunkFileNames: 'common.browser.js',
       format: 'es',
       sourcemap: true
     },
@@ -174,7 +174,7 @@ const allBuilds = [
     output: {
       dir: 'dist/intermediate/lite/',
       entryFileNames: '[name].browser.js',
-      chunkFileNames: 'common-[hash].browser.js',
+      chunkFileNames: 'common.browser.js',
       format: 'es',
       sourcemap: true
     },
