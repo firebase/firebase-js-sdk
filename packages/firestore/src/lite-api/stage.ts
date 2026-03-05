@@ -34,6 +34,7 @@ import { hardAssert } from '../util/assert';
 
 import {
   AggregateFunction,
+  AliasedExpression,
   BooleanExpression,
   Expression,
   Field,
@@ -141,6 +142,42 @@ export class RemoveFields extends Stage {
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.fields, context);
+  }
+}
+
+/**
+ * @beta
+ */
+export class Define extends Stage {
+  get _name(): string {
+    return 'let';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(
+    private aliasedExpressions: Map<string, Expression>,
+    options: StageOptions
+  ) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [toMapValue(serializer, this.aliasedExpressions)]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    readUserDataHelper(this.aliasedExpressions, context);
   }
 }
 

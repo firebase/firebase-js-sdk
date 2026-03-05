@@ -27,9 +27,12 @@ import {
   field,
   Field,
   map,
-  Selectable
+  Selectable,
+  pipelineValue
 } from '../lite-api/expressions';
+import { Pipeline } from '../lite-api/pipeline';
 import { VectorValue } from '../lite-api/vector_value';
+import { toPipelineValue } from '../remote/serializer';
 
 import { fail } from './assert';
 import { isPlainObject } from './input_validation';
@@ -148,6 +151,8 @@ export function valueToDefaultExpr(value: unknown): Expression {
     result = map(value as Record<string, unknown>);
   } else if (value instanceof Array) {
     result = array(value);
+  } else if (value instanceof Pipeline) {
+    result = pipelineValue(value);
   } else {
     result = _constant(value, undefined);
   }

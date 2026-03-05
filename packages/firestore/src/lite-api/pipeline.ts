@@ -25,6 +25,7 @@ import {
   aliasedAggregateToMap,
   fieldOrExpression,
   selectablesToMap,
+  valueToDefaultExpr,
   vectorToExpr
 } from '../util/pipeline_util';
 import { isNumber, isString } from '../util/types';
@@ -48,7 +49,9 @@ import {
   isAliasedAggregate,
   toField,
   isOrdering,
-  isExpr
+  isExpr,
+  AliasedExpression,
+  FunctionExpression
 } from './expressions';
 import {
   AddFields,
@@ -66,7 +69,8 @@ import {
   Stage,
   Union,
   Unnest,
-  Where
+  Where,
+  Define
 } from './stage';
 import {
   AddFieldsStageOptions,
@@ -325,6 +329,70 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * Example:
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param aliasedExpression - The first variable to define, specified as an {@link @firebase/firestore/pipelines#AliasedExpression}.
+   * @param additionalExpressions - Optional additional variables to define, specified as
+   * {@link @firebase/firestore/pipelines#AliasedExpression}s.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(
+    aliasedExpression: AliasedExpression, // TODO: accept options?
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline {
+    const options = {}; // placeholder
+    const aliasedExpressions: AliasedExpression[] = [
+      aliasedExpression,
+      ...additionalExpressions
+    ];
+
+    const convertedExpressions: Map<string, Expression> =
+      selectablesToMap(aliasedExpressions);
+
+    const stage = new Define(convertedExpressions, options);
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'define'
+    );
+    stage._readUserData(parseContext);
+
+    return this._addStage(stage);
+  }
+
+  toArrayExpression(): Expression {
+    return new FunctionExpression('array', [fieldOrExpression(this)]);
+  }
+
+  toScalarExpression(): Expression {
+    return new FunctionExpression('scalar', [fieldOrExpression(this)]);
   }
 
   /**

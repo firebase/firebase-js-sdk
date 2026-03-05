@@ -26,6 +26,7 @@ import {
   JsonProtoSerializer,
   ProtoValueSerializable,
   toMapValue,
+  toPipelineValue,
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
@@ -37,6 +38,7 @@ import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
+import { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -53,7 +55,9 @@ export type ExpressionType =
   | 'Function'
   | 'AggregateFunction'
   | 'ListOfExpressions'
-  | 'AliasedExpression';
+  | 'AliasedExpression'
+  | 'Variable'
+  | 'PipelineValue';
 
 /**
  * @beta
@@ -9871,6 +9875,111 @@ export function timestampTruncate(
     internalGranularity,
     timezone
   );
+}
+
+/**
+ * @beta
+ * Creates an expression that retrieves the value of a variable bound via {@link @firebase/firestore/pipelines#Pipeline.define}.
+ *
+ * @example
+ * ```typescript
+ * // Define a variable "discountedPrice" and use it in a filter
+ * firestore.pipeline().collection("products")
+ *     .define(constant(100).as("threshold"))
+ *     .where(variable("discountedPrice").lessThan(variable("threshold")));
+ * ```
+ *
+ * @param name - The name of the variable to retrieve.
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the variable's value.
+ */
+export function variable(name: string): VariableExpression {
+  return new VariableExpression(name);
+}
+
+/**
+ * @internal
+ *
+ * Expression representing a variable reference. This evaluates to the value of a variable
+ * defined in a pipeline.
+ */
+export class VariableExpression extends Expression {
+  readonly _methodName?: string | undefined;
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly name: string) {
+    super();
+  }
+
+  expressionType: ExpressionType = 'Variable';
+
+  /**
+   * @internal
+   */
+  _toProto(_: JsonProtoSerializer): ProtoValue {
+    return {
+      variableReferenceValue: this.name
+    };
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(_: ParseContext): void {}
+}
+
+/**
+ * @beta
+ * Creates an expression that represents the current document being processed.
+ *
+ * @example
+ * ```typescript
+ * // Define the current document as a variable "doc"
+ * firestore.pipeline().collection("books")
+ *     .define(currentDocument().as("doc"))
+ *     // Access a field from the defined document variable
+ *     .select(variable("doc").mapGet("title"));
+ * ```
+ *
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the current document.
+ */
+export function currentDocument(): Expression {
+  return new FunctionExpression('current_document', []);
+}
+
+/**
+ * @internal
+ */
+export function pipelineValue(pipeline: Pipeline): PipelineValueExpression {
+  return new PipelineValueExpression(pipeline);
+}
+
+/**
+ * @internal
+ */
+class PipelineValueExpression extends Expression {
+  readonly _methodName?: string | undefined;
+  expressionType: ExpressionType = 'PipelineValue'; // FIXME
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly pipeline: Pipeline) {
+    super();
+  }
+
+  /**
+   * @internal
+   */
+  _toProto(jsonProtoSerializer: JsonProtoSerializer): ProtoValue {
+    return toPipelineValue(this.pipeline._toProto(jsonProtoSerializer));
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(_: ParseContext): void {}
 }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line

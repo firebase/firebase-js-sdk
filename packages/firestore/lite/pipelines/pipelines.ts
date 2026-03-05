@@ -199,6 +199,7 @@ export {
   arraySum,
   split,
   timestampTruncate,
+  variable,
   AliasedExpression,
   Field,
   Constant,
