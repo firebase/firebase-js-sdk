@@ -81,7 +81,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private get _shouldIncludeAuth(): boolean {
     return (
-      this._authToken !== this._lastSentAuthToken || this._isFirstStreamMessage
+      this._isFirstStreamMessage || this._authToken !== this._lastSentAuthToken
     );
   }
   /**

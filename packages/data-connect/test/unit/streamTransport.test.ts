@@ -19,13 +19,13 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import { getGoogApiClientValue } from '../../src/network';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import {
   DataConnectStreamRequest,
   ExecuteStreamRequest,
   SubscribeStreamRequest
 } from '../../src/network/stream/wire';
-import { getGoogApiClientValue } from '../../src/network';
 
 use(sinonChai);
 
@@ -105,7 +105,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const firstPreparedMessage = (transport as any)._prepareMessage(
         initialRequest
-      ) as ExecuteStreamRequest<unknown>;
+      );
       expect(firstPreparedMessage.requestId).to.equal(initialRequest.requestId);
       expect(firstPreparedMessage.execute).to.equal(initialRequest.execute);
       expect(firstPreparedMessage.resume).to.equal(initialRequest.resume);
@@ -118,8 +118,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const firstPreparedMessage = (transport as any)._prepareMessage(
         initialRequest
-      ) as ExecuteStreamRequest<unknown>;
-
+      );
       expect(firstPreparedMessage.name).to.equal(expectedName);
       expect(firstPreparedMessage.headers).to.exist;
       expect(firstPreparedMessage.headers?.authToken).to.equal(
@@ -133,7 +132,6 @@ describe('AbstractDataConnectStreamTransport', () => {
     it('should NOT add name to subsequent messages', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (transport as any)._prepareMessage(initialRequest);
-
       const secondRequest: SubscribeStreamRequest<unknown> = {
         requestId: '2',
         subscribe: { operationName: 'test2' }
@@ -142,68 +140,62 @@ describe('AbstractDataConnectStreamTransport', () => {
       const secondPreparedMessage = (transport as any)._prepareMessage(
         secondRequest
       );
-
       expect(secondPreparedMessage.name).to.be.undefined;
     });
 
-    // it('should include auth token only when it changes', () => {
-    //   transport.setAuthToken('token1');
-    //   const req1: ExecuteStreamRequest<unknown> = {
-    //     requestId: '1',
-    //     execute: { operationName: 'test' }
-    //   };
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const prepared1 = (transport as any)._prepareMessage(req1);
-    //   expect(prepared1.headers?.authToken).to.equal('token1');
+    it('should NOT add the same auth token to subsequent messages', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (transport as any)._prepareMessage(initialRequest);
+      const secondRequest: SubscribeStreamRequest<unknown> = {
+        requestId: '2',
+        subscribe: { operationName: 'test2' }
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const secondPreparedMessage = (transport as any)._prepareMessage(
+        secondRequest
+      );
+      expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
+    });
 
-    //   // Second message: no auth change
-    //   const req2: ExecuteStreamRequest<unknown> = {
-    //     requestId: '2',
-    //     execute: { operationName: 'test2' }
-    //   };
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const prepared2 = (transport as any)._prepareMessage(req2);
-    //   expect(prepared2.headers?.authToken).to.be.undefined;
+    it('should include auth token when it changes', () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const firstPreparedMessage = (transport as any)._prepareMessage(
+        initialRequest
+      ) as ExecuteStreamRequest<unknown>;
+      expect(firstPreparedMessage.headers?.authToken).to.equal(
+        initialAuthToken
+      );
+      const secondRequest: ExecuteStreamRequest<unknown> = {
+        requestId: '2',
+        execute: { operationName: 'test2' }
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const secondPreparedMessage = (transport as any)._prepareMessage(
+        secondRequest
+      ) as ExecuteStreamRequest<unknown>;
+      expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
+      transport.setAuthToken(newAuthToken);
+      const thirdRequest: ExecuteStreamRequest<unknown> = {
+        requestId: '3',
+        execute: { operationName: 'test3' }
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const thirdPreparedMessage = (transport as any)._prepareMessage(
+        thirdRequest
+      ) as ExecuteStreamRequest<unknown>;
+      expect(thirdPreparedMessage.headers?.authToken).to.equal(newAuthToken);
+    });
 
-    //   // Change auth
-    //   transport.setAuthToken('token2');
-    //   const req3: ExecuteStreamRequest<unknown> = {
-    //     requestId: '3',
-    //     execute: { operationName: 'test3' }
-    //   };
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const prepared3 = (transport as any)._prepareMessage(req3);
-    //   expect(prepared3.headers?.authToken).to.equal('token2');
-    // });
-
-    // it('should reset first message state on connection ready', () => {
-    //   const req1: ExecuteStreamRequest<unknown> = {
-    //     requestId: '1',
-    //     execute: { operationName: 'test' }
-    //   };
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   (transport as any)._prepareMessage(req1);
-
-    //   transport.triggerOnConnectionReady();
-
-    //   const req2: ExecuteStreamRequest<unknown> = {
-    //     requestId: '2',
-    //     execute: { operationName: 'test2' }
-    //   };
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const prepared2 = (transport as any)._prepareMessage(req2);
-    //   expect(prepared2.name).to.exist; // Should contain name again
-    // });
-
-    // it('should include AppCheck token on first message', () => {
-    //   transport.setAppCheckToken('app-check-token');
-    //   const req: ExecuteStreamRequest<unknown> = {
-    //     requestId: '1',
-    //     execute: { operationName: 'test' }
-    //   };
-    //   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //   const prepared = (transport as any)._prepareMessage(req);
-    //   expect(prepared.headers?.appCheckToken).to.equal('app-check-token');
-    // });
+    it('should include AppCheck token on first message', () => {
+      const appCheckToken = 'app-check-token';
+      transport.setAppCheckToken(appCheckToken);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const firstPreparedMessage = (transport as any)._prepareMessage(
+        initialRequest
+      ) as ExecuteStreamRequest<unknown>;
+      expect(firstPreparedMessage.headers?.appCheckToken).to.equal(
+        appCheckToken
+      );
+    });
   });
 });
