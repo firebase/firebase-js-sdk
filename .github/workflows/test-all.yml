@@ -57,7 +57,7 @@ jobs:
         gzip build.tar
     - name: Upload build archive
       if: ${{ !cancelled() }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
           name: build.tar.gz
           path: build.tar.gz
