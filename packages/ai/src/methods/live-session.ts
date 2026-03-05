@@ -24,7 +24,9 @@ import {
   LiveServerGoingAwayNotice,
   LiveServerToolCall,
   LiveServerToolCallCancellation,
-  Part
+  LiveSessionResumptionUpdate,
+  Part,
+  SessionResumptionConfig
 } from '../public-types';
 import { formatNewContent } from '../requests/request-helpers';
 import { AIError } from '../errors';
@@ -62,8 +64,35 @@ export class LiveSession {
    */
   constructor(
     private webSocketHandler: WebSocketHandler,
-    private serverMessages: AsyncGenerator<unknown>
+    private serverMessages: AsyncGenerator<unknown>,
+    private reconnector?: (sessionResumption?: SessionResumptionConfig) => Promise<AsyncGenerator<unknown>>
   ) {}
+
+  /**
+   * Resumes an existing live session with the server.
+   *
+   * This closes the current WebSocket connection and establishes a new one using
+   * the same configuration (URI, headers, model, system instruction, tools, etc.)
+   * as the original session.
+   *
+   * @param sessionResumption - The configuration for session resumption, such as the handle to the previous session state to restore.
+   * @throws If the session resumption configuration is unsupported.
+   *
+   * @beta
+   */
+  async resumeSession(
+    sessionResumption?: SessionResumptionConfig
+  ): Promise<void> {
+    if (!this.reconnector) {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        'resumeSession is not supported on this session.'
+      );
+    }
+    await this.close();
+    this.isClosed = false;
+    this.serverMessages = await this.reconnector(sessionResumption);
+  }
 
   /**
    * Sends content to the server.
@@ -232,6 +261,7 @@ export class LiveSession {
     | LiveServerToolCall
     | LiveServerToolCallCancellation
     | LiveServerGoingAwayNotice
+    | LiveSessionResumptionUpdate
   > {
     if (this.isClosed) {
       throw new AIError(
@@ -275,6 +305,18 @@ export class LiveSession {
             type: LiveResponseType.GOING_AWAY_NOTICE,
             timeLeft: parseDuration(notice.timeLeft)
           } as LiveServerGoingAwayNotice;
+        } else if (LiveResponseType.SESSION_RESUMPTION_UPDATE in message) {
+          yield {
+            type: LiveResponseType.SESSION_RESUMPTION_UPDATE,
+            ...(
+              message as {
+                sessionResumptionUpdate: Omit<
+                  LiveSessionResumptionUpdate,
+                  'type'
+                >;
+              }
+            ).sessionResumptionUpdate
+          } as LiveSessionResumptionUpdate;
         } else {
           logger.warn(
             `Received an unknown message type from the server: ${JSON.stringify(
