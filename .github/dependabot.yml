@@ -8,9 +8,9 @@ updates:
       - "/e2e/*"
       - "/repo-scripts/**/*"
     exclude-paths:
-      - "/packages/auth/demo"
-      - "/packages/auth/cordova/demo"
-      - "/packages/auth-compat/demo"
+      - "packages/auth/demo"
+      - "packages/auth/cordova/demo"
+      - "packages/auth-compat/demo"
     schedule:
       interval: "daily"
 
