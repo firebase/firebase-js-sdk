@@ -131,7 +131,7 @@
     "long": "3.2.0",
     "merge2": "1.4.1",
     "mkdirp": "1.0.4",
-    "mocha": "9.2.2",
+    "mocha": "11.7.5",
     "mz": "2.7.0",
     "node-polyfill-webpack-plugin": "2.0.1",
     "npm-run-all2": "5.0.2",
