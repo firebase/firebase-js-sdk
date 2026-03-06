@@ -38,11 +38,13 @@ import {
   Expression,
   Field,
   field,
-  Ordering
+  Ordering,
+  Selectable
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { StageOptions } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
+import { selectablesToMap } from '../util/pipeline_util';
 
 /**
  * @beta
@@ -761,4 +763,128 @@ function readUserDataHelper<
     expressionMap.forEach(expr => expr._readUserData(context));
   }
   return expressionMap;
+}
+
+/**
+ * @beta
+ */
+export class Delete extends Stage {
+  get _name(): string {
+    return 'delete';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      transactional: { serverName: 'transactional' },
+      returns: { serverName: 'returns' }
+    });
+  }
+
+  constructor(options: StageOptions) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
+}
+
+/**
+ * @beta
+ */
+export class Upsert extends Stage {
+  get _name(): string {
+    return 'upsert';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      transactional: { serverName: 'transactional' },
+      returns: { serverName: 'returns' },
+      conflictResolution: { serverName: 'conflict_resolution' }
+    });
+  }
+
+  constructor(options: StageOptions) {
+    super(options);
+
+    if ('collection' in this.knownOptions && typeof this.knownOptions.collection === 'string') {
+      const collection = this.knownOptions.collection;
+      this.knownOptions.collection = collection.startsWith('/') ? collection : '/' + collection;
+    }
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    let args: any[] = [];
+    if (this.knownOptions.collection) {
+      args.push({ referenceValue: this.knownOptions.collection });
+    }
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
+}
+
+/**
+ * @beta
+ */
+export class Insert extends Stage {
+  get _name(): string {
+    return 'insert';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      transactional: { serverName: 'transactional' },
+      returns: { serverName: 'returns' }
+    });
+  }
+
+  constructor(options: StageOptions) {
+    super(options);
+
+    if ('collection' in this.knownOptions && typeof this.knownOptions.collection === 'string') {
+      const collection = this.knownOptions.collection;
+      this.knownOptions.collection = collection.startsWith('/') ? collection : '/' + collection;
+    }
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    let args: any[] = [];
+    if (this.knownOptions.collection) {
+      args.push({ referenceValue: this.knownOptions.collection });
+    }
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
 }
