@@ -211,4 +211,14 @@ function validateGenerationConfig(generationConfig: GenerationConfig): void {
       `Cannot set both responseSchema and responseJsonSchema in a config.`
     );
   }
+  if (
+    (generationConfig.responseSchema != null ||
+      generationConfig.responseJsonSchema != null) &&
+    generationConfig.responseMimeType
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `responseMimeType must be set if responseSchema or responseJsonSchema are set.`
+    );
+  }
 }
