@@ -50,7 +50,6 @@ describe('GMPID Tests', () => {
     await deleteApp(app);
   });
   it('should send a request with the corresponding gmpid if using the app id is specified', async () => {
-    // @ts-ignore
     await executeQuery(queryRef(dc, '')).catch(() => {});
     expect(fakeFetchImpl).to.be.calledWithMatch(
       'https://firebasedataconnect.googleapis.com/v1/projects/p/locations/l/services/s/connectors/c:executeQuery',

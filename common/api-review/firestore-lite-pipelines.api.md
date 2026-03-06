@@ -66,6 +66,18 @@ export function and(first: BooleanExpression, second: BooleanExpression, ...more
 export function array(elements: unknown[]): FunctionExpression;
 
 // @beta
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAgg(fieldName: string): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+
+// @beta
 export function arrayConcat(firstArray: Expression, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
 
 // @beta
@@ -108,6 +120,24 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayGet(arrayField: string, offset: number): FunctionExpression;
 
 // @beta
@@ -120,10 +150,82 @@ export function arrayGet(arrayExpression: Expression, offset: number): FunctionE
 export function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
 
 // @beta
+export function arrayIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLast(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayLength(fieldName: string): FunctionExpression;
 
 // @beta
 export function arrayLength(array: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @beta
 export function arraySum(fieldName: string): FunctionExpression;
@@ -291,12 +393,6 @@ export function documentId(documentPath: string | DocumentReference): FunctionEx
 // @beta
 export function documentId(documentPathExpr: Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "documentMatches" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "documentMatches" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-//
-// @public
-export function documentMatches(rquery: string | Expression): BooleanExpression;
-
 // @beta
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
@@ -383,6 +479,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     add(second: Expression | unknown): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayAgg(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    arrayAggDistinct(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayContains(expression: Expression): BooleanExpression;
@@ -397,11 +497,47 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFirst(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayGet(offset: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayGet(offsetExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLast(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayLength(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -414,10 +550,6 @@ export abstract class Expression {
     ascending(): Ordering;
     /* Excluded from this release type: _readUserData */
     average(): AggregateFunction;
-    /* Excluded from this release type: _readUserData */
-    between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
-    /* Excluded from this release type: _readUserData */
-    between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     byteLength(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -472,6 +604,8 @@ export abstract class Expression {
     // (undocumented)
     abstract readonly expressionType: ExpressionType;
     /* Excluded from this release type: _readUserData */
+    first(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
@@ -494,9 +628,13 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     isError(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    isType(type: Type): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
     join(delimiterExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
     join(delimiter: string): Expression;
+    /* Excluded from this release type: _readUserData */
+    last(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
     length(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -520,13 +658,23 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapEntries(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapKeys(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(key: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(keyExpr: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapSet(key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapValues(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     maximum(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
@@ -574,9 +722,7 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    snippet(rquery: string): Expression;
-    /* Excluded from this release type: _readUserData */
-    snippet(options: SnippetOptions): Expression;
+    rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     split(delimiter: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -593,6 +739,14 @@ export abstract class Expression {
     stringContains(substring: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     stringContains(expr: Expression): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
+    stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringRepeat(repetitions: number | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     stringReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -630,6 +784,12 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    trunc(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     type(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     unixMicrosToTimestamp(): FunctionExpression;
@@ -654,8 +814,6 @@ export class Field extends Expression implements Selectable {
     readonly expressionType: ExpressionType;
     // (undocumented)
     get fieldName(): string;
-    geoDistance(location: GeoPoint | Expression): Expression;
-    matches(rquery: string | Expression): BooleanExpression;
     // (undocumented)
     selectable: true;
 }
@@ -676,6 +834,12 @@ export type FindNearestStageOptions = StageOptions & {
 };
 
 // @beta
+export function first(expression: Expression): AggregateFunction;
+
+// @beta
+export function first(fieldName: string): AggregateFunction;
+
+// @beta
 export function floor(expr: Expression): FunctionExpression;
 
 // @beta
@@ -684,15 +848,10 @@ export function floor(fieldName: string): FunctionExpression;
 // @beta
 export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[]);
+    constructor(name: string, params: Expression[], _methodName: string | undefined);
     // (undocumented)
     readonly expressionType: ExpressionType;
     }
-
-// Warning: (ae-incompatible-release-tags) The symbol "geoDistance" is marked as @public, but its signature references "Field" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "geoDistance" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
-export function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
 
 // @beta
 export function greaterThan(left: Expression, right: Expression): BooleanExpression;
@@ -749,6 +908,12 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @beta
+export function isType(fieldName: string, type: Type): BooleanExpression;
+
+// @beta
+export function isType(expression: Expression, type: Type): BooleanExpression;
+
+// @beta
 export function join(arrayFieldName: string, delimiter: string): Expression;
 
 // @beta
@@ -759,6 +924,12 @@ export function join(arrayExpression: Expression, delimiter: string): Expression
 
 // @beta
 export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
+
+// @beta
+export function last(expression: Expression): AggregateFunction;
+
+// @beta
+export function last(fieldName: string): AggregateFunction;
 
 // @beta
 function length_2(fieldName: string): FunctionExpression;
@@ -846,13 +1017,31 @@ export function logicalMinimum(first: Expression, second: Expression | unknown, 
 export function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 
 // @beta
+export function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export function map(elements: Record<string, unknown>): FunctionExpression;
+
+// @beta
+export function mapEntries(mapField: string): FunctionExpression;
+
+// @beta
+export function mapEntries(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapGet(fieldName: string, subField: string): FunctionExpression;
 
 // @beta
 export function mapGet(mapExpression: Expression, subField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -872,12 +1061,17 @@ export function mapRemove(mapField: string, keyExpr: Expression): FunctionExpres
 // @beta
 export function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "matches" is marked as @public, but its signature references "Field" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "matches" is marked as @public, but its signature references "Expression" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "matches" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-//
-// @public
-export function matches(searchField: string | Field, rquery: string | Expression): BooleanExpression;
+// @beta
+export function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapValues(mapField: string): FunctionExpression;
+
+// @beta
+export function mapValues(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function maximum(expression: Expression): AggregateFunction;
@@ -988,7 +1182,6 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
-    search(options: SearchStageOptions): Pipeline;
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
@@ -1046,8 +1239,8 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
 // @beta
 export function pow(base: string, exponent: number): FunctionExpression;
 
-// @public
-export type QueryExpansion = 'disabled' | 'enabled' | 'preferred';
+// @beta
+export function rand(): FunctionExpression;
 
 // @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
@@ -1126,29 +1319,16 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
 
 // @beta
+export function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export type SampleStageOptions = StageOptions & OneOf<{
     percentage: number;
     documents: number;
 }>;
-
-// Warning: (ae-incompatible-release-tags) The symbol "searchScore" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
-export function searchScore(): Expression;
-
-// Warning: (ae-incompatible-release-tags) The symbol "SearchStageOptions" is marked as @public, but its signature references "StageOptions" which is marked as @beta
-//
-// @public
-export type SearchStageOptions = StageOptions & {
-    query?: BooleanExpression | string;
-    limit?: number;
-    retrievalDepth?: number;
-    sort?: Ordering | Ordering[];
-    addFields?: Selectable[];
-    select?: Array<Selectable | string>;
-    offset?: number;
-    queryExpansion?: QueryExpansion;
-};
 
 // @beta
 export interface Selectable {
@@ -1160,26 +1340,6 @@ export interface Selectable {
 export type SelectStageOptions = StageOptions & {
     selections: Array<Selectable | string>;
 };
-
-// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Field" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
-export function snippet(searchField: string | Field, rquery: string): Expression;
-
-// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Field" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "snippet" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public
-export function snippet(searchField: string | Field, options: SnippetOptions): Expression;
-
-// @public
-export interface SnippetOptions {
-    maxSnippets?: number;
-    maxSnippetWidth?: number;
-    rquery: string;
-    separator?: string;
-}
 
 // @beta
 export type SortStageOptions = StageOptions & {
@@ -1240,6 +1400,30 @@ export function stringContains(stringExpression: Expression, substring: string):
 
 // @beta
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
+
+// @beta
+export function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export function stringReverse(stringExpression: Expression): FunctionExpression;
@@ -1347,6 +1531,21 @@ export function trim(fieldName: string, valueToTrim?: string | Expression): Func
 export function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
 
 // @beta
+export function trunc(fieldName: string): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
+
+// @beta
 export function type(fieldName: string): FunctionExpression;
 
 // @beta
@@ -1395,13 +1594,6 @@ export type WhereStageOptions = StageOptions & {
 // @beta
 export function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
 
-
-// Warnings were encountered during analysis:
-//
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6701:5 - (ae-incompatible-release-tags) The symbol "query" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6715:5 - (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6719:5 - (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:6724:5 - (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

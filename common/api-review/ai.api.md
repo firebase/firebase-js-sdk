@@ -143,6 +143,12 @@ export class BooleanSchema extends Schema {
 export class ChatSession {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // @internal
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -407,6 +413,7 @@ export interface FunctionCallPart {
 // @public
 export interface FunctionDeclaration {
     description: string;
+    functionReference?: Function;
     name: string;
     parameters?: ObjectSchema | ObjectSchemaRequest;
 }
@@ -421,6 +428,8 @@ export interface FunctionResponse {
     id?: string;
     // (undocumented)
     name: string;
+    // (undocumented)
+    parts?: Part[];
     // (undocumented)
     response: object;
 }
@@ -1145,6 +1154,7 @@ export interface PromptFeedback {
 // @public
 export interface RequestOptions {
     baseUrl?: string;
+    maxSequentalFunctionCalls?: number;
     timeout?: number;
 }
 
