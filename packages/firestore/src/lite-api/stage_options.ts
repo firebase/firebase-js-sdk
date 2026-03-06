@@ -263,17 +263,17 @@ export type FindNearestStageOptions = StageOptions & {
 };
 
 /**
- * Specifies if the `matches` and `snippet` expressions will expand the user
+ * Specifies if the `matches` and `snippet` expressions will enhance the user
  * provided query to perform matching of synonyms, misspellings, lemmatization,
  * stemming.
  *
- * ExpansionEnabled - search will fail if the query expansion times out or if the query
- *                    expansion is not supported by the project's DRZ compliance
+ * required - search will fail if the query enhancement times out or if the query
+ *                    enhancement is not supported by the project's DRZ compliance
  *                    requirements.
- * ExpansionPreferred - search will fall back to the unexpanded user provided query if
- *                    the query expansion fails.
+ * preferred - search will fall back to the un-enhanced, user provided query, if
+ *                    the query enhancement fails.
  */
-export type QueryExpansion = 'disabled' | 'enabled' | 'preferred';
+export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
 
 /**
  * Options defining how a SearchStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
@@ -338,7 +338,7 @@ export type SearchStageOptions = StageOptions & {
    * Define the query expansion behavior used by full-text search expressions
    * in this search stage.
    */
-  queryExpansion?: QueryExpansion;
+  queryEnhancement?: QueryEnhancement;
 };
 /**
  * @beta

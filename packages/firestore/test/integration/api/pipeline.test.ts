@@ -143,7 +143,7 @@ import {
   timestampTruncate,
   split,
   type,
-  searchScore,
+  score,
   documentMatches
 } from '../util/pipeline_export';
 
@@ -4481,13 +4481,45 @@ apiDescribe.skipClassic('Pipelines', persistence => {
     describe('search stage', () => {
       describe('DISABLE query expansion', () => {
         describe('query', () => {
+          it('all search features', async () => {
+            const queryLocation = new GeoPoint(0, 0);
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: and(
+                  documentMatches('waffles'),
+                  field('description').matches('breakfast'),
+                  field('location').geoDistance(queryLocation).lessThan(1000),
+                  field('avgPrice').between(10, 20)
+                ),
+                select: [
+                  field('title'),
+                  field('menu'),
+                  field('description'),
+                  field('location').geoDistance(queryLocation).as('distance')
+                ],
+                addFields: [score().as('searchScore')],
+                offset: 0,
+                retrievalDepth: 1000,
+                limit: 50,
+                sort: [
+                  field('location').geoDistance(queryLocation).ascending()
+                ],
+                queryEnhancement: 'disabled'
+              });
+
+            const snapshot = await execute(ppl);
+            expectResults(snapshot, 'goldenWaffle');
+          });
+
           it('search full document', async () => {
             const ppl = firestore
               .pipeline()
               .collection('restaurants')
               .search({
                 query: documentMatches('waffles'),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4500,7 +4532,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: field('menu').matches('waffles'),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4515,7 +4547,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 query: field('location')
                   .geoDistance(new GeoPoint(39.6985, -105.024))
                   .lessThan(1000 /* m */),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4531,7 +4563,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                   field('menu').matches('waffles'),
                   field('description').matches('diner')
                 ),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4549,7 +4581,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                     .geoDistance(new GeoPoint(39.6985, -105.024))
                     .lessThan(10_000 /* meters */)
                 ),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4562,7 +4594,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: field('menu').matches('-waffles'),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4583,7 +4615,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: documentMatches('(waffles OR pancakes) AND coffee'),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4593,7 +4625,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           it('rquery as query param', async () => {
             const ppl = firestore.pipeline().collection('restaurants').search({
               query: '(waffles OR pancakes) AND coffee',
-              queryExpansion: 'disabled'
+              queryEnhancement: 'disabled'
             });
 
             const snapshot = await execute(ppl);
@@ -4604,7 +4636,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             const ppl = firestore.pipeline().collection('restaurants').search({
               query:
                 'menu:(waffles OR pancakes) AND description:"breakfast all day"',
-              queryExpansion: 'disabled'
+              queryEnhancement: 'disabled'
             });
 
             const snapshot = await execute(ppl);
@@ -4620,7 +4652,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                   documentMatches('tacos'),
                   field('average_price_per_person').between(8, 15)
                 ),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4636,10 +4668,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .search({
                 query: field('menu').matches('waffles'),
                 addFields: [
-                  searchScore().as('searchScore'),
+                  score().as('searchScore'),
                   field('menu').snippet('waffles').as('snippet')
                 ],
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               })
               .select('name', 'searchScore', 'snippet');
 
@@ -4665,10 +4697,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 select: [
                   field('name'),
                   'location',
-                  searchScore().as('searchScore'),
+                  score().as('searchScore'),
                   field('menu').snippet('waffles').as('snippet')
                 ],
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4696,8 +4728,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .collection('restaurants')
               .search({
                 query: field('menu').matches('tacos'),
-                sort: searchScore().descending(),
-                queryExpansion: 'disabled'
+                sort: score().descending(),
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4713,7 +4745,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 sort: field('location')
                   .geoDistance(new GeoPoint(39.6985, -105.024))
                   .ascending(),
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4730,9 +4762,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                   field('location')
                     .geoDistance(new GeoPoint(39.6985, -105.024))
                     .ascending(),
-                  searchScore().descending()
+                  score().descending()
                 ],
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4755,7 +4787,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                   .geoDistance(new GeoPoint(39.6985, -105.024))
                   .ascending(),
                 limit: 5,
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4776,7 +4808,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                   'chicken OR tacos OR fish OR waffles'
                 ),
                 retrievalDepth: 6,
-                queryExpansion: 'disabled'
+                queryEnhancement: 'disabled'
               });
 
             const snapshot = await execute(ppl);
@@ -4795,7 +4827,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             const ppl = firestore.pipeline().collection('restaurants').search({
               limit: 2,
               offset: 2,
-              queryExpansion: 'disabled'
+              queryEnhancement: 'disabled'
             });
 
             const snapshot = await execute(ppl);
@@ -4804,14 +4836,14 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         });
       });
 
-      describe('ENABLE query expansion', () => {
+      describe('REQUIRE query expansion', () => {
         it('search full document', async () => {
           const ppl = firestore
             .pipeline()
             .collection('restaurants')
             .search({
               query: documentMatches('waffles'),
-              queryExpansion: 'enabled'
+              queryEnhancement: 'required'
             });
 
           const snapshot = await execute(ppl);
@@ -4824,7 +4856,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             .collection('restaurants')
             .search({
               query: field('menu').matches('waffles'),
-              queryExpansion: 'enabled'
+              queryEnhancement: 'required'
             });
 
           const snapshot = await execute(ppl);
@@ -4848,7 +4880,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 })
                 .as('snippet')
             ],
-            queryExpansion: 'disabled'
+            queryEnhancement: 'disabled'
           });
 
         const snapshot1 = await execute(ppl1);
@@ -4871,7 +4903,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 })
                 .as('snippet')
             ],
-            queryExpansion: 'disabled'
+            queryEnhancement: 'disabled'
           });
 
         const snapshot2 = await execute(ppl2);
@@ -4901,7 +4933,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 })
                 .as('snippet')
             ],
-            queryExpansion: 'disabled'
+            queryEnhancement: 'disabled'
           });
 
         const snapshot1 = await execute(ppl1);
@@ -4925,7 +4957,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
                 })
                 .as('snippet')
             ],
-            queryExpansion: 'disabled'
+            queryEnhancement: 'disabled'
           });
 
         const snapshot2 = await execute(ppl2);

@@ -82,7 +82,7 @@ export {
   UnnestStageOptions,
   SortStageOptions,
   SearchStageOptions,
-  QueryExpansion
+  QueryEnhancement
 } from '../../src/lite-api/stage_options';
 
 export {
@@ -186,7 +186,7 @@ export {
   type,
   snippet,
   SnippetOptions,
-  searchScore,
+  score,
   matches,
   documentMatches,
   geoDistance,
