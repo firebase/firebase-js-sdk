@@ -34,7 +34,6 @@ import { hardAssert } from '../util/assert';
 
 import {
   AggregateFunction,
-  AliasedExpression,
   BooleanExpression,
   Expression,
   Field,

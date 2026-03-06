@@ -30,9 +30,8 @@ import {
   Selectable,
   pipelineValue
 } from '../lite-api/expressions';
-import { Pipeline } from '../lite-api/pipeline';
+import type { Pipeline } from '../lite-api/pipeline';
 import { VectorValue } from '../lite-api/vector_value';
-import { toPipelineValue } from '../remote/serializer';
 
 import { fail } from './assert';
 import { isPlainObject } from './input_validation';
@@ -151,11 +150,20 @@ export function valueToDefaultExpr(value: unknown): Expression {
     result = map(value as Record<string, unknown>);
   } else if (value instanceof Array) {
     result = array(value);
-  } else if (value instanceof Pipeline) {
+  } else if (isPipeline(value)) {
     result = pipelineValue(value);
   } else {
     result = _constant(value, undefined);
   }
 
   return result;
+}
+
+/**
+ * Checks if a value is a Pipeline object.
+ *
+ * We use duck typing here to avoid a circular dependency between pipeline.ts and pipeline_util.ts.
+ */
+function isPipeline(value: unknown): value is Pipeline {
+  return !!value && (value as Pipeline)._type === 'Pipeline';
 }

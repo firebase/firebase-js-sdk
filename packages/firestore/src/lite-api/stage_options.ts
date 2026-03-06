@@ -20,6 +20,7 @@ import { OneOf } from '../util/types';
 
 import {
   AliasedAggregate,
+  AliasedExpression,
   BooleanExpression,
   Expression,
   Field,
@@ -144,6 +145,17 @@ export type RemoveFieldsStageOptions = StageOptions & {
    * The fields to remove from each document.
    */
   fields: Array<Field | string>;
+};
+/**
+ * @beta
+ * Options defining how a DefineStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(define:1)}.
+ */
+export type DefineStageOptions = StageOptions & {
+  /**
+   * @beta
+   * The variables to define.
+   */
+  variables: AliasedExpression[];
 };
 /**
  * @beta

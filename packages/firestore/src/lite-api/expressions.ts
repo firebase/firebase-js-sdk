@@ -38,7 +38,7 @@ import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
-import { Pipeline } from './pipeline';
+import type { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -9897,7 +9897,7 @@ export function variable(name: string): VariableExpression {
 }
 
 /**
- * @internal
+ * @beta
  *
  * Expression representing a variable reference. This evaluates to the value of a variable
  * defined in a pipeline.
@@ -10128,6 +10128,10 @@ export function isExpr(val: unknown): val is Expression {
 
 export function isBooleanExpr(val: unknown): val is BooleanExpression {
   return val instanceof BooleanExpression;
+}
+
+export function isAliasedExpr(val: unknown): val is AliasedExpression {
+  return val instanceof AliasedExpression;
 }
 
 export function isField(val: unknown): val is Field {

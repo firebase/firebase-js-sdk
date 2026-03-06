@@ -163,9 +163,9 @@ import {
   ifAbsent,
   join,
   arraySum,
-  variable
+  variable,
+  currentDocument
 } from './pipeline_export';
-import { currentDocument } from '../../src/lite-api/expressions';
 
 use(chaiAsPromised);
 
@@ -4736,546 +4736,549 @@ describe.skipClassic('Firestore Pipelines', () => {
   });
 
   describe('subquery', () => {
-    it('zero result scalar returns null', async () => {
-      const db = firestore;
-      const testDocs = { book1: { title: 'A Book Title' } };
-      for (const [key, value] of Object.entries(testDocs)) {
-        const ref = doc(randomCol, key);
-        await setDoc(ref, value);
+    async function withSubqueryData<T>(
+      data: { [path: string]: DocumentData },
+      fn: () => Promise<T>
+    ): Promise<T> {
+      const refs: DocumentReference[] = [];
+      try {
+        await Promise.all(
+          Object.entries(data).map(async ([path, docData]) => {
+            const ref = doc(firestore, path);
+            await setDoc(ref, docData);
+            refs.push(ref);
+          })
+        );
+        return await fn();
+      } finally {
+        await Promise.all(refs.map(r => deleteDoc(r)));
       }
+    }
 
-      const emptyScalar = db
-        .pipeline()
-        .collection(`${randomCol.path}/book1/reviews`)
-        .where(equal('reviewer', 'Alice'))
-        .select(currentDocument().as('data'));
+    it('zero result scalar returns null', async () => {
+      const testDocs = {
+        [`${randomCol.path}/book1`]: { title: 'A Book Title' }
+      };
 
-      const results = await execute(
-        db
+      await withSubqueryData(testDocs, async () => {
+        const emptyScalar = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .select(emptyScalar.toScalarExpression().as('first_review_data'))
-          .limit(1)
-      );
+          .collection(`${randomCol.path}/book1/reviews`)
+          .where(equal('reviewer', 'Alice'))
+          .select(currentDocument().as('data'));
 
-      expectResults(results, { first_review_data: null });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select(emptyScalar.toScalarExpression().as('firstReviewData'))
+            .limit(1)
+        );
+
+        expectResults(results, { firstReviewData: null });
+      });
     });
 
     it('array subquery join and empty result', async () => {
-      const db = firestore;
       const reviewsCollName = `book_reviews_${Date.now()}`;
       const reviewsDocs = {
-        r1: {
+        [`${reviewsCollName}/r1`]: {
           bookTitle: "The Hitchhiker's Guide to the Galaxy",
           reviewer: 'Alice'
         },
-        r2: {
+        [`${reviewsCollName}/r2`]: {
           bookTitle: "The Hitchhiker's Guide to the Galaxy",
           reviewer: 'Bob'
         }
       };
 
-      const reviewsCollection = collection(db, reviewsCollName);
-      for (const [key, value] of Object.entries(reviewsDocs)) {
-        const ref = doc(reviewsCollection, key);
-        await setDoc(ref, value);
-      }
-
-      // Cleanup
-      const docsToDelete: DocumentReference[] = Object.keys(reviewsDocs).map(
-        key => doc(reviewsCollection, key)
-      );
-
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .select(field('reviewer').as('reviewer'))
-        .sort(field('reviewer').ascending());
-
-      const results = await execute(
-        db
+      await withSubqueryData(reviewsDocs, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .where(
-            or(
-              equal('title', "The Hitchhiker's Guide to the Galaxy"),
-              equal('title', 'Pride and Prejudice')
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .select(field('reviewer').as('reviewer'))
+          .sort(field('reviewer').ascending());
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              or(
+                equal('title', "The Hitchhiker's Guide to the Galaxy"),
+                equal('title', 'Pride and Prejudice')
+              )
             )
-          )
-          .define(field('title').as('book_title'))
-          .addFields(reviewsSub.toArrayExpression().as('reviews_data'))
-          .select('title', 'reviews_data')
-          .sort(field('title').descending())
-      );
+            .define(field('title').as('book_title'))
+            .addFields(reviewsSub.toArrayExpression().as('reviewsData'))
+            .select('title', 'reviewsData')
+            .sort(field('title').descending())
+        );
 
-      expectResults(
-        results,
-        {
-          title: "The Hitchhiker's Guide to the Galaxy",
-          reviews_data: ['Alice', 'Bob']
-        },
-        { title: 'Pride and Prejudice', reviews_data: [] }
-      );
-
-      await Promise.all(docsToDelete.map(d => deleteDoc(d)));
+        expectResults(
+          results,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            reviewsData: ['Alice', 'Bob']
+          },
+          { title: 'Pride and Prejudice', reviewsData: [] }
+        );
+      });
     });
 
     it('multiple array subqueries', async () => {
-      const reviewsCollectionName = `reviews_multi`; // FIXME: java-firestore tests add a UUID to the end here. is that necessary?
-      const authorsCollectionName = `authors_multi`; // FIXME: java-firestore tests add a UUID to the end here. is that necessary?
+      const reviewsCollectionName = `reviews_multi_${Date.now()}`;
+      const authorsCollectionName = `authors_multi_${Date.now()}`;
 
-      const r1Ref = doc(firestore, `${reviewsCollectionName}/r1`);
-      await setDoc(r1Ref, {
-        bookTitle: '1984',
-        rating: 5
-      });
+      const data = {
+        [`${reviewsCollectionName}/r1`]: {
+          bookTitle: '1984',
+          rating: 5
+        },
+        [`${authorsCollectionName}/a1`]: {
+          authorName: 'George Orwell',
+          nationality: 'British'
+        }
+      };
 
-      const a1Ref = doc(firestore, `${authorsCollectionName}/a1`);
-      await setDoc(a1Ref, {
-        authorName: 'George Orwell',
-        nationality: 'British'
-      });
-
-      const reviewsSub = firestore
-        .pipeline()
-        .collection(reviewsCollectionName)
-        .where(equal('bookTitle', variable('bookTitle')))
-        .select(field('rating').as('rating'));
-
-      const authorsSub = firestore
-        .pipeline()
-        .collection(authorsCollectionName)
-        .where(equal('authorName', variable('authorName')))
-        .select(field('nationality').as('nationality'));
-
-      const snapshot = await execute(
-        firestore
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .where(equal('title', '1984'))
-          .define(
-            field('title').as('bookTitle'),
-            field('author').as('authorName')
-          )
-          .addFields(
-            reviewsSub.toArrayExpression().as('reviewsData'),
-            authorsSub.toArrayExpression().as('authorsData')
-          )
-          .select('title', 'reviewsData', 'authorsData')
-      );
+          .collection(reviewsCollectionName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .select(field('rating').as('rating'));
 
-      expectResults(snapshot, {
-        title: '1984',
-        reviewsData: [5],
-        authorsData: ['British']
+        const authorsSub = firestore
+          .pipeline()
+          .collection(authorsCollectionName)
+          .where(equal('authorName', variable('authorName')))
+          .select(field('nationality').as('nationality'));
+
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(
+              field('title').as('bookTitle'),
+              field('author').as('authorName')
+            )
+            .addFields(
+              reviewsSub.toArrayExpression().as('reviewsData'),
+              authorsSub.toArrayExpression().as('authorsData')
+            )
+            .select('title', 'reviewsData', 'authorsData')
+        );
+
+        expectResults(snapshot, {
+          title: '1984',
+          reviewsData: [5],
+          authorsData: ['British']
+        });
       });
-
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(a1Ref)]);
     });
 
     it('array subquery join multiple fields preserves map', async () => {
-      const db = firestore;
       const reviewsCollName = `reviews_map_${Date.now()}`;
-      const reviewsCollection = collection(db, reviewsCollName);
 
-      const r1Ref = doc(reviewsCollection, 'r1');
-      await setDoc(r1Ref, {
-        bookTitle: '1984',
-        reviewer: 'Alice',
-        rating: 5
-      });
-      const r2Ref = doc(reviewsCollection, 'r2');
-      await setDoc(r2Ref, {
-        bookTitle: '1984',
-        reviewer: 'Bob',
-        rating: 4
-      });
+      const data = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: '1984',
+          reviewer: 'Alice',
+          rating: 5
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: '1984',
+          reviewer: 'Bob',
+          rating: 4
+        }
+      };
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .select(field('reviewer').as('reviewer'), field('rating').as('rating'))
-        .sort(field('reviewer').ascending());
-
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .where(equal('title', '1984'))
-          .define(field('title').as('book_title'))
-          .addFields(reviewsSub.toArrayExpression().as('reviews_data'))
-          .select('title', 'reviews_data')
-      );
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .select(
+            field('reviewer').as('reviewer'),
+            field('rating').as('rating')
+          )
+          .sort(field('reviewer').ascending());
 
-      expectResults(results, {
-        title: '1984',
-        reviews_data: [
-          { reviewer: 'Alice', rating: 5 },
-          { reviewer: 'Bob', rating: 4 }
-        ]
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('book_title'))
+            .addFields(reviewsSub.toArrayExpression().as('reviewsData'))
+            .select('title', 'reviewsData')
+        );
+
+        expectResults(results, {
+          title: '1984',
+          reviewsData: [
+            { reviewer: 'Alice', rating: 5 },
+            { reviewer: 'Bob', rating: 4 }
+          ]
+        });
       });
-
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(r2Ref)]);
     });
 
     it('array subquery in where stage on books', async () => {
-      const db = firestore;
       const reviewsCollName = `reviews_where_${Date.now()}`;
-      const reviewsCollection = collection(db, reviewsCollName);
 
-      const r1Ref = doc(reviewsCollection, 'r1');
-      await setDoc(r1Ref, {
-        bookTitle: 'Dune',
-        reviewer: 'Paul'
-      });
-      const r2Ref = doc(reviewsCollection, 'r2');
-      await setDoc(r2Ref, {
-        bookTitle: 'Foundation',
-        reviewer: 'Hari'
-      });
+      const data = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: 'Dune',
+          reviewer: 'Paul'
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: 'Foundation',
+          reviewer: 'Hari'
+        }
+      };
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .select(field('reviewer').as('reviewer'));
-
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .where(or(equal('title', 'Dune'), equal('title', 'The Great Gatsby')))
-          .define(field('title').as('book_title'))
-          .where(reviewsSub.toArrayExpression().arrayContains('Paul'))
-          .select('title')
-      );
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .select(field('reviewer').as('reviewer'));
 
-      expectResults(results, { title: 'Dune' });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              or(equal('title', 'Dune'), equal('title', 'The Great Gatsby'))
+            )
+            .define(field('title').as('book_title'))
+            .where(reviewsSub.toArrayExpression().arrayContains('Paul'))
+            .select('title')
+        );
 
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(r2Ref)]);
+        expectResults(results, { title: 'Dune' });
+      });
     });
 
     it('scalar subquery single aggregation unwrapping', async () => {
-      const db = firestore;
       const reviewsCollName = `reviews_agg_single_${Date.now()}`;
-      const reviewsCollection = collection(db, reviewsCollName);
 
-      const r1Ref = doc(reviewsCollection, 'r1');
-      await setDoc(r1Ref, { bookTitle: '1984', rating: 4 });
-      const r2Ref = doc(reviewsCollection, 'r2');
-      await setDoc(r2Ref, { bookTitle: '1984', rating: 5 });
+      const data = {
+        [`${reviewsCollName}/r1`]: { bookTitle: '1984', rating: 4 },
+        [`${reviewsCollName}/r2`]: { bookTitle: '1984', rating: 5 }
+      };
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .aggregate(average('rating').as('val'));
-
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .where(equal('title', '1984'))
-          .define(field('title').as('book_title'))
-          .addFields(reviewsSub.toScalarExpression().as('average_rating'))
-          .select('title', 'average_rating')
-      );
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .aggregate(average('rating').as('val'));
 
-      expectResults(results, { title: '1984', average_rating: 4.5 });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('book_title'))
+            .addFields(reviewsSub.toScalarExpression().as('averageRating'))
+            .select('title', 'averageRating')
+        );
 
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(r2Ref)]);
+        expectResults(results, { title: '1984', averageRating: 4.5 });
+      });
     });
 
     it('scalar subquery multiple aggregations map wrapping', async () => {
-      const db = firestore;
       const reviewsCollName = `reviews_agg_multi_${Date.now()}`;
-      const reviewsCollection = collection(db, reviewsCollName);
 
-      const r1Ref = doc(reviewsCollection, 'r1');
-      await setDoc(r1Ref, { bookTitle: '1984', rating: 4 });
-      const r2Ref = doc(reviewsCollection, 'r2');
-      await setDoc(r2Ref, { bookTitle: '1984', rating: 5 });
+      const data = {
+        [`${reviewsCollName}/r1`]: { bookTitle: '1984', rating: 4 },
+        [`${reviewsCollName}/r2`]: { bookTitle: '1984', rating: 5 }
+      };
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .aggregate(average('rating').as('avg'), countAll().as('count'));
-
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(randomCol.path)
-          .where(equal('title', '1984'))
-          .define(field('title').as('book_title'))
-          .addFields(reviewsSub.toScalarExpression().as('stats'))
-          .select('title', 'stats')
-      );
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .aggregate(average('rating').as('avg'), countAll().as('count'));
 
-      expectResults(results, {
-        title: '1984',
-        stats: { avg: 4.5, count: 2 }
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('book_title'))
+            .addFields(reviewsSub.toScalarExpression().as('stats'))
+            .select('title', 'stats')
+        );
+
+        expectResults(results, {
+          title: '1984',
+          stats: { avg: 4.5, count: 2 }
+        });
       });
-
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(r2Ref)]);
     });
 
     it('scalar subquery zero results', async () => {
-      const db = firestore;
       const reviewsCollName = `reviews_zero_${Date.now()}`;
 
       // No reviews for "1984"
 
-      const reviewsSub = db
+      const reviewsSub = firestore
         .pipeline()
         .collection(reviewsCollName)
         .where(equal('bookTitle', variable('book_title')))
         .aggregate(average('rating').as('avg'));
 
       const results = await execute(
-        db
+        firestore
           .pipeline()
           .collection(randomCol.path)
           .where(equal('title', '1984'))
           .define(field('title').as('book_title'))
-          .addFields(reviewsSub.toScalarExpression().as('average_rating'))
-          .select('title', 'average_rating')
+          .addFields(reviewsSub.toScalarExpression().as('averageRating'))
+          .select('title', 'averageRating')
       );
 
-      expectResults(results, { title: '1984', average_rating: null });
+      expectResults(results, { title: '1984', averageRating: null });
     });
 
     it('scalar subquery multiple results runtime error', async () => {
-      const db = firestore;
       const reviewsCollName = `reviews_multiple_${Date.now()}`;
-      const reviewsCollection = collection(db, reviewsCollName);
 
-      const r1Ref = doc(reviewsCollection, 'r1');
-      await setDoc(r1Ref, { bookTitle: '1984', rating: 4 });
-      const r2Ref = doc(reviewsCollection, 'r2');
-      await setDoc(r2Ref, { bookTitle: '1984', rating: 5 });
+      const data = {
+        [`${reviewsCollName}/r1`]: { bookTitle: '1984', rating: 4 },
+        [`${reviewsCollName}/r2`]: { bookTitle: '1984', rating: 5 }
+      };
 
-      // This subquery will return 2 documents, which is invalid for toScalarExpression()
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')));
+      await withSubqueryData(data, async () => {
+        // This subquery will return 2 documents, which is invalid for toScalarExpression()
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')));
 
-      await expect(
-        execute(
-          db
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .where(equal('title', '1984'))
+              .define(field('title').as('book_title'))
+              .addFields(reviewsSub.toScalarExpression().as('review_data'))
+          )
+        ).to.be.rejectedWith(/Subpipeline returned multiple results/);
+      });
+    });
+
+    it('mixed scalar and array subqueries', async () => {
+      const reviewsCollName = `reviews_mixed_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: '1984',
+          reviewer: 'Alice',
+          rating: 4
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: '1984',
+          reviewer: 'Bob',
+          rating: 5
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const arraySub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .select(field('reviewer').as('reviewer'))
+          .sort(field('reviewer').ascending());
+
+        const scalarSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('book_title')))
+          .aggregate(average('rating').as('val'));
+
+        const results = await execute(
+          firestore
             .pipeline()
             .collection(randomCol.path)
             .where(equal('title', '1984'))
             .define(field('title').as('book_title'))
-            .addFields(reviewsSub.toScalarExpression().as('review_data'))
-        )
-      ).to.be.rejectedWith(/Subpipeline returned multiple results/);
+            .addFields(
+              arraySub.toArrayExpression().as('allReviewers'),
+              scalarSub.toScalarExpression().as('averageRating')
+            )
+            .select('title', 'allReviewers', 'averageRating')
+        );
 
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(r2Ref)]);
-    });
-
-    it('mixed scalar and array subqueries', async () => {
-      const db = firestore;
-      const reviewsCollName = `reviews_mixed_${Date.now()}`;
-      const reviewsCollection = collection(db, reviewsCollName);
-
-      const r1Ref = doc(reviewsCollection, 'r1');
-      await setDoc(r1Ref, {
-        bookTitle: '1984',
-        reviewer: 'Alice',
-        rating: 4
+        expectResults(results, {
+          title: '1984',
+          allReviewers: ['Alice', 'Bob'],
+          averageRating: 4.5
+        });
       });
-      const r2Ref = doc(reviewsCollection, 'r2');
-      await setDoc(r2Ref, {
-        bookTitle: '1984',
-        reviewer: 'Bob',
-        rating: 5
-      });
-
-      const arraySub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .select(field('reviewer').as('reviewer'))
-        .sort(field('reviewer').ascending());
-
-      const scalarSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookTitle', variable('book_title')))
-        .aggregate(average('rating').as('val'));
-
-      const results = await execute(
-        db
-          .pipeline()
-          .collection(randomCol.path)
-          .where(equal('title', '1984'))
-          .define(field('title').as('book_title'))
-          .addFields(
-            arraySub.toArrayExpression().as('all_reviewers'),
-            scalarSub.toScalarExpression().as('average_rating')
-          )
-          .select('title', 'all_reviewers', 'average_rating')
-      );
-
-      expectResults(results, {
-        title: '1984',
-        all_reviewers: ['Alice', 'Bob'],
-        average_rating: 4.5
-      });
-
-      await Promise.all([deleteDoc(r1Ref), deleteDoc(r2Ref)]);
     });
 
     it('single scope variable usage', async () => {
-      const db = firestore;
       const collName = `single_scope_${Date.now()}`;
-      const doc1Ref = doc(db, `${collName}/doc1`);
 
-      await setDoc(doc1Ref, { price: 100 });
+      await withSubqueryData(
+        { [`${collName}/doc1`]: { price: 100 } },
+        async () => {
+          let results = await execute(
+            firestore
+              .pipeline()
+              .collection(collName)
+              .define(field('price').multiply(0.8).as('discount'))
+              .where(variable('discount').lessThan(50.0))
+              .select('price')
+          );
 
-      let results = await execute(
-        db
-          .pipeline()
-          .collection(collName)
-          .define(field('price').multiply(0.8).as('discount'))
-          .where(variable('discount').lessThan(50.0))
-          .select('price')
+          expect(results.results).to.be.empty;
+
+          const doc2Ref = doc(firestore, `${collName}/doc2`);
+          await setDoc(doc2Ref, { price: 50 });
+
+          try {
+            results = await execute(
+              firestore
+                .pipeline()
+                .collection(collName)
+                .define(field('price').multiply(0.8).as('discount'))
+                .where(variable('discount').lessThan(50.0))
+                .select('price')
+            );
+
+            expectResults(results, { price: 50 });
+          } finally {
+            await deleteDoc(doc2Ref);
+          }
+        }
       );
-
-      expect(results.results).to.be.empty;
-
-      const doc2Ref = doc(db, `${collName}/doc2`);
-      await setDoc(doc2Ref, { price: 50 });
-
-      results = await execute(
-        db
-          .pipeline()
-          .collection(collName)
-          .define(field('price').multiply(0.8).as('discount'))
-          .where(variable('discount').lessThan(50.0))
-          .select('price')
-      );
-
-      expectResults(results, { price: 50 });
-
-      await Promise.all([deleteDoc(doc1Ref), deleteDoc(doc2Ref)]);
     });
 
     it('explicit field binding scope bridging', async () => {
-      const db = firestore;
       const outerCollName = `outer_scope_${Date.now()}`;
-      const doc1Ref = doc(db, `${outerCollName}/doc1`);
-      await setDoc(doc1Ref, { title: '1984', id: '1' });
-
       const reviewsCollName = `reviews_scope_${Date.now()}`;
-      const r1Ref = doc(db, `${reviewsCollName}/r1`);
-      await setDoc(r1Ref, { bookId: '1', reviewer: 'Alice' });
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('bookId', variable('rid')))
-        .select(field('reviewer').as('reviewer'));
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984', id: '1' },
+        [`${reviewsCollName}/r1`]: { bookId: '1', reviewer: 'Alice' }
+      };
 
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(outerCollName)
-          .where(equal('title', '1984'))
-          .define(field('id').as('rid'))
-          .addFields(reviewsSub.toArrayExpression().as('reviews'))
-          .select('title', 'reviews')
-      );
+          .collection(reviewsCollName)
+          .where(equal('bookId', variable('rid')))
+          .select(field('reviewer').as('reviewer'));
 
-      expectResults(results, { title: '1984', reviews: ['Alice'] });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .define(field('id').as('rid'))
+            .addFields(reviewsSub.toArrayExpression().as('reviews'))
+            .select('title', 'reviews')
+        );
 
-      await Promise.all([deleteDoc(doc1Ref), deleteDoc(r1Ref)]);
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
+      });
     });
 
     it('multiple variable bindings', async () => {
-      const db = firestore;
       const outerCollName = `outer_multi_${Date.now()}`; // distinct from earlier test
-      const doc1Ref = doc(db, `${outerCollName}/doc1`);
-      await setDoc(doc1Ref, { title: '1984', id: '1', category: 'sci-fi' });
-
       const reviewsCollName = `reviews_multi_${Date.now()}`;
-      const r1Ref = doc(db, `${reviewsCollName}/r1`);
-      await setDoc(r1Ref, {
-        bookId: '1',
-        category: 'sci-fi',
-        reviewer: 'Alice'
-      });
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(
-          and(
-            equal('bookId', variable('rid')),
-            equal('category', variable('rcat'))
-          )
-        )
-        .select(field('reviewer').as('reviewer'));
+      const data = {
+        [`${outerCollName}/doc1`]: {
+          title: '1984',
+          id: '1',
+          category: 'sci-fi'
+        },
+        [`${reviewsCollName}/r1`]: {
+          bookId: '1',
+          category: 'sci-fi',
+          reviewer: 'Alice'
+        }
+      };
 
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(outerCollName)
-          .where(equal('title', '1984'))
-          .define(field('id').as('rid'), field('category').as('rcat'))
-          .addFields(reviewsSub.toArrayExpression().as('reviews'))
-          .select('title', 'reviews')
-      );
+          .collection(reviewsCollName)
+          .where(
+            and(
+              equal('bookId', variable('rid')),
+              equal('category', variable('rcat'))
+            )
+          )
+          .select(field('reviewer').as('reviewer'));
 
-      expectResults(results, { title: '1984', reviews: ['Alice'] });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .define(field('id').as('rid'), field('category').as('rcat'))
+            .addFields(reviewsSub.toArrayExpression().as('reviews'))
+            .select('title', 'reviews')
+        );
 
-      await Promise.all([deleteDoc(doc1Ref), deleteDoc(r1Ref)]);
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
+      });
     });
 
     it('current document binding', async () => {
-      const db = firestore;
       const outerCollName = `outer_currentdoc_${Date.now()}`;
-      const doc1Ref = doc(db, `${outerCollName}/doc1`);
-      await setDoc(doc1Ref, { title: '1984', author: 'George Orwell' });
-
       const reviewsCollName = `reviews_currentdoc_${Date.now()}`;
-      const r1Ref = doc(db, `${reviewsCollName}/r1`);
-      await setDoc(r1Ref, { authorName: 'George Orwell', reviewer: 'Alice' });
 
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(equal('authorName', variable('doc').mapGet('author')))
-        .select(field('reviewer').as('reviewer'));
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984', author: 'George Orwell' },
+        [`${reviewsCollName}/r1`]: {
+          authorName: 'George Orwell',
+          reviewer: 'Alice'
+        }
+      };
 
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(outerCollName)
-          .where(equal('title', '1984'))
-          .define(currentDocument().as('doc'))
-          .addFields(reviewsSub.toArrayExpression().as('reviews'))
-          .select('title', 'reviews')
-      );
+          .collection(reviewsCollName)
+          .where(equal('authorName', variable('doc').mapGet('author')))
+          .select(field('reviewer').as('reviewer'));
 
-      expectResults(results, { title: '1984', reviews: ['Alice'] });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .define(currentDocument().as('doc'))
+            .addFields(reviewsSub.toArrayExpression().as('reviews'))
+            .select('title', 'reviews')
+        );
 
-      await Promise.all([deleteDoc(doc1Ref), deleteDoc(r1Ref)]);
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
+      });
     });
 
     it('unbound variable corner case', async () => {
-      const db = firestore;
       const outerCollName = `outer_unbound_${Date.now()}`;
 
       // We expect an API error from backend, but since we are mocking/testing locally,
       // we check for rejection.
       await expect(
         execute(
-          db
+          firestore
             .pipeline()
             .collection(outerCollName)
             .where(equal('title', variable('unknown_var')))
@@ -5284,228 +5287,198 @@ describe.skipClassic('Firestore Pipelines', () => {
     });
 
     it('variable shadowing collision', async () => {
-      const db = firestore;
       const outerCollName = `outer_shadow_${Date.now()}`;
-      const doc1Ref = doc(db, `${outerCollName}/doc1`);
-      await setDoc(doc1Ref, { title: '1984' });
-
       const innerCollName = `inner_shadow_${Date.now()}`;
-      const i1Ref = doc(db, `${innerCollName}/i1`);
-      await setDoc(i1Ref, { id: 'test' });
 
-      // Inner subquery re-defines variable "x" to be "inner_val"
-      const sub = db
-        .pipeline()
-        .collection(innerCollName)
-        .define(constant('inner_val').as('x'))
-        .select(variable('x').as('val'));
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984' },
+        [`${innerCollName}/i1`]: { id: 'test' }
+      };
 
-      // Outer pipeline defines variable "x" to be "outer_val"
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        // Inner subquery re-defines variable "x" to be "inner_val"
+        const sub = firestore
           .pipeline()
-          .collection(outerCollName)
-          .where(equal('title', '1984'))
-          .limit(1)
-          .define(constant('outer_val').as('x'))
-          .addFields(sub.toArrayExpression().as('shadowed'))
-          .select('shadowed')
-      );
+          .collection(innerCollName)
+          .define(constant('inner_val').as('x'))
+          .select(variable('x').as('val'));
 
-      // Due to innermost scope winning, the result should use "inner_val"
-      expectResults(results, { shadowed: ['inner_val'] });
+        // Outer pipeline defines variable "x" to be "outer_val"
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .limit(1)
+            .define(constant('outer_val').as('x'))
+            .addFields(sub.toArrayExpression().as('shadowed'))
+            .select('shadowed')
+        );
 
-      await Promise.all([deleteDoc(doc1Ref), deleteDoc(i1Ref)]);
+        // Due to innermost scope winning, the result should use "inner_val"
+        expectResults(results, { shadowed: ['inner_val'] });
+      });
     });
 
     it('missing field on current document', async () => {
-      const db = firestore;
       const outerCollName = `outer_missing_${Date.now()}`;
-      const doc1Ref = doc(db, `${outerCollName}/doc1`);
-
-      await setDoc(doc1Ref, { title: '1984' });
-
       const reviewsCollName = `reviews_missing_${Date.now()}`;
-      const r1Ref = doc(db, `${reviewsCollName}/r1`);
-      await setDoc(r1Ref, { bookId: '1', reviewer: 'Alice' });
 
-      // This references a non-existent field 'does_not_exist' on the current document 'doc'
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        // using mapGet explicitly or just field path if supported on maps
-        .where(equal('bookId', variable('doc').mapGet('does_not_exist')))
-        .select(field('reviewer').as('reviewer'));
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984' },
+        [`${reviewsCollName}/r1`]: { bookId: '1', reviewer: 'Alice' }
+      };
 
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        // This references a non-existent field 'does_not_exist' on the current document 'doc'
+        const reviewsSub = firestore
           .pipeline()
-          .collection(outerCollName)
-          .where(equal('title', '1984'))
-          .define(currentDocument().as('doc'))
-          .addFields(reviewsSub.toArrayExpression().as('reviews'))
-          .select('title', 'reviews')
-      );
+          .collection(reviewsCollName)
+          // using mapGet explicitly or just field path if supported on maps
+          .where(equal('bookId', variable('doc').mapGet('does_not_exist')))
+          .select(field('reviewer').as('reviewer'));
 
-      // Should return empty list for subquery result or similar behavior
-      // Kotlin test expects empty list in reviews?
-      // Kotlin test code was:
-      // assertThat(results.map { it.getData() })
-      //   .containsExactly(mapOf("title" to "1984", "reviews" to emptyList<Any>()))
-      // Actually the view_file didn't show the assertion in Step 17!
-      // Step 17 ends with bracket of results = waitFor(...) line 825.
-      // I need to check the assertion.
-      // But assuming standard behavior: variable resolves to null/missing, so equality fails, so empty result.
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .define(currentDocument().as('doc'))
+            .addFields(reviewsSub.toArrayExpression().as('reviews'))
+            .select('title', 'reviews')
+        );
 
-      expectResults(results, { title: '1984', reviews: [] });
-
-      await Promise.all([deleteDoc(doc1Ref), deleteDoc(r1Ref)]);
+        expectResults(results, { title: '1984', reviews: [] });
+      });
     });
 
     it('3 level deep join', async () => {
-      const db = firestore;
       const publishersCollName = `publishers_${Date.now()}`;
       const booksCollName = `books_${Date.now()}`;
       const reviewsCollName = `reviews_${Date.now()}`;
 
-      const p1Ref = doc(db, `${publishersCollName}/p1`);
-      await setDoc(p1Ref, { publisherId: 'pub1', name: 'Penguin' });
+      const data = {
+        [`${publishersCollName}/p1`]: { publisherId: 'pub1', name: 'Penguin' },
+        [`${booksCollName}/b1`]: {
+          bookId: 'book1',
+          publisherId: 'pub1',
+          title: '1984'
+        },
+        [`${reviewsCollName}/r1`]: { bookId: 'book1', reviewer: 'Alice' }
+      };
 
-      const b1Ref = doc(db, `${booksCollName}/b1`);
-      await setDoc(b1Ref, {
-        bookId: 'book1',
-        publisherId: 'pub1',
-        title: '1984'
-      });
-
-      const r1Ref = doc(db, `${reviewsCollName}/r1`);
-      await setDoc(r1Ref, { bookId: 'book1', reviewer: 'Alice' });
-
-      const reviewsSub = db
-        .pipeline()
-        .collection(reviewsCollName)
-        .where(
-          and(
-            equal('bookId', variable('book_id')),
-            equal(variable('pub_name'), 'Penguin')
-          )
-        )
-        .select(field('reviewer').as('reviewer'));
-
-      const booksSub = db
-        .pipeline()
-        .collection(booksCollName)
-        .where(equal('publisherId', variable('pub_id')))
-        .define(field('bookId').as('book_id'))
-        .addFields(reviewsSub.toArrayExpression().as('reviews'))
-        .select('title', 'reviews');
-
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
           .pipeline()
-          .collection(publishersCollName)
-          .where(equal('publisherId', 'pub1'))
-          .define(
-            field('publisherId').as('pub_id'),
-            field('name').as('pub_name')
+          .collection(reviewsCollName)
+          .where(
+            and(
+              equal('bookId', variable('book_id')),
+              equal(variable('pub_name'), 'Penguin')
+            )
           )
-          .addFields(booksSub.toArrayExpression().as('books'))
-          .select('name', 'books')
-      );
+          .select(field('reviewer').as('reviewer'));
 
-      expectResults(results, {
-        name: 'Penguin',
-        books: [{ title: '1984', reviews: ['Alice'] }]
+        const booksSub = firestore
+          .pipeline()
+          .collection(booksCollName)
+          .where(equal('publisherId', variable('pub_id')))
+          .define(field('bookId').as('book_id'))
+          .addFields(reviewsSub.toArrayExpression().as('reviews'))
+          .select('title', 'reviews');
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(publishersCollName)
+            .where(equal('publisherId', 'pub1'))
+            .define(
+              field('publisherId').as('pub_id'),
+              field('name').as('pub_name')
+            )
+            .addFields(booksSub.toArrayExpression().as('books'))
+            .select('name', 'books')
+        );
+
+        expectResults(results, {
+          name: 'Penguin',
+          books: [{ title: '1984', reviews: ['Alice'] }]
+        });
       });
-
-      await Promise.all([deleteDoc(p1Ref), deleteDoc(b1Ref), deleteDoc(r1Ref)]);
     });
 
     it('deep aggregation', async () => {
-      const db = firestore;
       const outerColl = `outer_agg_${Date.now()}`;
       const innerColl = `inner_agg_${Date.now()}`;
 
-      const doc1Ref = doc(db, `${outerColl}/doc1`);
-      await setDoc(doc1Ref, { id: '1' });
-      const doc2Ref = doc(db, `${outerColl}/doc2`);
-      await setDoc(doc2Ref, { id: '2' });
+      const data = {
+        [`${outerColl}/doc1`]: { id: '1' },
+        [`${outerColl}/doc2`]: { id: '2' },
+        [`${innerColl}/i1`]: { outerId: '1', score: 10 },
+        [`${innerColl}/i2`]: { outerId: '2', score: 20 },
+        [`${innerColl}/i3`]: { outerId: '1', score: 30 }
+      };
 
-      const innerCollection = collection(db, innerColl);
-      const i1Ref = doc(innerCollection, 'i1');
-      await setDoc(i1Ref, { outer_id: '1', score: 10 });
-      const i2Ref = doc(innerCollection, 'i2');
-      await setDoc(i2Ref, { outer_id: '2', score: 20 });
-      const i3Ref = doc(innerCollection, 'i3');
-      await setDoc(i3Ref, { outer_id: '1', score: 30 });
-
-      const innerSub = db
-        .pipeline()
-        .collection(innerColl)
-        .where(equal('outer_id', variable('oid')))
-        .aggregate(average('score').as('s'));
-
-      const results = await execute(
-        db
+      await withSubqueryData(data, async () => {
+        const innerSub = firestore
           .pipeline()
-          .collection(outerColl)
-          .define(field('id').as('oid'))
-          .addFields(innerSub.toScalarExpression().as('doc_score'))
-          // Aggregate over calculated subquery results
-          .aggregate(sum('doc_score').as('total_score'))
-      );
+          .collection(innerColl)
+          .where(equal('outerId', variable('oid')))
+          .aggregate(average('score').as('s'));
 
-      expectResults(results, { total_score: 40.0 });
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerColl)
+            .define(field('id').as('oid'))
+            .addFields(innerSub.toScalarExpression().as('doc_score'))
+            // Aggregate over calculated subquery results
+            .aggregate(sum('doc_score').as('totalScore'))
+        );
 
-      await Promise.all([
-        deleteDoc(doc1Ref),
-        deleteDoc(doc2Ref),
-        deleteDoc(i1Ref),
-        deleteDoc(i2Ref),
-        deleteDoc(i3Ref)
-      ]);
+        expectResults(results, { totalScore: 40.0 });
+      });
     });
 
     // NOTE: We aren't able to created nested pipelines deeper than 9 layer
     // because JSON is more verbose than gRPC format used on other platforms.
     it('pipeline stage support 9 layers', async () => {
-      const db = firestore;
       const collName = `depth_${Date.now()}`;
-      const doc1Ref = doc(db, `${collName}/doc1`);
 
-      await setDoc(doc1Ref, { val: 'hello' });
+      await withSubqueryData(
+        { [`${collName}/doc1`]: { val: 'hello' } },
+        async () => {
+          // Create a nested pipeline of depth 9
+          let currentSubquery = firestore
+            .pipeline()
+            .collection(collName)
+            .limit(1)
+            .select(field('val').as('val'));
 
-      // Create a nested pipeline of depth 9
-      let currentSubquery = db
-        .pipeline()
-        .collection(collName)
-        .limit(1)
-        .select(field('val').as('val'));
+          for (let i = 0; i < 8; i++) {
+            currentSubquery = firestore
+              .pipeline()
+              .collection(collName)
+              .limit(1)
+              .addFields(currentSubquery.toArrayExpression().as(`nested_${i}`))
+              .select(`nested_${i}`);
+          }
 
-      for (let i = 0; i < 8; i++) {
-        currentSubquery = db
-          .pipeline()
-          .collection(collName)
-          .limit(1)
-          .addFields(currentSubquery.toArrayExpression().as(`nested_${i}`))
-          .select(`nested_${i}`);
-      }
-
-      const results = await execute(currentSubquery);
-      expect(results.results.length).to.be.greaterThan(0);
-
-      await deleteDoc(doc1Ref);
+          const results = await execute(currentSubquery);
+          expect(results.results.length).to.be.greaterThan(0);
+        }
+      );
     });
 
     // SKIP: Pending backend support
+    // eslint-disable-next-line no-restricted-properties
     it.skip('standard subcollection query', async () => {
-      const db = firestore;
       const collName = `subcoll_test_${Date.now()}`;
 
-      const doc1Ref = doc(db, `${collName}/doc1`);
+      const doc1Ref = doc(firestore, `${collName}/doc1`);
       await setDoc(doc1Ref, { title: '1984' });
 
-      const r1Ref = doc(db, `${collName}/doc1/reviews/r1`);
+      const r1Ref = doc(firestore, `${collName}/doc1/reviews/r1`);
       await setDoc(r1Ref, { reviewer: 'Alice' });
 
       // Assuming Pipeline.subcollection API exists or similar
@@ -5515,7 +5488,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
 
       const results = await execute(
-        db
+        firestore
           .pipeline()
           .collection(collName)
           .where(equal('title', '1984'))
@@ -5532,10 +5505,10 @@ describe.skipClassic('Firestore Pipelines', () => {
     });
 
     // SKIP: Pending backend support
+    // eslint-disable-next-line no-restricted-properties
     it.skip('missing subcollection', async () => {
-      const db = firestore;
       const collName = `subcoll_missing_${Date.now()}`;
-      const doc1Ref = doc(db, `${collName}/doc1`);
+      const doc1Ref = doc(firestore, `${collName}/doc1`);
 
       await setDoc(doc1Ref, { id: 'no_subcollection_here' });
 
@@ -5545,15 +5518,15 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
 
       const results = await execute(
-        db
+        firestore
           .pipeline()
           .collection(collName)
           .define(variable('parentDoc').as('p'))
-          .select(missingSub.toArrayExpression().as('missing_data'))
+          .select(missingSub.toArrayExpression().as('missingData'))
           .limit(1)
       );
 
-      expectResults(results, { missing_data: [] });
+      expectResults(results, { missingData: [] });
 
       await deleteDoc(doc1Ref);
     });
