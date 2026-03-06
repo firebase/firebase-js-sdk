@@ -649,8 +649,7 @@ export interface GoogleMaps {
 }
 
 // @public
-export interface GoogleMapsGroundChunk {
-    domain?: string;
+export interface GoogleMapsGroundingChunk {
     placeId?: string;
     text?: string;
     title?: string;
@@ -673,7 +672,7 @@ export interface GoogleSearchTool {
 
 // @public
 export interface GroundingChunk {
-    maps?: GoogleMapsGroundChunk;
+    maps?: GoogleMapsGroundingChunk;
     web?: WebGroundingChunk;
 }
 
