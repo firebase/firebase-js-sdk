@@ -3146,6 +3146,42 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+   * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+   *
+   * @remarks
+   * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
+   * whereas `ifAbsent` checks for the absence of a field.
+   *
+   * @example
+   * ```typescript
+   * // Return "Anonymous" if the 'name' field is null.
+   * field("name").ifNull("Anonymous");
+   * // Return "val1" if "val1" is not null, otherwise "val2", or "default" if both are null.
+   * field("val1").ifNull(field("val2"), "default");
+   * ```
+   *
+   * @param replacement - The value to use if this expression evaluates to null.
+   * @param others - Optional additional values to check if previous values are null.
+   * @returns A new `Expression` representing the ifNull operation.
+   */
+  ifNull(
+    replacement: Expression | unknown,
+    ...others: Expression[] | unknown[]
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'if_null',
+      [
+        this,
+        valueToDefaultExpr(replacement),
+        ...others.map(valueToDefaultExpr)
+      ],
+      'ifNull'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an expression that joins the elements of an array into a string.
    *
    * @example
@@ -9882,6 +9918,34 @@ export function or(
 
 /**
  * @beta
+ *
+ * Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
+ *
+ * @example
+ * ```typescript
+ * // Check if neither 'age' is greater than 18 nor 'city' is "London"
+ * const condition = nor(greaterThan("age", 18), equal("city", "London"));
+ * ```
+ *
+ * @param first - The first filter condition.
+ * @param second - The second filter condition.
+ * @param more - Additional filter conditions to 'NOR' together.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical 'NOR' operation.
+ */
+export function nor(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression {
+  return new FunctionExpression(
+    'nor',
+    [first, second, ...more],
+    'nor'
+  ).asBoolean();
+}
+
+/**
+ * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
  *
  * @example
@@ -10522,6 +10586,122 @@ export function ifAbsent(
 ): Expression {
   return fieldOrExpression(fieldNameOrExpression).ifAbsent(
     valueToDefaultExpr(elseValue)
+  );
+}
+
+/**
+ * @beta
+ * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+ * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+ *
+ * @remarks
+ * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
+ * whereas `ifAbsent` checks for the absence of a field.
+ *
+ * @example
+ * ```typescript
+ * // Returns the value of the first non-null, non-absent field among 'first_field', 'second_field',
+ * // or the last argument if all previous fields are null.
+ * ifNull(field("first_field"), field("second_field"), constant("default_value"))
+ * ```
+ *
+ * @param expression - The first expression to check for null.
+ * @param replacement - The fallback expression or value if the first one is null.
+ * @param others - Optional additional expressions to check if previous ones are null.
+ * @returns A new Expression representing the ifNull operation.
+ */
+export function ifNull(
+  expression: Expression,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): Expression;
+
+/**
+ * @beta
+ * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+ * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+ *
+ * @remarks
+ * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
+ * whereas `ifAbsent` checks for the absence of a field.
+ *
+ * @example
+ * ```typescript
+ * // Returns the value of the first non-null, non-absent field among 'first_field', 'second_field',
+ * // or the last argument if all previous fields are null.
+ * ifNull("first_field", "second_field", constant("default_value"))
+ * ```
+ *
+ * @param fieldName - The name of the first field to check for null.
+ * @param replacement - The fallback expression or value if the first one is null.
+ * @param others - Optional additional expressions to check if previous ones are null.
+ * @returns A new Expression representing the ifNull operation.
+ */
+export function ifNull(
+  fieldName: string,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): Expression;
+
+/**
+ * @beta
+ * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+ * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+ *
+ * @remarks
+ * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
+ * whereas `ifAbsent` checks for the absence of a field.
+ *
+ * @param firstExpression - The first expression to evaluate.
+ * @param replacement - The second field or expression to evaluate.
+ * @param otherFields - Optional additional expressions to evaluate.
+ * @returns A new Expression representing the ifNull operation.
+ */
+export function ifNull(
+  expression: Expression | string,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): Expression {
+  return fieldOrExpression(expression).ifNull(replacement, ...others);
+}
+
+/**
+ * @beta
+ * Creates an expression that evaluates to the result corresponding to the first true condition.
+ *
+ * @remarks
+ * Acts like a switch statement. The arguments are pairs of conditions and results.
+ * If a default value is provided (odd number of arguments), it is returned if no condition is true.
+ * if a default value is not provided, and no condition is true, it throws an error.
+ *
+ * @example
+ * ```typescript
+ * // Return "A" if field "x" is 1, "B" if field "x" is 2, otherwise "C".
+ * switchOn(
+ *   equal(field("x"), 1), "A",
+ *   equal(field("x"), 2), "B",
+ *   "C"
+ * )
+ * ```
+ *
+ * @param condition - The first condition to check.
+ * @param result - The result if the first condition is true.
+ * @param others - Additional conditions and results, and optionally a default value.
+ * @returns A new Expression representing the switch operation.
+ */
+export function switchOn(
+  condition: BooleanExpression,
+  result: Expression,
+  ...others: Array<BooleanExpression | Expression>
+): Expression {
+  return new FunctionExpression(
+    'switch_on',
+    [
+      valueToDefaultExpr(condition),
+      valueToDefaultExpr(result),
+      ...others.map(valueToDefaultExpr)
+    ],
+    'switchOn'
   );
 }
 

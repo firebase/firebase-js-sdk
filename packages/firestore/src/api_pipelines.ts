@@ -54,12 +54,12 @@ export {
 } from './lite-api/stage_options';
 
 export {
-  field,
   constant,
   add,
   subtract,
   multiply,
   divide,
+  field,
   mod,
   equal,
   notEqual,
@@ -88,6 +88,9 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  ifNull,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
