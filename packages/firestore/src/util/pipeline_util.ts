@@ -165,5 +165,9 @@ export function valueToDefaultExpr(value: unknown): Expression {
  * We use duck typing here to avoid a circular dependency between pipeline.ts and pipeline_util.ts.
  */
 function isPipeline(value: unknown): value is Pipeline {
-  return !!value && (value as Pipeline)._type === 'Pipeline';
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as Pipeline).toArrayExpression === 'function'
+  );
 }
