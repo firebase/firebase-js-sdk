@@ -124,5 +124,13 @@ export function validateArgsWithOptions<Variables extends object>(
     throw new DataConnectError(Code.INVALID_ARGUMENT, 'Variables required.');
   }
 
+  // eslint-disable-next-line no-console
+  console.log(
+    `${dcFirstArg ? 'dcFirstArg' : 'firstArg'}: ${
+      dcFirstArg ? dcFirstArg : dcOrVarsOrOptions
+    }, secondArg: ${varsOrOptions}, thirdArg: ${options}, hasVars: ${hasVars}, variablesRequired: ${variablesRequired}\n`,
+    `realVars: ${realVars}, realOptions: ${realOptions}`
+  );
+
   return { dc: dcInstance, vars: realVars, options: realOptions };
 }
