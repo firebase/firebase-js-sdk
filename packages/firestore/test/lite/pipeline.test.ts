@@ -84,7 +84,6 @@ import {
   notEqualAny,
   xor,
   nor,
-  ifNull,
   switchOn,
   conditional,
   logicalMaximum,
@@ -5156,61 +5155,6 @@ describe.skipClassic('Firestore Pipelines', () => {
         twoConditions: true,
         threeConditions: false,
         threeConditionsWithNull: null
-      });
-    });
-
-    it.only('supports ifNull', async () => {
-      const snapshot = await execute(
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .replaceWith(
-            map({
-              numberValue: 1,
-              stringValue: 'hello',
-              booleanValue: false,
-              nullValue: null,
-              nullValue2: null
-            })
-          )
-          .select(
-            ifNull(field('numberValue'), field('stringValue')).as(
-              'firstNotNull'
-            ),
-            field('numberValue')
-              .ifNull(field('stringValue'))
-              .as('firstNotNull2'),
-            ifNull(field('nullValue'), field('stringValue')).as('firstNull'),
-            field('nullValue').ifNull(field('stringValue')).as('firstNull2'),
-            ifNull(
-              field('nullValue'),
-              field('nullValue2'),
-              field('booleanValue')
-            ).as('lastNotNull'),
-            ifNull(field('nullValue'), field('nullValue2')).as('allNull'),
-            ifNull(
-              field('nullValue'),
-              field('nullValue2'),
-              constant('default')
-            ).as('allNullWithDefault'),
-            ifNull(
-              field('absentField'),
-              field('numberValue'),
-              constant('default')
-            ).as('withAbsentField')
-          )
-      );
-
-      expectResults(snapshot, {
-        firstNotNull: 1,
-        firstNotNull2: 1,
-        firstNull: 'hello',
-        firstNull2: 'hello',
-        lastNotNull: false,
-        allNull: null,
-        allNullWithDefault: 'default',
-        withAbsentField: 1
       });
     });
 

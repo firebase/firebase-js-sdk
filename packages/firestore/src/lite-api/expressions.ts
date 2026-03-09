@@ -3146,42 +3146,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
-   * the rest of the arguments. When all arguments are null or absent, returns the last argument.
-   *
-   * @remarks
-   * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
-   * whereas `ifAbsent` checks for the absence of a field.
-   *
-   * @example
-   * ```typescript
-   * // Return "Anonymous" if the 'name' field is null.
-   * field("name").ifNull("Anonymous");
-   * // Return "val1" if "val1" is not null, otherwise "val2", or "default" if both are null.
-   * field("val1").ifNull(field("val2"), "default");
-   * ```
-   *
-   * @param replacement - The value to use if this expression evaluates to null.
-   * @param others - Optional additional values to check if previous values are null.
-   * @returns A new `Expression` representing the ifNull operation.
-   */
-  ifNull(
-    replacement: Expression | unknown,
-    ...others: Expression[] | unknown[]
-  ): FunctionExpression {
-    return new FunctionExpression(
-      'if_null',
-      [
-        this,
-        valueToDefaultExpr(replacement),
-        ...others.map(valueToDefaultExpr)
-      ],
-      'ifNull'
-    );
-  }
-
-  /**
-   * @beta
    * Creates an expression that joins the elements of an array into a string.
    *
    * @example
@@ -10587,82 +10551,6 @@ export function ifAbsent(
   return fieldOrExpression(fieldNameOrExpression).ifAbsent(
     valueToDefaultExpr(elseValue)
   );
-}
-
-/**
- * @beta
- * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
- * the rest of the arguments. When all arguments are null or absent, returns the last argument.
- *
- * @remarks
- * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
- * whereas `ifAbsent` checks for the absence of a field.
- *
- * @example
- * ```typescript
- * // Returns the value of the first non-null, non-absent field among 'first_field', 'second_field',
- * // or the last argument if all previous fields are null.
- * ifNull(field("first_field"), field("second_field"), constant("default_value"))
- * ```
- *
- * @param expression - The first expression to check for null.
- * @param replacement - The fallback expression or value if the first one is null.
- * @param others - Optional additional expressions to check if previous ones are null.
- * @returns A new Expression representing the ifNull operation.
- */
-export function ifNull(
-  expression: Expression,
-  replacement: Expression | unknown,
-  ...others: Array<Expression | unknown>
-): Expression;
-
-/**
- * @beta
- * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
- * the rest of the arguments. When all arguments are null or absent, returns the last argument.
- *
- * @remarks
- * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
- * whereas `ifAbsent` checks for the absence of a field.
- *
- * @example
- * ```typescript
- * // Returns the value of the first non-null, non-absent field among 'first_field', 'second_field',
- * // or the last argument if all previous fields are null.
- * ifNull("first_field", "second_field", constant("default_value"))
- * ```
- *
- * @param fieldName - The name of the first field to check for null.
- * @param replacement - The fallback expression or value if the first one is null.
- * @param others - Optional additional expressions to check if previous ones are null.
- * @returns A new Expression representing the ifNull operation.
- */
-export function ifNull(
-  fieldName: string,
-  replacement: Expression | unknown,
-  ...others: Array<Expression | unknown>
-): Expression;
-
-/**
- * @beta
- * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
- * the rest of the arguments. When all arguments are null or absent, returns the last argument.
- *
- * @remarks
- * This is different from `ifAbsent`. `ifNull` checks for explicit `null` values in the data,
- * whereas `ifAbsent` checks for the absence of a field.
- *
- * @param firstExpression - The first expression to evaluate.
- * @param replacement - The second field or expression to evaluate.
- * @param otherFields - Optional additional expressions to evaluate.
- * @returns A new Expression representing the ifNull operation.
- */
-export function ifNull(
-  expression: Expression | string,
-  replacement: Expression | unknown,
-  ...others: Array<Expression | unknown>
-): Expression {
-  return fieldOrExpression(expression).ifNull(replacement, ...others);
 }
 
 /**

@@ -133,7 +133,6 @@ export {
   notEqualAny,
   xor,
   nor,
-  ifNull,
   switchOn,
   conditional,
   not,
