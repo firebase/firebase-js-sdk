@@ -138,12 +138,22 @@ exports.removeAssertAndPrefixInternalTransformer =
  * Terser options that mangle all properties prefixed with __PRIVATE_.
  */
 const manglePrivatePropertiesOptions = {
+  // Prevent parallelism in minification by terser
+  // to prevent race conditions when writing the nameCache
+  maxWorkers: 1,
   output: {
     comments: 'all',
     beautify: true
   },
   keep_fnames: true,
   keep_classnames: true,
+  // use a shared name cache across all terser invocations as part of the
+  // workaround for https://github.com/rollup/plugins/issues/1970.
+  // The workaround works by populating this nameCache using a throwaway
+  // build. Then subsequent builds using plugin-terser will use the generated
+  // name cache to consistently rename properties across chunks.
+  // TODO remove this when https://github.com/rollup/plugins/issues/1970 is fixed
+  nameCache: {},
   mangle: {
     // Temporary hack fix for an issue where mangled code causes some downstream
     // bundlers (Babel?) to confuse the same variable name in different scopes.
@@ -240,61 +250,22 @@ exports.applyPrebuilt = function (name = 'prebuilt.js') {
   });
 };
 
-exports.es2020Plugins = function (platform, mangled = false) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertAndPrefixInternalTransformer]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        transformers: [removeAssertTransformer]
-      }),
-      json({ preferConst: true })
-    ];
-  }
-};
-
-exports.es2020PluginsCompat = function (
-  platform,
-  pathTransformer,
-  mangled = false
-) {
-  if (mangled) {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [
-          removeAssertAndPrefixInternalTransformer,
-          pathTransformer
-        ]
-      }),
-      json({ preferConst: true }),
-      terser(manglePrivatePropertiesOptions)
-    ];
-  } else {
-    return [
-      alias(generateAliasConfig(platform)),
-      typescriptPlugin({
-        typescript,
-        cacheDir: tmp.dirSync(),
-        abortOnError: true,
-        transformers: [removeAssertTransformer, pathTransformer]
-      }),
-      json({ preferConst: true })
-    ];
-  }
-};
+// This is part of the workaround for https://github.com/rollup/plugins/issues/1970
+// The workaround requires that a nameCache is supplied as an argument to
+// the @rollup/plugin-terser. Only the 'params' property of the nameCache
+// is required. If the 'vars' property of the nameCache is persisted through
+// builds, this can cause name collisions if running both cjs and esm builds.
+// This plugin, deletes 'vars' from a nameCache object, so that nameCache can
+// be cleanly shared between esm and cjs builds.
+// Make sure this plugin is run after terser in the plugins.
+// Example `plugins: [terser({..., nameCache: myNameCache }), cleanUpNameCache(myNameCache)]`
+// TODO Remove this when https://github.com/rollup/plugins/issues/1970 is fixed
+function cleanupNameCache(nameCache = {}) {
+  return {
+    name: 'cleanup-name-cache-plugin',
+    generateBundle() {
+      delete nameCache.vars;
+    }
+  };
+}
+exports.cleanupNameCache = cleanupNameCache;
