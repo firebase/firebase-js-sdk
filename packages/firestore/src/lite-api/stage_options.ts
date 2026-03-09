@@ -105,6 +105,23 @@ export type CollectionGroupStageOptions = StageOptions & {
    */
   forceIndex?: string;
 };
+
+/**
+ * @beta
+ * Defines the configuration options for a SubcollectionStage within a pipeline.
+ * This type extends {@link @firebase/firestore/pipelines#StageOptions} and provides specific settings for how a collection group
+ * is identified and processed during pipeline execution.
+ *
+ * See {@link @firebase/firestore/pipelines#PipelineSource.(subcollection:1)} to create a subcollection stage.
+ */
+export type SubcollectionStageOptions = StageOptions & {
+  /**
+   * @beta
+   * The relative path to the subcollection.
+   */
+  path: string;
+};
+
 /**
  * @beta
  * Options defining how a DatabaseStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(database:1)}.

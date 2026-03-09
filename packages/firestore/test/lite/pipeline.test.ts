@@ -5254,7 +5254,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         const reviewsSub = firestore
           .pipeline()
           .collection(reviewsCollName)
-          .where(equal('authorName', variable('doc').mapGet('author')))
+          .where(equal('authorName', variable('doc').getField('author')))
           .select(field('reviewer').as('reviewer'));
 
         const results = await execute(
@@ -5335,7 +5335,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .pipeline()
           .collection(reviewsCollName)
           // using mapGet explicitly or just field path if supported on maps
-          .where(equal('bookId', variable('doc').mapGet('does_not_exist')))
+          .where(equal('bookId', variable('doc').getField('does_not_exist')))
           .select(field('reviewer').as('reviewer'));
 
         const results = await execute(
@@ -5472,7 +5472,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
     // SKIP: Pending backend support
     // eslint-disable-next-line no-restricted-properties
-    it.skip('standard subcollection query', async () => {
+    it('standard subcollection query', async () => {
       const collName = `subcoll_test_${Date.now()}`;
 
       const doc1Ref = doc(firestore, `${collName}/doc1`);
@@ -5482,10 +5482,10 @@ describe.skipClassic('Firestore Pipelines', () => {
       await setDoc(r1Ref, { reviewer: 'Alice' });
 
       // Assuming Pipeline.subcollection API exists or similar
-      // @ts-ignore
-      const reviewsSub = Pipeline.subcollection('reviews').select(
-        field('reviewer').as('reviewer')
-      );
+      const reviewsSub = firestore
+        .pipeline()
+        .subcollection('reviews')
+        .select(field('reviewer').as('reviewer'));
 
       const results = await execute(
         firestore
@@ -5512,10 +5512,10 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       await setDoc(doc1Ref, { id: 'no_subcollection_here' });
 
-      // @ts-ignore
-      const missingSub = Pipeline.subcollection('does_not_exist').select(
-        variable('p').as('sub_p')
-      );
+      const missingSub = firestore
+        .pipeline()
+        .subcollection('does_not_exist')
+        .select(variable('p').as('sub_p'));
 
       const results = await execute(
         firestore
@@ -5532,10 +5532,9 @@ describe.skipClassic('Firestore Pipelines', () => {
     });
 
     it('direct execution of subcollection pipeline', async () => {
-      // @ts-ignore
       const sub = firestore.pipeline().subcollection('reviews');
 
-      await expect(sub.execute()).to.be.rejectedWith(
+      await expect(execute(sub)).to.be.rejectedWith(
         /Cannot execute a relative subcollection pipeline directly/
       );
     });

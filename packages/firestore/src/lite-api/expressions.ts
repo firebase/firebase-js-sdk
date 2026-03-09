@@ -1702,6 +1702,23 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
+   *
+   * @example
+   * ```typescript
+   * // Get the value of the "city" field in the "address" document.
+   * field("address").getField("city")
+   * ```
+   *
+   * @param key The field to access in the document.
+   * @returns A new `Expression` representing the value of the field in the document.
+   */
+  getField(key: string | Expression): Expression {
+    return new FunctionExpression('field', [valueToDefaultExpr(key)], 'field');
+  }
+
+  /**
+   * @beta
    * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
    * expression or field.
    *
@@ -7767,6 +7784,72 @@ export function mapEntries(
   fieldOrExpr: string | Expression
 ): FunctionExpression {
   return fieldOrExpression(fieldOrExpr).mapEntries();
+}
+
+/**
+ * @beta
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField(field("address"), "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(expression: Expression, key: string): Expression;
+/**
+ * @beta
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the key resulting from the "addressField" variable in the "address" document.
+ * getField(field("address", variable("addressField")),
+ * ```
+ *
+ * @param key The expression representing the key to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(
+  expression: Expression,
+  keyExpr: Expression
+): Expression;
+/**
+ * @beta
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, key: string): Expression;
+/**
+ * @beta
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", variable("addressField"))
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, keyExpr: Expression): Expression;
+export function getField(
+  fieldOrExpr: string | Expression,
+  keyOrExpr: string | Expression
+): Expression {
+  return fieldOrExpression(fieldOrExpr).getField(keyOrExpr);
 }
 
 /**

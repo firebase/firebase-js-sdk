@@ -32,13 +32,15 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
-  Stage
+  Stage,
+  SubcollectionSource
 } from './stage';
 import {
   CollectionGroupStageOptions,
   CollectionStageOptions,
   DatabaseStageOptions,
-  DocumentsStageOptions
+  DocumentsStageOptions,
+  SubcollectionStageOptions
 } from './stage_options';
 import { UserDataReader, UserDataSource } from './user_data_reader';
 
@@ -153,6 +155,48 @@ export class PipelineSource<PipelineType> {
     const parseContext = this.userDataReader.createContext(
       UserDataSource.Argument,
       'collectionGroup'
+    );
+    stage._readUserData(parseContext);
+
+    // Add stage to the pipeline
+    return this._createPipeline([stage]);
+  }
+
+  /**
+   * @beta
+   * Creates a new Pipeline targeted at a subcollection relative to the current document context.
+   *
+   * @param path - The relative path relative to the subcollection.
+   */
+  subcollection(path: string): PipelineType;
+  /**
+   * @beta
+   * Creates a new Pipeline targeted at a subcollection relative to the current document context.
+   *
+   * @param options - Options defining how this SubcollectionStage is evaluated.
+   */
+  subcollection(options: SubcollectionStageOptions): PipelineType;
+  subcollection(
+    pathOrOptions: string | SubcollectionStageOptions
+  ): PipelineType {
+    // Process argument union(s) from method overloads
+    let path: string;
+    let options: {};
+    if (isString(pathOrOptions)) {
+      path = pathOrOptions;
+      options = {};
+    } else {
+      ({ path, ...options } = pathOrOptions);
+    }
+
+    // Create stage object
+    const stage = new SubcollectionSource(path, options);
+
+    // User data must be read in the context of the API method to
+    // provide contextual errors
+    const parseContext = this.userDataReader.createContext(
+      UserDataSource.Argument,
+      'subcollection'
     );
     stage._readUserData(parseContext);
 

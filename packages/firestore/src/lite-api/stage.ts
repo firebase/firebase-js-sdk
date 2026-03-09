@@ -336,6 +336,39 @@ export class CollectionGroupSource extends Stage {
 /**
  * @beta
  */
+export class SubcollectionSource extends Stage {
+  get _name(): string {
+    return 'subcollection';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(private path: string, options: StageOptions) {
+    // TODO: SubcollectionStageOptions
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [{ stringValue: this.path }]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
+}
+
+/**
+ * @beta
+ */
 export class DatabaseSource extends Stage {
   get _name(): string {
     return 'database';
