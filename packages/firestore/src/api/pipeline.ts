@@ -30,18 +30,15 @@ export class Pipeline extends LitePipeline {
    * @internal
    * @private
    * @param db
-   * @param userDataReader
    * @param userDataWriter
    * @param stages
-   * @param converter
    * @protected
    */
   protected newPipeline(
     db: Firestore,
-    userDataReader: UserDataReader,
     userDataWriter: AbstractUserDataWriter,
     stages: Stage[]
   ): Pipeline {
-    return new Pipeline(db, userDataReader, userDataWriter, stages);
+    return new Pipeline(db, userDataWriter, stages);
   }
 }

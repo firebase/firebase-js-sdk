@@ -101,7 +101,10 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
     structuredPipelineOptions
   );
 
+  const userDataWriter = new LiteUserDataWriter(pipeline._db)
+
   return invokeExecutePipeline(datastore, structuredPipeline).then(result => {
+
     // Get the execution time from the first result.
     // firestoreClientExecutePipeline returns at least one PipelineStreamElement
     // even if the returned document set is empty.
@@ -115,7 +118,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
       .map(
         element =>
           new PipelineResult(
-            pipeline._userDataWriter,
+            userDataWriter,
             element.fields!,
             element.key?.path
               ? new DocumentReference(pipeline._db, null, element.key)
@@ -145,7 +148,7 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
     this._databaseId,
     userDataReader,
     (stages: Stage[]) => {
-      return new Pipeline(this, userDataReader, userDataWriter, stages);
+      return new Pipeline(this, stages);
     }
   );
 };

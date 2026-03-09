@@ -152,10 +152,14 @@ export function execute(
   );
   structuredPipelineOptions._readUserData(context);
 
+  pipeline._readUserData(context);
+
   const structuredPipeline: StructuredPipeline = new StructuredPipeline(
     pipeline,
     structuredPipelineOptions
   );
+
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   return firestoreClientExecutePipeline(client, structuredPipeline).then(
     result => {
@@ -172,7 +176,7 @@ export function execute(
         .map(
           element =>
             new PipelineResult(
-              pipeline._userDataWriter,
+              userDataWriter,
               element.fields!,
               element.key?.path
                 ? new DocumentReference(firestore, null, element.key)
@@ -205,8 +209,6 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
     (stages: Stage[]) => {
       return new Pipeline(
         this,
-        userDataReader,
-        new ExpUserDataWriter(this),
         stages
       );
     }
