@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { ErrorHandler, inject } from '@angular/core';
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
