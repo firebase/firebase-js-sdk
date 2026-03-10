@@ -68,6 +68,12 @@ export function onRegistered(messaging: Messaging, nextOrObserver: NextFn<string
 // @public
 export function onUnregistered(messaging: Messaging, nextOrObserver: NextFn<string> | Observer<string>): Unsubscribe;
 
+// @public
+export interface RegisterOptions {
+    serviceWorkerRegistration?: ServiceWorkerRegistration;
+    vapidKey?: string;
+}
+
 export { Unsubscribe }
 
 
