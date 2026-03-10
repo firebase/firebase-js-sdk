@@ -848,14 +848,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       internalOptions
     );
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'addFields'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1344,7 +1336,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
   _readUserData(context: ParseContext): void {
     this.stages.forEach(stage => {
-      stage._readUserData(context);
+      const subContext = context.contextWith({
+        methodName: stage._name
+      });
+      stage._readUserData(subContext);
     })
   }
 
