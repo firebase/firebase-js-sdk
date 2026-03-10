@@ -19,7 +19,7 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { CallerSdkTypeEnum, getGoogApiClientValue } from '../../src/network';
+import { CallerSdkType, CallerSdkTypeEnum, getGoogApiClientValue } from '../../src/network';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
@@ -61,6 +61,24 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   }
 }
 
+/**
+ * Interface that exposes some private fields and methods of TestStreamTransport for testing purposes.
+ */
+interface TransportWithInternals {
+  connectorResourcePath: string;
+  _isUsingGen: boolean;
+  _callerSdkType: CallerSdkType;
+  _setCallerSdkType(type: CallerSdkType): void;
+  setAuthToken(token: string | null): void;
+  setAppCheckToken(token: string | null): void;
+  _prepareMessage<
+    Variables,
+    StreamBody extends DataConnectStreamRequest<Variables>
+  >(
+    requestBody: StreamBody
+  ): StreamBody;
+}
+
 describe('AbstractDataConnectStreamTransport', () => {
   const dcOptions: DataConnectOptions = {
     projectId: 'p',
@@ -68,7 +86,7 @@ describe('AbstractDataConnectStreamTransport', () => {
     service: 's',
     connector: 'c'
   };
-  let transport: TestStreamTransport;
+  let transport: TransportWithInternals;
   let expectedName: string;
   let expectedInitialGoogApiClientValue: string;
   const firstRequestId = '1';
@@ -82,25 +100,23 @@ describe('AbstractDataConnectStreamTransport', () => {
   const newAppCheckToken = 'new-app-check-token';
 
   beforeEach(() => {
-    // reset transport - use `any` to access private/protected members
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const anyTransport = new TestStreamTransport(dcOptions) as unknown as any;
-    expectedName = anyTransport.connectorResourcePath;
-    anyTransport._isUsingGen = true;
-    anyTransport._callerSdkType = CallerSdkTypeEnum.Generated;
+    transport = new TestStreamTransport(
+      dcOptions
+    ) as unknown as TransportWithInternals;
+    expectedName = transport.connectorResourcePath;
+    transport._isUsingGen = true;
+    transport._callerSdkType = CallerSdkTypeEnum.Generated;
     expectedInitialGoogApiClientValue = getGoogApiClientValue(
-      anyTransport._isUsingGen,
-      anyTransport._callerSdkType
+      transport._isUsingGen,
+      transport._callerSdkType
     );
-    anyTransport.setAuthToken(initialAuthToken);
-    anyTransport.setAppCheckToken(initialAppCheckToken);
-    transport = anyTransport;
+    transport.setAuthToken(initialAuthToken);
+    transport.setAppCheckToken(initialAppCheckToken);
   });
 
   describe('_prepareMessage', () => {
     it('should not change data fields', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const preparedMessage = (transport as any)._prepareMessage(
+      const preparedMessage = transport._prepareMessage(
         unpreparedMessage
       ) as DataConnectStreamRequest<unknown>;
       expect(preparedMessage.requestId).to.equal(unpreparedMessage.requestId);
@@ -114,8 +130,7 @@ describe('AbstractDataConnectStreamTransport', () => {
     describe('should handle headers properly', () => {
       describe('auth token', () => {
         it('should add auth token to the first message', () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const preparedMessage = (transport as any)._prepareMessage(
+          const preparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(preparedMessage.headers).to.exist;
@@ -123,26 +138,21 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should NOT add the same auth token to subsequent messages', () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (transport as any)._prepareMessage(unpreparedMessage);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const secondPreparedMessage = (transport as any)._prepareMessage(
+          transport._prepareMessage(unpreparedMessage);
+          const secondPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
         });
 
         it('should include auth token when it changes', () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (transport as any)._prepareMessage(unpreparedMessage);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const secondPreparedMessage = (transport as any)._prepareMessage(
+          transport._prepareMessage(unpreparedMessage);
+          const secondPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
           transport.setAuthToken(newAuthToken);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const thirdPreparedMessage = (transport as any)._prepareMessage(
+          const thirdPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(thirdPreparedMessage.headers?.authToken).to.equal(
@@ -153,8 +163,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       describe('app check token', () => {
         it('should add app check token to the first message', () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const firstPreparedMessage = (transport as any)._prepareMessage(
+          const firstPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(firstPreparedMessage.headers).to.exist;
@@ -164,26 +173,21 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should NOT add the same app check token to subsequent messages', () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (transport as any)._prepareMessage(unpreparedMessage);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const secondPreparedMessage = (transport as any)._prepareMessage(
+          transport._prepareMessage(unpreparedMessage);
+          const secondPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(secondPreparedMessage.headers?.appCheckToken).to.be.undefined;
         });
 
         it('should NOT include app check token when it changes', () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (transport as any)._prepareMessage(unpreparedMessage);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const secondPreparedMessage = (transport as any)._prepareMessage(
+          transport._prepareMessage(unpreparedMessage);
+          const secondPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(secondPreparedMessage.headers?.appCheckToken).to.be.undefined;
           transport.setAppCheckToken(newAppCheckToken);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const thirdPreparedMessage = (transport as any)._prepareMessage(
+          const thirdPreparedMessage = transport._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(thirdPreparedMessage.headers?.appCheckToken).to.be.undefined;
@@ -191,29 +195,25 @@ describe('AbstractDataConnectStreamTransport', () => {
       });
 
       it('should add X-Goog-Api-Client to every message based on caller sdk type', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const firstPreparedMessage = (transport as any)._prepareMessage(
+        const firstPreparedMessage = transport._prepareMessage(
           unpreparedMessage
         );
         expect(firstPreparedMessage.headers?.['X-Goog-Api-Client']).to.equal(
           expectedInitialGoogApiClientValue
         );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const secondPreparedMessage = (transport as any)._prepareMessage(
+        const secondPreparedMessage = transport._prepareMessage(
           unpreparedMessage
         ) as DataConnectStreamRequest<unknown>;
         expect(secondPreparedMessage.headers?.['X-Goog-Api-Client']).to.equal(
           expectedInitialGoogApiClientValue
         );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transport as any)._isUsingGen = true;
+        transport._isUsingGen = true;
         transport._setCallerSdkType(CallerSdkTypeEnum.GeneratedReact);
         const expectedThirdGoogApiClientValue = getGoogApiClientValue(
           true,
           CallerSdkTypeEnum.GeneratedReact
         );
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const thirdPreparedMessage = (transport as any)._prepareMessage(
+        const thirdPreparedMessage = transport._prepareMessage(
           unpreparedMessage
         ) as DataConnectStreamRequest<unknown>;
         expect(thirdPreparedMessage.headers?.['X-Goog-Api-Client']).to.equal(
@@ -224,18 +224,15 @@ describe('AbstractDataConnectStreamTransport', () => {
 
     describe('should handle name properly', () => {
       it('should add name to the first message', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const firstPreparedMessage = (transport as any)._prepareMessage(
+        const firstPreparedMessage = transport._prepareMessage(
           unpreparedMessage
         );
         expect(firstPreparedMessage.name).to.equal(expectedName);
       });
 
       it('should NOT add name to subsequent messages', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (transport as any)._prepareMessage(unpreparedMessage);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const secondPreparedMessage = (transport as any)._prepareMessage(
+        transport._prepareMessage(unpreparedMessage);
+        const secondPreparedMessage = transport._prepareMessage(
           unpreparedMessage
         ) as DataConnectStreamRequest<unknown>;
         expect(secondPreparedMessage.name).to.be.undefined;

@@ -26,13 +26,12 @@ import {
 
 import { DataConnectStreamRequest, StreamRequestHeaders } from './wire';
 
-/** the request id of the first request over the stream */
+/** The request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
 /**
  * The base class for all DataConnectStreamTransport implementations. Handles management of logical
- * streams (requests), authentication, data routing to query layer, etc. Concrete stream transport
- * implementations should extend this class and implement the abstract methods.
+ * streams (requests), authentication, data routing to query layer, etc.
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
@@ -50,7 +49,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   protected abstract closeConnection(): Promise<void>;
 
   /**
-   * Queue a message to be sent over the stream. Implemented by the concrete transport implementation.
+   * Queue a message to be sent over the stream.
    * @param requestBody The body of the message to be sent.
    * @throws DataConnectError if sending fails.
    */
@@ -61,7 +60,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
   private _requestNumber = FIRST_REQUEST_ID;
   /**
-   * Generated and returns the next request ID.
+   * Generates and returns the next request ID.
    */
   private _nextRequestId(): string {
     return (this._requestNumber++).toString();
