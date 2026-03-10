@@ -35,6 +35,8 @@ import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { onRegistered as _onRegistered } from './api/onRegistered';
+import { onUnregistered as _onUnregistered } from './api/onUnregistered';
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
 
 /**
@@ -168,6 +170,44 @@ export function onBackgroundMessage(
 ): Unsubscribe {
   messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked
+ * when an FID is delivered after an explicit register() call or automatic SDK refresh.
+ * Use this to upload the installationId to your application server upon receipt.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called when an FID is registered.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export function onRegistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe {
+  messaging = getModularInstance(messaging);
+  return _onRegistered(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Subscribes to FID (Firebase Installation ID) unregistration events. The observer is
+ * dispatched after a successful unregister() call with the FID that is no longer active.
+ * Use this to notify your backend to remove this FID to prevent 404 errors on send.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called with the unregistered FID.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export function onUnregistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe {
+  messaging = getModularInstance(messaging);
+  return _onUnregistered(messaging as MessagingService, nextOrObserver);
 }
 
 /**
