@@ -123,9 +123,7 @@ describe('AbstractDataConnectStreamTransport', () => {
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(preparedMessage.headers).to.exist;
-          expect(preparedMessage.headers?.authToken).to.equal(
-            initialAuthToken
-          );
+          expect(preparedMessage.headers?.authToken).to.equal(initialAuthToken);
         });
 
         it('should NOT add the same auth token to subsequent messages', () => {
@@ -151,7 +149,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           const thirdPreparedMessage = (transport as any)._prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(thirdPreparedMessage.headers?.authToken).to.equal(newAuthToken);
+          expect(thirdPreparedMessage.headers?.authToken).to.equal(
+            newAuthToken
+          );
         });
       });
 
@@ -212,7 +212,10 @@ describe('AbstractDataConnectStreamTransport', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (transport as any)._isUsingGen = true;
         transport._setCallerSdkType(CallerSdkTypeEnum.GeneratedReact);
-        const expectedThirdGoogApiClientValue = getGoogApiClientValue(true, CallerSdkTypeEnum.GeneratedReact);
+        const expectedThirdGoogApiClientValue = getGoogApiClientValue(
+          true,
+          CallerSdkTypeEnum.GeneratedReact
+        );
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const thirdPreparedMessage = (transport as any)._prepareMessage(
           unpreparedMessage

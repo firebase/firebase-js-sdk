@@ -60,22 +60,22 @@ Below are examples of how to use the `default` connector's generated functions t
 ## ListMovies
 You can execute the `ListMovies` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [default-connector/index.d.ts](./index.d.ts):
 ```typescript
-listMovies(options?: QueryOptions): QueryPromise<ListMoviesData, undefined>;
+listMovies(): QueryPromise<ListMoviesData, undefined>;
 
 interface ListMoviesRef {
   ...
   /* Allow users to create refs without passing in DataConnect */
-  (options?: QueryOptions): QueryRef<ListMoviesData, undefined>;
+  (): QueryRef<ListMoviesData, undefined>;
 }
 export const listMoviesRef: ListMoviesRef;
 ```
 You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
 ```typescript
-listMovies(dc: DataConnect, options?: QueryOptions): QueryPromise<ListMoviesData, undefined>;
+listMovies(dc: DataConnect): QueryPromise<ListMoviesData, undefined>;
 
 interface ListMoviesRef {
   ...
-  (dc: DataConnect, options?: QueryOptions): QueryRef<ListMoviesData, undefined>;
+  (dc: DataConnect): QueryRef<ListMoviesData, undefined>;
 }
 export const listMoviesRef: ListMoviesRef;
 ```
