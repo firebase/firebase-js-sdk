@@ -19,7 +19,11 @@ import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { CallerSdkType, CallerSdkTypeEnum, getGoogApiClientValue } from '../../src/network';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  getGoogApiClientValue
+} from '../../src/network';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
@@ -195,9 +199,8 @@ describe('AbstractDataConnectStreamTransport', () => {
       });
 
       it('should add X-Goog-Api-Client to every message based on caller sdk type', () => {
-        const firstPreparedMessage = transport._prepareMessage(
-          unpreparedMessage
-        );
+        const firstPreparedMessage =
+          transport._prepareMessage(unpreparedMessage);
         expect(firstPreparedMessage.headers?.['X-Goog-Api-Client']).to.equal(
           expectedInitialGoogApiClientValue
         );
@@ -224,9 +227,8 @@ describe('AbstractDataConnectStreamTransport', () => {
 
     describe('should handle name properly', () => {
       it('should add name to the first message', () => {
-        const firstPreparedMessage = transport._prepareMessage(
-          unpreparedMessage
-        );
+        const firstPreparedMessage =
+          transport._prepareMessage(unpreparedMessage);
         expect(firstPreparedMessage.name).to.equal(expectedName);
       });
 
