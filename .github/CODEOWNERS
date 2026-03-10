@@ -71,9 +71,6 @@ packages/app-check-compat @hsubox76 @firebase/jssdk-global-approvers
 packages/app-check-types @hsubox76 @firebase/jssdk-global-approvers
 packages/app-check-interop-types @hsubox76 @firebase/jssdk-global-approvers
 
-# Crashlytics Code
-packages/crashlytics @andrewbrook @tonybaroneee @firebase/jssdk-global-approvers
-
 # Documentation Changes
 packages/firebase/compat/index.d.ts @egilmorez @firebase/jssdk-global-approvers
 scripts/docgen/content-sources/ @egilmorez @firebase/jssdk-global-approvers
