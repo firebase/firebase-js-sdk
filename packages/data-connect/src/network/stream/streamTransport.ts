@@ -78,10 +78,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private _lastSentAuthToken: string | null = null;
   /**
    * Indicates whether we should include the auth token in the next message.
+   * Only true if there is an auth token and it is different from the last sent auth token, or this
+   * is the first message.
    */
   private get _shouldIncludeAuth(): boolean {
     return (
-      this._isFirstStreamMessage || this._authToken !== this._lastSentAuthToken
+      this._isFirstStreamMessage || !!this._authToken && this._authToken !== this._lastSentAuthToken
     );
   }
   /**
@@ -110,34 +112,28 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
   >(requestBody: StreamBody): StreamBody {
+    const preparedRequestBody: StreamBody = { ...requestBody };
     const headers: StreamRequestHeaders = {};
-    let hasHeaders = false;
-    if (this._shouldIncludeAuth) {
-      if (this._authToken) {
-        headers.authToken = this._authToken;
-      }
+    if (this.appId) {
+      headers['x-firebase-gmpid'] = this.appId;
+    }
+    headers['X-Goog-Api-Client'] = getGoogApiClientValue(
+      this._isUsingGen,
+      this._callerSdkType
+    );
+    if (this._shouldIncludeAuth && this._authToken) {
+      headers.authToken = this._authToken;
       this._lastSentAuthToken = this._authToken;
-      hasHeaders = true;
     }
     if (this._isFirstStreamMessage) {
       if (this._appCheckToken) {
         headers.appCheckToken = this._appCheckToken;
       }
-      if (this.appId) {
-        headers['x-firebase-gmpid'] = this.appId;
-      }
-      headers['X-Goog-Api-Client'] = getGoogApiClientValue(
-        this._isUsingGen,
-        this._callerSdkType
-      );
-      requestBody.name = this.connectorResourcePath;
-      hasHeaders = true;
+      preparedRequestBody.name = this.connectorResourcePath;
     }
-    if (hasHeaders) {
-      requestBody.headers = headers;
-    }
+    preparedRequestBody.headers = headers;
     this._isFirstStreamMessage = false;
-    return requestBody;
+    return preparedRequestBody;
   }
 
   invokeQuery<Data, Variables>(
