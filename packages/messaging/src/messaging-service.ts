@@ -42,6 +42,12 @@ export class MessagingService implements _FirebaseService {
   onMessageHandler: NextFn<MessagePayload> | Observer<MessagePayload> | null =
     null;
 
+  /** Observer for the event that the app instance is registered with FCM via Firebase Installation ID (FID). */
+  onRegisteredHandler: NextFn<string> | Observer<string> | null = null;
+
+  /** Observer for the event that the app instance is unregistered from FCM (FID no longer active). */
+  onUnregisteredHandler: NextFn<string> | Observer<string> | null = null;
+
   logEvents: LogEvent[] = [];
   isLogServiceStarted: boolean = false;
 

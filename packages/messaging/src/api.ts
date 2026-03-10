@@ -35,6 +35,8 @@ import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { onRegistered as _onRegistered } from './api/onRegistered';
+import { onUnregistered as _onUnregistered } from './api/onUnregistered';
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
 
 /**
@@ -158,7 +160,7 @@ export function onMessage(
  * @param nextOrObserver - This function, or observer object with `next` defined, is called when a
  * message is received and the app is currently in the background.
  *
- * @returns To stop listening for messages execute this returned function
+ * @returns To stop listening for messages execute this returned function.
  *
  * @public
  */
@@ -168,6 +170,42 @@ export function onBackgroundMessage(
 ): Unsubscribe {
   messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
+ * Use the FID passed to the callback to upload it to your application server.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called when an FID is registered.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export function onRegistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe {
+  messaging = getModularInstance(messaging);
+  return _onRegistered(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Subscribes to an event that the app instance is unregistered from FCM (FID no longer active).
+ * Use this to notify your backend to remove this FID to prevent 404 errors on send.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called with the unregistered FID.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export function onUnregistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe {
+  messaging = getModularInstance(messaging);
+  return _onUnregistered(messaging as MessagingService, nextOrObserver);
 }
 
 /**

@@ -31,6 +31,8 @@ export {
   getToken,
   deleteToken,
   onMessage,
+  onRegistered,
+  onUnregistered,
   getMessagingInWindow as getMessaging
 } from './api';
 export { isWindowSupported as isSupported } from './api/isSupported';
