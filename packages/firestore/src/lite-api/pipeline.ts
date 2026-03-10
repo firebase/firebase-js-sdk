@@ -458,7 +458,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   .where(
    *     and(
    *         greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         field("genre").equal("Science Fiction") // Equivalent to greaterThan("genre", "Science Fiction")
+   *         field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
    *     )
    *   );
    * ```
@@ -492,7 +492,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   .where(
    *     and(
    *         greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         field("genre").equal("Science Fiction") // Equivalent to greaterThan("genre", "Science Fiction")
+   *         field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
    *     )
    *   );
    * ```
