@@ -42,6 +42,12 @@ export class MessagingService implements _FirebaseService {
   onMessageHandler: NextFn<MessagePayload> | Observer<MessagePayload> | null =
     null;
 
+  /** Observer for FID delivered after register() or automatic refresh. */
+  onRegisteredHandler: NextFn<string> | Observer<string> | null = null;
+
+  /** Observer for FID that is no longer active after unregister(). */
+  onUnregisteredHandler: NextFn<string> | Observer<string> | null = null;
+
   logEvents: LogEvent[] = [];
   isLogServiceStarted: boolean = false;
 
