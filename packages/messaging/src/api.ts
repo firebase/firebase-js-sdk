@@ -160,7 +160,7 @@ export function onMessage(
  * @param nextOrObserver - This function, or observer object with `next` defined, is called when a
  * message is received and the app is currently in the background.
  *
- * @returns To stop listening for messages execute this returned function
+ * @returns To stop listening for messages execute this returned function.
  *
  * @public
  */
@@ -173,9 +173,8 @@ export function onBackgroundMessage(
 }
 
 /**
- * Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked
- * when an FID is delivered after an explicit register() call or automatic SDK refresh.
- * Use this to upload the installationId to your application server upon receipt.
+ * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
+ * Use the FID passed to the callback to upload it to your application server.
  *
  * @param messaging - The {@link Messaging} instance.
  * @param nextOrObserver - A function or observer object called when an FID is registered.
@@ -192,8 +191,7 @@ export function onRegistered(
 }
 
 /**
- * Subscribes to FID (Firebase Installation ID) unregistration events. The observer is
- * dispatched after a successful unregister() call with the FID that is no longer active.
+ * Subscribes to an event that the app instance is unregistered from FCM (FID no longer active).
  * Use this to notify your backend to remove this FID to prevent 404 errors on send.
  *
  * @param messaging - The {@link Messaging} instance.

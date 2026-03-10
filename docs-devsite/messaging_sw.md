@@ -20,8 +20,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(messaging, ...)</b> |
 |  [experimentalSetDeliveryMetricsExportedToBigQueryEnabled(messaging, enable)](./messaging_sw.md#experimentalsetdeliverymetricsexportedtobigqueryenabled_f3e53bd) | Enables or disables Firebase Cloud Messaging message delivery metrics export to BigQuery. By default, message delivery metrics are not exported to BigQuery. Use this method to enable or disable the export at runtime. |
 |  [onBackgroundMessage(messaging, nextOrObserver)](./messaging_sw.md#onbackgroundmessage_b9887da) | Called when a message is received while the app is in the background. An app is considered to be in the background if no active window is displayed. |
-|  [onRegistered(messaging, nextOrObserver)](./messaging_sw.md#onregistered_f8a466e) | Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked when an FID is delivered after an explicit register() call or automatic SDK refresh. Use this to upload the installationId to your application server upon receipt. |
-|  [onUnregistered(messaging, nextOrObserver)](./messaging_sw.md#onunregistered_f8a466e) | Subscribes to FID (Firebase Installation ID) unregistration events. The observer is dispatched after a successful unregister() call with the FID that is no longer active. Use this to notify your backend to remove this FID to prevent 404 errors on send. |
+|  [onRegistered(messaging, nextOrObserver)](./messaging_sw.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via FID. Use the FID passed to the callback to upload it to your application server. |
+|  [onUnregistered(messaging, nextOrObserver)](./messaging_sw.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_sw.md#issupported) | Checks whether all required APIs exist within SW Context |
 
@@ -107,7 +107,7 @@ To stop listening for messages execute this returned function
 
 ### onRegistered(messaging, nextOrObserver) {:#onregistered_f8a466e}
 
-Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked when an FID is delivered after an explicit register() call or automatic SDK refresh. Use this to upload the installationId to your application server upon receipt.
+Subscribes to an event that the app instance is registered with FCM via FID. Use the FID passed to the callback to upload it to your application server.
 
 <b>Signature:</b>
 
@@ -130,7 +130,7 @@ Unsubscribe function to stop listening.
 
 ### onUnregistered(messaging, nextOrObserver) {:#onunregistered_f8a466e}
 
-Subscribes to FID (Firebase Installation ID) unregistration events. The observer is dispatched after a successful unregister() call with the FID that is no longer active. Use this to notify your backend to remove this FID to prevent 404 errors on send.
+Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send.
 
 <b>Signature:</b>
 

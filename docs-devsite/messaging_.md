@@ -21,8 +21,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [deleteToken(messaging)](./messaging_.md#deletetoken_3fae4b1) | Deletes the registration token associated with this [Messaging](./messaging_.messaging.md#messaging_interface) instance and unsubscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance from the push subscription. |
 |  [getToken(messaging, options)](./messaging_.md#gettoken_b538f38) | Subscribes the [Messaging](./messaging_.messaging.md#messaging_interface) instance to push notifications. Returns a Firebase Cloud Messaging registration token that can be used to send push messages to that [Messaging](./messaging_.messaging.md#messaging_interface) instance.<!-- -->If notification permission isn't already granted, this method asks the user for permission. The returned promise rejects if the user does not allow the app to show notifications. |
 |  [onMessage(messaging, nextOrObserver)](./messaging_.md#onmessage_b9887da) | When a push message is received and the user is currently on a page for your origin, the message is passed to the page and an <code>onMessage()</code> event is dispatched with the payload of the push message. |
-|  [onRegistered(messaging, nextOrObserver)](./messaging_.md#onregistered_f8a466e) | Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked when an FID is delivered after an explicit register() call or automatic SDK refresh. Use this to upload the installationId to your application server upon receipt. |
-|  [onUnregistered(messaging, nextOrObserver)](./messaging_.md#onunregistered_f8a466e) | Subscribes to FID (Firebase Installation ID) unregistration events. The observer is dispatched after a successful unregister() call with the FID that is no longer active. Use this to notify your backend to remove this FID to prevent 404 errors on send. |
+|  [onRegistered(messaging, nextOrObserver)](./messaging_.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via FID. Use the FID passed to the callback to upload it to your application server. |
+|  [onUnregistered(messaging, nextOrObserver)](./messaging_.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_.md#issupported) | Checks if all required APIs exist in the browser. |
 
@@ -134,7 +134,7 @@ To stop listening for messages execute this returned function.
 
 ### onRegistered(messaging, nextOrObserver) {:#onregistered_f8a466e}
 
-Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked when an FID is delivered after an explicit register() call or automatic SDK refresh. Use this to upload the installationId to your application server upon receipt.
+Subscribes to an event that the app instance is registered with FCM via FID. Use the FID passed to the callback to upload it to your application server.
 
 <b>Signature:</b>
 
@@ -157,7 +157,7 @@ Unsubscribe function to stop listening.
 
 ### onUnregistered(messaging, nextOrObserver) {:#onunregistered_f8a466e}
 
-Subscribes to FID (Firebase Installation ID) unregistration events. The observer is dispatched after a successful unregister() call with the FID that is no longer active. Use this to notify your backend to remove this FID to prevent 404 errors on send.
+Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send.
 
 <b>Signature:</b>
 

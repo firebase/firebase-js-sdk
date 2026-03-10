@@ -19,8 +19,7 @@ import { NextFn, Observer, Unsubscribe } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 
 /**
- * Subscribes to FID (Firebase Installation ID) unregistration events. The observer is
- * dispatched after a successful unregister() call with the FID that is no longer active.
+ * Subscribes to an event that the app instance is unregistered from FCM (FID no longer active).
  * Use this to notify your backend to remove this FID to prevent 404 errors on send.
  *
  * @param messaging - The {@link MessagingService} instance.
@@ -34,6 +33,8 @@ export function onUnregistered(
   messaging.onUnregisteredHandler = nextOrObserver;
 
   return () => {
-    messaging.onUnregisteredHandler = null;
+    if (messaging.onUnregisteredHandler === nextOrObserver) {
+      messaging.onUnregisteredHandler = null;
+    }
   };
 }

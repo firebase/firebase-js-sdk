@@ -19,9 +19,8 @@ import { NextFn, Observer, Unsubscribe } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 
 /**
- * Subscribes to FID (Firebase Installation ID) registration events. The observer is invoked
- * when an FID is delivered after an explicit register() call or automatic SDK refresh.
- * Use this to upload the installationId to your application server upon receipt.
+ * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
+ * Use the FID passed to the callback to upload it to your application server.
  *
  * @param messaging - The {@link MessagingService} instance.
  * @param nextOrObserver - A function or observer object called when an FID is registered.
@@ -34,6 +33,8 @@ export function onRegistered(
   messaging.onRegisteredHandler = nextOrObserver;
 
   return () => {
-    messaging.onRegisteredHandler = null;
+    if (messaging.onRegisteredHandler === nextOrObserver) {
+      messaging.onRegisteredHandler = null;
+    }
   };
 }
