@@ -295,7 +295,11 @@ describe('Generate Content', function () {
         expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
       });
 
-      it('generateContent: google maps grounding with lat long', async () => {
+      it('generateContent: google maps grounding with RetrievalConfig', async () => {
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          // Maps grounding is not supported in gemini-3-pro-preview.
+          return;
+        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
@@ -305,7 +309,7 @@ describe('Generate Content', function () {
             retrievalConfig: {
               latLng: {
                 latitude: 42.4154,
-                longitude: 71.1565
+                longitude: -71.1565
               }
             }
           }
@@ -340,7 +344,11 @@ describe('Generate Content', function () {
         expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
       });
 
-      it('generateContent: google maps grounding with lat long enableWidget true', async () => {
+      it('generateContent: google maps grounding RetrievalConfig enableWidget true', async () => {
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          // Maps grounding is not supported in gemini-3-pro-preview.
+          return;
+        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
@@ -350,7 +358,7 @@ describe('Generate Content', function () {
             retrievalConfig: {
               latLng: {
                 latitude: 42.4154,
-                longitude: 71.1565
+                longitude: -71.1565
               }
             }
           }
