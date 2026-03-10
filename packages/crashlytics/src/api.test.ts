@@ -17,9 +17,13 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { trace, TracerProvider } from '@opentelemetry/api';
+import { trace } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
-import sinon from 'sinon';
+import {
+  InMemorySpanExporter,
+  SimpleSpanProcessor,
+  WebTracerProvider
+} from '@opentelemetry/sdk-trace-web';
 import {
   FirebaseApp,
   initializeApp,
@@ -62,18 +66,6 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
-const fakeTracingProvider = {
-  getTracer: () => ({
-    startActiveSpan: (name: string, fn: (span: any) => any) =>
-      fn({
-        end: () => {},
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-      })
-  }),
-  register: () => {},
-  shutdown: () => Promise.resolve()
-} as unknown as TracerProvider;
-
 const fakeCrashlytics: CrashlyticsInternal = {
   app: {
     name: 'DEFAULT',
@@ -83,8 +75,7 @@ const fakeCrashlytics: CrashlyticsInternal = {
       appId: APP_ID
     }
   },
-  loggerProvider: fakeLoggerProvider,
-  tracingProvider: fakeTracingProvider
+  loggerProvider: fakeLoggerProvider
 };
 
 describe('Top level API', () => {
@@ -255,34 +246,34 @@ describe('Top level API', () => {
       });
     });
 
-    it('should propagate trace context', () => {
-      const getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns({
-        spanContext: () => ({
-          traceId: 'my-trace',
-          spanId: 'my-span',
-          traceFlags: 0,
-          isRemote: false
-        })
-      } as any);
+    it('should propagate trace context', async () => {
+      const provider = new WebTracerProvider({
+        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
+      });
+      provider.register();
 
-      try {
+      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
         const error = new Error('This is a test error');
         error.stack = '...stack trace...';
         error.name = 'TestError';
 
-        recordError(fakeCrashlytics, error);
+        span.spanContext().traceId = 'my-trace';
+        span.spanContext().spanId = 'my-span';
 
-        expect(emittedLogs[0].attributes).to.deep.equal({
-          'error.type': 'TestError',
-          'error.stack': '...stack trace...',
-          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-          'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
-          'logging.googleapis.com/spanId': `my-span`,
-          [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-        });
-      } finally {
-        getActiveSpanStub.restore();
-      }
+        recordError(fakeCrashlytics, error);
+        span.end();
+      });
+
+      await provider.shutdown();
+
+      expect(emittedLogs[0].attributes).to.deep.equal({
+        'error.type': 'TestError',
+        'error.stack': '...stack trace...',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+        'logging.googleapis.com/spanId': `my-span`,
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+      });
     });
 
     it('should propagate custom attributes', () => {
@@ -319,8 +310,7 @@ describe('Top level API', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
       const crashlytics = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider,
-        fakeTracingProvider
+        fakeLoggerProvider
       );
       crashlytics.options = {
         appVersion: '1.0.0'
