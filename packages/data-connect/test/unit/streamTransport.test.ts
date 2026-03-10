@@ -39,10 +39,6 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
     // no-op
   }
 
-  onAuthTokenChanged(newToken: string | null): void {
-    this._authToken = newToken;
-  }
-
   /**
    * Manually trigger onConnectionReady for testing purposes.
    */
@@ -54,7 +50,7 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
    * Manually set auth token for testing purposes.
    */
   setAuthToken(token: string | null): void {
-    this._authToken = token;
+    this.onAuthTokenChanged(token);
   }
 
   /**

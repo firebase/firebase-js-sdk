@@ -162,4 +162,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
     throw new DataConnectError(Code.OTHER, 'Not yet implemented');
   }
+
+  onAuthTokenChanged(newToken: string | null): void {
+    this._authToken = newToken;
+  }
 }
