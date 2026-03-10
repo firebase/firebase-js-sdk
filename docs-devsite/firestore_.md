@@ -110,10 +110,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [and(queryConstraints)](./firestore_.md#and_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a conjunction of the given filter constraints. A conjunction filter includes a document if it satisfies all of the given filters. |
 |  [or(queryConstraints)](./firestore_.md#or_e72c712) | Creates a new [QueryCompositeFilterConstraint](./firestore_.querycompositefilterconstraint.md#querycompositefilterconstraint_class) that is a disjunction of the given filter constraints. A disjunction filter includes a document if it satisfies any of the given filters. |
 |  <b>function(reference, ...)</b> |
-|  [addDoc(reference, data)](./firestore_.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically. |
+|  [addDoc(reference, data)](./firestore_.md#adddoc_6e783ff) | Add a new document to specified <code>CollectionReference</code> with the given data, assigning it a document ID automatically.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the document is successfully created to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error creating the given document. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given document \_will\_ be immediately created in the local cache and will be incorporated into future "get" operations as if it had been successfully created in the remote Firestore server, a feature of Firestore called "latency compensation". The document will \_eventually\_ be created in the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
 |  [collection(reference, path, pathSegments)](./firestore_.md#collection_568f98d) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
 |  [collection(reference, path, pathSegments)](./firestore_.md#collection_70b4396) | Gets a <code>CollectionReference</code> instance that refers to a subcollection of <code>reference</code> at the specified relative path. |
-|  [deleteDoc(reference)](./firestore_.md#deletedoc_4569087) | Deletes the document referred to by the specified <code>DocumentReference</code>. |
+|  [deleteDoc(reference)](./firestore_.md#deletedoc_4569087) | Deletes the document referred to by the specified <code>DocumentReference</code>.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the document is successfully deleted from the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error deleting the given document. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately deleted from the local cache and will be reflected in future "get" operations as if it had been successfully deleted from the remote Firestore server, a feature of Firestore called "latency compensation". The document will \_eventually\_ be deleted from the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
 |  [doc(reference, path, pathSegments)](./firestore_.md#doc_568f98d) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. If no path is specified, an automatically-generated unique ID will be used for the returned <code>DocumentReference</code>. |
 |  [doc(reference, path, pathSegments)](./firestore_.md#doc_70b4396) | Gets a <code>DocumentReference</code> instance that refers to a document within <code>reference</code> at the specified relative path. |
 |  [getDoc(reference)](./firestore_.md#getdoc_4569087) | Reads the document referred to by this <code>DocumentReference</code>.<!-- -->Note: <code>getDoc()</code> attempts to provide up-to-date data when possible by waiting for data from the server, but it may return cached data or fail if you are offline and the server cannot be reached. To specify this behavior, invoke [getDocFromCache()](./firestore_.md#getdocfromcache_4569087) or [getDocFromServer()](./firestore_.md#getdocfromserver_4569087)<!-- -->. |
@@ -123,10 +123,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [onSnapshot(reference, options, observer)](./firestore_.md#onsnapshot_86b6b9e) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
 |  [onSnapshot(reference, onNext, onError, onCompletion)](./firestore_.md#onsnapshot_905f42c) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
 |  [onSnapshot(reference, options, onNext, onError, onCompletion)](./firestore_.md#onsnapshot_0c39991) | Attaches a listener for <code>DocumentSnapshot</code> events. You may either pass individual <code>onNext</code> and <code>onError</code> callbacks or pass a single observer object with <code>next</code> and <code>error</code> callbacks.<!-- -->NOTE: Although an <code>onCompletion</code> callback can be provided, it will never be called because the snapshot stream is never-ending. |
-|  [setDoc(reference, data)](./firestore_.md#setdoc_ee215ad) | Writes to the document referred to by this <code>DocumentReference</code>. If the document does not yet exist, it will be created. |
-|  [setDoc(reference, data, options)](./firestore_.md#setdoc_ff80739) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document. |
-|  [updateDoc(reference, data)](./firestore_.md#updatedoc_51a65e3) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist. |
-|  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.md#updatedoc_7c28659) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects. |
+|  [setDoc(reference, data)](./firestore_.md#setdoc_ee215ad) | Writes to the document referred to by this <code>DocumentReference</code>. If the document does not yet exist, it will be created.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
+|  [setDoc(reference, data, options)](./firestore_.md#setdoc_ff80739) | Writes to the document referred to by the specified <code>DocumentReference</code>. If the document does not yet exist, it will be created. If you provide <code>merge</code> or <code>mergeFields</code>, the provided data can be merged into an existing document.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
+|  [updateDoc(reference, data)](./firestore_.md#updatedoc_51a65e3) | Updates fields in the document referred to by the specified <code>DocumentReference</code>. The update will fail if applied to a document that does not exist.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
+|  [updateDoc(reference, field, value, moreFieldsAndValues)](./firestore_.md#updatedoc_7c28659) | Updates fields in the document referred to by the specified <code>DocumentReference</code> The update will fail if applied to a document that does not exist.<!-- -->Nested fields can be updated by providing dot-separated field path strings or by providing <code>FieldPath</code> objects.<!-- -->Note that the returned <code>Promise</code> does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned <code>Promise</code> will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to <code>await</code> the <code>Promise</code> returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily. |
 |  <b>function(settings, ...)</b> |
 |  [memoryLocalCache(settings)](./firestore_.md#memorylocalcache_05f4bf2) | Creates an instance of <code>MemoryLocalCache</code>. The instance can be set to <code>FirestoreSettings.cache</code> to tell the SDK which cache layer to use. |
 |  [memoryLruGarbageCollector(settings)](./firestore_.md#memorylrugarbagecollector_5ee014c) | Creates an instance of <code>MemoryLruGarbageCollector</code>.<!-- -->A target size can be specified as part of the setting parameter. The collector will start deleting documents once the cache size exceeds the given size. The default cache size is 40MB (40 \* 1024 \* 1024 bytes). |
@@ -1935,7 +1935,7 @@ export declare function getDocs<AppModelType, DbModelType extends DocumentData>(
 
 Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A `Promise` that will be resolved with the results of the query.
+A `Promise` that resolves with the results of the query.
 
 ### getDocsFromCache(query) {:#getdocsfromcache_4e56953}
 
@@ -1957,7 +1957,7 @@ export declare function getDocsFromCache<AppModelType, DbModelType extends Docum
 
 Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A `Promise` that will be resolved with the results of the query.
+A `Promise` that resolves with the results of the query.
 
 ### getDocsFromServer(query) {:#getdocsfromserver_4e56953}
 
@@ -1979,7 +1979,7 @@ export declare function getDocsFromServer<AppModelType, DbModelType extends Docu
 
 Promise&lt;[QuerySnapshot](./firestore_.querysnapshot.md#querysnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A `Promise` that will be resolved with the results of the query.
+A `Promise` that resolves with the results of the query.
 
 ### onSnapshot(query, observer) {:#onsnapshot_8d14049}
 
@@ -2198,6 +2198,8 @@ The newly created [QueryCompositeFilterConstraint](./firestore_.querycompositefi
 
 Add a new document to specified `CollectionReference` with the given data, assigning it a document ID automatically.
 
+Note that the returned `Promise` does \_not\_ resolve until the document is successfully created to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error creating the given document. So if the client cannot reach the backend (for example, due to being offline) then the returned `Promise` will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given document \_will\_ be immediately created in the local cache and will be incorporated into future "get" operations as if it had been successfully created in the remote Firestore server, a feature of Firestore called "latency compensation". The document will \_eventually\_ be created in the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to `await` the `Promise` returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily.
+
 <b>Signature:</b>
 
 ```typescript
@@ -2215,7 +2217,7 @@ export declare function addDoc<AppModelType, DbModelType extends DocumentData>(r
 
 Promise&lt;[DocumentReference](./firestore_.documentreference.md#documentreference_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A `Promise` resolved with a `DocumentReference` pointing to the newly created document after it has been written to the backend (Note that it won't resolve while you're offline).
+A `Promise` that resolves once the docoument has been successfully created in the backend or rejects once the backend reports an error creating the document.
 
 ### collection(reference, path, pathSegments) {:#collection_568f98d}
 
@@ -2277,6 +2279,8 @@ If the final path has an even number of segments and does not point to a collect
 
 Deletes the document referred to by the specified `DocumentReference`<!-- -->.
 
+Note that the returned `Promise` does \_not\_ resolve until the document is successfully deleted from the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error deleting the given document. So if the client cannot reach the backend (for example, due to being offline) then the returned `Promise` will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately deleted from the local cache and will be reflected in future "get" operations as if it had been successfully deleted from the remote Firestore server, a feature of Firestore called "latency compensation". The document will \_eventually\_ be deleted from the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to `await` the `Promise` returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily.
+
 <b>Signature:</b>
 
 ```typescript
@@ -2293,7 +2297,7 @@ export declare function deleteDoc<AppModelType, DbModelType extends DocumentData
 
 Promise&lt;void&gt;
 
-A Promise resolved once the document has been successfully deleted from the backend (note that it won't resolve while you're offline).
+A `Promise` that resolves once the document has been successfully deleted from the backend or rejects once the backend reports an error deleting the document.
 
 ### doc(reference, path, pathSegments) {:#doc_568f98d}
 
@@ -2373,7 +2377,7 @@ export declare function getDoc<AppModelType, DbModelType extends DocumentData>(r
 
 Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A Promise resolved with a `DocumentSnapshot` containing the current document contents.
+A `Promise` that resolves with a `DocumentSnapshot` containing the document contents.
 
 ### getDocFromCache(reference) {:#getdocfromcache_4569087}
 
@@ -2395,7 +2399,7 @@ export declare function getDocFromCache<AppModelType, DbModelType extends Docume
 
 Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A `Promise` resolved with a `DocumentSnapshot` containing the current document contents.
+A `Promise` that resolves with a `DocumentSnapshot` containing the document contents.
 
 ### getDocFromServer(reference) {:#getdocfromserver_4569087}
 
@@ -2417,7 +2421,7 @@ export declare function getDocFromServer<AppModelType, DbModelType extends Docum
 
 Promise&lt;[DocumentSnapshot](./firestore_.documentsnapshot.md#documentsnapshot_class)<!-- -->&lt;AppModelType, DbModelType&gt;&gt;
 
-A `Promise` resolved with a `DocumentSnapshot` containing the current document contents.
+A `Promise` that resolves with a `DocumentSnapshot` containing the document contents.
 
 ### onSnapshot(reference, observer) {:#onsnapshot_0312fd7}
 
@@ -2537,6 +2541,8 @@ An unsubscribe function that can be called to cancel the snapshot listener.
 
 Writes to the document referred to by this `DocumentReference`<!-- -->. If the document does not yet exist, it will be created.
 
+Note that the returned `Promise` does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned `Promise` will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to `await` the `Promise` returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily.
+
 <b>Signature:</b>
 
 ```typescript
@@ -2554,11 +2560,13 @@ export declare function setDoc<AppModelType, DbModelType extends DocumentData>(r
 
 Promise&lt;void&gt;
 
-A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
+A `Promise` that resolves once the data has been successfully written to the backend or rejects once the backend reports an error writing the data.
 
 ### setDoc(reference, data, options) {:#setdoc_ff80739}
 
 Writes to the document referred to by the specified `DocumentReference`<!-- -->. If the document does not yet exist, it will be created. If you provide `merge` or `mergeFields`<!-- -->, the provided data can be merged into an existing document.
+
+Note that the returned `Promise` does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned `Promise` will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to `await` the `Promise` returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily.
 
 <b>Signature:</b>
 
@@ -2578,11 +2586,13 @@ export declare function setDoc<AppModelType, DbModelType extends DocumentData>(r
 
 Promise&lt;void&gt;
 
-A Promise resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
+A `Promise` that resolves once the data has been successfully written to the backend or rejects once the backend reports an error writing the data.
 
 ### updateDoc(reference, data) {:#updatedoc_51a65e3}
 
 Updates fields in the document referred to by the specified `DocumentReference`<!-- -->. The update will fail if applied to a document that does not exist.
+
+Note that the returned `Promise` does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned `Promise` will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to `await` the `Promise` returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily.
 
 <b>Signature:</b>
 
@@ -2601,13 +2611,15 @@ export declare function updateDoc<AppModelType, DbModelType extends DocumentData
 
 Promise&lt;void&gt;
 
-A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
+A `Promise` that resolves once the data has been successfully written to the backend or rejects once the backend reports an error writing the data.
 
 ### updateDoc(reference, field, value, moreFieldsAndValues) {:#updatedoc_7c28659}
 
 Updates fields in the document referred to by the specified `DocumentReference` The update will fail if applied to a document that does not exist.
 
 Nested fields can be updated by providing dot-separated field path strings or by providing `FieldPath` objects.
+
+Note that the returned `Promise` does \_not\_ resolve until the data is successfully written to the remote Firestore backend and, similarly, is not rejected until the remote Firestore backend reports an error saving the given data. So if the client cannot reach the backend (for example, due to being offline) then the returned `Promise` will not resolve for a potentially-long time (for example, until the client has gone back online). That being said, the given data \_will\_ be immediately saved to the local cache and will be incorporated into future "get" operations as if it had been successfully written to the remote Firestore server, a feature of Firestore called "latency compensation". The data will \_eventually\_ be written to the remote Firestore backend once a connection can be established. Therefore, it is usually undesirable to `await` the `Promise` returned from this function because the indefinite amount of time before which the promise resolves or rejects can block application logic unnecessarily.
 
 <b>Signature:</b>
 
@@ -2628,7 +2640,7 @@ export declare function updateDoc<AppModelType, DbModelType extends DocumentData
 
 Promise&lt;void&gt;
 
-A `Promise` resolved once the data has been successfully written to the backend (note that it won't resolve while you're offline).
+A `Promise` that resolves once the data has been successfully written to the backend or rejects once the backend reports an error writing the data.
 
 ## function(settings, ...)
 
