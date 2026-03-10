@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  NextFn,
-  Observer,
-  Unsubscribe
-} from '../interfaces/public-types';
+import { NextFn, Observer, Unsubscribe } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 
 /**
