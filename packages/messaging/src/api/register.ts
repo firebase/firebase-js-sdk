@@ -28,6 +28,9 @@ import { RegisterOptions } from '../interfaces/public-types';
  * Once onRegistered provides an FID, the app should instruct the backend to deprecate
  * any legacy token previously associated with this instance.
  *
+ * When called multiple times, onRegistered is only invoked when the FID has changed
+ * from the last notified value (or on first call), so the same identity is not reported twice.
+ *
  * @param messaging - The MessagingService instance.
  * @param options - Optional. Same options as getToken (vapidKey, serviceWorkerRegistration).
  */
@@ -50,14 +53,24 @@ export async function register(
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(messaging, options?.serviceWorkerRegistration);
 
-  const fid =
-    await messaging.firebaseDependencies.installations.getId();
+  const prev = messaging._registerNotifyChain;
+  messaging._registerNotifyChain = prev.then(async () => {
+    const fid =
+      await messaging.firebaseDependencies.installations.getId();
 
-  if (messaging.onRegisteredHandler) {
-    if (typeof messaging.onRegisteredHandler === 'function') {
-      messaging.onRegisteredHandler(fid);
-    } else {
-      messaging.onRegisteredHandler.next(fid);
+    // Only invoke onRegistered when FID has changed (or first time), so the app is notified for new/changed identity.
+    if (fid === messaging.lastNotifiedFid) {
+      return;
     }
-  }
+    messaging.lastNotifiedFid = fid;
+
+    if (messaging.onRegisteredHandler) {
+      if (typeof messaging.onRegisteredHandler === 'function') {
+        messaging.onRegisteredHandler(fid);
+      } else {
+        messaging.onRegisteredHandler.next(fid);
+      }
+    }
+  });
+  return messaging._registerNotifyChain;
 }

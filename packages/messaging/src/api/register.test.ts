@@ -126,4 +126,75 @@ describe('register', () => {
 
     expect(onRegisteredSpy).to.have.been.calledOnceWith(customFid);
   });
+
+  it('does not call onRegisteredHandler again when FID unchanged', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+    await register(messaging);
+
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+  });
+
+  it('calls onRegisteredHandler when FID changed', async () => {
+    const customInstallations = getFakeInstallations();
+    const getIdStub = stub(customInstallations, 'getId')
+      .onFirstCall()
+      .resolves('FID_OLD')
+      .onSecondCall()
+      .resolves('FID_NEW');
+    messaging = new MessagingService(
+      getFakeApp(),
+      customInstallations,
+      getFakeAnalyticsProvider()
+    );
+    messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
+    messaging.swRegistration = new FakeServiceWorkerRegistration();
+
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_OLD');
+
+    await register(messaging);
+    expect(getIdStub).to.have.been.calledTwice;
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID_NEW');
+    expect(messaging.lastNotifiedFid).to.equal('FID_NEW');
+  });
+
+  it('calls onRegisteredHandler only when FID changes across three register calls', async () => {
+    const customInstallations = getFakeInstallations();
+    const getIdStub = stub(customInstallations, 'getId')
+      .onFirstCall()
+      .resolves('FID_A')
+      .onSecondCall()
+      .resolves('FID_B')
+      .onThirdCall()
+      .resolves('FID_B');
+    messaging = new MessagingService(
+      getFakeApp(),
+      customInstallations,
+      getFakeAnalyticsProvider()
+    );
+    messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
+    messaging.swRegistration = new FakeServiceWorkerRegistration();
+
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_A');
+
+    await register(messaging);
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID_B');
+
+    await register(messaging);
+    expect(getIdStub).to.have.been.calledThrice;
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(messaging.lastNotifiedFid).to.equal('FID_B');
+  });
 });
