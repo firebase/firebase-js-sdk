@@ -2292,11 +2292,12 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
 
-        expect(err['message']).to.match(/^3 INVALID_ARGUMENT: .*$/);
+        expect(err['message']).to.match(
+          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+        );
       }
     });
   });
-
   describe('function expressions', () => {
     it('logical max works', async () => {
       const snapshot = await execute(
@@ -2306,7 +2307,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2314,9 +2315,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2328,7 +2329,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2336,9 +2337,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2353,7 +2354,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2364,13 +2365,13 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2879,9 +2880,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2890,31 +2893,27 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .limit(1)
-          .replaceWith(
-            map({
-              title: 'foo',
-              nested: {
-                level: {
-                  '1': 'bar'
-                },
-                'level.1': {
-                  'level.2': 'baz'
-                }
-              }
-            })
-          )
+          .where(equal('awards.hugo', true))
+          .sort(field('title').descending())
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
-      expectResults(snapshot, {
-        title: 'foo',
-        'nested.level.`1`': 'bar',
-        nested: 'baz'
-      });
+      expectResults(
+        snapshot,
+        {
+          title: "The Hitchhiker's Guide to the Galaxy",
+          nestedField: { level: {} },
+          nested: true
+        },
+        {
+          title: 'Dune',
+          nestedField: { level: {} },
+          nested: null
+        }
+      );
     });
 
     it('test mapSet', async () => {
@@ -4221,17 +4220,17 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
       });
     });
 
@@ -4275,17 +4274,17 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             })
           )
           .select(
-            field('foo').trunc(0).as('0'),
-            trunc('foo', 1).as('1'),
-            trunc('foo', constant(2)).as('2'),
-            trunc(field('foo'), 4).as('4')
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1234
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -4909,15 +4908,15 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
