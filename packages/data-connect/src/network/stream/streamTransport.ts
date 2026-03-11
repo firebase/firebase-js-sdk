@@ -20,15 +20,18 @@ import {
   AbstractDataConnectTransport,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
-  SubscribeNotificationHook
+  SubscribeNotificationHook,
+  getGoogApiClientValue
 } from '../transport';
 
-import { DataConnectStreamRequest } from './wire';
+import { DataConnectStreamRequest, StreamRequestHeaders } from './wire';
+
+/** The request id of the first request over the stream */
+const FIRST_REQUEST_ID = 1;
 
 /**
  * The base class for all DataConnectStreamTransport implementations. Handles management of logical
- * streams (requests), authentication, data routing to query layer, etc. Concrete stream transport
- * implementations should extend this class and implement the abstract methods.
+ * streams (requests), authentication, data routing to query layer, etc.
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
@@ -53,6 +56,85 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   protected abstract sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): void;
+
+  /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
+  private _requestNumber = FIRST_REQUEST_ID;
+  /**
+   * Generates and returns the next request ID.
+   */
+  private _nextRequestId(): string {
+    return (this._requestNumber++).toString();
+  }
+
+  /**
+   * Tracks if the next message to be sent is the first message of the stream.
+   */
+  private _isFirstStreamMessage = true;
+  /**
+   * Tracks the last auth token sent to the server.
+   * Used to detect if the token has changed and needs to be resent.
+   */
+  private _lastSentAuthToken: string | null = null;
+  /**
+   * Indicates whether we should include the auth token in the next message.
+   * Only true if there is an auth token and it is different from the last sent auth token, or this
+   * is the first message.
+   */
+  private get _shouldIncludeAuth(): boolean {
+    return (
+      this._isFirstStreamMessage ||
+      (!!this._authToken && this._authToken !== this._lastSentAuthToken)
+    );
+  }
+  /**
+   * The resource path for requests from this Data Connect instance. Used in the opening request of
+   * the stream.
+   */
+  get connectorResourcePath(): string {
+    return `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
+  }
+
+  /**
+   * Called by the concrete transport implementation when the physical connection is ready.
+   */
+  protected onConnectionReady(): void {
+    this._isFirstStreamMessage = true;
+    this._lastSentAuthToken = null;
+  }
+
+  /**
+   * Prepares a stream request by adding necessary headers and metadata.
+   * If this is the first message on the stream, it includes the resource name, auth token, and App Check token.
+   * If the auth token has changed since the last message, it includes the new auth token.
+   * @returns the requestBody, with attached headers and initial request fields
+   */
+  private _prepareMessage<
+    Variables,
+    StreamBody extends DataConnectStreamRequest<Variables>
+  >(requestBody: StreamBody): StreamBody {
+    const preparedRequestBody: StreamBody = { ...requestBody };
+    const headers: StreamRequestHeaders = {};
+    if (this.appId) {
+      headers['x-firebase-gmpid'] = this.appId;
+    }
+    headers['X-Goog-Api-Client'] = getGoogApiClientValue(
+      this._isUsingGen,
+      this._callerSdkType
+    );
+    if (this._shouldIncludeAuth && this._authToken) {
+      headers.authToken = this._authToken;
+      this._lastSentAuthToken = this._authToken;
+    }
+    if (this._isFirstStreamMessage) {
+      if (this._appCheckToken) {
+        headers.appCheckToken = this._appCheckToken;
+      }
+      preparedRequestBody.name = this.connectorResourcePath;
+    }
+    preparedRequestBody.headers = headers;
+    this._isFirstStreamMessage = false;
+    return preparedRequestBody;
+  }
 
   invokeQuery<Data, Variables>(
     queryName: string,
