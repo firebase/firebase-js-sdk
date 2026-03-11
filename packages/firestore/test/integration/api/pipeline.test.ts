@@ -2883,7 +2883,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             hugo: true
           }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
