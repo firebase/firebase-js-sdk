@@ -77,10 +77,10 @@ declare module './database' {
  * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
- *     .where(gt(field("rating"), 4.5))
+ *     .where(greaterThan(field("rating"), 4.5))
  *     .select("title", "author", "rating"));
  *
- * const results: PipelineResults = snapshot.results;
+ * const results: PipelineResult[] = snapshot.results;
  * ```
  *
  * @param pipeline - The pipeline to execute.
@@ -112,10 +112,10 @@ export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
  * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
- *     .where(gt(field("rating"), 4.5))
+ *     .where(greaterThan(field("rating"), 4.5))
  *     .select("title", "author", "rating"));
  *
- * const results: PipelineResults = snapshot.results;
+ * const results: PipelineResult[] = snapshot.results;
  * ```
  *
  * @param options - Specifies the pipeline to execute and other options for execute.
