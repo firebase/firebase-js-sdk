@@ -2292,11 +2292,12 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
 
-        expect(err['message']).to.match(/^3 INVALID_ARGUMENT: .*$/);
+        expect(err['message']).to.match(
+          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+        );
       }
     });
   });
-
   describe('function expressions', () => {
     it('logical max works', async () => {
       const snapshot = await execute(
@@ -4907,15 +4908,15 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
