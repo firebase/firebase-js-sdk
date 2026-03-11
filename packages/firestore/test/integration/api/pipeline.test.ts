@@ -2879,7 +2879,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
         { title: 'Dune', 'awards.hugo': true }
       );
