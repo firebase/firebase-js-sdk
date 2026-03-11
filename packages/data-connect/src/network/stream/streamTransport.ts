@@ -292,7 +292,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     return this._makeExecutePromise<Data>(requestId).finally(() => {
       const executeRequest = this._activeQueryExecuteRequests.get(mapKey);
-      if (executeRequest?.requestId === requestId) {
+      if (executeRequest && executeRequest.requestId === requestId) {
         this._activeQueryExecuteRequests.delete(mapKey);
       }
     });
@@ -318,9 +318,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this._activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
 
     return this._makeExecutePromise<Data>(requestId).finally(() => {
-      const currentRequests = this._activeMutationExecuteRequests.get(mapKey);
-      if (currentRequests) {
-        const updatedRequests = currentRequests.filter(
+      const executeRequests = this._activeMutationExecuteRequests.get(mapKey);
+      if (executeRequests) {
+        const updatedRequests = executeRequests.filter(
           (req) => req.requestId !== requestId
         );
         if (updatedRequests.length > 0) {
