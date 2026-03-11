@@ -17,9 +17,11 @@
 
 import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../core/error';
 import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { RESTTransport } from './rest';
+import { AbstractDataConnectStreamTransport } from './stream/streamTransport';
 import {
   CallerSdkType,
   DataConnectResponse,
@@ -33,9 +35,9 @@ import {
  * @internal
  */
 export class DataConnectTransportManager
-  implements DataConnectTransportInterface
-{
+  implements DataConnectTransportInterface {
   private restTransport: RESTTransport;
+  private streamTransport?: AbstractDataConnectStreamTransport;
   private _isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
 
   // TODO(stephenarosaj): these unused fields will be used in a future PR.
@@ -59,6 +61,16 @@ export class DataConnectTransportManager
       _isUsingGen,
       _callerSdkType
     );
+  }
+
+  /**
+   * Initializes the stream transport if it hasn't been already.
+   */
+  private initStreamTransport(): AbstractDataConnectStreamTransport {
+    if (!this.streamTransport) {
+      throw new DataConnectError(Code.OTHER, 'Not yet implemented');
+    }
+    return this.streamTransport!;
   }
 
   invokeQuery<Data, Variables>(

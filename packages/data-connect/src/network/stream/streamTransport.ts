@@ -19,12 +19,19 @@ import { Code, DataConnectError } from '../../core/error';
 import {
   AbstractDataConnectTransport,
   DataConnectResponse,
-  DataConnectResponseWithMaxAge,
   SubscribeNotificationHook,
   getGoogApiClientValue
 } from '../transport';
 
-import { DataConnectStreamRequest, StreamRequestHeaders } from './wire';
+import {
+  CancelStreamRequest,
+  DataConnectStreamRequest,
+  ExecuteStreamRequest,
+  ResumeStreamRequest,
+  StreamRequestHeaders,
+  SubscribeStreamRequest
+} from './wire';
+
 
 /** The request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
@@ -65,6 +72,52 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private _nextRequestId(): string {
     return (this._requestNumber++).toString();
   }
+
+  /**
+   * Map of query/variables to their active execute/resume request bodies.
+   */
+  private _activeQueryExecuteRequests = new Map<
+    string,
+    ExecuteStreamRequest<unknown> | ResumeStreamRequest
+  >();
+
+  /**
+   * Map of mutation/variables to their active execute request bodies.
+   */
+  private _activeMutationExecuteRequests = new Map<
+    string,
+    Array<ExecuteStreamRequest<unknown>>
+  >();
+
+  /**
+   * Map of query/variables to their active subscribe request bodies.
+   */
+  private _activeSubscribeRequests = new Map<
+    string,
+    SubscribeStreamRequest<unknown>
+  >();
+
+  /**
+   * Map of active execution RequestIds and their corresponding Promises and resolvers.
+   */
+  private _executeRequestPromises = new Map<
+    string,
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      resolve: (data: any) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      reject: (err: any) => void;
+      promise: Promise<DataConnectResponse<unknown>>;
+    }
+  >();
+
+  /**
+   * Map of active subscription RequestIds and their corresponding notification hooks.
+   */
+  protected _subscribeNotificationHooks = new Map<
+    string,
+    SubscribeNotificationHook<unknown>
+  >();
 
   /**
    * Tracks if the next message to be sent is the first message of the stream.
@@ -136,33 +189,216 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return preparedRequestBody;
   }
 
+  /**
+   * Internal helper to queue a message to execute a one-off query or mutation.
+   */
+  private _sendExecuteMessage<Variables>(
+    executeRequestBody: ExecuteStreamRequest<Variables>
+  ): void {
+    const preparedRequestBody = this._prepareMessage(executeRequestBody);
+    this.sendMessage(preparedRequestBody);
+  }
+
+  /**
+   * Internal helper to queue a message to subscribe to a query.
+   */
+  private _sendSubscribeMessage<Variables>(
+    subscribeRequestBody: SubscribeStreamRequest<Variables>
+  ): void {
+    const preparedRequestBody = this._prepareMessage(subscribeRequestBody);
+    this.sendMessage(preparedRequestBody);
+  }
+
+  /**
+   * Internal helper to queue a message to unsubscribe to a query.
+   */
+  private _sendCancelMessage(cancelRequestBody: CancelStreamRequest): void {
+    const preparedRequestBody = this._prepareMessage(cancelRequestBody);
+    this.sendMessage(preparedRequestBody);
+  }
+
+  /**
+   * Internal helper to queue a message to resume a query.
+   */
+  private _sendResumeMessage(resumeRequestBody: ResumeStreamRequest): void {
+    const preparedRequestBody = this._prepareMessage(resumeRequestBody);
+    this.sendMessage(preparedRequestBody);
+  }
+
+  /**
+   * Creates, tracks, and returns a promise that will be resolved when the response for the given
+   * request ID is received.
+   */
+  private _makeExecutePromise<Data>(
+    requestId: string
+  ): Promise<DataConnectResponse<Data>> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
+    );
+    this._executeRequestPromises.set(requestId, {
+      resolve: resolveFn!,
+      reject: rejectFn!,
+      promise: responsePromise
+    });
+    return responsePromise;
+  }
+
+  /**
+   * Helper to generate a consistent string key for the tracking maps.
+   */
+  private _getMapKey(operationName: string, variables?: unknown): string {
+    const sortedVariables = this._sortObjectKeys(variables);
+    return JSON.stringify({ operationName, variables: sortedVariables });
+  }
+
+  /**
+   * Recursively sorts the keys of an object.
+   */
+  private _sortObjectKeys(obj: unknown): unknown {
+    if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+      return obj;
+    }
+    const sortedObj: Record<string, unknown> = {};
+    Object.keys(obj as Record<string, unknown>)
+      .sort()
+      .forEach(key => {
+        sortedObj[key] = this._sortObjectKeys((obj as Record<string, unknown>)[key]);
+      });
+    return sortedObj;
+  }
+
   invokeQuery<Data, Variables>(
     queryName: string,
-    body?: Variables
-  ): Promise<DataConnectResponseWithMaxAge<Data>> {
-    throw new DataConnectError(Code.OTHER, 'Not yet implemented');
+    variables?: Variables
+  ): Promise<DataConnectResponse<Data>> {
+    const requestId = this._nextRequestId();
+    const activeRequestKey = { operationName: queryName, variables };
+    const mapKey = this._getMapKey(queryName, variables);
+    const executeBody: ExecuteStreamRequest<Variables> = {
+      requestId,
+      execute: activeRequestKey
+    };
+
+    this._sendExecuteMessage<Variables>(executeBody);
+
+    this._activeQueryExecuteRequests.set(mapKey, executeBody);
+
+    return this._makeExecutePromise<Data>(requestId).finally(() => {
+      const executeRequest = this._activeQueryExecuteRequests.get(mapKey);
+      if (executeRequest?.requestId === requestId) {
+        this._activeQueryExecuteRequests.delete(mapKey);
+      }
+    });
   }
 
   invokeMutation<Data, Variables>(
-    queryName: string,
-    body?: Variables
+    mutationName: string,
+    variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    throw new DataConnectError(Code.OTHER, 'Not yet implemented');
+    const requestId = this._nextRequestId();
+    const activeRequestKey = { operationName: mutationName, variables };
+    const mapKey = this._getMapKey(mutationName, variables);
+    const executeBody: ExecuteStreamRequest<Variables> = {
+      requestId,
+      execute: activeRequestKey
+    };
+
+    this._sendExecuteMessage<Variables>(executeBody);
+
+    const mutationRequestBodies =
+      this._activeMutationExecuteRequests.get(mapKey) || [];
+    mutationRequestBodies.push(executeBody);
+    this._activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
+
+    return this._makeExecutePromise<Data>(requestId).finally(() => {
+      const currentRequests = this._activeMutationExecuteRequests.get(mapKey);
+      if (currentRequests) {
+        const updatedRequests = currentRequests.filter(
+          (req) => req.requestId !== requestId
+        );
+        if (updatedRequests.length > 0) {
+          this._activeMutationExecuteRequests.set(mapKey, updatedRequests);
+        } else {
+          this._activeMutationExecuteRequests.delete(mapKey);
+        }
+      }
+    });
   }
 
   invokeSubscribe<Data, Variables>(
     notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
-    body?: Variables
+    variables: Variables
   ): void {
-    throw new DataConnectError(Code.OTHER, 'Not yet implemented');
+    const requestId = this._nextRequestId();
+    const activeRequestKey = { operationName: queryName, variables };
+    const mapKey = this._getMapKey(queryName, variables);
+    const subscribeBody: SubscribeStreamRequest<Variables> = {
+      requestId,
+      subscribe: activeRequestKey
+    };
+
+    this._activeSubscribeRequests.set(mapKey, subscribeBody);
+    this._subscribeNotificationHooks.set(
+      requestId,
+      notifyQueryManager as SubscribeNotificationHook<unknown>
+    );
+
+    this._sendSubscribeMessage<Variables>(subscribeBody);
   }
 
-  invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
-    throw new DataConnectError(Code.OTHER, 'Not yet implemented');
+  invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
+    const mapKey = this._getMapKey(queryName, variables);
+    const subscribeRequest = this._activeSubscribeRequests.get(mapKey);
+    if (!subscribeRequest) {
+      return;
+    }
+    const requestId = subscribeRequest.requestId;
+    const cancelBody: CancelStreamRequest = {
+      requestId,
+      cancel: {}
+    };
+
+    this._sendCancelMessage(cancelBody);
+
+    this._activeSubscribeRequests.delete(mapKey);
+    this._subscribeNotificationHooks.delete(requestId);
   }
 
   onAuthTokenChanged(newToken: string | null): void {
     this._authToken = newToken;
+  }
+
+  /**
+   * Handle a response message from the server. Called by the connection-specific implementation after
+   * it's transformed a message from the server into a DataConnectResponse.
+   * @param requestId the requestId associated with this response.
+   * @param response the response from the server.
+   */
+  protected async _handleMessage<Data>(
+    requestId: string,
+    response: DataConnectResponse<Data>,
+  ): Promise<void> {
+    if (this._executeRequestPromises.has(requestId)) {
+      const { resolve } = this._executeRequestPromises.get(requestId)!;
+      resolve(response);
+      this._executeRequestPromises.delete(requestId);
+    } else if (this._subscribeNotificationHooks.has(requestId)) {
+      const notifyQueryManager =
+        this._subscribeNotificationHooks.get(requestId)!;
+      notifyQueryManager(response);
+    } else {
+      throw new DataConnectError(
+        Code.OTHER,
+        `Unrecognized requestId '${requestId}'`,
+      );
+    }
   }
 }
