@@ -28,7 +28,6 @@ import {
 } from '../../src/network';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import {
-  CancelStreamRequest,
   DataConnectStreamRequest,
   ExecuteStreamRequest,
   ResumeStreamRequest,
@@ -89,7 +88,7 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
  */
 interface TransportWithInternals {
   _nextRequestId(): string;
-  connectorResourcePath: string;
+  _connectorResourcePath: string;
   _isUsingGen: boolean;
   _callerSdkType: CallerSdkType;
   _setCallerSdkType(type: CallerSdkType): void;
@@ -169,7 +168,7 @@ describe('AbstractDataConnectStreamTransport', () => {
     transport = new TestStreamTransport(
       dcOptions
     ) as unknown as TransportWithInternals;
-    expectedName = transport.connectorResourcePath;
+    expectedName = transport._connectorResourcePath;
     transport._isUsingGen = true;
     transport._callerSdkType = CallerSdkTypeEnum.Generated;
     expectedInitialGoogApiClientValue = getGoogApiClientValue(
