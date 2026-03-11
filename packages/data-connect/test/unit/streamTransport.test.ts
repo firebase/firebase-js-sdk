@@ -16,16 +16,24 @@
  */
 
 import { expect, use } from 'chai';
+import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
+  DataConnectResponse,
   getGoogApiClientValue
 } from '../../src/network';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
-import { DataConnectStreamRequest } from '../../src/network/stream/wire';
+import {
+  CancelStreamRequest,
+  DataConnectStreamRequest,
+  ExecuteStreamRequest,
+  ResumeStreamRequest,
+  SubscribeStreamRequest
+} from '../../src/network/stream/wire';
 
 use(sinonChai);
 
@@ -63,12 +71,24 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   setAppCheckToken(token: string | null): void {
     this._appCheckToken = token;
   }
+
+  /**
+   * Manually resolve a request for testing purposes.
+   */
+  resolveRequest<Data>(
+    requestId: string,
+    response: DataConnectResponse<Data>
+  ): Promise<void> {
+    return this._handleMessage(requestId, response);
+  }
 }
+
 
 /**
  * Interface that exposes some private fields and methods of TestStreamTransport for testing purposes.
  */
 interface TransportWithInternals {
+  _nextRequestId(): string;
   connectorResourcePath: string;
   _isUsingGen: boolean;
   _callerSdkType: CallerSdkType;
@@ -81,6 +101,48 @@ interface TransportWithInternals {
   >(
     requestBody: StreamBody
   ): StreamBody;
+  _activeQueryExecuteRequests: Map<
+    string,
+    ExecuteStreamRequest<unknown> | ResumeStreamRequest
+  >;
+  _activeMutationExecuteRequests: Map<
+    string,
+    Array<ExecuteStreamRequest<unknown>>
+  >;
+  _activeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
+  _executeRequestPromises: Map<
+    string,
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      resolve: (data: any) => void;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      reject: (err: any) => void;
+      promise: Promise<DataConnectResponse<unknown>>;
+    }
+  >;
+  _subscribeNotificationHooks: Map<string, unknown>;
+  _getMapKey(operationName: string, variables?: unknown): string;
+  invokeQuery<_Data, _Variables>(
+    queryName: string,
+    variables?: _Variables
+  ): Promise<unknown>;
+  invokeMutation<_Data, _Variables>(
+    mutationName: string,
+    variables?: _Variables
+  ): Promise<unknown>;
+  invokeSubscribe<_Data, _Variables>(
+    notify: unknown,
+    queryName: string,
+    variables: _Variables
+  ): void;
+  invokeUnsubscribe<_Variables>(queryName: string, variables: _Variables): void;
+  sendMessage<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
+  ): void;
+  resolveRequest<_Data>(
+    requestId: string,
+    response: DataConnectResponse<_Data>
+  ): Promise<void>;
 }
 
 describe('AbstractDataConnectStreamTransport', () => {
@@ -238,6 +300,119 @@ describe('AbstractDataConnectStreamTransport', () => {
           unpreparedMessage
         ) as DataConnectStreamRequest<unknown>;
         expect(secondPreparedMessage.name).to.be.undefined;
+      });
+    });
+  });
+
+  describe('Request Tracking', () => {
+    it('_getMapKey should sort keys consistently for map lookups', () => {
+      const queryName = 'sortQuery';
+      const variables1 = { a: 1, b: 2, c: 3, d: 4 };
+      const variables2 = { b: 2, a: 1, d: 4, c: 3 };
+      expect(transport._getMapKey(queryName, variables1)).to.equal(transport._getMapKey(queryName, variables2));
+    });
+
+    it('should generate unique request IDs', () => {
+      const id1 = transport._nextRequestId();
+      const id2 = transport._nextRequestId();
+      expect(id1).to.not.equal(id2);
+      expect(Number(id1)).to.be.lessThan(Number(id2));
+    });
+
+    describe('Incoming Requests from Transport Layer', () => {
+      it('invokeQuery should populate tracking maps and call sendMessage', async () => {
+        const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+        const queryName = 'testQuery';
+        const variables = { foo: 'bar' };
+
+        const _promise = transport.invokeQuery(queryName, variables);
+
+        const expectedKey = transport._getMapKey(queryName, variables);
+        expect(transport._activeQueryExecuteRequests.has(expectedKey)).to.be.true;
+        const request = transport._activeQueryExecuteRequests.get(expectedKey);
+        expect(request?.execute?.operationName).to.equal(queryName);
+        expect(request?.execute?.variables).to.deep.equal(variables);
+
+        const requestId = (request as ExecuteStreamRequest<unknown>).requestId;
+        expect(transport._executeRequestPromises.has(requestId)).to.be.true;
+
+        expect(sendMessageSpy).to.have.been.calledOnce;
+        const sentMessage = sendMessageSpy.firstCall.args[0];
+        expect(sentMessage.requestId).to.equal(requestId);
+        expect(sentMessage.execute).to.not.be.undefined;
+        expect(sentMessage.execute?.operationName).to.equal(queryName);
+        expect(sentMessage.execute?.variables).to.deep.equal(variables);
+      });
+
+      it('invokeMutation should populate tracking maps and call sendMessage', async () => {
+        const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+        const mutationName = 'testMutation';
+        const variables = { foo: 'bar' };
+
+        const _promise = transport.invokeMutation(mutationName, variables);
+
+        const expectedKey = transport._getMapKey(mutationName, variables);
+        const activeRequests = transport._activeMutationExecuteRequests.get(expectedKey);
+        expect(activeRequests).to.have.lengthOf(1);
+        expect(activeRequests![0].execute?.operationName).to.equal(mutationName);
+        const requestId = activeRequests![0].requestId;
+        expect(transport._executeRequestPromises.has(requestId)).to.be.true;
+
+        expect(sendMessageSpy).to.have.been.calledOnce;
+        const sentMessage = sendMessageSpy.firstCall.args[0];
+        expect(sentMessage.requestId).to.equal(requestId);
+        expect(sentMessage.execute).to.not.be.undefined;
+        expect(sentMessage.execute?.operationName).to.equal(mutationName);
+        expect(sentMessage.execute?.variables).to.deep.equal(variables);
+      });
+
+      it('invokeSubscribe should populate tracking maps and call sendMessage', async () => {
+        const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+        const queryName = 'testQuery';
+        const variables = { foo: 'bar' };
+        const hook = sinon.spy();
+
+        transport.invokeSubscribe(hook, queryName, variables);
+
+        const expectedKey = transport._getMapKey(queryName, variables);
+        expect(transport._activeSubscribeRequests.has(expectedKey)).to.be.true;
+        const request = transport._activeSubscribeRequests.get(expectedKey);
+        expect(request?.subscribe?.operationName).to.equal(queryName);
+        expect(request?.subscribe?.variables).to.deep.equal(variables);
+
+        const requestId = (request as SubscribeStreamRequest<unknown>).requestId;
+        expect(transport._subscribeNotificationHooks.has(requestId)).to.be.true;
+
+        expect(sendMessageSpy).to.have.been.calledOnce;
+        const sentMessage = sendMessageSpy.firstCall.args[0];
+        expect(sentMessage.requestId).to.equal(requestId);
+        expect(sentMessage.subscribe).to.not.be.undefined;
+        expect(sentMessage.subscribe?.operationName).to.equal(queryName);
+        expect(sentMessage.subscribe?.variables).to.deep.equal(variables);
+      });
+
+      it('invokeUnsubscribe should de-populate tracking maps and call sendMessage', async () => {
+        const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+        const queryName = 'testQuery';
+        const variables = { foo: 'bar' };
+        const hook = sinon.spy();
+
+        transport.invokeSubscribe(hook, queryName, variables);
+
+        const expectedKey = transport._getMapKey(queryName, variables);
+        expect(transport._activeSubscribeRequests.has(expectedKey)).to.be.true;
+        const subscribeRequest = transport._activeSubscribeRequests.get(expectedKey);
+        const subscribeRequestId = (subscribeRequest as SubscribeStreamRequest<unknown>).requestId;
+        expect(transport._subscribeNotificationHooks.has(subscribeRequestId)).to.be.true;
+
+        transport.invokeUnsubscribe(queryName, variables);
+
+        expect(sendMessageSpy).to.have.been.calledTwice;
+        const unsubscribeMessage = sendMessageSpy.secondCall.args[0];
+
+        expect(transport._activeSubscribeRequests.has(expectedKey)).to.be.false;
+        expect(transport._subscribeNotificationHooks.has(subscribeRequestId)).to.be.false;
+        expect(unsubscribeMessage.cancel).to.not.be.undefined;
       });
     });
   });

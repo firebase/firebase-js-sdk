@@ -139,13 +139,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (!!this._authToken && this._authToken !== this._lastSentAuthToken)
     );
   }
-  /**
-   * The resource path for requests from this Data Connect instance. Used in the opening request of
-   * the stream.
-   */
-  get connectorResourcePath(): string {
-    return `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
-  }
 
   /**
    * Called by the concrete transport implementation when the physical connection is ready.
@@ -182,7 +175,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       if (this._appCheckToken) {
         headers.appCheckToken = this._appCheckToken;
       }
-      preparedRequestBody.name = this.connectorResourcePath;
+      preparedRequestBody.name = this._connectorResourcePath;
     }
     preparedRequestBody.headers = headers;
     this._isFirstStreamMessage = false;

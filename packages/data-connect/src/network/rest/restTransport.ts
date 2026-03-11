@@ -75,7 +75,7 @@ export class RESTTransport extends AbstractDataConnectTransport {
       dcFetch<Data, Variables>(
         addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
         {
-          name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
+          name: this._connectorResourcePath,
           operationName: queryName,
           variables: body
         },
@@ -103,7 +103,7 @@ export class RESTTransport extends AbstractDataConnectTransport {
       return dcFetch<Data, Variables>(
         addToken(`${this.endpointUrl}:executeMutation`, this.apiKey),
         {
-          name: `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`,
+          name: this._connectorResourcePath,
           operationName: mutationName,
           variables: body
         },
