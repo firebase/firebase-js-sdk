@@ -1863,7 +1863,7 @@ conditional(
 
 Creates an expression that evaluates to the result corresponding to the first true condition.
 
-Acts like a switch statement. The arguments are pairs of conditions and results. If a default value is provided (odd number of arguments), it is returned if no condition is true. if a default value is not provided, and no condition is true, it throws an error.
+This function behaves like a `switch` statement. It accepts an alternating sequence of conditions and their corresponding results. If an odd number of arguments is provided, the final argument serves as a default fallback result. If no default is provided and no condition evaluates to true, it throws an error.
 
 <b>Signature:</b>
 
@@ -1889,11 +1889,12 @@ A new Expression representing the switch operation.
 
 
 ```typescript
-// Return "A" if field "x" is 1, "B" if field "x" is 2, otherwise "C".
+// Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
+// and default to "Unknown" if none of the conditions are true.
 switchOn(
-  equal(field("x"), 1), "A",
-  equal(field("x"), 2), "B",
-  "C"
+  equal(field("status"), 1), "Active",
+  equal(field("status"), 2), "Pending",
+  "Unknown"
 )
 
 ```
@@ -8874,14 +8875,17 @@ export declare function nor(first: BooleanExpression, second: BooleanExpression,
 
 [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the logical 'NOR' operation.
+A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) representing the logical 'NOR' operation.
 
 ### Example
 
 
 ```typescript
-// Check if neither 'age' is greater than 18 nor 'city' is "London"
-const condition = nor(greaterThan("age", 18), equal("city", "London"));
+// Check if neither the 'age' field is greater than 18 nor the 'city' field is "London"
+const condition = nor(
+  greaterThan("age", 18),
+  equal("city", "London")
+);
 
 ```
 
