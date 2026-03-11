@@ -131,7 +131,6 @@
     "@angular/router": "19.2.15",
     "@firebase/app": "0.14.10",
     "@firebase/util": "1.15.0",
-    "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-replace": "6.0.2",
     "@testing-library/dom": "10.4.1",
