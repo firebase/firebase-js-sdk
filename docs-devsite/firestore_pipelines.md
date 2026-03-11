@@ -1868,7 +1868,7 @@ This function behaves like a `switch` statement. It accepts an alternating seque
 <b>Signature:</b>
 
 ```typescript
-export declare function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): Expression;
+export declare function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
 ```
 
 #### Parameters
@@ -1881,7 +1881,7 @@ export declare function switchOn(condition: BooleanExpression, result: Expressio
 
 <b>Returns:</b>
 
-[Expression](./firestore_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
 A new Expression representing the switch operation.
 

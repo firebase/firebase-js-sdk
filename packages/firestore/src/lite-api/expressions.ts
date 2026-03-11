@@ -10586,7 +10586,7 @@ export function switchOn(
   condition: BooleanExpression,
   result: Expression,
   ...others: Array<BooleanExpression | Expression>
-): Expression {
+): FunctionExpression {
   return new FunctionExpression(
     'switch_on',
     [

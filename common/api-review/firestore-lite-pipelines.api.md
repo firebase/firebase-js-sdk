@@ -1465,7 +1465,7 @@ export function sum(expression: Expression): AggregateFunction;
 export function sum(fieldName: string): AggregateFunction;
 
 // @beta
-export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): Expression;
+export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
 
 // @beta
 export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
