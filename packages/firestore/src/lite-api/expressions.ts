@@ -9881,6 +9881,37 @@ export function or(
 
 /**
  * @beta
+ *
+ * Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
+ *
+ * @example
+ * ```typescript
+ * // Check if neither the 'age' field is greater than 18 nor the 'city' field is "London"
+ * const condition = nor(
+ *   greaterThan("age", 18),
+ *   equal("city", "London")
+ * );
+ * ```
+ *
+ * @param first - The first filter condition.
+ * @param second - The second filter condition.
+ * @param more - Additional filter conditions to 'NOR' together.
+ * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the logical 'NOR' operation.
+ */
+export function nor(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression {
+  return new FunctionExpression(
+    'nor',
+    [first, second, ...more],
+    'nor'
+  ).asBoolean();
+}
+
+/**
+ * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
  *
  * @example
@@ -10521,6 +10552,48 @@ export function ifAbsent(
 ): Expression {
   return fieldOrExpression(fieldNameOrExpression).ifAbsent(
     valueToDefaultExpr(elseValue)
+  );
+}
+
+/**
+ * @beta
+ * Creates an expression that evaluates to the result corresponding to the first true condition.
+ *
+ * @remarks
+ * This function behaves like a `switch` statement. It accepts an alternating sequence of conditions
+ * and their corresponding results.
+ * If an odd number of arguments is provided, the final argument serves as a default fallback result.
+ * If no default is provided and no condition evaluates to true, it throws an error.
+ *
+ * @example
+ * ```typescript
+ * // Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
+ * // and default to "Unknown" if none of the conditions are true.
+ * switchOn(
+ *   equal(field("status"), 1), "Active",
+ *   equal(field("status"), 2), "Pending",
+ *   "Unknown"
+ * )
+ * ```
+ *
+ * @param condition - The first condition to check.
+ * @param result - The result if the first condition is true.
+ * @param others - Additional conditions and results, and optionally a default value.
+ * @returns A new Expression representing the switch operation.
+ */
+export function switchOn(
+  condition: BooleanExpression,
+  result: Expression,
+  ...others: Array<BooleanExpression | Expression>
+): FunctionExpression {
+  return new FunctionExpression(
+    'switch_on',
+    [
+      valueToDefaultExpr(condition),
+      valueToDefaultExpr(result),
+      ...others.map(valueToDefaultExpr)
+    ],
+    'switchOn'
   );
 }
 
