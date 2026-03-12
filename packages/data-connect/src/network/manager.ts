@@ -38,7 +38,7 @@ export class DataConnectTransportManager
 {
   private restTransport: RESTTransport;
   private streamTransport?: AbstractDataConnectStreamTransport;
-  private _isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
+  private isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
 
   // TODO(stephenarosaj): these unused fields will be used in a future PR.
   constructor(
@@ -90,7 +90,7 @@ export class DataConnectTransportManager
   }
 
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void {
-    this._isUsingEmulator = true;
+    this.isUsingEmulator = true;
     this.transportOptions = { host, port, sslEnabled };
     this.restTransport.useEmulator(host, port, sslEnabled);
   }

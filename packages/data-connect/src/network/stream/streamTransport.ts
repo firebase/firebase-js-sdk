@@ -64,18 +64,18 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   ): void;
 
   /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
-  private _requestNumber = FIRST_REQUEST_ID;
+  private requestNumber = FIRST_REQUEST_ID;
   /**
    * Generates and returns the next request ID.
    */
-  private _nextRequestId(): string {
-    return (this._requestNumber++).toString();
+  private nextRequestId(): string {
+    return (this.requestNumber++).toString();
   }
 
   /**
    * Map of query/variables to their active execute/resume request bodies.
    */
-  private _activeQueryExecuteRequests = new Map<
+  private activeQueryExecuteRequests = new Map<
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >();
@@ -83,7 +83,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of mutation/variables to their active execute request bodies.
    */
-  private _activeMutationExecuteRequests = new Map<
+  private activeMutationExecuteRequests = new Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
   >();
@@ -91,7 +91,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of query/variables to their active subscribe request bodies.
    */
-  private _activeSubscribeRequests = new Map<
+  private activeSubscribeRequests = new Map<
     string,
     SubscribeStreamRequest<unknown>
   >();
@@ -99,7 +99,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
    */
-  private _executeRequestPromises = new Map<
+  private executeRequestPromises = new Map<
     string,
     {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -113,7 +113,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of active subscription RequestIds and their corresponding notification hooks.
    */
-  private _subscribeNotificationHooks = new Map<
+  private subscribeNotificationHooks = new Map<
     string,
     SubscribeNotificationHook<unknown>
   >();
@@ -121,21 +121,21 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Tracks if the next message to be sent is the first message of the stream.
    */
-  private _isFirstStreamMessage = true;
+  private isFirstStreamMessage = true;
   /**
    * Tracks the last auth token sent to the server.
    * Used to detect if the token has changed and needs to be resent.
    */
-  private _lastSentAuthToken: string | null = null;
+  private lastSentAuthToken: string | null = null;
   /**
    * Indicates whether we should include the auth token in the next message.
    * Only true if there is an auth token and it is different from the last sent auth token, or this
    * is the first message.
    */
-  private get _shouldIncludeAuth(): boolean {
+  private get shouldIncludeAuth(): boolean {
     return (
-      this._isFirstStreamMessage ||
-      (!!this._authToken && this._authToken !== this._lastSentAuthToken)
+      this.isFirstStreamMessage ||
+      (!!this._authToken && this._authToken !== this.lastSentAuthToken)
     );
   }
 
@@ -143,8 +143,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Called by the concrete transport implementation when the physical connection is ready.
    */
   protected onConnectionReady(): void {
-    this._isFirstStreamMessage = true;
-    this._lastSentAuthToken = null;
+    this.isFirstStreamMessage = true;
+    this.lastSentAuthToken = null;
   }
 
   /**
@@ -153,7 +153,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * If the auth token has changed since the last message, it includes the new auth token.
    * @returns the requestBody, with attached headers and initial request fields
    */
-  private _prepareMessage<
+  private prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
   >(requestBody: StreamBody): StreamBody {
@@ -166,54 +166,54 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this._isUsingGen,
       this._callerSdkType
     );
-    if (this._shouldIncludeAuth && this._authToken) {
+    if (this.shouldIncludeAuth && this._authToken) {
       headers.authToken = this._authToken;
-      this._lastSentAuthToken = this._authToken;
+      this.lastSentAuthToken = this._authToken;
     }
-    if (this._isFirstStreamMessage) {
+    if (this.isFirstStreamMessage) {
       if (this._appCheckToken) {
         headers.appCheckToken = this._appCheckToken;
       }
       preparedRequestBody.name = this._connectorResourcePath;
     }
     preparedRequestBody.headers = headers;
-    this._isFirstStreamMessage = false;
+    this.isFirstStreamMessage = false;
     return preparedRequestBody;
   }
 
   /**
    * Internal helper to queue a message to execute a one-off query or mutation.
    */
-  private _sendExecuteMessage<Variables>(
+  private sendExecuteMessage<Variables>(
     executeRequestBody: ExecuteStreamRequest<Variables>
   ): void {
-    const preparedRequestBody = this._prepareMessage(executeRequestBody);
+    const preparedRequestBody = this.prepareMessage(executeRequestBody);
     this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to subscribe to a query.
    */
-  private _sendSubscribeMessage<Variables>(
+  private sendSubscribeMessage<Variables>(
     subscribeRequestBody: SubscribeStreamRequest<Variables>
   ): void {
-    const preparedRequestBody = this._prepareMessage(subscribeRequestBody);
+    const preparedRequestBody = this.prepareMessage(subscribeRequestBody);
     this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to unsubscribe to a query.
    */
-  private _sendCancelMessage(cancelRequestBody: CancelStreamRequest): void {
-    const preparedRequestBody = this._prepareMessage(cancelRequestBody);
+  private sendCancelMessage(cancelRequestBody: CancelStreamRequest): void {
+    const preparedRequestBody = this.prepareMessage(cancelRequestBody);
     this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to resume a query.
    */
-  private _sendResumeMessage(resumeRequestBody: ResumeStreamRequest): void {
-    const preparedRequestBody = this._prepareMessage(resumeRequestBody);
+  private sendResumeMessage(resumeRequestBody: ResumeStreamRequest): void {
+    const preparedRequestBody = this.prepareMessage(resumeRequestBody);
     this.sendMessage(preparedRequestBody);
   }
 
@@ -221,7 +221,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Creates, tracks, and returns a promise that will be resolved when the response for the given
    * request ID is received.
    */
-  private _makeExecutePromise<Data>(
+  private makeExecutePromise<Data>(
     requestId: string
   ): Promise<DataConnectResponse<Data>> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -234,7 +234,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         rejectFn = reject;
       }
     );
-    this._executeRequestPromises.set(requestId, {
+    this.executeRequestPromises.set(requestId, {
       resolve: resolveFn!,
       reject: rejectFn!,
       promise: responsePromise
@@ -245,15 +245,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Helper to generate a consistent string key for the tracking maps.
    */
-  private _getMapKey(operationName: string, variables?: unknown): string {
-    const sortedVariables = this._sortObjectKeys(variables);
+  private getMapKey(operationName: string, variables?: unknown): string {
+    const sortedVariables = this.sortObjectKeys(variables);
     return JSON.stringify({ operationName, variables: sortedVariables });
   }
 
   /**
    * Recursively sorts the keys of an object.
    */
-  private _sortObjectKeys(obj: unknown): unknown {
+  private sortObjectKeys(obj: unknown): unknown {
     if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
       return obj;
     }
@@ -261,7 +261,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     Object.keys(obj as Record<string, unknown>)
       .sort()
       .forEach(key => {
-        sortedObj[key] = this._sortObjectKeys(
+        sortedObj[key] = this.sortObjectKeys(
           (obj as Record<string, unknown>)[key]
         );
       });
@@ -272,22 +272,22 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this._nextRequestId();
+    const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
-    const mapKey = this._getMapKey(queryName, variables);
+    const mapKey = this.getMapKey(queryName, variables);
     const executeBody: ExecuteStreamRequest<Variables> = {
       requestId,
       execute: activeRequestKey
     };
 
-    this._sendExecuteMessage<Variables>(executeBody);
+    this.sendExecuteMessage<Variables>(executeBody);
 
-    this._activeQueryExecuteRequests.set(mapKey, executeBody);
+    this.activeQueryExecuteRequests.set(mapKey, executeBody);
 
-    return this._makeExecutePromise<Data>(requestId).finally(() => {
-      const executeRequest = this._activeQueryExecuteRequests.get(mapKey);
+    return this.makeExecutePromise<Data>(requestId).finally(() => {
+      const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
       if (executeRequest && executeRequest.requestId === requestId) {
-        this._activeQueryExecuteRequests.delete(mapKey);
+        this.activeQueryExecuteRequests.delete(mapKey);
       }
     });
   }
@@ -296,31 +296,31 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     mutationName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this._nextRequestId();
+    const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: mutationName, variables };
-    const mapKey = this._getMapKey(mutationName, variables);
+    const mapKey = this.getMapKey(mutationName, variables);
     const executeBody: ExecuteStreamRequest<Variables> = {
       requestId,
       execute: activeRequestKey
     };
 
-    this._sendExecuteMessage<Variables>(executeBody);
+    this.sendExecuteMessage<Variables>(executeBody);
 
     const mutationRequestBodies =
-      this._activeMutationExecuteRequests.get(mapKey) || [];
+      this.activeMutationExecuteRequests.get(mapKey) || [];
     mutationRequestBodies.push(executeBody);
-    this._activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
+    this.activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
 
-    return this._makeExecutePromise<Data>(requestId).finally(() => {
-      const executeRequests = this._activeMutationExecuteRequests.get(mapKey);
+    return this.makeExecutePromise<Data>(requestId).finally(() => {
+      const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
       if (executeRequests) {
         const updatedRequests = executeRequests.filter(
           req => req.requestId !== requestId
         );
         if (updatedRequests.length > 0) {
-          this._activeMutationExecuteRequests.set(mapKey, updatedRequests);
+          this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
         } else {
-          this._activeMutationExecuteRequests.delete(mapKey);
+          this.activeMutationExecuteRequests.delete(mapKey);
         }
       }
     });
@@ -331,26 +331,26 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables: Variables
   ): void {
-    const requestId = this._nextRequestId();
+    const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
-    const mapKey = this._getMapKey(queryName, variables);
+    const mapKey = this.getMapKey(queryName, variables);
     const subscribeBody: SubscribeStreamRequest<Variables> = {
       requestId,
       subscribe: activeRequestKey
     };
 
-    this._activeSubscribeRequests.set(mapKey, subscribeBody);
-    this._subscribeNotificationHooks.set(
+    this.activeSubscribeRequests.set(mapKey, subscribeBody);
+    this.subscribeNotificationHooks.set(
       requestId,
       notifyQueryManager as SubscribeNotificationHook<unknown>
     );
 
-    this._sendSubscribeMessage<Variables>(subscribeBody);
+    this.sendSubscribeMessage<Variables>(subscribeBody);
   }
 
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
-    const mapKey = this._getMapKey(queryName, variables);
-    const subscribeRequest = this._activeSubscribeRequests.get(mapKey);
+    const mapKey = this.getMapKey(queryName, variables);
+    const subscribeRequest = this.activeSubscribeRequests.get(mapKey);
     if (!subscribeRequest) {
       return;
     }
@@ -360,10 +360,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
-    this._sendCancelMessage(cancelBody);
+    this.sendCancelMessage(cancelBody);
 
-    this._activeSubscribeRequests.delete(mapKey);
-    this._subscribeNotificationHooks.delete(requestId);
+    this.activeSubscribeRequests.delete(mapKey);
+    this.subscribeNotificationHooks.delete(requestId);
   }
 
   onAuthTokenChanged(newToken: string | null): void {
@@ -376,17 +376,17 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * @param requestId the requestId associated with this response.
    * @param response the response from the server.
    */
-  protected async _handleResponse<Data>(
+  protected async handleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void> {
-    if (this._executeRequestPromises.has(requestId)) {
-      const { resolve } = this._executeRequestPromises.get(requestId)!;
+    if (this.executeRequestPromises.has(requestId)) {
+      const { resolve } = this.executeRequestPromises.get(requestId)!;
       resolve(response);
-      this._executeRequestPromises.delete(requestId);
-    } else if (this._subscribeNotificationHooks.has(requestId)) {
+      this.executeRequestPromises.delete(requestId);
+    } else if (this.subscribeNotificationHooks.has(requestId)) {
       const notifyQueryManager =
-        this._subscribeNotificationHooks.get(requestId)!;
+        this.subscribeNotificationHooks.get(requestId)!;
       notifyQueryManager(response);
     } else {
       throw new DataConnectError(
