@@ -32,7 +32,6 @@ import {
   SubscribeStreamRequest
 } from './wire';
 
-
 /** The request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
@@ -262,7 +261,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     Object.keys(obj as Record<string, unknown>)
       .sort()
       .forEach(key => {
-        sortedObj[key] = this._sortObjectKeys((obj as Record<string, unknown>)[key]);
+        sortedObj[key] = this._sortObjectKeys(
+          (obj as Record<string, unknown>)[key]
+        );
       });
     return sortedObj;
   }
@@ -314,7 +315,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       const executeRequests = this._activeMutationExecuteRequests.get(mapKey);
       if (executeRequests) {
         const updatedRequests = executeRequests.filter(
-          (req) => req.requestId !== requestId
+          req => req.requestId !== requestId
         );
         if (updatedRequests.length > 0) {
           this._activeMutationExecuteRequests.set(mapKey, updatedRequests);
@@ -377,7 +378,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected async _handleMessage<Data>(
     requestId: string,
-    response: DataConnectResponse<Data>,
+    response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this._executeRequestPromises.has(requestId)) {
       const { resolve } = this._executeRequestPromises.get(requestId)!;
@@ -390,7 +391,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     } else {
       throw new DataConnectError(
         Code.OTHER,
-        `Unrecognized requestId '${requestId}'`,
+        `Unrecognized requestId '${requestId}'`
       );
     }
   }

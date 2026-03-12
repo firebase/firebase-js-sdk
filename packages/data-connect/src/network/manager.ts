@@ -35,7 +35,8 @@ import {
  * @internal
  */
 export class DataConnectTransportManager
-  implements DataConnectTransportInterface {
+  implements DataConnectTransportInterface
+{
   private restTransport: RESTTransport;
   private streamTransport?: AbstractDataConnectStreamTransport;
   private _isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
