@@ -5,6 +5,8 @@ contributing to the Firebase JavaScript SDK (including Cloud Firestore).
 Follow instructions there to install dependencies, build the SDK, and set up
 the testing environment.
 
+For a deep dive into the testing strategy and architecture, see [Testing Strategy](devdocs/testing.md).
+
 ## Integration Testing
 
 ### Setting up a project for testing
