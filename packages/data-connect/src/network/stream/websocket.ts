@@ -134,7 +134,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   private handleDisconnect(ev: CloseEvent): void {
     this.connection = undefined;
     this.connectionAttempt = null;
-    // TODO(stephenarosaj): reconnect logic
+    // TODO(stephenarosaj): add in reconnect logic
   }
 
   sendMessage<Variables>(
@@ -178,7 +178,15 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
   ): DataConnectStreamResponse<Data> {
-    const webSocketMessage = JSON.parse(data);
+    let webSocketMessage;
+    try {
+      webSocketMessage = JSON.parse(data);
+    } catch (err) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'server response was not valid JSON'
+      );
+    }
 
     if (!('result' in webSocketMessage)) {
       throw new DataConnectError(
