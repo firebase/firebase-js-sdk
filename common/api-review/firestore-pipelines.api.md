@@ -359,10 +359,18 @@ export function countDistinct(expr: Expression | string): AggregateFunction;
 export function countIf(booleanExpr: BooleanExpression): AggregateFunction;
 
 // @beta
+export function currentDocument(): Expression;
+
+// @beta
 export function currentTimestamp(): FunctionExpression;
 
 // @beta
 export type DatabaseStageOptions = StageOptions & {};
+
+// @beta
+export type DefineStageOptions = StageOptions & {
+    variables: AliasedExpression[];
+};
 
 // @beta
 export function descending(expr: Expression): Ordering;
@@ -805,7 +813,7 @@ export abstract class Expression {
 }
 
 // @beta
-export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression';
+export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 
 // @beta
 export class Field extends Expression implements Selectable {
@@ -1168,6 +1176,10 @@ export class Pipeline {
     // (undocumented)
     aggregate(options: AggregateStageOptions): Pipeline;
     // (undocumented)
+    define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
+    // (undocumented)
+    define(options: DefineStageOptions): Pipeline;
+    // (undocumented)
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     // (undocumented)
     distinct(options: DistinctStageOptions): Pipeline;
@@ -1205,6 +1217,8 @@ export class Pipeline {
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
+    toArrayExpression(): Expression;
+    toScalarExpression(): Expression;
     // (undocumented)
     union(other: Pipeline): Pipeline;
     // (undocumented)
@@ -1616,6 +1630,15 @@ export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
 };
+
+// @beta
+export function variable(name: string): VariableExpression;
+
+// @beta
+export class VariableExpression extends Expression {
+    // (undocumented)
+    expressionType: ExpressionType;
+    }
 
 // @beta
 export function vectorLength(vectorExpression: Expression): FunctionExpression;

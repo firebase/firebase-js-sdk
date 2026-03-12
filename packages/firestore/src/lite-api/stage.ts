@@ -147,6 +147,42 @@ export class RemoveFields extends Stage {
 /**
  * @beta
  */
+export class Define extends Stage {
+  get _name(): string {
+    return 'let';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(
+    private aliasedExpressions: Map<string, Expression>,
+    options: StageOptions
+  ) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [toMapValue(serializer, this.aliasedExpressions)]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    readUserDataHelper(this.aliasedExpressions, context);
+  }
+}
+
+/**
+ * @beta
+ */
 export class Aggregate extends Stage {
   get _name(): string {
     return 'aggregate';
@@ -289,6 +325,39 @@ export class CollectionGroupSource extends Stage {
     return {
       ...super._toProto(serializer),
       args: [{ referenceValue: '' }, { stringValue: this.collectionId }]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
+}
+
+/**
+ * @beta
+ */
+export class SubcollectionSource extends Stage {
+  get _name(): string {
+    return 'subcollection';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(private path: string, options: StageOptions) {
+    // TODO: SubcollectionStageOptions
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [{ stringValue: this.path }]
     };
   }
 

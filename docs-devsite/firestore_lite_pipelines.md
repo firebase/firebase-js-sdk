@@ -17,6 +17,7 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  <b>function()</b> |
 |  [countAll()](./firestore_lite_pipelines.md#countall) | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the total number of stage inputs. |
+|  [currentDocument()](./firestore_lite_pipelines.md#currentdocument) | <b><i>(Public Preview)</i></b> Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_lite_pipelines.md#currenttimestamp) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_lite_pipelines.md#rand) | <b><i>(Public Preview)</i></b> Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  <b>function(array, ...)</b> |
@@ -320,6 +321,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [mapValues(mapField)](./firestore_lite_pipelines.md#mapvalues_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
 |  [field(name)](./firestore_lite_pipelines.md#field_1eaaff4) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
+|  [variable(name)](./firestore_lite_pipelines.md#variable_1eaaff4) | <b><i>(Public Preview)</i></b> Creates an expression that retrieves the value of a variable bound via . |
 |  <b>function(path, ...)</b> |
 |  [field(path)](./firestore_lite_pipelines.md#field_34ee07d) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
 |  <b>function(pipeline, ...)</b> |
@@ -409,6 +411,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [Query](./firestore_lite_pipelines.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryDocumentSnapshot](./firestore_lite_pipelines.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
 |  [Timestamp](./firestore_lite_pipelines.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
+|  [VariableExpression](./firestore_lite_pipelines.variableexpression.md#variableexpression_class) | <b><i>(Public Preview)</i></b> Expression representing a variable reference. This evaluates to the value of a variable defined in a pipeline. |
 |  [VectorValue](./firestore_lite_pipelines.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. |
 
 ## Interfaces
@@ -429,6 +432,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [CollectionGroupStageOptions](./firestore_lite_pipelines.md#collectiongroupstageoptions) | <b><i>(Public Preview)</i></b> Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
 |  [CollectionStageOptions](./firestore_lite_pipelines.md#collectionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
 |  [DatabaseStageOptions](./firestore_lite_pipelines.md#databasestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
+|  [DefineStageOptions](./firestore_lite_pipelines.md#definestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
 |  [DistinctStageOptions](./firestore_lite_pipelines.md#distinctstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
 |  [DocumentsStageOptions](./firestore_lite_pipelines.md#documentsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> An enumeration of the different types of expressions. |
@@ -477,6 +481,36 @@ A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefu
 ```typescript
 // Count the total number of input documents
 countAll().as("totalDocument");
+
+```
+
+### currentDocument() {:#currentdocument}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that represents the current document being processed.
+
+<b>Signature:</b>
+
+```typescript
+export declare function currentDocument(): Expression;
+```
+<b>Returns:</b>
+
+[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+An [Expression](./firestore_pipelines.expression.md#expression_class) representing the current document.
+
+### Example
+
+
+```typescript
+// Define the current document as a variable "doc"
+firestore.pipeline().collection("books")
+    .define(currentDocument().as("doc"))
+    // Access a field from the defined document variable
+    .select(variable("doc").mapGet("title"));
 
 ```
 
@@ -10089,6 +10123,42 @@ const authorFirstNameField = field("author.firstName");
 
 ```
 
+### variable(name) {:#variable_1eaaff4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that retrieves the value of a variable bound via .
+
+<b>Signature:</b>
+
+```typescript
+export declare function variable(name: string): VariableExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  name | string | The name of the variable to retrieve. |
+
+<b>Returns:</b>
+
+[VariableExpression](./firestore_lite_pipelines.variableexpression.md#variableexpression_class)
+
+An [Expression](./firestore_pipelines.expression.md#expression_class) representing the variable's value.
+
+### Example
+
+
+```typescript
+// Define a variable "discountedPrice" and use it in a filter
+firestore.pipeline().collection("products")
+    .define(constant(100).as("threshold"))
+    .where(variable("discountedPrice").lessThan(variable("threshold")));
+
+```
+
 ## function(path, ...)
 
 ### field(path) {:#field_34ee07d}
@@ -11950,6 +12020,21 @@ Options defining how a DatabaseStage is evaluated. See [PipelineSource.database(
 export declare type DatabaseStageOptions = StageOptions & {};
 ```
 
+## DefineStageOptions
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type DefineStageOptions = StageOptions & {
+    variables: AliasedExpression[];
+};
+```
+
 ## DistinctStageOptions
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -11990,7 +12075,7 @@ An enumeration of the different types of expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression';
+export declare type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 ```
 
 ## FindNearestStageOptions
