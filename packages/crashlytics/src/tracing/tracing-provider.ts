@@ -29,6 +29,7 @@ import {
   ConsoleSpanExporter
 } from '@opentelemetry/sdk-trace-web';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FirebaseApp } from '@firebase/app';
@@ -83,7 +84,7 @@ export function createTracingProvider(
   });
 
   registerInstrumentations({
-    instrumentations: [new FetchInstrumentation()]
+    instrumentations: [new FetchInstrumentation(), new XMLHttpRequestInstrumentation()]
   });
 
   return provider;
