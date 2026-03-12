@@ -388,7 +388,9 @@ describe('AbstractDataConnectStreamTransport', () => {
       it('invokeQuery should populate tracking maps and call sendMessage', async () => {
         const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
-        void transport.invokeQuery(queryName1, variables1);
+        transport.invokeQuery(queryName1, variables1).catch(e => {
+          throw e;
+        });
 
         const expectedKey = transport._getMapKey(queryName1, variables1);
         expect(transport._activeQueryExecuteRequests.has(expectedKey)).to.be
@@ -412,7 +414,9 @@ describe('AbstractDataConnectStreamTransport', () => {
         const sendMessageSpy = sinon.spy(transport, 'sendMessage');
         const mutationName = 'testMutation';
 
-        void transport.invokeMutation(mutationName, variables1);
+        transport.invokeMutation(mutationName, variables1).catch(e => {
+          throw e;
+        });
 
         const expectedKey = transport._getMapKey(mutationName, variables1);
         const activeRequests =

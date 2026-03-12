@@ -50,7 +50,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Close the physical connection with the server. Handles no cleanup - simply closes the
    * implementation-specific connection.
-   * @returns a promise which resolves when the connection is ready, or rejects if it fails to open.
+   * @returns a promise which resolves when the connection is closed, or rejects if it fails to close.
    */
   protected abstract closeConnection(): Promise<void>;
 
