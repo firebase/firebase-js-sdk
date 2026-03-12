@@ -17,7 +17,6 @@
 
 import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
-import { Code, DataConnectError } from '../core/error';
 import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { RESTTransport } from './rest';
