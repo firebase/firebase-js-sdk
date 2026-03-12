@@ -64,16 +64,6 @@ export class DataConnectTransportManager
     );
   }
 
-  /**
-   * Initializes the stream transport if it hasn't been already.
-   */
-  private initStreamTransport(): AbstractDataConnectStreamTransport {
-    if (!this.streamTransport) {
-      throw new DataConnectError(Code.OTHER, 'Not yet implemented');
-    }
-    return this.streamTransport!;
-  }
-
   invokeQuery<Data, Variables>(
     queryName: string,
     body?: Variables
