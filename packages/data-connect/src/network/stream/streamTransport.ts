@@ -113,7 +113,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of active subscription RequestIds and their corresponding notification hooks.
    */
-  protected _subscribeNotificationHooks = new Map<
+  private _subscribeNotificationHooks = new Map<
     string,
     SubscribeNotificationHook<unknown>
   >();
