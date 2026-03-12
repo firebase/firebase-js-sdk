@@ -458,6 +458,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     arrayValue?: ArrayValue;
     mapValue?: MapValue;
     fieldReferenceValue?: string;
+    variableReferenceValue?: string; // NOTE(dlarocque): I added this manually. should this be auto-generated?
     // eslint-disable-next-line @typescript-eslint/ban-types
     functionValue?: Function;
     pipelineValue?: Pipeline;

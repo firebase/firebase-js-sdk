@@ -102,6 +102,7 @@ export declare abstract class Expression
 |  [exp()](./firestore_lite_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression. |
 |  [first()](./firestore_lite_pipelines.expression.md#expressionfirst) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
 |  [floor()](./firestore_lite_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
+|  [getField(key)](./firestore_lite_pipelines.expression.md#expressiongetfield) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of a field from the document that results from the evaluation of this expression. |
 |  [greaterThan(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression. |
 |  [greaterThan(value)](./firestore_lite_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
 |  [greaterThanOrEqual(expression)](./firestore_lite_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression. |
@@ -2254,6 +2255,40 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Compute the floor of the 'price' field.
 field("price").floor();
+
+```
+
+## Expression.getField()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
+
+<b>Signature:</b>
+
+```typescript
+getField(key: string | Expression): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  key | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The field to access in the document. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+A new `Expression` representing the value of the field in the document.
+
+### Example
+
+
+```typescript
+// Get the value of the "city" field in the "address" document.
+field("address").getField("city")
 
 ```
 

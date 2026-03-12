@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+export { PipelineSource, subcollection } from './lite-api/pipeline-source';
 
 export { OneOf } from './util/types';
 
@@ -35,10 +35,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -179,10 +181,13 @@ export {
   arraySum,
   timestampTruncate,
   split,
+  variable,
+  currentDocument,
   Expression,
   AliasedExpression,
   Field,
   FunctionExpression,
+  VariableExpression,
   Ordering,
   BooleanExpression,
   AggregateFunction,

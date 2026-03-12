@@ -28,6 +28,8 @@ export declare class Pipeline
 |  [addFields(options)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | <b><i>(Public Preview)</i></b> |
 |  [aggregate(accumulator, additionalAccumulators)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | <b><i>(Public Preview)</i></b> |
 |  [aggregate(options)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | <b><i>(Public Preview)</i></b> |
+|  [define(aliasedExpression, additionalExpressions)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | <b><i>(Public Preview)</i></b> |
+|  [define(options)](./firestore_pipelines.pipeline.md#pipelinedefine) |  | <b><i>(Public Preview)</i></b> |
 |  [distinct(group, additionalGroups)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | <b><i>(Public Preview)</i></b> |
 |  [distinct(options)](./firestore_pipelines.pipeline.md#pipelinedistinct) |  | <b><i>(Public Preview)</i></b> |
 |  [findNearest(options)](./firestore_pipelines.pipeline.md#pipelinefindnearest) |  | <b><i>(Public Preview)</i></b> |
@@ -47,6 +49,8 @@ export declare class Pipeline
 |  [select(options)](./firestore_pipelines.pipeline.md#pipelineselect) |  | <b><i>(Public Preview)</i></b> |
 |  [sort(ordering, additionalOrderings)](./firestore_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> |
 |  [sort(options)](./firestore_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> |
+|  [toArrayExpression()](./firestore_pipelines.pipeline.md#pipelinetoarrayexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) An <code>Expression</code> representing the execution of this pipeline. |
+|  [toScalarExpression()](./firestore_pipelines.pipeline.md#pipelinetoscalarexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to a single scalar result. Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.<ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul> An <code>Expression</code> representing the execution of this pipeline. |
 |  [union(other)](./firestore_pipelines.pipeline.md#pipelineunion) |  | <b><i>(Public Preview)</i></b> |
 |  [union(options)](./firestore_pipelines.pipeline.md#pipelineunion) |  | <b><i>(Public Preview)</i></b> |
 |  [unnest(selectable, indexField)](./firestore_pipelines.pipeline.md#pipelineunnest) |  | <b><i>(Public Preview)</i></b> |
@@ -135,6 +139,49 @@ aggregate(options: AggregateStageOptions): Pipeline;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [AggregateStageOptions](./firestore_pipelines.md#aggregatestageoptions) |  |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+## Pipeline.define()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+<b>Signature:</b>
+
+```typescript
+define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  aliasedExpression | [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class) |  |
+|  additionalExpressions | [AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->\[\] |  |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+## Pipeline.define()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+<b>Signature:</b>
+
+```typescript
+define(options: DefineStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [DefineStageOptions](./firestore_pipelines.md#definestageoptions) |  |
 
 <b>Returns:</b>
 
@@ -544,6 +591,44 @@ sort(options: SortStageOptions): Pipeline;
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+## Pipeline.toArrayExpression()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)
+
+ An `Expression` representing the execution of this pipeline.
+
+<b>Signature:</b>
+
+```typescript
+toArrayExpression(): Expression;
+```
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
+
+## Pipeline.toScalarExpression()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Converts this Pipeline into an expression that evaluates to a single scalar result. Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.
+
+<ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul>
+
+ An `Expression` representing the execution of this pipeline.
+
+<b>Signature:</b>
+
+```typescript
+toScalarExpression(): Expression;
+```
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
 
 ## Pipeline.union()
 

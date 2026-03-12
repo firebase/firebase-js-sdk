@@ -359,10 +359,18 @@ export function countDistinct(expr: Expression | string): AggregateFunction;
 export function countIf(booleanExpr: BooleanExpression): AggregateFunction;
 
 // @beta
+export function currentDocument(): Expression;
+
+// @beta
 export function currentTimestamp(): FunctionExpression;
 
 // @beta
 export type DatabaseStageOptions = StageOptions & {};
+
+// @beta
+export type DefineStageOptions = StageOptions & {
+    variables: AliasedExpression[];
+};
 
 // @beta
 export function descending(expr: Expression): Ordering;
@@ -608,6 +616,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    getField(key: string | Expression): Expression;
+    /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     greaterThan(value: unknown): BooleanExpression;
@@ -802,7 +812,7 @@ export abstract class Expression {
 }
 
 // @beta
-export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression';
+export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 
 // @beta
 export class Field extends Expression implements Selectable {
@@ -1160,6 +1170,8 @@ export class Pipeline {
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
+    define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
+    define(options: DefineStageOptions): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
@@ -1181,6 +1193,8 @@ export class Pipeline {
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     sort(options: SortStageOptions): Pipeline;
+    toArrayExpression(): Expression;
+    toScalarExpression(): Expression;
     union(other: Pipeline): Pipeline;
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
@@ -1443,6 +1457,17 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
 export function stringReverse(field: string): FunctionExpression;
 
 // @beta
+export function subcollection(path: string): Pipeline;
+
+// @beta
+export function subcollection(options: SubcollectionStageOptions): Pipeline;
+
+// @beta
+export type SubcollectionStageOptions = StageOptions & {
+    path: string;
+};
+
+// @beta
 export function substring(field: string, position: number, length?: number): FunctionExpression;
 
 // @beta
@@ -1590,6 +1615,15 @@ export type UnnestStageOptions = StageOptions & {
     selectable: Selectable;
     indexField?: string;
 };
+
+// @beta
+export function variable(name: string): VariableExpression;
+
+// @beta
+export class VariableExpression extends Expression {
+    // (undocumented)
+    expressionType: ExpressionType;
+    }
 
 // @beta
 export function vectorLength(vectorExpression: Expression): FunctionExpression;

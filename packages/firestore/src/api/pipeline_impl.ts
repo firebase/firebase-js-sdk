@@ -30,6 +30,7 @@ import {
   newUserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -135,6 +136,15 @@ export function execute(
       };
 
   const { pipeline, rawOptions, ...rest } = options;
+
+  if (!pipeline._db) {
+    return Promise.reject(
+      new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+      )
+    );
+  }
 
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);

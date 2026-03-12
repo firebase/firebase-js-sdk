@@ -49,7 +49,10 @@ import {
   isAliasedAggregate,
   toField,
   isOrdering,
-  isExpr
+  isExpr,
+  AliasedExpression,
+  FunctionExpression,
+  isAliasedExpr
 } from './expressions';
 import {
   AddFields,
@@ -67,11 +70,13 @@ import {
   Stage,
   Union,
   Unnest,
-  Where
+  Where,
+  Define
 } from './stage';
 import {
   AddFieldsStageOptions,
   AggregateStageOptions,
+  DefineStageOptions,
   DistinctStageOptions,
   FindNearestStageOptions,
   LimitStageOptions,
@@ -140,7 +145,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
      * @internal
      * @private
      */
-    public _db: Firestore,
+    public _db: Firestore | undefined,
     /**
      * @internal
      * @private
@@ -308,6 +313,111 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param aliasedExpression - The first expression to bind to a variable.
+   * @param additionalExpressions - Optional additional expression to bind to a variable.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(
+    aliasedExpression: AliasedExpression,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline;
+  /**
+   * @beta
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param options - An object that specifies required and optional parameters for the stage.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(options: DefineStageOptions): Pipeline;
+  define(
+    aliasedExpressionOrOptions: AliasedExpression | DefineStageOptions,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline {
+    // Process argument union(s) from method overloads
+    const options = isAliasedExpr(aliasedExpressionOrOptions)
+      ? {}
+      : aliasedExpressionOrOptions;
+    const aliasedExpressions: AliasedExpression[] = isAliasedExpr(
+      aliasedExpressionOrOptions
+    )
+      ? [aliasedExpressionOrOptions, ...additionalExpressions]
+      : aliasedExpressionOrOptions.variables;
+
+    const convertedExpressions: Map<string, Expression> =
+      selectablesToMap(aliasedExpressions);
+
+    const stage = new Define(convertedExpressions, options);
+
+    return this._addStage(stage);
+  }
+
+  /**
+   * Converts this Pipeline into an expression that evaluates to an array of results.
+   * Used for embedding 1:N subqueries into stages like {@link @firebase/firestore/pipelines#Pipeline.(addFields:1)}
+   *
+   * @return An `Expression` representing the execution of this pipeline.
+   */
+  toArrayExpression(): Expression {
+    return new FunctionExpression('array', [fieldOrExpression(this)]);
+  }
+
+  /**
+   * Converts this Pipeline into an expression that evaluates to a single scalar result.
+   * Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.
+   *
+   * <ul>
+   *  <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li>
+   *  <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li>
+   * </ul>
+   *
+   * @return An `Expression` representing the execution of this pipeline.
+   */
+  toScalarExpression(): Expression {
+    return new FunctionExpression('scalar', [fieldOrExpression(this)]);
   }
 
   /**
@@ -1366,7 +1476,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @param stages
    * @protected
    */
-  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+  protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
     return new Pipeline(db, stages);
   }
 }

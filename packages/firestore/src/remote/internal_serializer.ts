@@ -27,6 +27,7 @@ import { getDatastore } from '../lite-api/components';
 import { Pipeline } from '../lite-api/pipeline';
 import { Query } from '../lite-api/reference';
 import { ExecutePipelineRequest as ProtoExecutePipelineRequest } from '../protos/firestore_proto_api';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
 
@@ -115,6 +116,13 @@ export function _internalPipelineToExecutePipelineRequestProto(
   pipeline: Pipeline
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
+  if (!pipeline._db) {
+    throw new FirestoreError(
+      Code.FAILED_PRECONDITION,
+      'This pipeline was created without a database and cannot be serialized for execution.'
+    );
+  }
+
   const firestore = cast(pipeline._db, Firestore);
   const datastore = getDatastore(firestore);
   const serializer = datastore.serializer;
