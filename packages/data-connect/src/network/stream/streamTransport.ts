@@ -376,7 +376,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * @param requestId the requestId associated with this response.
    * @param response the response from the server.
    */
-  protected async _handleMessage<Data>(
+  protected async _handleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void> {

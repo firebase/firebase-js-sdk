@@ -77,11 +77,11 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   /**
    * Manually resolve a request for testing purposes.
    */
-  invokeHandleMessage<Data>(
+  invokeHandleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void> {
-    return this._handleMessage(requestId, response);
+    return this._handleResponse(requestId, response);
   }
 }
 
@@ -141,7 +141,7 @@ interface TransportWithInternals {
   sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): void;
-  invokeHandleMessage<Data>(
+  invokeHandleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void>;
@@ -518,7 +518,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           extensions: {}
         };
 
-        const errorPromise = transport.invokeHandleMessage(
+        const errorPromise = transport.invokeHandleResponse(
           unknownRequestId,
           response
         );
@@ -543,8 +543,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
             .requestId;
 
-          await transport.invokeHandleMessage(requestId1, response1);
-          await transport.invokeHandleMessage(requestId2, response2);
+          await transport.invokeHandleResponse(requestId1, response1);
+          await transport.invokeHandleResponse(requestId2, response2);
           const result1 = await queryPromise1;
           const result2 = await queryPromise2;
 
@@ -567,8 +567,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
             .requestId;
 
-          await transport.invokeHandleMessage(requestId1, response1);
-          await transport.invokeHandleMessage(requestId2, response2);
+          await transport.invokeHandleResponse(requestId1, response1);
+          await transport.invokeHandleResponse(requestId2, response2);
           await queryPromise1;
           await queryPromise2;
 
@@ -602,8 +602,8 @@ describe('AbstractDataConnectStreamTransport', () => {
             transport._activeMutationExecuteRequests.get(expectedKey2);
           const requestId2 = activeRequests2![0].requestId;
 
-          await transport.invokeHandleMessage(requestId1, response1);
-          await transport.invokeHandleMessage(requestId2, response2);
+          await transport.invokeHandleResponse(requestId1, response1);
+          await transport.invokeHandleResponse(requestId2, response2);
           const result1 = await mutationPromise1;
           const result2 = await mutationPromise2;
 
@@ -630,8 +630,8 @@ describe('AbstractDataConnectStreamTransport', () => {
             transport._activeMutationExecuteRequests.get(expectedKey2);
           const requestId2 = activeRequests2![0].requestId;
 
-          await transport.invokeHandleMessage(requestId1, response1);
-          await transport.invokeHandleMessage(requestId2, response2);
+          await transport.invokeHandleResponse(requestId1, response1);
+          await transport.invokeHandleResponse(requestId2, response2);
           await mutationPromise1;
           await mutationPromise2;
 
@@ -654,10 +654,10 @@ describe('AbstractDataConnectStreamTransport', () => {
           const request1 = transport._activeSubscribeRequests.get(expectedKey1);
           const requestId1 = request1?.requestId!;
 
-          await transport.invokeHandleMessage(requestId1, response1);
+          await transport.invokeHandleResponse(requestId1, response1);
           expect(hook1).to.have.been.calledOnce;
           expect(hook1).to.have.been.calledWithExactly(response1);
-          await transport.invokeHandleMessage(requestId1, response2);
+          await transport.invokeHandleResponse(requestId1, response2);
           expect(hook1).to.have.been.calledTwice;
           expect(hook1).to.have.been.calledWithExactly(response2);
 
@@ -665,10 +665,10 @@ describe('AbstractDataConnectStreamTransport', () => {
           const request2 = transport._activeSubscribeRequests.get(expectedKey2);
           const requestId2 = request2?.requestId!;
 
-          await transport.invokeHandleMessage(requestId2, response3);
+          await transport.invokeHandleResponse(requestId2, response3);
           expect(hook2).to.have.been.calledOnce;
           expect(hook2).to.have.been.calledWithExactly(response3);
-          await transport.invokeHandleMessage(requestId2, response4);
+          await transport.invokeHandleResponse(requestId2, response4);
           expect(hook2).to.have.been.calledTwice;
           expect(hook2).to.have.been.calledWithExactly(response4);
         });
