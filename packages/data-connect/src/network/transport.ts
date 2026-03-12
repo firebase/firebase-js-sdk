@@ -213,6 +213,8 @@ export abstract class AbstractDataConnectTransport
   protected _port: number | undefined;
   protected _location = 'l';
   protected _connectorName = '';
+  /** The resource path for requests from this Data Connect instance. */
+  protected _connectorResourcePath: string;
   protected _secure = true;
   protected _project = 'p';
   protected _serviceName: string;
@@ -248,6 +250,7 @@ export abstract class AbstractDataConnectTransport
       this._project = project;
     }
     this._serviceName = service;
+    this._connectorResourcePath = `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
     if (!connector) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,

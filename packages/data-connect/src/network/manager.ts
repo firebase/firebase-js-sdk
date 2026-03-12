@@ -20,6 +20,7 @@ import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { RESTTransport } from './rest';
+import { AbstractDataConnectStreamTransport } from './stream/streamTransport';
 import {
   CallerSdkType,
   DataConnectResponse,
@@ -36,6 +37,7 @@ export class DataConnectTransportManager
   implements DataConnectTransportInterface
 {
   private restTransport: RESTTransport;
+  private streamTransport?: AbstractDataConnectStreamTransport;
   private _isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
 
   // TODO(stephenarosaj): these unused fields will be used in a future PR.
