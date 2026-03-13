@@ -46,7 +46,18 @@
     "typings:public": "node ../../scripts/build/use_typings.js ./dist/public.d.ts"
   },
   "license": "Apache-2.0",
-  "peerDependencies": {},
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "peerDependenciesMeta": {
+    "@firebase/app": {
+      "optional": true
+    },
+    "@firebase/app-types": {
+      "optional": true
+    }
+  },
   "dependencies": {
     "@firebase/logger": "0.5.0",
     "@firebase/util": "1.14.0",
