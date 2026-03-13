@@ -412,8 +412,23 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
-      const { resolve } = this.executeRequestPromises.get(requestId)!;
-      resolve(response);
+      // TODO: make errors better
+      const { resolve, reject } = this.executeRequestPromises.get(requestId)!;
+      if (response.errors && response.errors.length) {
+        const failureResponse: DataConnectOperationFailureResponse = {
+          errors: response.errors as any,
+          data: response.data as Record<string, unknown>
+        };
+        const stringified = JSON.stringify(response.errors);
+        reject(
+          new DataConnectOperationError(
+            'DataConnect error while performing request: ' + stringified,
+            failureResponse
+          )
+        );
+      } else {
+        resolve(response);
+      }
       this.executeRequestPromises.delete(requestId);
     } else if (this.subscribeNotificationHooks.has(requestId)) {
       const notifyQueryManager =
