@@ -123,13 +123,13 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * // Example 2: Filter documents where 'genre' is "Science Fiction" and 'published' is after 1950
  * const results2 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(and(field("genre").eq("Science Fiction"), field("published").gt(1950))));
+ *     .where(and(field("genre").equal("Science Fiction"), field("published").greaterThan(1950))));
  *
  * // Example 3: Calculate the average rating of books published after 1980
  * const results3 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(field("published").gt(1980))
- *     .aggregate(avg(field("rating")).as("averageRating")));
+ *     .where(field("published").greaterThan(1980))
+ *     .aggregate(average(field("rating")).as("averageRating")));
  * ```
  */
 export class Pipeline implements ProtoSerializable<ProtoPipeline> {
@@ -185,7 +185,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .addFields(
    *     field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-   *     add(5, field("quantity")).as("totalCost")  // Calculate 'totalCost'
+   *     add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
    *   );
    * ```
    *
@@ -215,7 +215,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .addFields(
    *     field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-   *     add(5, field("quantity")).as("totalCost")  // Calculate 'totalCost'
+   *     add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
    *   );
    * ```
    *
@@ -356,7 +356,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   .select(
    *     "firstName",
    *     field("lastName"),
-   *     field("address").toUppercase().as("upperAddress"),
+   *     field("address").toUpper().as("upperAddress"),
    *   );
    * ```
    *
@@ -395,7 +395,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   .select(
    *     "firstName",
    *     field("lastName"),
-   *     field("address").toUppercase().as("upperAddress"),
+   *     field("address").toUpper().as("upperAddress"),
    *   );
    * ```
    *
@@ -461,8 +461,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .where(
    *     and(
-   *         gt(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         field("genre").eq("Science Fiction") // Equivalent to gt("genre", "Science Fiction")
+   *         greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+   *         field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
    *     )
    *   );
    * ```
@@ -495,8 +495,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .where(
    *     and(
-   *         gt(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         field("genre").eq("Science Fiction") // Equivalent to gt("genre", "Science Fiction")
+   *         greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+   *         field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
    *     )
    *   );
    * ```
@@ -698,7 +698,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
-   *     .distinct(toUppercase(field("author")).as("authorName"), field("genre"), "publishedAt")
+   *     .distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
    *     .select("authorName");
    * ```
    *
@@ -732,7 +732,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
-   *     .distinct(toUppercase(field("author")).as("authorName"), field("genre"), "publishedAt")
+   *     .distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
    *     .select("authorName");
    * ```
    *
@@ -787,7 +787,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Calculate the average rating and the total number of books
    * firestore.pipeline().collection("books")
    *     .aggregate(
-   *         field("rating").avg().as("averageRating"),
+   *         field("rating").average().as("averageRating"),
    *         countAll().as("totalBooks")
    *     );
    * ```
@@ -827,7 +827,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Calculate the average rating for each genre.
    * firestore.pipeline().collection("books")
    *   .aggregate({
-   *       accumulators: [avg(field("rating")).as("avg_rating")]
+   *       accumulators: [average(field("rating")).as("avg_rating")],
    *       groups: ["genre"]
    *       });
    * ```
@@ -1001,8 +1001,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // with the same rating
    * firestore.pipeline().collection("books")
    *     .sort(
-   *         Ordering.of(field("rating")).descending(),
-   *         Ordering.of(field("title"))  // Ascending order is the default
+   *         field("rating").descending(),
+   *         field("title").ascending()
    *     );
    * ```
    *
@@ -1029,8 +1029,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // with the same rating
    * firestore.pipeline().collection("books")
    *     .sort(
-   *         Ordering.of(field("rating")).descending(),
-   *         Ordering.of(field("title"))  // Ascending order is the default
+   *         field("rating").descending(),
+   *         field("title").ascending()
    *     );
    * ```
    *
@@ -1471,7 +1471,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Assume we don't have a built-in 'where' stage
    * firestore.pipeline().collection('books')
-   *     .rawStage('where', [field('published').lt(1900)]) // Custom 'where' stage
+   *     .rawStage('where', [field('published').lessThan(1900)]) // Custom 'where' stage
    *     .select('title', 'author');
    * ```
    *
