@@ -4332,7 +4332,7 @@ export class SnippetExpression extends FunctionExpression {
    * @hideconstructor
    */
   constructor(params: Expression[], options?: {}) {
-    super('snippet', params, options);
+    super('snippet', params, 'snippet', options);
   }
 }
 

@@ -71,7 +71,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       const proto = _internalPipelineToExecutePipelineRequestProto(pipeline);
 
       const expectedStructuredPipelineProto =
-        '{"pipeline":{"stages":[{"name":"collection","options":{},"args":[{"referenceValue":"/customers"}]},{"name":"where","options":{},"args":[{"functionValue":{"name":"equal","args":[{"fieldReferenceValue":"country"},{"stringValue":"United Kingdom"}]}}]}]}}';
+        '{"pipeline":{"stages":[{"name":"collection","options":{},"args":[{"referenceValue":"/customers"}]},{"name":"where","options":{},"args":[{"functionValue":{"name":"equal","args":[{"fieldReferenceValue":"country"},{"stringValue":"United Kingdom"}],"options":{}}}]}]}}';
       expect(JSON.stringify(proto.structuredPipeline)).to.equal(
         expectedStructuredPipelineProto
       );
