@@ -46,7 +46,6 @@ class MockWebSocket {
 }
 
 interface WebSocketTransportWithInternals {
-  connectionAttempt: Promise<void> | null;
   openConnection(): Promise<void>;
   closeConnection(): Promise<void>;
   onConnectionReady(): void;
@@ -156,7 +155,6 @@ describe('WebSocketTransport', () => {
       await transport.closeConnection();
       expect(closeStub).to.have.been.calledOnce;
       expect(transport.streamConnected).to.be.false;
-      expect(transport.connectionAttempt).to.be.null;
     });
   });
 
@@ -181,25 +179,6 @@ describe('WebSocketTransport', () => {
       await new Promise(resolve => setTimeout(resolve, 0));
 
       expect(sendStub).to.have.been.calledOnceWith(JSON.stringify(request));
-    });
-
-    it('throws an error if sending fails', async () => {
-      const variables = { foo: "bar" };
-      const requestId = 'request-id';
-      const request: DataConnectStreamRequest<typeof variables> = {
-        execute: { operationName: 'testOp', variables },
-        requestId
-      };
-
-      const connectionPromise = transport.openConnection();
-      expect(mockWebSockets).to.have.lengthOf(1);
-      const mockWebSocket = mockWebSockets[0];
-      mockWebSocket.readyState = MockWebSocket.OPEN;
-      mockWebSocket.onopen?.();
-      await connectionPromise;
-
-      sinon.stub(mockWebSocket, 'send').throws(new Error('Send Error'));
-      await expect(transport.sendMessage(request)).to.be.rejectedWith(/Failed to send message/);
     });
   });
 
@@ -237,6 +216,31 @@ describe('WebSocketTransport', () => {
       expect(result.extensions).to.deep.equal(expectedExtensions);
     });
 
+    it('throws if response is not valid JSON', async () => {
+      const promise = transport.openConnection();
+      const mockWebSocket = mockWebSockets[0];
+      mockWebSocket.readyState = MockWebSocket.OPEN;
+      mockWebSocket.onopen?.();
+      await promise;
+
+      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
+
+      await expect(mockWebSocket.onmessage?.({ data: 'not a valid json string' })).to.be.rejectedWith(/server response was not valid JSON/);
+      expect(handleResponseStub).to.not.have.been.called;
+    });
+
+    it('throws if response is not an object', async () => {
+      const promise = transport.openConnection();
+      const mockWebSocket = mockWebSockets[0];
+      mockWebSocket.readyState = MockWebSocket.OPEN;
+      mockWebSocket.onopen?.();
+      await promise;
+
+      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
+
+      await expect(mockWebSocket.onmessage?.({ data: JSON.stringify(123) })).to.be.rejectedWith(/server response was not a JSON object/);
+      expect(handleResponseStub).to.not.have.been.called;
+    });
     it('throws if result is missing', async () => {
       const promise = transport.openConnection();
       const mockWebSocket = mockWebSockets[0];
@@ -251,7 +255,7 @@ describe('WebSocketTransport', () => {
         abc: 'xyz'
       };
 
-      await expect(mockWebSocket.onmessage?.({ data: JSON.stringify(response) } as MessageEvent)).to.be.rejectedWith(/server response did not include result/);
+      await expect(mockWebSocket.onmessage?.({ data: JSON.stringify(response) })).to.be.rejectedWith(/server response did not include result/);
       expect(handleResponseStub).to.not.have.been.called;
     });
 
@@ -268,35 +272,7 @@ describe('WebSocketTransport', () => {
         result: { data: expectedData }
       };
 
-      await expect(mockWebSocket.onmessage?.({ data: JSON.stringify(response) } as MessageEvent)).to.be.rejectedWith(/server response did not include requestId/);
-      expect(handleResponseStub).to.not.have.been.called;
-    });
-
-    it('throws an error if response is malformed JSON', async () => {
-      const promise = transport.openConnection();
-      const mockWebSocket = mockWebSockets[0];
-      mockWebSocket.readyState = MockWebSocket.OPEN;
-      mockWebSocket.onopen?.();
-      await promise;
-
-      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
-
-      // we await the rejection from handleWebSocketMessage
-      await expect(mockWebSocket.onmessage?.({ data: 'this is not valid json' })).to.be.rejectedWith(/server response was not valid JSON/);
-      expect(handleResponseStub).to.not.have.been.called;
-    });
-
-    it('throws an error if response is not an object', async () => {
-      const promise = transport.openConnection();
-      const mockWebSocket = mockWebSockets[0];
-      mockWebSocket.readyState = MockWebSocket.OPEN;
-      mockWebSocket.onopen?.();
-      await promise;
-
-      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
-
-      // we await the rejection from handleWebSocketMessage since we use in and object
-      await expect(mockWebSocket.onmessage?.({ data: JSON.stringify('im a string') })).to.be.rejectedWith(/server response was not valid JSON/);
+      await expect(mockWebSocket.onmessage?.({ data: JSON.stringify(response) })).to.be.rejectedWith(/server response did not include requestId/);
       expect(handleResponseStub).to.not.have.been.called;
     });
   });

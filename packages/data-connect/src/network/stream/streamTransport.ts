@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Code, DataConnectError } from '../../core/error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationFailureResponse
+} from '../../core/error';
 import {
   AbstractDataConnectTransport,
   DataConnectResponse,
@@ -61,7 +66,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected abstract sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
-  ): void;
+  ): Promise<void>;
 
   /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
   private requestNumber = FIRST_REQUEST_ID;
@@ -186,9 +191,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private sendExecuteMessage<Variables>(
     executeRequestBody: ExecuteStreamRequest<Variables>
-  ): void {
+  ): Promise<void> {
     const preparedRequestBody = this.prepareMessage(executeRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
@@ -196,25 +201,25 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private sendSubscribeMessage<Variables>(
     subscribeRequestBody: SubscribeStreamRequest<Variables>
-  ): void {
+  ): Promise<void> {
     const preparedRequestBody = this.prepareMessage(subscribeRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to unsubscribe to a query.
    */
-  private sendCancelMessage(cancelRequestBody: CancelStreamRequest): void {
+  private sendCancelMessage(cancelRequestBody: CancelStreamRequest): Promise<void> {
     const preparedRequestBody = this.prepareMessage(cancelRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to resume a query.
    */
-  private sendResumeMessage(resumeRequestBody: ResumeStreamRequest): void {
+  private sendResumeMessage(resumeRequestBody: ResumeStreamRequest): Promise<void> {
     const preparedRequestBody = this.prepareMessage(resumeRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
@@ -280,16 +285,24 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    this.sendExecuteMessage<Variables>(executeBody);
-
     this.activeQueryExecuteRequests.set(mapKey, executeBody);
 
-    return this.makeExecutePromise<Data>(requestId).finally(() => {
+    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(() => {
       const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
       if (executeRequest && executeRequest.requestId === requestId) {
         this.activeQueryExecuteRequests.delete(mapKey);
       }
     });
+
+    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
+      const requestPromise = this.executeRequestPromises.get(requestId);
+      if (requestPromise) {
+        requestPromise.reject(err);
+        this.executeRequestPromises.delete(requestId);
+      }
+    });
+
+    return responsePromise;
   }
 
   invokeMutation<Data, Variables>(
@@ -304,14 +317,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    this.sendExecuteMessage<Variables>(executeBody);
-
     const mutationRequestBodies =
       this.activeMutationExecuteRequests.get(mapKey) || [];
     mutationRequestBodies.push(executeBody);
     this.activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
 
-    return this.makeExecutePromise<Data>(requestId).finally(() => {
+    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(() => {
       const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
       if (executeRequests) {
         const updatedRequests = executeRequests.filter(
@@ -324,6 +335,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         }
       }
     });
+
+    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
+      const requestPromise = this.executeRequestPromises.get(requestId);
+      if (requestPromise) {
+        requestPromise.reject(err);
+        this.executeRequestPromises.delete(requestId);
+      }
+    });
+
+    return responsePromise;
   }
 
   invokeSubscribe<Data, Variables>(
@@ -345,7 +366,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       notifyQueryManager as SubscribeNotificationHook<unknown>
     );
 
-    this.sendSubscribeMessage<Variables>(subscribeBody);
+    this.sendSubscribeMessage<Variables>(subscribeBody).catch(err => {
+      this.activeSubscribeRequests.delete(mapKey);
+      this.subscribeNotificationHooks.delete(requestId);
+      notifyQueryManager({
+        data: undefined as unknown as Data,
+        extensions: {},
+        errors: [err instanceof Error ? err : new Error(String(err))]
+      });
+    });
   }
 
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
@@ -360,7 +389,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
-    this.sendCancelMessage(cancelBody);
+    this.sendCancelMessage(cancelBody).catch(err => {
+      console.error('Failed to send unsubscribe message', err);
+    });
 
     this.activeSubscribeRequests.delete(mapKey);
     this.subscribeNotificationHooks.delete(requestId);

@@ -49,8 +49,8 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   protected sendMessage<Variables>(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     requestBody: DataConnectStreamRequest<Variables>
-  ): void {
-    // no-op
+  ): Promise<void> {
+    return Promise.resolve();
   }
 
   /**
@@ -140,7 +140,7 @@ interface TransportWithInternals {
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void;
   sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
-  ): void;
+  ): Promise<void>;
   invokeHandleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
@@ -513,6 +513,13 @@ describe('AbstractDataConnectStreamTransport', () => {
         errors: [],
         extensions: {}
       };
+      
+      const expectedError = [new Error('test error')];
+      const errorResponse: DataConnectResponse<unknown> = {
+        data: {},
+        errors: expectedError,
+        extensions: {}
+      };
 
       it('should throw an error if an unrecognized requestId is received', async () => {
         const unknownRequestId = 'unknown-999';
@@ -581,6 +588,20 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
             .false;
         });
+
+        it('should reject the query promise with DataConnectOperationError if response has errors', async () => {
+          const queryPromise = transport.invokeQuery(queryName1, variables1);
+          const expectedKey = transport.getMapKey(queryName1, variables1);
+          const request =
+            transport.activeQueryExecuteRequests.get(expectedKey);
+          const requestId = (request as ExecuteStreamRequest<unknown>)
+            .requestId;
+
+          await transport.invokeHandleResponse(requestId, errorResponse);
+          await expect(queryPromise).to.be.rejectedWith(
+            `DataConnect error while performing request: ${JSON.stringify(expectedError)}`
+          );
+        });
       });
 
       describe('invokeMutation tracking', async () => {
@@ -643,6 +664,22 @@ describe('AbstractDataConnectStreamTransport', () => {
             .be.false;
           expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
             .be.false;
+        });
+
+        it('should reject the mutation promise with DataConnectOperationError if response has errors', async () => {
+          const mutationPromise = transport.invokeMutation(
+            mutationName1,
+            variables1
+          );
+          const expectedKey = transport.getMapKey(mutationName1, variables1);
+          const activeRequests =
+            transport.activeMutationExecuteRequests.get(expectedKey);
+          const requestId = activeRequests![0].requestId;
+
+          await transport.invokeHandleResponse(requestId, errorResponse);
+          await expect(mutationPromise).to.be.rejectedWith(
+            `DataConnect error while performing request: ${JSON.stringify(expectedError)}`
+          );
         });
       });
 

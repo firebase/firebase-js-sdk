@@ -139,8 +139,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
 
   sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
-  ): void {
-    this.ensureConnection()
+  ): Promise<void> {
+    return this.ensureConnection()
       .then(() => {
         this.connection!.send(JSON.stringify(requestBody));
       })
@@ -187,7 +187,12 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         'server response was not valid JSON'
       );
     }
-
+    if (typeof webSocketMessage !== 'object') {
+      throw new DataConnectError(
+        Code.OTHER,
+        'server response was not a JSON object'
+      );
+    }
     if (!('result' in webSocketMessage)) {
       throw new DataConnectError(
         Code.OTHER,
