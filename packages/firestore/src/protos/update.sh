@@ -20,7 +20,7 @@ IFS=$'\n\t'
 # Variables
 PROTOS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR=`mktemp -d`
-PBJS="$(npm bin)/pbjs"
+PBJS="$(yarn bin)/pbjs"
 
 # deletes the temp directory on exit
 function cleanup {
