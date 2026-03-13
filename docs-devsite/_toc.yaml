@@ -658,6 +658,8 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.stageoptions.md
   - title: Timestamp
     path: /docs/reference/js/firestore_lite_pipelines.timestamp.md
+  - title: VariableExpression
+    path: /docs/reference/js/firestore_lite_pipelines.variableexpression.md
   - title: VectorValue
     path: /docs/reference/js/firestore_lite_pipelines.vectorvalue.md
 - title: firestore/pipelines
@@ -723,6 +725,8 @@ toc:
     path: /docs/reference/js/firestore_pipelines.stageoptions.md
   - title: Timestamp
     path: /docs/reference/js/firestore_pipelines.timestamp.md
+  - title: VariableExpression
+    path: /docs/reference/js/firestore_pipelines.variableexpression.md
   - title: VectorValue
     path: /docs/reference/js/firestore_pipelines.vectorvalue.md
 - title: functions
