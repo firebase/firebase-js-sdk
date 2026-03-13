@@ -1219,7 +1219,9 @@ export class Pipeline {
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     // (undocumented)
     sort(options: SortStageOptions): Pipeline;
+    // (undocumented)
     toArrayExpression(): Expression;
+    // (undocumented)
     toScalarExpression(): Expression;
     // (undocumented)
     union(other: Pipeline): Pipeline;

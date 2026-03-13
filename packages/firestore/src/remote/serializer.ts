@@ -39,7 +39,6 @@ import { targetIsDocumentTarget, Target } from '../core/target';
 import { TargetId } from '../core/types';
 import { Bytes } from '../lite-api/bytes';
 import { GeoPoint } from '../lite-api/geo_point';
-import { Pipeline } from '../lite-api/pipeline';
 import { Timestamp } from '../lite-api/timestamp';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutableDocument } from '../model/document';

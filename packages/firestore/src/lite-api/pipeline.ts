@@ -396,16 +396,18 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
+   * @beta
    * Converts this Pipeline into an expression that evaluates to an array of results.
    * Used for embedding 1:N subqueries into stages like {@link @firebase/firestore/pipelines#Pipeline.(addFields:1)}
    *
-   * @return An `Expression` representing the execution of this pipeline.
+   * @returns An `Expression` representing the execution of this pipeline.
    */
   toArrayExpression(): Expression {
     return new FunctionExpression('array', [fieldOrExpression(this)]);
   }
 
   /**
+   * @beta
    * Converts this Pipeline into an expression that evaluates to a single scalar result.
    * Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.
    *
@@ -414,7 +416,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *  <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li>
    * </ul>
    *
-   * @return An `Expression` representing the execution of this pipeline.
+   * @returns An `Expression` representing the execution of this pipeline.
    */
   toScalarExpression(): Expression {
     return new FunctionExpression('scalar', [fieldOrExpression(this)]);

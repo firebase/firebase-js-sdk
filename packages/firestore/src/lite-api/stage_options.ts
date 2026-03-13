@@ -108,7 +108,7 @@ export type CollectionGroupStageOptions = StageOptions & {
 
 /**
  * @beta
- * Options defining how a `SubcollectionStage` is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(subcollection:1)}.
+ * Options defining how a `SubcollectionStage` is evaluated. See {@link @firebase/firestore/pipelines#subcollection}.
  */
 export type SubcollectionStageOptions = StageOptions & {
   /**

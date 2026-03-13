@@ -49,8 +49,8 @@ export declare class Pipeline
 |  [select(options)](./firestore_pipelines.pipeline.md#pipelineselect) |  | <b><i>(Public Preview)</i></b> |
 |  [sort(ordering, additionalOrderings)](./firestore_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> |
 |  [sort(options)](./firestore_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> |
-|  [toArrayExpression()](./firestore_pipelines.pipeline.md#pipelinetoarrayexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) An <code>Expression</code> representing the execution of this pipeline. |
-|  [toScalarExpression()](./firestore_pipelines.pipeline.md#pipelinetoscalarexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to a single scalar result. Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.<ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul> An <code>Expression</code> representing the execution of this pipeline. |
+|  [toArrayExpression()](./firestore_pipelines.pipeline.md#pipelinetoarrayexpression) |  | <b><i>(Public Preview)</i></b> |
+|  [toScalarExpression()](./firestore_pipelines.pipeline.md#pipelinetoscalarexpression) |  | <b><i>(Public Preview)</i></b> |
 |  [union(other)](./firestore_pipelines.pipeline.md#pipelineunion) |  | <b><i>(Public Preview)</i></b> |
 |  [union(options)](./firestore_pipelines.pipeline.md#pipelineunion) |  | <b><i>(Public Preview)</i></b> |
 |  [unnest(selectable, indexField)](./firestore_pipelines.pipeline.md#pipelineunnest) |  | <b><i>(Public Preview)</i></b> |
@@ -597,10 +597,6 @@ sort(options: SortStageOptions): Pipeline;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)
-
- An `Expression` representing the execution of this pipeline.
-
 <b>Signature:</b>
 
 ```typescript
@@ -614,12 +610,6 @@ toArrayExpression(): Expression;
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
-
-Converts this Pipeline into an expression that evaluates to a single scalar result. Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.
-
-<ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul>
-
- An `Expression` representing the execution of this pipeline.
 
 <b>Signature:</b>
 

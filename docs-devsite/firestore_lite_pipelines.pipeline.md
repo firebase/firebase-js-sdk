@@ -74,8 +74,8 @@ firestore.pipeline().collection("books")
 |  [select(options)](./firestore_lite_pipelines.pipeline.md#pipelineselect) |  | <b><i>(Public Preview)</i></b> Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.<p>Example: |
 |  [sort(ordering, additionalOrderings)](./firestore_lite_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> Sorts the documents from previous stages based on one or more [Ordering](./firestore_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.<p>Example: |
 |  [sort(options)](./firestore_lite_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> Sorts the documents from previous stages based on one or more [Ordering](./firestore_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.<p>Example: |
-|  [toArrayExpression()](./firestore_lite_pipelines.pipeline.md#pipelinetoarrayexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) An <code>Expression</code> representing the execution of this pipeline. |
-|  [toScalarExpression()](./firestore_lite_pipelines.pipeline.md#pipelinetoscalarexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to a single scalar result. Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.<ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul> An <code>Expression</code> representing the execution of this pipeline. |
+|  [toArrayExpression()](./firestore_lite_pipelines.pipeline.md#pipelinetoarrayexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) |
+|  [toScalarExpression()](./firestore_lite_pipelines.pipeline.md#pipelinetoscalarexpression) |  | <b><i>(Public Preview)</i></b> Converts this Pipeline into an expression that evaluates to a single scalar result. Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.<ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul> |
 |  [union(other)](./firestore_lite_pipelines.pipeline.md#pipelineunion) |  | <b><i>(Public Preview)</i></b> Performs union of all documents from two pipelines, including duplicates.<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the <code>other</code> [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined.<p>Example: |
 |  [union(options)](./firestore_lite_pipelines.pipeline.md#pipelineunion) |  | <b><i>(Public Preview)</i></b> Performs union of all documents from two pipelines, including duplicates.<p>This stage will pass through documents from previous stage, and also pass through documents from previous stage of the <code>other</code> [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) given in parameter. The order of documents emitted from this stage is undefined.<p>Example: |
 |  [unnest(selectable, indexField)](./firestore_lite_pipelines.pipeline.md#pipelineunnest) |  | <b><i>(Public Preview)</i></b> Produces a document for each element in an input array.<!-- -->For each previous stage document, this stage will emit zero or more augmented documents. The input array specified by the <code>selectable</code> parameter, will emit an augmented document for each input array element. The input array element will augment the previous stage document by setting the <code>alias</code> field with the array element value.<!-- -->When <code>selectable</code> evaluates to a non-array value (ex: number, null, absent), then the stage becomes a no-op for the current input document, returning it as is with the <code>alias</code> field absent.<!-- -->No documents are emitted when <code>selectable</code> evaluates to an empty array.<!-- -->Example: |
@@ -1207,8 +1207,6 @@ firestore.pipeline().collection("books")
 
 Converts this Pipeline into an expression that evaluates to an array of results. Used for embedding 1:N subqueries into stages like [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)
 
- An `Expression` representing the execution of this pipeline.
-
 <b>Signature:</b>
 
 ```typescript
@@ -1217,6 +1215,8 @@ toArrayExpression(): Expression;
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+An `Expression` representing the execution of this pipeline.
 
 ## Pipeline.toScalarExpression()
 
@@ -1227,8 +1227,6 @@ Converts this Pipeline into an expression that evaluates to a single scalar resu
 
 <ul> <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li> <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li> </ul>
 
- An `Expression` representing the execution of this pipeline.
-
 <b>Signature:</b>
 
 ```typescript
@@ -1237,6 +1235,8 @@ toScalarExpression(): Expression;
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+An `Expression` representing the execution of this pipeline.
 
 ## Pipeline.union()
 

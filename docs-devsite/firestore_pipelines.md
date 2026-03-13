@@ -10185,10 +10185,13 @@ An [Expression](./firestore_pipelines.expression.md#expression_class) representi
 
 
 ```typescript
-// Define a variable "discountedPrice" and use it in a filter
-firestore.pipeline().collection("products")
-    .define(constant(100).as("threshold"))
-    .where(variable("discountedPrice").lessThan(variable("threshold")));
+db.pipeline().collection("products")
+  .define(
+    field("price").multiply(0.9).as("discountedPrice"),
+    field("stock").add(10).as("newStock")
+  )
+  .where(variable("discountedPrice").lessThan(100))
+  .select(field("name"), variable("newStock"));
 
 ```
 
