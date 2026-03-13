@@ -306,34 +306,48 @@ export type SearchStageOptions = StageOptions & {
    * })
    * ```
    */
-  query?: BooleanExpression | string;
+  query: BooleanExpression | string;
+
   /**
-   * The maximum number of documents to return from the Search stage.
+   * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
    */
-  limit?: number;
+  languageCode?: string;
+
+  // TODO(search) add indexPartition after languageCode
+
   /**
    * The maximum number of documents for the search stage to score. Documents
    * will be processed in the pre-sort order specified by the search index.
    */
   retrievalDepth?: number;
+
   /**
    * Orderings specify how the input documents are sorted.
    * One or more ordering are required.
    */
   sort?: Ordering | Ordering[];
+
   /**
-   * The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
+   * The number of documents to skip.
    */
-  addFields?: Selectable[];
+  offset?: number;
+
+  /**
+   * The maximum number of documents to return from the Search stage.
+   */
+  limit?: number;
+
   /**
    * The fields to keep or add to each document,
    * specified as an array of {@link @firebase/firestore/pipelines#Selectable}.
    */
   select?: Array<Selectable | string>;
+
   /**
-   * The number of documents to skip.
+   * The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
    */
-  offset?: number;
+  addFields?: Selectable[];
+
   /**
    * Define the query expansion behavior used by full-text search expressions
    * in this search stage.

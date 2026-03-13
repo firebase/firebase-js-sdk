@@ -25,6 +25,7 @@ import {
   aliasedAggregateToMap,
   fieldOrExpression,
   selectablesToMap,
+  selectablesToObject,
   vectorToExpr
 } from '../util/pipeline_util';
 import { isNumber, isString } from '../util/types';
@@ -48,7 +49,8 @@ import {
   isAliasedAggregate,
   toField,
   isOrdering,
-  isExpr
+  isExpr,
+  documentMatches
 } from './expressions';
 import {
   AddFields,
@@ -944,14 +946,36 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @return A new `Pipeline` object with this stage appended to the stage list.
    */
   search(options: SearchStageOptions): Pipeline {
+    // Convert user land convenience types to internal types
+    const select: Record<string, Expression> | undefined = options.select
+      ? selectablesToObject(options.select)
+      : undefined;
+    const addFields: Record<string, Expression> | undefined = options.addFields
+      ? selectablesToObject(options.addFields)
+      : undefined;
+    const query: BooleanExpression = isExpr(options.query)
+      ? options.query
+      : documentMatches(options.query);
+    const sort: Ordering[] | undefined = isOrdering(options.sort)
+      ? [options.sort]
+      : options.sort;
+
+    const internalOptions = {
+      ...options,
+      select,
+      addFields,
+      query,
+      sort
+    };
+
     // Create stage object
-    const stage = new Search(options);
+    const stage = new Search(internalOptions);
 
     // User data must be read in the context of the API method to
     // provide contextual errors
     const parseContext = this.userDataReader.createContext(
       UserDataSource.Argument,
-      'sort'
+      'search'
     );
     stage._readUserData(parseContext);
 

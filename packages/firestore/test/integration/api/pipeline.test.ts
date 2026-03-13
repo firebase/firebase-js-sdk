@@ -5882,6 +5882,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               .pipeline()
               .collection('restaurants')
               .search({
+                query: constant(true),
                 sort: field('location')
                   .geoDistance(new GeoPoint(39.6985, -105.024))
                   .ascending(),
@@ -5923,11 +5924,15 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
         describe('offset', () => {
           it('skips N documents', async () => {
-            const ppl = firestore.pipeline().collection('restaurants').search({
-              limit: 2,
-              offset: 2,
-              queryEnhancement: 'disabled'
-            });
+            const ppl = firestore
+              .pipeline()
+              .collection('restaurants')
+              .search({
+                query: constant(true),
+                limit: 2,
+                offset: 2,
+                queryEnhancement: 'disabled'
+              });
 
             const snapshot = await execute(ppl);
             expectResults(snapshot, 'eastsideChicken', 'eastsideTacos');

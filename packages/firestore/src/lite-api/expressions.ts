@@ -4333,7 +4333,7 @@ export class SnippetExpression extends FunctionExpression {
    * @hideconstructor
    */
   constructor(params: Expression[], options?: {}) {
-    super('snippet', params);
+    super('snippet', params, options);
   }
 }
 
@@ -11400,8 +11400,9 @@ export function isSelectable(val: unknown): val is Selectable {
 }
 
 export function isOrdering(val: unknown): val is Ordering {
-  const candidate = val as Ordering;
+  const candidate = val as Ordering | undefined;
   return (
+    candidate !== undefined &&
     isExpr(candidate.expr) &&
     (candidate.direction === 'ascending' ||
       candidate.direction === 'descending')
