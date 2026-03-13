@@ -95,7 +95,7 @@
     "babel-loader": "8.4.1",
     "chai": "4.5.0",
     "chai-as-promised": "7.1.2",
-    "chalk": "4.1.2",
+    "chalk": "5.6.2",
     "child-process-promise": "2.2.1",
     "clone": "2.1.2",
     "coveralls": "3.1.1",
