@@ -143,6 +143,12 @@ export class BooleanSchema extends Schema {
 export class ChatSession {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // @internal
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
     getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
@@ -185,13 +191,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @beta
+// @public
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @beta
+// @public
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -283,13 +289,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @beta
+// @public
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @beta
+// @public
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -407,6 +413,7 @@ export interface FunctionCallPart {
 // @public
 export interface FunctionDeclaration {
     description: string;
+    functionReference?: Function;
     name: string;
     parameters?: ObjectSchema | ObjectSchemaRequest;
 }
@@ -421,6 +428,8 @@ export interface FunctionResponse {
     id?: string;
     // (undocumented)
     name: string;
+    // (undocumented)
+    parts?: Part[];
     // (undocumented)
     response: object;
 }
@@ -461,8 +470,6 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
-    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
-    //
     // (undocumented)
     urlContextMetadata?: URLContextMetadata;
 }
@@ -873,13 +880,13 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @beta
+// @public
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @beta
+// @public
 export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
@@ -990,6 +997,7 @@ export const LiveResponseType: {
     SERVER_CONTENT: string;
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
+    GOING_AWAY_NOTICE: string;
 };
 
 // @beta
@@ -1004,6 +1012,13 @@ export interface LiveServerContent {
     turnComplete?: boolean;
     // (undocumented)
     type: 'serverContent';
+}
+
+// @beta
+export interface LiveServerGoingAwayNotice {
+    timeLeft: number;
+    // (undocumented)
+    type: 'goingAwayNotice';
 }
 
 // @beta
@@ -1027,7 +1042,7 @@ export class LiveSession {
     close(): Promise<void>;
     inConversation: boolean;
     isClosed: boolean;
-    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation>;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
@@ -1105,7 +1120,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @beta
+// @public
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1113,12 +1128,9 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @beta
+// @public
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
-//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1142,6 +1154,7 @@ export interface PromptFeedback {
 // @public
 export interface RequestOptions {
     baseUrl?: string;
+    maxSequentalFunctionCalls?: number;
     timeout?: number;
 }
 
@@ -1414,7 +1427,7 @@ export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanS
 export interface URLContext {
 }
 
-// @beta
+// @public
 export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
@@ -1424,13 +1437,13 @@ export interface URLContextTool {
     urlContext: URLContext;
 }
 
-// @beta
+// @public
 export interface URLMetadata {
     retrievedUrl?: string;
     urlRetrievalStatus?: URLRetrievalStatus;
 }
 
-// @beta
+// @public
 export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
     URL_RETRIEVAL_STATUS_SUCCESS: string;
@@ -1439,11 +1452,13 @@ export const URLRetrievalStatus: {
     URL_RETRIEVAL_STATUS_UNSAFE: string;
 };
 
-// @beta
+// @public
 export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface UsageMetadata {
+    cachedContentTokenCount?: number;
+    cacheTokensDetails?: ModalityTokenCount[];
     // (undocumented)
     candidatesTokenCount: number;
     // (undocumented)

@@ -400,7 +400,7 @@ export type InferenceSource =
 /**
  * Represents the result of the code execution.
  *
- * @beta
+ * @public
  */
 export const Outcome = {
   UNSPECIFIED: 'OUTCOME_UNSPECIFIED',
@@ -412,14 +412,14 @@ export const Outcome = {
 /**
  * Represents the result of the code execution.
  *
- * @beta
+ * @public
  */
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
 /**
  * The programming language of the code.
  *
- * @beta
+ * @public
  */
 export const Language = {
   UNSPECIFIED: 'LANGUAGE_UNSPECIFIED',
@@ -429,7 +429,7 @@ export const Language = {
 /**
  * The programming language of the code.
  *
- * @beta
+ * @public
  */
 export type Language = (typeof Language)[keyof typeof Language];
 

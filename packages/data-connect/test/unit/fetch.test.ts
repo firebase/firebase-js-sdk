@@ -42,7 +42,10 @@ describe('fetch', () => {
     mockFetch(
       {
         code: 401,
-        message
+        message,
+        extensions: {
+          dataConnect: []
+        }
       },
       true
     );

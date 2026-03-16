@@ -24,6 +24,7 @@ export interface FunctionResponse
 |  --- | --- | --- |
 |  [id](./ai.functionresponse.md#functionresponseid) | string | The id of the [FunctionCall](./ai.functioncall.md#functioncall_interface)<!-- -->. |
 |  [name](./ai.functionresponse.md#functionresponsename) | string |  |
+|  [parts](./ai.functionresponse.md#functionresponseparts) | [Part](./ai.md#part)<!-- -->\[\] |  |
 |  [response](./ai.functionresponse.md#functionresponseresponse) | object |  |
 
 ## FunctionResponse.id
@@ -44,6 +45,14 @@ id?: string;
 
 ```typescript
 name: string;
+```
+
+## FunctionResponse.parts
+
+<b>Signature:</b>
+
+```typescript
+parts?: Part[];
 ```
 
 ## FunctionResponse.response

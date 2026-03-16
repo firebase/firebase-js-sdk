@@ -55,11 +55,13 @@ describe('Query Manager Tests', () => {
 
     const error = new DataConnectError(
       Code.INVALID_ARGUMENT,
-      `ExecuteQuery can only execute query operation`
+      'ExecuteQuery can only execute query operations'
     );
 
     // @ts-ignore
-    expect(() => executeQuery(mutation)).to.throw(error.message);
+    await expect(executeQuery(mutation)).to.eventually.be.rejectedWith(
+      error.message
+    );
     expect(() => executeQuery(query)).to.not.throw(error.message);
   });
 });

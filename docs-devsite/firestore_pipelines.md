@@ -18,6 +18,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function()</b> |
 |  [countAll()](./firestore_pipelines.md#countall) | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the total number of stage inputs. |
 |  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the current server timestamp. |
+|  [rand()](./firestore_pipelines.md#rand) | <b><i>(Public Preview)</i></b> Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_a00ea48) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains a specific element. |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_7328608) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains a specific element. |
@@ -27,8 +28,23 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAny(array, values)](./firestore_pipelines.md#arraycontainsany_c381a96) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array expression contains any of the specified elements. |
 |  [arrayLength(array)](./firestore_pipelines.md#arraylength_195e339) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array expression. |
 |  <b>function(arrayExpression, ...)</b> |
+|  [arrayFirst(arrayExpression)](./firestore_pipelines.md#arrayfirst_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
+|  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayGet(arrayExpression, offset)](./firestore_pipelines.md#arrayget_f2e27cc) | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  [arrayGet(arrayExpression, offsetExpr)](./firestore_pipelines.md#arrayget_484550d) | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayIndexOf(arrayExpression, search)](./firestore_pipelines.md#arrayindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayIndexOfAll(arrayExpression, search)](./firestore_pipelines.md#arrayindexofall_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns all indices of the search value in an array. |
+|  [arrayLast(arrayExpression)](./firestore_pipelines.md#arraylast_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last element of an array. |
+|  [arrayLastIndexOf(arrayExpression, search)](./firestore_pipelines.md#arraylastindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayLastN(arrayExpression, n)](./firestore_pipelines.md#arraylastn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayLastN(arrayExpression, n)](./firestore_pipelines.md#arraylastn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayMaximum(arrayExpression)](./firestore_pipelines.md#arraymaximum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
+|  [arrayMaximumN(arrayExpression, n)](./firestore_pipelines.md#arraymaximumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(arrayExpression, n)](./firestore_pipelines.md#arraymaximumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimum(arrayExpression)](./firestore_pipelines.md#arrayminimum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
+|  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_pipelines.md#join_313e6aa) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayExpression, delimiter)](./firestore_pipelines.md#join_d088d29) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
@@ -71,6 +87,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [unixMillisToTimestamp(expr)](./firestore_pipelines.md#unixmillistotimestamp_005f3d4) | <b><i>(Public Preview)</i></b> Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  [unixSecondsToTimestamp(expr)](./firestore_pipelines.md#unixsecondstotimestamp_005f3d4) | <b><i>(Public Preview)</i></b> Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  <b>function(expression, ...)</b> |
+|  [arrayAgg(expression)](./firestore_pipelines.md#arrayagg_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
+|  [arrayAggDistinct(expression)](./firestore_pipelines.md#arrayaggdistinct_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
 |  [arraySum(expression)](./firestore_pipelines.md#arraysum_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [average(expression)](./firestore_pipelines.md#average_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of values from an expression across multiple stage inputs. |
 |  [ceil(expression)](./firestore_pipelines.md#ceil_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
@@ -81,8 +99,11 @@ https://github.com/firebase/firebase-js-sdk
 |  [equalAny(expression, values)](./firestore_pipelines.md#equalany_7e759b5) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or expressions. |
 |  [equalAny(expression, arrayExpression)](./firestore_pipelines.md#equalany_214ce68) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is equal to any of the provided values. |
 |  [exp(expression)](./firestore_pipelines.md#exp_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of the expression's result. |
+|  [first(expression)](./firestore_pipelines.md#first_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
 |  [greaterThan(expression, value)](./firestore_pipelines.md#greaterthan_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is greater than a constant value. |
 |  [greaterThanOrEqual(expression, value)](./firestore_pipelines.md#greaterthanorequal_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is greater than or equal to a constant value. |
+|  [isType(expression, type)](./firestore_pipelines.md#istype_27398ce) | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of an expression is of the given type. |
+|  [last(expression)](./firestore_pipelines.md#last_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
 |  [length\_2(expression)](./firestore_pipelines.md#length_2_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
 |  [lessThan(expression, value)](./firestore_pipelines.md#lessthan_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is less than a constant value. |
 |  [lessThanOrEqual(expression, value)](./firestore_pipelines.md#lessthanorequal_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is less than or equal to a constant value. |
@@ -90,17 +111,25 @@ https://github.com/firebase/firebase-js-sdk
 |  [log(expression, base)](./firestore_pipelines.md#log_ac183e2) | <b><i>(Public Preview)</i></b> Creates an expression that computes the logarithm of an expression to a given base. |
 |  [log(expression, base)](./firestore_pipelines.md#log_1894737) | <b><i>(Public Preview)</i></b> Creates an expression that computes the logarithm of an expression to a given base. |
 |  [log10(expression)](./firestore_pipelines.md#log10_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
+|  [ltrim(expression, valueToTrim)](./firestore_pipelines.md#ltrim_775e2f2) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [maximum(expression)](./firestore_pipelines.md#maximum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of an expression across multiple stage inputs. |
 |  [minimum(expression)](./firestore_pipelines.md#minimum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of an expression across multiple stage inputs. |
 |  [mod(expression, value)](./firestore_pipelines.md#mod_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant. |
 |  [notEqual(expression, value)](./firestore_pipelines.md#notequal_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is not equal to a constant value. |
 |  [round(expression)](./firestore_pipelines.md#round_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
 |  [round(expression, decimalPlaces)](./firestore_pipelines.md#round_a3a92d0) | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(expression, valueToTrim)](./firestore_pipelines.md#rtrim_775e2f2) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
 |  [split(expression, delimiter)](./firestore_pipelines.md#split_5b5612b) | <b><i>(Public Preview)</i></b> Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
 |  [split(expression, delimiter)](./firestore_pipelines.md#split_5a171ed) | <b><i>(Public Preview)</i></b> Creates an expression that splits a string into an array of substrings based on the provided delimiter. |
 |  [sqrt(expression)](./firestore_pipelines.md#sqrt_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
+|  [stringIndexOf(expression, search)](./firestore_pipelines.md#stringindexof_6dfca5f) | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(expression, repetitions)](./firestore_pipelines.md#stringrepeat_a55ba16) | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(expression, find, replacement)](./firestore_pipelines.md#stringreplaceall_197ecbe) | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(expression, find, replacement)](./firestore_pipelines.md#stringreplaceone_197ecbe) | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
 |  [subtract(expression, value)](./firestore_pipelines.md#subtract_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from an expression. |
 |  [sum(expression)](./firestore_pipelines.md#sum_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of values from an expression across multiple stage inputs. |
+|  [trunc(expression)](./firestore_pipelines.md#trunc_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value of an expression to an integer. |
+|  [trunc(expression, decimalPlaces)](./firestore_pipelines.md#trunc_a3a92d0) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
 |  [type(expression)](./firestore_pipelines.md#type_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of an expression's result. |
 |  <b>function(field, ...)</b> |
 |  [isAbsent(field)](./firestore_pipelines.md#isabsent_0fb8cd4) | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if a field is absent. Otherwise, returns <code>false</code> even if the field value is <code>null</code>. |
@@ -111,13 +140,30 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(fieldName, ...)</b> |
 |  [abs(fieldName)](./firestore_pipelines.md#abs_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
 |  [add(fieldName, second)](./firestore_pipelines.md#add_b75bb8b) | <b><i>(Public Preview)</i></b> Creates an expression that adds a field's value to an expression. |
+|  [arrayAgg(fieldName)](./firestore_pipelines.md#arrayagg_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of a field across multiple stage inputs into an array. |
+|  [arrayAggDistinct(fieldName)](./firestore_pipelines.md#arrayaggdistinct_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of a field across multiple stage inputs into an array. |
 |  [arrayContains(fieldName, element)](./firestore_pipelines.md#arraycontains_aaace4a) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains a specific element. |
 |  [arrayContains(fieldName, element)](./firestore_pipelines.md#arraycontains_999590f) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains a specific value. |
 |  [arrayContainsAll(fieldName, values)](./firestore_pipelines.md#arraycontainsall_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions. |
 |  [arrayContainsAll(fieldName, arrayExpression)](./firestore_pipelines.md#arraycontainsall_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_1b4f7cd) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
+|  [arrayFirst(fieldName)](./firestore_pipelines.md#arrayfirst_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
+|  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
+|  [arrayIndexOf(fieldName, search)](./firestore_pipelines.md#arrayindexof_5e4c2c3) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayIndexOfAll(fieldName, search)](./firestore_pipelines.md#arrayindexofall_5e4c2c3) | <b><i>(Public Preview)</i></b> Creates an expression that returns all indices of the search value in an array. |
+|  [arrayLast(fieldName)](./firestore_pipelines.md#arraylast_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last element of an array. |
+|  [arrayLastIndexOf(fieldName, search)](./firestore_pipelines.md#arraylastindexof_5e4c2c3) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
+|  [arrayLastN(fieldName, n)](./firestore_pipelines.md#arraylastn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
+|  [arrayLastN(fieldName, n)](./firestore_pipelines.md#arraylastn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
 |  [arrayLength(fieldName)](./firestore_pipelines.md#arraylength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array in a specified field. |
+|  [arrayMaximum(fieldName)](./firestore_pipelines.md#arraymaximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
+|  [arrayMaximumN(fieldName, n)](./firestore_pipelines.md#arraymaximumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(fieldName, n)](./firestore_pipelines.md#arraymaximumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimum(fieldName)](./firestore_pipelines.md#arrayminimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
+|  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arraySum(fieldName)](./firestore_pipelines.md#arraysum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [ascending(fieldName)](./firestore_pipelines.md#ascending_e5b0480) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_pipelines.md#average_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
@@ -144,11 +190,14 @@ https://github.com/firebase/firebase-js-sdk
 |  [euclideanDistance(fieldName, vectorExpression)](./firestore_pipelines.md#euclideandistance_ed766a1) | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between a field's vector value and a vector expression. |
 |  [exists(fieldName)](./firestore_pipelines.md#exists_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists. |
 |  [exp(fieldName)](./firestore_pipelines.md#exp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of the expression's result. |
+|  [first(fieldName)](./firestore_pipelines.md#first_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of a field across multiple stage inputs. |
 |  [floor(fieldName)](./firestore_pipelines.md#floor_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
 |  [greaterThan(fieldName, expression)](./firestore_pipelines.md#greaterthan_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than an expression. |
 |  [greaterThan(fieldName, value)](./firestore_pipelines.md#greaterthan_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than a constant value. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_pipelines.md#greaterthanorequal_2e16acb) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than or equal to an expression. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_pipelines.md#greaterthanorequal_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than or equal to a constant value. |
+|  [isType(fieldName, type)](./firestore_pipelines.md#istype_5da287e) | <b><i>(Public Preview)</i></b> Creates an expression that checks if the value in the specified field is of the given type. |
+|  [last(fieldName)](./firestore_pipelines.md#last_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of a field across multiple stage inputs. |
 |  [length\_2(fieldName)](./firestore_pipelines.md#length_2_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
 |  [lessThan(fieldName, expression)](./firestore_pipelines.md#lessthan_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than an expression. |
 |  [lessThan(fieldName, value)](./firestore_pipelines.md#lessthan_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than a constant value. |
@@ -162,6 +211,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [log10(fieldName)](./firestore_pipelines.md#log10_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
 |  [logicalMaximum(fieldName, second, others)](./firestore_pipelines.md#logicalmaximum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
 |  [logicalMinimum(fieldName, second, others)](./firestore_pipelines.md#logicalminimum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering. |
+|  [ltrim(fieldName, valueToTrim)](./firestore_pipelines.md#ltrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
 |  [mapGet(fieldName, subField)](./firestore_pipelines.md#mapget_06663cf) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
 |  [maximum(fieldName)](./firestore_pipelines.md#maximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
 |  [minimum(fieldName)](./firestore_pipelines.md#minimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
@@ -174,10 +224,15 @@ https://github.com/firebase/firebase-js-sdk
 |  [notEqualAny(fieldName, arrayExpression)](./firestore_pipelines.md#notequalany_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression. |
 |  [regexContains(fieldName, pattern)](./firestore_pipelines.md#regexcontains_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified regular expression as a substring. |
 |  [regexContains(fieldName, pattern)](./firestore_pipelines.md#regexcontains_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified regular expression as a substring. |
+|  [regexFind(fieldName, pattern)](./firestore_pipelines.md#regexfind_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(fieldName, pattern)](./firestore_pipelines.md#regexfind_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(fieldName, pattern)](./firestore_pipelines.md#regexfindall_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(fieldName, pattern)](./firestore_pipelines.md#regexfindall_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
 |  [regexMatch(fieldName, pattern)](./firestore_pipelines.md#regexmatch_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field matches a specified regular expression. |
 |  [regexMatch(fieldName, pattern)](./firestore_pipelines.md#regexmatch_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field matches a specified regular expression. |
 |  [round(fieldName)](./firestore_pipelines.md#round_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
 |  [round(fieldName, decimalPlaces)](./firestore_pipelines.md#round_07d0cf0) | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(fieldName, valueToTrim)](./firestore_pipelines.md#rtrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
 |  [split(fieldName, delimiter)](./firestore_pipelines.md#split_2cfdd37) | <b><i>(Public Preview)</i></b> Creates an expression that splits the value of a field on the provided delimiter. |
 |  [split(fieldName, delimiter)](./firestore_pipelines.md#split_f4fe06a) | <b><i>(Public Preview)</i></b> Creates an expression that splits the value of a field on the provided delimiter. |
 |  [sqrt(fieldName)](./firestore_pipelines.md#sqrt_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
@@ -186,6 +241,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [stringConcat(fieldName, secondString, otherStrings)](./firestore_pipelines.md#stringconcat_d80077e) | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string functions, fields or constants together. |
 |  [stringContains(fieldName, substring)](./firestore_pipelines.md#stringcontains_5b94cfe) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified substring. |
 |  [stringContains(fieldName, substring)](./firestore_pipelines.md#stringcontains_ac3ba47) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a substring specified by an expression. |
+|  [stringIndexOf(fieldName, search)](./firestore_pipelines.md#stringindexof_6c4650e) | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(fieldName, repetitions)](./firestore_pipelines.md#stringrepeat_e144a59) | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(fieldName, find, replacement)](./firestore_pipelines.md#stringreplaceall_b0db15f) | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(fieldName, find, replacement)](./firestore_pipelines.md#stringreplaceone_b0db15f) | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
 |  [subtract(fieldName, expression)](./firestore_pipelines.md#subtract_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts an expression from a field's value. |
 |  [subtract(fieldName, value)](./firestore_pipelines.md#subtract_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from a field's value. |
 |  [sum(fieldName)](./firestore_pipelines.md#sum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a field's values across multiple stage inputs. |
@@ -199,6 +258,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [toLower(fieldName)](./firestore_pipelines.md#tolower_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a string field to lowercase. |
 |  [toUpper(fieldName)](./firestore_pipelines.md#toupper_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a string field to uppercase. |
 |  [trim(fieldName, valueToTrim)](./firestore_pipelines.md#trim_c9f90ee) | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing whitespace from a string or byte array. |
+|  [trunc(fieldName)](./firestore_pipelines.md#trunc_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value of a field to an integer. |
+|  [trunc(fieldName, decimalPlaces)](./firestore_pipelines.md#trunc_07d0cf0) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric expression to the specified number of decimal places. |
 |  [type(fieldName)](./firestore_pipelines.md#type_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of the data in the specified field. |
 |  [unixMicrosToTimestamp(fieldName)](./firestore_pipelines.md#unixmicrostotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
 |  [unixMillisToTimestamp(fieldName)](./firestore_pipelines.md#unixmillistotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
@@ -245,11 +306,19 @@ https://github.com/firebase/firebase-js-sdk
 |  [mapRemove(mapExpr, key)](./firestore_pipelines.md#mapremove_23c7d51) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating an expression. |
 |  [mapRemove(mapExpr, keyExpr)](./firestore_pipelines.md#mapremove_9fbcaa3) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating an expression. |
 |  <b>function(mapExpression, ...)</b> |
+|  [mapEntries(mapExpression)](./firestore_pipelines.md#mapentries_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
 |  [mapGet(mapExpression, subField)](./firestore_pipelines.md#mapget_688c050) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) expression using the provided key. |
+|  [mapKeys(mapExpression)](./firestore_pipelines.md#mapkeys_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
+|  [mapSet(mapExpression, key, value, moreKeyValues)](./firestore_pipelines.md#mapset_45b48ff) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated. |
+|  [mapValues(mapExpression)](./firestore_pipelines.md#mapvalues_9cf124c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(mapField, ...)</b> |
+|  [mapEntries(mapField)](./firestore_pipelines.md#mapentries_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
+|  [mapKeys(mapField)](./firestore_pipelines.md#mapkeys_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
 |  [mapMerge(mapField, secondMap, otherMaps)](./firestore_pipelines.md#mapmerge_70a564b) | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
 |  [mapRemove(mapField, key)](./firestore_pipelines.md#mapremove_bd5726e) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map at the specified field name. |
 |  [mapRemove(mapField, keyExpr)](./firestore_pipelines.md#mapremove_8406d13) | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map at the specified field name. |
+|  [mapSet(mapField, key, value, moreKeyValues)](./firestore_pipelines.md#mapset_baadc2a) | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated. |
+|  [mapValues(mapField)](./firestore_pipelines.md#mapvalues_83ad836) | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
 |  [field(name)](./firestore_pipelines.md#field_1eaaff4) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
 |  <b>function(options, ...)</b> |
@@ -266,6 +335,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [like(stringExpression, pattern)](./firestore_pipelines.md#like_b534848) | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison. |
 |  [regexContains(stringExpression, pattern)](./firestore_pipelines.md#regexcontains_a84c581) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string expression contains a specified regular expression as a substring. |
 |  [regexContains(stringExpression, pattern)](./firestore_pipelines.md#regexcontains_b534848) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string expression contains a specified regular expression as a substring. |
+|  [regexFind(stringExpression, pattern)](./firestore_pipelines.md#regexfind_a84c581) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(stringExpression, pattern)](./firestore_pipelines.md#regexfind_b534848) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(stringExpression, pattern)](./firestore_pipelines.md#regexfindall_a84c581) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(stringExpression, pattern)](./firestore_pipelines.md#regexfindall_b534848) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
 |  [regexMatch(stringExpression, pattern)](./firestore_pipelines.md#regexmatch_a84c581) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string expression matches a specified regular expression. |
 |  [regexMatch(stringExpression, pattern)](./firestore_pipelines.md#regexmatch_b534848) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string expression matches a specified regular expression. |
 |  [reverse(stringExpression)](./firestore_pipelines.md#reverse_c25a54a) | <b><i>(Public Preview)</i></b> Creates an expression that reverses a string. |
@@ -378,6 +451,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [SetOptions](./firestore_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [TimeGranularity](./firestore_pipelines.md#timegranularity) | <b><i>(Public Preview)</i></b> Specify time granularity for expressions. |
+|  [Type](./firestore_pipelines.md#type) | <b><i>(Public Preview)</i></b> An enumeration of the different types generated by the Firestore backend.<ul> <li>Numerics evaluate directly to backend representation (<code>int64</code> or <code>float64</code>), not JS <code>number</code>.</li> <li>JavaScript <code>Date</code> and firestore <code>Timestamp</code> objects strictly evaluate to <code>'timestamp'</code>.</li> <li>Advanced configurations parsing backend types (such as <code>decimal128</code>, <code>max_key</code> or <code>min_key</code> from BSON) are also incorporated in this union string type. Note that <code>decimal128</code> is a backend-only numeric type that the JavaScript SDK cannot create natively, but can be evaluated in pipelines.</li> </ul> |
 |  [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) | <b><i>(Public Preview)</i></b> Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
 |  [WhereStageOptions](./firestore_pipelines.md#wherestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
@@ -436,6 +510,33 @@ A new Expression representing the current server timestamp.
 ```typescript
 // Get the current server timestamp
 currentTimestamp()
+
+```
+
+### rand() {:#rand}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0.
+
+<b>Signature:</b>
+
+```typescript
+export declare function rand(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the rand operation.
+
+### Example
+
+
+```typescript
+// Generate a random number between 0.0 and 1.0.
+rand();
 
 ```
 
@@ -687,6 +788,110 @@ arrayLength(field("cart"));
 
 ## function(arrayExpression, ...)
 
+### arrayFirst(arrayExpression) {:#arrayfirst_f574e12}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first element of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFirst(arrayExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first element.
+
+### Example
+
+
+```typescript
+// Get the first tag from the 'tags' array field
+arrayFirst(field("tags"));
+
+```
+
+### arrayFirstN(arrayExpression, n) {:#arrayfirstn_bff7f91}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFirstN(arrayExpression: Expression, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+
+### Example
+
+
+```typescript
+// Get the first 3 elements from an array expression
+arrayFirstN(field("tags"), 3);
+
+```
+
+### arrayFirstN(arrayExpression, n) {:#arrayfirstn_19b4ef8}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFirstN(arrayExpression: Expression, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+
+### Example
+
+
+```typescript
+// Get the first n elements from an array expression
+arrayFirstN(field("tags"), field("count"));
+
+```
+
 ### arrayGet(arrayExpression, offset) {:#arrayget_f2e27cc}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -755,6 +960,431 @@ A new `Expression` representing the 'arrayGet' operation.
 // Return the value in the tags field array at index specified by field
 // 'favoriteTag'.
 arrayGet(field('tags'), field('favoriteTag'));
+
+```
+
+### arrayIndexOf(arrayExpression, search) {:#arrayindexof_694a0b4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array to search. |
+|  search | unknown \| [Expression](./firestore_pipelines.expression.md#expression_class) | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the index of "politics" in the 'tags' array field
+arrayIndexOf(field("tags"), "politics");
+
+```
+
+### arrayIndexOfAll(arrayExpression, search) {:#arrayindexofall_694a0b4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns all indices of the search value in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayIndexOfAll(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array to search. |
+|  search | unknown \| [Expression](./firestore_pipelines.expression.md#expression_class) | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the indices.
+
+### Example
+
+
+```typescript
+// Get all indices of 5 in the 'scores' array field
+arrayIndexOfAll(field("scores"), 5);
+
+```
+
+### arrayLast(arrayExpression) {:#arraylast_f574e12}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last element of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLast(arrayExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last element.
+
+### Example
+
+
+```typescript
+// Get the last tag from the 'tags' array field
+arrayLast(field("tags"));
+
+```
+
+### arrayLastIndexOf(arrayExpression, search) {:#arraylastindexof_694a0b4}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLastIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array to search. |
+|  search | unknown \| [Expression](./firestore_pipelines.expression.md#expression_class) | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the last index of "politics" in the 'tags' array field
+arrayLastIndexOf(field("tags"), "politics");
+
+```
+
+### arrayLastN(arrayExpression, n) {:#arraylastn_bff7f91}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLastN(arrayExpression: Expression, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+
+### Example
+
+
+```typescript
+// Get the last 3 elements from an array expression
+arrayLastN(field("tags"), 3);
+
+```
+
+### arrayLastN(arrayExpression, n) {:#arraylastn_19b4ef8}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLastN(arrayExpression: Expression, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+
+### Example
+
+
+```typescript
+// Get the last n elements from an array expression
+arrayLastN(field("tags"), field("count"));
+
+```
+
+### arrayMaximum(arrayExpression) {:#arraymaximum_f574e12}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the maximum value in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the maximum value.
+
+### Example
+
+
+```typescript
+// Get the maximum value from the 'scores' array field
+arrayMaximum(field("scores"));
+
+```
+
+### arrayMaximumN(arrayExpression, n) {:#arraymaximumn_bff7f91}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the largest `n` elements of an array.
+
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMaximumN(arrayExpression: Expression, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the top 3 elements from an array expression
+arrayMaximumN(field("scores"), 3);
+
+```
+
+### arrayMaximumN(arrayExpression, n) {:#arraymaximumn_19b4ef8}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the largest `n` elements of an array.
+
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMaximumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the top n elements from an array expression
+arrayMaximumN(field("scores"), field("count"));
+
+```
+
+### arrayMinimum(arrayExpression) {:#arrayminimum_f574e12}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the minimum value in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the minimum value.
+
+### Example
+
+
+```typescript
+// Get the minimum value from the 'scores' array field
+arrayMinimum(field("scores"));
+
+```
+
+### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_bff7f91}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
+
+Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom 3 scores from the 'scores' array field
+arrayMinimumN(field("scores"), 3);
+
+```
+
+### arrayMinimumN(arrayExpression, n) {:#arrayminimumn_19b4ef8}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
+
+Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom n scores from the 'scores' array field
+arrayMinimumN(field("scores"), field("count"));
 
 ```
 
@@ -1400,7 +2030,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Create an array value from the input array and reference the 'baz' field value from the input document.
-array(['bar', Field.of('baz')]).as('foo');
+array(['bar', field('baz')]).as('foo');
 
 ```
 
@@ -1434,7 +2064,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Create a map from the input object and reference the 'baz' field value from the input document.
-map({foo: 'bar', baz: Field.of('baz')}).as('data');
+map({foo: 'bar', baz: field('baz')}).as('data');
 
 ```
 
@@ -1825,6 +2455,78 @@ unixSecondsToTimestamp(field("seconds"));
 
 ## function(expression, ...)
 
+### arrayAgg(expression) {:#arrayagg_1138a27}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayAgg(expression: Expression): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to collect values from. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'array\_agg' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all tags from books into an array
+arrayAgg(field("tags")).as("allTags");
+
+```
+
+### arrayAggDistinct(expression) {:#arrayaggdistinct_1138a27}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayAggDistinct(expression: Expression): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to collect values from. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'array\_agg\_distinct' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all distinct tags from books into an array
+arrayAggDistinct(field("tags")).as("allDistinctTags");
+
+```
+
 ### arraySum(expression) {:#arraysum_1138a27}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -2169,6 +2871,40 @@ exp(constant(2));
 
 ```
 
+### first(expression) {:#first_1138a27}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the first value of an expression across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function first(expression: Expression): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to find the first value of. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'first' aggregation.
+
+### Example
+
+
+```typescript
+// Find the first value of the 'rating' field
+first(field("rating")).as("firstRating");
+
+```
+
 ### greaterThan(expression, value) {:#greaterthan_01df3cf}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -2236,6 +2972,77 @@ A new `Expression` representing the greater than or equal to comparison.
 ```typescript
 // Check if the 'quantity' field is greater than or equal to 10
 greaterThanOrEqual(field("quantity"), 10);
+
+```
+
+### isType(expression, type) {:#istype_27398ce}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the result of an expression is of the given type.
+
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isType(expression: Expression, type: Type): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to check. |
+|  type | [Type](./firestore_pipelines.md#type) | The type to check for. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+
+### Example
+
+
+```typescript
+// Check if the result of a calculation is a number
+isType(add('count', 1), 'number')
+
+```
+
+### last(expression) {:#last_1138a27}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the last value of an expression across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function last(expression: Expression): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression to find the last value of. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'last' aggregation.
+
+### Example
+
+
+```typescript
+// Find the last value of the 'rating' field
+last(field("rating")).as("lastRating");
 
 ```
 
@@ -2484,6 +3291,44 @@ log10(field("value"));
 
 ```
 
+### ltrim(expression, valueToTrim) {:#ltrim_775e2f2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the beginning of the 'userInput' field
+ltrim(field("userInput"));
+
+// Trim quotes from the beginning of the 'userInput' field
+ltrim(field("userInput"), '"');
+
+```
+
 ### maximum(expression) {:#maximum_1138a27}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -2691,6 +3536,44 @@ round(field("price"), constant(2));
 
 ```
 
+### rtrim(expression, valueToTrim) {:#rtrim_775e2f2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the end of the 'userInput' field
+rtrim(field("userInput"));
+
+// Trim quotes from the end of the 'userInput' field
+rtrim(field("userInput"), '"');
+
+```
+
 ### split(expression, delimiter) {:#split_5b5612b}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -2757,7 +3640,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':'))
+split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':')))
 
 ```
 
@@ -2792,6 +3675,148 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Compute the square root of the 'value' field.
 sqrt(field("value"));
+
+```
+
+### stringIndexOf(expression, search) {:#stringindexof_6dfca5f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index of the first occurrence.
+
+### Example
+
+
+```typescript
+// Find the index of "foo" in the 'text' field
+stringIndexOf(field("text"), "foo");
+
+```
+
+### stringRepeat(expression, repetitions) {:#stringrepeat_a55ba16}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that repeats a string or byte array a specified number of times.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  repetitions | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The number of times to repeat the string or byte array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the repeated string or byte array.
+
+### Example
+
+
+```typescript
+// Repeat the 'label' field 3 times
+stringRepeat(field("label"), 3);
+
+```
+
+### stringReplaceAll(expression, find, replacement) {:#stringreplaceall_197ecbe}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with replacements.
+
+### Example
+
+
+```typescript
+// Replace all occurrences of "foo" with "bar" in the 'text' field
+stringReplaceAll(field("text"), "foo", "bar");
+
+```
+
+### stringReplaceOne(expression, find, replacement) {:#stringreplaceone_197ecbe}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string or byte array. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with the replacement.
+
+### Example
+
+
+```typescript
+// Replace the first occurrence of "foo" with "bar" in the 'text' field
+stringReplaceOne(field("text"), "foo", "bar");
 
 ```
 
@@ -2861,6 +3886,75 @@ A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefu
 ```typescript
 // Calculate the total revenue from a set of orders
 sum(field("orderAmount")).as("totalRevenue");
+
+```
+
+### trunc(expression) {:#trunc_1138a27}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates the numeric value of an expression to an integer.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(expression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to a numeric value, which will be truncated. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field.
+trunc(field("rating"));
+
+```
+
+### trunc(expression, decimalPlaces) {:#trunc_a3a92d0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric value to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  expression | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to a numeric value, which will be truncated. |
+|  decimalPlaces | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | A constant or expression specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+trunc(field("rating"), constant(2));
 
 ```
 
@@ -2998,7 +4092,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Reverse the value of the 'myString' field.
-strReverse("myString");
+stringReverse("myString");
 
 ```
 
@@ -3111,6 +4205,78 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Add the value of the 'quantity' field and the 'reserve' field.
 add("quantity", field("reserve"));
+
+```
+
+### arrayAgg(fieldName) {:#arrayagg_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all values of a field across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayAgg(fieldName: string): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to collect values from. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'array\_agg' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all tags from books into an array
+arrayAgg("tags").as("allTags");
+
+```
+
+### arrayAggDistinct(fieldName) {:#arrayaggdistinct_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that collects all distinct values of a field across multiple stage inputs into an array.
+
+If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayAggDistinct(fieldName: string): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to collect values from. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'array\_agg\_distinct' aggregation.
+
+### Example
+
+
+```typescript
+// Collect all distinct tags from books into an array
+arrayAggDistinct("tags").as("allDistinctTags");
 
 ```
 
@@ -3326,6 +4492,319 @@ arrayContainsAny("categories", array([field("cate1"), "Science"]));
 
 ```
 
+### arrayFirst(fieldName) {:#arrayfirst_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first element of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFirst(fieldName: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first element.
+
+### Example
+
+
+```typescript
+// Get the first tag from the 'tags' array field
+arrayFirst("tags");
+
+```
+
+### arrayFirstN(fieldName, n) {:#arrayfirstn_597a4d9}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+
+### Example
+
+
+```typescript
+// Get the first 3 tags from the 'tags' array field
+arrayFirstN("tags", 3);
+
+```
+
+### arrayFirstN(fieldName, n) {:#arrayfirstn_1a86a2c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFirstN(fieldName: string, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the first `n` elements.
+
+### Example
+
+
+```typescript
+// Get the first n tags from the 'tags' array field
+arrayFirstN("tags", field("count"));
+
+```
+
+### arrayIndexOf(fieldName, search) {:#arrayindexof_5e4c2c3}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array to search. |
+|  search | unknown \| [Expression](./firestore_pipelines.expression.md#expression_class) | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the index of "politics" in the 'tags' array field
+arrayIndexOf("tags", "politics");
+
+```
+
+### arrayIndexOfAll(fieldName, search) {:#arrayindexofall_5e4c2c3}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns all indices of the search value in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayIndexOfAll(fieldName: string, search: unknown | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array to search. |
+|  search | unknown \| [Expression](./firestore_pipelines.expression.md#expression_class) | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the indices.
+
+### Example
+
+
+```typescript
+// Get all indices of 5 in the 'scores' array field
+arrayIndexOfAll("scores", 5);
+
+```
+
+### arrayLast(fieldName) {:#arraylast_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last element of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLast(fieldName: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last element.
+
+### Example
+
+
+```typescript
+// Get the last tag from the 'tags' array field
+arrayLast("tags");
+
+```
+
+### arrayLastIndexOf(fieldName, search) {:#arraylastindexof_5e4c2c3}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLastIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array to search. |
+|  search | unknown \| [Expression](./firestore_pipelines.expression.md#expression_class) | The value to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index.
+
+### Example
+
+
+```typescript
+// Get the last index of "politics" in the 'tags' array field
+arrayLastIndexOf("tags", "politics");
+
+```
+
+### arrayLastN(fieldName, n) {:#arraylastn_597a4d9}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLastN(fieldName: string, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+
+### Example
+
+
+```typescript
+// Get the last 3 tags from the 'tags' array field
+arrayLastN("tags", 3);
+
+```
+
+### arrayLastN(fieldName, n) {:#arraylastn_1a86a2c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the last `n` elements of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayLastN(fieldName: string, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the last `n` elements.
+
+### Example
+
+
+```typescript
+// Get the last n tags from the 'tags' array field
+arrayLastN("tags", field("count"));
+
+```
+
 ### arrayLength(fieldName) {:#arraylength_e5b0480}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -3357,6 +4836,222 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Get the number of items in field 'cart'
 arrayLength('cart');
+
+```
+
+### arrayMaximum(fieldName) {:#arraymaximum_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the maximum value in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMaximum(fieldName: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the maximum value.
+
+### Example
+
+
+```typescript
+// Get the maximum value from the 'scores' array field
+arrayMaximum("scores");
+
+```
+
+### arrayMaximumN(fieldName, n) {:#arraymaximumn_597a4d9}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the largest `n` elements of an array.
+
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the top 3 scores from the 'scores' array field
+arrayMaximumN("scores", 3);
+
+```
+
+### arrayMaximumN(fieldName, n) {:#arraymaximumn_1a86a2c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the largest `n` elements of an array.
+
+Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMaximumN(fieldName: string, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the largest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the top n scores from the 'scores' array field
+arrayMaximumN("scores", field("count"));
+
+```
+
+### arrayMinimum(fieldName) {:#arrayminimum_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the minimum value in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMinimum(fieldName: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the minimum value.
+
+### Example
+
+
+```typescript
+// Get the minimum value from the 'scores' array field
+arrayMinimum("scores");
+
+```
+
+### arrayMinimumN(fieldName, n) {:#arrayminimumn_597a4d9}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
+
+Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | number | The number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom 3 scores from the 'scores' array field
+arrayMinimumN("scores", 3);
+
+```
+
+### arrayMinimumN(fieldName, n) {:#arrayminimumn_1a86a2c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the smallest `n` elements of an array.
+
+Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  n | [Expression](./firestore_pipelines.expression.md#expression_class) | An expression evaluating to the number of elements to return. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the smallest `n` elements.
+
+### Example
+
+
+```typescript
+// Get the bottom n scores from the 'scores' array field
+arrayMinimumN(field("scores"), field("count"));
 
 ```
 
@@ -3561,7 +5256,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Get the character length of the 'name' field in UTF-8.
-strLength("name");
+charLength("name");
 
 ```
 
@@ -4262,6 +5957,40 @@ exp('value');
 
 ```
 
+### first(fieldName) {:#first_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the first value of a field across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function first(fieldName: string): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to find the first value of. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'first' aggregation.
+
+### Example
+
+
+```typescript
+// Find the first value of the 'rating' field
+first("rating").as("firstRating");
+
+```
+
 ### floor(fieldName) {:#floor_e5b0480}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -4424,6 +6153,77 @@ A new `Expression` representing the greater than or equal to comparison.
 ```typescript
 // Check if the 'score' field is greater than or equal to 80
 greaterThanOrEqual("score", 80);
+
+```
+
+### isType(fieldName, type) {:#istype_5da287e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that checks if the value in the specified field is of the given type.
+
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+
+<b>Signature:</b>
+
+```typescript
+export declare function isType(fieldName: string, type: Type): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to check. |
+|  type | [Type](./firestore_pipelines.md#type) | The type to check for. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new `BooleanExpression` that evaluates to true if the field's value is of the given type, false otherwise.
+
+### Example
+
+
+```typescript
+// Check if the 'price' field is a floating point number (evaluating to true inside pipeline conditionals)
+isType('price', 'float64');
+
+```
+
+### last(fieldName) {:#last_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an aggregation that finds the last value of a field across multiple stage inputs.
+
+<b>Signature:</b>
+
+```typescript
+export declare function last(fieldName: string): AggregateFunction;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to find the last value of. |
+
+<b>Returns:</b>
+
+[AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class)
+
+A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) representing the 'last' aggregation.
+
+### Example
+
+
+```typescript
+// Find the last value of the 'rating' field
+last("rating").as("lastRating");
 
 ```
 
@@ -4886,6 +6686,44 @@ logicalMinimum("field1", field("field2"), 1000);
 
 ```
 
+### ltrim(fieldName, valueToTrim) {:#ltrim_c0e3211}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the beginning of the 'userInput' field
+ltrim(field("userInput"));
+
+// Trim quotes from the beginning of the 'userInput' field
+ltrim(field("userInput"), '"');
+
+```
+
 ### mapGet(fieldName, subField) {:#mapget_06663cf}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -5304,6 +7142,154 @@ regexContains("description", field("pattern"));
 
 ```
 
+### regexFind(fieldName, pattern) {:#regexfind_67f7432}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first substring of a string field that matches a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFind(fieldName: string, pattern: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string to search. |
+|  pattern | string | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the regular expression find function.
+
+### Example
+
+
+```typescript
+// Extract the domain name from an email field
+regexFind("email", "@[A-Za-z0-9.-]+");
+
+```
+
+### regexFind(fieldName, pattern) {:#regexfind_cb1318d}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first substring of a string field that matches a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFind(fieldName: string, pattern: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string to search. |
+|  pattern | [Expression](./firestore_pipelines.expression.md#expression_class) | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the regular expression find function.
+
+### Example
+
+
+```typescript
+// Extract a substring from 'email' based on a pattern stored in another field
+regexFind("email", field("pattern"));
+
+```
+
+### regexFindAll(fieldName, pattern) {:#regexfindall_67f7432}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFindAll(fieldName: string, pattern: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string to search. |
+|  pattern | string | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class) that evaluates to an array of matched substrings.
+
+### Example
+
+
+```typescript
+// Extract all hashtags from a post content field
+regexFindAll("content", "#[A-Za-z0-9_]+");
+
+```
+
+### regexFindAll(fieldName, pattern) {:#regexfindall_cb1318d}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFindAll(fieldName: string, pattern: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string to search. |
+|  pattern | [Expression](./firestore_pipelines.expression.md#expression_class) | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class) that evaluates to an array of matched substrings.
+
+### Example
+
+
+```typescript
+// Extract all matches from 'content' based on a pattern stored in another field
+regexFindAll("content", field("pattern"));
+
+```
+
 ### regexMatch(fieldName, pattern) {:#regexmatch_67f7432}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -5443,6 +7429,44 @@ round("price", 2);
 
 ```
 
+### rtrim(fieldName, valueToTrim) {:#rtrim_c0e3211}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  valueToTrim | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | Optional. A string or byte array containing the characters/bytes to trim. If not specified, whitespace will be trimmed. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the trimmed string or byte array.
+
+### Example
+
+
+```typescript
+// Trim whitespace from the end of the 'userInput' field
+rtrim(field("userInput"));
+
+// Trim quotes from the end of the 'userInput' field
+rtrim(field("userInput"), '"');
+
+```
+
 ### split(fieldName, delimiter) {:#split_2cfdd37}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -5509,7 +7533,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-split('scores', conditional(field('format').equal('csv'), constant(','), constant(':'))
+split('scores', conditional(field('format').equal('csv'), constant(','), constant(':')))
 
 ```
 
@@ -5720,6 +7744,148 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Check if the 'description' field contains the value of the 'keyword' field.
 stringContains("description", field("keyword"));
+
+```
+
+### stringIndexOf(fieldName, search) {:#stringindexof_6c4650e}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  search | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the index of the first occurrence.
+
+### Example
+
+
+```typescript
+// Find the index of "foo" in the 'text' field
+stringIndexOf("text", "foo");
+
+```
+
+### stringRepeat(fieldName, repetitions) {:#stringrepeat_e144a59}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that repeats a string or byte array a specified number of times.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  repetitions | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The number of times to repeat the string or byte array. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the repeated string or byte array.
+
+### Example
+
+
+```typescript
+// Repeat the 'label' field 3 times
+stringRepeat("label", 3);
+
+```
+
+### stringReplaceAll(fieldName, find, replacement) {:#stringreplaceall_b0db15f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with replacements.
+
+### Example
+
+
+```typescript
+// Replace all occurrences of "foo" with "bar" in the 'text' field
+stringReplaceAll("text", "foo", "bar");
+
+```
+
+### stringReplaceOne(fieldName, find, replacement) {:#stringreplaceone_b0db15f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+
+<b>Signature:</b>
+
+```typescript
+export declare function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the string or byte array. |
+|  find | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The substring or byte sequence to search for. |
+|  replacement | string \| [Expression](./firestore_pipelines.expression.md#expression_class) \| [Bytes](./firestore_.bytes.md#bytes_class) | The replacement string or byte sequence. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the string or byte array with the replacement.
+
+### Example
+
+
+```typescript
+// Replace the first occurrence of "foo" with "bar" in the 'text' field
+stringReplaceOne("text", "foo", "bar");
 
 ```
 
@@ -6179,12 +8345,83 @@ trim("userInput", '"');
 
 ```
 
+### trunc(fieldName) {:#trunc_e5b0480}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates the numeric value of a field to an integer.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(fieldName: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the number to truncate. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field
+trunc("rating");
+
+```
+
+### trunc(fieldName, decimalPlaces) {:#trunc_07d0cf0}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that truncates a numeric expression to the specified number of decimal places.
+
+<b>Signature:</b>
+
+```typescript
+export declare function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field to truncate. |
+|  decimalPlaces | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | A constant or expression specifying the truncation precision in decimal places. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the truncated value.
+
+### Example
+
+
+```typescript
+// Truncate the value of the 'rating' field to two decimal places.
+trunc("rating", 2);
+
+```
+
 ### type(fieldName) {:#type_e5b0480}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
 Creates an expression that returns the data type of the data in the specified field.
+
+String inputs passed iteratively to this global function act as `field()` path lookups. If you wish to pass a string literal value, it must be wrapped: `type(constant("my_string"))`<!-- -->.
 
 <b>Signature:</b>
 
@@ -7099,7 +9336,7 @@ A new `Expression` representing the greater than comparison.
 
 ```typescript
 // Check if the 'age' field is greater than 18
-greaterThan(field("age"), Constant(9).add(9));
+greaterThan(field("age"), constant(9).add(9));
 
 ```
 
@@ -7409,6 +9646,42 @@ mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
 
 ## function(mapExpression, ...)
 
+### mapEntries(mapExpression) {:#mapentries_9cf124c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapEntries(mapExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map to get the entries of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the entries of the map.
+
+### Example
+
+
+```typescript
+// Get the entries of the map expression
+mapEntries(map({"city": "San Francisco"}));
+
+```
+
 ### mapGet(mapExpression, subField) {:#mapget_688c050}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -7444,7 +9717,190 @@ mapGet(field("address"), "city");
 
 ```
 
+### mapKeys(mapExpression) {:#mapkeys_9cf124c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the keys of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapKeys(mapExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map to get the keys of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the keys of the map.
+
+### Example
+
+
+```typescript
+// Get the keys of the map expression
+mapKeys(map({"city": "San Francisco"}));
+
+```
+
+### mapSet(mapExpression, key, value, moreKeyValues) {:#mapset_45b48ff}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns a new map with the specified entries added or updated.
+
+This only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map. |
+|  key | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
+|  value | unknown | The value to set. |
+|  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the map with the entries set.
+
+### Example
+
+
+```typescript
+// Set the 'city' to "San Francisco"
+mapSet(map({"state": "California"}), "city", "San Francisco");
+
+```
+
+### mapValues(mapExpression) {:#mapvalues_9cf124c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the values of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapValues(mapExpression: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the map to get the values of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the values of the map.
+
+### Example
+
+
+```typescript
+// Get the values of the map expression
+mapValues(map({"city": "San Francisco"}));
+
+```
+
 ## function(mapField, ...)
+
+### mapEntries(mapField) {:#mapentries_83ad836}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapEntries(mapField: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to get the entries of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the entries of the map.
+
+### Example
+
+
+```typescript
+// Get the entries of the 'address' map field
+mapEntries("address");
+
+```
+
+### mapKeys(mapField) {:#mapkeys_83ad836}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the keys of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapKeys(mapField: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to get the keys of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the keys of the map.
+
+### Example
+
+
+```typescript
+// Get the keys of the 'address' map field
+mapKeys("address");
+
+```
 
 ### mapMerge(mapField, secondMap, otherMaps) {:#mapmerge_70a564b}
 
@@ -7547,6 +10003,81 @@ mapRemove('address', constant('city'));
 
 ```
 
+### mapSet(mapField, key, value, moreKeyValues) {:#mapset_baadc2a}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns a new map with the specified entries added or updated.
+
+This only performs shallow updates to the map. Setting a value to `null` will retain the key with a `null` value. To remove a key entirely, use `mapRemove`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to set entries in. |
+|  key | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The key to set. Must be a string or a constant string expression. |
+|  value | unknown | The value to set. |
+|  moreKeyValues | unknown\[\] | Additional key-value pairs to set. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the map with the entries set.
+
+### Example
+
+
+```typescript
+// Set the 'city' to 'San Francisco' in the 'address' map field
+mapSet("address", "city", "San Francisco");
+
+```
+
+### mapValues(mapField) {:#mapvalues_83ad836}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the values of a map.
+
+While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
+
+<b>Signature:</b>
+
+```typescript
+export declare function mapValues(mapField: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  mapField | string | The map field to get the values of. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the values of the map.
+
+### Example
+
+
+```typescript
+// Get the values of the 'address' map field
+mapValues("address");
+
+```
+
 ## function(name, ...)
 
 ### field(name) {:#field_1eaaff4}
@@ -7626,10 +10157,10 @@ A Promise representing the asynchronous pipeline execution.
 
 ```typescript
 const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
-    .where(gt(field("rating"), 4.5))
+    .where(greaterThan(field("rating"), 4.5))
     .select("title", "author", "rating"));
 
-const results: PipelineResults = snapshot.results;
+const results: PipelineResult[] = snapshot.results;
 
 ```
 
@@ -7698,10 +10229,10 @@ A Promise representing the asynchronous pipeline execution.
 
 ```typescript
 const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
-    .where(gt(field("rating"), 4.5))
+    .where(greaterThan(field("rating"), 4.5))
     .select("title", "author", "rating"));
 
-const results: PipelineResults = snapshot.results;
+const results: PipelineResult[] = snapshot.results;
 
 ```
 
@@ -7737,7 +10268,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Get the character length of the 'name' field in UTF-8.
-strLength(field("name"));
+charLength(field("name"));
 
 ```
 
@@ -7948,6 +10479,154 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Check if the 'description' field contains "example" (case-insensitive)
 regexContains(field("description"), field("pattern"));
+
+```
+
+### regexFind(stringExpression, pattern) {:#regexfind_a84c581}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFind(stringExpression: Expression, pattern: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  stringExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string to search. |
+|  pattern | string | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the regular expression find function.
+
+### Example
+
+
+```typescript
+// Extract the domain from a lower-cased email address
+regexFind(field("email"), "@[A-Za-z0-9.-]+");
+
+```
+
+### regexFind(stringExpression, pattern) {:#regexfind_b534848}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFind(stringExpression: Expression, pattern: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  stringExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string to search. |
+|  pattern | [Expression](./firestore_pipelines.expression.md#expression_class) | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the regular expression find function.
+
+### Example
+
+
+```typescript
+// Extract a substring based on a dynamic pattern field
+regexFind(field("email"), field("pattern"));
+
+```
+
+### regexFindAll(stringExpression, pattern) {:#regexfindall_a84c581}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFindAll(stringExpression: Expression, pattern: string): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  stringExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string to search. |
+|  pattern | string | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class) that evaluates to an array of matched substrings.
+
+### Example
+
+
+```typescript
+// Extract all mentions from a lower-cased comment
+regexFindAll(field("comment"), "@[A-Za-z0-9_]+");
+
+```
+
+### regexFindAll(stringExpression, pattern) {:#regexfindall_b534848}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to a list of all substrings in a string expression that match a specified regular expression.
+
+This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
+
+<b>Signature:</b>
+
+```typescript
+export declare function regexFindAll(stringExpression: Expression, pattern: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  stringExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the string to search. |
+|  pattern | [Expression](./firestore_pipelines.expression.md#expression_class) | The regular expression to search for. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class) that evaluates to an array of matched substrings.
+
+### Example
+
+
+```typescript
+// Extract all matches based on a dynamic pattern expression
+regexFindAll(field("comment"), field("pattern"));
 
 ```
 
@@ -8225,7 +10904,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Reverse the value of the 'myString' field.
-strReverse(field("myString"));
+stringReverse(field("myString"));
 
 ```
 
@@ -8293,7 +10972,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Convert the 'title' field to uppercase
-toUppercase(field("title"));
+toUpper(field("title"));
 
 ```
 
@@ -8591,7 +11270,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Create an expression that protects against a divide by zero error
 // but always returns a boolean expression.
-ifError(constant(50).divide('length').gt(1), constant(false));
+ifError(constant(50).divide(field('length')).greaterThan(1), constant(false));
 
 ```
 
@@ -9591,6 +12270,21 @@ Specify time granularity for expressions.
 
 ```typescript
 export declare type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+```
+
+## Type
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+An enumeration of the different types generated by the Firestore backend.
+
+<ul> <li>Numerics evaluate directly to backend representation (`int64` or `float64`<!-- -->), not JS `number`<!-- -->.</li> <li>JavaScript `Date` and firestore `Timestamp` objects strictly evaluate to `'timestamp'`<!-- -->.</li> <li>Advanced configurations parsing backend types (such as `decimal128`<!-- -->, `max_key` or `min_key` from BSON) are also incorporated in this union string type. Note that `decimal128` is a backend-only numeric type that the JavaScript SDK cannot create natively, but can be evaluated in pipelines.</li> </ul>
+
+<b>Signature:</b>
+
+```typescript
+export declare type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 ```
 
 ## UnionStageOptions

@@ -16,16 +16,21 @@
  */
 
 import { expect, use } from 'chai';
-import { match, restore, stub, useFakeTimers } from 'sinon';
+import { match, restore, SinonSpy, spy, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
-import { Content, GenerateContentStreamResult } from '../types';
+import {
+  Content,
+  FunctionDeclaration,
+  GenerateContentStreamResult
+} from '../types';
 import { ChatSession } from './chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
 import { logger } from '../logger';
+import { Schema } from '../api';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -37,6 +42,18 @@ const fakeApiSettings: ApiSettings = {
   location: 'us-central1',
   backend: new VertexAIBackend()
 };
+
+function getGreeting({
+  username
+}: Record<string, unknown>): Record<string, unknown> {
+  return { greeting: `Hi, ${username}` };
+}
+
+function getFarewell({
+  username
+}: Record<string, unknown>): Record<string, unknown> {
+  return { farewell: `Bye, ${username}` };
+}
 
 describe('ChatSession', () => {
   afterEach(() => {
@@ -376,6 +393,734 @@ describe('ChatSession', () => {
           signal: singleRequestOptions.signal
         })
       );
+    });
+  });
+  describe('Automatic function calling', () => {
+    const finalResponse = {
+      candidates: [
+        {
+          index: 1,
+          content: {
+            role: 'model',
+            parts: [
+              {
+                text: 'final response'
+              }
+            ]
+          }
+        }
+      ]
+    };
+    const getFunctionDeclarationGreeting = (
+      greetingSpy: SinonSpy
+    ): FunctionDeclaration => ({
+      name: 'getGreeting',
+      functionReference: greetingSpy,
+      description: `Given the user's name, give a custom greeting`,
+      parameters: Schema.object({
+        properties: {
+          username: Schema.string({
+            description: "The user's name"
+          })
+        }
+      })
+    });
+    const getFunctionDeclarationFarewell = (
+      farewellSpy: SinonSpy
+    ): FunctionDeclaration => ({
+      name: 'getFarewell',
+      functionReference: farewellSpy,
+      description: `Given the user's name, give a custom farewell`,
+      parameters: Schema.object({
+        properties: {
+          username: Schema.string({
+            description: "The user's name"
+          })
+        }
+      })
+    });
+    const functionCallPartGreeting = {
+      functionCall: {
+        name: 'getGreeting',
+        args: { username: 'Bob' }
+      }
+    };
+    const functionCallPartFarewell = {
+      functionCall: {
+        name: 'getFarewell',
+        args: { username: 'Bob' }
+      }
+    };
+    describe('sendMessage()', () => {
+      it('calls one function automatically', async () => {
+        const greetingSpy = spy(getGreeting);
+        const generateContentStub = stub(
+          generateContentMethods,
+          'generateContent'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              response: {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [functionCallPartGreeting]
+                    }
+                  }
+                ]
+              }
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessage('My name is Bob');
+        expect(
+          result.response.candidates?.[0].content.parts[0].text
+        ).to.include('final response');
+        expect(generateContentStub).to.be.calledTwice;
+        const functionResponseContents =
+          generateContentStub.secondCall.args[2].contents;
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts
+            .length
+        ).to.equal(1);
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts[0]
+            .functionResponse
+        ).to.deep.equal({
+          name: 'getGreeting',
+          response: { greeting: 'Hi, Bob' }
+        });
+        expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
+      });
+      it('calls two functions automatically', async () => {
+        const greetingSpy = spy(getGreeting);
+        const farewellSpy = spy(getFarewell);
+        const generateContentStub = stub(
+          generateContentMethods,
+          'generateContent'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              response: {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [
+                        functionCallPartGreeting,
+                        functionCallPartFarewell
+                      ]
+                    }
+                  }
+                ]
+              }
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy),
+                  getFunctionDeclarationFarewell(farewellSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessage('My name is Bob');
+        expect(
+          result.response.candidates?.[0].content.parts[0].text
+        ).to.include('final response');
+        expect(generateContentStub).to.be.calledTwice;
+        const functionResponseContents =
+          generateContentStub.secondCall.args[2].contents;
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts
+            .length
+        ).to.equal(2);
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts[0]
+            .functionResponse
+        ).to.deep.equal({
+          name: 'getGreeting',
+          response: { greeting: 'Hi, Bob' }
+        });
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts[1]
+            .functionResponse
+        ).to.deep.equal({
+          name: 'getFarewell',
+          response: { farewell: 'Bye, Bob' }
+        });
+        expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
+        expect(farewellSpy).to.be.calledWith({ username: 'Bob' });
+      });
+      it('does not call any functions if sequential limit is set to 0', async () => {
+        const greetingSpy = spy(getGreeting);
+        const warnStub = stub(logger, 'warn');
+        const generateContentStub = stub(
+          generateContentMethods,
+          'generateContent'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              response: {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [functionCallPartGreeting]
+                    }
+                  }
+                ]
+              }
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          },
+          {
+            maxSequentalFunctionCalls: 0
+          }
+        );
+        const result = await chatSession.sendMessage('My name is Bob');
+        expect(
+          result.response.candidates?.[0].content.parts[0].functionCall?.name
+        ).to.equal('getGreeting');
+        expect(generateContentStub).to.be.calledOnce;
+        expect(warnStub).calledWithMatch('exceeded the limit');
+        expect(greetingSpy).to.not.be.called;
+      });
+    });
+    describe('sendMessageStream()', () => {
+      it('calls one function automatically', async () => {
+        const greetingSpy = spy(getGreeting);
+        const generateContentStreamStub = stub(
+          generateContentMethods,
+          'generateContentStream'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              firstValue: {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [functionCallPartGreeting]
+                    }
+                  }
+                ]
+              }
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              firstValue: finalResponse,
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        // No sense testing the stream fully, it's just stubbed data.
+        await result.response;
+        expect(generateContentStreamStub).to.be.calledTwice;
+        const functionResponseContents =
+          generateContentStreamStub.secondCall.args[2].contents;
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts
+            .length
+        ).to.equal(1);
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts[0]
+            .functionResponse
+        ).to.deep.equal({
+          name: 'getGreeting',
+          response: { greeting: 'Hi, Bob' }
+        });
+        expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
+      });
+      it('calls two functions automatically', async () => {
+        const greetingSpy = spy(getGreeting);
+        const farewellSpy = spy(getFarewell);
+        const generateContentStreamStub = stub(
+          generateContentMethods,
+          'generateContentStream'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              firstValue: {
+                candidates: [
+                  {
+                    index: 1,
+                    content: {
+                      role: 'model',
+                      parts: [
+                        functionCallPartGreeting,
+                        functionCallPartFarewell
+                      ]
+                    }
+                  }
+                ]
+              }
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              firstValue: finalResponse,
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy),
+                  getFunctionDeclarationFarewell(farewellSpy)
+                ]
+              }
+            ]
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        await result.response;
+        expect(generateContentStreamStub).to.be.calledTwice;
+        const functionResponseContents =
+          generateContentStreamStub.secondCall.args[2].contents;
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts
+            .length
+        ).to.equal(2);
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts[0]
+            .functionResponse
+        ).to.deep.equal({
+          name: 'getGreeting',
+          response: { greeting: 'Hi, Bob' }
+        });
+        expect(
+          functionResponseContents[functionResponseContents.length - 1].parts[1]
+            .functionResponse
+        ).to.deep.equal({
+          name: 'getFarewell',
+          response: { farewell: 'Bye, Bob' }
+        });
+        expect(greetingSpy).to.be.calledWith({ username: 'Bob' });
+        expect(farewellSpy).to.be.calledWith({ username: 'Bob' });
+      });
+      it('does not call any functions if sequential limit is set to 0', async () => {
+        const greetingSpy = spy(getGreeting);
+        const warnStub = stub(logger, 'warn');
+        const functionCallResponse = {
+          candidates: [
+            {
+              index: 1,
+              content: {
+                role: 'model',
+                parts: [functionCallPartGreeting]
+              }
+            }
+          ]
+        };
+        const generateContentStreamStub = stub(
+          generateContentMethods,
+          'generateContentStream'
+          // @ts-ignore
+        ).callsFake(async (apiSettings, model, params) => {
+          const parts = params.contents[params.contents.length - 1].parts;
+          if (parts[0].text?.includes('Bob')) {
+            return {
+              firstValue: functionCallResponse,
+              response: functionCallResponse
+            };
+          } else if (parts[0].functionResponse) {
+            return {
+              firstValue: finalResponse,
+              response: finalResponse
+            };
+          }
+        });
+        const chatSession = new ChatSession(
+          fakeApiSettings,
+          'a-model',
+          undefined,
+          {
+            tools: [
+              {
+                functionDeclarations: [
+                  getFunctionDeclarationGreeting(greetingSpy)
+                ]
+              }
+            ]
+          },
+          {
+            maxSequentalFunctionCalls: 0
+          }
+        );
+        const result = await chatSession.sendMessageStream('My name is Bob');
+        // No sense testing the stream fully, it's just stubbed data.
+        const response = await result.response;
+        expect(
+          response.candidates?.[0].content.parts[0].functionCall?.name
+        ).to.equal('getGreeting');
+        expect(generateContentStreamStub).to.be.calledOnce;
+        expect(warnStub).calledWithMatch('exceeded the limit');
+        expect(greetingSpy).to.not.be.called;
+      });
+    });
+  });
+  describe('_getCallableFunctionCalls()', () => {
+    it('returns all functions if they have references', async () => {
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: () => {},
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  functionReference: () => {},
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const query1 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+            }
+          }
+        ]
+      });
+      expect(query1?.length).to.equal(1);
+      const query2 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [
+                { functionCall: { name: 'myFunction1', args: {} } },
+                { functionCall: { name: 'myFunction2', args: {} } }
+              ]
+            }
+          }
+        ]
+      });
+      expect(query2?.length).to.equal(2);
+    });
+    it('returns undefined if any called function does not have a reference', async () => {
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: () => {},
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const query1 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [{ functionCall: { name: 'myFunction1', args: {} } }]
+            }
+          }
+        ]
+      });
+      expect(query1?.length).to.equal(1);
+      const query2 = chatSession._getCallableFunctionCalls({
+        candidates: [
+          {
+            index: 1,
+            content: {
+              role: 'model',
+              parts: [
+                { functionCall: { name: 'myFunction1', args: {} } },
+                { functionCall: { name: 'myFunction2', args: {} } }
+              ]
+            }
+          }
+        ]
+      });
+      expect(query2).to.be.undefined;
+    });
+  });
+  describe('_callFunctionsAsNeeded()', () => {
+    it('calls functions and formats responses', async () => {
+      const myFunction1 = spy(() => ({ replyParam: 'hi' }));
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: myFunction1,
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const responseParts = await chatSession._callFunctionsAsNeeded([
+        { name: 'myFunction1', args: { someParam: 'a' } }
+      ]);
+      expect(myFunction1).to.be.calledWith({ someParam: 'a' });
+      expect(responseParts[0].functionResponse).to.deep.equal({
+        name: 'myFunction1',
+        response: { replyParam: 'hi' }
+      });
+    });
+    it('calls functions and formats responses (2 functions)', async () => {
+      const myFunction1 = spy(() => ({ replyParam: 'hi' }));
+      const myFunction2 = spy(() => ({ replyParam: 'yo' }));
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: myFunction1,
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  functionReference: myFunction2,
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const responseParts = await chatSession._callFunctionsAsNeeded([
+        { name: 'myFunction1', args: { someParam: 'a' } },
+        { name: 'myFunction2', args: { someParam: 'b' } }
+      ]);
+      expect(myFunction1).to.be.calledWith({ someParam: 'a' });
+      expect(myFunction2).to.be.calledWith({ someParam: 'b' });
+      expect(responseParts[0].functionResponse).to.deep.equal({
+        name: 'myFunction1',
+        response: { replyParam: 'hi' }
+      });
+      expect(responseParts[1].functionResponse).to.deep.equal({
+        name: 'myFunction2',
+        response: { replyParam: 'yo' }
+      });
+    });
+    it('calls functions and formats responses (one function async)', async () => {
+      const myFunction1 = spy(() => ({ replyParam: 'hi' }));
+      const myFunction2 = spy(() => Promise.resolve({ replyParam: 'yo' }));
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'myFunction1',
+                  functionReference: myFunction1,
+                  description: 'a function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                },
+                {
+                  name: 'myFunction2',
+                  functionReference: myFunction2,
+                  description: 'another function',
+                  parameters: Schema.object({
+                    properties: {
+                      someParam: Schema.string({
+                        description: 'some param'
+                      })
+                    }
+                  })
+                }
+              ]
+            }
+          ]
+        }
+      );
+      const responseParts = await chatSession._callFunctionsAsNeeded([
+        { name: 'myFunction1', args: { someParam: 'a' } },
+        { name: 'myFunction2', args: { someParam: 'b' } }
+      ]);
+      expect(myFunction1).to.be.calledWith({ someParam: 'a' });
+      expect(myFunction2).to.be.calledWith({ someParam: 'b' });
+      expect(responseParts[0].functionResponse).to.deep.equal({
+        name: 'myFunction1',
+        response: { replyParam: 'hi' }
+      });
+      expect(responseParts[1].functionResponse).to.deep.equal({
+        name: 'myFunction2',
+        response: { replyParam: 'yo' }
+      });
     });
   });
 });

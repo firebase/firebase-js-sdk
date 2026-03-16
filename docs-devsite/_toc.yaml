@@ -146,6 +146,8 @@ toc:
     path: /docs/reference/js/ai.livemodelparams.md
   - title: LiveServerContent
     path: /docs/reference/js/ai.liveservercontent.md
+  - title: LiveServerGoingAwayNotice
+    path: /docs/reference/js/ai.liveservergoingawaynotice.md
   - title: LiveServerToolCall
     path: /docs/reference/js/ai.liveservertoolcall.md
   - title: LiveServerToolCallCancellation

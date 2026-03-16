@@ -31,8 +31,7 @@ import {
   EmulatorMockTokenOptions,
   getDefaultEmulatorHostnameAndPort,
   isCloudWorkstation,
-  pingServer,
-  updateEmulatorBanner
+  pingServer
 } from '@firebase/util';
 
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
@@ -394,7 +393,6 @@ export function connectDatabaseEmulator(
   // Workaround to get cookies in Firebase Studio
   if (isCloudWorkstation(host)) {
     void pingServer(host);
-    updateEmulatorBanner('Database', true);
   }
 
   // Modify the repo to apply emulator settings

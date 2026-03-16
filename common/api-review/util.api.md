@@ -222,6 +222,9 @@ export class FirebaseError extends Error {
 export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' | 'anonymous' | 'google.com' | 'facebook.com' | 'github.com' | 'twitter.com' | 'microsoft.com' | 'apple.com';
 
 // @public
+export function generateSHA256Hash(input: string): Promise<string>;
+
+// @public
 export const getDefaultAppConfig: () => Record<string, string> | undefined;
 
 // @public
@@ -486,9 +489,6 @@ export interface Subscribe<T> {
 //
 // @public (undocumented)
 export type Unsubscribe = () => void;
-
-// @public
-export function updateEmulatorBanner(name: string, isRunningEmulator: boolean): void;
 
 // Warning: (ae-missing-release-tag) "validateArgCount" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

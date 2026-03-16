@@ -57,10 +57,33 @@ const browserPlugins = [
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
   json({ preferConst: true }),
-  terser(util.manglePrivatePropertiesOptions)
+  terser(util.manglePrivatePropertiesOptions),
+  util.cleanupNameCache(util.manglePrivatePropertiesOptions.nameCache)
 ];
 
 const allBuilds = [
+  // Workaround for https://github.com/rollup/plugins/issues/1970
+  // We invoke this intermediate browser build twice. The first
+  // invocation will not properly mangle property names because of the
+  // rollup/plugin-terser issue #1970, however it will output a nameCache
+  // mapping all the mangled names to new names. The second invocation
+  // will use the nameCache from the first, and consistently mangle
+  // all property names.
+  //
+  // This is the first invocation of the intermediate browser build.
+  // It must run before any other build using `browserPlugins`.
+  // TODO Remove this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  {
+    input: ['./src/index.ts', './pipelines/pipelines.ts'],
+    output: {
+      dir: 'dist/intermediate',
+      entryFileNames: '[name].js',
+      chunkFileNames: 'common.js',
+      format: 'es'
+    },
+    plugins: [alias(util.generateAliasConfig('browser')), ...browserPlugins],
+    external: util.resolveBrowserExterns
+  },
   // Intermediate Node ESM build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -134,6 +157,9 @@ const allBuilds = [
       moduleSideEffects: false
     }
   },
+  // This is the second invocation of the intermediate browser build.
+  // Keep this build when https://github.com/rollup/plugins/issues/1970 is fixed.
+  //
   // Intermediate browser build without build target reporting
   // this is an intermediate build used to generate the actual esm and cjs builds
   // which add build target reporting
@@ -142,7 +168,7 @@ const allBuilds = [
     output: {
       dir: 'dist/intermediate',
       entryFileNames: '[name].js',
-      chunkFileNames: 'common-[hash].js',
+      chunkFileNames: 'common.js',
       format: 'es',
       sourcemap: true
     },
