@@ -49,8 +49,8 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   protected sendMessage<Variables>(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     requestBody: DataConnectStreamRequest<Variables>
-  ): Promise<void> {
-    return Promise.resolve();
+  ): void {
+    // no-op
   }
 
   /**
@@ -140,7 +140,7 @@ interface TransportWithInternals {
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void;
   sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
-  ): Promise<void>;
+  ): void;
   invokeHandleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
