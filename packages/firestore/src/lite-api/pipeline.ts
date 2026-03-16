@@ -898,14 +898,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     // Create stage object
     const stage = new Search(internalOptions);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'search'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }

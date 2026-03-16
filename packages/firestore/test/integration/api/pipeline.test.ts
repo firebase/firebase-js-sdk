@@ -38,7 +38,8 @@ import {
   writeBatch,
   addDoc,
   DocumentReference,
-  deleteDoc
+  deleteDoc,
+  setLogLevel
 } from '../util/firebase_export';
 import { apiDescribe, withTestCollection } from '../util/helpers';
 import {

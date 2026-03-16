@@ -11092,7 +11092,7 @@ export function documentMatches(
  * @remarks This Expression can only be used within a `Search` stage.
  */
 export function score(): Expression {
-  return new FunctionExpression('search_score', [], 'score').asBoolean();
+  return new FunctionExpression('score', [], 'score').asBoolean();
 }
 
 /**

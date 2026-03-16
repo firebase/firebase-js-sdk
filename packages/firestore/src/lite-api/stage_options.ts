@@ -34,7 +34,7 @@ import { VectorValue } from './vector_value';
  * @beta
  * Options defining how a Stage is evaluated.
  */
-export interface StageOptions {
+export type StageOptions = {
   /**
    * @beta
    * An escape hatch to set options not known at SDK build time. These values
@@ -56,7 +56,7 @@ export interface StageOptions {
   rawOptions?: {
     [name: string]: unknown;
   };
-}
+};
 /**
  * @beta
  * Options defining how a CollectionStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(collection:1)}.
