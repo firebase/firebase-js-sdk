@@ -395,9 +395,7 @@ describe('AbstractDataConnectStreamTransport', () => {
         it('should populate tracking maps and call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
-          transport.invokeQuery(queryName1, variables1).catch(e => {
-            throw e;
-          });
+          const queryPromise = transport.invokeQuery(queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeQueryExecuteRequests.has(expectedKey)).to.be
@@ -416,6 +414,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(queryName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
+          await expect(queryPromise).to.not.be.fulfilled;
         });
       });
 
@@ -423,9 +422,7 @@ describe('AbstractDataConnectStreamTransport', () => {
         it('should populate tracking maps and call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
-          transport.invokeMutation(mutationName1, variables1).catch(e => {
-            throw e;
-          });
+          const mutationPromise = transport.invokeMutation(mutationName1, variables1);
 
           const expectedKey = transport.getMapKey(mutationName1, variables1);
           const activeRequests =
@@ -443,6 +440,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(mutationName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
+          await expect(mutationPromise).to.not.be.fulfilled;
         });
       });
 
