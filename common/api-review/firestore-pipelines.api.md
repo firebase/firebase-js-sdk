@@ -631,7 +631,7 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     isError(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
-    isType(type: Type): BooleanExpression;
+    isType(type: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     join(delimiterExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
@@ -911,10 +911,10 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @beta
-export function isType(fieldName: string, type: Type): BooleanExpression;
+export function isType(fieldName: string, type: string): BooleanExpression;
 
 // @beta
-export function isType(expression: Expression, type: Type): BooleanExpression;
+export function isType(expression: Expression, type: string): BooleanExpression;
 
 // @beta
 export function join(arrayFieldName: string, delimiter: string): Expression;
@@ -1594,9 +1594,6 @@ export function trunc(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @beta
 export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
-
-// @beta
-export type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 
 // @beta
 export function type(fieldName: string): FunctionExpression;

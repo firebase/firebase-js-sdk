@@ -220,6 +220,5 @@ export {
   Selectable,
   BooleanExpression,
   AggregateFunction,
-  TimeGranularity,
-  Type
+  TimeGranularity
 } from '../../src/lite-api/expressions';
