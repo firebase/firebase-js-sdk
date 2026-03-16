@@ -373,6 +373,7 @@ describe('AbstractDataConnectStreamTransport', () => {
     const variables2 = { abc: 'xyz', num: 2 };
     const mutationName1 = 'testMutation1';
     const mutationName2 = 'testMutation2';
+    const expectedError = new Error('test error');
 
     it('getMapKey should sort keys consistently for map lookups', () => {
       const queryName = 'sortQuery';
@@ -427,6 +428,17 @@ describe('AbstractDataConnectStreamTransport', () => {
             didNotSettle
           );
         });
+
+        it('should reject and clean up if sendMessage fails', async () => {
+          sinon.stub(transport, 'sendMessage').rejects(expectedError);
+
+          const queryPromise = transport.invokeQuery(queryName1, variables1);
+
+          await expect(queryPromise).to.be.rejectedWith(expectedError);
+          const mapKey = transport.getMapKey(queryName1, variables1);
+          expect(transport.activeQueryExecuteRequests.has(mapKey)).to.be.false;
+          expect(transport.executeRequestPromises.size).to.equal(0);
+        });
       });
 
       describe('invokeMutation', () => {
@@ -467,6 +479,20 @@ describe('AbstractDataConnectStreamTransport', () => {
             didNotSettle
           );
         });
+
+        it('should reject and clean up if sendMessage fails', async () => {
+          sinon.stub(transport, 'sendMessage').rejects(expectedError);
+
+          const mutationPromise = transport.invokeMutation(
+            mutationName1,
+            variables1
+          );
+
+          await expect(mutationPromise).to.be.rejectedWith(expectedError);
+          const mapKey = transport.getMapKey(mutationName1, variables1);
+          expect(transport.activeMutationExecuteRequests.has(mapKey)).to.be.false;
+          expect(transport.executeRequestPromises.size).to.equal(0);
+        });
       });
 
       describe('invokeSubscribe', () => {
@@ -496,8 +522,7 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should call hook with error and clean up if sendMessage fails', async () => {
-          const error = new Error('send fail!');
-          sinon.stub(transport, 'sendMessage').rejects(error);
+          sinon.stub(transport, 'sendMessage').rejects(expectedError);
           const hook = sinon.spy();
 
           transport.invokeSubscribe(hook, queryName1, variables1);
@@ -505,7 +530,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(hook).to.have.been.calledOnce;
           const result = hook.firstCall.args[0];
           expect(result.errors).to.have.lengthOf(1);
-          expect(result.errors[0]).to.equal(error);
+          expect(result.errors[0]).to.equal(expectedError);
 
           const mapKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeSubscribeRequests.has(mapKey)).to.be.false;
@@ -551,7 +576,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           const subscribeRequest = transport.activeSubscribeRequests.get(expectedKey);
           const subscribeRequestId = subscribeRequest?.requestId!;
 
-          expect(sendMessageStub).to.have.been.calledOnce;
+          transport.invokeUnsubscribe(queryName1, variables1);
+
+          expect(sendMessageStub).to.have.been.calledTwice;
           expect(transport.activeSubscribeRequests.has(expectedKey)).to.be.false;
           expect(transport.subscribeNotificationHooks.has(subscribeRequestId)).to.be.false;
         });
@@ -583,10 +610,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           extensions: {}
         };
 
-        const expectedError = [new Error('test error')];
         const errorResponse: DataConnectResponse<unknown> = {
           data: {},
-          errors: expectedError,
+          errors: [expectedError],
           extensions: {}
         };
 
