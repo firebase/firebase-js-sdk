@@ -225,6 +225,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Creates, tracks, and returns a promise that will be resolved when the response for the given
    * request ID is received.
+   *
+   * @remarks
+   * This method returns a promise, but is synchronous.
    */
   private makeExecutePromise<Data>(
     requestId: string
@@ -273,6 +276,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return sortedObj;
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeQuery<Data, Variables>(
     queryName: string,
     variables?: Variables
@@ -305,6 +315,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return responsePromise;
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeMutation<Data, Variables>(
     mutationName: string,
     variables?: Variables
@@ -343,10 +360,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         this.executeRequestPromises.delete(requestId);
       }
     });
-
     return responsePromise;
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeSubscribe<Data, Variables>(
     notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
@@ -377,6 +400,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     });
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
     const mapKey = this.getMapKey(queryName, variables);
     const subscribeRequest = this.activeSubscribeRequests.get(mapKey);
@@ -389,12 +419,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
+    this.activeSubscribeRequests.delete(mapKey);
+    this.subscribeNotificationHooks.delete(requestId);
+
     this.sendCancelMessage(cancelBody).catch(err => {
       console.error('Failed to send unsubscribe message', err);
     });
-
-    this.activeSubscribeRequests.delete(mapKey);
-    this.subscribeNotificationHooks.delete(requestId);
   }
 
   onAuthTokenChanged(newToken: string | null): void {
