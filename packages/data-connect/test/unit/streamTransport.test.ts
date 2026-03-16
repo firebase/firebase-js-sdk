@@ -49,8 +49,8 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   protected sendMessage<Variables>(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     requestBody: DataConnectStreamRequest<Variables>
-  ): void {
-    // no-op
+  ): Promise<void> {
+    return Promise.resolve();
   }
 
   /**
@@ -395,7 +395,10 @@ describe('AbstractDataConnectStreamTransport', () => {
         it('should populate tracking maps and call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
-          const queryPromise = transport.invokeQuery(queryName1, variables1);
+          let promiseRejected = false;
+          transport.invokeQuery(queryName1, variables1).catch(() => {
+            promiseRejected = true;
+          });
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeQueryExecuteRequests.has(expectedKey)).to.be
@@ -414,7 +417,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(queryName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(queryPromise).to.not.be.fulfilled;
+          await expect(promiseRejected).to.be.false;
         });
       });
 
@@ -422,7 +425,10 @@ describe('AbstractDataConnectStreamTransport', () => {
         it('should populate tracking maps and call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
-          const mutationPromise = transport.invokeMutation(mutationName1, variables1);
+          let promiseRejected = false;
+          transport.invokeMutation(mutationName1, variables1).catch(() => {
+            promiseRejected = true;
+          });
 
           const expectedKey = transport.getMapKey(mutationName1, variables1);
           const activeRequests =
@@ -440,7 +446,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(mutationName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(mutationPromise).to.not.be.fulfilled;
+          await expect(promiseRejected).to.be.false;
         });
       });
 

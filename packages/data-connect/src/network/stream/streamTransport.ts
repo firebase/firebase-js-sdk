@@ -220,6 +220,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Creates, tracks, and returns a promise that will be resolved when the response for the given
    * request ID is received.
+   *
+   * @remarks
+   * This method returns a promise, but is synchronous.
    */
   private makeExecutePromise<Data>(
     requestId: string
@@ -268,6 +271,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return sortedObj;
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeQuery<Data, Variables>(
     queryName: string,
     variables?: Variables
@@ -280,18 +290,27 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    this.sendExecuteMessage<Variables>(executeBody);
-
+    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(
+      () => {
+        const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
+        if (executeRequest && executeRequest.requestId === requestId) {
+          this.activeQueryExecuteRequests.delete(mapKey);
+        }
+      }
+    );
     this.activeQueryExecuteRequests.set(mapKey, executeBody);
 
-    return this.makeExecutePromise<Data>(requestId).finally(() => {
-      const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
-      if (executeRequest && executeRequest.requestId === requestId) {
-        this.activeQueryExecuteRequests.delete(mapKey);
-      }
-    });
+    this.sendExecuteMessage<Variables>(executeBody);
+    return responsePromise;
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeMutation<Data, Variables>(
     mutationName: string,
     variables?: Variables
@@ -304,28 +323,37 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    this.sendExecuteMessage<Variables>(executeBody);
-
+    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(
+      () => {
+        const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
+        if (executeRequests) {
+          const updatedRequests = executeRequests.filter(
+            req => req.requestId !== requestId
+          );
+          if (updatedRequests.length > 0) {
+            this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
+          } else {
+            this.activeMutationExecuteRequests.delete(mapKey);
+          }
+        }
+      }
+    );
     const mutationRequestBodies =
       this.activeMutationExecuteRequests.get(mapKey) || [];
     mutationRequestBodies.push(executeBody);
     this.activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
 
-    return this.makeExecutePromise<Data>(requestId).finally(() => {
-      const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
-      if (executeRequests) {
-        const updatedRequests = executeRequests.filter(
-          req => req.requestId !== requestId
-        );
-        if (updatedRequests.length > 0) {
-          this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
-        } else {
-          this.activeMutationExecuteRequests.delete(mapKey);
-        }
-      }
-    });
+    this.sendExecuteMessage<Variables>(executeBody);
+    return responsePromise;
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeSubscribe<Data, Variables>(
     notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
@@ -348,6 +376,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.sendSubscribeMessage<Variables>(subscribeBody);
   }
 
+  /**
+   * @inheritdoc
+   * @remarks
+   * This method synchronously updates the request tracking data structures.
+   * If any asynchronous functionality is added to this function, it MUST be done in a way that
+   * preserves the synchronous update of the tracking data structures before the method returns.
+   */
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
     const mapKey = this.getMapKey(queryName, variables);
     const subscribeRequest = this.activeSubscribeRequests.get(mapKey);
@@ -360,10 +395,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
-    this.sendCancelMessage(cancelBody);
-
     this.activeSubscribeRequests.delete(mapKey);
     this.subscribeNotificationHooks.delete(requestId);
+
+    this.sendCancelMessage(cancelBody);
   }
 
   onAuthTokenChanged(newToken: string | null): void {
