@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ParseContext } from '../api/parse_context';
 import {
   Pipeline as ProtoPipeline,
   Stage as ProtoStage
@@ -89,8 +90,7 @@ import {
   UnnestStageOptions,
   WhereStageOptions
 } from './stage_options';
-import { UserDataReader, UserDataSource } from './user_data_reader';
-import { AbstractUserDataWriter } from './user_data_writer';
+import { UserData } from './user_data_reader';
 
 /**
  * @beta
@@ -132,13 +132,11 @@ import { AbstractUserDataWriter } from './user_data_writer';
  *     .aggregate(average(field("rating")).as("averageRating")));
  * ```
  */
-export class Pipeline implements ProtoSerializable<ProtoPipeline> {
+export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * @internal
    * @private
    * @param _db
-   * @param userDataReader
-   * @param _userDataWriter
    * @param stages
    */
   constructor(
@@ -151,18 +149,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
      * @internal
      * @private
      */
-    private userDataReader: UserDataReader,
-    /**
-     * @internal
-     * @private
-     */
-    public _userDataWriter: AbstractUserDataWriter,
-    /**
-     * @internal
-     * @private
-     */
     private stages: Stage[]
   ) {}
+
+  _readUserData(context: ParseContext): void {
+    this.stages.forEach(stage => {
+      const subContext = context.contextWith({
+        methodName: stage._name
+      });
+      stage._readUserData(subContext);
+    });
+  }
 
   /**
    * @beta
@@ -243,14 +240,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new AddFields(normalizedFields, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'addFields'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -320,12 +309,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new RemoveFields(convertedFields, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    stage._readUserData(
-      this.userDataReader.createContext(UserDataSource.Argument, 'removeFields')
-    );
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -425,14 +408,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Select(normalizedSelections, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'select'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -515,14 +490,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Where(condition, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'where'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -587,14 +554,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Offset(offset, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'offset'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -665,14 +624,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Limit(limit, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'limit'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -759,14 +710,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Distinct(convertedGroups, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'distinct'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -864,14 +807,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       options
     );
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'aggregate'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -922,14 +857,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       options.distanceMeasure,
       internalOptions
     );
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'addFields'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1050,14 +977,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Sort(orderings, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'sort'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1192,14 +1111,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Replace(mapExpr, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'replaceWith'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1266,14 +1177,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Sample(rate, mode, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'sample'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1333,14 +1236,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Union(otherPipeline, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'union'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1445,14 +1340,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Unnest(alias, expr, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'unnest'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1501,14 +1388,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new RawStage(name, expressionParams, options ?? {});
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'rawStage'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1527,12 +1406,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   private _addStage(stage: Stage): Pipeline {
     const copy = this.stages.map(s => s);
     copy.push(stage);
-    return this.newPipeline(
-      this._db,
-      this.userDataReader,
-      this._userDataWriter,
-      copy
-    );
+    return this.newPipeline(this._db, copy);
   }
 
   /**
@@ -1544,13 +1418,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param stages
    * @protected
    */
-  protected newPipeline(
-    db: Firestore,
-    userDataReader: UserDataReader,
-    userDataWriter: AbstractUserDataWriter,
-    stages: Stage[]
-  ): Pipeline {
-    return new Pipeline(db, userDataReader, userDataWriter, stages);
+  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+    return new Pipeline(db, stages);
   }
 }
 

@@ -717,32 +717,50 @@ describe.skipClassic('Firestore Pipelines', () => {
     });
 
     it('throws on undefined in a map', async () => {
-      expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(
-            map({
-              'number': 1,
-              undefined
-            }).as('foo')
-          );
-      }).to.throw(
-        'Function map() called with invalid data. Unsupported field value: undefined'
-      );
+      try {
+        await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              map({
+                'number': 1,
+                undefined
+              }).as('foo')
+            )
+        );
+        expect(true, 'should throw').to.be.false;
+      } catch (e: unknown) {
+        expect(e instanceof FirebaseError).to.be.true;
+        const err = e as FirebaseError;
+        expect(err['code']).to.equal('invalid-argument');
+        expect(typeof err['message']).to.equal('string');
+        expect(err['message']).to.equal(
+          'Function map() called with invalid data. Unsupported field value: undefined'
+        );
+      }
     });
 
     it('throws on undefined in an array', async () => {
-      expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(array([1, undefined]).as('foo'));
-      }).to.throw(
-        'Function array() called with invalid data. Unsupported field value: undefined'
-      );
+      try {
+        await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(array([1, undefined]).as('foo'))
+        );
+        expect(true, 'should throw').to.be.false;
+      } catch (e: unknown) {
+        expect(e instanceof FirebaseError).to.be.true;
+        const err = e as FirebaseError;
+        expect(err['code']).to.equal('invalid-argument');
+        expect(typeof err['message']).to.equal('string');
+        expect(err['message']).to.equal(
+          'Function array() called with invalid data. Unsupported field value: undefined'
+        );
+      }
     });
 
     it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
