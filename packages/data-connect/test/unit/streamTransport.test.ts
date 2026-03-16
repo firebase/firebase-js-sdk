@@ -397,11 +397,11 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const queryPromise = transport.invokeQuery(queryName1, variables1);
 
-          const didNotSettle = "invokeQuery unsettled after 3 seconds";
-          const hasSettled = "invokeQuery DID settle!!!";
+          const didNotSettle = 'invokeQuery unsettled after 3 seconds';
+          const hasSettled = 'invokeQuery DID settle!!!';
           const hasQueryPromiseSettled = Promise.race([
             queryPromise.then(() => hasSettled),
-            new Promise((resolve) => {
+            new Promise(resolve => {
               setTimeout(() => resolve(didNotSettle), 3000);
             })
           ]);
@@ -423,7 +423,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(queryName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(hasQueryPromiseSettled).to.eventually.equal(didNotSettle);
+          await expect(hasQueryPromiseSettled).to.eventually.equal(
+            didNotSettle
+          );
         });
       });
 
@@ -431,13 +433,16 @@ describe('AbstractDataConnectStreamTransport', () => {
         it('should populate tracking maps and call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
-          const mutationPromise = transport.invokeMutation(mutationName1, variables1);
+          const mutationPromise = transport.invokeMutation(
+            mutationName1,
+            variables1
+          );
 
-          const didNotSettle = "invokeMutation unsettled after 3 seconds";
-          const hasSettled = "invokeMutation DID settle!!!";
+          const didNotSettle = 'invokeMutation unsettled after 3 seconds';
+          const hasSettled = 'invokeMutation DID settle!!!';
           const hasMutationPromiseSettled = Promise.race([
             mutationPromise.then(() => hasSettled),
-            new Promise((resolve) => {
+            new Promise(resolve => {
               setTimeout(() => resolve(didNotSettle), 3000);
             })
           ]);
@@ -458,7 +463,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(mutationName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(hasMutationPromiseSettled).to.eventually.equal(didNotSettle);
+          await expect(hasMutationPromiseSettled).to.eventually.equal(
+            didNotSettle
+          );
         });
       });
 
