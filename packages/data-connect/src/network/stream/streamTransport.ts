@@ -412,11 +412,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
-      // TODO: make errors better
+      // TODO(stephenarosaj): make errors better
       const { resolve, reject } = this.executeRequestPromises.get(requestId)!;
       if (response.errors && response.errors.length) {
         const failureResponse: DataConnectOperationFailureResponse = {
-          errors: response.errors as any,
+          errors: response.errors as [],
           data: response.data as Record<string, unknown>
         };
         const stringified = JSON.stringify(response.errors);
