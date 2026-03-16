@@ -406,7 +406,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(request?.execute?.operationName).to.equal(queryName1);
           expect(request?.execute?.variables).to.deep.equal(variables1);
 
-          const requestId = (request as ExecuteStreamRequest<unknown>).requestId;
+          const requestId = (request as ExecuteStreamRequest<unknown>)
+            .requestId;
           expect(transport.executeRequestPromises.has(requestId)).to.be.true;
 
           expect(sendMessageSpy).to.have.been.calledOnce;
@@ -460,7 +461,8 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const requestId = (request as SubscribeStreamRequest<unknown>)
             .requestId;
-          expect(transport.subscribeNotificationHooks.has(requestId)).to.be.true;
+          expect(transport.subscribeNotificationHooks.has(requestId)).to.be
+            .true;
 
           expect(sendMessageSpy).to.have.been.calledOnce;
           const sentMessage = sendMessageSpy.firstCall.args[0];
@@ -485,17 +487,18 @@ describe('AbstractDataConnectStreamTransport', () => {
           const subscribeRequestId = (
             subscribeRequest as SubscribeStreamRequest<unknown>
           ).requestId;
-          expect(transport.subscribeNotificationHooks.has(subscribeRequestId)).to
-            .be.true;
+          expect(transport.subscribeNotificationHooks.has(subscribeRequestId))
+            .to.be.true;
 
           transport.invokeUnsubscribe(queryName1, variables1);
 
           expect(sendMessageSpy).to.have.been.calledTwice;
           const unsubscribeMessage = sendMessageSpy.secondCall.args[0];
 
-          expect(transport.activeSubscribeRequests.has(expectedKey)).to.be.false;
-          expect(transport.subscribeNotificationHooks.has(subscribeRequestId)).to
-            .be.false;
+          expect(transport.activeSubscribeRequests.has(expectedKey)).to.be
+            .false;
+          expect(transport.subscribeNotificationHooks.has(subscribeRequestId))
+            .to.be.false;
           expect(unsubscribeMessage.cancel).to.not.be.undefined;
         });
       });
@@ -677,7 +680,8 @@ describe('AbstractDataConnectStreamTransport', () => {
             transport.invokeSubscribe(hook2, queryName2, variables2);
 
             const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const request1 = transport.activeSubscribeRequests.get(expectedKey1);
+            const request1 =
+              transport.activeSubscribeRequests.get(expectedKey1);
             const requestId1 = request1?.requestId!;
 
             await transport.invokeHandleResponse(requestId1, response1);
@@ -688,7 +692,8 @@ describe('AbstractDataConnectStreamTransport', () => {
             expect(hook1).to.have.been.calledWithExactly(response2);
 
             const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request2 = transport.activeSubscribeRequests.get(expectedKey2);
+            const request2 =
+              transport.activeSubscribeRequests.get(expectedKey2);
             const requestId2 = request2?.requestId!;
 
             await transport.invokeHandleResponse(requestId2, response3);
@@ -698,7 +703,7 @@ describe('AbstractDataConnectStreamTransport', () => {
             expect(hook2).to.have.been.calledTwice;
             expect(hook2).to.have.been.calledWithExactly(response4);
           });
-       });
+        });
       });
     });
   });
