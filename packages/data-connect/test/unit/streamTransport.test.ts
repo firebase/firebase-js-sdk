@@ -392,7 +392,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
     describe('Incoming Requests from Transport Layer', () => {
       describe('invokeQuery', () => {
-        it('should populate tracking maps and call sendMessage', async () => {
+        it('should populate tracking maps synchronously and then call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
           const queryPromise = transport.invokeQuery(queryName1, variables1);
@@ -430,7 +430,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       });
 
       describe('invokeMutation', () => {
-        it('should populate tracking maps and call sendMessage', async () => {
+        it('should populate tracking synchronously and then call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
           const mutationPromise = transport.invokeMutation(
