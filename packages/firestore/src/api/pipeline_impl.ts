@@ -28,7 +28,6 @@ import { PipelineExecuteOptions } from '../lite-api/pipeline_options';
 import { Stage } from '../lite-api/stage';
 import {
   newUserDataReader,
-  UserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
 import { cast } from '../util/input_validation';
@@ -140,11 +139,14 @@ export function execute(
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
-  const udr = new UserDataReader(
-    firestore._databaseId,
-    /* ignoreUndefinedProperties */ true
+  const userDataReader = newUserDataReader(firestore);
+  const context = userDataReader.createContext(
+    UserDataSource.Argument,
+    'execute'
   );
-  const context = udr.createContext(UserDataSource.Argument, 'execute');
+
+  pipeline._readUserData(context);
+  const userDataWriter = new ExpUserDataWriter(firestore);
 
   const structuredPipelineOptions = new StructuredPipelineOptions(
     rest,
@@ -172,7 +174,7 @@ export function execute(
         .map(
           element =>
             new PipelineResult(
-              pipeline._userDataWriter,
+              userDataWriter,
               element.fields!,
               element.key?.path
                 ? new DocumentReference(firestore, null, element.key)
@@ -198,17 +200,7 @@ export function execute(
  */
 // Augment the Firestore class with the pipeline() factory method
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  const userDataReader = newUserDataReader(this);
-  return new PipelineSource<Pipeline>(
-    this._databaseId,
-    userDataReader,
-    (stages: Stage[]) => {
-      return new Pipeline(
-        this,
-        userDataReader,
-        new ExpUserDataWriter(this),
-        stages
-      );
-    }
-  );
+  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
+    return new Pipeline(this, stages);
+  });
 };
