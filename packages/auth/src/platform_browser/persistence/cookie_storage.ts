@@ -18,8 +18,6 @@
 import { Persistence } from '../../model/public_types';
 import type { CookieChangeEvent } from 'cookie-store';
 
-const POLLING_INTERVAL_MS = 1_000;
-
 import {
   PersistenceInternal,
   PersistenceType,
@@ -37,6 +35,8 @@ function getDocumentCookie(name: string): string | null {
 
 // 400 days in seconds https://developer.chrome.com/blog/cookie-max-age-expires
 const COOKIE_MAX_MAX_AGE = 34560000;
+
+const POLLING_INTERVAL_MS = 1_000;
 
 // Produce a sanitized cookie name from the persistence key
 function getCookieName(key: string): string {
@@ -106,6 +106,8 @@ export class CookiePersistence implements PersistenceInternal {
       return;
     }
     const name = getCookieName(key);
+    // Since we're checking isSecureContext in _isAvailable, we can assume if the protocol is http
+    // that we're hitting localhost for local dev mode and can loosen cookie security
     const isDevMode = window.location.protocol === 'http:';
     // Safari doesn't consider http://localhost to be secure so we need to set the cookie as
     // insecure in this case.
