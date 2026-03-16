@@ -34,6 +34,7 @@ import { VectorValue } from './vector_value';
  * @beta
  * Options defining how a Stage is evaluated.
  */
+// eslint-disable-next-line -- eslint should not convert this type to an interface
 export type StageOptions = {
   /**
    * @beta
