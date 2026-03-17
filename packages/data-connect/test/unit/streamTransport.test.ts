@@ -623,7 +623,6 @@ describe('AbstractDataConnectStreamTransport', () => {
           );
         });
       });
-
     });
     describe('Incoming Responses from Server', () => {
       const expectedData1 = { result: 'result', num: 1 };
@@ -775,18 +774,15 @@ describe('AbstractDataConnectStreamTransport', () => {
           await transport.invokeHandleResponse(requestId1, errorResponse);
           expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId1)).to.be
-            .false;
+          expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
           expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
             .true;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be
-            .true;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
 
           await transport.invokeHandleResponse(requestId2, errorResponse);
           expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be
-            .false;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
         });
       });
 
@@ -841,8 +837,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           await transport.invokeHandleResponse(requestId1, response1);
           await mutationPromise1;
-          expect(transport.executeRequestPromises.has(requestId1)).to.be
-            .false;
+          expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
           expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
             .be.false;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
@@ -851,8 +846,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           await transport.invokeHandleResponse(requestId2, response2);
           await mutationPromise2;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be
-            .false;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
           expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
             .be.false;
         });
@@ -892,8 +886,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should clean map correctly when handleResponse rejects', async () => {
-          transport.invokeMutation(mutationName1, variables1).catch(() => { });
-          transport.invokeMutation(mutationName2, variables2).catch(() => { });
+          transport.invokeMutation(mutationName1, variables1).catch(() => {});
+          transport.invokeMutation(mutationName2, variables2).catch(() => {});
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests1 =
@@ -932,8 +926,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(hook2, queryName2, variables2);
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
-          const request1 =
-            transport.activeSubscribeRequests.get(expectedKey1);
+          const request1 = transport.activeSubscribeRequests.get(expectedKey1);
           const requestId1 = request1?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, response1);
@@ -944,8 +937,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(hook1).to.have.been.calledWithExactly(response2);
 
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
-          const request2 =
-            transport.activeSubscribeRequests.get(expectedKey2);
+          const request2 = transport.activeSubscribeRequests.get(expectedKey2);
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId2, response3);
@@ -961,12 +953,10 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(hook2, queryName2, variables2);
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
-          const request1 =
-            transport.activeSubscribeRequests.get(expectedKey1);
+          const request1 = transport.activeSubscribeRequests.get(expectedKey1);
           const requestId1 = request1?.requestId!;
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
-          const request2 =
-            transport.activeSubscribeRequests.get(expectedKey2);
+          const request2 = transport.activeSubscribeRequests.get(expectedKey2);
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
@@ -982,10 +972,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(hook2, queryName2, variables2);
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
-          const request1 =
-            transport.activeSubscribeRequests.get(expectedKey1);
-          const request2 =
-            transport.activeSubscribeRequests.get(expectedKey2);
+          const request1 = transport.activeSubscribeRequests.get(expectedKey1);
+          const request2 = transport.activeSubscribeRequests.get(expectedKey2);
           const requestId1 = request1?.requestId!;
           const requestId2 = request2?.requestId!;
 
