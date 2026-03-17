@@ -624,357 +624,378 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
       });
 
-      describe('Incoming Responses from Server', () => {
-        const expectedData1 = { result: 'result', num: 1 };
-        const expectedData2 = { result: 'result', num: 2 };
-        const expectedData3 = { result: 'result', num: 3 };
-        const expectedData4 = { result: 'result', num: 4 };
-        const response1: DataConnectResponse<typeof expectedData1> = {
-          data: expectedData1,
-          errors: [],
-          extensions: {}
-        };
-        const response2: DataConnectResponse<typeof expectedData2> = {
-          data: expectedData2,
-          errors: [],
-          extensions: {}
-        };
-        const response3: DataConnectResponse<typeof expectedData3> = {
-          data: expectedData3,
-          errors: [],
-          extensions: {}
-        };
-        const response4: DataConnectResponse<typeof expectedData4> = {
-          data: expectedData4,
-          errors: [],
-          extensions: {}
-        };
+    });
+    describe('Incoming Responses from Server', () => {
+      const expectedData1 = { result: 'result', num: 1 };
+      const expectedData2 = { result: 'result', num: 2 };
+      const expectedData3 = { result: 'result', num: 3 };
+      const expectedData4 = { result: 'result', num: 4 };
+      const response1: DataConnectResponse<typeof expectedData1> = {
+        data: expectedData1,
+        errors: [],
+        extensions: {}
+      };
+      const response2: DataConnectResponse<typeof expectedData2> = {
+        data: expectedData2,
+        errors: [],
+        extensions: {}
+      };
+      const response3: DataConnectResponse<typeof expectedData3> = {
+        data: expectedData3,
+        errors: [],
+        extensions: {}
+      };
+      const response4: DataConnectResponse<typeof expectedData4> = {
+        data: expectedData4,
+        errors: [],
+        extensions: {}
+      };
 
-        const errorResponse: DataConnectResponse<unknown> = {
+      const errorResponse: DataConnectResponse<unknown> = {
+        data: {},
+        errors: [expectedError],
+        extensions: {}
+      };
+
+      it('should throw an error if an unrecognized requestId is received', async () => {
+        const unknownRequestId = 'unknown-999';
+        const response: DataConnectResponse<unknown> = {
           data: {},
-          errors: [expectedError],
+          errors: [],
           extensions: {}
         };
+        const errorPromise = transport.invokeHandleResponse(
+          unknownRequestId,
+          response
+        );
+        await expect(errorPromise).to.be.rejectedWith(
+          `Unrecognized requestId '${unknownRequestId}'`
+        );
+      });
 
-        it('should throw an error if an unrecognized requestId is received', async () => {
-          const unknownRequestId = 'unknown-999';
-          const response: DataConnectResponse<unknown> = {
-            data: {},
-            errors: [],
-            extensions: {}
-          };
-          const errorPromise = transport.invokeHandleResponse(
-            unknownRequestId,
-            response
+      describe('invokeQuery tracking', async () => {
+        it('should route data to resolve the correct query promise when response is received', async () => {
+          const queryPromise1 = transport.invokeQuery(queryName1, variables1);
+          const queryPromise2 = transport.invokeQuery(queryName2, variables2);
+
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const request1 =
+            transport.activeQueryExecuteRequests.get(expectedKey1);
+          const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
+            .requestId;
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request2 =
+            transport.activeQueryExecuteRequests.get(expectedKey2);
+          const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
+            .requestId;
+
+          await transport.invokeHandleResponse(requestId1, response1);
+          const result1 = await queryPromise1;
+          expect(result1).to.deep.equal(response1);
+
+          await transport.invokeHandleResponse(requestId2, response2);
+          const result2 = await queryPromise2;
+          expect(result2).to.deep.equal(response2);
+        });
+
+        it('should clean map when response is received', async () => {
+          const queryPromise1 = transport.invokeQuery(queryName1, variables1);
+          const queryPromise2 = transport.invokeQuery(queryName2, variables2);
+
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const request1 =
+            transport.activeQueryExecuteRequests.get(expectedKey1);
+          const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
+            .requestId;
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request2 =
+            transport.activeQueryExecuteRequests.get(expectedKey2);
+          const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
+            .requestId;
+
+          await transport.invokeHandleResponse(requestId1, response1);
+          await queryPromise1;
+          expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
+            .false;
+          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+            .true;
+
+          await transport.invokeHandleResponse(requestId2, response2);
+          await queryPromise2;
+
+          expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
+            .false;
+          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+            .false;
+        });
+
+        it('should reject the correct query promise with DataConnectOperationError if response has errors', async () => {
+          const queryPromise1 = transport.invokeQuery(queryName1, variables1);
+          const queryPromise2 = transport.invokeQuery(queryName2, variables2);
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request1 =
+            transport.activeQueryExecuteRequests.get(expectedKey1);
+          const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
+            .requestId;
+          const request2 =
+            transport.activeQueryExecuteRequests.get(expectedKey2);
+          const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
+            .requestId;
+
+          await transport.invokeHandleResponse(requestId1, errorResponse);
+          await transport.invokeHandleResponse(requestId2, errorResponse);
+          await expect(queryPromise1).to.be.rejectedWith(
+            `DataConnect error while performing request: ${JSON.stringify([
+              expectedError
+            ])}`
           );
-          await expect(errorPromise).to.be.rejectedWith(
-            `Unrecognized requestId '${unknownRequestId}'`
+          await expect(queryPromise2).to.be.rejectedWith(
+            `DataConnect error while performing request: ${JSON.stringify([
+              expectedError
+            ])}`
           );
         });
 
-        describe('invokeQuery tracking', async () => {
-          it('should route data to resolve the correct query promise when response is received', async () => {
-            const queryPromise1 = transport.invokeQuery(queryName1, variables1);
-            const queryPromise2 = transport.invokeQuery(queryName2, variables2);
+        it('should clean map correctly when handleResponse rejects', async () => {
+          void transport.invokeQuery(queryName1, variables1);
+          void transport.invokeQuery(queryName2, variables2);
 
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const request1 =
-              transport.activeQueryExecuteRequests.get(expectedKey1);
-            const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
-              .requestId;
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request2 =
-              transport.activeQueryExecuteRequests.get(expectedKey2);
-            const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
-              .requestId;
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const request1 =
+            transport.activeQueryExecuteRequests.get(expectedKey1);
+          const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
+            .requestId;
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request2 =
+            transport.activeQueryExecuteRequests.get(expectedKey2);
+          const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
+            .requestId;
 
-            await transport.invokeHandleResponse(requestId1, response1);
-            await transport.invokeHandleResponse(requestId2, response2);
-            const result1 = await queryPromise1;
-            const result2 = await queryPromise2;
+          await transport.invokeHandleResponse(requestId1, errorResponse);
+          expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
+            .false;
+          expect(transport.executeRequestPromises.has(requestId1)).to.be
+            .false;
+          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+            .true;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be
+            .true;
 
-            expect(result1).to.deep.equal(response1);
-            expect(result2).to.deep.equal(response2);
-          });
+          await transport.invokeHandleResponse(requestId2, errorResponse);
+          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+            .false;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be
+            .false;
+        });
+      });
 
-          it('should clean map when response is received', async () => {
-            const queryPromise1 = transport.invokeQuery(queryName1, variables1);
-            const queryPromise2 = transport.invokeQuery(queryName2, variables2);
+      describe('invokeMutation tracking', async () => {
+        it('should route data to resolve the correct mutation promise when response is received', async () => {
+          const mutationPromise1 = transport.invokeMutation(
+            mutationName1,
+            variables1
+          );
+          const mutationPromise2 = transport.invokeMutation(
+            mutationName2,
+            variables2
+          );
 
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const request1 =
-              transport.activeQueryExecuteRequests.get(expectedKey1);
-            const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
-              .requestId;
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request2 =
-              transport.activeQueryExecuteRequests.get(expectedKey2);
-            const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
-              .requestId;
+          const expectedKey1 = transport.getMapKey(mutationName1, variables1);
+          const activeRequests1 =
+            transport.activeMutationExecuteRequests.get(expectedKey1);
+          const requestId1 = activeRequests1![0].requestId;
+          const expectedKey2 = transport.getMapKey(mutationName2, variables2);
+          const activeRequests2 =
+            transport.activeMutationExecuteRequests.get(expectedKey2);
+          const requestId2 = activeRequests2![0].requestId;
 
-            await transport.invokeHandleResponse(requestId1, response1);
-            await queryPromise1;
-            expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
-              .false;
-            expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
-              .true;
+          await transport.invokeHandleResponse(requestId1, response1);
+          const result1 = await mutationPromise1;
+          expect(result1).to.deep.equal(response1);
+          await expectIsNotSettled(mutationPromise2);
 
-            await transport.invokeHandleResponse(requestId2, response2);
-            await queryPromise2;
-
-            expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
-              .false;
-            expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
-              .false;
-          });
-
-          it('should reject the query promise with DataConnectOperationError if response has errors', async () => {
-            const queryPromise1 = transport.invokeQuery(queryName1, variables1);
-            const queryPromise2 = transport.invokeQuery(queryName2, variables2);
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request1 =
-              transport.activeQueryExecuteRequests.get(expectedKey1);
-            const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
-              .requestId;
-            const request2 =
-              transport.activeQueryExecuteRequests.get(expectedKey2);
-            const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
-              .requestId;
-
-            await transport.invokeHandleResponse(requestId1, errorResponse);
-            await transport.invokeHandleResponse(requestId2, errorResponse);
-            await expect(queryPromise1).to.be.rejectedWith(
-              `DataConnect error while performing request: ${JSON.stringify([
-                expectedError
-              ])}`
-            );
-            await expect(queryPromise2).to.be.rejectedWith(
-              `DataConnect error while performing request: ${JSON.stringify([
-                expectedError
-              ])}`
-            );
-          });
-
-          it('should clean map when handleResponse rejects', async () => {
-            transport.invokeQuery(queryName1, variables1).catch(() => {});
-            transport.invokeQuery(queryName2, variables2).catch(() => {});
-
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const request1 =
-              transport.activeQueryExecuteRequests.get(expectedKey1);
-            const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
-              .requestId;
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request2 =
-              transport.activeQueryExecuteRequests.get(expectedKey2);
-            const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
-              .requestId;
-
-            await transport.invokeHandleResponse(requestId1, errorResponse);
-            expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
-              .false;
-            expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
-              .true;
-
-            await transport.invokeHandleResponse(requestId2, errorResponse);
-            expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
-              .false;
-            expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
-              .false;
-          });
+          await transport.invokeHandleResponse(requestId2, response2);
+          const result2 = await mutationPromise2;
+          expect(result2).to.deep.equal(response2);
         });
 
-        describe('invokeMutation tracking', async () => {
-          it('should route data to resolve the correct mutation promise when response is received', async () => {
-            const mutationPromise1 = transport.invokeMutation(
-              mutationName1,
-              variables1
-            );
-            const mutationPromise2 = transport.invokeMutation(
-              mutationName2,
-              variables2
-            );
+        it('should clean map of the correct tracked request when response is received', async () => {
+          const mutationPromise1 = transport.invokeMutation(
+            mutationName1,
+            variables1
+          );
+          const mutationPromise2 = transport.invokeMutation(
+            mutationName2,
+            variables2
+          );
 
-            const expectedKey1 = transport.getMapKey(mutationName1, variables1);
-            const activeRequests1 =
-              transport.activeMutationExecuteRequests.get(expectedKey1);
-            const requestId1 = activeRequests1![0].requestId;
-            const expectedKey2 = transport.getMapKey(mutationName2, variables2);
-            const activeRequests2 =
-              transport.activeMutationExecuteRequests.get(expectedKey2);
-            const requestId2 = activeRequests2![0].requestId;
+          const expectedKey1 = transport.getMapKey(mutationName1, variables1);
+          const activeRequests1 =
+            transport.activeMutationExecuteRequests.get(expectedKey1);
+          const requestId1 = activeRequests1![0].requestId;
+          const expectedKey2 = transport.getMapKey(mutationName2, variables2);
+          const activeRequests2 =
+            transport.activeMutationExecuteRequests.get(expectedKey2);
+          const requestId2 = activeRequests2![0].requestId;
 
-            await transport.invokeHandleResponse(requestId1, response1);
-            await transport.invokeHandleResponse(requestId2, response2);
-            const result1 = await mutationPromise1;
-            const result2 = await mutationPromise2;
+          await transport.invokeHandleResponse(requestId1, response1);
+          await mutationPromise1;
+          expect(transport.executeRequestPromises.has(requestId1)).to.be
+            .false;
+          expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
+            .be.false;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
+          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
+            .be.true;
 
-            expect(result1).to.deep.equal(response1);
-            expect(result2).to.deep.equal(response2);
-          });
-
-          it('should clean map of the correct tracked request when response is received', async () => {
-            const mutationPromise1 = transport.invokeMutation(
-              mutationName1,
-              variables1
-            );
-            const mutationPromise2 = transport.invokeMutation(
-              mutationName2,
-              variables2
-            );
-
-            const expectedKey1 = transport.getMapKey(mutationName1, variables1);
-            const activeRequests1 =
-              transport.activeMutationExecuteRequests.get(expectedKey1);
-            const requestId1 = activeRequests1![0].requestId;
-            const expectedKey2 = transport.getMapKey(mutationName2, variables2);
-            const activeRequests2 =
-              transport.activeMutationExecuteRequests.get(expectedKey2);
-            const requestId2 = activeRequests2![0].requestId;
-
-            await transport.invokeHandleResponse(requestId1, response1);
-            await mutationPromise1;
-            expect(transport.executeRequestPromises.has(requestId1)).to.be
-              .false;
-            expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
-              .be.false;
-            expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
-            expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-              .be.true;
-            await expectIsNotSettled(mutationPromise2);
-          });
-
-          it('should reject the mutation promise with DataConnectOperationError if response has errors', async () => {
-            const mutationPromise1 = transport.invokeMutation(
-              mutationName1,
-              variables1
-            );
-            const mutationPromise2 = transport.invokeMutation(
-              mutationName2,
-              variables2
-            );
-            const expectedKey1 = transport.getMapKey(mutationName1, variables1);
-            const activeRequests1 =
-              transport.activeMutationExecuteRequests.get(expectedKey1);
-            const requestId1 = activeRequests1![0].requestId;
-
-            await transport.invokeHandleResponse(requestId1, errorResponse);
-            await expect(mutationPromise1).to.be.rejectedWith(
-              `DataConnect error while performing request: ${JSON.stringify([
-                expectedError
-              ])}`
-            );
-            await expectIsNotSettled(mutationPromise2);
-          });
-
-          it('should clean map when handleResponse rejects', async () => {
-            transport.invokeMutation(mutationName1, variables1).catch(() => {});
-            transport.invokeMutation(mutationName2, variables2).catch(() => {});
-            const expectedKey1 = transport.getMapKey(mutationName1, variables1);
-            const expectedKey2 = transport.getMapKey(mutationName2, variables2);
-            const activeRequests1 =
-              transport.activeMutationExecuteRequests.get(expectedKey1);
-            const activeRequests2 =
-              transport.activeMutationExecuteRequests.get(expectedKey2);
-            const requestId1 = activeRequests1![0].requestId;
-            const requestId2 = activeRequests2![0].requestId;
-
-            await transport.invokeHandleResponse(requestId1, errorResponse);
-            expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
-              .be.false;
-            expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-              .be.true;
-            expect(transport.executeRequestPromises.size).to.equal(1);
-
-            await transport.invokeHandleResponse(requestId2, errorResponse);
-            expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
-              .be.false;
-            expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-              .be.false;
-            expect(transport.executeRequestPromises.size).to.equal(0);
-          });
+          await transport.invokeHandleResponse(requestId2, response2);
+          await mutationPromise2;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be
+            .false;
+          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
+            .be.false;
         });
 
-        describe('invokeSubscribe tracking', async () => {
-          const hook1 = sinon.spy();
-          const hook2 = sinon.spy();
+        it('should reject the correct mutation promise with DataConnectOperationError if response has errors', async () => {
+          const mutationPromise1 = transport.invokeMutation(
+            mutationName1,
+            variables1
+          );
+          const mutationPromise2 = transport.invokeMutation(
+            mutationName2,
+            variables2
+          );
+          const expectedKey1 = transport.getMapKey(mutationName1, variables1);
+          const activeRequests1 =
+            transport.activeMutationExecuteRequests.get(expectedKey1);
+          const requestId1 = activeRequests1![0].requestId;
+          const expectedKey2 = transport.getMapKey(mutationName2, variables2);
+          const activeRequests2 =
+            transport.activeMutationExecuteRequests.get(expectedKey2);
+          const requestId2 = activeRequests2![0].requestId;
 
-          afterEach(() => {
-            hook1.resetHistory();
-            hook2.resetHistory();
-          });
+          await transport.invokeHandleResponse(requestId1, errorResponse);
+          await expect(mutationPromise1).to.be.rejectedWith(
+            `DataConnect error while performing request: ${JSON.stringify([
+              expectedError
+            ])}`
+          );
+          await expectIsNotSettled(mutationPromise2);
 
-          it('should route data to the correct subscribe hook whenever a response is received', async () => {
-            transport.invokeSubscribe(hook1, queryName1, variables1);
-            transport.invokeSubscribe(hook2, queryName2, variables2);
+          await transport.invokeHandleResponse(requestId2, errorResponse);
+          await expect(mutationPromise2).to.be.rejectedWith(
+            `DataConnect error while performing request: ${JSON.stringify([
+              expectedError
+            ])}`
+          );
+        });
 
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const request1 =
-              transport.activeSubscribeRequests.get(expectedKey1);
-            const requestId1 = request1?.requestId!;
+        it('should clean map correctly when handleResponse rejects', async () => {
+          transport.invokeMutation(mutationName1, variables1).catch(() => { });
+          transport.invokeMutation(mutationName2, variables2).catch(() => { });
+          const expectedKey1 = transport.getMapKey(mutationName1, variables1);
+          const expectedKey2 = transport.getMapKey(mutationName2, variables2);
+          const activeRequests1 =
+            transport.activeMutationExecuteRequests.get(expectedKey1);
+          const activeRequests2 =
+            transport.activeMutationExecuteRequests.get(expectedKey2);
+          const requestId1 = activeRequests1![0].requestId;
+          const requestId2 = activeRequests2![0].requestId;
 
-            await transport.invokeHandleResponse(requestId1, response1);
-            expect(hook1).to.have.been.calledOnce;
-            expect(hook1).to.have.been.calledWithExactly(response1);
-            await transport.invokeHandleResponse(requestId1, response2);
-            expect(hook1).to.have.been.calledTwice;
-            expect(hook1).to.have.been.calledWithExactly(response2);
+          await transport.invokeHandleResponse(requestId1, errorResponse);
+          expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
+            .be.false;
+          expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
+          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
+            .be.true;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
 
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request2 =
-              transport.activeSubscribeRequests.get(expectedKey2);
-            const requestId2 = request2?.requestId!;
+          await transport.invokeHandleResponse(requestId2, errorResponse);
+          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
+            .be.false;
+          expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
+        });
+      });
 
-            await transport.invokeHandleResponse(requestId2, response3);
-            expect(hook2).to.have.been.calledOnce;
-            expect(hook2).to.have.been.calledWithExactly(response3);
-            await transport.invokeHandleResponse(requestId2, response4);
-            expect(hook2).to.have.been.calledTwice;
-            expect(hook2).to.have.been.calledWithExactly(response4);
-          });
+      describe('invokeSubscribe tracking', async () => {
+        const hook1 = sinon.spy();
+        const hook2 = sinon.spy();
 
-          it('should route error response to the correct subscribe hook whenever an error response is received', async () => {
-            transport.invokeSubscribe(hook1, queryName1, variables1);
-            transport.invokeSubscribe(hook2, queryName2, variables2);
+        afterEach(() => {
+          hook1.resetHistory();
+          hook2.resetHistory();
+        });
 
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const request1 =
-              transport.activeSubscribeRequests.get(expectedKey1);
-            const requestId1 = request1?.requestId!;
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request2 =
-              transport.activeSubscribeRequests.get(expectedKey2);
-            const requestId2 = request2?.requestId!;
+        it('should route data to the correct subscribe hook whenever a response is received', async () => {
+          transport.invokeSubscribe(hook1, queryName1, variables1);
+          transport.invokeSubscribe(hook2, queryName2, variables2);
 
-            await transport.invokeHandleResponse(requestId1, errorResponse);
-            expect(hook1).to.have.been.calledOnce;
-            expect(hook1).to.have.been.calledWithExactly(errorResponse);
-            await transport.invokeHandleResponse(requestId2, errorResponse);
-            expect(hook2).to.have.been.calledOnce;
-            expect(hook2).to.have.been.calledWithExactly(errorResponse);
-          });
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const request1 =
+            transport.activeSubscribeRequests.get(expectedKey1);
+          const requestId1 = request1?.requestId!;
 
-          it('should NOT clean map when handleResponse rejects', async () => {
-            transport.invokeSubscribe(hook1, queryName1, variables1);
-            transport.invokeSubscribe(hook2, queryName2, variables2);
-            const expectedKey1 = transport.getMapKey(queryName1, variables1);
-            const expectedKey2 = transport.getMapKey(queryName2, variables2);
-            const request1 =
-              transport.activeSubscribeRequests.get(expectedKey1);
-            const request2 =
-              transport.activeSubscribeRequests.get(expectedKey2);
-            const requestId1 = request1?.requestId!;
-            const requestId2 = request2?.requestId!;
+          await transport.invokeHandleResponse(requestId1, response1);
+          expect(hook1).to.have.been.calledOnce;
+          expect(hook1).to.have.been.calledWithExactly(response1);
+          await transport.invokeHandleResponse(requestId1, response2);
+          expect(hook1).to.have.been.calledTwice;
+          expect(hook1).to.have.been.calledWithExactly(response2);
 
-            await transport.invokeHandleResponse(requestId1, errorResponse);
-            await transport.invokeHandleResponse(requestId2, errorResponse);
-            expect(transport.activeSubscribeRequests.has(expectedKey1)).to.be
-              .true;
-            expect(transport.activeSubscribeRequests.has(expectedKey2)).to.be
-              .true;
-            expect(transport.subscribeNotificationHooks.size).to.equal(2);
-          });
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request2 =
+            transport.activeSubscribeRequests.get(expectedKey2);
+          const requestId2 = request2?.requestId!;
+
+          await transport.invokeHandleResponse(requestId2, response3);
+          expect(hook2).to.have.been.calledOnce;
+          expect(hook2).to.have.been.calledWithExactly(response3);
+          await transport.invokeHandleResponse(requestId2, response4);
+          expect(hook2).to.have.been.calledTwice;
+          expect(hook2).to.have.been.calledWithExactly(response4);
+        });
+
+        it('should route error response to the correct subscribe hook whenever an error response is received', async () => {
+          transport.invokeSubscribe(hook1, queryName1, variables1);
+          transport.invokeSubscribe(hook2, queryName2, variables2);
+
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const request1 =
+            transport.activeSubscribeRequests.get(expectedKey1);
+          const requestId1 = request1?.requestId!;
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request2 =
+            transport.activeSubscribeRequests.get(expectedKey2);
+          const requestId2 = request2?.requestId!;
+
+          await transport.invokeHandleResponse(requestId1, errorResponse);
+          expect(hook1).to.have.been.calledOnce;
+          expect(hook1).to.have.been.calledWithExactly(errorResponse);
+          await transport.invokeHandleResponse(requestId2, errorResponse);
+          expect(hook2).to.have.been.calledOnce;
+          expect(hook2).to.have.been.calledWithExactly(errorResponse);
+        });
+
+        it('should NOT clean map when handleResponse rejects', async () => {
+          transport.invokeSubscribe(hook1, queryName1, variables1);
+          transport.invokeSubscribe(hook2, queryName2, variables2);
+          const expectedKey1 = transport.getMapKey(queryName1, variables1);
+          const expectedKey2 = transport.getMapKey(queryName2, variables2);
+          const request1 =
+            transport.activeSubscribeRequests.get(expectedKey1);
+          const request2 =
+            transport.activeSubscribeRequests.get(expectedKey2);
+          const requestId1 = request1?.requestId!;
+          const requestId2 = request2?.requestId!;
+
+          await transport.invokeHandleResponse(requestId1, errorResponse);
+          await transport.invokeHandleResponse(requestId2, errorResponse);
+          expect(transport.activeSubscribeRequests.has(expectedKey1)).to.be
+            .true;
+          expect(transport.activeSubscribeRequests.has(expectedKey2)).to.be
+            .true;
+          expect(transport.subscribeNotificationHooks.size).to.equal(2);
         });
       });
     });
