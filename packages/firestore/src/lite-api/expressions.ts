@@ -2632,7 +2632,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @param start - The expression evaluating to the starting timestamp.
    * @param unit - The expression evaluates to a unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
-   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an int64.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an integer.
    */
   timestampDiff(start: Expression, unit: Expression): FunctionExpression;
 

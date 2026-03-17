@@ -4846,7 +4846,7 @@ timestampDiff(start: Expression, unit: Expression): FunctionExpression;
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the difference as an int64.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the difference as an integer.
 
 ### Example
 
