@@ -467,15 +467,6 @@ describe('AbstractDataConnectStreamTransport', () => {
             variables1
           );
 
-          const didNotSettle = 'invokeMutation unsettled after 3 seconds';
-          const hasSettled = 'invokeMutation DID settle!!!';
-          const hasMutationPromiseSettled = Promise.race([
-            mutationPromise.then(() => hasSettled),
-            new Promise(resolve => {
-              setTimeout(() => resolve(didNotSettle), 3000);
-            })
-          ]);
-
           const expectedKey = transport.getMapKey(mutationName1, variables1);
           const activeRequests =
             transport.activeMutationExecuteRequests.get(expectedKey);
@@ -492,9 +483,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(mutationName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(hasMutationPromiseSettled).to.eventually.equal(
-            didNotSettle
-          );
+          await expectNotToSettle(mutationPromise);
         });
 
         it('should reject and clean up if sendMessage fails', async () => {
