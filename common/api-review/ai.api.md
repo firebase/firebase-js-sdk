@@ -520,6 +520,9 @@ export interface GenerationConfig {
     maxOutputTokens?: number;
     // (undocumented)
     presencePenalty?: number;
+    responseJsonSchema?: {
+        [key: string]: unknown;
+    };
     responseMimeType?: string;
     // @beta
     responseModalities?: ResponseModality[];
