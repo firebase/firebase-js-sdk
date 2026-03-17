@@ -147,6 +147,34 @@ interface TransportWithInternals {
   ): Promise<void>;
 }
 
+/**
+ * Asserts that a promise does not settle within the given timeout.
+ * @param promise The promise to test.
+ * @param timeout The timeout in milliseconds (defaults to 3000ms). Note that the test runner's timeout defaults to 5000ms.
+ */
+async function expectNotToSettle(
+  promise: Promise<unknown>,
+  timeout: number = 3000
+): Promise<void> {
+  const unsettled = { settled: false };
+  const result = await Promise.race<{
+    settled: boolean;
+    resolvedWith?: unknown;
+    rejectedWith?: unknown;
+  }>([
+    promise
+      .then(resolvedWith => ({ settled: true, resolvedWith }))
+      .catch(rejectedWith => ({ settled: true, rejectedWith })),
+    new Promise(resolve => {
+      setTimeout(() => resolve(unsettled), timeout);
+    })
+  ]);
+  expect(result).to.equal(
+    unsettled,
+    `expected promise to not settle within ${timeout}ms!`
+  );
+}
+
 describe('AbstractDataConnectStreamTransport', () => {
   const dcOptions: DataConnectOptions = {
     projectId: 'p',
