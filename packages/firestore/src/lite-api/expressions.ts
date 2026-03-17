@@ -2652,13 +2652,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   timestampDiff(
     start: string | Expression,
-    unit:
-      | 'microsecond'
-      | 'millisecond'
-      | 'second'
-      | 'minute'
-      | 'hour'
-      | 'day'
+    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'
   ): FunctionExpression;
   timestampDiff(
     start: string | Expression,

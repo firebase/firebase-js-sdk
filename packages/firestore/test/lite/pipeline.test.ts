@@ -3940,9 +3940,11 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(new Timestamp(1741437296, 123456789)).as('timestamp')
           )
           .select(
-            timestampTruncate(field('timestamp'), 'day', 'America/Los_Angeles').as(
-              'trunc_day_la'
-            )
+            timestampTruncate(
+              field('timestamp'),
+              'day',
+              'America/Los_Angeles'
+            ).as('trunc_day_la')
           )
       );
 
