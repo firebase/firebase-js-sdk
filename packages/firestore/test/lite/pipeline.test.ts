@@ -3218,117 +3218,130 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, ...expectedResults);
     });
 
-        describe.only('arrayFilter', () => {
-          it('supports arrayFilter', async () => {
-            const snapshot = await execute(
-              firestore
-                .pipeline()
-                .collection(randomCol.path)
-                .limit(1)
-                .replaceWith(
-                  map({
-                    arr: [1, 2, 3, 4, 5]
-                  })
-                )
-                .select(
-                  arrayFilter('arr', 'element', greaterThan(variable('element'), 2)).as('filtered')
-                )
-            );
-    
-            expectResults(snapshot, {
-              filtered: [3, 4, 5]
-            });
-          });
-    
-          it('supports arrayFilter with no matching elements', async () => {
-            const snapshot = await execute(
-              firestore
-                .pipeline()
-                .collection(randomCol.path)
-                .limit(1)
-                .replaceWith(
-                  map({
-                    arr: [1, 2, 3]
-                  })
-                )
-                .select(
-                  arrayFilter('arr', 'element', greaterThan(variable('element'), 5)).as('filtered')
-                )
-            );
-    
-            expectResults(snapshot, {
-              filtered: []
-            });
-          });
-    
-          it('supports arrayFilter with mixed types', async () => {
-            const snapshot = await execute(
-              firestore
-                .pipeline()
-                .collection(randomCol.path)
-                .limit(1)
-                .replaceWith(
-                  map({
-                    arr: [1, 'foo', 20.0, 'bar', 30, '40']
-                  })
-                )
-                .select(
-                  arrayFilter('arr', 'element', greaterThan(variable('element'), 10)).as(
-                    'filtered'
-                  )
-                )
-            );
-    
-            expectResults(snapshot, {
-              filtered: [20.0, 30]
-            });
-          });
-    
-          it('supports arrayFilter with nulls in array', async () => {
-            const snapshot = await execute(
-              firestore
-                .pipeline()
-                .collection(randomCol.path)
-                .limit(1)
-                .replaceWith(
-                  map({
-                    arr: [1, null, 3, 4]
-                  })
-                )
-                .select(
-                  arrayFilter('arr', 'element', greaterThan(variable('element'), 2)).as('filtered')
-                )
-            );
-    
-            expectResults(snapshot, {
-              filtered: [3, 4]
-            });
-          });
+    describe('arrayFilter', () => {
+      it('supports arrayFilter', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(
+              map({
+                arr: [1, 2, 3, 4, 5]
+              })
+            )
+            .select(
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 2)
+              ).as('filtered')
+            )
+        );
+
+        expectResults(snapshot, {
+          filtered: [3, 4, 5]
         });
-    
-        it('supports arraySlice', async () => {
-          const snapshot = await execute(
-            firestore
-              .pipeline()
-              .collection(randomCol.path)
-              .limit(1)
-              .replaceWith(
-                map({
-                  arr: [1, 2, 3, 4, 5]
-                })
-              )
-              .select(
-                arraySlice('arr', 1, 3).as('sliced'),
-                arraySlice('arr', 2).as('slicedToEnd')
-              )
-          );
-    
-          expectResults(snapshot, {
-            sliced: [2, 3, 4],
-            slicedToEnd: [3, 4, 5]
-          });
+      });
+
+      it('supports arrayFilter with no matching elements', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(
+              map({
+                arr: [1, 2, 3]
+              })
+            )
+            .select(
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 5)
+              ).as('filtered')
+            )
+        );
+
+        expectResults(snapshot, {
+          filtered: []
         });
-        
+      });
+
+      it('supports arrayFilter with mixed types', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(
+              map({
+                arr: [1, 'foo', 20.0, 'bar', 30, '40']
+              })
+            )
+            .select(
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 10)
+              ).as('filtered')
+            )
+        );
+
+        expectResults(snapshot, {
+          filtered: [20.0, 30]
+        });
+      });
+
+      it('supports arrayFilter with nulls in array', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(
+              map({
+                arr: [1, null, 3, 4]
+              })
+            )
+            .select(
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 2)
+              ).as('filtered')
+            )
+        );
+
+        expectResults(snapshot, {
+          filtered: [3, 4]
+        });
+      });
+    });
+
+    it('supports arraySlice', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 4, 5]
+            })
+          )
+          .select(
+            arraySlice('arr', 1, 3).as('sliced'),
+            arraySlice('arr', 2).as('slicedToEnd')
+          )
+      );
+
+      expectResults(snapshot, {
+        sliced: [2, 3, 4],
+        slicedToEnd: [3, 4, 5]
+      });
+    });
 
     it('supports arrayFirstN', async () => {
       let snapshot = await execute(

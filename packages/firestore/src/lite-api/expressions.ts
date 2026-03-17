@@ -1511,7 +1511,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Filter the 'items' array to only include those where the 'price' is greater than 10
-   * field("items").arrayFilter('item', greaterThan(field('item.price'), 10));
+   * field("items").arrayFilter('item', greaterThan(variable('item.price'), 10));
    * ```
    *
    * @param alias - The variable name to use for each element.
@@ -1534,6 +1534,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Get 5 elements from the 'items' array starting from index 2
    * field("items").arraySlice(2, 5);
+   *
+   * // Get n number of elements from the 'items' array starting from index 2
+   * field("items").arraySlice(2, field("count"));
    * ```
    *
    * @param offset - The starting offset.
@@ -6830,7 +6833,7 @@ export function regexContains(
  * @example
  * ```typescript
  * // Get a filtered array of the 'scores' field containing only elements greater than 50.
- * arrayFilter("scores", "score", greaterThan(field("score"), 50));
+ * arrayFilter("scores", "score", greaterThan(variable("score"), 50));
  * ```
  *
  * @param fieldName - The name of the field containing the array.
@@ -6852,7 +6855,7 @@ export function arrayFilter(
  * @example
  * ```typescript
  * // Filter "scores" to include only values greater than 50
- * arrayFilter(field("scores"), "score", field("score").greaterThan(50));
+ * arrayFilter(field("scores"), "score", variable("score").greaterThan(50));
  * ```
  *
  * @param arrayExpression - The expression representing the array.
@@ -6883,6 +6886,9 @@ export function arrayFilter(
  * ```typescript
  * // Get 5 elements from the 'items' array field starting from index 2
  * arraySlice("items", 2, 5);
+ *
+ * // Get n elements from the 'items' array field starting from index 2
+ * arraySlice("items", 2, field("length"));
  * ```
  *
  * @param arrayName - The name of the field containing the array.
@@ -6892,7 +6898,7 @@ export function arrayFilter(
  */
 export function arraySlice(
   arrayName: string,
-  offset: number | Expression,
+  offset: number,
   length?: number | Expression
 ): FunctionExpression;
 
@@ -6905,6 +6911,9 @@ export function arraySlice(
  * ```typescript
  * // Get 5 elements from an array expression starting from index 2
  * arraySlice(field("items"), 2, 5);
+ *
+ * // Get n elements from an array expression starting from index 2
+ * arraySlice(field("items"), 2, field("length"));
  * ```
  *
  * @param arrayExpression - The expression representing the array.
@@ -6914,7 +6923,7 @@ export function arraySlice(
  */
 export function arraySlice(
   arrayExpression: Expression,
-  offset: number | Expression,
+  offset: number,
   length?: number | Expression
 ): FunctionExpression;
 export function arraySlice(

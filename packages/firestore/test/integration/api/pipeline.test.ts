@@ -3253,7 +3253,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
-    describe.only('arrayFilter', () => {
+    describe('arrayFilter', () => {
       it('supports arrayFilter', async () => {
         const snapshot = await execute(
           firestore
@@ -3266,7 +3266,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               })
             )
             .select(
-              arrayFilter('arr', 'element', greaterThan(variable('element'), 2)).as('filtered')
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 2)
+              ).as('filtered')
             )
         );
 
@@ -3287,7 +3291,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               })
             )
             .select(
-              arrayFilter('arr', 'element', greaterThan(variable('element'), 5)).as('filtered')
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 5)
+              ).as('filtered')
             )
         );
 
@@ -3308,9 +3316,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               })
             )
             .select(
-              arrayFilter('arr', 'element', greaterThan(variable('element'), 10)).as(
-                'filtered'
-              )
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 10)
+              ).as('filtered')
             )
         );
 
@@ -3331,7 +3341,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               })
             )
             .select(
-              arrayFilter('arr', 'element', greaterThan(variable('element'), 2)).as('filtered')
+              arrayFilter(
+                'arr',
+                'element',
+                greaterThan(variable('element'), 2)
+              ).as('filtered')
             )
         );
 

@@ -120,7 +120,7 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
-export function arrayFilter(arrayName: string, alias: string, filter: Expression): FunctionExpression;
+export function arrayFilter(fieldName: string, alias: string, filter: Expression): FunctionExpression;
 
 // @beta
 export function arrayFilter(arrayExpression: Expression, alias: string, filter: Expression): FunctionExpression;
