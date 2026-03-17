@@ -535,6 +535,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
+      // don't clean up the tracking maps here, they're handled automatically when the execute promise settles
       const { resolveFn, rejectFn } =
         this.executeRequestPromises.get(requestId)!;
       if (response.errors && response.errors.length) {
@@ -552,7 +553,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       } else {
         resolveFn(response);
       }
-      this.executeRequestPromises.delete(requestId);
     } else if (this.subscribeNotificationHooks.has(requestId)) {
       const notifyQueryManager =
         this.subscribeNotificationHooks.get(requestId)!;
