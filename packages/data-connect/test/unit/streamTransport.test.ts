@@ -147,6 +147,34 @@ interface TransportWithInternals {
   ): Promise<void>;
 }
 
+/**
+ * Asserts that a promise does not settle within the given timeout.
+ * @param promise The promise to test.
+ * @param timeout The timeout in milliseconds (defaults to 3000ms). Note that the test runner's timeout defaults to 5000ms.
+ */
+async function expectNotToSettle(
+  promise: Promise<unknown>,
+  timeout: number = 3000
+): Promise<void> {
+  const unsettled = { settled: false };
+  const result = await Promise.race<{
+    settled: boolean;
+    resolvedWith?: unknown;
+    rejectedWith?: unknown;
+  }>([
+    promise
+      .then(resolvedWith => ({ settled: true, resolvedWith }))
+      .catch(rejectedWith => ({ settled: true, rejectedWith })),
+    new Promise(resolve => {
+      setTimeout(() => resolve(unsettled), timeout);
+    })
+  ]);
+  expect(result).to.equal(
+    unsettled,
+    `expected promise to not settle within ${timeout}ms!`
+  );
+}
+
 describe('AbstractDataConnectStreamTransport', () => {
   const dcOptions: DataConnectOptions = {
     projectId: 'p',
@@ -397,15 +425,6 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const queryPromise = transport.invokeQuery(queryName1, variables1);
 
-          const didNotSettle = 'invokeQuery unsettled after 3 seconds';
-          const hasSettled = 'invokeQuery DID settle!!!';
-          const hasQueryPromiseSettled = Promise.race([
-            queryPromise.then(() => hasSettled),
-            new Promise(resolve => {
-              setTimeout(() => resolve(didNotSettle), 3000);
-            })
-          ]);
-
           const expectedKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeQueryExecuteRequests.has(expectedKey)).to.be
             .true;
@@ -423,9 +442,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(queryName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(hasQueryPromiseSettled).to.eventually.equal(
-            didNotSettle
-          );
+          await expectNotToSettle(queryPromise);
         });
       });
 
@@ -437,15 +454,6 @@ describe('AbstractDataConnectStreamTransport', () => {
             mutationName1,
             variables1
           );
-
-          const didNotSettle = 'invokeMutation unsettled after 3 seconds';
-          const hasSettled = 'invokeMutation DID settle!!!';
-          const hasMutationPromiseSettled = Promise.race([
-            mutationPromise.then(() => hasSettled),
-            new Promise(resolve => {
-              setTimeout(() => resolve(didNotSettle), 3000);
-            })
-          ]);
 
           const expectedKey = transport.getMapKey(mutationName1, variables1);
           const activeRequests =
@@ -463,9 +471,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(mutationName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(hasMutationPromiseSettled).to.eventually.equal(
-            didNotSettle
-          );
+          await expectNotToSettle(mutationPromise);
         });
       });
 
