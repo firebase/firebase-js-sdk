@@ -1506,6 +1506,53 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Filters the array using a provided alias and predicate expression.
+   *
+   * @example
+   * ```typescript
+   * // Filter the 'items' array to only include those where the 'price' is greater than 10
+   * field("items").arrayFilter('item', greaterThan(field('item.price'), 10));
+   * ```
+   *
+   * @param alias - The variable name to use for each element.
+   * @param filter - The predicate expression to evaluate for each element.
+   * @returns A new `Expression` representing the filtered array.
+   */
+  arrayFilter(alias: string, filter: Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_filter',
+      [this, valueToDefaultExpr(alias), valueToDefaultExpr(filter)],
+      'arrayFilter'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns a subset of this array.
+   *
+   * @example
+   * ```typescript
+   * // Get 5 elements from the 'items' array starting from index 2
+   * field("items").arraySlice(2, 5);
+   * ```
+   *
+   * @param offset - The starting offset.
+   * @param length - The optional length of the slice.
+   * @returns A new `Expression` representing the sliced array.
+   */
+  arraySlice(
+    offset: number | Expression,
+    length?: number | Expression
+  ): FunctionExpression {
+    const args: Expression[] = [this, valueToDefaultExpr(offset)];
+    if (length !== undefined) {
+      args.push(valueToDefaultExpr(length));
+    }
+    return new FunctionExpression('array_slice', args, 'arraySlice');
+  }
+
+  /**
+   * @beta
    * Returns the first element of the array.
    *
    * @example
@@ -6773,6 +6820,109 @@ export function regexContains(
   const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.regexContains(patternExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that filters an array using a provided alias and predicate expression.
+ *
+ * @example
+ * ```typescript
+ * // Get a filtered array of the 'scores' field containing only elements greater than 50.
+ * arrayFilter("scores", "score", greaterThan(field("score"), 50));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param alias - The variable name to use for each element.
+ * @param filter - The predicate expression to evaluate for each element.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  fieldName: string,
+  alias: string,
+  filter: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that filters an array using a provided alias and predicate expression.
+ *
+ * @example
+ * ```typescript
+ * // Filter "scores" to include only values greater than 50
+ * arrayFilter(field("scores"), "score", field("score").greaterThan(50));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param alias - The variable name to use for each element.
+ * @param filter - The predicate expression to evaluate for each element.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  arrayExpression: Expression,
+  alias: string,
+  filter: Expression
+): FunctionExpression;
+
+export function arrayFilter(
+  array: Expression | string,
+  alias: string,
+  filter: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFilter(alias, filter);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns a subset of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get 5 elements from the 'items' array field starting from index 2
+ * arraySlice("items", 2, 5);
+ * ```
+ *
+ * @param arrayName - The name of the field containing the array.
+ * @param offset - The starting offset.
+ * @param length - The optional length of the slice.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
+ */
+export function arraySlice(
+  arrayName: string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns a subset of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get 5 elements from an array expression starting from index 2
+ * arraySlice(field("items"), 2, 5);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param offset - The starting offset.
+ * @param length - The optional length of the slice.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
+ */
+export function arraySlice(
+  arrayExpression: Expression,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
+export function arraySlice(
+  array: Expression | string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arraySlice(offset, length);
 }
 
 /**

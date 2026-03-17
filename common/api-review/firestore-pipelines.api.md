@@ -120,6 +120,12 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayFilter(arrayName: string, alias: string, filter: Expression): FunctionExpression;
+
+// @beta
+export function arrayFilter(arrayExpression: Expression, alias: string, filter: Expression): FunctionExpression;
+
+// @beta
 export function arrayFirst(fieldName: string): FunctionExpression;
 
 // @beta
@@ -226,6 +232,12 @@ export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionE
 
 // @beta
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
+export function arraySlice(arrayName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+
+// @beta
+export function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
 
 // @beta
 export function arraySum(fieldName: string): FunctionExpression;
@@ -500,6 +512,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFilter(alias: string, filter: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayFirst(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayFirstN(n: number): FunctionExpression;
@@ -543,6 +557,8 @@ export abstract class Expression {
     arrayMinimumN(n: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arraySum(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
