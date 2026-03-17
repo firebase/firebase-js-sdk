@@ -993,9 +993,12 @@ describe('AbstractDataConnectStreamTransport', () => {
           await transport.invokeHandleResponse(requestId2, errorResponse);
           expect(transport.activeSubscribeRequests.has(expectedKey1)).to.be
             .true;
+          expect(transport.subscribeNotificationHooks.has(requestId1)).to.be
+            .true;
           expect(transport.activeSubscribeRequests.has(expectedKey2)).to.be
             .true;
-          expect(transport.subscribeNotificationHooks.size).to.equal(2);
+          expect(transport.subscribeNotificationHooks.has(requestId2)).to.be
+            .true;
         });
       });
     });
