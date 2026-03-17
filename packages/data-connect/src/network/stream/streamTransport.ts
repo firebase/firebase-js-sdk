@@ -41,6 +41,17 @@ import {
 const FIRST_REQUEST_ID = 1;
 
 /**
+ * A promise that is settled for a request is received, and the functions that resolve or reject it.
+ */
+interface TrackedExecuteRequestPromise<Data> {
+  responsePromise: Promise<DataConnectResponse<Data>>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resolveFn: (data: any) => void,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rejectFn: (err: any) => void;
+}
+
+/**
  * The base class for all DataConnectStreamTransport implementations. Handles management of logical
  * streams (requests), authentication, data routing to query layer, etc.
  * @internal
@@ -104,16 +115,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
    */
-  private executeRequestPromises = new Map<
-    string,
-    {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      resolve: (data: any) => void;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reject: (err: any) => void;
-      promise: Promise<DataConnectResponse<unknown>>;
-    }
-  >();
+  private executeRequestPromises = new Map<string, TrackedExecuteRequestPromise<unknown>>();
 
   /**
    * Map of active subscription RequestIds and their corresponding notification hooks.
@@ -122,6 +124,135 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     string,
     SubscribeNotificationHook<unknown>
   >();
+
+
+  /**
+   * Tracks a query execution request, storing the request body and creating and storing a promise that 
+   * will be resolved when the response is received.
+   * @returns The reject function and the response promise.
+   * 
+   * @remarks
+   * This method returns a promise, but is synchronous.
+   */
+  private trackQueryExecuteRequest<Data>(
+    requestId: string,
+    mapKey: string,
+    executeBody: ExecuteStreamRequest<unknown>
+  ): TrackedExecuteRequestPromise<Data> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
+    );
+    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
+    };
+
+    this.activeQueryExecuteRequests.set(mapKey, executeBody);
+    this.executeRequestPromises.set(requestId, executeRequestPromise);
+
+    return executeRequestPromise;
+  }
+
+  /**
+   * Tracks a mutation execution request, storing the request body and creating and storing a promise 
+   * that will be resolved when the response is received.
+   * @returns The reject function and the response promise.
+   * 
+   * @remarks
+   * This method returns a promise, but is synchronous.
+   */
+  private trackMutationExecuteRequest<Data>(
+    requestId: string,
+    mapKey: string,
+    executeBody: ExecuteStreamRequest<unknown>
+  ): TrackedExecuteRequestPromise<Data> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
+    );
+    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
+    };
+
+    const activeRequests = this.activeMutationExecuteRequests.get(mapKey) || [];
+    activeRequests.push(executeBody);
+    this.activeMutationExecuteRequests.set(mapKey, activeRequests);
+    this.executeRequestPromises.set(requestId, executeRequestPromise);
+
+    return executeRequestPromise;
+  }
+
+  /**
+   * Tracks a subscribe request, storing the request body and the notification hook.
+   * 
+   * @remarks
+   * This method is synchronous.
+   */
+  private trackSubscribeRequest<Data>(
+    requestId: string,
+    mapKey: string,
+    subscribeBody: SubscribeStreamRequest<unknown>,
+    notifyQueryManager: SubscribeNotificationHook<Data>
+  ): void {
+    this.activeSubscribeRequests.set(mapKey, subscribeBody);
+    this.subscribeNotificationHooks.set(
+      requestId,
+      notifyQueryManager as SubscribeNotificationHook<unknown>
+    );
+  }
+
+  /**
+   * Cleans up the query execute request tracking data structures, deleting the tracked request and 
+   * it's associated promise.
+   */
+  private cleanupQueryExecuteRequest(requestId: string, mapKey: string): void {
+    this.activeQueryExecuteRequests.delete(mapKey);
+    this.executeRequestPromises.delete(requestId);
+  }
+
+  /**
+   * Cleans up the mutation execute request tracking data structures, deleting the tracked request and 
+   * it's associated promise.
+   */
+  private cleanupMutationExecuteRequest(requestId: string, mapKey: string): void {
+    const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
+    if (executeRequests) {
+      const updatedRequests = executeRequests.filter(
+        req => req.requestId !== requestId
+      );
+      if (updatedRequests.length > 0) {
+        this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
+      } else {
+        this.activeMutationExecuteRequests.delete(mapKey);
+      }
+    }
+    this.executeRequestPromises.delete(requestId);
+  }
+
+  /**
+   * Cleans up the subscribe request tracking data structures, deleting the tracked request and 
+   * it's associated promise.
+   */
+  private cleanupSubscribeRequest(requestId: string, mapKey: string): void {
+    this.activeSubscribeRequests.delete(mapKey);
+    this.subscribeNotificationHooks.delete(requestId);
+  }
 
   /**
    * Tracks if the next message to be sent is the first message of the stream.
@@ -223,34 +354,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Creates, tracks, and returns a promise that will be resolved when the response for the given
-   * request ID is received.
-   *
-   * @remarks
-   * This method returns a promise, but is synchronous.
-   */
-  private makeExecutePromise<Data>(
-    requestId: string
-  ): Promise<DataConnectResponse<Data>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
-    const responsePromise = new Promise<DataConnectResponse<Data>>(
-      (resolve, reject) => {
-        resolveFn = resolve;
-        rejectFn = reject;
-      }
-    );
-    this.executeRequestPromises.set(requestId, {
-      resolve: resolveFn!,
-      reject: rejectFn!,
-      promise: responsePromise
-    });
-    return responsePromise;
-  }
-
-  /**
    * Helper to generate a consistent string key for the tracking maps.
    */
   private getMapKey(operationName: string, variables?: unknown): string {
@@ -295,23 +398,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    this.activeQueryExecuteRequests.set(mapKey, executeBody);
+    const { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(requestId, mapKey, executeBody);
+    void responsePromise.finally(() => this.cleanupQueryExecuteRequest(requestId, mapKey));
 
-    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(() => {
-      const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
-      if (executeRequest && executeRequest.requestId === requestId) {
-        this.activeQueryExecuteRequests.delete(mapKey);
-      }
-    });
-
-    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
-      const requestPromise = this.executeRequestPromises.get(requestId);
-      if (requestPromise) {
-        requestPromise.reject(err);
-        this.executeRequestPromises.delete(requestId);
-      }
-    });
-
+    // asynchronous, fire and forget
+    this.sendExecuteMessage<Variables>(executeBody).catch(err => { rejectFn(err); });
     return responsePromise;
   }
 
@@ -334,32 +425,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const mutationRequestBodies =
-      this.activeMutationExecuteRequests.get(mapKey) || [];
-    mutationRequestBodies.push(executeBody);
-    this.activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
+    const { responsePromise, rejectFn } = this.trackMutationExecuteRequest<Data>(requestId, mapKey, executeBody);
+    void responsePromise.finally(() => this.cleanupMutationExecuteRequest(requestId, mapKey));
 
-    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(() => {
-      const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
-      if (executeRequests) {
-        const updatedRequests = executeRequests.filter(
-          req => req.requestId !== requestId
-        );
-        if (updatedRequests.length > 0) {
-          this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
-        } else {
-          this.activeMutationExecuteRequests.delete(mapKey);
-        }
-      }
-    });
-
-    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
-      const requestPromise = this.executeRequestPromises.get(requestId);
-      if (requestPromise) {
-        requestPromise.reject(err);
-        this.executeRequestPromises.delete(requestId);
-      }
-    });
+    // asynchronous, fire and forget
+    this.sendExecuteMessage<Variables>(executeBody).catch(err => { rejectFn(err); });
     return responsePromise;
   }
 
@@ -383,20 +453,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       subscribe: activeRequestKey
     };
 
-    this.activeSubscribeRequests.set(mapKey, subscribeBody);
-    this.subscribeNotificationHooks.set(
-      requestId,
-      notifyQueryManager as SubscribeNotificationHook<unknown>
-    );
+    this.trackSubscribeRequest<Data>(requestId, mapKey, subscribeBody, notifyQueryManager);
 
+    // asynchronous, fire and forget
     this.sendSubscribeMessage<Variables>(subscribeBody).catch(err => {
-      this.activeSubscribeRequests.delete(mapKey);
-      this.subscribeNotificationHooks.delete(requestId);
       notifyQueryManager({
         data: undefined as unknown as Data,
         extensions: {},
         errors: [err instanceof Error ? err : new Error(String(err))]
       });
+      this.cleanupSubscribeRequest(requestId, mapKey);
     });
   }
 
@@ -419,9 +485,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
-    this.activeSubscribeRequests.delete(mapKey);
-    this.subscribeNotificationHooks.delete(requestId);
+    this.cleanupSubscribeRequest(requestId, mapKey);
 
+    // asynchronous, fire and forget
     this.sendCancelMessage(cancelBody).catch(err => {
       console.error('Failed to send unsubscribe message', err);
     });
@@ -442,21 +508,21 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
-      const { resolve, reject } = this.executeRequestPromises.get(requestId)!;
+      const { resolveFn, rejectFn } = this.executeRequestPromises.get(requestId)!;
       if (response.errors && response.errors.length) {
         const failureResponse: DataConnectOperationFailureResponse = {
           errors: response.errors as [],
           data: response.data as Record<string, unknown>
         };
         const stringified = JSON.stringify(response.errors);
-        reject(
+        rejectFn(
           new DataConnectOperationError(
             'DataConnect error while performing request: ' + stringified,
             failureResponse
           )
         );
       } else {
-        resolve(response);
+        resolveFn(response);
       }
       this.executeRequestPromises.delete(requestId);
     } else if (this.subscribeNotificationHooks.has(requestId)) {
