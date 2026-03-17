@@ -3911,22 +3911,22 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(new Timestamp(1741437296, 123456789)).as('timestamp')
           )
           .select(
-            timestampTruncate(field('timestamp'), 'year').as('trunc_year'),
-            timestampTruncate(field('timestamp'), 'month').as('trunc_month'),
-            timestampTruncate(field('timestamp'), 'day').as('trunc_day'),
-            timestampTruncate(field('timestamp'), 'hour').as('trunc_hour'),
-            timestampTruncate(field('timestamp'), 'minute').as('trunc_minute'),
-            timestampTruncate(field('timestamp'), 'second').as('trunc_second')
+            timestampTruncate(field('timestamp'), 'year').as('truncYear'),
+            timestampTruncate(field('timestamp'), 'month').as('truncMonth'),
+            timestampTruncate(field('timestamp'), 'day').as('truncDay'),
+            timestampTruncate(field('timestamp'), 'hour').as('truncHour'),
+            timestampTruncate(field('timestamp'), 'minute').as('truncMinute'),
+            timestampTruncate(field('timestamp'), 'second').as('truncSecond')
           )
       );
 
       expectResults(snapshot, {
-        trunc_year: new Timestamp(1735689600, 0),
-        trunc_month: new Timestamp(1740787200, 0),
-        trunc_day: new Timestamp(1741392000, 0),
-        trunc_hour: new Timestamp(1741435200, 0),
-        trunc_minute: new Timestamp(1741437240, 0),
-        trunc_second: new Timestamp(1741437296, 0)
+        truncYear: new Timestamp(1735689600, 0),
+        truncMonth: new Timestamp(1740787200, 0),
+        truncDay: new Timestamp(1741392000, 0),
+        truncHour: new Timestamp(1741435200, 0),
+        truncMinute: new Timestamp(1741437240, 0),
+        truncSecond: new Timestamp(1741437296, 0)
       });
     }).timeout(10000);
 
@@ -3944,12 +3944,12 @@ describe.skipClassic('Firestore Pipelines', () => {
               field('timestamp'),
               'day',
               'America/Los_Angeles'
-            ).as('trunc_day_la')
+            ).as('truncDayLa')
           )
       );
 
       expectResults(snapshot, {
-        trunc_day_la: new Timestamp(1741420800, 0)
+        truncDayLa: new Timestamp(1741420800, 0)
       });
     }).timeout(10000);
 
@@ -3964,24 +3964,24 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(new Timestamp(1741428000, 0)).as('start')
           )
           .select(
-            timestampDiff(field('end'), field('start'), 'hour').as('diff_hour'),
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
             field('end')
               .timestampDiff(field('start'), 'minute')
-              .as('diff_minute'),
+              .as('diffMinute'),
             field('end')
               .timestampDiff(field('start'), 'second')
-              .as('diff_second'),
+              .as('diffSecond'),
             field('start')
               .timestampDiff(field('end'), 'hour')
-              .as('diff_hour_neg')
+              .as('diffHourNeg')
           )
       );
 
       expectResults(snapshot, {
-        diff_hour: 2,
-        diff_minute: 154,
-        diff_second: 9296,
-        diff_hour_neg: -2
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
       });
     }).timeout(10000);
 
@@ -4001,10 +4001,10 @@ describe.skipClassic('Firestore Pipelines', () => {
             field('ts').timestampExtract('second').as('second'),
             timestampExtract(field('ts'), 'millisecond').as('millis'),
             field('ts').timestampExtract('microsecond').as('micros'),
-            timestampExtract(field('ts'), 'dayofyear').as('day_of_year'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
             field('ts')
               .timestampExtract('hour', 'America/Los_Angeles')
-              .as('hour_la')
+              .as('hourLa')
           )
       );
 
@@ -4017,8 +4017,8 @@ describe.skipClassic('Firestore Pipelines', () => {
         second: 56,
         millis: 123,
         micros: 123456,
-        day_of_year: 67,
-        hour_la: 4
+        dayOfYear: 67,
+        hourLa: 4
       });
     }).timeout(10000);
 

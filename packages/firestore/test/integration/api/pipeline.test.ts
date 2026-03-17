@@ -5119,24 +5119,24 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             constant(new Timestamp(1741428000, 0)).as('start')
           )
           .select(
-            timestampDiff(field('end'), field('start'), 'hour').as('diff_hour'),
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
             field('end')
               .timestampDiff(field('start'), 'minute')
-              .as('diff_minute'),
+              .as('diffMinute'),
             field('end')
               .timestampDiff(field('start'), 'second')
-              .as('diff_second'),
+              .as('diffSecond'),
             field('start')
               .timestampDiff(field('end'), 'hour')
-              .as('diff_hour_neg')
+              .as('diffHourNeg')
           )
       );
 
       expectResults(snapshot, {
-        diff_hour: 2,
-        diff_minute: 154,
-        diff_second: 9296,
-        diff_hour_neg: -2
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
       });
     }).timeout(10000);
 
@@ -5156,10 +5156,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             field('ts').timestampExtract('second').as('second'),
             timestampExtract(field('ts'), 'millisecond').as('millis'),
             field('ts').timestampExtract('microsecond').as('micros'),
-            timestampExtract(field('ts'), 'dayofyear').as('day_of_year'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
             field('ts')
               .timestampExtract('hour', 'America/Los_Angeles')
-              .as('hour_la')
+              .as('hourLa')
           )
       );
 
@@ -5172,8 +5172,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         second: 56,
         millis: 123,
         micros: 123456,
-        day_of_year: 67,
-        hour_la: 4
+        dayOfYear: 67,
+        hourLa: 4
       });
     }).timeout(10000);
 
