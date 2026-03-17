@@ -3971,9 +3971,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             field('end')
               .timestampDiff(field('start'), 'second')
               .as('diffSecond'),
-            field('start')
-              .timestampDiff(field('end'), 'hour')
-              .as('diffHourNeg')
+            field('start').timestampDiff(field('end'), 'hour').as('diffHourNeg')
           )
       );
 
