@@ -120,6 +120,24 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayGet(arrayField: string, offset: number): FunctionExpression;
 
 // @beta
@@ -132,10 +150,82 @@ export function arrayGet(arrayExpression: Expression, offset: number): FunctionE
 export function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
 
 // @beta
+export function arrayIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLast(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayLength(fieldName: string): FunctionExpression;
 
 // @beta
 export function arrayLength(array: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @beta
 export function arraySum(fieldName: string): FunctionExpression;
@@ -407,11 +497,47 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFirst(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayGet(offset: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayGet(offsetExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLast(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayLength(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -1030,11 +1156,6 @@ export class Ordering {
 
 // @beta
 export class Pipeline {
-    /* Excluded from this release type: _db */
-    /* Excluded from this release type: userDataReader */
-    /* Excluded from this release type: _userDataWriter */
-    /* Excluded from this release type: stages */
-    /* Excluded from this release type: __constructor */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
@@ -1091,15 +1212,31 @@ export class PipelineSnapshot {
 // @beta
 export class PipelineSource<PipelineType> {
     collection(collection: string | Query): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collection(options: CollectionStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collectionGroup(collectionId: string): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     createFrom(query: Query): Pipeline;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     database(): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     database(options: DatabaseStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     documents(docs: Array<string | DocumentReference>): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     documents(options: DocumentsStageOptions): PipelineType;
-    }
+}
 
 // @beta
 export function pow(base: Expression, exponent: Expression): FunctionExpression;

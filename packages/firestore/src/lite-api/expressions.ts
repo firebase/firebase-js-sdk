@@ -772,7 +772,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * field("category").equalAny("Electronics", field("primaryType"));
+   * field("category").equalAny(["Electronics", field("primaryType")]);
    * ```
    *
    * @param values - The values or expressions to check against.
@@ -1506,6 +1506,345 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
+   * Returns the first element of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first element of the 'myArray' field.
+   * field("myArray").arrayFirst();
+   * ```
+   *
+   * @returns A new `Expression` representing the first element.
+   */
+  arrayFirst(): FunctionExpression {
+    return new FunctionExpression('array_first', [this], 'arrayFirst');
+  }
+
+  /**
+   * @beta
+   * Returns the first `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first 3 elements of the 'myArray' field.
+   * field("myArray").arrayFirstN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the first `n` elements.
+   */
+  arrayFirstN(n: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the first `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first n elements of the 'myArray' field.
+   * field("myArray").arrayFirstN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the first `n` elements.
+   */
+  arrayFirstN(n: Expression): FunctionExpression;
+  arrayFirstN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_first_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayFirstN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the last element of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last element of the 'myArray' field.
+   * field("myArray").arrayLast();
+   * ```
+   *
+   * @returns A new `Expression` representing the last element.
+   */
+  arrayLast(): FunctionExpression {
+    return new FunctionExpression('array_last', [this], 'arrayLast');
+  }
+
+  /**
+   * @beta
+   * Returns the last `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last 3 elements of the 'myArray' field.
+   * field("myArray").arrayLastN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the last `n` elements.
+   */
+  arrayLastN(n: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the last `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last n elements of the 'myArray' field.
+   * field("myArray").arrayLastN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the last `n` elements.
+   */
+  arrayLastN(n: Expression): FunctionExpression;
+  arrayLastN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_last_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayLastN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the maximum value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the maximum value of the 'myArray' field.
+   * field("myArray").arrayMaximum();
+   * ```
+   *
+   * @returns A new `Expression` representing the maximum value.
+   */
+  arrayMaximum(): FunctionExpression {
+    return new FunctionExpression('maximum', [this], 'arrayMaximum');
+  }
+
+  /**
+   * @beta
+   * Returns the largest `n` elements of the array.
+   *
+   * Note: Returns the n largest non-null elements in the array, in descending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the largest 3 elements of the 'myArray' field.
+   * field("myArray").arrayMaximumN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the largest `n` elements.
+   */
+  arrayMaximumN(n: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the largest `n` elements of the array.
+   *
+   * Note: Returns the n largest non-null elements in the array, in descending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the largest n elements of the 'myArray' field.
+   * field("myArray").arrayMaximumN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the largest `n` elements.
+   */
+  arrayMaximumN(n: Expression): FunctionExpression;
+  arrayMaximumN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'maximum_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayMaximumN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the minimum value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the minimum value of the 'myArray' field.
+   * field("myArray").arrayMinimum();
+   * ```
+   *
+   * @returns A new `Expression` representing the minimum value.
+   */
+  arrayMinimum(): FunctionExpression {
+    return new FunctionExpression('minimum', [this], 'arrayMinimum');
+  }
+
+  /**
+   * @beta
+   * Returns the smallest `n` elements of the array.
+   *
+   * Note: Returns the n smallest non-null elements in the array, in ascending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the smallest 3 elements of the 'myArray' field.
+   * field("myArray").arrayMinimumN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the smallest `n` elements.
+   */
+  arrayMinimumN(n: number): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the smallest `n` elements of the array.
+   *
+   * Note: Returns the n smallest non-null elements in the array, in ascending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the smallest n elements of the 'myArray' field.
+   * field("myArray").arrayMinimumN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the smallest `n` elements.
+   */
+  arrayMinimumN(n: Expression): FunctionExpression;
+  arrayMinimumN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'minimum_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayMinimumN'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the first index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the first index of the value 3 in the 'myArray' field.
+   * field("myArray").arrayIndexOf(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayIndexOf(search: unknown): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the first index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the first index of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayIndexOf(field("searchVal"));
+   * ```
+   *
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayIndexOf(search: Expression): FunctionExpression;
+  arrayIndexOf(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of',
+      [this, valueToDefaultExpr(search), valueToDefaultExpr('first')],
+      'arrayIndexOf'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns the last index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the last index of the value 3 in the 'myArray' field.
+   * field("myArray").arrayLastIndexOf(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayLastIndexOf(search: unknown): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns the last index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the last index of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayLastIndexOf(field("searchVal"));
+   * ```
+   *
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayLastIndexOf(search: Expression): FunctionExpression;
+  arrayLastIndexOf(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of',
+      [this, valueToDefaultExpr(search), valueToDefaultExpr('last')],
+      'arrayLastIndexOf'
+    );
+  }
+
+  /**
+   * @beta
+   * Returns all indices of the search value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get all indices of the value 3 in the 'myArray' field.
+   * field("myArray").arrayIndexOfAll(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new `Expression` representing the indices.
+   */
+  arrayIndexOfAll(search: unknown): FunctionExpression;
+
+  /**
+   * @beta
+   * Returns all indices of the search value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get all indices of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayIndexOfAll(field("searchVal"));
+   * ```
+   *
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the indices.
+   */
+  arrayIndexOfAll(search: Expression): FunctionExpression;
+  arrayIndexOfAll(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of_all',
+      [this, valueToDefaultExpr(search)],
+      'arrayIndexOfAll'
+    );
+  }
+
+  /**
+   * @beta
    * Creates an expression that calculates the length of this string expression in bytes.
    *
    * @example
@@ -1879,7 +2218,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Returns the larger value between the 'timestamp' field and the current timestamp.
-   * field("timestamp").logicalMaximum(Function.currentTimestamp());
+   * field("timestamp").logicalMaximum(currentTimestamp());
    * ```
    *
    * @param second - The second expression or literal to compare with.
@@ -1905,7 +2244,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Returns the smaller value between the 'timestamp' field and the current timestamp.
-   * field("timestamp").logicalMinimum(Function.currentTimestamp());
+   * field("timestamp").logicalMinimum(currentTimestamp());
    * ```
    *
    * @param second - The second expression or literal to compare with.
@@ -2457,7 +2796,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Check if the field `value` is absent.
    * field("value").isAbsent();
-   * @example
    * ```
    *
    * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the 'isAbsent' check.
@@ -2766,7 +3104,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   /**
    * @beta
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
-   * return the result of the this expression evaluation.
+   * return the result of this expression evaluation.
    *
    * @example
    * ```typescript
@@ -2785,9 +3123,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
    * return the result of this expression evaluation.
    *
+   * @example
    * ```typescript
    * // Returns the value of the optional field 'optional_field', or if that is
-   * // absent, then returns the value of the field `
+   * // absent, then returns the value of the field `default_field`.
    * field("optional_field").ifAbsent(field('default_field'))
    * ```
    *
@@ -2897,7 +3236,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':'))
+   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':')))
    * ```
    *
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
@@ -2971,7 +3310,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Sort documents by the 'name' field in ascending order
-   * pipeline().collection("users")
+   * firestore.pipeline().collection("users")
    *   .sort(field("name").ascending());
    * ```
    *
@@ -3689,7 +4028,7 @@ export abstract class BooleanExpression extends Expression {
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
-   * constant(50).divide('length').gt(1).ifError(constant(false));
+   * constant(50).divide(field('length')).greaterThan(1).ifError(constant(false));
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -3708,7 +4047,7 @@ export abstract class BooleanExpression extends Expression {
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
-   * constant(50).divide('length').gt(1).ifError(false);
+   * constant(50).divide(field('length')).greaterThan(1).ifError(false);
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -3726,7 +4065,7 @@ export abstract class BooleanExpression extends Expression {
    * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
-   * constant(50).divide('length').gt(1).ifError(constant(0));
+   * constant(50).divide(field('length')).greaterThan(1).ifError(constant(0));
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -3744,7 +4083,7 @@ export abstract class BooleanExpression extends Expression {
    * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
-   * constant(50).divide('length').gt(1).ifError(0);
+   * constant(50).divide(field('length')).greaterThan(1).ifError(0);
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -3943,7 +4282,7 @@ export function isError(value: Expression): BooleanExpression {
  * ```typescript
  * // Create an expression that protects against a divide by zero error
  * // but always returns a boolean expression.
- * ifError(constant(50).divide('length').gt(1), constant(false));
+ * ifError(constant(50).divide(field('length')).greaterThan(1), constant(false));
  * ```
  *
  * @param tryExpr - The try expression.
@@ -4651,7 +4990,7 @@ export function mod(
  * @example
  * ```typescript
  * // Create a map from the input object and reference the 'baz' field value from the input document.
- * map({foo: 'bar', baz: Field.of('baz')}).as('data');
+ * map({foo: 'bar', baz: field('baz')}).as('data');
  * ```
  *
  * @param elements - The input map to evaluate in the expression.
@@ -4705,7 +5044,7 @@ export function _mapValue(plainObject: Record<string, unknown>): MapValue {
  * @example
  * ```typescript
  * // Create an array value from the input array and reference the 'baz' field value from the input document.
- * array(['bar', Field.of('baz')]).as('foo');
+ * array(['bar', field('baz')]).as('foo');
  * ```
  *
  * @param elements - The input array to evaluate in the expression.
@@ -5074,7 +5413,7 @@ export function lessThanOrEqual(
  * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18
- * greaterThan(field("age"), Constant(9).add(9));
+ * greaterThan(field("age"), constant(9).add(9));
  * ```
  *
  * @param left - The first expression to compare.
@@ -6232,7 +6571,7 @@ export function countDistinct(expr: Expression | string): AggregateFunction {
  * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength("name");
+ * charLength("name");
  * ```
  *
  * @param fieldName - The name of the field containing the string.
@@ -6248,7 +6587,7 @@ export function charLength(fieldName: string): FunctionExpression;
  * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength(field("name"));
+ * charLength(field("name"));
  * ```
  *
  * @param stringExpression - The expression representing the string to calculate the length of.
@@ -6434,6 +6773,652 @@ export function regexContains(
   const leftExpr = fieldOrExpression(left);
   const patternExpr = valueToDefaultExpr(pattern);
   return leftExpr.regexContains(patternExpr);
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first tag from the 'tags' array field
+ * arrayFirst("tags");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+ */
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first tag from the 'tags' array field
+ * arrayFirst(field("tags"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+ */
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+export function arrayFirst(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayFirst();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 tags from the 'tags' array field
+ * arrayFirstN("tags", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first n tags from the 'tags' array field
+ * arrayFirstN("tags", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 elements from an array expression
+ * arrayFirstN(field("tags"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first n elements from an array expression
+ * arrayFirstN(field("tags"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayFirstN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFirstN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last tag from the 'tags' array field
+ * arrayLast("tags");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+ */
+export function arrayLast(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last tag from the 'tags' array field
+ * arrayLast(field("tags"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+ */
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+export function arrayLast(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayLast();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 tags from the 'tags' array field
+ * arrayLastN("tags", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last n tags from the 'tags' array field
+ * arrayLastN("tags", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 elements from an array expression
+ * arrayLastN(field("tags"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last n elements from an array expression
+ * arrayLastN(field("tags"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayLastN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayLastN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the maximum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the maximum value from the 'scores' array field
+ * arrayMaximum("scores");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+ */
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the maximum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the maximum value from the 'scores' array field
+ * arrayMaximum(field("scores"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+ */
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+export function arrayMaximum(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayMaximum();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 scores from the 'scores' array field
+ * arrayMaximumN("scores", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top n scores from the 'scores' array field
+ * arrayMaximumN("scores", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 elements from an array expression
+ * arrayMaximumN(field("scores"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top n elements from an array expression
+ * arrayMaximumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayMaximumN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayMaximumN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the minimum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the minimum value from the 'scores' array field
+ * arrayMinimum("scores");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+ */
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the minimum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the minimum value from the 'scores' array field
+ * arrayMinimum(field("scores"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+ */
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+export function arrayMinimum(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayMinimum();
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom 3 scores from the 'scores' array field
+ * arrayMinimumN("scores", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom n scores from the 'scores' array field
+ * arrayMinimumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom 3 scores from the 'scores' array field
+ * arrayMinimumN(field("scores"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom n scores from the 'scores' array field
+ * arrayMinimumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayMinimumN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayMinimumN(valueToDefaultExpr(n));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the index of "politics" in the 'tags' array field
+ * arrayIndexOf("tags", "politics");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the first index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the index of "politics" in the 'tags' array field
+ * arrayIndexOf(field("tags"), "politics");
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayIndexOf(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayIndexOf(valueToDefaultExpr(search));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the last index of "politics" in the 'tags' array field
+ * arrayLastIndexOf("tags", "politics");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayLastIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns the last index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the last index of "politics" in the 'tags' array field
+ * arrayLastIndexOf(field("tags"), "politics");
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayLastIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayLastIndexOf(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayLastIndexOf(valueToDefaultExpr(search));
+}
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns all indices of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get all indices of 5 in the 'scores' array field
+ * arrayIndexOfAll("scores", 5);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+ */
+export function arrayIndexOfAll(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ *
+ * Creates an expression that returns all indices of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get all indices of 5 in the 'scores' array field
+ * arrayIndexOfAll(field("scores"), 5);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+ */
+export function arrayIndexOfAll(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayIndexOfAll(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayIndexOfAll(valueToDefaultExpr(search));
 }
 
 /**
@@ -7042,7 +8027,7 @@ export function toUpper(fieldName: string): FunctionExpression;
  * @example
  * ```typescript
  * // Convert the 'title' field to uppercase
- * toUppercase(field("title"));
+ * toUpper(field("title"));
  * ```
  *
  * @param stringExpression - The expression representing the string to convert to uppercase.
@@ -9354,7 +10339,7 @@ export function sqrt(expr: Expression | string): FunctionExpression {
  * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * strReverse(field("myString"));
+ * stringReverse(field("myString"));
  * ```
  *
  * @param stringExpression - An expression evaluating to a string value, which will be reversed.
@@ -9369,7 +10354,7 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
  * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * strReverse("myString");
+ * stringReverse("myString");
  * ```
  *
  * @param field - The name of the field representing the string to reverse.
@@ -9710,7 +10695,7 @@ export function split(fieldName: string, delimiter: string): FunctionExpression;
  * @example
  * ```typescript
  * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
- * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':')))
  * ```
  *
  * @param fieldName - Split the value in this field.
@@ -9750,7 +10735,7 @@ export function split(
  * @example
  * ```typescript
  * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
- * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':')))
  * ```
  *
  * @param expression - Split the result of this expression.
