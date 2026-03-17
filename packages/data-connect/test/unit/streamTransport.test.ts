@@ -426,15 +426,6 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const queryPromise = transport.invokeQuery(queryName1, variables1);
 
-          const didNotSettle = 'invokeQuery unsettled after 3 seconds';
-          const hasSettled = 'invokeQuery DID settle!!!';
-          const hasQueryPromiseSettled = Promise.race([
-            queryPromise.then(() => hasSettled),
-            new Promise(resolve => {
-              setTimeout(() => resolve(didNotSettle), 3000);
-            })
-          ]);
-
           const expectedKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeQueryExecuteRequests.has(expectedKey)).to.be
             .true;
@@ -452,9 +443,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.execute).to.not.be.undefined;
           expect(sentMessage.execute?.operationName).to.equal(queryName1);
           expect(sentMessage.execute?.variables).to.deep.equal(variables1);
-          await expect(hasQueryPromiseSettled).to.eventually.equal(
-            didNotSettle
-          );
+          await expectNotToSettle(queryPromise);
         });
 
         it('should reject and clean up if sendMessage fails', async () => {
