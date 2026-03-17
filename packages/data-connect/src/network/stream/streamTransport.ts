@@ -382,7 +382,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -409,7 +409,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -436,7 +436,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -469,7 +469,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
