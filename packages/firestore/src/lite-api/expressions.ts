@@ -10571,9 +10571,9 @@ export function ifAbsent(
  * // Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
  * // and default to "Unknown" if none of the conditions are true.
  * switchOn(
- *   equal(field("status"), 1), "Active",
- *   equal(field("status"), 2), "Pending",
- *   "Unknown"
+ *   equal(field("status"), 1), constant("Active"),
+ *   equal(field("status"), 2), constant("Pending"),
+ *   constant("Unknown")
  * )
  * ```
  *
