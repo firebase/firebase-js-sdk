@@ -3916,7 +3916,8 @@ describe.skipClassic('Firestore Pipelines', () => {
             timestampTruncate(field('timestamp'), 'day').as('truncDay'),
             timestampTruncate(field('timestamp'), 'hour').as('truncHour'),
             timestampTruncate(field('timestamp'), 'minute').as('truncMinute'),
-            timestampTruncate(field('timestamp'), 'second').as('truncSecond')
+            timestampTruncate(field('timestamp'), 'second').as('truncSecond'),
+            timestampTruncate(field('timestamp'), 'isoWeek').as('truncIsoWeek')
           )
       );
 
@@ -3926,7 +3927,8 @@ describe.skipClassic('Firestore Pipelines', () => {
         truncDay: new Timestamp(1741392000, 0),
         truncHour: new Timestamp(1741435200, 0),
         truncMinute: new Timestamp(1741437240, 0),
-        truncSecond: new Timestamp(1741437296, 0)
+        truncSecond: new Timestamp(1741437296, 0),
+        truncIsoWeek: new Timestamp(1740960000, 0)
       });
     }).timeout(10000);
 
