@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { Code, DataConnectError } from '../../core/error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationFailureResponse
+} from '../../core/error';
 import {
   AbstractDataConnectTransport,
   DataConnectResponse,
@@ -34,6 +39,17 @@ import {
 
 /** The request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
+
+/**
+ * A promise that is settled for a request is received, and the functions that resolve or reject it.
+ */
+interface TrackedExecuteRequestPromise<Data> {
+  responsePromise: Promise<DataConnectResponse<Data>>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  resolveFn: (data: any) => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rejectFn: (err: any) => void;
+}
 
 /**
  * The base class for all DataConnectStreamTransport implementations. Handles management of logical
@@ -61,7 +77,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected abstract sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
-  ): void;
+  ): Promise<void>;
 
   /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
   private requestNumber = FIRST_REQUEST_ID;
@@ -101,13 +117,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private executeRequestPromises = new Map<
     string,
-    {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      resolve: (data: any) => void;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reject: (err: any) => void;
-      promise: Promise<DataConnectResponse<unknown>>;
-    }
+    TrackedExecuteRequestPromise<unknown>
   >();
 
   /**
@@ -117,6 +127,137 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     string,
     SubscribeNotificationHook<unknown>
   >();
+
+  /**
+   * Tracks a query execution request, storing the request body and creating and storing a promise that
+   * will be resolved when the response is received.
+   * @returns The reject function and the response promise.
+   *
+   * @remarks
+   * This method returns a promise, but is synchronous.
+   */
+  private trackQueryExecuteRequest<Data>(
+    requestId: string,
+    mapKey: string,
+    executeBody: ExecuteStreamRequest<unknown>
+  ): TrackedExecuteRequestPromise<Data> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
+    );
+    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
+    };
+
+    this.activeQueryExecuteRequests.set(mapKey, executeBody);
+    this.executeRequestPromises.set(requestId, executeRequestPromise);
+
+    return executeRequestPromise;
+  }
+
+  /**
+   * Tracks a mutation execution request, storing the request body and creating and storing a promise
+   * that will be resolved when the response is received.
+   * @returns The reject function and the response promise.
+   *
+   * @remarks
+   * This method returns a promise, but is synchronous.
+   */
+  private trackMutationExecuteRequest<Data>(
+    requestId: string,
+    mapKey: string,
+    executeBody: ExecuteStreamRequest<unknown>
+  ): TrackedExecuteRequestPromise<Data> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let resolveFn: (data: any) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (err: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
+    );
+    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
+    };
+
+    const activeRequests = this.activeMutationExecuteRequests.get(mapKey) || [];
+    activeRequests.push(executeBody);
+    this.activeMutationExecuteRequests.set(mapKey, activeRequests);
+    this.executeRequestPromises.set(requestId, executeRequestPromise);
+
+    return executeRequestPromise;
+  }
+
+  /**
+   * Tracks a subscribe request, storing the request body and the notification hook.
+   *
+   * @remarks
+   * This method is synchronous.
+   */
+  private trackSubscribeRequest<Data>(
+    requestId: string,
+    mapKey: string,
+    subscribeBody: SubscribeStreamRequest<unknown>,
+    notifyQueryManager: SubscribeNotificationHook<Data>
+  ): void {
+    this.activeSubscribeRequests.set(mapKey, subscribeBody);
+    this.subscribeNotificationHooks.set(
+      requestId,
+      notifyQueryManager as SubscribeNotificationHook<unknown>
+    );
+  }
+
+  /**
+   * Cleans up the query execute request tracking data structures, deleting the tracked request and
+   * it's associated promise.
+   */
+  private cleanupQueryExecuteRequest(requestId: string, mapKey: string): void {
+    this.activeQueryExecuteRequests.delete(mapKey);
+    this.executeRequestPromises.delete(requestId);
+  }
+
+  /**
+   * Cleans up the mutation execute request tracking data structures, deleting the tracked request and
+   * it's associated promise.
+   */
+  private cleanupMutationExecuteRequest(
+    requestId: string,
+    mapKey: string
+  ): void {
+    const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
+    if (executeRequests) {
+      const updatedRequests = executeRequests.filter(
+        req => req.requestId !== requestId
+      );
+      if (updatedRequests.length > 0) {
+        this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
+      } else {
+        this.activeMutationExecuteRequests.delete(mapKey);
+      }
+    }
+    this.executeRequestPromises.delete(requestId);
+  }
+
+  /**
+   * Cleans up the subscribe request tracking data structures, deleting the tracked request and
+   * it's associated promise.
+   */
+  private cleanupSubscribeRequest(requestId: string, mapKey: string): void {
+    this.activeSubscribeRequests.delete(mapKey);
+    this.subscribeNotificationHooks.delete(requestId);
+  }
 
   /**
    * Tracks if the next message to be sent is the first message of the stream.
@@ -186,9 +327,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private sendExecuteMessage<Variables>(
     executeRequestBody: ExecuteStreamRequest<Variables>
-  ): void {
+  ): Promise<void> {
     const preparedRequestBody = this.prepareMessage(executeRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
@@ -196,53 +337,29 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private sendSubscribeMessage<Variables>(
     subscribeRequestBody: SubscribeStreamRequest<Variables>
-  ): void {
+  ): Promise<void> {
     const preparedRequestBody = this.prepareMessage(subscribeRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to unsubscribe to a query.
    */
-  private sendCancelMessage(cancelRequestBody: CancelStreamRequest): void {
+  private sendCancelMessage(
+    cancelRequestBody: CancelStreamRequest
+  ): Promise<void> {
     const preparedRequestBody = this.prepareMessage(cancelRequestBody);
-    this.sendMessage(preparedRequestBody);
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
    * Internal helper to queue a message to resume a query.
    */
-  private sendResumeMessage(resumeRequestBody: ResumeStreamRequest): void {
+  private sendResumeMessage(
+    resumeRequestBody: ResumeStreamRequest
+  ): Promise<void> {
     const preparedRequestBody = this.prepareMessage(resumeRequestBody);
-    this.sendMessage(preparedRequestBody);
-  }
-
-  /**
-   * Creates, tracks, and returns a promise that will be resolved when the response for the given
-   * request ID is received.
-   *
-   * @remarks
-   * This method returns a promise, but is synchronous.
-   */
-  private makeExecutePromise<Data>(
-    requestId: string
-  ): Promise<DataConnectResponse<Data>> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
-    const responsePromise = new Promise<DataConnectResponse<Data>>(
-      (resolve, reject) => {
-        resolveFn = resolve;
-        rejectFn = reject;
-      }
-    );
-    this.executeRequestPromises.set(requestId, {
-      resolve: resolveFn!,
-      reject: rejectFn!,
-      promise: responsePromise
-    });
-    return responsePromise;
+    return this.sendMessage(preparedRequestBody);
   }
 
   /**
@@ -274,7 +391,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -290,24 +407,26 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(
-      () => {
-        const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
-        if (executeRequest && executeRequest.requestId === requestId) {
-          this.activeQueryExecuteRequests.delete(mapKey);
-        }
-      }
+    const { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
+      requestId,
+      mapKey,
+      executeBody
     );
-    this.activeQueryExecuteRequests.set(mapKey, executeBody);
+    void responsePromise.finally(() =>
+      this.cleanupQueryExecuteRequest(requestId, mapKey)
+    );
 
-    this.sendExecuteMessage<Variables>(executeBody);
+    // asynchronous, fire and forget
+    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
+      rejectFn(err);
+    });
     return responsePromise;
   }
 
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -323,34 +442,23 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const responsePromise = this.makeExecutePromise<Data>(requestId).finally(
-      () => {
-        const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
-        if (executeRequests) {
-          const updatedRequests = executeRequests.filter(
-            req => req.requestId !== requestId
-          );
-          if (updatedRequests.length > 0) {
-            this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
-          } else {
-            this.activeMutationExecuteRequests.delete(mapKey);
-          }
-        }
-      }
+    const { responsePromise, rejectFn } =
+      this.trackMutationExecuteRequest<Data>(requestId, mapKey, executeBody);
+    void responsePromise.finally(() =>
+      this.cleanupMutationExecuteRequest(requestId, mapKey)
     );
-    const mutationRequestBodies =
-      this.activeMutationExecuteRequests.get(mapKey) || [];
-    mutationRequestBodies.push(executeBody);
-    this.activeMutationExecuteRequests.set(mapKey, mutationRequestBodies);
 
-    this.sendExecuteMessage<Variables>(executeBody);
+    // asynchronous, fire and forget
+    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
+      rejectFn(err);
+    });
     return responsePromise;
   }
 
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -367,19 +475,28 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       subscribe: activeRequestKey
     };
 
-    this.activeSubscribeRequests.set(mapKey, subscribeBody);
-    this.subscribeNotificationHooks.set(
+    this.trackSubscribeRequest<Data>(
       requestId,
-      notifyQueryManager as SubscribeNotificationHook<unknown>
+      mapKey,
+      subscribeBody,
+      notifyQueryManager
     );
 
-    this.sendSubscribeMessage<Variables>(subscribeBody);
+    // asynchronous, fire and forget
+    this.sendSubscribeMessage<Variables>(subscribeBody).catch(err => {
+      notifyQueryManager({
+        data: undefined as unknown as Data,
+        extensions: {},
+        errors: [err instanceof Error ? err : new Error(String(err))]
+      });
+      this.cleanupSubscribeRequest(requestId, mapKey);
+    });
   }
 
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures.
+   * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
    * preserves the synchronous update of the tracking data structures before the method returns.
    */
@@ -395,10 +512,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
-    this.activeSubscribeRequests.delete(mapKey);
-    this.subscribeNotificationHooks.delete(requestId);
+    this.cleanupSubscribeRequest(requestId, mapKey);
 
-    this.sendCancelMessage(cancelBody);
+    // asynchronous, fire and forget
+    this.sendCancelMessage(cancelBody).catch(err => {
+      console.error('Failed to send unsubscribe message', err);
+    });
   }
 
   onAuthTokenChanged(newToken: string | null): void {
@@ -416,9 +535,24 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
-      const { resolve } = this.executeRequestPromises.get(requestId)!;
-      resolve(response);
-      this.executeRequestPromises.delete(requestId);
+      // don't clean up the tracking maps here, they're handled automatically when the execute promise settles
+      const { resolveFn, rejectFn } =
+        this.executeRequestPromises.get(requestId)!;
+      if (response.errors && response.errors.length) {
+        const failureResponse: DataConnectOperationFailureResponse = {
+          errors: response.errors as [],
+          data: response.data as Record<string, unknown>
+        };
+        const stringified = JSON.stringify(response.errors);
+        rejectFn(
+          new DataConnectOperationError(
+            'DataConnect error while performing request: ' + stringified,
+            failureResponse
+          )
+        );
+      } else {
+        resolveFn(response);
+      }
     } else if (this.subscribeNotificationHooks.has(requestId)) {
       const notifyQueryManager =
         this.subscribeNotificationHooks.get(requestId)!;
