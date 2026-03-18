@@ -6,6 +6,7 @@
   "main": "dist/index.node.cjs.js",
   "module": "dist/index.esm.js",
   "browser": "dist/index.esm.js",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index-public.d.ts",
@@ -18,6 +19,30 @@
         "import": "./dist/index.esm.js"
       },
       "default": "./dist/index.esm.js"
+    },
+    "./fetch": {
+      "types": "./dist/fetch.d.ts",
+      "node": {
+        "import": "./dist/node-esm/fetch.js",
+        "default": "./dist/fetch.node.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/fetch.cjs.js",
+        "import": "./dist/fetch.esm.js"
+      },
+      "default": "./dist/fetch.esm.js"
+    },
+    "./xhr": {
+      "types": "./dist/xhr.d.ts",
+      "node": {
+        "import": "./dist/node-esm/xhr.js",
+        "default": "./dist/xhr.node.cjs.js"
+      },
+      "browser": {
+        "require": "./dist/xhr.cjs.js",
+        "import": "./dist/xhr.esm.js"
+      },
+      "default": "./dist/xhr.esm.js"
     },
     "./react": {
       "types": "./dist/react/index-public.d.ts",

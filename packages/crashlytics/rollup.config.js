@@ -59,6 +59,40 @@ const browserBuilds = [
     },
     plugins: [...buildPlugins, replaceSource('./auto-constants.js')],
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'fetch.ts',
+    output: [
+      {
+        file: pkg.exports['./fetch'].browser.require,
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: pkg.exports['./fetch'].browser.import,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: buildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'xhr.ts',
+    output: [
+      {
+        file: pkg.exports['./xhr'].browser.require,
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: pkg.exports['./xhr'].browser.import,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: buildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
 
@@ -85,6 +119,40 @@ const nodeBuilds = [
       emitModulePackageFile(),
       replaceSource('../auto-constants.mjs')
     ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'fetch.ts',
+    output: [
+      {
+        file: pkg.exports['./fetch'].node.default,
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: pkg.exports['./fetch'].node.import,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: buildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'xhr.ts',
+    output: [
+      {
+        file: pkg.exports['./xhr'].node.default,
+        format: 'cjs',
+        sourcemap: true
+      },
+      {
+        file: pkg.exports['./xhr'].node.import,
+        format: 'es',
+        sourcemap: true
+      }
+    ],
+    plugins: buildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

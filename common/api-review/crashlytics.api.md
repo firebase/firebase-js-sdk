@@ -34,12 +34,6 @@ export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Ins
 // @public
 export function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
 
-// @public
-export function registerFetchInstrumentation(crashlytics: Crashlytics): void;
-
-// @public
-export function registerXHRInstrumentation(crashlytics: Crashlytics): void;
-
 
 // (No @packageDocumentation comment for this package)
 

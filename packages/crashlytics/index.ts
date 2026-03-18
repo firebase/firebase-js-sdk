@@ -22,5 +22,3 @@ registerCrashlytics();
 export * from './src/api';
 export * from './src/public-types';
 export * from './src/next';
-export * from './src/tracing/instrumentations/fetch';
-export * from './src/tracing/instrumentations/xhr';
