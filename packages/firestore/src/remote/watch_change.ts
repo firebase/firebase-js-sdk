@@ -249,11 +249,7 @@ class TargetState {
       // unrecoverable), we clamp to zero and continue.
       // See: https://github.com/firebase/firebase-js-sdk/issues/9729
       logWarn(
-        'Received more target responses than pending target requests ' +
-          '(pendingResponses=' +
-          this.pendingResponses +
-          '). This may happen in environments that re-invoke effects ' +
-          '(e.g. React StrictMode).'
+        `Received more target responses than pending target requests (pendingResponses=${this.pendingResponses}). This may happen in environments that re-invoke effects (e.g. React StrictMode).`
       );
       this.pendingResponses = 0;
     }
