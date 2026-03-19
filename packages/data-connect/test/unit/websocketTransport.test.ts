@@ -22,27 +22,61 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { WebSocketTransport } from '../../src/network/stream/websocket';
+import { WebSocketTransport, initializeWebSocket } from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
+
+import { expectIsNotSettled } from './testUtils';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
-/** Expose protected properties for testing */
-class TestWebSocketTransport extends WebSocketTransport {
-  testOpenConnection(): Promise<void> {
-    return this.openConnection();
-  }
-  testCloseConnection(): Promise<void> {
-    return this.closeConnection();
-  }
-  testSendMessage(req: DataConnectStreamRequest<unknown>): Promise<void> {
-    return this.sendMessage(req);
-  }
+/** Interface that exposes some private fields and methods of WebSocketTransport for testing purposes. */
+interface TransportWithInternals {
+  openConnection(): Promise<void>;
+  closeConnection(): Promise<void>;
+  sendMessage(req: DataConnectStreamRequest<unknown>): Promise<void>;
+  connection: MockWebSocket | undefined;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type GlobalWithWebSocket = any;
+class MockWebSocket {
+  static readonly CONNECTING = WebSocket.CONNECTING;
+  static readonly OPEN = WebSocket.OPEN;
+  static readonly CLOSING = WebSocket.CLOSING;
+  static readonly CLOSED = WebSocket.CLOSED;
+
+  readyState: number = MockWebSocket.CONNECTING;
+  send: sinon.SinonSpy = sinon.spy();
+  close: sinon.SinonSpy = sinon.spy();
+
+  onopen: (() => void | Promise<void>) | null = null;
+  onerror: ((err: Error) => void | Promise<void>) | null = null;
+  onmessage: ((ev: MessageEvent) => void | Promise<void>) | null = null;
+  onclose: ((ev: CloseEvent) => void | Promise<void>) | null = null;
+
+  url: string;
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  simulateOpen(): void | Promise<void> {
+    this.readyState = MockWebSocket.OPEN;
+    if (this.onopen) {
+      return this.onopen();
+    }
+  }
+
+  simulateError(err: Error): void | Promise<void> {
+    if (this.onerror) {
+      return this.onerror(err);
+    }
+  }
+
+  simulateMessage(data: string): void | Promise<void> {
+    if (this.onmessage) {
+      return this.onmessage({ data } as MessageEvent);
+    }
+  }
+}
 
 describe('WebSocketTransport', () => {
   const dcOptions: DataConnectOptions = {
@@ -52,107 +86,79 @@ describe('WebSocketTransport', () => {
     connector: 'c'
   };
 
-  let transport: TestWebSocketTransport;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let webSocketMock: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let originalWebSocket: any;
+  let transport: TransportWithInternals;
 
   beforeEach(() => {
-    // Save original WebSocket
-    originalWebSocket = (global as GlobalWithWebSocket).WebSocket;
-
-    // Create a mock WebSocket instance
-    webSocketMock = {
-      readyState: 0, // CONNECTING
-      send: sinon.spy(),
-      close: sinon.spy(),
-      onopen: null,
-      onerror: null,
-      onmessage: null,
-      onclose: null
-    };
-
-    // Mock the WebSocket constructor
-    (global as GlobalWithWebSocket).WebSocket = sinon.stub().returns(webSocketMock);
-    (global as GlobalWithWebSocket).WebSocket.CONNECTING = 0;
-    (global as GlobalWithWebSocket).WebSocket.OPEN = 1;
-    (global as GlobalWithWebSocket).WebSocket.CLOSING = 2;
-    (global as GlobalWithWebSocket).WebSocket.CLOSED = 3;
-
-    transport = new TestWebSocketTransport(dcOptions);
+    initializeWebSocket(MockWebSocket as unknown as typeof WebSocket);
+    transport = new WebSocketTransport(dcOptions) as unknown as TransportWithInternals;
   });
 
   afterEach(() => {
-    // Restore original WebSocket
-    if (originalWebSocket) {
-      (global as GlobalWithWebSocket).WebSocket = originalWebSocket;
-    } else {
-      delete (global as GlobalWithWebSocket).WebSocket;
-    }
+    initializeWebSocket(WebSocket);
     sinon.restore();
   });
 
+  const connectionError = new Error('Test connection error');
+
   describe('openConnection', () => {
     it('should resolve when onopen fires', async () => {
-      const openPromise = transport.testOpenConnection();
-      
-      // Simulate successful connection
-      webSocketMock.readyState = 1; // OPEN
-      if (webSocketMock.onopen) {
-        webSocketMock.onopen();
-      }
-
+      const openPromise = transport.openConnection();
+      await expectIsNotSettled(openPromise);
+      await transport.connection!.simulateOpen();
       await expect(openPromise).to.be.fulfilled;
     });
 
     it('should reject when onerror fires', async () => {
-      const openPromise = transport.testOpenConnection();
-      
-      const testError = new Error('Test connection error');
-      if (webSocketMock.onerror) {
-        webSocketMock.onerror(testError);
-      }
-
+      const openPromise = transport.openConnection();
+      await expectIsNotSettled(openPromise);
+      await transport.connection!.simulateError(connectionError);
       await expect(openPromise).to.be.rejectedWith(/Failed to open connection/);
     });
 
-    it('should return immediately if already connected', async () => {
-      const openPromise1 = transport.testOpenConnection();
-      webSocketMock.readyState = 1; // OPEN
-      if (webSocketMock.onopen) {
-        webSocketMock.onopen();
-      }
+    it('should de-duplicate calls when already connected', async () => {
+      const onOpenStub = sinon.stub(transport.connection!, 'onopen');
+      const openPromise1 = transport.openConnection();
+      await transport.connection!.simulateOpen();
       await openPromise1;
-
-      // Reset mock constructor to ensure it's not called again
-      (global as GlobalWithWebSocket).WebSocket.resetHistory();
-
-      const openPromise2 = transport.testOpenConnection();
+      const previousConnection = transport.connection;
+      const openPromise2 = transport.openConnection();
       await openPromise2;
+      expect(transport.connection).to.equal(previousConnection);
+      expect(onOpenStub).to.have.been.calledOnce;
+    });
 
-      expect((global as GlobalWithWebSocket).WebSocket).to.not.have.been.called;
+    it('should de-duplicate calls when open connection is pending', async () => {
+      const onOpenStub = sinon.stub(transport.connection!, 'onopen');
+      const openPromise1 = transport.openConnection();
+      await expectIsNotSettled(openPromise1);
+      const openPromise2 = transport.openConnection();
+      await expectIsNotSettled(openPromise2);
+      await transport.connection!.simulateOpen();
+      await expect(openPromise1).to.be.fulfilled;
+      await expect(openPromise2).to.be.fulfilled;
+      expect(onOpenStub).to.have.been.calledOnce;
     });
   });
 
   describe('sendMessage', () => {
-    it('should send stringified json payload', async () => {
-      const payload: DataConnectStreamRequest<unknown> = {
-        requestId: '1',
-        execute: { operationName: 'testQuery' }
-      };
+    const payload: DataConnectStreamRequest<unknown> = {
+      requestId: '1',
+      execute: { operationName: 'testQuery' }
+    };
 
-      const sendPromise = transport.testSendMessage(payload);
-      
-      webSocketMock.readyState = 1; // OPEN
-      if (webSocketMock.onopen) {
-        webSocketMock.onopen();
-      }
-      
+    it('should not send until connection is open', async () => {
+      const sendPromise = transport.sendMessage(payload);
+      await expectIsNotSettled(sendPromise);
+      await transport.connection!.simulateOpen();
       await sendPromise;
+      expect(transport.connection!.send).to.have.been.calledOnce;
+    });
 
-      expect(webSocketMock.send).to.have.been.calledOnce;
-      expect(webSocketMock.send).to.have.been.calledWith(JSON.stringify(payload));
+    it('should send stringified json payload', async () => {
+      const sendPromise = transport.sendMessage(payload);
+      await transport.connection!.simulateOpen();
+      await sendPromise;
+      expect(transport.connection!.send).to.have.been.calledOnceWith(JSON.stringify(payload));
     });
   });
 
@@ -163,11 +169,8 @@ describe('WebSocketTransport', () => {
       const handleResponseStub = sinon.stub(transport as any, 'handleResponse').resolves();
 
       // First open connection
-      const openPromise = transport.testOpenConnection();
-      webSocketMock.readyState = 1;
-      if (webSocketMock.onopen) {
-        webSocketMock.onopen();
-      }
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
       await openPromise;
 
       // Simulate incoming message
@@ -181,13 +184,11 @@ describe('WebSocketTransport', () => {
         }
       };
 
-      if (webSocketMock.onmessage) {
-        await webSocketMock.onmessage({ data: JSON.stringify(incomingData) } as MessageEvent);
-      }
+      await transport.connection!.simulateMessage(JSON.stringify(incomingData));
 
       expect(handleResponseStub).to.have.been.calledOnce;
       const [calledRequestId, calledResponse] = handleResponseStub.firstCall.args;
-      
+
       expect(calledRequestId).to.equal('1');
       expect(calledResponse.data).to.deep.equal({ foo: 'bar' });
       expect(calledResponse.errors).to.deep.equal([]);
@@ -198,11 +199,8 @@ describe('WebSocketTransport', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handleResponseStub = sinon.stub(transport as any, 'handleResponse').resolves();
 
-      const openPromise = transport.testOpenConnection();
-      webSocketMock.readyState = 1;
-      if (webSocketMock.onopen) {
-        webSocketMock.onopen();
-      }
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
       await openPromise;
 
       // Incoming message WITHOUT extensions field
@@ -214,22 +212,17 @@ describe('WebSocketTransport', () => {
         }
       };
 
-      if (webSocketMock.onmessage) {
-        await webSocketMock.onmessage({ data: JSON.stringify(incomingData) } as MessageEvent);
-      }
+      await transport.connection!.simulateMessage(JSON.stringify(incomingData));
 
       expect(handleResponseStub).to.have.been.calledOnce;
       const calledResponse = handleResponseStub.firstCall.args[1];
-      
+
       expect(calledResponse.extensions).to.deep.equal({ dataConnect: [] });
     });
 
     it('should throw if result or requestId is missing', async () => {
-      const openPromise = transport.testOpenConnection();
-      webSocketMock.readyState = 1;
-      if (webSocketMock.onopen) {
-        webSocketMock.onopen();
-      }
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
       await openPromise;
 
       const invalidData1 = { foo: 'bar' }; // no result object
@@ -237,7 +230,7 @@ describe('WebSocketTransport', () => {
 
       let error1: unknown;
       try {
-        await webSocketMock.onmessage({ data: JSON.stringify(invalidData1) } as MessageEvent);
+        await transport.connection!.simulateMessage(JSON.stringify(invalidData1));
       } catch (err: unknown) {
         error1 = err;
       }
@@ -247,7 +240,7 @@ describe('WebSocketTransport', () => {
 
       let error2: unknown;
       try {
-        await webSocketMock.onmessage({ data: JSON.stringify(invalidData2) } as MessageEvent);
+        await transport.connection!.simulateMessage(JSON.stringify(invalidData2));
       } catch (err: unknown) {
         error2 = err;
       }

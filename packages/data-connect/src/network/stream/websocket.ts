@@ -28,26 +28,33 @@ import {
 import { AbstractDataConnectStreamTransport } from './streamTransport';
 import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
 
+let connectWebSocket: typeof WebSocket | null = globalThis.WebSocket;
+
+/** Set the WebSocket implementation to be used by the WebSocketTransport. */
+export function initializeWebSocket(webSocketImpl: typeof WebSocket): void {
+  connectWebSocket = webSocketImpl;
+}
+
 /**
- * An AbstractDataConnectStreamTransport implementation that uses WebSockets to stream requests and
- * responses. This class handles the lifecycle of the WebSocket connection, including automatic
- * reconnection, message sending and receiving, and request correlation.
+ * A StreamTransport implementation that uses WebSockets to stream requests and responses.
+ * This class handles the lifecycle of the WebSocket connection, including automatic
+ * reconnection and request correlation.
  * @internal
  */
 export class WebSocketTransport extends AbstractDataConnectStreamTransport {
-  /** The current established connection to the server. Undefined if disconnected. */
+  /** The current connection to the server. Undefined if disconnected. */
   private connection: WebSocket | undefined = undefined;
+
+  /** Is the connection ready to send/receive messages? */
+  get isReady(): boolean {
+    return this.connection?.readyState === WebSocket.OPEN;
+  }
 
   /**
    * Current connection attempt. If null, we are not currently attemping to connect (not connected, 
    * or already connected). Will be resolved or rejected when the connection is opened or fails to open.
    */
   private connectionAttempt: Promise<void> | null = null;
-
-  /** Is the stream actively connected? */
-  get streamConnected(): boolean {
-    return this.connection?.readyState === WebSocket.OPEN;
-  }
 
   constructor(
     options: DataConnectOptions,
@@ -77,16 +84,22 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * @returns A promise that resolves when the stream is open and ready.
    */
   private ensureConnection(): Promise<void> {
-    if (this.streamConnected) {
+    if (this.isReady) {
       return Promise.resolve();
     }
     if (this.connectionAttempt) {
       return this.connectionAttempt;
     }
     this.connectionAttempt = new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(this.endpointUrl);
+      if (!connectWebSocket) {
+        throw new DataConnectError(
+          Code.OTHER,
+          'No WebSocket Implementation detected!'
+        );
+      }
+      const ws = new connectWebSocket(this.endpointUrl);
+      this.connection = ws;
       ws.onopen = () => {
-        this.connection = ws;
         this.onConnectionReady();
         resolve();
       };
