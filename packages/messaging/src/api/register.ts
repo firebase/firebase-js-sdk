@@ -20,6 +20,7 @@ import { MessagingService } from '../messaging-service';
 import { updateSwReg } from '../helpers/updateSwReg';
 import { updateVapidKey } from '../helpers/updateVapidKey';
 import { RegisterOptions } from '../interfaces/public-types';
+import { registerFcmRegistrationWithFid } from '../internals/register-fid';
 
 /**
  * Links the app instance to its Firebase Installation ID (FID). Unlike getToken(),
@@ -63,6 +64,8 @@ export async function register(
       return;
     }
     messaging.lastNotifiedFid = fid;
+
+    await registerFcmRegistrationWithFid(messaging);
 
     if (messaging.onRegisteredHandler) {
       if (typeof messaging.onRegisteredHandler === 'function') {

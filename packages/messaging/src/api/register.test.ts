@@ -30,11 +30,15 @@ import { expect } from 'chai';
 import * as updateVapidKeyModule from '../helpers/updateVapidKey';
 import * as updateSwRegModule from '../helpers/updateSwReg';
 import { Stub } from '../testing/sinon-types';
+import * as requestsModule from '../internals/requests';
 
 describe('register', () => {
   let messaging: MessagingService;
   let updateVapidKeyStub: Stub<typeof updateVapidKeyModule.updateVapidKey>;
   let updateSwRegStub: Stub<typeof updateSwRegModule.updateSwReg>;
+  let requestCreateRegistrationStub: Stub<
+    typeof requestsModule.requestCreateRegistration
+  >;
 
   beforeEach(() => {
     stub(Notification, 'permission').value('granted');
@@ -54,6 +58,11 @@ describe('register', () => {
       updateSwRegModule,
       'updateSwReg'
     ).resolves() as Stub<typeof updateSwRegModule.updateSwReg>;
+
+    requestCreateRegistrationStub = stub(
+      requestsModule,
+      'requestCreateRegistration'
+    ).resolves();
   });
 
   it('calls updateVapidKey and updateSwReg then delivers FID via onRegisteredHandler', async () => {
@@ -68,6 +77,7 @@ describe('register', () => {
       undefined
     );
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
   it('passes options to updateVapidKey and updateSwReg when provided', async () => {
@@ -135,6 +145,7 @@ describe('register', () => {
     await register(messaging);
 
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
   it('calls onRegisteredHandler when FID changed', async () => {
@@ -163,6 +174,7 @@ describe('register', () => {
     expect(onRegisteredSpy).to.have.been.calledTwice;
     expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID_NEW');
     expect(messaging.lastNotifiedFid).to.equal('FID_NEW');
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
   it('calls onRegisteredHandler only when FID changes across three register calls', async () => {
@@ -196,5 +208,6 @@ describe('register', () => {
     expect(getIdStub).to.have.been.calledThrice;
     expect(onRegisteredSpy).to.have.been.calledTwice;
     expect(messaging.lastNotifiedFid).to.equal('FID_B');
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 });

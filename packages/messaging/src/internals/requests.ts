@@ -76,6 +76,66 @@ export async function requestGetToken(
   return responseData.token;
 }
 
+/**
+ * Creates (or refreshes) an FCM Web registration via CreateRegistration, but only relies on
+ * HTTP success/failure.
+ *
+ * This is used by the FID-based register path, where we don't require the returned FCM token.
+ */
+export async function requestCreateRegistration(
+  firebaseDependencies: FirebaseInternalDependencies,
+  subscriptionOptions: SubscriptionOptions
+): Promise<void> {
+  const headers = await getHeaders(firebaseDependencies);
+  const body = getBody(subscriptionOptions);
+
+  const subscribeOptions = {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body)
+  };
+
+  let response: Response;
+  // `fetch()` failure (network/CORS/etc) throws and we won't have a `response` to inspect.
+  // Wrap it with the FID-specific error code so callers can handle it consistently.
+  try {
+    response = await fetch(
+      getEndpoint(firebaseDependencies.appConfig),
+      subscribeOptions
+    );
+  } catch (err) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: (err as Error)?.toString()
+    });
+  }
+
+  if (response.ok) {
+    return;
+  }
+
+  // `fetch()` succeeded, but the backend returned a non-2xx response.
+  // Best-effort parse the body to extract `error.message`, but always fail with
+  // `FID_REGISTRATION_FAILED` to keep the error surface uniform.
+  // Best-effort extraction of error details; the main signal is response.ok / status.
+  try {
+    const responseData = (await response.json()) as ApiResponse;
+    const message = responseData.error?.message ?? response.statusText;
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: message
+    });
+  } catch (err) {
+    if (err instanceof Error) {
+      // If we already wrapped with ERROR_FACTORY, rethrow it.
+      // Otherwise, e.g. `response.json()` might have thrown; we prefer returning a
+      // normalized `FID_REGISTRATION_FAILED` error below.
+      throw err;
+    }
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: response.statusText
+    });
+  }
+}
+
 export async function requestUpdateToken(
   firebaseDependencies: FirebaseInternalDependencies,
   tokenDetails: TokenDetails

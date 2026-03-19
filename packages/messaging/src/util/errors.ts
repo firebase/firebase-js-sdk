@@ -28,6 +28,7 @@ export const enum ErrorCode {
   FAILED_DEFAULT_REGISTRATION = 'failed-service-worker-registration',
   TOKEN_SUBSCRIBE_FAILED = 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN = 'token-subscribe-no-token',
+  FID_REGISTRATION_FAILED = 'fid-registration-failed',
   TOKEN_UNSUBSCRIBE_FAILED = 'token-unsubscribe-failed',
   TOKEN_UPDATE_FAILED = 'token-update-failed',
   TOKEN_UPDATE_NO_TOKEN = 'token-update-no-token',
@@ -59,6 +60,8 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'A problem occurred while subscribing the user to FCM: {$errorInfo}',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing the user to push.',
+  [ErrorCode.FID_REGISTRATION_FAILED]:
+    'A problem occurred while creating an FCM registration via FID: {$errorInfo}',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
     'A problem occurred while unsubscribing the ' +
     'user from FCM: {$errorInfo}',
@@ -85,6 +88,7 @@ interface ErrorParams {
   };
   [ErrorCode.FAILED_DEFAULT_REGISTRATION]: { browserErrorMessage: string };
   [ErrorCode.TOKEN_SUBSCRIBE_FAILED]: { errorInfo: string };
+  [ErrorCode.FID_REGISTRATION_FAILED]: { errorInfo: string };
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]: { errorInfo: string };
   [ErrorCode.TOKEN_UPDATE_FAILED]: { errorInfo: string };
 }
