@@ -1528,7 +1528,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Returns a subset of this array.
+   * Returns a subset of the array.
    *
    * @example
    * ```typescript
@@ -6898,7 +6898,7 @@ export function arrayFilter(
  */
 export function arraySlice(
   arrayName: string,
-  offset: number,
+  offset: number | Expression,
   length?: number | Expression
 ): FunctionExpression;
 
@@ -6923,7 +6923,7 @@ export function arraySlice(
  */
 export function arraySlice(
   arrayExpression: Expression,
-  offset: number,
+  offset: number | Expression,
   length?: number | Expression
 ): FunctionExpression;
 export function arraySlice(
