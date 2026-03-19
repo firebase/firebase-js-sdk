@@ -23,7 +23,10 @@ import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
 import { DataConnectError } from '../../src/core/error';
-import { WebSocketTransport, initializeWebSocket } from '../../src/network/stream/websocket';
+import {
+  WebSocketTransport,
+  initializeWebSocket
+} from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 import { DataConnectResponse } from '../../src/network/transport';
 
@@ -104,7 +107,9 @@ describe('WebSocketTransport', () => {
 
   beforeEach(() => {
     initializeWebSocket(MockWebSocket as unknown as typeof WebSocket);
-    transport = new WebSocketTransport(dcOptions) as unknown as TransportWithInternals;
+    transport = new WebSocketTransport(
+      dcOptions
+    ) as unknown as TransportWithInternals;
   });
 
   afterEach(() => {
@@ -202,7 +207,9 @@ describe('WebSocketTransport', () => {
       await openPromise;
       const mockWs = transport.connection!;
       mockWs.close = sinon.stub().throws(connectionError);
-      await expect(transport.closeConnection()).to.be.rejectedWith(connectionError);
+      await expect(transport.closeConnection()).to.be.rejectedWith(
+        connectionError
+      );
       expect(transport.connection).to.be.undefined;
     });
   });
@@ -237,7 +244,9 @@ describe('WebSocketTransport', () => {
       const sendPromise = transport.sendMessage(payload);
       await transport.connection!.simulateOpen();
       await sendPromise;
-      expect(transport.connection!.send).to.have.been.calledOnceWith(JSON.stringify(payload));
+      expect(transport.connection!.send).to.have.been.calledOnceWith(
+        JSON.stringify(payload)
+      );
     });
   });
 
@@ -260,30 +269,45 @@ describe('WebSocketTransport', () => {
     };
 
     it('should correctly parse incoming JSON and handle response', async () => {
-      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
+      const handleResponseStub = sinon
+        .stub(transport, 'handleResponse')
+        .resolves();
 
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      await transport.connection!.simulateMessage(JSON.stringify(messageWithExtensions));
+      await transport.connection!.simulateMessage(
+        JSON.stringify(messageWithExtensions)
+      );
 
       expect(handleResponseStub).to.have.been.calledOnce;
-      const [calledRequestId, calledResponse] = handleResponseStub.firstCall.args;
+      const [calledRequestId, calledResponse] =
+        handleResponseStub.firstCall.args;
       expect(calledRequestId).to.equal(messageWithExtensions.result.requestId);
-      expect(calledResponse.data).to.deep.equal(messageWithExtensions.result.data);
-      expect(calledResponse.errors).to.deep.equal(messageWithExtensions.result.errors);
-      expect(calledResponse.extensions).to.deep.equal(messageWithExtensions.result.extensions);
+      expect(calledResponse.data).to.deep.equal(
+        messageWithExtensions.result.data
+      );
+      expect(calledResponse.errors).to.deep.equal(
+        messageWithExtensions.result.errors
+      );
+      expect(calledResponse.extensions).to.deep.equal(
+        messageWithExtensions.result.extensions
+      );
     });
 
     it('should map extensions to empty array if not strictly provided', async () => {
-      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
+      const handleResponseStub = sinon
+        .stub(transport, 'handleResponse')
+        .resolves();
 
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      await transport.connection!.simulateMessage(JSON.stringify(messageWithoutExtensions));
+      await transport.connection!.simulateMessage(
+        JSON.stringify(messageWithoutExtensions)
+      );
 
       expect(handleResponseStub).to.have.been.calledOnce;
       const calledResponse = handleResponseStub.firstCall.args[1];
@@ -299,13 +323,17 @@ describe('WebSocketTransport', () => {
 
       let error: DataConnectError | undefined;
       try {
-        await transport.connection!.simulateMessage(JSON.stringify(invalidData));
+        await transport.connection!.simulateMessage(
+          JSON.stringify(invalidData)
+        );
       } catch (err: unknown) {
         error = err as DataConnectError;
       }
 
       expect(error).to.not.be.undefined;
-      expect(error!.message).to.include('message from stream did not include result');
+      expect(error!.message).to.include(
+        'message from stream did not include result'
+      );
     });
 
     it('should throw if requestId is missing', async () => {
@@ -317,13 +345,17 @@ describe('WebSocketTransport', () => {
 
       let error: DataConnectError | undefined;
       try {
-        await transport.connection!.simulateMessage(JSON.stringify(invalidData));
+        await transport.connection!.simulateMessage(
+          JSON.stringify(invalidData)
+        );
       } catch (err: unknown) {
         error = err as DataConnectError;
       }
 
       expect(error).to.not.be.undefined;
-      expect(error!.message).to.include('server response did not include requestId');
+      expect(error!.message).to.include(
+        'server response did not include requestId'
+      );
     });
   });
 });

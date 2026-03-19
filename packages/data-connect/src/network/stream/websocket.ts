@@ -51,7 +51,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   }
 
   /**
-   * Current connection attempt. If null, we are not currently attemping to connect (not connected, 
+   * Current connection attempt. If null, we are not currently attemping to connect (not connected,
    * or already connected). Will be resolved or rejected when the connection is opened or fails to open.
    */
   private connectionAttempt: Promise<void> | null = null;
@@ -173,7 +173,9 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * @param ev The MessageEvent from the WebSocket.
    */
   private async handleWebSocketMessage(ev: MessageEvent): Promise<void> {
-    const result: DataConnectStreamResponse<unknown> = this.parseWebSocketData(ev.data);
+    const result: DataConnectStreamResponse<unknown> = this.parseWebSocketData(
+      ev.data
+    );
     const requestId = result.requestId;
 
     const response: DataConnectResponse<unknown> = {

@@ -207,7 +207,8 @@ export function getGoogApiClientValue(
  * @internal
  */
 export abstract class AbstractDataConnectTransport
-  implements DataConnectTransportInterface {
+  implements DataConnectTransportInterface
+{
   protected _host = '';
   protected _port: number | undefined;
   protected _location = 'l';
