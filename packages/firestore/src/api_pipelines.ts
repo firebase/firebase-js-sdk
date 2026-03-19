@@ -187,7 +187,6 @@ export {
   AliasedExpression,
   Field,
   FunctionExpression,
-  VariableExpression,
   Ordering,
   BooleanExpression,
   AggregateFunction,

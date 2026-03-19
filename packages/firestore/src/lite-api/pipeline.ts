@@ -398,7 +398,64 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * @beta
    * Converts this Pipeline into an expression that evaluates to an array of results.
-   * Used for embedding 1:N subqueries into stages like {@link @firebase/firestore/pipelines#Pipeline.(addFields:1)}
+   *
+   * <p>Result Unwrapping:</p>
+   * <ul>
+   *  <li>If the items have a single field, their values are unwrapped and returned directly in the array.</li>
+   *  <li>If the items have multiple fields, they are returned as objects in the array</li>
+   * </ul>
+   *
+   * @example
+   * ```typescript
+   * // Get a list of reviewers for each book
+   * db.pipeline().collection("books")
+   *     .define(field("id").as("book_id"))
+   *     .addFields(
+   *         db.pipeline().collection("reviews")
+   *             .where(field("book_id").equal(variable("book_id")))
+   *             .select(field("reviewer"))
+   *             .toArrayExpression()
+   *             .as("reviewers")
+   *     )
+   * ```
+   *
+   * Output:
+   * ```json
+   * [
+   *   {
+   *     "id": "1",
+   *     "title": "1984",
+   *     "reviewers": ["Alice", "Bob"]
+   *   }
+   * ]
+   * ```
+   *
+   * Multiple Fields:
+   * ```typescript
+   * // Get a list of reviews (reviewer and rating) for each book
+   * db.pipeline().collection("books")
+   *     .define(field("id").as("book_id"))
+   *     .addFields(
+   *         db.pipeline().collection("reviews")
+   *             .where(field("book_id").equal(variable("book_id")))
+   *             .select(field("reviewer"), field("rating"))
+   *             .toArrayExpression()
+   *             .as("reviews"))
+   * ```
+   *
+   * Output:
+   * ```json
+   * [
+   *   {
+   *     "id": "1",
+   *     "title": "1984",
+   *     "reviews": [
+   *       { "reviewer": "Alice", "rating": 5 },
+   *       { "reviewer": "Bob", "rating": 4 }
+   *     ]
+   *   }
+   * ]
+   * ```
    *
    * @returns An `Expression` representing the execution of this pipeline.
    */
@@ -409,12 +466,61 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * @beta
    * Converts this Pipeline into an expression that evaluates to a single scalar result.
-   * Used for 1:1 lookups or Aggregations when the subquery is expected to return a single value or object.
    *
+   * <p><b>Runtime Validation:</b> The runtime validates that the result set contains zero or one item. If
+   * zero items, it evaluates to `null`.</p>
+   *
+   * <p>Result Unwrapping:</p>
    * <ul>
-   *  <li><b>Runtime Validation:</b> the runtime will validate that the result set contains exactly one item, if not it throws a runtime error.</li>
-   *  <li><b>Result Unwrapping:</b> For simpler access, scalar subqueries producing a single field automatically unwrap that value to the top-level, ignoring the inner alias. If the subquery returns multiple fields, they are preserved as a map.</li>
+   *  <li>If the item has a single field, its value is unwrapped and returned directly.</li>
+   *  <li>f the item has multiple fields, they are returned as an object.</li>
    * </ul>
+   *
+   * @example
+   * ```typescript
+   * // Calculate average rating for a restaurant
+   * db.pipeline().collection("restaurants").addFields(
+   *   db.pipeline().collection("reviews")
+   *     .where(field("restaurant_id").equal(variable("rid")))
+   *     .aggregate(average("rating").as("avg"))
+   *     // Unwraps the single "avg" field to a scalar double
+   *     .toScalarExpression().as("average_rating")
+   * )
+   * ```
+   *
+   * Output:
+   * ```json
+   * {
+   *   "name": "The Burger Joint",
+   *   "average_rating": 4.5
+   * }
+   * ```
+   *
+   * Multiple Fields:
+   * ```typescript
+   * // Calculate average rating AND count for a restaurant
+   * db.pipeline().collection("restaurants").addFields(
+   *   db.pipeline().collection("reviews")
+   *     .where(field("restaurant_id").equal(variable("rid")))
+   *     .aggregate(
+   *       average("rating").as("avg"),
+   *       count().as("count")
+   *     )
+   *     // Returns an object with "avg" and "count" fields
+   *     .toScalarExpression().as("stats")
+   * )
+   * ```
+   *
+   * Output:
+   * ```json
+   * {
+   *   "name": "The Burger Joint",
+   *   "stats": {
+   *     "avg": 4.5,
+   *     "count": 100
+   *   }
+   * }
+   * ```
    *
    * @returns An `Expression` representing the execution of this pipeline.
    */

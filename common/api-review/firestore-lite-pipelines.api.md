@@ -1617,13 +1617,7 @@ export type UnnestStageOptions = StageOptions & {
 };
 
 // @beta
-export function variable(name: string): VariableExpression;
-
-// @beta
-export class VariableExpression extends Expression {
-    // (undocumented)
-    expressionType: ExpressionType;
-    }
+export function variable(name: string): Expression;
 
 // @beta
 export function vectorLength(vectorExpression: Expression): FunctionExpression;

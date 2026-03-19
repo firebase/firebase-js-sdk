@@ -221,7 +221,6 @@ export {
   Field,
   Constant,
   FunctionExpression,
-  VariableExpression,
   Ordering,
   ExpressionType,
   AliasedAggregate,

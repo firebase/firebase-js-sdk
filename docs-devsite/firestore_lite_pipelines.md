@@ -414,7 +414,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [Query](./firestore_lite_pipelines.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryDocumentSnapshot](./firestore_lite_pipelines.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
 |  [Timestamp](./firestore_lite_pipelines.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
-|  [VariableExpression](./firestore_lite_pipelines.variableexpression.md#variableexpression_class) | <b><i>(Public Preview)</i></b> Expression representing a variable reference. This evaluates to the value of a variable defined in a pipeline. |
 |  [VectorValue](./firestore_lite_pipelines.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. |
 
 ## Interfaces
@@ -10137,7 +10136,7 @@ Creates an expression that retrieves the value of a variable bound via `define()
 <b>Signature:</b>
 
 ```typescript
-export declare function variable(name: string): VariableExpression;
+export declare function variable(name: string): Expression;
 ```
 
 #### Parameters
@@ -10148,7 +10147,7 @@ export declare function variable(name: string): VariableExpression;
 
 <b>Returns:</b>
 
-[VariableExpression](./firestore_lite_pipelines.variableexpression.md#variableexpression_class)
+[Expression](./firestore_lite_pipelines.expression.md#expression_class)
 
 An [Expression](./firestore_pipelines.expression.md#expression_class) representing the variable's value.
 

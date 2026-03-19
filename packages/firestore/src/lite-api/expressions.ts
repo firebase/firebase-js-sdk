@@ -10966,12 +10966,12 @@ export function timestampTruncate(
  * @param name - The name of the variable to retrieve.
  * @returns An {@link @firebase/firestore/pipelines#Expression} representing the variable's value.
  */
-export function variable(name: string): VariableExpression {
+export function variable(name: string): Expression {
   return new VariableExpression(name);
 }
 
 /**
- * @beta
+ * @internal
  *
  * Expression representing a variable reference. This evaluates to the value of a variable
  * defined in a pipeline.
