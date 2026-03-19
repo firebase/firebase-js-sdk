@@ -29,30 +29,35 @@ import { AbstractDataConnectStreamTransport } from './streamTransport';
 import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
 
 /**
- * A StreamTransport implementation that uses WebSockets to stream requests and responses.
- * This class handles the lifecycle of the WebSocket connection, including automatic
- * reconnection and request correlation.
+ * An AbstractDataConnectStreamTransport implementation that uses WebSockets to stream requests and
+ * responses. This class handles the lifecycle of the WebSocket connection, including automatic
+ * reconnection, message sending and receiving, and request correlation.
  * @internal
  */
 export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   /** The current established connection to the server. Undefined if disconnected. */
-  private _connection: WebSocket | undefined = undefined;
+  private connection: WebSocket | undefined = undefined;
 
   /**
-   * Tracks any ongoing connection attempt. This ensures we don't open multiple streams if multiple
-   * requests are fired simultaneously.
+   * Current connection attempt. If null, we are not currently attemping to connect (not connected, 
+   * or already connected). Will be resolved or rejected when the connection is opened or fails to open.
    */
-  private _connectionAttempt: Promise<void> | null = null;
+  private connectionAttempt: Promise<void> | null = null;
+
+  /** Is the stream actively connected? */
+  get streamConnected(): boolean {
+    return this.connection?.readyState === WebSocket.OPEN;
+  }
 
   constructor(
     options: DataConnectOptions,
-    apiKey?: string | undefined,
-    appId?: string | null,
-    authProvider?: AuthTokenProvider | undefined,
-    appCheckProvider?: AppCheckTokenProvider | undefined,
+    protected apiKey?: string | undefined,
+    protected appId?: string | null,
+    protected authProvider?: AuthTokenProvider | undefined,
+    protected appCheckProvider?: AppCheckTokenProvider | undefined,
     transportOptions?: TransportOptions | undefined,
-    _isUsingGen = false,
-    _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
+    protected _isUsingGen = false,
+    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
   ) {
     super(
       options,
@@ -71,33 +76,33 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * If a connection attempt is already in progress, it returns the existing promise.
    * @returns A promise that resolves when the stream is open and ready.
    */
-  private _ensureConnection(): Promise<void> {
-    if (this._connection?.readyState === WebSocket.OPEN) {
+  private ensureConnection(): Promise<void> {
+    if (this.streamConnected) {
       return Promise.resolve();
     }
-    if (this._connectionAttempt) {
-      return this._connectionAttempt;
+    if (this.connectionAttempt) {
+      return this.connectionAttempt;
     }
-    this._connectionAttempt = new Promise<void>((resolve, reject) => {
+    this.connectionAttempt = new Promise<void>((resolve, reject) => {
       const ws = new WebSocket(this.endpointUrl);
       ws.onopen = () => {
-        this._connection = ws;
+        this.connection = ws;
         this.onConnectionReady();
         resolve();
       };
       ws.onerror = err => {
-        this._connectionAttempt = null;
+        this.connectionAttempt = null;
         reject(`Could not open websocket connection: ${String(err)}`);
       };
-      ws.onmessage = ev => this._handleWebSocketMessage(ev);
-      ws.onclose = ev => this._handleDisconnect(ev);
+      ws.onmessage = ev => this.handleWebSocketMessage(ev);
+      ws.onclose = ev => this.handleWebsocketDisconnect(ev);
     });
 
-    return this._connectionAttempt;
+    return this.connectionAttempt;
   }
 
   protected openConnection(): Promise<void> {
-    return this._ensureConnection().catch(err => {
+    return this.ensureConnection().catch(err => {
       throw new DataConnectError(
         Code.OTHER,
         `Failed to open connection: ${err}`
@@ -106,12 +111,21 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   }
 
   protected closeConnection(): Promise<void> {
-    if (!this._connection) {
+    if (!this.connection) {
       return Promise.resolve();
     }
-    this._connection.close();
-    this._connection = undefined;
-    this._connectionAttempt = null;
+    let error;
+    try {
+      this.connection.close();
+    } catch (e) {
+      error = e;
+    } finally {
+      this.connection = undefined;
+      this.connectionAttempt = null;
+    }
+    if (error) {
+      return Promise.reject(error);
+    }
     return Promise.resolve();
   }
 
@@ -120,18 +134,18 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * orchestrate reconnection attempts.
    * @param ev the CloseEvent that closed the WebSocket.
    */
-  private _handleDisconnect(ev: CloseEvent): void {
-    this._connection = undefined;
-    this._connectionAttempt = null;
-    // In PR 6 (or PR 8), we will orchestrate reconnections and pending streams timeout here
+  private handleWebsocketDisconnect(ev: CloseEvent): void {
+    this.connection = undefined;
+    this.connectionAttempt = null;
+    // TODO(stephenarosaj): handle reconnection, cleanup, etc.
   }
 
   protected sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void> {
-    return this._ensureConnection()
+    return this.ensureConnection()
       .then(() => {
-        this._connection!.send(JSON.stringify(requestBody));
+        this.connection!.send(JSON.stringify(requestBody));
       })
       .catch(err => {
         throw new DataConnectError(
@@ -145,8 +159,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * Handles incoming WebSocket messages.
    * @param ev The MessageEvent from the WebSocket.
    */
-  private async _handleWebSocketMessage(ev: MessageEvent): Promise<void> {
-    const result = this._parseWebSocketData(ev.data);
+  private async handleWebSocketMessage(ev: MessageEvent): Promise<void> {
+    const result: DataConnectStreamResponse<unknown> = this.parseWebSocketData(ev.data);
     const requestId = result.requestId;
 
     const response: DataConnectResponse<unknown> = {
@@ -163,7 +177,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * @param data the message from the server to be parsed
    * @returns the parsed message as a DataConnectStreamResponse
    */
-  private _parseWebSocketData<Data>(
+  private parseWebSocketData<Data>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
   ): DataConnectStreamResponse<Data> {
