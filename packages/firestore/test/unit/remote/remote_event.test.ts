@@ -697,4 +697,85 @@ describe('RemoteEvent', () => {
     // Doc3 is only in the non-limbo target, therefore not tracked as limbo
     expect(event.resolvedLimboDocuments.has(doc3.key)).to.be.false;
   });
+
+  it('does not crash when receiving more target responses than pending requests', () => {
+    // Regression test for https://github.com/firebase/firebase-js-sdk/issues/9729
+    //
+    // React 19 StrictMode double-invokes effects, which can cause
+    // listen/unlisten/re-listen sequences that result in the server sending
+    // more target acks than the client expects. The old hardAssert in
+    // recordTargetResponse() would permanently crash the Firestore SDK
+    // instance in this scenario.
+    //
+    // Scenario:
+    //   1. Client sends watch request (pendingResponses = 1)
+    //   2. StrictMode cleanup sends unwatch + rewatch, but the watch stream
+    //      may be recreated, losing track of the first pending request
+    //   3. Server responds with Added for a target that has 0 pending requests
+    //   4. pendingResponses goes to -1 → hardAssert fires → SDK poisoned
+
+    // Set up target 1 with only 1 outstanding response
+    const targets = listens(1);
+    const outstandingResponses = { 1: 1 };
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+
+    // First response: Removed (consumes the 1 pending response → 0)
+    const change1 = new WatchTargetChange(WatchTargetChangeState.Removed, [1]);
+    // Second response: Added (would decrement to -1, triggering the crash)
+    const change2 = new WatchTargetChange(WatchTargetChangeState.Added, [1]);
+    // A document arrives after the re-add
+    const change3 = new DocumentWatchChange([1], [], doc1.key, doc1);
+
+    // This should NOT throw. Before the fix, hardAssert would fire with
+    // "pendingResponses is less than 0" and permanently break the SDK.
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      outstandingResponses,
+      changes: [change1, change2, change3]
+    });
+
+    expectEqual(event.snapshotVersion, version(3));
+    // The document should be tracked after the target is re-added
+    expect(event.documentUpdates.size).to.equal(1);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+  });
+
+  it('handles rapid listen/unlisten/re-listen without fatal assertion', () => {
+    // Additional regression test for #9729: simulates the full
+    // React 19 StrictMode sequence where a getDoc() effect fires,
+    // cleans up, and re-fires, resulting in 3 pending requests but
+    // potentially 4 responses if the server acks overlap.
+    const targets = listens(1);
+    // Simulate: watch(1), unwatch(1), watch(1) = 3 pending requests
+    const outstandingResponses = { 1: 3 };
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+
+    // Server responds to all three + an extra overlapping ack:
+    // Response 1: Added for original watch   (3 → 2)
+    // Response 2: Removed for unwatch         (2 → 1)
+    // Response 3: Added for re-watch          (1 → 0)
+    // Response 4: Spurious Added from overlap (0 → -1, crash before fix)
+    const changes = [
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Removed, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]), // spurious
+      new DocumentWatchChange([1], [], doc1.key, doc1)
+    ];
+
+    // Should not throw
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      outstandingResponses,
+      changes
+    });
+
+    expectEqual(event.snapshotVersion, version(3));
+    expect(event.documentUpdates.size).to.equal(1);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+  });
 });
