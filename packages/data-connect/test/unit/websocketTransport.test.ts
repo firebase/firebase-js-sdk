@@ -22,8 +22,10 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import { DataConnectError } from '../../src/core/error';
 import { WebSocketTransport, initializeWebSocket } from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
+import { DataConnectResponse } from '../../src/network/transport';
 
 import { expectIsNotSettled } from './testUtils';
 
@@ -36,6 +38,11 @@ interface TransportWithInternals {
   closeConnection(): Promise<void>;
   sendMessage(req: DataConnectStreamRequest<unknown>): Promise<void>;
   connection: MockWebSocket | undefined;
+  isReady: boolean;
+  handleResponse<Data>(
+    requestId: string,
+    response: DataConnectResponse<Data>
+  ): Promise<void>;
 }
 
 class MockWebSocket {
@@ -74,6 +81,13 @@ class MockWebSocket {
   simulateMessage(data: string): void | Promise<void> {
     if (this.onmessage) {
       return this.onmessage({ data } as MessageEvent);
+    }
+  }
+
+  simulateClose(code = 1000, reason = 'Normal Closure'): void | Promise<void> {
+    this.readyState = MockWebSocket.CLOSED;
+    if (this.onclose) {
+      return this.onclose({ code, reason } as CloseEvent);
     }
   }
 }
@@ -116,27 +130,92 @@ describe('WebSocketTransport', () => {
     });
 
     it('should de-duplicate calls when already connected', async () => {
-      const onOpenStub = sinon.stub(transport.connection!, 'onopen');
       const openPromise1 = transport.openConnection();
+      const onOpenSpy = sinon.spy(transport.connection!, 'onopen');
       await transport.connection!.simulateOpen();
       await openPromise1;
       const previousConnection = transport.connection;
       const openPromise2 = transport.openConnection();
       await openPromise2;
       expect(transport.connection).to.equal(previousConnection);
-      expect(onOpenStub).to.have.been.calledOnce;
+      expect(onOpenSpy).to.have.been.calledOnce;
     });
 
     it('should de-duplicate calls when open connection is pending', async () => {
-      const onOpenStub = sinon.stub(transport.connection!, 'onopen');
       const openPromise1 = transport.openConnection();
+      const onOpenSpy = sinon.spy(transport.connection!, 'onopen');
       await expectIsNotSettled(openPromise1);
       const openPromise2 = transport.openConnection();
       await expectIsNotSettled(openPromise2);
       await transport.connection!.simulateOpen();
       await expect(openPromise1).to.be.fulfilled;
       await expect(openPromise2).to.be.fulfilled;
-      expect(onOpenStub).to.have.been.calledOnce;
+      expect(onOpenSpy).to.have.been.calledOnce;
+    });
+  });
+
+  describe('isReady', () => {
+    it('should be false initially', () => {
+      expect(transport.isReady).to.be.false;
+    });
+
+    it('should be false while connecting', async () => {
+      const openPromise = transport.openConnection();
+      await expectIsNotSettled(openPromise);
+      expect(transport.isReady).to.be.false;
+    });
+
+    it('should be true when connected', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+      expect(transport.isReady).to.be.true;
+    });
+
+    it('should be false after disconnected', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+      await transport.connection!.simulateClose();
+      expect(transport.isReady).to.be.false;
+    });
+  });
+
+  describe('closeConnection', () => {
+    it('should close the underlying websocket and reset connection states', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+      const mockWs = transport.connection!;
+      await transport.closeConnection();
+      expect(mockWs.close).to.have.been.calledOnce;
+      expect(transport.connection).to.be.undefined;
+    });
+
+    it('should be idempotent if connection is already closed', async () => {
+      await expect(transport.closeConnection()).to.be.fulfilled;
+    });
+
+    it('should return rejected promise and clean up if ws.close() throws', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+      const mockWs = transport.connection!;
+      mockWs.close = sinon.stub().throws(connectionError);
+      await expect(transport.closeConnection()).to.be.rejectedWith(connectionError);
+      expect(transport.connection).to.be.undefined;
+    });
+  });
+
+  describe('onclose handler (handleWebsocketDisconnect)', () => {
+    it('should reset connection state when websocket is closed externally', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+      expect(transport.connection).to.not.be.undefined;
+      // simulate server drop / unexpected closure
+      await transport.connection!.simulateClose();
+      expect(transport.connection).to.be.undefined;
     });
   });
 
@@ -162,91 +241,89 @@ describe('WebSocketTransport', () => {
     });
   });
 
-  describe('_handleWebSocketMessage', () => {
-    it('should correctly parse incoming JSON and handle response', async () => {
-      // Use stub instead of spy to avoid testing base class logic regarding unknown requestIds
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const handleResponseStub = sinon.stub(transport as any, 'handleResponse').resolves();
+  describe('handleWebSocketMessage', () => {
+    const messageWithExtensions = {
+      result: {
+        requestId: '1',
+        data: { foo: 'bar' },
+        errors: [],
+        extensions: { dataConnect: [{ entityIds: ['id1'] }] }
+      }
+    };
 
-      // First open connection
+    const messageWithoutExtensions = {
+      result: {
+        requestId: '2',
+        data: { abc: 'xyz' },
+        errors: []
+      }
+    };
+
+    it('should correctly parse incoming JSON and handle response', async () => {
+      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
+
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      // Simulate incoming message
-      const incomingData = {
-        result: {
-          requestId: '1',
-          data: { foo: 'bar' },
-          errors: [],
-          // Test strict mapping of extensions
-          extensions: { dataConnect: [{ entityIds: ['id1'] }] }
-        }
-      };
-
-      await transport.connection!.simulateMessage(JSON.stringify(incomingData));
+      await transport.connection!.simulateMessage(JSON.stringify(messageWithExtensions));
 
       expect(handleResponseStub).to.have.been.calledOnce;
       const [calledRequestId, calledResponse] = handleResponseStub.firstCall.args;
-
-      expect(calledRequestId).to.equal('1');
-      expect(calledResponse.data).to.deep.equal({ foo: 'bar' });
-      expect(calledResponse.errors).to.deep.equal([]);
-      expect(calledResponse.extensions).to.deep.equal({ dataConnect: [{ entityIds: ['id1'] }] });
+      expect(calledRequestId).to.equal(messageWithExtensions.result.requestId);
+      expect(calledResponse.data).to.deep.equal(messageWithExtensions.result.data);
+      expect(calledResponse.errors).to.deep.equal(messageWithExtensions.result.errors);
+      expect(calledResponse.extensions).to.deep.equal(messageWithExtensions.result.extensions);
     });
 
     it('should map extensions to empty array if not strictly provided', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const handleResponseStub = sinon.stub(transport as any, 'handleResponse').resolves();
+      const handleResponseStub = sinon.stub(transport, 'handleResponse').resolves();
 
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      // Incoming message WITHOUT extensions field
-      const incomingData = {
-        result: {
-          requestId: '2',
-          data: { foo: 'bar' },
-          errors: []
-        }
-      };
-
-      await transport.connection!.simulateMessage(JSON.stringify(incomingData));
+      await transport.connection!.simulateMessage(JSON.stringify(messageWithoutExtensions));
 
       expect(handleResponseStub).to.have.been.calledOnce;
       const calledResponse = handleResponseStub.firstCall.args[1];
-
       expect(calledResponse.extensions).to.deep.equal({ dataConnect: [] });
     });
 
-    it('should throw if result or requestId is missing', async () => {
+    it('should throw if result is missing', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      const invalidData1 = { foo: 'bar' }; // no result object
-      const invalidData2 = { result: { foo: 'bar' } }; // no requestId
+      const invalidData = { foo: 'bar' }; // no result object
 
-      let error1: unknown;
+      let error: DataConnectError | undefined;
       try {
-        await transport.connection!.simulateMessage(JSON.stringify(invalidData1));
+        await transport.connection!.simulateMessage(JSON.stringify(invalidData));
       } catch (err: unknown) {
-        error1 = err;
+        error = err as DataConnectError;
       }
-      expect(error1).to.exist;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((error1 as any).message).to.include('message from stream did not include result');
 
-      let error2: unknown;
+      expect(error).to.not.be.undefined;
+      expect(error!.message).to.include('message from stream did not include result');
+    });
+
+    it('should throw if requestId is missing', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+
+      const invalidData = { result: { foo: 'bar' } }; // no requestId
+
+      let error: DataConnectError | undefined;
       try {
-        await transport.connection!.simulateMessage(JSON.stringify(invalidData2));
+        await transport.connection!.simulateMessage(JSON.stringify(invalidData));
       } catch (err: unknown) {
-        error2 = err;
+        error = err as DataConnectError;
       }
-      expect(error2).to.exist;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      expect((error2 as any).message).to.include('server response did not include requestId');
+
+      expect(error).to.not.be.undefined;
+      expect(error!.message).to.include('server response did not include requestId');
     });
   });
 });
