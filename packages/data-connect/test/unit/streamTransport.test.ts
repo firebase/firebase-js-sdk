@@ -634,7 +634,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           response
         );
         await expect(errorPromise).to.be.rejectedWith(
-          `Unrecognized requestId '${unknownRequestId}'`
+          `Stream response contained unrecognized requestId '${unknownRequestId}'`
         );
       });
 

@@ -22,8 +22,8 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { DataConnectError } from '../../src/core/error';
 import {
+  WebSocketCloseCode,
   WebSocketTransport,
   initializeWebSocket
 } from '../../src/network/stream/websocket';
@@ -314,47 +314,33 @@ describe('WebSocketTransport', () => {
       expect(calledResponse.extensions).to.deep.equal({ dataConnect: [] });
     });
 
-    it('should throw if result is missing', async () => {
+    it('should close connection with protocol error if result is missing', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
       const invalidData = { foo: 'bar' }; // no result object
 
-      let error: DataConnectError | undefined;
-      try {
-        await transport.connection!.simulateMessage(
-          JSON.stringify(invalidData)
-        );
-      } catch (err: unknown) {
-        error = err as DataConnectError;
-      }
+      await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
-      expect(error).to.not.be.undefined;
-      expect(error!.message).to.include(
-        'message from stream did not include result'
+      expect(transport.connection!.close).to.have.been.calledOnceWith(
+        WebSocketCloseCode.PROTOCOL_ERROR,
+        'WebSocket message did not include result'
       );
     });
 
-    it('should throw if requestId is missing', async () => {
+    it('should close connection with protocol error if requestId is missing', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
       const invalidData = { result: { foo: 'bar' } }; // no requestId
 
-      let error: DataConnectError | undefined;
-      try {
-        await transport.connection!.simulateMessage(
-          JSON.stringify(invalidData)
-        );
-      } catch (err: unknown) {
-        error = err as DataConnectError;
-      }
+      await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
-      expect(error).to.not.be.undefined;
-      expect(error!.message).to.include(
-        'server response did not include requestId'
+      expect(transport.connection!.close).to.have.been.calledOnceWith(
+        WebSocketCloseCode.PROTOCOL_ERROR,
+        'WebSocket message did not include requestId'
       );
     });
   });

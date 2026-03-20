@@ -52,8 +52,8 @@ interface TrackedExecuteRequestPromise<Data> {
 }
 
 /**
- * The base class for all DataConnectStreamTransport implementations. Handles management of logical
- * streams (requests), authentication, data routing to query layer, etc.
+ * The base class for all {@link DataConnectStreamTransport | Stream Transport} implementations.
+ * Handles management of logical streams (requests), authentication, data routing to query layer, etc.
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
@@ -527,7 +527,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Handle a response message from the server. Called by the connection-specific implementation after
-   * it's transformed a message from the server into a DataConnectResponse.
+   * it's transformed a message from the server into a {@link DataConnectResponse}.
    * @param requestId the requestId associated with this response.
    * @param response the response from the server.
    */
@@ -561,7 +561,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     } else {
       throw new DataConnectError(
         Code.OTHER,
-        `Unrecognized requestId '${requestId}'`
+        `Stream response contained unrecognized requestId '${requestId}'`
       );
     }
   }
