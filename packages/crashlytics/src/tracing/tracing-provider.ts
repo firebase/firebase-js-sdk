@@ -33,6 +33,38 @@ import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xm
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FirebaseApp } from '@firebase/app';
+import { Crashlytics } from '../public-types';
+import { CrashlyticsInternal } from '../types';
+
+/**
+ * Register Fetch instrumentation for the given Crashlytics instance.
+ *
+ * @public
+ */
+export function registerFetchInstrumentation(crashlytics: Crashlytics): void {
+  const tracingProvider = (crashlytics as CrashlyticsInternal).tracingProvider;
+  if (tracingProvider) {
+    registerInstrumentations({
+      tracerProvider: tracingProvider,
+      instrumentations: [new FetchInstrumentation()]
+    });
+  }
+}
+
+/**
+ * Register XHR instrumentation for the given Crashlytics instance.
+ *
+ * @public
+ */
+export function registerXHRInstrumentation(crashlytics: Crashlytics): void {
+  const tracingProvider = (crashlytics as CrashlyticsInternal).tracingProvider;
+  if (tracingProvider) {
+    registerInstrumentations({
+      tracerProvider: tracingProvider,
+      instrumentations: [new XMLHttpRequestInstrumentation()]
+    });
+  }
+}
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -81,10 +113,6 @@ export function createTracingProvider(
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })
-  });
-
-  registerInstrumentations({
-    instrumentations: [new FetchInstrumentation(), new XMLHttpRequestInstrumentation()]
   });
 
   return provider;

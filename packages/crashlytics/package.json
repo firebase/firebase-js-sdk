@@ -4,6 +4,7 @@
   "description": "The Firebase Web Telemetry package of the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
+  "sideEffects": false,
   "module": "dist/index.esm.js",
   "browser": "dist/index.esm.js",
   "exports": {

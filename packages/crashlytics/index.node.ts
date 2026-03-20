@@ -29,3 +29,7 @@ registerCrashlytics();
 export * from './src/api';
 export * from './src/public-types';
 export * from './src/next';
+export {
+  registerFetchInstrumentation,
+  registerXHRInstrumentation
+} from './src/tracing/tracing-provider';
