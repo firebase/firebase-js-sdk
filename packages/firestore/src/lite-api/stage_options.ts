@@ -323,7 +323,7 @@ export type SearchStageOptions = StageOptions & {
   retrievalDepth?: number;
 
   /**
-   * Orderings specify how the input documents are sorted.
+   * Orderings specify how the returned documents are sorted.
    * One or more ordering are required.
    */
   sort?: Ordering | Ordering[];
