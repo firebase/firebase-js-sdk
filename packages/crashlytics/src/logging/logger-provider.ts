@@ -35,6 +35,7 @@ import { FetchTransport } from './fetch-transport';
 import { DynamicHeaderProvider, DynamicLogAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
+import { LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -120,11 +121,22 @@ class OTLPLogExporter
       attributes.filter((attr): attr is [string, string] => attr != null)
     );
 
-    if (Object.keys(attributesToApply).length > 0) {
-      logs.forEach(log => {
+    logs.forEach(log => {
+      if (Object.keys(attributesToApply).length > 0) {
         Object.assign(log.attributes, attributesToApply);
-      });
-    }
+      }
+
+      const traceId = log.attributes[LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID];
+      if (typeof traceId === 'string') {
+        (log as any).traceId = traceId;
+      }
+
+      const spanId = log.attributes[LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID];
+      if (typeof spanId === 'string') {
+        (log as any).spanId = spanId;
+      }
+    });
+
     super.export(logs, resultCallback);
   }
 

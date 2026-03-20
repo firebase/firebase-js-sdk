@@ -48,7 +48,6 @@ export { getSessionId } from './session';
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
   const { loggerProvider, tracingProvider } = crashlytics as CrashlyticsInternal;
-  console.log('Attempted to start session');
 
   if (
     typeof sessionStorage !== 'undefined' &&
@@ -77,8 +76,8 @@ export function startNewSession(crashlytics: Crashlytics): void {
         attributes: {
           [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
           [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
-          ['logging.googleapis.com/trace']: `${span.spanContext().traceId}`,
-          ['logging.googleapis.com/spanId']: `${span.spanContext().spanId}`
+          [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
+          [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
         }
       });
     } catch (e) {
