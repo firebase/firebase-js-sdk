@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SubscriptionOptions } from '../interfaces/token-details';
+import { SubscriptionOptions } from '../interfaces/registration-details';
 import { MessagingService } from '../messaging-service';
 import { base64ToArray, arrayToBase64 } from '../helpers/array-base64-translator';
 import { requestCreateRegistration } from './requests';

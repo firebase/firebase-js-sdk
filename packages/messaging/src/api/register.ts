@@ -23,11 +23,14 @@ import { RegisterOptions } from '../interfaces/public-types';
 import { registerFcmRegistrationWithFid } from '../internals/register-fid';
 
 /**
- * Links the app instance to its Firebase Installation ID (FID). Unlike getToken(),
- * this does not return the FID; the FID is delivered via the onRegistered callback.
- * Call this to establish an FID-based identity even when a legacy token exists.
- * Once onRegistered provides an FID, the app should instruct the backend to deprecate
- * any legacy token previously associated with this instance.
+ * Registers the app instance with FCM using its Firebase Installation ID (FID) from
+ * Firebase Installations. Once registered, use the FID to target messages to this app
+ * instance. Unlike getToken(), this does not return the FID; the FID is delivered via the
+ * onRegistered callback.
+ *
+ * Call this to complete FID-based registration even when a legacy FCM token still exists.
+ * Once onRegistered provides an FID, the app should instruct the backend to remove any
+ * legacy token previously associated with this instance.
  *
  * When called multiple times, onRegistered is only invoked when the FID has changed
  * from the last notified value (or on first call), so the same identity is not reported twice.
@@ -51,6 +54,10 @@ export async function register(
     throw ERROR_FACTORY.create(ErrorCode.PERMISSION_BLOCKED);
   }
 
+  if (!messaging.onRegisteredHandler) {
+    throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
+  }
+
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(messaging, options?.serviceWorkerRegistration);
 
@@ -63,16 +70,21 @@ export async function register(
     if (fid === messaging.lastNotifiedFid) {
       return;
     }
+
+    // TODO: refresh weekly
+    await registerFcmRegistrationWithFid(messaging);
     messaging.lastNotifiedFid = fid;
 
-    await registerFcmRegistrationWithFid(messaging);
 
-    if (messaging.onRegisteredHandler) {
-      if (typeof messaging.onRegisteredHandler === 'function') {
-        messaging.onRegisteredHandler(fid);
-      } else {
-        messaging.onRegisteredHandler.next(fid);
-      }
+    // TODO: callback per fid change
+    const handler = messaging.onRegisteredHandler;
+    if (!handler) {
+      return;
+    }
+    if (typeof handler === 'function') {
+      handler(fid);
+    } else {
+      handler.next(fid);
     }
   });
   return messaging._registerNotifyChain;

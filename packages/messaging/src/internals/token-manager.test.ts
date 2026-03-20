@@ -31,7 +31,7 @@ import { spy, stub, useFakeTimers } from 'sinon';
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
-import { TokenDetails } from '../interfaces/token-details';
+import { TokenDetails } from '../interfaces/registration-details';
 // import { arrayToBase64 } from '../helpers/array-base64-translator';
 import { expect } from 'chai';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';

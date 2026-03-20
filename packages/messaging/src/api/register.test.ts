@@ -81,6 +81,7 @@ describe('register', () => {
   });
 
   it('passes options to updateVapidKey and updateSwReg when provided', async () => {
+    messaging.onRegisteredHandler = stub();
     const swReg = new FakeServiceWorkerRegistration();
     const options = {
       vapidKey: 'custom-vapid',
@@ -96,12 +97,14 @@ describe('register', () => {
     expect(updateSwRegStub).to.have.been.calledOnceWith(messaging, swReg);
   });
 
-  it('does not throw when onRegisteredHandler is null', async () => {
+  it('throws when no onRegistered callback handler is provided or registered', async () => {
     messaging.onRegisteredHandler = null;
 
-    await expect(register(messaging)).to.not.be.rejected;
-    expect(updateVapidKeyStub).to.have.been.calledOnce;
-    expect(updateSwRegStub).to.have.been.calledOnce;
+    await expect(register(messaging)).to.be.rejectedWith(
+      'messaging/invalid-on-registered-handler'
+    );
+    expect(updateVapidKeyStub).to.not.have.been.called;
+    expect(updateSwRegStub).to.not.have.been.called;
   });
 
   it('calls observer.next when onRegisteredHandler is an observer object', async () => {

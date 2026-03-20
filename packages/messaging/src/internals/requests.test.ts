@@ -19,6 +19,9 @@ import '../testing/setup';
 
 import {
   ApiRequestBody,
+  FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
+  FID_REGISTRATION_FETCH_MAX_ATTEMPTS,
+  requestCreateRegistration,
   requestDeleteToken,
   requestGetToken,
   requestUpdateToken
@@ -27,7 +30,7 @@ import {
 import { ENDPOINT } from '../util/constants';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
-import { TokenDetails } from '../interfaces/token-details';
+import { TokenDetails } from '../interfaces/registration-details';
 import { compareHeaders } from '../testing/compare-headers';
 import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
@@ -107,6 +110,75 @@ describe('API', () => {
       await expect(
         requestGetToken(firebaseDependencies, tokenDetails.subscriptionOptions!)
       ).to.be.rejectedWith('messaging/token-subscribe-no-token');
+    });
+  });
+
+  describe('createRegistration', () => {
+    function stubSetTimeoutImmediate(): void {
+      stub(self, 'setTimeout').callsFake(
+        (handler: TimerHandler, _timeout?: number) => {
+          if (typeof handler === 'function') {
+            handler();
+          }
+          return 0 as unknown as ReturnType<typeof setTimeout>;
+        }
+      );
+    }
+
+    it('calls fetch once when the first attempt succeeds', async () => {
+      fetchStub.resolves(new Response(null, { status: 200 }));
+
+      await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(fetchStub).to.have.callCount(1);
+    });
+
+    it('retries fetch on thrown errors with exponential backoff then succeeds', async () => {
+      const delays: number[] = [];
+      stub(self, 'setTimeout').callsFake(
+        (handler: TimerHandler, _timeout?: number) => {
+          delays.push(timeout ?? 0);
+          if (typeof handler === 'function') {
+            handler();
+          }
+          return 0 as unknown as ReturnType<typeof setTimeout>;
+        }
+      );
+      fetchStub
+        .onFirstCall()
+        .rejects(new Error('network 1'))
+        .onSecondCall()
+        .rejects(new Error('network 2'))
+        .onThirdCall()
+        .resolves(new Response(null, { status: 200 }));
+
+      await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(fetchStub.callCount).to.equal(FID_REGISTRATION_FETCH_MAX_ATTEMPTS);
+      expect(delays).to.deep.equal([
+        FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
+        FID_REGISTRATION_FETCH_BASE_BACKOFF_MS * 2
+      ]);
+    });
+
+    it('stops after max attempts when fetch keeps throwing', async () => {
+      stubSetTimeoutImmediate();
+      fetchStub.rejects(new Error('persistent network failure'));
+
+      await expect(
+        requestCreateRegistration(
+          firebaseDependencies,
+          tokenDetails.subscriptionOptions!
+        )
+      ).to.be.rejectedWith('messaging/fid-registration-failed');
+
+      expect(fetchStub.callCount).to.equal(FID_REGISTRATION_FETCH_MAX_ATTEMPTS);
     });
   });
 

@@ -178,7 +178,7 @@ export function onBackgroundMessage(
  * Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is
  * delivered via the {@link onRegistered} callback, not as a return value. Call this to establish
  * an FID-based identity; once {@link onRegistered} provides an FID, instruct your backend to
- * deprecate any legacy token previously associated with this instance. The backend send API
+ * remove any legacy token previously associated with this instance. The backend send API
  * supports FID as a target.
  *
  * @param messaging - The {@link Messaging} instance.
@@ -198,7 +198,7 @@ export async function register(
 /**
  * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
  * Use the FID passed to the callback to upload it to your application server. When you receive an FID
- * (e.g. after calling {@link register}), instruct your backend to deprecate any legacy token for this instance.
+ * (e.g. after calling {@link register}), instruct your backend to remove any legacy token for this instance.
  *
  * @param messaging - The {@link Messaging} instance.
  * @param nextOrObserver - A function or observer object called when an FID is registered.

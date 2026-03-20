@@ -36,7 +36,8 @@ export const enum ErrorCode {
   USE_SW_AFTER_GET_TOKEN = 'use-sw-after-get-token',
   INVALID_SW_REGISTRATION = 'invalid-sw-registration',
   USE_VAPID_KEY_AFTER_GET_TOKEN = 'use-vapid-key-after-get-token',
-  INVALID_VAPID_KEY = 'invalid-vapid-key'
+  INVALID_VAPID_KEY = 'invalid-vapid-key',
+  INVALID_ON_REGISTERED_HANDLER = 'invalid-on-registered-handler'
 }
 
 export const ERROR_MAP: ErrorMap<ErrorCode> = {
@@ -79,7 +80,9 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.INVALID_VAPID_KEY]: 'The public VAPID key must be a string.',
   [ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN]:
     'The usePublicVapidKey() method may only be called once and must be ' +
-    'called before calling getToken() to ensure your VAPID key is used.'
+    'called before calling getToken() to ensure your VAPID key is used.',
+  [ErrorCode.INVALID_ON_REGISTERED_HANDLER]:
+    'No onRegistered callback handler was provided or registered. Call onRegistered() before register().'
 };
 
 interface ErrorParams {

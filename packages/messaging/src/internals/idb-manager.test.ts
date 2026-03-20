@@ -23,7 +23,7 @@ import { dbGet, dbRemove, dbSet } from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
-import { TokenDetails } from '../interfaces/token-details';
+import { TokenDetails } from '../interfaces/registration-details';
 import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';

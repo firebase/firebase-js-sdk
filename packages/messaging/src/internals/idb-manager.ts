@@ -18,7 +18,7 @@
 import { DBSchema, IDBPDatabase, deleteDB, openDB } from 'idb';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
-import { TokenDetails } from '../interfaces/token-details';
+import { TokenDetails } from '../interfaces/registration-details';
 import { migrateOldDatabase } from '../helpers/migrate-old-database';
 
 // Exported for tests.
