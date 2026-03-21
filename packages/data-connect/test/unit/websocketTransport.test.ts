@@ -314,6 +314,21 @@ describe('WebSocketTransport', () => {
       expect(calledResponse.extensions).to.deep.equal({ dataConnect: [] });
     });
 
+    it('should close connection with protocol error if message is not an object', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+
+      await transport.connection!.simulateMessage(
+        JSON.stringify('this is a string, not an object')
+      );
+
+      expect(transport.connection!.close).to.have.been.calledOnceWith(
+        WebSocketCloseCode.PROTOCOL_ERROR,
+        'WebSocket message is not an object'
+      );
+    });
+
     it('should close connection with protocol error if result is missing', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
@@ -326,6 +341,21 @@ describe('WebSocketTransport', () => {
       expect(transport.connection!.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include result'
+      );
+    });
+
+    it('should close connection with protocol error if result is not an object', async () => {
+      const openPromise = transport.openConnection();
+      await transport.connection!.simulateOpen();
+      await openPromise;
+
+      const invalidData = { result: 'string result' };
+
+      await transport.connection!.simulateMessage(JSON.stringify(invalidData));
+
+      expect(transport.connection!.close).to.have.been.calledOnceWith(
+        WebSocketCloseCode.PROTOCOL_ERROR,
+        'WebSocket message result is not an object'
       );
     });
 

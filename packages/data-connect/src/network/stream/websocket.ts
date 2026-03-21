@@ -127,9 +127,9 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         this.onConnectionReady();
         resolve();
       };
-      ws.onerror = err => {
+      ws.onerror = event => {
         this.connectionAttempt = null;
-        reject(`Could not open websocket connection: ${String(err)}`);
+        reject(`Could not open websocket connection`);
       };
       ws.onmessage = ev =>
         this.handleWebSocketMessage(ev).catch(async reason => {
@@ -246,10 +246,25 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         'Could not parse WebSocket message'
       );
     }
+    if (typeof webSocketMessage !== 'object' || webSocketMessage === null) {
+      throw new WebSocketDataConnectError(
+        WebSocketCloseCode.PROTOCOL_ERROR,
+        'WebSocket message is not an object'
+      );
+    }
     if (!('result' in webSocketMessage)) {
       throw new WebSocketDataConnectError(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include result'
+      );
+    }
+    if (
+      typeof webSocketMessage.result !== 'object' ||
+      webSocketMessage.result === null
+    ) {
+      throw new WebSocketDataConnectError(
+        WebSocketCloseCode.PROTOCOL_ERROR,
+        'WebSocket message result is not an object'
       );
     }
     if (!('requestId' in webSocketMessage.result)) {
