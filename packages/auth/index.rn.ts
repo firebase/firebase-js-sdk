@@ -61,21 +61,22 @@ persist between sessions. In order to persist auth state, install the package
 "@react-native-async-storage/async-storage" and provide it to
 initializeAuth:
 
-// For @react-native-async-storage/async-storage v3
 import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+
+// For @react-native-async-storage/async-storage v3:
 import { createAsyncStorage } from '@react-native-async-storage/async-storage';
-
 const appStorage = createAsyncStorage("app");
-const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(appStorage)
-});
+const persistence = getReactNativePersistence(appStorage);
 
-// For @react-native-async-storage/async-storage v2
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+/*
+// For @react-native-async-storage/async-storage v2:
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+const persistence = getReactNativePersistence(ReactNativeAsyncStorage);
+*/
 
+// Then, initialize auth:
 const auth = initializeAuth(app, {
-  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+  persistence
 });
 `;
 
