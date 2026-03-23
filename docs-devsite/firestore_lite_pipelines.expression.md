@@ -1389,7 +1389,7 @@ A new `Ordering` for ascending sorting.
 
 ```typescript
 // Sort documents by the 'name' field in ascending order
-pipeline().collection("users")
+firestore.pipeline().collection("users")
   .sort(field("name").ascending());
 
 ```
@@ -2043,7 +2043,7 @@ A new `Expression` representing the 'IN' comparison.
 
 ```typescript
 // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-field("category").equalAny("Electronics", field("primaryType"));
+field("category").equalAny(["Electronics", field("primaryType")]);
 
 ```
 
@@ -2557,7 +2557,6 @@ A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpr
 ```typescript
 // Check if the field `value` is absent.
 field("value").isAbsent();
-@example
 
 ```
 
@@ -3038,7 +3037,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Returns the larger value between the 'timestamp' field and the current timestamp.
-field("timestamp").logicalMaximum(Function.currentTimestamp());
+field("timestamp").logicalMaximum(currentTimestamp());
 
 ```
 
@@ -3073,7 +3072,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Returns the smaller value between the 'timestamp' field and the current timestamp.
-field("timestamp").logicalMinimum(Function.currentTimestamp());
+field("timestamp").logicalMinimum(currentTimestamp());
 
 ```
 
@@ -4239,7 +4238,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':'))
+field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':')))
 
 ```
 

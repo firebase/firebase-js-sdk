@@ -772,7 +772,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * field("category").equalAny("Electronics", field("primaryType"));
+   * field("category").equalAny(["Electronics", field("primaryType")]);
    * ```
    *
    * @param values - The values or expressions to check against.
@@ -2218,7 +2218,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Returns the larger value between the 'timestamp' field and the current timestamp.
-   * field("timestamp").logicalMaximum(Function.currentTimestamp());
+   * field("timestamp").logicalMaximum(currentTimestamp());
    * ```
    *
    * @param second - The second expression or literal to compare with.
@@ -2244,7 +2244,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Returns the smaller value between the 'timestamp' field and the current timestamp.
-   * field("timestamp").logicalMinimum(Function.currentTimestamp());
+   * field("timestamp").logicalMinimum(currentTimestamp());
    * ```
    *
    * @param second - The second expression or literal to compare with.
@@ -2796,7 +2796,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```typescript
    * // Check if the field `value` is absent.
    * field("value").isAbsent();
-   * @example
    * ```
    *
    * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the 'isAbsent' check.
@@ -3237,7 +3236,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':'))
+   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':')))
    * ```
    *
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
@@ -3311,7 +3310,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @example
    * ```typescript
    * // Sort documents by the 'name' field in ascending order
-   * pipeline().collection("users")
+   * firestore.pipeline().collection("users")
    *   .sort(field("name").ascending());
    * ```
    *
@@ -4029,7 +4028,7 @@ export abstract class BooleanExpression extends Expression {
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
-   * constant(50).divide('length').gt(1).ifError(constant(false));
+   * constant(50).divide(field('length')).greaterThan(1).ifError(constant(false));
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -4048,7 +4047,7 @@ export abstract class BooleanExpression extends Expression {
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
-   * constant(50).divide('length').gt(1).ifError(false);
+   * constant(50).divide(field('length')).greaterThan(1).ifError(false);
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -4066,7 +4065,7 @@ export abstract class BooleanExpression extends Expression {
    * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
-   * constant(50).divide('length').gt(1).ifError(constant(0));
+   * constant(50).divide(field('length')).greaterThan(1).ifError(constant(0));
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -4084,7 +4083,7 @@ export abstract class BooleanExpression extends Expression {
    * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
-   * constant(50).divide('length').gt(1).ifError(0);
+   * constant(50).divide(field('length')).greaterThan(1).ifError(0);
    * ```
    *
    * @param catchValue - The value that will be returned if this expression
@@ -4283,7 +4282,7 @@ export function isError(value: Expression): BooleanExpression {
  * ```typescript
  * // Create an expression that protects against a divide by zero error
  * // but always returns a boolean expression.
- * ifError(constant(50).divide('length').gt(1), constant(false));
+ * ifError(constant(50).divide(field('length')).greaterThan(1), constant(false));
  * ```
  *
  * @param tryExpr - The try expression.
@@ -4991,7 +4990,7 @@ export function mod(
  * @example
  * ```typescript
  * // Create a map from the input object and reference the 'baz' field value from the input document.
- * map({foo: 'bar', baz: Field.of('baz')}).as('data');
+ * map({foo: 'bar', baz: field('baz')}).as('data');
  * ```
  *
  * @param elements - The input map to evaluate in the expression.
@@ -5045,7 +5044,7 @@ export function _mapValue(plainObject: Record<string, unknown>): MapValue {
  * @example
  * ```typescript
  * // Create an array value from the input array and reference the 'baz' field value from the input document.
- * array(['bar', Field.of('baz')]).as('foo');
+ * array(['bar', field('baz')]).as('foo');
  * ```
  *
  * @param elements - The input array to evaluate in the expression.
@@ -5414,7 +5413,7 @@ export function lessThanOrEqual(
  * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18
- * greaterThan(field("age"), Constant(9).add(9));
+ * greaterThan(field("age"), constant(9).add(9));
  * ```
  *
  * @param left - The first expression to compare.
@@ -6572,7 +6571,7 @@ export function countDistinct(expr: Expression | string): AggregateFunction {
  * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength("name");
+ * charLength("name");
  * ```
  *
  * @param fieldName - The name of the field containing the string.
@@ -6588,7 +6587,7 @@ export function charLength(fieldName: string): FunctionExpression;
  * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength(field("name"));
+ * charLength(field("name"));
  * ```
  *
  * @param stringExpression - The expression representing the string to calculate the length of.
@@ -8028,7 +8027,7 @@ export function toUpper(fieldName: string): FunctionExpression;
  * @example
  * ```typescript
  * // Convert the 'title' field to uppercase
- * toUppercase(field("title"));
+ * toUpper(field("title"));
  * ```
  *
  * @param stringExpression - The expression representing the string to convert to uppercase.
@@ -10340,7 +10339,7 @@ export function sqrt(expr: Expression | string): FunctionExpression {
  * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * strReverse(field("myString"));
+ * stringReverse(field("myString"));
  * ```
  *
  * @param stringExpression - An expression evaluating to a string value, which will be reversed.
@@ -10355,7 +10354,7 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
  * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * strReverse("myString");
+ * stringReverse("myString");
  * ```
  *
  * @param field - The name of the field representing the string to reverse.
@@ -10696,7 +10695,7 @@ export function split(fieldName: string, delimiter: string): FunctionExpression;
  * @example
  * ```typescript
  * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
- * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':')))
  * ```
  *
  * @param fieldName - Split the value in this field.
@@ -10736,7 +10735,7 @@ export function split(
  * @example
  * ```typescript
  * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
- * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':')))
  * ```
  *
  * @param expression - Split the result of this expression.
