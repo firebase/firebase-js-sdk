@@ -56,7 +56,6 @@ export function startNewSession(crashlytics: Crashlytics): void {
     try {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
-      console.log('Session started with ID: ', sessionId);
 
       const tracer = tracingProvider.getTracer('session-tracer');
       const span = tracer.startSpan('session-start');

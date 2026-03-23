@@ -30,7 +30,6 @@ describe('SessionSpanProcessor', () => {
 
   beforeEach(() => {
     storage = {};
-    // @ts-ignore
     originalSessionStorage = global.sessionStorage;
     const sessionStorageMock: Partial<Storage> = {
       getItem: (key: string) => storage[key] || null,

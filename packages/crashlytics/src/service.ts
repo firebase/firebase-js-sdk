@@ -23,13 +23,21 @@ import { TracerProvider, Span } from '@opentelemetry/api';
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
   private _frameworkAttributesProvider?: () => Record<string, string>;
-  public currentSessionSpan?: Span;
+  private _currentSessionSpan?: Span;
 
   constructor(
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
-    public tracingProvider: TracerProvider | null
+    public tracingProvider: TracerProvider
   ) {}
+
+  get currentSessionSpan(): Span | undefined {
+    return this._currentSessionSpan;
+  }
+
+  set currentSessionSpan(span: Span | undefined) {
+    this._currentSessionSpan = span;
+  }
 
   _delete(): Promise<void> {
     return Promise.resolve();

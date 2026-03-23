@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import { TracerProvider } from '@opentelemetry/api';
+import { TracerProvider, Span } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
 import {
@@ -57,7 +57,8 @@ describe('helpers', () => {
     getTracer: () => ({
       startSpan: () => ({
         setAttribute: () => { },
-        end: () => { }
+        end: () => { },
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
       }),
       startActiveSpan: (name: string, fn: (span: any) => any) =>
         fn({
@@ -69,6 +70,12 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
 
+  const fakeSessionSpan = {
+    setAttribute: () => { },
+    end: () => { },
+    spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+  } as unknown as Span;
+
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
       name: 'DEFAULT',
@@ -79,7 +86,8 @@ describe('helpers', () => {
       }
     },
     loggerProvider: fakeLoggerProvider,
-    tracingProvider: fakeTracingProvider
+    tracingProvider: fakeTracingProvider,
+    currentSessionSpan: fakeSessionSpan,
   };
 
   beforeEach(() => {
@@ -137,7 +145,9 @@ describe('helpers', () => {
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
       expect(fakeCrashlytics.currentSessionSpan).to.not.be.undefined;
     });
@@ -148,7 +158,9 @@ describe('helpers', () => {
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
       expect(fakeCrashlytics.currentSessionSpan).to.not.be.undefined;
     });
@@ -165,7 +177,9 @@ describe('helpers', () => {
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9'
+        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
       expect(telemetryWithVersion.currentSessionSpan).to.not.be.undefined;
     });
