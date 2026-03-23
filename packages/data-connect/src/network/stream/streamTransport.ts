@@ -57,6 +57,9 @@ interface TrackedExecuteRequestPromise<Data> {
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
+  /** Optional callback invoked when the stream closes gracefully. */
+  onGracefulStreamClose?: () => void;
+
   /** True if the physical stream connection is fully open and ready to transmit data. */
   abstract get streamIsReady(): boolean;
 
@@ -66,17 +69,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
   private _pendingClose = false;
 
-  /** TODO(stephenarosaj) */
+  /** TODO(stephenarosaj): */
   get isUnableToConnect(): boolean {
     return false;
   }
-
-  /** Optional callback invoked when the stream closes gracefully. */
-  setOnGracefulStreamClose(callback: () => void): void {
-    this.onGracefulStreamClose = callback;
-  }
-  private onGracefulStreamClose?: () => void;
-
 
   /** True if there are active subscriptions on the stream */
   get hasActiveSubscriptions(): boolean {

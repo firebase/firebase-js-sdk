@@ -41,7 +41,7 @@ interface TransportWithInternals {
   closeConnection(): Promise<void>;
   sendMessage(req: DataConnectStreamRequest<unknown>): Promise<void>;
   connection: MockWebSocket | undefined;
-  isReady: boolean;
+  streamIsReady: boolean;
   handleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
@@ -159,22 +159,22 @@ describe('WebSocketTransport', () => {
     });
   });
 
-  describe('isReady', () => {
+  describe('streamIsReady', () => {
     it('should be false initially', () => {
-      expect(transport.isReady).to.be.false;
+      expect(transport.streamIsReady).to.be.false;
     });
 
     it('should be false while connecting', async () => {
       const openPromise = transport.openConnection();
       await expectIsNotSettled(openPromise);
-      expect(transport.isReady).to.be.false;
+      expect(transport.streamIsReady).to.be.false;
     });
 
     it('should be true when connected', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
-      expect(transport.isReady).to.be.true;
+      expect(transport.streamIsReady).to.be.true;
     });
 
     it('should be false after disconnected', async () => {
@@ -182,7 +182,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateOpen();
       await openPromise;
       await transport.connection!.simulateClose();
-      expect(transport.isReady).to.be.false;
+      expect(transport.streamIsReady).to.be.false;
     });
   });
 

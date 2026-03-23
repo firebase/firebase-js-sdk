@@ -57,6 +57,8 @@ describe('DataConnectTransportManager', () => {
   interface TestVariables {
     key: string;
   }
+  const testQueryName = 'testQuery';
+  const testMutationName = 'testMutation';
   const testVariables: TestVariables = { key: 'one' };
 
   interface TestData {
@@ -74,11 +76,11 @@ describe('DataConnectTransportManager', () => {
       .resolves({ data: testData } as DataConnectResponseWithMaxAge<TestData>);
 
     await manager.invokeQuery<TestData, TestVariables>(
-      'testQuery',
+      testQueryName,
       testVariables
     );
 
-    expect(stub).to.have.been.calledOnceWith('testQuery', testVariables);
+    expect(stub).to.have.been.calledOnceWith(testQueryName, testVariables);
   });
 
   it('should delegate invokeMutation to RESTTransport', async () => {
@@ -91,11 +93,11 @@ describe('DataConnectTransportManager', () => {
       .resolves({ data: testData } as DataConnectResponse<TestData>);
 
     await manager.invokeMutation<TestData, TestVariables>(
-      'testMutation',
+      testMutationName,
       testVariables
     );
 
-    expect(stub).to.have.been.calledOnceWith('testMutation', testVariables);
+    expect(stub).to.have.been.calledOnceWith(testMutationName, testVariables);
   });
 
   it('should delegate invokeSubscribe to stream instead of REST', () => {
@@ -103,7 +105,7 @@ describe('DataConnectTransportManager', () => {
     const internalManager = manager as unknown as ManagerWithInternals;
     const stub = sinon.stub(internalManager.restTransport, 'invokeSubscribe');
 
-    const hook: SubscribeNotificationHook<TestData> = () => {};
+    const hook: SubscribeNotificationHook<TestData> = () => { };
     expect(internalManager.streamTransport).to.be.undefined;
 
     manager.invokeSubscribe<TestData, TestVariables>(
@@ -169,7 +171,7 @@ describe('DataConnectTransportManager', () => {
 
   it('should route invokeQuery to stream if executeShouldUseStream() is true', async () => {
     manager = new DataConnectTransportManager(options);
-    manager.invokeSubscribe(() => {}, 'test', testVariables);
+    manager.invokeSubscribe(() => { }, 'test', testVariables);
     const internalManager = manager as unknown as ManagerWithInternals;
     const streamTransport = internalManager.streamTransport!;
 
@@ -177,20 +179,20 @@ describe('DataConnectTransportManager', () => {
     sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
     sinon.stub(streamTransport, 'isPendingClose').get(() => false);
 
-    const streamStub = sinon
+    const streamSpy = sinon
       .stub(streamTransport, 'invokeQuery')
       .resolves({ data: testData } as unknown as DataConnectResponse<TestData>);
-    const restStub = sinon.stub(internalManager.restTransport, 'invokeQuery');
+    const restSpy = sinon.stub(internalManager.restTransport, 'invokeQuery');
 
-    await manager.invokeQuery('testQuery', testVariables);
+    await manager.invokeQuery(testQueryName, testVariables);
 
-    expect(streamStub).to.have.been.calledOnce;
-    expect(restStub).not.to.have.been.called;
+    expect(streamSpy).to.have.been.calledOnceWith(testQueryName, testVariables);
+    expect(restSpy).to.have.not.been.called;
   });
 
   it('should fallback invokeQuery to REST if stream throws unableToConnect', async () => {
     manager = new DataConnectTransportManager(options);
-    manager.invokeSubscribe(() => {}, 'test', testVariables);
+    manager.invokeSubscribe(() => { }, 'test', testVariables);
     const internalManager = manager as unknown as ManagerWithInternals;
     const streamTransport = internalManager.streamTransport!;
 
@@ -200,22 +202,66 @@ describe('DataConnectTransportManager', () => {
     sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
 
     const expectedError = new Error('stream error');
-    const streamStub = sinon
+    const streamSpy = sinon
       .stub(streamTransport, 'invokeQuery')
       .rejects(expectedError);
-    const restStub = sinon
+    const restSpy = sinon
       .stub(internalManager.restTransport, 'invokeQuery')
       .resolves({ data: testData } as unknown as DataConnectResponse<TestData>);
 
-    await manager.invokeQuery('testQuery', testVariables);
+    await manager.invokeQuery(testQueryName, testVariables);
 
-    expect(streamStub).to.have.been.calledOnce;
-    expect(restStub).to.have.been.calledOnce;
+    expect(streamSpy).to.have.been.calledOnceWith(testQueryName, testVariables);
+    expect(restSpy).to.have.been.calledOnceWith(testQueryName, testVariables);
+  });
+
+  it('should fallback invokeQuery to REST if stream is pending close', async () => {
+    manager = new DataConnectTransportManager(options);
+    const internalManager = manager as unknown as ManagerWithInternals;
+    const streamTransport = internalManager.initStreamTransport();
+
+    sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+    sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+    sinon.stub(streamTransport, 'isPendingClose').get(() => true);
+
+    const streamSpy = sinon
+      .stub(streamTransport, 'invokeQuery')
+      .resolves({} as unknown as DataConnectResponse<TestData>);
+    const restSpy = sinon
+      .stub(internalManager.restTransport, 'invokeQuery')
+      .resolves({} as unknown as DataConnectResponse<TestData>);
+
+    await manager.invokeQuery(testQueryName, testVariables);
+
+    expect(streamSpy).to.have.not.been.called;
+    expect(restSpy).to.have.been.calledOnceWith('test', testVariables);
+  });
+
+  it('should fallback invokeMutation to REST if stream is pending close', async () => {
+    manager = new DataConnectTransportManager(options);
+    const internalManager = manager as unknown as ManagerWithInternals;
+    const streamTransport = internalManager.initStreamTransport();
+
+    sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+    sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+    sinon.stub(streamTransport, 'isPendingClose').get(() => true);
+
+    const streamSpy = sinon
+      .stub(streamTransport, 'invokeMutation')
+      .resolves({} as unknown as DataConnectResponse<TestData>);
+    const restSpy = sinon
+      .stub(internalManager.restTransport, 'invokeMutation')
+      .resolves({} as unknown as DataConnectResponse<TestData>);
+
+    await manager.invokeMutation(testMutationName, testVariables);
+
+    expect(streamSpy).to.have.not.been.called;
+    expect(restSpy).to.have.been.calledOnceWith(testMutationName, testVariables);
   });
 
   it('should fallback invokeMutation to REST if stream returns unableToConnect error', async () => {
     manager = new DataConnectTransportManager(options);
-    manager.invokeSubscribe(() => {}, 'test', testVariables);
+    manager.invokeSubscribe(() => { }, 'test', testVariables);
     const internalManager = manager as unknown as ManagerWithInternals;
     const streamTransport = internalManager.streamTransport!;
 
@@ -232,7 +278,7 @@ describe('DataConnectTransportManager', () => {
       .stub(internalManager.restTransport, 'invokeMutation')
       .resolves({ data: testData } as unknown as DataConnectResponse<TestData>);
 
-    await manager.invokeMutation('testMutation', testVariables);
+    await manager.invokeMutation(testMutationName, testVariables);
 
     expect(streamStub).to.have.been.calledOnce;
     expect(restStub).to.have.been.calledOnce;
@@ -240,7 +286,7 @@ describe('DataConnectTransportManager', () => {
 
   it('should throw stream error if invokeQuery fails and isUnableToConnect is false', async () => {
     manager = new DataConnectTransportManager(options);
-    manager.invokeSubscribe(() => {}, 'test', testVariables);
+    manager.invokeSubscribe(() => { }, 'test', testVariables);
     const internalManager = manager as unknown as ManagerWithInternals;
     const streamTransport = internalManager.streamTransport!;
 
@@ -255,14 +301,14 @@ describe('DataConnectTransportManager', () => {
       .rejects(expectedError);
     const restStub = sinon.stub(internalManager.restTransport, 'invokeQuery');
 
-    await expect(manager.invokeQuery('testQuery', testVariables)).to.be.rejectedWith(expectedError);
+    await expect(manager.invokeQuery(testQueryName, testVariables)).to.be.rejectedWith(expectedError);
     expect(streamStub).to.have.been.calledOnce;
     expect(restStub).not.to.have.been.called;
   });
 
   it('should delegate useEmulator to RESTTransport and StreamTransport', () => {
     manager = new DataConnectTransportManager(options);
-    manager.invokeSubscribe(() => {}, 'test', testVariables); // Initialize stream
+    manager.invokeSubscribe(() => { }, 'test', testVariables); // Initialize stream
     const internalManager = manager as unknown as ManagerWithInternals;
 
     const restStub = sinon.stub(internalManager.restTransport, 'useEmulator');
@@ -279,7 +325,7 @@ describe('DataConnectTransportManager', () => {
 
   it('should delegate onAuthTokenChanged to RESTTransport and StreamTransport', () => {
     manager = new DataConnectTransportManager(options);
-    manager.invokeSubscribe(() => {}, 'test', testVariables); // Initialize stream
+    manager.invokeSubscribe(() => { }, 'test', testVariables); // Initialize stream
     const internalManager = manager as unknown as ManagerWithInternals;
 
     const restStub = sinon.stub(
