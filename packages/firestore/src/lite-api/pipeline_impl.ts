@@ -20,7 +20,6 @@ import {
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
-import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';

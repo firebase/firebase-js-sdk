@@ -21,6 +21,12 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/util": "1.15.0",
+    "child-process-promise": "2.2.1",
+    "glob": "7.2.3",
+    "tmp": "0.2.3",
+    "gzip-size": "6.0.0",
+    "memfs": "3.5.3",
+    "terser": "5.37.0",
     "@rollup/plugin-commonjs": "21.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-node-resolve": "16.0.0",
@@ -40,7 +46,7 @@
     "yargs": "17.7.2"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.4",
+    "@firebase/app": "0.14.10",
     "@firebase/logger": "0.5.0",
     "@types/webpack": "5.28.5"
   },

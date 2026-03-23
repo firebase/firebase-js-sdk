@@ -216,12 +216,11 @@ export function validateGenerationConfig(
   if (
     (generationConfig.responseSchema != null ||
       generationConfig.responseJsonSchema != null) &&
-    generationConfig.responseMimeType !== 'application/json'
+    generationConfig.responseMimeType
   ) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
-      `responseMimeType must be set to "application/json" if` +
-        ` responseSchema or responseJsonSchema are set.`
+      `responseMimeType must be set if responseSchema or responseJsonSchema are set.`
     );
   }
 }
