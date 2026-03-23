@@ -36,7 +36,8 @@ import {
  * @internal
  */
 export class DataConnectTransportManager
-  implements DataConnectTransportInterface {
+  implements DataConnectTransportInterface
+{
   private restTransport: RESTTransport;
   private streamTransport?: AbstractDataConnectStreamTransport;
   private isUsingEmulator = false;
@@ -105,7 +106,7 @@ export class DataConnectTransportManager
   }
 
   /**
-   * Prefer to use Streaming Transport connection when one is available. 
+   * Prefer to use Streaming Transport connection when one is available.
    * @inheritdoc
    */
   invokeQuery<Data, Variables>(
@@ -130,7 +131,7 @@ export class DataConnectTransportManager
   }
 
   /**
-   * Prefer to use Streaming Transport connection when one is available. 
+   * Prefer to use Streaming Transport connection when one is available.
    * @inheritdoc
    */
   invokeMutation<Data, Variables>(
