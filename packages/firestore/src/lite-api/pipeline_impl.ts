@@ -20,6 +20,7 @@ import {
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
+import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
 import { Firestore } from './database';
@@ -29,11 +30,7 @@ import { PipelineSource } from './pipeline-source';
 import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
-import {
-  newUserDataReader,
-  UserDataReader,
-  UserDataSource
-} from './user_data_reader';
+import { newUserDataReader, UserDataSource } from './user_data_reader';
 
 declare module './database' {
   interface Firestore {
@@ -86,12 +83,16 @@ declare module './database' {
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
   const datastore = getDatastore(pipeline._db);
+  const firestore = cast(pipeline._db, Firestore);
 
-  const udr = new UserDataReader(
-    pipeline._db._databaseId,
-    /* ignoreUndefinedProperties */ true
+  const userDataReader = newUserDataReader(firestore);
+  const context = userDataReader.createContext(
+    UserDataSource.Argument,
+    'execute'
   );
-  const context = udr.createContext(UserDataSource.Argument, 'execute');
+
+  pipeline._readUserData(context);
+  const userDataWriter = new LiteUserDataWriter(firestore);
 
   const structuredPipelineOptions = new StructuredPipelineOptions({}, {});
   structuredPipelineOptions._readUserData(context);
@@ -115,7 +116,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
       .map(
         element =>
           new PipelineResult(
-            pipeline._userDataWriter,
+            userDataWriter,
             element.fields!,
             element.key?.path
               ? new DocumentReference(pipeline._db, null, element.key)
@@ -139,13 +140,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
  * ```
  */
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  const userDataWriter = new LiteUserDataWriter(this);
-  const userDataReader = newUserDataReader(this);
-  return new PipelineSource<Pipeline>(
-    this._databaseId,
-    userDataReader,
-    (stages: Stage[]) => {
-      return new Pipeline(this, userDataReader, userDataWriter, stages);
-    }
-  );
+  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
+    return new Pipeline(this, stages);
+  });
 };

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { ParseContext } from '../api/parse_context';
 import {
   Pipeline as ProtoPipeline,
   Stage as ProtoStage
@@ -85,8 +86,7 @@ import {
   UnnestStageOptions,
   WhereStageOptions
 } from './stage_options';
-import { UserDataReader, UserDataSource } from './user_data_reader';
-import { AbstractUserDataWriter } from './user_data_writer';
+import { UserData } from './user_data_reader';
 
 /**
  * @beta
@@ -119,22 +119,20 @@ import { AbstractUserDataWriter } from './user_data_writer';
  * // Example 2: Filter documents where 'genre' is "Science Fiction" and 'published' is after 1950
  * const results2 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(and(field("genre").eq("Science Fiction"), field("published").gt(1950))));
+ *     .where(and(field("genre").equal("Science Fiction"), field("published").greaterThan(1950))));
  *
  * // Example 3: Calculate the average rating of books published after 1980
  * const results3 = await execute(db.pipeline()
  *     .collection("books")
- *     .where(field("published").gt(1980))
- *     .aggregate(avg(field("rating")).as("averageRating")));
+ *     .where(field("published").greaterThan(1980))
+ *     .aggregate(average(field("rating")).as("averageRating")));
  * ```
  */
-export class Pipeline implements ProtoSerializable<ProtoPipeline> {
+export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * @internal
    * @private
    * @param _db
-   * @param userDataReader
-   * @param _userDataWriter
    * @param stages
    */
   constructor(
@@ -147,18 +145,17 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
      * @internal
      * @private
      */
-    private userDataReader: UserDataReader,
-    /**
-     * @internal
-     * @private
-     */
-    public _userDataWriter: AbstractUserDataWriter,
-    /**
-     * @internal
-     * @private
-     */
     private stages: Stage[]
   ) {}
+
+  _readUserData(context: ParseContext): void {
+    this.stages.forEach(stage => {
+      const subContext = context.contextWith({
+        methodName: stage._name
+      });
+      stage._readUserData(subContext);
+    });
+  }
 
   /**
    * @beta
@@ -181,7 +178,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .addFields(
    *     field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-   *     add(5, field("quantity")).as("totalCost")  // Calculate 'totalCost'
+   *     add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
    *   );
    * ```
    *
@@ -211,7 +208,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .addFields(
    *     field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-   *     add(5, field("quantity")).as("totalCost")  // Calculate 'totalCost'
+   *     add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
    *   );
    * ```
    *
@@ -238,14 +235,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new AddFields(normalizedFields, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'addFields'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -317,12 +306,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new RemoveFields(convertedFields, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    stage._readUserData(
-      this.userDataReader.createContext(UserDataSource.Argument, 'removeFields')
-    );
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -352,7 +335,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   .select(
    *     "firstName",
    *     field("lastName"),
-   *     field("address").toUppercase().as("upperAddress"),
+   *     field("address").toUpper().as("upperAddress"),
    *   );
    * ```
    *
@@ -391,7 +374,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    *   .select(
    *     "firstName",
    *     field("lastName"),
-   *     field("address").toUppercase().as("upperAddress"),
+   *     field("address").toUpper().as("upperAddress"),
    *   );
    * ```
    *
@@ -421,14 +404,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Select(normalizedSelections, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'select'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -457,8 +432,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .where(
    *     and(
-   *         gt(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         field("genre").eq("Science Fiction") // Equivalent to gt("genre", "Science Fiction")
+   *         greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+   *         field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
    *     )
    *   );
    * ```
@@ -491,8 +466,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection("books")
    *   .where(
    *     and(
-   *         gt(field("rating"), 4.0),   // Filter for ratings greater than 4.0
-   *         field("genre").eq("Science Fiction") // Equivalent to gt("genre", "Science Fiction")
+   *         greaterThan(field("rating"), 4.0),   // Filter for ratings greater than 4.0
+   *         field("genre").equal("Science Fiction") // Equivalent to equal("genre", "Science Fiction")
    *     )
    *   );
    * ```
@@ -510,14 +485,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Where(condition, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'where'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -583,14 +550,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Offset(offset, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'offset'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -662,14 +621,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Limit(limit, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'limit'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -694,7 +645,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
-   *     .distinct(toUppercase(field("author")).as("authorName"), field("genre"), "publishedAt")
+   *     .distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
    *     .select("authorName");
    * ```
    *
@@ -728,7 +679,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
-   *     .distinct(toUppercase(field("author")).as("authorName"), field("genre"), "publishedAt")
+   *     .distinct(toUpper(field("author")).as("authorName"), field("genre"), "publishedAt")
    *     .select("authorName");
    * ```
    *
@@ -756,14 +707,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Distinct(convertedGroups, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'distinct'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -783,7 +726,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Calculate the average rating and the total number of books
    * firestore.pipeline().collection("books")
    *     .aggregate(
-   *         field("rating").avg().as("averageRating"),
+   *         field("rating").average().as("averageRating"),
    *         countAll().as("totalBooks")
    *     );
    * ```
@@ -823,7 +766,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // Calculate the average rating for each genre.
    * firestore.pipeline().collection("books")
    *   .aggregate({
-   *       accumulators: [avg(field("rating")).as("avg_rating")]
+   *       accumulators: [average(field("rating")).as("avg_rating")],
    *       groups: ["genre"]
    *       });
    * ```
@@ -859,14 +802,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       convertedAccumulators,
       options
     );
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'aggregate'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -919,14 +854,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
       internalOptions
     );
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'addFields'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -949,8 +876,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // with the same rating
    * firestore.pipeline().collection("books")
    *     .sort(
-   *         Ordering.of(field("rating")).descending(),
-   *         Ordering.of(field("title"))  // Ascending order is the default
+   *         field("rating").descending(),
+   *         field("title").ascending()
    *     );
    * ```
    *
@@ -977,8 +904,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * // with the same rating
    * firestore.pipeline().collection("books")
    *     .sort(
-   *         Ordering.of(field("rating")).descending(),
-   *         Ordering.of(field("title"))  // Ascending order is the default
+   *         field("rating").descending(),
+   *         field("title").ascending()
    *     );
    * ```
    *
@@ -998,14 +925,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Sort(orderings, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'sort'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1140,14 +1059,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Replace(mapExpr, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'replaceWith'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1214,14 +1125,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Sample(rate, mode, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'sample'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1281,14 +1184,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
     // Create stage object
     const stage = new Union(otherPipeline, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'union'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1393,14 +1288,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new Unnest(alias, expr, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'unnest'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1419,7 +1306,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * ```typescript
    * // Assume we don't have a built-in 'where' stage
    * firestore.pipeline().collection('books')
-   *     .rawStage('where', [field('published').lt(1900)]) // Custom 'where' stage
+   *     .rawStage('where', [field('published').lessThan(1900)]) // Custom 'where' stage
    *     .select('title', 'author');
    * ```
    *
@@ -1449,14 +1336,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
     // Create stage object
     const stage = new RawStage(name, expressionParams, options ?? {});
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'rawStage'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._addStage(stage);
   }
@@ -1475,12 +1354,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
   private _addStage(stage: Stage): Pipeline {
     const copy = this.stages.map(s => s);
     copy.push(stage);
-    return this.newPipeline(
-      this._db,
-      this.userDataReader,
-      this._userDataWriter,
-      copy
-    );
+    return this.newPipeline(this._db, copy);
   }
 
   /**
@@ -1492,13 +1366,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * @param stages
    * @protected
    */
-  protected newPipeline(
-    db: Firestore,
-    userDataReader: UserDataReader,
-    userDataWriter: AbstractUserDataWriter,
-    stages: Stage[]
-  ): Pipeline {
-    return new Pipeline(db, userDataReader, userDataWriter, stages);
+  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+    return new Pipeline(db, stages);
   }
 }
 

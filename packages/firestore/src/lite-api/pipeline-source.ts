@@ -40,7 +40,6 @@ import {
   DatabaseStageOptions,
   DocumentsStageOptions
 } from './stage_options';
-import { UserDataReader, UserDataSource } from './user_data_reader';
 
 /**
  * @beta
@@ -55,12 +54,10 @@ export class PipelineSource<PipelineType> {
    * @internal
    * @private
    * @param databaseId
-   * @param userDataReader
    * @param _createPipeline
    */
   constructor(
     private databaseId: DatabaseId,
-    private userDataReader: UserDataReader,
     /**
      * @internal
      * @private
@@ -108,14 +105,6 @@ export class PipelineSource<PipelineType> {
     // Create stage object
     const stage = new CollectionSource(normalizedCollection, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'collection'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._createPipeline([stage]);
   }
@@ -148,14 +137,6 @@ export class PipelineSource<PipelineType> {
     // Create stage object
     const stage = new CollectionGroupSource(collectionId, options);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'collectionGroup'
-    );
-    stage._readUserData(parseContext);
-
     // Add stage to the pipeline
     return this._createPipeline([stage]);
   }
@@ -177,14 +158,6 @@ export class PipelineSource<PipelineType> {
 
     // Create stage object
     const stage = new DatabaseSource(options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'database'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._createPipeline([stage]);
@@ -235,14 +208,6 @@ export class PipelineSource<PipelineType> {
 
     // Create stage object
     const stage = new DocumentsSource(normalizedDocs, options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'documents'
-    );
-    stage._readUserData(parseContext);
 
     // Add stage to the pipeline
     return this._createPipeline([stage]);

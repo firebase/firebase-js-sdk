@@ -165,7 +165,7 @@ export function executeMutation<Data, Variables>(mutationRef: MutationRef<Data, 
 // @public
 export function executeQuery<Data, Variables>(queryRef: QueryRef<Data, Variables>, options?: ExecuteQueryOptions): QueryPromise<Data, Variables>;
 
-// @public (undocumented)
+// @public
 export interface ExecuteQueryOptions {
     // (undocumented)
     fetchPolicy: QueryFetchPolicy;
