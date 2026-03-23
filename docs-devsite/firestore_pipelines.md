@@ -2030,7 +2030,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Create an array value from the input array and reference the 'baz' field value from the input document.
-array(['bar', Field.of('baz')]).as('foo');
+array(['bar', field('baz')]).as('foo');
 
 ```
 
@@ -2064,7 +2064,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Create a map from the input object and reference the 'baz' field value from the input document.
-map({foo: 'bar', baz: Field.of('baz')}).as('data');
+map({foo: 'bar', baz: field('baz')}).as('data');
 
 ```
 
@@ -3640,7 +3640,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':'))
+split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':')))
 
 ```
 
@@ -4092,7 +4092,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Reverse the value of the 'myString' field.
-strReverse("myString");
+stringReverse("myString");
 
 ```
 
@@ -5256,7 +5256,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Get the character length of the 'name' field in UTF-8.
-strLength("name");
+charLength("name");
 
 ```
 
@@ -7533,7 +7533,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-split('scores', conditional(field('format').equal('csv'), constant(','), constant(':'))
+split('scores', conditional(field('format').equal('csv'), constant(','), constant(':')))
 
 ```
 
@@ -9336,7 +9336,7 @@ A new `Expression` representing the greater than comparison.
 
 ```typescript
 // Check if the 'age' field is greater than 18
-greaterThan(field("age"), Constant(9).add(9));
+greaterThan(field("age"), constant(9).add(9));
 
 ```
 
@@ -10157,10 +10157,10 @@ A Promise representing the asynchronous pipeline execution.
 
 ```typescript
 const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
-    .where(gt(field("rating"), 4.5))
+    .where(greaterThan(field("rating"), 4.5))
     .select("title", "author", "rating"));
 
-const results: PipelineResults = snapshot.results;
+const results: PipelineResult[] = snapshot.results;
 
 ```
 
@@ -10229,10 +10229,10 @@ A Promise representing the asynchronous pipeline execution.
 
 ```typescript
 const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
-    .where(gt(field("rating"), 4.5))
+    .where(greaterThan(field("rating"), 4.5))
     .select("title", "author", "rating"));
 
-const results: PipelineResults = snapshot.results;
+const results: PipelineResult[] = snapshot.results;
 
 ```
 
@@ -10268,7 +10268,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Get the character length of the 'name' field in UTF-8.
-strLength(field("name"));
+charLength(field("name"));
 
 ```
 
@@ -10904,7 +10904,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Reverse the value of the 'myString' field.
-strReverse(field("myString"));
+stringReverse(field("myString"));
 
 ```
 
@@ -10972,7 +10972,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Convert the 'title' field to uppercase
-toUppercase(field("title"));
+toUpper(field("title"));
 
 ```
 
@@ -11270,7 +11270,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Create an expression that protects against a divide by zero error
 // but always returns a boolean expression.
-ifError(constant(50).divide('length').gt(1), constant(false));
+ifError(constant(50).divide(field('length')).greaterThan(1), constant(false));
 
 ```
 

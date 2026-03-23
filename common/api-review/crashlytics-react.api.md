@@ -15,7 +15,6 @@ export interface Crashlytics {
 export interface CrashlyticsOptions {
     appVersion?: string;
     endpointUrl?: string;
-    tracingUrl?: string;
 }
 
 // @public
