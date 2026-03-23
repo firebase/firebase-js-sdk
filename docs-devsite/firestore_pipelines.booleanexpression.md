@@ -127,7 +127,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Create an expression that protects against a divide by zero error
 // but always returns a boolean expression.
-constant(50).divide('length').gt(1).ifError(constant(false));
+constant(50).divide(field('length')).greaterThan(1).ifError(constant(false));
 
 ```
 
@@ -162,7 +162,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Create an expression that protects against a divide by zero error
 // but always returns a boolean expression.
-constant(50).divide('length').gt(1).ifError(false);
+constant(50).divide(field('length')).greaterThan(1).ifError(false);
 
 ```
 
@@ -196,7 +196,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Create an expression that protects against a divide by zero error.
-constant(50).divide('length').gt(1).ifError(constant(0));
+constant(50).divide(field('length')).greaterThan(1).ifError(constant(0));
 
 ```
 
@@ -230,7 +230,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Create an expression that protects against a divide by zero error.
-constant(50).divide('length').gt(1).ifError(0);
+constant(50).divide(field('length')).greaterThan(1).ifError(0);
 
 ```
 
