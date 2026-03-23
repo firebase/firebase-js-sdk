@@ -19,7 +19,6 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { Code } from '../../../src/util/error';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -6035,7 +6034,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       } catch (e: unknown) {
         expect(e).to.be.an.instanceOf(FirebaseError);
         const err = e as FirestoreError;
-        expect(err.code).to.equal(Code.FAILED_PRECONDITION);
+        expect(err.code).to.equal('failed-precondition');
         expect(err.message).to.match(/unknown variable/i);
       }
     });
