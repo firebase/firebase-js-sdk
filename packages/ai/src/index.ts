@@ -50,5 +50,3 @@ registerAI();
 
 export * from './api';
 export * from './public-types';
-export { LiveChatSession } from './methods/live-session';
-export { TemplateChatSession } from './methods/template-chat-session';
