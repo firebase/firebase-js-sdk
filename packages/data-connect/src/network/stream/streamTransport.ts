@@ -57,6 +57,40 @@ interface TrackedExecuteRequestPromise<Data> {
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
+  /** True if the physical stream connection is fully open and ready to transmit data. */
+  abstract get streamIsReady(): boolean;
+
+  /** Is the stream currently waiting to close connection? */
+  get isPendingClose(): boolean {
+    return this._pendingClose;
+  }
+  private _pendingClose = false;
+
+  /** TODO(stephenarosaj) */
+  get isUnableToConnect(): boolean {
+    return false;
+  }
+
+  /** Optional callback invoked when the stream closes gracefully. */
+  setOnGracefulStreamClose(callback: () => void): void {
+    this.onGracefulStreamClose = callback;
+  }
+  private onGracefulStreamClose?: () => void;
+
+
+  /** True if there are active subscriptions on the stream */
+  get hasActiveSubscriptions(): boolean {
+    return this.activeSubscribeRequests.size > 0;
+  }
+
+  /** True if there are active execute or mutation requests on the stream */
+  get hasActiveExecuteRequests(): boolean {
+    return (
+      this.activeQueryExecuteRequests.size > 0 ||
+      this.activeMutationExecuteRequests.size > 0
+    );
+  }
+
   /**
    * Open a physical connection to the server.
    * @returns a promise which resolves when the connection is ready, or rejects if it fails to open.

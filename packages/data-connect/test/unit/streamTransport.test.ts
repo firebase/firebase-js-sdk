@@ -42,6 +42,10 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 class TestStreamTransport extends AbstractDataConnectStreamTransport {
+  get streamIsReady(): boolean {
+    return true;
+  }
+
   protected openConnection(): Promise<void> {
     return Promise.resolve();
   }

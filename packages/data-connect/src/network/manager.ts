@@ -17,10 +17,12 @@
 
 import { DataConnectOptions, TransportOptions } from '../api/DataConnect';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
+import { Code, DataConnectError } from '../core/error';
 import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { RESTTransport } from './rest';
 import { AbstractDataConnectStreamTransport } from './stream/streamTransport';
+import { WebSocketTransport } from './stream/websocket';
 import {
   CallerSdkType,
   DataConnectResponse,
@@ -34,13 +36,11 @@ import {
  * @internal
  */
 export class DataConnectTransportManager
-  implements DataConnectTransportInterface
-{
+  implements DataConnectTransportInterface {
   private restTransport: RESTTransport;
   private streamTransport?: AbstractDataConnectStreamTransport;
-  private isUsingEmulator = false; // TODO(stephenarosaj): this will be used in a future PR.
+  private isUsingEmulator = false;
 
-  // TODO(stephenarosaj): these unused fields will be used in a future PR.
   constructor(
     private options: DataConnectOptions,
     private apiKey?: string,
@@ -63,17 +63,94 @@ export class DataConnectTransportManager
     );
   }
 
+  /**
+   * Initializes the stream transport if it hasn't been already.
+   */
+  private initStreamTransport(): AbstractDataConnectStreamTransport {
+    if (!this.streamTransport) {
+      this.streamTransport = new WebSocketTransport(
+        this.options,
+        this.apiKey,
+        this.appId,
+        this.authProvider,
+        this.appCheckProvider,
+        this.transportOptions,
+        this._isUsingGen,
+        this._callerSdkType
+      );
+      if (this.isUsingEmulator && this.transportOptions) {
+        this.streamTransport.useEmulator(
+          this.transportOptions.host!,
+          this.transportOptions.port,
+          this.transportOptions.sslEnabled
+        );
+      }
+      this.streamTransport.setOnGracefulStreamClose(() => {
+        this.streamTransport = undefined;
+      });
+    }
+    return this.streamTransport;
+  }
+
+  /**
+   * Returns true if the stream is in a healthy, ready connection state and has active subscriptions.
+   */
+  private executeShouldUseStream(): boolean {
+    return (
+      !!this.streamTransport &&
+      !this.streamTransport.isPendingClose &&
+      this.streamTransport.streamIsReady &&
+      this.streamTransport.hasActiveSubscriptions
+    );
+  }
+
+  /**
+   * Prefer to use Streaming Transport connection when one is available. 
+   * @inheritdoc
+   */
   invokeQuery<Data, Variables>(
     queryName: string,
     body?: Variables
   ): Promise<DataConnectResponseWithMaxAge<Data>> {
+    if (this.executeShouldUseStream()) {
+      return this.streamTransport!.invokeQuery<Data, Variables>(
+        queryName,
+        body
+      ).catch(err => {
+        if (this.streamTransport?.isUnableToConnect) {
+          return this.restTransport.invokeQuery<Data, Variables>(
+            queryName,
+            body
+          );
+        }
+        throw err;
+      });
+    }
     return this.restTransport.invokeQuery(queryName, body);
   }
 
+  /**
+   * Prefer to use Streaming Transport connection when one is available. 
+   * @inheritdoc
+   */
   invokeMutation<Data, Variables>(
     queryName: string,
     body?: Variables
   ): Promise<DataConnectResponse<Data>> {
+    if (this.executeShouldUseStream()) {
+      return this.streamTransport!.invokeMutation<Data, Variables>(
+        queryName,
+        body
+      ).catch(err => {
+        if (this.streamTransport?.isUnableToConnect) {
+          return this.restTransport.invokeMutation<Data, Variables>(
+            queryName,
+            body
+          );
+        }
+        throw err;
+      });
+    }
     return this.restTransport.invokeMutation(queryName, body);
   }
 
@@ -82,25 +159,45 @@ export class DataConnectTransportManager
     queryName: string,
     body?: Variables
   ): void {
-    this.restTransport.invokeSubscribe(notificationHook, queryName, body);
+    const streamTransport = this.initStreamTransport();
+
+    if (streamTransport.isUnableToConnect) {
+      throw new DataConnectError(
+        Code.OTHER,
+        'Unable to connect streaming connection to server. Subscriptions are unavailable.'
+      );
+    }
+
+    streamTransport.invokeSubscribe(notificationHook, queryName, body);
   }
 
   invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
-    this.restTransport.invokeUnsubscribe(queryName, body);
+    if (this.streamTransport) {
+      this.streamTransport.invokeUnsubscribe(queryName, body);
+    }
   }
 
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void {
     this.isUsingEmulator = true;
     this.transportOptions = { host, port, sslEnabled };
     this.restTransport.useEmulator(host, port, sslEnabled);
+    if (this.streamTransport) {
+      this.streamTransport.useEmulator(host, port, sslEnabled);
+    }
   }
 
   onAuthTokenChanged(token: string | null): void {
     this.restTransport.onAuthTokenChanged(token);
+    if (this.streamTransport) {
+      this.streamTransport.onAuthTokenChanged(token);
+    }
   }
 
   _setCallerSdkType(callerSdkType: CallerSdkType): void {
     this._callerSdkType = callerSdkType;
     this.restTransport._setCallerSdkType(callerSdkType);
+    if (this.streamTransport) {
+      this.streamTransport._setCallerSdkType(callerSdkType);
+    }
   }
 }

@@ -69,8 +69,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   /** The current connection to the server. Undefined if disconnected. */
   private connection: WebSocket | undefined = undefined;
 
-  /** Is the connection ready to send/receive messages? */
-  get isReady(): boolean {
+  get streamIsReady(): boolean {
     return this.connection?.readyState === WebSocket.OPEN;
   }
 
@@ -108,7 +107,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * @returns A promise that resolves when the stream is open and ready.
    */
   private ensureConnection(): Promise<void> {
-    if (this.isReady) {
+    if (this.streamIsReady) {
       return Promise.resolve();
     }
     if (this.connectionAttempt) {
