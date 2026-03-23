@@ -36,6 +36,8 @@ import {
   SubscribeStreamRequest
 } from '../../src/network/stream/wire';
 
+import { expectIsNotSettled, sleep } from './testUtils';
+
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
@@ -85,9 +87,7 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   }
 }
 
-/**
- * Interface that exposes some private fields and methods of TestStreamTransport for testing purposes.
- */
+/** Interface that exposes some private fields and methods of TestStreamTransport for testing purposes. */
 interface TransportWithInternals {
   nextRequestId(): string;
   _connectorResourcePath: string;
@@ -145,40 +145,6 @@ interface TransportWithInternals {
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void>;
-}
-
-/**
- * Asserts that a promise does not settle within the given timeout.
- * @param promise The promise to test.
- * @param timeout The timeout in milliseconds (defaults to 1000ms). Note that the test runner's timeout defaults to 5000ms.
- */
-async function expectIsNotSettled(
-  promise: Promise<unknown>,
-  timeout: number = 1000
-): Promise<void> {
-  const unsettled = { settled: false };
-  const result = await Promise.race<{
-    settled: boolean;
-    resolvedWith?: unknown;
-    rejectedWith?: unknown;
-  }>([
-    promise
-      .then(resolvedWith => ({ settled: true, resolvedWith }))
-      .catch(rejectedWith => ({ settled: true, rejectedWith })),
-    new Promise(resolve => {
-      setTimeout(() => resolve(unsettled), timeout);
-    })
-  ]);
-  expect(result).to.equal(
-    unsettled,
-    `expected promise to not settle within ${timeout}ms!`
-  );
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise<void>(resolve => {
-    setTimeout(resolve, ms);
-  });
 }
 
 describe('AbstractDataConnectStreamTransport', () => {
@@ -668,7 +634,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           response
         );
         await expect(errorPromise).to.be.rejectedWith(
-          `Unrecognized requestId '${unknownRequestId}'`
+          `Stream response contained unrecognized requestId '${unknownRequestId}'`
         );
       });
 
