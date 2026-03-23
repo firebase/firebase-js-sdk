@@ -3218,105 +3218,52 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, ...expectedResults);
     });
 
-    describe('arrayFilter', () => {
-      it('supports arrayFilter', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [1, 2, 3, 4, 5]
-              })
-            )
-            .select(
-              arrayFilter(
-                'arr',
-                'element',
-                greaterThan(variable('element'), 2)
-              ).as('filtered')
-            )
-        );
+    it('supports arrayFilter', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', 'The Lord of the Rings'))
+          .select(
+            arrayFilter('tags', 'tag', notEqual(field('tag'), 'magic')).as(
+              'notMagicTags'
+            ),
+            field('tags')
+              .arrayFilter('tag', notEqual(field('tag'), 'epic'))
+              .as('notEpicTags'),
+            field('tags')
+              .arrayFilter('tag', equal(field('tag'), 'fantasy'))
+              .as('noMatchingTags')
+          )
+      );
 
-        expectResults(snapshot, {
-          filtered: [3, 4, 5]
-        });
+      expectResults(snapshot, {
+        notMagicTags: ['adventure', 'epic'],
+        notEpicTags: ['adventure', 'magic'],
+        noMatchingTags: []
       });
+    });
 
-      it('supports arrayFilter with no matching elements', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [1, 2, 3]
-              })
+    it('supports arrayFilter with mixed types and nulls', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 'foo', null, 20.0, 'bar', 30, '40', null]
+            })
+          )
+          .select(
+            arrayFilter('arr', 'element', greaterThan(field('element'), 10)).as(
+              'filtered'
             )
-            .select(
-              arrayFilter(
-                'arr',
-                'element',
-                greaterThan(variable('element'), 5)
-              ).as('filtered')
-            )
-        );
+          )
+      );
 
-        expectResults(snapshot, {
-          filtered: []
-        });
-      });
-
-      it('supports arrayFilter with mixed types', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [1, 'foo', 20.0, 'bar', 30, '40']
-              })
-            )
-            .select(
-              arrayFilter(
-                'arr',
-                'element',
-                greaterThan(variable('element'), 10)
-              ).as('filtered')
-            )
-        );
-
-        expectResults(snapshot, {
-          filtered: [20.0, 30]
-        });
-      });
-
-      it('supports arrayFilter with nulls in array', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [1, null, 3, 4]
-              })
-            )
-            .select(
-              arrayFilter(
-                'arr',
-                'element',
-                greaterThan(variable('element'), 2)
-              ).as('filtered')
-            )
-        );
-
-        expectResults(snapshot, {
-          filtered: [3, 4]
-        });
+      expectResults(snapshot, {
+        filtered: [20.0, 30]
       });
     });
 
@@ -3325,22 +3272,43 @@ describe.skipClassic('Firestore Pipelines', () => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .limit(1)
-          .replaceWith(
-            map({
-              arr: [1, 2, 3, 4, 5]
-            })
-          )
+          .where(equal('title', 'The Lord of the Rings'))
           .select(
-            arraySlice('arr', 1, 3).as('sliced'),
-            arraySlice('arr', 2).as('slicedToEnd')
+            arraySlice('tags', 1, 1).as('staticMethodSlice'),
+            arraySlice('tags', 1).as('staticMethodSliceToEnd'),
+            field('tags').arraySlice(1, 1).as('instanceMethodSlice'),
+            field('tags').arraySlice(1).as('instanceMethodSliceToEnd'),
+            field('tags').arraySlice(1, 10).as('overflowLength'),
+            field('tags').arraySlice(-1, 1).as('negativeOffset'),
+            field('tags').arraySlice(-1).as('negativeOffsetSliceToEnd'),
+            field('tags').arraySlice(10).as('overflowOffset'),
+            field('tags').arraySlice(-10).as('negativeOverflowOffset')
           )
       );
 
       expectResults(snapshot, {
-        sliced: [2, 3, 4],
-        slicedToEnd: [3, 4, 5]
+        staticMethodSlice: ['magic'],
+        staticMethodSliceToEnd: ['magic', 'epic'],
+        instanceMethodSlice: ['magic'],
+        instanceMethodSliceToEnd: ['magic', 'epic'],
+        overflowLength: ['magic', 'epic'],
+        overflowOffset: [],
+        negativeOffset: ['epic'],
+        negativeOffsetSliceToEnd: ['epic'],
+        negativeOverflowOffset: ['adventure', 'magic', 'epic']
       });
+    });
+
+    it('arraySlice throws error for negative length', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', 'The Lord of the Rings'))
+            .select(arraySlice('tags', 1, -1).as('negativeLengthSlice'))
+        )
+      ).to.be.rejectedWith(/length must be non-negative/);
     });
 
     it('supports arrayFirstN', async () => {

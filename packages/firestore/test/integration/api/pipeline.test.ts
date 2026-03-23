@@ -3253,55 +3253,52 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
-    describe('arrayFilter', () => {
-      it('supports arrayFilter', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .where(equal("title", "The Lord of the Rings"))
-            .select(
-              arrayFilter(
-                'tags',
-                'tag',
-                notEqual(variable('tag'), 'magic')
-              ).as('notMagicTags'),
-              field('tags').arrayFilter('tag', notEqual(variable('tag'), 'epic')).as('notEpicTags'),
-              field('tags').arrayFilter('tag', equal(variable('tag'), 'fantasy')).as('noMatchingTags'),
+    it('supports arrayFilter', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', 'The Lord of the Rings'))
+          .select(
+            arrayFilter('tags', 'tag', notEqual(field('tag'), 'magic')).as(
+              'notMagicTags'
+            ),
+            field('tags')
+              .arrayFilter('tag', notEqual(field('tag'), 'epic'))
+              .as('notEpicTags'),
+            field('tags')
+              .arrayFilter('tag', equal(field('tag'), 'fantasy'))
+              .as('noMatchingTags')
+          )
+      );
 
-            )
-        );
-
-        expectResults(snapshot, {
-          notMagicTags: ["adventure", "epic"],
-          notEpicTags: ["adventure", "magic"],
-          noMatchingTags: []
-        });
+      expectResults(snapshot, {
+        notMagicTags: ['adventure', 'epic'],
+        notEpicTags: ['adventure', 'magic'],
+        noMatchingTags: []
       });
+    });
 
-      it('supports arrayFilter with mixed types and nulls', async () => {
-        const snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .limit(1)
-            .replaceWith(
-              map({
-                arr: [1, 'foo', null, 20.0, 'bar', 30, '40', null]
-              })
+    it('supports arrayFilter with mixed types and nulls', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 'foo', null, 20.0, 'bar', 30, '40', null]
+            })
+          )
+          .select(
+            arrayFilter('arr', 'element', greaterThan(field('element'), 10)).as(
+              'filtered'
             )
-            .select(
-              arrayFilter(
-                'arr',
-                'element',
-                greaterThan(variable('element'), 10)
-              ).as('filtered')
-            )
-        );
+          )
+      );
 
-        expectResults(snapshot, {
-          filtered: [20.0, 30]
-        });
+      expectResults(snapshot, {
+        filtered: [20.0, 30]
       });
     });
 
@@ -3310,21 +3307,43 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(equal("title", "The Lord of the Rings")) 
+          .where(equal('title', 'The Lord of the Rings'))
           .select(
             arraySlice('tags', 1, 1).as('staticMethodSlice'),
             arraySlice('tags', 1).as('staticMethodSliceToEnd'),
             field('tags').arraySlice(1, 1).as('instanceMethodSlice'),
             field('tags').arraySlice(1).as('instanceMethodSliceToEnd'),
+            field('tags').arraySlice(1, 10).as('overflowLength'),
+            field('tags').arraySlice(-1, 1).as('negativeOffset'),
+            field('tags').arraySlice(-1).as('negativeOffsetSliceToEnd'),
+            field('tags').arraySlice(10).as('overflowOffset'),
+            field('tags').arraySlice(-10).as('negativeOverflowOffset')
           )
       );
 
       expectResults(snapshot, {
-        staticMethodSlice: ["magic"],
-        staticMethodSliceToEnd: ["epic", "fantasy"],
-        instanceMethodSlice: ["magic"],
-        instanceMethodSliceToEnd: ["epic", "fantasy"]
+        staticMethodSlice: ['magic'],
+        staticMethodSliceToEnd: ['magic', 'epic'],
+        instanceMethodSlice: ['magic'],
+        instanceMethodSliceToEnd: ['magic', 'epic'],
+        overflowLength: ['magic', 'epic'],
+        overflowOffset: [],
+        negativeOffset: ['epic'],
+        negativeOffsetSliceToEnd: ['epic'],
+        negativeOverflowOffset: ['adventure', 'magic', 'epic']
       });
+    });
+
+    it('arraySlice throws error for negative length', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', 'The Lord of the Rings'))
+            .select(arraySlice('tags', 1, -1).as('negativeLengthSlice'))
+        )
+      ).to.be.rejectedWith(/length must be non-negative/);
     });
 
     it('supports arrayFirstN', async () => {

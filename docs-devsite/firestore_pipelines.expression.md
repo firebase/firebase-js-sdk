@@ -48,6 +48,7 @@ export declare abstract class Expression
 |  [arrayContainsAll(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
 |  [arrayContainsAny(values)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
 |  [arrayContainsAny(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayFilter(alias, filter)](./firestore_pipelines.expression.md#expressionarrayfilter) |  | <b><i>(Public Preview)</i></b> Filters the array using a provided alias and predicate expression. |
 |  [arrayFirst()](./firestore_pipelines.expression.md#expressionarrayfirst) |  | <b><i>(Public Preview)</i></b> Returns the first element of the array. |
 |  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
 |  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
@@ -70,6 +71,7 @@ export declare abstract class Expression
 |  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
+|  [arraySlice(offset, length)](./firestore_pipelines.expression.md#expressionarrayslice) |  | <b><i>(Public Preview)</i></b> Returns a subset of the array. |
 |  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
 |  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
@@ -566,6 +568,41 @@ A new `Expression` representing the 'array\_contains\_any' comparison.
 // Check if the 'groups' array contains either the value from the 'userGroup' field
 // or the value "guest"
 field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
+
+```
+
+## Expression.arrayFilter()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Filters the array using a provided alias and predicate expression.
+
+<b>Signature:</b>
+
+```typescript
+arrayFilter(alias: string, filter: BooleanExpression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  alias | string | The variable name to use for each element. |
+|  filter | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the filtered array.
+
+### Example
+
+
+```typescript
+// Filter the 'items' array to only include those where the 'price' is greater than 10
+field("items").arrayFilter('item', greaterThan(variable('item.price'), 10));
 
 ```
 
@@ -1281,6 +1318,44 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Reverse the value of the 'myArray' field.
 field("myArray").arrayReverse();
+
+```
+
+## Expression.arraySlice()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Returns a subset of the array.
+
+<b>Signature:</b>
+
+```typescript
+arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  offset | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The starting offset. |
+|  length | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The optional length of the slice. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the sliced array.
+
+### Example
+
+
+```typescript
+// Get 5 elements from the 'items' array starting from index 2
+field("items").arraySlice(2, 5);
+
+// Get n number of elements from the 'items' array starting from index 2
+field("items").arraySlice(2, field("count"));
 
 ```
 
