@@ -275,6 +275,12 @@ export function charLength(fieldName: string): FunctionExpression;
 export function charLength(stringExpression: Expression): FunctionExpression;
 
 // @beta
+export function coalesce(expression: Expression, replacement: Expression | unknown, ...others: Array<Expression | unknown>): Expression;
+
+// @beta
+export function coalesce(fieldName: string, replacement: Expression | unknown, ...others: Array<Expression | unknown>): Expression;
+
+// @beta
 export type CollectionGroupStageOptions = StageOptions & {
     collectionId: string;
     forceIndex?: string;
@@ -557,6 +563,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     charLength(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    coalesce(replacement: Expression | unknown, ...others: Expression[] | unknown[]): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     collectionId(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     concat(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
@@ -623,6 +631,10 @@ export abstract class Expression {
     ifError(catchExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     ifError(catchValue: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    ifNull(elseValue: unknown): Expression;
+    /* Excluded from this release type: _readUserData */
+    ifNull(elseExpression: unknown): Expression;
     /* Excluded from this release type: _readUserData */
     isAbsent(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
@@ -897,6 +909,20 @@ export function ifError(tryExpr: Expression, catchExpr: Expression): FunctionExp
 
 // @beta
 export function ifError(tryExpr: Expression, catchValue: unknown): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "ifNull" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public (undocumented)
+export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
+
+// @beta
+export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
+
+// @beta
+export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
+
+// @beta
+export function ifNull(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
 
 // @beta
 export function isAbsent(value: Expression): BooleanExpression;
