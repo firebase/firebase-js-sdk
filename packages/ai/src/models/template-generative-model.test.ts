@@ -183,4 +183,34 @@ describe('TemplateGenerativeModel', () => {
       );
     });
   });
+
+  describe('startChat', () => {
+    it('returns a TemplateChatSession initialized with params and requestOptions', () => {
+      const model = new TemplateGenerativeModel(fakeAI, { timeout: 1000 });
+      const chat = model.startChat({
+        templateId: TEMPLATE_ID,
+        templateVariables: TEMPLATE_VARS,
+        tools: [
+          {
+            functionDeclarations: [
+              { name: 'testFunction' }
+            ] // Testing that tools are passed along
+          }
+        ],
+        toolConfig: {
+          functionCallingConfig: {
+            mode: 'ANY'
+          }
+        }
+      });
+
+      expect(chat.params.templateId).to.equal(TEMPLATE_ID);
+      expect(chat.params.templateVariables).to.deep.equal(TEMPLATE_VARS);
+      expect(chat.params.tools?.length).to.equal(1);
+      expect(chat.params.toolConfig?.functionCallingConfig?.mode).to.equal(
+        'ANY'
+      );
+      expect(chat.requestOptions?.timeout).to.equal(1000);
+    });
+  });
 });
