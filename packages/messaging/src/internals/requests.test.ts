@@ -139,7 +139,7 @@ describe('API', () => {
     it('retries fetch on thrown errors with exponential backoff then succeeds', async () => {
       const delays: number[] = [];
       stub(self, 'setTimeout').callsFake(
-        (handler: TimerHandler, _timeout?: number) => {
+        (handler: TimerHandler, timeout?: number) => {
           delays.push(timeout ?? 0);
           if (typeof handler === 'function') {
             handler();
