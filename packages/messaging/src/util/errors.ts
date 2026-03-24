@@ -82,7 +82,7 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'The usePublicVapidKey() method may only be called once and must be ' +
     'called before calling getToken() to ensure your VAPID key is used.',
   [ErrorCode.INVALID_ON_REGISTERED_HANDLER]:
-    'No onRegistered callback handler was provided or registered. Call onRegistered() before register().'
+    'No onRegistered callback handler was provided or registered. Implement onRegistered() before register().'
 };
 
 interface ErrorParams {

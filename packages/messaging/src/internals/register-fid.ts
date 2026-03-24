@@ -17,14 +17,16 @@
 
 import { SubscriptionOptions } from '../interfaces/registration-details';
 import { MessagingService } from '../messaging-service';
-import { base64ToArray, arrayToBase64 } from '../helpers/array-base64-translator';
+import {
+  base64ToArray,
+  arrayToBase64
+} from '../helpers/array-base64-translator';
 import { requestCreateRegistration } from './requests';
 
 /**
  * For the new FID-based register path:
  * - Create (or refresh) an FCM Web registration in the backend via CreateRegistration.
  * - Use the FIS auth token produced by the installations instance (implicitly associated with FID).
- * - Only rely on HTTP success/failure (do not depend on returned FCM token).
  */
 export async function registerFcmRegistrationWithFid(
   messaging: MessagingService
@@ -66,4 +68,3 @@ async function getPushSubscription(
     applicationServerKey: base64ToArray(vapidKey) as unknown as BufferSource
   });
 }
-

@@ -63,8 +63,7 @@ export async function register(
 
   const prev = messaging._registerNotifyChain;
   messaging._registerNotifyChain = prev.then(async () => {
-    const fid =
-      await messaging.firebaseDependencies.installations.getId();
+    const fid = await messaging.firebaseDependencies.installations.getId();
 
     // Only invoke onRegistered when FID has changed (or first time), so the app is notified for new/changed identity.
     if (fid === messaging.lastNotifiedFid) {
@@ -74,7 +73,6 @@ export async function register(
     // TODO: refresh weekly
     await registerFcmRegistrationWithFid(messaging);
     messaging.lastNotifiedFid = fid;
-
 
     // TODO: callback per fid change
     const handler = messaging.onRegisteredHandler;

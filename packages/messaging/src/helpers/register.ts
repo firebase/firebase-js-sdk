@@ -27,10 +27,7 @@ import {
   onSubChange
 } from '../listeners/sw-listeners';
 
-import {
-  GetTokenOptions,
-  RegisterOptions
-} from '../interfaces/public-types';
+import { GetTokenOptions, RegisterOptions } from '../interfaces/public-types';
 import { MessagingInternal } from '@firebase/messaging-interop-types';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';

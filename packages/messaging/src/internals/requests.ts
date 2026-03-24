@@ -17,7 +17,10 @@
 
 import { DEFAULT_VAPID_KEY, ENDPOINT } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { SubscriptionOptions, TokenDetails } from '../interfaces/registration-details';
+import {
+  SubscriptionOptions,
+  TokenDetails
+} from '../interfaces/registration-details';
 
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
@@ -127,9 +130,6 @@ export async function requestCreateRegistration(
   try {
     responseData = (await response.json()) as ApiResponse;
   } catch (err) {
-    if (err instanceof Error) {
-      throw err;
-    }
     throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
       errorInfo: response.statusText
     });

@@ -54,10 +54,9 @@ describe('register', () => {
       updateVapidKeyModule,
       'updateVapidKey'
     ).resolves() as Stub<typeof updateVapidKeyModule.updateVapidKey>;
-    updateSwRegStub = stub(
-      updateSwRegModule,
-      'updateSwReg'
-    ).resolves() as Stub<typeof updateSwRegModule.updateSwReg>;
+    updateSwRegStub = stub(updateSwRegModule, 'updateSwReg').resolves() as Stub<
+      typeof updateSwRegModule.updateSwReg
+    >;
 
     requestCreateRegistrationStub = stub(
       requestsModule,
@@ -71,11 +70,11 @@ describe('register', () => {
 
     await register(messaging);
 
-    expect(updateVapidKeyStub).to.have.been.calledOnceWith(messaging, undefined);
-    expect(updateSwRegStub).to.have.been.calledOnceWith(
+    expect(updateVapidKeyStub).to.have.been.calledOnceWith(
       messaging,
       undefined
     );
+    expect(updateSwRegStub).to.have.been.calledOnceWith(messaging, undefined);
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
