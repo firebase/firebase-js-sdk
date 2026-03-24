@@ -113,8 +113,8 @@
     }
   },
   "dependencies": {
-    "@firebase/component": "0.7.1",
-    "@firebase/installations": "0.6.20",
+    "@firebase/component": "0.7.2",
+    "@firebase/installations": "0.6.21",
     "@opentelemetry/api": "1.9.0",
     "@opentelemetry/api-logs": "0.212.0",
     "@opentelemetry/core": "2.5.1",
@@ -140,8 +140,8 @@
     "@angular/core": "19.2.15",
     "@angular/platform-browser": "19.2.15",
     "@angular/router": "19.2.15",
-    "@firebase/app": "0.14.9",
-    "@firebase/util": "1.14.0",
+    "@firebase/app": "0.14.10",
+    "@firebase/util": "1.15.0",
     "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-replace": "6.0.2",
