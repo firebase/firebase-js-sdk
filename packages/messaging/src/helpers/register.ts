@@ -27,12 +27,13 @@ import {
   onSubChange
 } from '../listeners/sw-listeners';
 
-import { GetTokenOptions } from '../interfaces/public-types';
+import { GetTokenOptions, RegisterOptions } from '../interfaces/public-types';
 import { MessagingInternal } from '@firebase/messaging-interop-types';
 import { MessagingService } from '../messaging-service';
 import { ServiceWorkerGlobalScope } from '../util/sw-types';
 import { _registerComponent, registerVersion } from '@firebase/app';
 import { getToken } from '../api/getToken';
+import { register } from '../api/register';
 import { messageEventListener } from '../listeners/window-listener';
 
 import { name, version } from '../../package.json';
@@ -61,7 +62,8 @@ const WindowMessagingInternalFactory: InstanceFactory<'messaging-internal'> = (
     .getImmediate() as MessagingService;
 
   const messagingInternal: MessagingInternal = {
-    getToken: (options?: GetTokenOptions) => getToken(messaging, options)
+    getToken: (options?: GetTokenOptions) => getToken(messaging, options),
+    register: (options?: RegisterOptions) => register(messaging, options)
   };
 
   return messagingInternal;

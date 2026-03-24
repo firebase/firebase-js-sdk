@@ -17,10 +17,19 @@
 
 import { DEFAULT_VAPID_KEY, ENDPOINT } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
-import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
+import {
+  SubscriptionOptions,
+  TokenDetails
+} from '../interfaces/registration-details';
 
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+
+/** Max attempts (initial fetch + retries) when CreateRegistration `fetch()` throws. */
+export const FID_REGISTRATION_FETCH_MAX_ATTEMPTS = 3;
+
+/** Base delay in ms; backoff is `BASE * 2^attempt` after each failed attempt. */
+export const FID_REGISTRATION_FETCH_BASE_BACKOFF_MS = 1000;
 
 export interface ApiResponse {
   token?: string;
@@ -74,6 +83,61 @@ export async function requestGetToken(
   }
 
   return responseData.token;
+}
+
+/**
+ * Creates (or refreshes) an FCM Web registration via CreateRegistration, but only relies on
+ * HTTP success/failure.
+ *
+ * This is used by the FID-based register path, where we don't require the returned FCM token.
+ */
+export async function requestCreateRegistration(
+  firebaseDependencies: FirebaseInternalDependencies,
+  subscriptionOptions: SubscriptionOptions
+): Promise<void> {
+  const headers = await getHeaders(firebaseDependencies);
+  const body = getBody(subscriptionOptions);
+
+  const subscribeOptions = {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body)
+  };
+
+  let response: Response;
+  try {
+    response = await fetchWithExponentialRetry(
+      () =>
+        fetch(getEndpoint(firebaseDependencies.appConfig), subscribeOptions),
+      FID_REGISTRATION_FETCH_MAX_ATTEMPTS,
+      FID_REGISTRATION_FETCH_BASE_BACKOFF_MS
+    );
+  } catch (err) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: (err as Error)?.toString()
+    });
+  }
+
+  if (response.ok) {
+    return;
+  }
+
+  // `fetch()` succeeded, but the backend returned a non-2xx response.
+  // Best-effort parse the body to extract `error.message`, but always fail with
+  // `FID_REGISTRATION_FAILED` to keep the error surface uniform.
+  // Best-effort extraction of error details; the main signal is response.ok / status.
+  let responseData: ApiResponse;
+  try {
+    responseData = (await response.json()) as ApiResponse;
+  } catch (err) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: response.statusText
+    });
+  }
+  const message = responseData.error?.message ?? response.statusText;
+  throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+    errorInfo: message
+  });
 }
 
 export async function requestUpdateToken(
@@ -144,6 +208,30 @@ export async function requestDeleteToken(
       errorInfo: (err as Error)?.toString()
     });
   }
+}
+
+/**
+ * Re-runs `operation` when it throws, with exponential backoff between attempts.
+ * Rethrows the last error if all attempts fail.
+ */
+async function fetchWithExponentialRetry(
+  operation: () => Promise<Response>,
+  maxAttempts: number,
+  baseBackoffMs: number
+): Promise<Response> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (err) {
+      lastError = err;
+      if (attempt < maxAttempts - 1) {
+        const delayMs = baseBackoffMs * Math.pow(2, attempt);
+        await new Promise<void>(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw lastError;
 }
 
 function getEndpoint({ projectId }: AppConfig): string {

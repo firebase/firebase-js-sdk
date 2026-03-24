@@ -48,6 +48,15 @@ export class MessagingService implements _FirebaseService {
   /** Observer for the event that the app instance is unregistered from FCM (FID no longer active). */
   onUnregisteredHandler: NextFn<string> | Observer<string> | null = null;
 
+  /** Last FID passed to onRegisteredHandler (in-memory dedupe; call callback only when FID changes). */
+  lastNotifiedFid: string | null = null;
+
+  /**
+   * Serializes the FID get + compare + notify step so concurrent register() calls
+   * do not both see the same lastNotifiedFid and notify twice for the same FID.
+   */
+  _registerNotifyChain: Promise<void> = Promise.resolve();
+
   logEvents: LogEvent[] = [];
   isLogServiceStarted: boolean = false;
 

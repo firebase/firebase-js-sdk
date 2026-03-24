@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
+import {
+  SubscriptionOptions,
+  TokenDetails
+} from '../interfaces/registration-details';
 import {
   arrayToBase64,
   base64ToArray

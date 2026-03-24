@@ -30,6 +30,7 @@ import { registerMessagingInWindow } from './helpers/register';
 export {
   getToken,
   deleteToken,
+  register,
   onMessage,
   onRegistered,
   onUnregistered,

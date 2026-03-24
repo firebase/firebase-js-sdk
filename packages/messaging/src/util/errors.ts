@@ -28,6 +28,7 @@ export const enum ErrorCode {
   FAILED_DEFAULT_REGISTRATION = 'failed-service-worker-registration',
   TOKEN_SUBSCRIBE_FAILED = 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN = 'token-subscribe-no-token',
+  FID_REGISTRATION_FAILED = 'fid-registration-failed',
   TOKEN_UNSUBSCRIBE_FAILED = 'token-unsubscribe-failed',
   TOKEN_UPDATE_FAILED = 'token-update-failed',
   TOKEN_UPDATE_NO_TOKEN = 'token-update-no-token',
@@ -35,7 +36,8 @@ export const enum ErrorCode {
   USE_SW_AFTER_GET_TOKEN = 'use-sw-after-get-token',
   INVALID_SW_REGISTRATION = 'invalid-sw-registration',
   USE_VAPID_KEY_AFTER_GET_TOKEN = 'use-vapid-key-after-get-token',
-  INVALID_VAPID_KEY = 'invalid-vapid-key'
+  INVALID_VAPID_KEY = 'invalid-vapid-key',
+  INVALID_ON_REGISTERED_HANDLER = 'invalid-on-registered-handler'
 }
 
 export const ERROR_MAP: ErrorMap<ErrorCode> = {
@@ -59,6 +61,8 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'A problem occurred while subscribing the user to FCM: {$errorInfo}',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing the user to push.',
+  [ErrorCode.FID_REGISTRATION_FAILED]:
+    'A problem occurred while creating an FCM registration via FID: {$errorInfo}',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
     'A problem occurred while unsubscribing the ' +
     'user from FCM: {$errorInfo}',
@@ -76,7 +80,9 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.INVALID_VAPID_KEY]: 'The public VAPID key must be a string.',
   [ErrorCode.USE_VAPID_KEY_AFTER_GET_TOKEN]:
     'The usePublicVapidKey() method may only be called once and must be ' +
-    'called before calling getToken() to ensure your VAPID key is used.'
+    'called before calling getToken() to ensure your VAPID key is used.',
+  [ErrorCode.INVALID_ON_REGISTERED_HANDLER]:
+    'No onRegistered callback handler was provided or registered. Implement onRegistered() before register().'
 };
 
 interface ErrorParams {
@@ -85,6 +91,7 @@ interface ErrorParams {
   };
   [ErrorCode.FAILED_DEFAULT_REGISTRATION]: { browserErrorMessage: string };
   [ErrorCode.TOKEN_SUBSCRIBE_FAILED]: { errorInfo: string };
+  [ErrorCode.FID_REGISTRATION_FAILED]: { errorInfo: string };
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]: { errorInfo: string };
   [ErrorCode.TOKEN_UPDATE_FAILED]: { errorInfo: string };
 }
