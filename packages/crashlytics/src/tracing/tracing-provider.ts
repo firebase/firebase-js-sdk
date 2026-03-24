@@ -33,6 +33,7 @@ import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xm
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseSpanProcessor } from './firebase-span-processor';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -72,6 +73,7 @@ export function createTracingProvider(
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
+      new FirebaseSpanProcessor(),
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
     ]
