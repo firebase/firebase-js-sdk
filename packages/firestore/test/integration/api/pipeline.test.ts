@@ -5012,7 +5012,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
-    it.only('supports ifNull', async () => {
+    it('supports ifNull', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
@@ -5042,7 +5042,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
-    it.only('supports coalesce', async () => {
+    it('supports coalesce', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
