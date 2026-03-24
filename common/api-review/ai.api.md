@@ -1341,12 +1341,59 @@ export interface StartChatParams extends BaseParams {
 }
 
 // @public
+export interface StartTemplateChatParams extends BaseParams {
+    // (undocumented)
+    history?: Content[];
+    // (undocumented)
+    systemInstruction?: string | Part | Content;
+    // (undocumented)
+    templateId: string;
+    // (undocumented)
+    templateVariables?: Record<string, unknown>;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: TemplateTool[];
+}
+
+// @public
 export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
     // (undocumented)
     enum?: string[];
     // @internal (undocumented)
     toJSON(): SchemaRequest;
+}
+
+// @public
+export class TemplateChatSession {
+    constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // @internal
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): object;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
+    getHistory(): Promise<Content[]>;
+    // (undocumented)
+    params: StartTemplateChatParams;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    }
+
+// @public
+export interface TemplateFunctionDeclaration {
+    description?: never;
+    functionReference?: Function;
+    name: string;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// @public
+export interface TemplateFunctionDeclarationsTool {
+    functionDeclarations?: TemplateFunctionDeclaration[];
 }
 
 // @beta
@@ -1357,6 +1404,7 @@ export class TemplateGenerativeModel {
     generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
+    startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
 
 // @beta
@@ -1367,6 +1415,9 @@ export class TemplateImagenModel {
     generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
 }
+
+// @public
+export type TemplateTool = TemplateFunctionDeclarationsTool;
 
 // @public
 export interface TextPart {
