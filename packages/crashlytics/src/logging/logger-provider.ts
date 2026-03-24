@@ -71,6 +71,7 @@ export function createLoggerProvider(
   return new LoggerProvider({
     resource,
     processors: [
+      // TODO: Remove console exporter before we ship
       new SimpleLogRecordProcessor(new ConsoleLogRecordExporter()),
       new BatchLogRecordProcessor(logExporter)
     ]

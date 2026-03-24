@@ -34,7 +34,7 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 import { FirebaseApp } from '@firebase/app';
-import { SessionSpanProcessor } from './session-span-processor';
+import { FirebaseSpanProcessor } from './firebase-span-processor';
 
 /**
  * A custom ContextManager that ensures the session span is the default parent.
@@ -99,7 +99,8 @@ export function createTracingProvider(
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
-      new SessionSpanProcessor(),
+      new FirebaseSpanProcessor(),
+      // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
     ]

@@ -17,13 +17,13 @@
 
 import { expect } from 'chai';
 import { Span } from '@opentelemetry/api';
-import { SessionSpanProcessor } from './session-span-processor';
+import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { CRASHLYTICS_SESSION_ID_KEY, LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
 
 const MOCK_SESSION_ID = 'mock-session-id';
 
-describe('SessionSpanProcessor', () => {
-  let processor: SessionSpanProcessor;
+describe('FirebaseSpanProcessor', () => {
+  let processor: FirebaseSpanProcessor;
   let mockSpan: any;
   let originalSessionStorage: Storage | undefined;
   let storage: Record<string, string> = {};
@@ -42,7 +42,7 @@ describe('SessionSpanProcessor', () => {
       writable: true
     });
 
-    processor = new SessionSpanProcessor();
+    processor = new FirebaseSpanProcessor();
     mockSpan = {
       attributes: {},
       setAttribute: (key: string, value: string) => {

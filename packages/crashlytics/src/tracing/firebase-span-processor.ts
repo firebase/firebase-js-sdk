@@ -17,10 +17,13 @@
 
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import { getSessionId } from '../session';
+import { getSessionId } from '../helpers';
 import { LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
 
-export class SessionSpanProcessor implements SpanProcessor {
+/**
+ * A SpanProcessor that adds Firebase-specific attributes to spans.
+ */
+export class FirebaseSpanProcessor implements SpanProcessor {
   forceFlush(): Promise<void> {
     return Promise.resolve();
   }

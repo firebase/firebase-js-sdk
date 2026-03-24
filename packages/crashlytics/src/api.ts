@@ -86,69 +86,61 @@ export function recordError(
   const currentSessionSpan = (crashlytics as CrashlyticsInternal).currentSessionSpan;
   const customAttributes: AnyValueMap = {};
 
-  const logError = (): void => {
-    // Add framework-specific metadata
-    const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
-      .frameworkAttributesProvider;
-    if (frameworkAttributesProvider) {
-      const frameworkAttributes = frameworkAttributesProvider();
-      Object.assign(customAttributes, frameworkAttributes);
-    }
+  // Add framework-specific metadata
+  const frameworkAttributesProvider = (crashlytics as CrashlyticsService)
+    .frameworkAttributesProvider;
+  if (frameworkAttributesProvider) {
+    const frameworkAttributes = frameworkAttributesProvider();
+    Object.assign(customAttributes, frameworkAttributes);
+  }
 
-    // Add trace metadata
-    const activeSpanContext = trace.getActiveSpan()?.spanContext();
-    if (activeSpanContext?.traceId) {
-      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID] = activeSpanContext.traceId;
-      if (activeSpanContext?.spanId) {
-        customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID] = activeSpanContext.spanId;
+  // Add trace metadata
+  const activeSpanContext = trace.getActiveSpan()?.spanContext();
+  if (activeSpanContext?.traceId) {
+    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID] = activeSpanContext.traceId;
+    if (activeSpanContext?.spanId) {
+      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID] = activeSpanContext.spanId;
+    }
+  }
+
+  // Add app version metadata
+  customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] =
+    getAppVersion(crashlytics);
+
+  // Add session ID metadata
+  const sessionId = getSessionId();
+  if (sessionId) {
+    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
+  }
+
+  // Merge in any additional attributes. Explicitly provided attributes take precedence over
+  // automatically added attributes.
+  if (attributes) {
+    Object.assign(customAttributes, attributes);
+  }
+
+  if (error instanceof Error) {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: error.message,
+      attributes: {
+        'error.type': error.name || 'Error',
+        'error.stack': error.stack || 'No stack trace available',
+        ...customAttributes
       }
-    }
-
-    // Add app version metadata
-    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION] =
-      getAppVersion(crashlytics);
-
-    // Add session ID metadata
-    const sessionId = getSessionId();
-    if (sessionId) {
-      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-    }
-
-    // Merge in any additional attributes. Explicitly provided attributes take precedence over
-    // automatically added attributes.
-    if (attributes) {
-      Object.assign(customAttributes, attributes);
-    }
-
-    if (error instanceof Error) {
-      logger.emit({
-        severityNumber: SeverityNumber.ERROR,
-        body: error.message,
-        attributes: {
-          'error.type': error.name || 'Error',
-          'error.stack': error.stack || 'No stack trace available',
-          ...customAttributes
-        }
-      });
-    } else if (typeof error === 'string') {
-      logger.emit({
-        severityNumber: SeverityNumber.ERROR,
-        body: error,
-        attributes: customAttributes
-      });
-    } else {
-      logger.emit({
-        severityNumber: SeverityNumber.ERROR,
-        body: `Unknown error type: ${typeof error}`,
-        attributes: customAttributes
-      });
-    }
-  };
-
-  if (!trace.getActiveSpan() && currentSessionSpan) {
-    context.with(trace.setSpan(context.active(), currentSessionSpan), logError);
+    });
+  } else if (typeof error === 'string') {
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: error,
+      attributes: customAttributes
+    });
   } else {
-    logError();
+    logger.emit({
+      severityNumber: SeverityNumber.ERROR,
+      body: `Unknown error type: ${typeof error}`,
+      attributes: customAttributes
+    });
   }
 }
 
