@@ -34,180 +34,171 @@ export declare abstract class Expression
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [abs()](./firestore_pipelines.expression.md#expressionabs) |  | Creates an expression that computes the absolute value of a numeric value. |
-|  [add(second)](./firestore_pipelines.expression.md#expressionadd) |  | Creates an expression that adds this expression to another expression. |
-|  [arrayAgg()](./firestore_pipelines.expression.md#expressionarrayagg) |  | Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
-|  [arrayAggDistinct()](./firestore_pipelines.expression.md#expressionarrayaggdistinct) |  | Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
-|  [arrayConcat(secondArray, otherArrays)](./firestore_pipelines.expression.md#expressionarrayconcat) |  | Creates an expression that concatenates an array expression with one or more other arrays. |
-|  [arrayContains(expression)](./firestore_pipelines.expression.md#expressionarraycontains) |  | Creates an expression that checks if an array contains a specific element. |
-|  [arrayContains(value)](./firestore_pipelines.expression.md#expressionarraycontains) |  | Creates an expression that checks if an array contains a specific value. |
-|  [arrayContainsAll(values)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | Creates an expression that checks if an array contains all the specified elements. |
-|  [arrayContainsAll(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | Creates an expression that checks if an array contains all the specified elements. |
-|  [arrayContainsAny(values)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | Creates an expression that checks if an array contains any of the specified elements. |
-|  [arrayContainsAny(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | Creates an expression that checks if an array contains any of the specified elements. |
-|  [arrayFilter(alias, filter)](./firestore_pipelines.expression.md#expressionarrayfilter) |  | Filters the array using a provided alias and predicate expression. |
-|  [arrayFirst()](./firestore_pipelines.expression.md#expressionarrayfirst) |  | Returns the first element of the array. |
-|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | Returns the first <code>n</code> elements of the array. |
-|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | Returns the first <code>n</code> elements of the array. |
-|  [arrayGet(offset)](./firestore_pipelines.expression.md#expressionarrayget) |  | Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayGet(offsetExpr)](./firestore_pipelines.expression.md#expressionarrayget) |  | Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | Returns the first index of the search value in the array, or -1 if not found. |
-|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | Returns the first index of the search value in the array, or -1 if not found. |
-|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | Returns all indices of the search value in the array. |
-|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | Returns all indices of the search value in the array. |
-|  [arrayLast()](./firestore_pipelines.expression.md#expressionarraylast) |  | Returns the last element of the array. |
-|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | Returns the last index of the search value in the array, or -1 if not found. |
-|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | Returns the last index of the search value in the array, or -1 if not found. |
-|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | Returns the last <code>n</code> elements of the array. |
-|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | Returns the last <code>n</code> elements of the array. |
-|  [arrayLength()](./firestore_pipelines.expression.md#expressionarraylength) |  | Creates an expression that calculates the length of an array. |
-|  [arrayMaximum()](./firestore_pipelines.expression.md#expressionarraymaximum) |  | Returns the maximum value in the array. |
-|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimum()](./firestore_pipelines.expression.md#expressionarrayminimum) |  | Returns the minimum value in the array. |
-|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | Creates an expression that reverses an array. |
-|  [arraySlice(offset, length)](./firestore_pipelines.expression.md#expressionarrayslice) |  | Returns a subset of the array. |
-|  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | Creates an expression that computes the sum of the elements in an array. |
-|  [arrayTransform(elementAlias, transform)](./firestore_pipelines.expression.md#expressionarraytransform) |  | Creates an expression that applies a provided transformation to each element in an array. |
-|  [arrayTransformWithIndex(elementAlias, indexAlias, transform)](./firestore_pipelines.expression.md#expressionarraytransformwithindex) |  | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
-|  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
-|  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | Wraps the expression in a \[BooleanExpression\]. |
-|  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
-|  [average()](./firestore_pipelines.expression.md#expressionaverage) |  | Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs. |
-|  [byteLength()](./firestore_pipelines.expression.md#expressionbytelength) |  | Creates an expression that calculates the length of this string expression in bytes. |
-|  [ceil()](./firestore_pipelines.expression.md#expressionceil) |  | Creates an expression that computes the ceiling of a numeric value. |
-|  [charLength()](./firestore_pipelines.expression.md#expressioncharlength) |  | Creates an expression that calculates the character length of a string in UTF-8. |
-|  [coalesce(replacement, others)](./firestore_pipelines.expression.md#expressioncoalesce) |  | Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
-|  [collectionId()](./firestore_pipelines.expression.md#expressioncollectionid) |  | Creates an expression that returns the collection ID from a path. |
-|  [concat(second, others)](./firestore_pipelines.expression.md#expressionconcat) |  | Creates an expression that concatenates expression results together. |
-|  [cosineDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | Calculates the cosine distance between two vectors. |
-|  [cosineDistance(vector)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | Calculates the Cosine distance between two vectors. |
-|  [count()](./firestore_pipelines.expression.md#expressioncount) |  | Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field. |
-|  [countDistinct()](./firestore_pipelines.expression.md#expressioncountdistinct) |  | Creates an aggregation that counts the number of distinct values of the expression or field. |
-|  [descending()](./firestore_pipelines.expression.md#expressiondescending) |  | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression. |
-|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | Creates an expression that divides this expression by another expression. |
-|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | Creates an expression that divides this expression by a constant value. |
-|  [documentId()](./firestore_pipelines.expression.md#expressiondocumentid) |  | Creates an expression that returns the document ID from a path. |
-|  [dotProduct(vectorExpression)](./firestore_pipelines.expression.md#expressiondotproduct) |  | Calculates the dot product between two vectors. |
-|  [dotProduct(vector)](./firestore_pipelines.expression.md#expressiondotproduct) |  | Calculates the dot product between two vectors. |
-|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | Creates an expression that checks if a string ends with a given postfix. |
-|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | Creates an expression that checks if a string ends with a given postfix (represented as an expression). |
-|  [equal(expression)](./firestore_pipelines.expression.md#expressionequal) |  | Creates an expression that checks if this expression is equal to another expression. |
-|  [equal(value)](./firestore_pipelines.expression.md#expressionequal) |  | Creates an expression that checks if this expression is equal to a constant value. |
-|  [equalAny(values)](./firestore_pipelines.expression.md#expressionequalany) |  | Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
-|  [equalAny(arrayExpression)](./firestore_pipelines.expression.md#expressionequalany) |  | Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
-|  [euclideanDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | Calculates the Euclidean distance between two vectors. |
-|  [euclideanDistance(vector)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | Calculates the Euclidean distance between two vectors. |
-|  [exists()](./firestore_pipelines.expression.md#expressionexists) |  | Creates an expression that checks if a field exists in the document. |
-|  [exp()](./firestore_pipelines.expression.md#expressionexp) |  | Creates an expression that computes e to the power of this expression. |
-|  [first()](./firestore_pipelines.expression.md#expressionfirst) |  | Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
-|  [floor()](./firestore_pipelines.expression.md#expressionfloor) |  | Creates an expression that computes the floor of a numeric value. |
-|  [getField(key)](./firestore_pipelines.expression.md#expressiongetfield) |  | Creates an expression that returns the value of a field from the document that results from the evaluation of this expression. |
-|  [greaterThan(expression)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | Creates an expression that checks if this expression is greater than another expression. |
-|  [greaterThan(value)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | Creates an expression that checks if this expression is greater than a constant value. |
-|  [greaterThanOrEqual(expression)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | Creates an expression that checks if this expression is greater than or equal to another expression. |
-|  [greaterThanOrEqual(value)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | Creates an expression that checks if this expression is greater than or equal to a constant value. |
-|  [ifAbsent(elseValue)](./firestore_pipelines.expression.md#expressionifabsent) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
-|  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
-|  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
-|  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression evaluates to null, else return the result of this expression evaluation. |
-|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression evaluates to null, else return the result of this expression evaluation. |
-|  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
-|  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | Creates an expression that checks if a given expression produces an error. |
-|  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | Creates an expression that checks if the result of this expression is of the given type. |
-|  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | Creates an expression that joins the elements of an array into a string. |
-|  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | Creates an expression that joins the elements of an array field into a string. |
-|  [last()](./firestore_pipelines.expression.md#expressionlast) |  | Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
-|  [length()](./firestore_pipelines.expression.md#expressionlength) |  | Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
-|  [lessThan(experession)](./firestore_pipelines.expression.md#expressionlessthan) |  | Creates an expression that checks if this expression is less than another expression. |
-|  [lessThan(value)](./firestore_pipelines.expression.md#expressionlessthan) |  | Creates an expression that checks if this expression is less than a constant value. |
-|  [lessThanOrEqual(expression)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | Creates an expression that checks if this expression is less than or equal to another expression. |
-|  [lessThanOrEqual(value)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | Creates an expression that checks if this expression is less than or equal to a constant value. |
-|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | Creates an expression that performs a case-sensitive string comparison. |
-|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | Creates an expression that performs a case-sensitive string comparison. |
-|  [ln()](./firestore_pipelines.expression.md#expressionln) |  | Creates an expression that computes the natural logarithm of a numeric value. |
-|  [log10()](./firestore_pipelines.expression.md#expressionlog10) |  | Creates an expression that computes the base-10 logarithm of a numeric value. |
-|  [logicalMaximum(second, others)](./firestore_pipelines.expression.md#expressionlogicalmaximum) |  | Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
-|  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
-|  [ltrim(valueToTrim)](./firestore_pipelines.expression.md#expressionltrim) |  | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
-|  [mapEntries()](./firestore_pipelines.expression.md#expressionmapentries) |  | Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
-|  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | Accesses a value from a map (object) field using the provided key. |
-|  [mapKeys()](./firestore_pipelines.expression.md#expressionmapkeys) |  | Creates an expression that returns the keys of a map. |
-|  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | Creates an expression that merges multiple map values. |
-|  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | Creates an expression that removes a key from the map produced by evaluating this expression. |
-|  [mapRemove(keyExpr)](./firestore_pipelines.expression.md#expressionmapremove) |  | Creates an expression that removes a key from the map produced by evaluating this expression. |
-|  [mapSet(key, value, moreKeyValues)](./firestore_pipelines.expression.md#expressionmapset) |  | Creates an expression that returns a new map with the specified entries added or updated. |
-|  [mapValues()](./firestore_pipelines.expression.md#expressionmapvalues) |  | Creates an expression that returns the values of a map. |
-|  [maximum()](./firestore_pipelines.expression.md#expressionmaximum) |  | Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
-|  [minimum()](./firestore_pipelines.expression.md#expressionminimum) |  | Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
-|  [mod(expression)](./firestore_pipelines.expression.md#expressionmod) |  | Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression. |
-|  [mod(value)](./firestore_pipelines.expression.md#expressionmod) |  | Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value. |
-|  [multiply(second)](./firestore_pipelines.expression.md#expressionmultiply) |  | Creates an expression that multiplies this expression by another expression. |
-|  [notEqual(expression)](./firestore_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to another expression. |
-|  [notEqual(value)](./firestore_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to a constant value. |
-|  [notEqualAny(values)](./firestore_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
-|  [notEqualAny(arrayExpression)](./firestore_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
-|  [parent()](./firestore_pipelines.expression.md#expressionparent) |  | Creates an expression that returns the parent document reference of a document reference. |
-|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of another expression. |
-|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of a constant value. |
-|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
-|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
-|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | Creates an expression that checks if a string matches a specified regular expression. |
-|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | Creates an expression that checks if a string matches a specified regular expression. |
-|  [reverse()](./firestore_pipelines.expression.md#expressionreverse) |  | Creates an expression that reverses this string expression. |
-|  [round()](./firestore_pipelines.expression.md#expressionround) |  | Creates an expression that rounds a numeric value to the nearest whole number. |
-|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [rtrim(valueToTrim)](./firestore_pipelines.expression.md#expressionrtrim) |  | Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
-|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
-|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
-|  [sqrt()](./firestore_pipelines.expression.md#expressionsqrt) |  | Creates an expression that computes the square root of a numeric value. |
-|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | Creates an expression that checks if a string starts with a given prefix. |
-|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | Creates an expression that checks if a string starts with a given prefix (represented as an expression). |
-|  [stringConcat(secondString, otherStrings)](./firestore_pipelines.expression.md#expressionstringconcat) |  | Creates an expression that concatenates string expressions together. |
-|  [stringContains(substring)](./firestore_pipelines.expression.md#expressionstringcontains) |  | Creates an expression that checks if a string contains a specified substring. |
-|  [stringContains(expr)](./firestore_pipelines.expression.md#expressionstringcontains) |  | Creates an expression that checks if a string contains the string represented by another expression. |
-|  [stringIndexOf(search)](./firestore_pipelines.expression.md#expressionstringindexof) |  | Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
-|  [stringRepeat(repetitions)](./firestore_pipelines.expression.md#expressionstringrepeat) |  | Creates an expression that repeats a string or byte array a specified number of times. |
-|  [stringReplaceAll(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceall) |  | Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
-|  [stringReplaceOne(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceone) |  | Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
-|  [stringReverse()](./firestore_pipelines.expression.md#expressionstringreverse) |  | Creates an expression that reverses a string. |
-|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | Creates an expression that returns a substring of the results of this expression. |
-|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | Creates an expression that returns a substring of the results of this expression. |
-|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | Creates an expression that subtracts another expression from this expression. |
-|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | Creates an expression that subtracts a constant value from this expression. |
-|  [sum()](./firestore_pipelines.expression.md#expressionsum) |  | Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs. |
-|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | Creates an expression that adds a specified amount of time to this timestamp expression. |
-|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | Creates an expression that adds a specified amount of time to this timestamp expression. |
-|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | Creates an expression that calculates the difference between this timestamp and another timestamp. |
-|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | Creates an expression that calculates the difference between this timestamp and another timestamp. |
-|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | Creates an expression that extracts a specified part from this timestamp expression. |
-|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | Creates an expression that extracts a specified part from this timestamp expression. |
-|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | Creates an expression that subtracts a specified amount of time from this timestamp expression. |
-|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | Creates an expression that subtracts a specified amount of time from this timestamp expression. |
-|  [timestampToUnixMicros()](./firestore_pipelines.expression.md#expressiontimestamptounixmicros) |  | Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixMillis()](./firestore_pipelines.expression.md#expressiontimestamptounixmillis) |  | Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixSeconds()](./firestore_pipelines.expression.md#expressiontimestamptounixseconds) |  | Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | Creates an expression that truncates a timestamp to a specified granularity. |
-|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | Creates an expression that truncates a timestamp to a specified granularity. |
-|  [toLower()](./firestore_pipelines.expression.md#expressiontolower) |  | Creates an expression that converts a string to lowercase. |
-|  [toUpper()](./firestore_pipelines.expression.md#expressiontoupper) |  | Creates an expression that converts a string to uppercase. |
-|  [trim(valueToTrim)](./firestore_pipelines.expression.md#expressiontrim) |  | Creates an expression that removes leading and trailing characters from a string or byte array. |
-|  [trunc()](./firestore_pipelines.expression.md#expressiontrunc) |  | Creates an expression that truncates the numeric value to an integer. |
-|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | Creates an expression that truncates a numeric value to the specified number of decimal places. |
-|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | Creates an expression that truncates a numeric value to the specified number of decimal places. |
-|  [type()](./firestore_pipelines.expression.md#expressiontype) |  | Creates an expression that returns the data type of this expression's result, as a string. |
-|  [unixMicrosToTimestamp()](./firestore_pipelines.expression.md#expressionunixmicrostotimestamp) |  | Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixMillisToTimestamp()](./firestore_pipelines.expression.md#expressionunixmillistotimestamp) |  | Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixSecondsToTimestamp()](./firestore_pipelines.expression.md#expressionunixsecondstotimestamp) |  | Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [vectorLength()](./firestore_pipelines.expression.md#expressionvectorlength) |  | Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression. |
+|  [abs()](./firestore_pipelines.expression.md#expressionabs) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
+|  [add(second)](./firestore_pipelines.expression.md#expressionadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds this expression to another expression. |
+|  [arrayAgg()](./firestore_pipelines.expression.md#expressionarrayagg) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
+|  [arrayAggDistinct()](./firestore_pipelines.expression.md#expressionarrayaggdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
+|  [arrayConcat(secondArray, otherArrays)](./firestore_pipelines.expression.md#expressionarrayconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates an array expression with one or more other arrays. |
+|  [arrayContains(expression)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific element. |
+|  [arrayContains(value)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific value. |
+|  [arrayContainsAll(values)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
+|  [arrayContainsAll(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
+|  [arrayContainsAny(values)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayContainsAny(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayFirst()](./firestore_pipelines.expression.md#expressionarrayfirst) |  | <b><i>(Public Preview)</i></b> Returns the first element of the array. |
+|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
+|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
+|  [arrayGet(offset)](./firestore_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayGet(offsetExpr)](./firestore_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or -1 if not found. |
+|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or -1 if not found. |
+|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
+|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
+|  [arrayLast()](./firestore_pipelines.expression.md#expressionarraylast) |  | <b><i>(Public Preview)</i></b> Returns the last element of the array. |
+|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or -1 if not found. |
+|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or -1 if not found. |
+|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
+|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
+|  [arrayLength()](./firestore_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
+|  [arrayMaximum()](./firestore_pipelines.expression.md#expressionarraymaximum) |  | <b><i>(Public Preview)</i></b> Returns the maximum value in the array. |
+|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimum()](./firestore_pipelines.expression.md#expressionarrayminimum) |  | <b><i>(Public Preview)</i></b> Returns the minimum value in the array. |
+|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
+|  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
+|  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
+|  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
+|  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
+|  [average()](./firestore_pipelines.expression.md#expressionaverage) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs. |
+|  [byteLength()](./firestore_pipelines.expression.md#expressionbytelength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of this string expression in bytes. |
+|  [ceil()](./firestore_pipelines.expression.md#expressionceil) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
+|  [charLength()](./firestore_pipelines.expression.md#expressioncharlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the character length of a string in UTF-8. |
+|  [collectionId()](./firestore_pipelines.expression.md#expressioncollectionid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path. |
+|  [concat(second, others)](./firestore_pipelines.expression.md#expressionconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates expression results together. |
+|  [cosineDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the cosine distance between two vectors. |
+|  [cosineDistance(vector)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between two vectors. |
+|  [count()](./firestore_pipelines.expression.md#expressioncount) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field. |
+|  [countDistinct()](./firestore_pipelines.expression.md#expressioncountdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of distinct values of the expression or field. |
+|  [descending()](./firestore_pipelines.expression.md#expressiondescending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression. |
+|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by another expression. |
+|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by a constant value. |
+|  [documentId()](./firestore_pipelines.expression.md#expressiondocumentid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
+|  [dotProduct(vectorExpression)](./firestore_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors. |
+|  [dotProduct(vector)](./firestore_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors. |
+|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix. |
+|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix (represented as an expression). |
+|  [equal(expression)](./firestore_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to another expression. |
+|  [equal(value)](./firestore_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to a constant value. |
+|  [equalAny(values)](./firestore_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
+|  [equalAny(arrayExpression)](./firestore_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
+|  [euclideanDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
+|  [euclideanDistance(vector)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
+|  [exists()](./firestore_pipelines.expression.md#expressionexists) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists in the document. |
+|  [exp()](./firestore_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression. |
+|  [first()](./firestore_pipelines.expression.md#expressionfirst) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
+|  [floor()](./firestore_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
+|  [greaterThan(expression)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression. |
+|  [greaterThan(value)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
+|  [greaterThanOrEqual(expression)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression. |
+|  [greaterThanOrEqual(value)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to a constant value. |
+|  [ifAbsent(elseValue)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
+|  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
+|  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
+|  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
+|  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
+|  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
+|  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
+|  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
+|  [last()](./firestore_pipelines.expression.md#expressionlast) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
+|  [length()](./firestore_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
+|  [lessThan(experession)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than another expression. |
+|  [lessThan(value)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than a constant value. |
+|  [lessThanOrEqual(expression)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to another expression. |
+|  [lessThanOrEqual(value)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to a constant value. |
+|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison. |
+|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison. |
+|  [ln()](./firestore_pipelines.expression.md#expressionln) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the natural logarithm of a numeric value. |
+|  [log10()](./firestore_pipelines.expression.md#expressionlog10) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
+|  [logicalMaximum(second, others)](./firestore_pipelines.expression.md#expressionlogicalmaximum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
+|  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
+|  [ltrim(valueToTrim)](./firestore_pipelines.expression.md#expressionltrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
+|  [mapEntries()](./firestore_pipelines.expression.md#expressionmapentries) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
+|  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
+|  [mapKeys()](./firestore_pipelines.expression.md#expressionmapkeys) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
+|  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
+|  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
+|  [mapRemove(keyExpr)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
+|  [mapSet(key, value, moreKeyValues)](./firestore_pipelines.expression.md#expressionmapset) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated. |
+|  [mapValues()](./firestore_pipelines.expression.md#expressionmapvalues) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
+|  [maximum()](./firestore_pipelines.expression.md#expressionmaximum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
+|  [minimum()](./firestore_pipelines.expression.md#expressionminimum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
+|  [mod(expression)](./firestore_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression. |
+|  [mod(value)](./firestore_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value. |
+|  [multiply(second)](./firestore_pipelines.expression.md#expressionmultiply) |  | <b><i>(Public Preview)</i></b> Creates an expression that multiplies this expression by another expression. |
+|  [notEqual(expression)](./firestore_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to another expression. |
+|  [notEqual(value)](./firestore_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to a constant value. |
+|  [notEqualAny(values)](./firestore_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
+|  [notEqualAny(arrayExpression)](./firestore_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
+|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of another expression. |
+|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value. |
+|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
+|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
+|  [reverse()](./firestore_pipelines.expression.md#expressionreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses this string expression. |
+|  [round()](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
+|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(valueToTrim)](./firestore_pipelines.expression.md#expressionrtrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
+|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
+|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
+|  [sqrt()](./firestore_pipelines.expression.md#expressionsqrt) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
+|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix. |
+|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix (represented as an expression). |
+|  [stringConcat(secondString, otherStrings)](./firestore_pipelines.expression.md#expressionstringconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string expressions together. |
+|  [stringContains(substring)](./firestore_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified substring. |
+|  [stringContains(expr)](./firestore_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains the string represented by another expression. |
+|  [stringIndexOf(search)](./firestore_pipelines.expression.md#expressionstringindexof) |  | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(repetitions)](./firestore_pipelines.expression.md#expressionstringrepeat) |  | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceall) |  | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceone) |  | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
+|  [stringReverse()](./firestore_pipelines.expression.md#expressionstringreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses a string. |
+|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
+|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
+|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts another expression from this expression. |
+|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from this expression. |
+|  [sum()](./firestore_pipelines.expression.md#expressionsum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs. |
+|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression. |
+|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression. |
+|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between this timestamp and another timestamp. |
+|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between this timestamp and another timestamp. |
+|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from this timestamp expression. |
+|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from this timestamp expression. |
+|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression. |
+|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression. |
+|  [timestampToUnixMicros()](./firestore_pipelines.expression.md#expressiontimestamptounixmicros) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixMillis()](./firestore_pipelines.expression.md#expressiontimestamptounixmillis) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixSeconds()](./firestore_pipelines.expression.md#expressiontimestamptounixseconds) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
+|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
+|  [toLower()](./firestore_pipelines.expression.md#expressiontolower) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to lowercase. |
+|  [toUpper()](./firestore_pipelines.expression.md#expressiontoupper) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to uppercase. |
+|  [trim(valueToTrim)](./firestore_pipelines.expression.md#expressiontrim) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array. |
+|  [trunc()](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value to an integer. |
+|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [type()](./firestore_pipelines.expression.md#expressiontype) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of this expression's result, as a string. |
+|  [unixMicrosToTimestamp()](./firestore_pipelines.expression.md#expressionunixmicrostotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixMillisToTimestamp()](./firestore_pipelines.expression.md#expressionunixmillistotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixSecondsToTimestamp()](./firestore_pipelines.expression.md#expressionunixsecondstotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [vectorLength()](./firestore_pipelines.expression.md#expressionvectorlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression. |
 
 ## Expression.expressionType
 
@@ -4683,6 +4674,146 @@ field("timestamp").timestampAdd("day", 1);
 ```
 
 ## Expression.timestampDiff()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between this timestamp and another timestamp.
+
+<b>Signature:</b>
+
+```typescript
+timestampDiff(start: Expression, unit: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  start | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluating to the starting timestamp. |
+|  unit | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluates to a unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the difference as an integer.
+
+### Example
+
+
+```typescript
+// Calculate the difference determined by fields 'startTime' and 'unit'.
+field("endTime").timestampDiff(field("startTime"), field("unit"));
+
+```
+
+## Expression.timestampDiff()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between this timestamp and another timestamp.
+
+<b>Signature:</b>
+
+```typescript
+timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  start | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The field name of the starting timestamp. |
+|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time for the difference (e.g., "day", "hour"). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the difference as an integer.
+
+### Example
+
+
+```typescript
+// Calculate the difference in days between 'endTime' and 'startTime' fields.
+field("endTime").timestampDiff("startTime", "day");
+
+```
+
+## Expression.timestampExtract()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that extracts a specified part from this timestamp expression.
+
+<b>Signature:</b>
+
+```typescript
+timestampExtract(part: TimePart, timezone?: string | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  part | [TimePart](./firestore_pipelines.md#timepart) | The part to extract from the timestamp (e.g., "year", "month", "day"). |
+|  timezone | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The timezone to use for extraction. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1." |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the extracted part as an integer.
+
+### Example
+
+
+```typescript
+// Extract the year from the 'createdAt' field.
+field('createdAt').timestampExtract('year')
+
+```
+
+## Expression.timestampExtract()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that extracts a specified part from this timestamp expression.
+
+<b>Signature:</b>
+
+```typescript
+timestampExtract(part: Expression, timezone?: string | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  part | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluating to the part to extract. |
+|  timezone | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The timezone to use for extraction. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1." |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the extracted part as an integer.
+
+### Example
+
+
+```typescript
+// Extract the part specified by the field 'extractionPart' from 'createdAt'.
+field('createdAt').timestampExtract(field('extractionPart'))
+
+```
+
+## Expression.timestampSubtract()
 
 Creates an expression that calculates the difference between this timestamp and another timestamp.
 

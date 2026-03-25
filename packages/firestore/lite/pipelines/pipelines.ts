@@ -228,15 +228,7 @@ export {
   arraySum,
   split,
   timestampTruncate,
-  variable,
-  currentDocument,
   timestampExtract,
-  // snippet,
-  // SnippetOptions,
-  score,
-  // matches,
-  documentMatches,
-  geoDistance,
   AliasedExpression,
   Field,
   Constant,
@@ -249,5 +241,5 @@ export {
   AggregateFunction,
   TimeGranularity,
   TimePart,
-  TimeUnit
+  Type
 } from '../../src/lite-api/expressions';
