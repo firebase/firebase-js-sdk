@@ -3268,7 +3268,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param elseExpression - The Expression that will be evaluated if this Expression evaluates to a null or absent value.
    * @returns A new `Expression` representing the ifNull operation.
    */
-  ifNull(elseExpression: Expression): Expression;
+  ifNull(elseExpression: Expression): FunctionExpression;
 
   /**
    * @beta
@@ -3288,8 +3288,8 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param elseValue - The value that will be returned if this Expression evaluates to a null or absent value.
    * @returns A new `Expression` representing the ifNull operation.
    */
-  ifNull(elseValue: unknown): Expression;
-  ifNull(elseValueOrExpression: Expression | unknown): Expression {
+  ifNull(elseValue: unknown): FunctionExpression;
+  ifNull(elseValueOrExpression: Expression | unknown): FunctionExpression {
     return new FunctionExpression(
       'if_null',
       [this, valueToDefaultExpr(elseValueOrExpression)],
@@ -10766,7 +10766,10 @@ export function ifAbsent(
  * null or absent.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
-export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
+export function ifNull(
+  ifExpr: Expression,
+  elseExpr: Expression
+): FunctionExpression;
 
 /**
  * @beta
@@ -10787,7 +10790,10 @@ export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
  * @param elseValue - The value that will be returned if `ifExpr` evaluates to a null or absent value.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
-export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
+export function ifNull(
+  ifExpr: Expression,
+  elseValue: unknown
+): FunctionExpression;
 
 /**
  * @beta
@@ -10809,7 +10815,10 @@ export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
  * null or absent.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
-export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
+export function ifNull(
+  ifFieldName: string,
+  elseExpr: Expression
+): FunctionExpression;
 
 /**
  * @beta
@@ -10830,11 +10839,14 @@ export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
  * @param elseValue - The value that will be returned if [ifFieldName] is null or absent.
  * @returns A new {@link @firebase/firestore/pipelines#Expression}  representing the ifNull operation.
  */
-export function ifNull(ifFieldName: string, elseValue: unknown): Expression;
+export function ifNull(
+  ifFieldName: string,
+  elseValue: unknown
+): FunctionExpression;
 export function ifNull(
   fieldNameOrExpression: string | Expression,
   elseValue: Expression | unknown
-): Expression {
+): FunctionExpression {
   return fieldOrExpression(fieldNameOrExpression).ifNull(elseValue);
 }
 
@@ -10859,7 +10871,7 @@ export function coalesce(
   expression: Expression,
   replacement: Expression | unknown,
   ...others: Array<Expression | unknown>
-): Expression;
+): FunctionExpression;
 
 /**
  * @beta
@@ -10882,13 +10894,16 @@ export function coalesce(
   fieldName: string,
   replacement: Expression | unknown,
   ...others: Array<Expression | unknown>
-): Expression;
+): FunctionExpression;
 export function coalesce(
-  expression: Expression | string,
+  fieldNameOrExpression: Expression | string,
   replacement: Expression | unknown,
   ...others: Array<Expression | unknown>
-): Expression {
-  return fieldOrExpression(expression).coalesce(replacement, ...others);
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).coalesce(
+    replacement,
+    ...others
+  );
 }
 
 /**

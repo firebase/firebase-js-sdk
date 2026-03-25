@@ -2588,7 +2588,7 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-ifNull(elseExpression: Expression): Expression;
+ifNull(elseExpression: Expression): FunctionExpression;
 ```
 
 #### Parameters
@@ -2599,7 +2599,7 @@ ifNull(elseExpression: Expression): Expression;
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new `Expression` representing the ifNull operation.
 
@@ -2624,7 +2624,7 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-ifNull(elseValue: unknown): Expression;
+ifNull(elseValue: unknown): FunctionExpression;
 ```
 
 #### Parameters
@@ -2635,7 +2635,7 @@ ifNull(elseValue: unknown): Expression;
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new `Expression` representing the ifNull operation.
 

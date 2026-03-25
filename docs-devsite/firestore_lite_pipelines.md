@@ -2843,7 +2843,7 @@ Creates an expression that Returns the first non-null, non-absent argument, with
 <b>Signature:</b>
 
 ```typescript
-export declare function coalesce(expression: Expression, replacement: Expression | unknown, ...others: Array<Expression | unknown>): Expression;
+export declare function coalesce(expression: Expression, replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 ```
 
 #### Parameters
@@ -2856,7 +2856,7 @@ export declare function coalesce(expression: Expression, replacement: Expression
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the coalesce operation.
 
@@ -5511,7 +5511,7 @@ Creates an expression that Returns the first non-null, non-absent argument, with
 <b>Signature:</b>
 
 ```typescript
-export declare function coalesce(fieldName: string, replacement: Expression | unknown, ...others: Array<Expression | unknown>): Expression;
+export declare function coalesce(fieldName: string, replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 ```
 
 #### Parameters
@@ -5524,7 +5524,7 @@ export declare function coalesce(fieldName: string, replacement: Expression | un
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the coalesce operation.
 
@@ -9508,7 +9508,7 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
+export declare function ifNull(ifExpr: Expression, elseExpr: Expression): FunctionExpression;
 ```
 
 #### Parameters
@@ -9520,7 +9520,7 @@ export declare function ifNull(ifExpr: Expression, elseExpr: Expression): Expres
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
@@ -9545,7 +9545,7 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
+export declare function ifNull(ifExpr: Expression, elseValue: unknown): FunctionExpression;
 ```
 
 #### Parameters
@@ -9557,7 +9557,7 @@ export declare function ifNull(ifExpr: Expression, elseValue: unknown): Expressi
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
@@ -9656,7 +9656,7 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
+export declare function ifNull(ifFieldName: string, elseExpr: Expression): FunctionExpression;
 ```
 
 #### Parameters
@@ -9668,7 +9668,7 @@ export declare function ifNull(ifFieldName: string, elseExpr: Expression): Expre
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
@@ -9693,7 +9693,7 @@ This function provides a fallback for both absent and explicit null values. In c
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifFieldName: string, elseValue: unknown): Expression;
+export declare function ifNull(ifFieldName: string, elseValue: unknown): FunctionExpression;
 ```
 
 #### Parameters
@@ -9705,7 +9705,7 @@ export declare function ifNull(ifFieldName: string, elseValue: unknown): Express
 
 <b>Returns:</b>
 
-[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
