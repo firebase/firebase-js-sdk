@@ -57,7 +57,8 @@ export async function register(
   if (!messaging.onRegisteredHandler) {
     throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
   }
-
+  
+  // TODO: refresh weekly
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(messaging, options?.serviceWorkerRegistration);
 
