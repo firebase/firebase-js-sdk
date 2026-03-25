@@ -10866,7 +10866,8 @@ export function coalesce(
   ...others: Array<Expression | unknown>
 ): Expression {
   return fieldOrExpression(expression).coalesce(replacement, ...others);
-  
+}
+
 /**
  * @beta
  * Creates an expression that evaluates to the result corresponding to the first true condition.
