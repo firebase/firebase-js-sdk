@@ -1,6 +1,5 @@
 ---
 '@firebase/firestore': patch
-'firebase': patch
 ---
 
-Fixed watch stream pending target bookkeeping to prevent crashes during rapid unlisten/listen cycles (e.g. React 19 StrictMode).
+Fix watch stream pending target bookkeeping to prevent fatal crash caused by React 19 StrictMode double-invoking effects during stream reconnection.

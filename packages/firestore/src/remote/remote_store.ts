@@ -334,17 +334,14 @@ export function remoteStoreUnlisten(
 }
 
 /**
- * We need to increment the expected number of pending responses we're due
- * from watch so we wait for the ack to process any messages from this target.
+ * Sends a watch request on the wire, attaching the expected count when the
+ * target carries a resume token or snapshot version. This shared helper is
+ * used by both {@link sendWatchRequest} and {@link sendWatchMessage}.
  */
-function sendWatchRequest(
+function writeWatchTarget(
   remoteStoreImpl: RemoteStoreImpl,
   targetData: TargetData
 ): void {
-  remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
-    targetData.targetId
-  );
-
   if (
     targetData.resumeToken.approximateByteSize() > 0 ||
     targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
@@ -359,6 +356,20 @@ function sendWatchRequest(
 }
 
 /**
+ * We need to increment the expected number of pending responses we're due
+ * from watch so we wait for the ack to process any messages from this target.
+ */
+function sendWatchRequest(
+  remoteStoreImpl: RemoteStoreImpl,
+  targetData: TargetData
+): void {
+  remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
+    targetData.targetId
+  );
+  writeWatchTarget(remoteStoreImpl, targetData);
+}
+
+/**
  * Sends a watch request on the wire without recording a pending target
  * request. Used by onWatchStreamOpen for targets whose pending requests
  * were already recorded in startWatchStream.
@@ -367,17 +378,7 @@ function sendWatchMessage(
   remoteStoreImpl: RemoteStoreImpl,
   targetData: TargetData
 ): void {
-  if (
-    targetData.resumeToken.approximateByteSize() > 0 ||
-    targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
-  ) {
-    const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
-      targetData.targetId
-    ).size;
-    targetData = targetData.withExpectedCount(expectedCount);
-  }
-
-  ensureWatchStream(remoteStoreImpl).watch(targetData);
+  writeWatchTarget(remoteStoreImpl, targetData);
 }
 
 /**

@@ -122,49 +122,45 @@ describeSpec('Remote store:', [], () => {
   // unlisten/listen cycles, validating that pending target request
   // bookkeeping remains correct across stream restarts.
 
-  specTest(
-    'Handles unlisten/listen after stream reconnect',
-    [],
-    () => {
-      // Exercises the startWatchStream → onWatchStreamOpen code path after a
-      // network drop, followed by a rapid unlisten/listen cycle (the pattern
-      // caused by React StrictMode double-invoking effects).
-      const query1 = query('collection');
-      const doc1 = doc('collection/a', 1000, { key: 'a' });
-      const doc1v2 = doc('collection/a', 2000, { key: 'a', updated: true });
-      return (
-        spec()
-          .ensureManualLruGC()
-          // Establish an active listen
-          .userListens(query1)
-          .watchAcksFull(query1, 1000, doc1)
-          .expectEvents(query1, { added: [doc1] })
+  specTest('Handles unlisten/listen after stream reconnect', [], () => {
+    // Exercises the startWatchStream → onWatchStreamOpen code path after a
+    // network drop, followed by a rapid unlisten/listen cycle (the pattern
+    // caused by React StrictMode double-invoking effects).
+    const query1 = query('collection');
+    const doc1 = doc('collection/a', 1000, { key: 'a' });
+    const doc1v2 = doc('collection/a', 2000, { key: 'a', updated: true });
+    return (
+      spec()
+        .ensureManualLruGC()
+        // Establish an active listen
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, doc1)
+        .expectEvents(query1, { added: [doc1] })
 
-          // Network drops and comes back
-          .disableNetwork()
-          .expectEvents(query1, { fromCache: true })
-          .enableNetwork()
-          .restoreListen(query1, 'resume-token-1000')
+        // Network drops and comes back
+        .disableNetwork()
+        .expectEvents(query1, { fromCache: true })
+        .enableNetwork()
+        .restoreListen(query1, 'resume-token-1000')
 
-          // After reconnect, simulate StrictMode: unlisten then re-listen.
-          // The re-listen uses the cached resume token from the prior ack.
-          .userUnlistens(query1)
-          .userListens(query1, { resumeToken: 'resume-token-1000' })
-          .expectEvents(query1, {
-            added: [doc1],
-            fromCache: true
-          })
+        // After reconnect, simulate StrictMode: unlisten then re-listen.
+        // The re-listen uses the cached resume token from the prior ack.
+        .userUnlistens(query1)
+        .userListens(query1, { resumeToken: 'resume-token-1000' })
+        .expectEvents(query1, {
+          added: [doc1],
+          fromCache: true
+        })
 
-          // Server acks the restore, then the unlisten, then the new listen.
-          // Each server response decrements pendingResponses by 1:
-          // restore(3→2), remove(2→1), ackFull(1→0) → events raised.
-          .watchAcks(query1)
-          .watchRemoves(query1)
-          .watchAcksFull(query1, 2000, doc1v2)
-          .expectEvents(query1, { modified: [doc1v2] })
-      );
-    }
-  );
+        // Server acks the restore, then the unlisten, then the new listen.
+        // Each server response decrements pendingResponses by 1:
+        // restore(3→2), remove(2→1), ackFull(1→0) → events raised.
+        .watchAcks(query1)
+        .watchRemoves(query1)
+        .watchAcksFull(query1, 2000, doc1v2)
+        .expectEvents(query1, { modified: [doc1v2] })
+    );
+  });
 
   specTest(
     'Handles multiple unlisten/listen cycles after stream reconnect',
@@ -217,43 +213,39 @@ describeSpec('Remote store:', [], () => {
     }
   );
 
-  specTest(
-    'Handles unlisten during stream startup before open',
-    [],
-    () => {
-      // Exercises the code path where a target is removed from listenTargets
-      // and a new one added during a network disruption. With the structural
-      // fix, startWatchStream pre-records the pending request and
-      // onWatchStreamOpen cleans up the orphaned target state.
-      const query1 = query('collection');
-      const query2 = query('other');
-      const doc1 = doc('collection/a', 1000, { key: 'a' });
-      const doc2 = doc('other/b', 1000, { key: 'b' });
-      return (
-        spec()
-          .ensureManualLruGC()
-          .userListens(query1)
-          .watchAcksFull(query1, 1000, doc1)
-          .expectEvents(query1, { added: [doc1] })
+  specTest('Handles unlisten during stream startup before open', [], () => {
+    // Exercises the code path where a target is removed from listenTargets
+    // and a new one added during a network disruption. With the structural
+    // fix, startWatchStream pre-records the pending request and
+    // onWatchStreamOpen cleans up the orphaned target state.
+    const query1 = query('collection');
+    const query2 = query('other');
+    const doc1 = doc('collection/a', 1000, { key: 'a' });
+    const doc2 = doc('other/b', 1000, { key: 'b' });
+    return (
+      spec()
+        .ensureManualLruGC()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, doc1)
+        .expectEvents(query1, { added: [doc1] })
 
-          // Network drops
-          .disableNetwork()
-          .expectEvents(query1, { fromCache: true })
+        // Network drops
+        .disableNetwork()
+        .expectEvents(query1, { fromCache: true })
 
-          // While offline, remove the first query and add a second
-          .userUnlistens(query1)
-          .userListens(query2)
-          .expectEvents(query2, { fromCache: true })
+        // While offline, remove the first query and add a second
+        .userUnlistens(query1)
+        .userListens(query2)
+        .expectEvents(query2, { fromCache: true })
 
-          // Bring network back
-          .enableNetwork()
+        // Bring network back
+        .enableNetwork()
 
-          // Now only query2 should be active
-          .watchAcksFull(query2, 2000, doc2)
-          .expectEvents(query2, { added: [doc2] })
-      );
-    }
-  );
+        // Now only query2 should be active
+        .watchAcksFull(query2, 2000, doc2)
+        .expectEvents(query2, { added: [doc2] })
+    );
+  });
 
   specTest(
     'Handles listen/unlisten/listen with two targets after reconnect',
