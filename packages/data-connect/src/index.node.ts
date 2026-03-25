@@ -16,10 +16,12 @@
  */
 
 import { initializeFetch } from './network/rest';
+import { initializeWebSocket } from './network/stream/websocket';
 import { registerDataConnect } from './register';
 
 export * from './api';
 export * from './api.node';
 initializeFetch(fetch);
+initializeWebSocket(WebSocket);
 
 registerDataConnect('node');
