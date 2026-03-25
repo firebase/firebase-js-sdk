@@ -563,7 +563,7 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     charLength(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    coalesce(replacement: Expression | unknown, ...others: Expression[] | unknown[]): FunctionExpression;
+    coalesce(replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     collectionId(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -632,9 +632,9 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     ifError(catchValue: unknown): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    ifNull(elseValue: unknown): Expression;
+    ifNull(elseExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
-    ifNull(elseExpression: unknown): Expression;
+    ifNull(elseValue: unknown): Expression;
     /* Excluded from this release type: _readUserData */
     isAbsent(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
@@ -910,9 +910,7 @@ export function ifError(tryExpr: Expression, catchExpr: Expression): FunctionExp
 // @beta
 export function ifError(tryExpr: Expression, catchValue: unknown): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "ifNull" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
-// @public (undocumented)
+// @beta
 export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
 
 // @beta
@@ -922,7 +920,7 @@ export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
 export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
 
 // @beta
-export function ifNull(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
+export function ifNull(ifFieldName: string, elseValue: unknown): Expression;
 
 // @beta
 export function isAbsent(value: Expression): BooleanExpression;

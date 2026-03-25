@@ -287,13 +287,13 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(ifExpr, ...)</b> |
 |  [ifAbsent(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifabsent_0e6d161) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifExpr</code> is absent, else return the result of the <code>ifExpr</code> argument evaluation. |
 |  [ifAbsent(ifExpr, elseValue)](./firestore_lite_pipelines.md#ifabsent_c34e5ed) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifExpr</code> is absent, else return the result of the <code>ifExpr</code> argument evaluation. |
-|  [ifNull(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifnull_0e6d161) |  |
+|  [ifNull(ifExpr, elseExpr)](./firestore_lite_pipelines.md#ifnull_0e6d161) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifExpr</code> is null, else return the result of the <code>ifExpr</code> argument evaluation. |
 |  [ifNull(ifExpr, elseValue)](./firestore_lite_pipelines.md#ifnull_c34e5ed) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifExpr</code> is null, else return the result of the <code>ifExpr</code> argument evaluation. |
 |  <b>function(ifFieldName, ...)</b> |
 |  [ifAbsent(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifabsent_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
 |  [ifAbsent(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifabsent_d8f2823) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
-|  [ifNull(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifnull_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> is null or absent, else return the value of the field. |
-|  [ifNull(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifnull_d8f2823) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is null or absent, else return the value of the field. |
+|  [ifNull(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifnull_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> field is null or absent, else return the value of the field. |
+|  [ifNull(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifnull_587c2f0) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is null or absent, else return the value of the field. |
 |  <b>function(input, ...)</b> |
 |  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_e6e0aa3) | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of a string or byte array. |
 |  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_ab56dc6) | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of a string or byte array. |
@@ -2660,9 +2660,9 @@ A new Expression representing the coalesce operation.
 
 
 ```typescript
-// Returns the value of the first non-null, non-absent field among 'first_field', 'second_field',
+// Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
 // or the last argument if all previous fields are null.
-coalesce(field("first_field"), field("second_field"), constant("default_value"))
+coalesce(field("preferredName"), field("fullName"), constant("Anonymous"))
 
 ```
 
@@ -5328,9 +5328,9 @@ A new Expression representing the coalesce operation.
 
 
 ```typescript
-// Returns the value of the first non-null, non-absent field among 'first_field', 'second_field',
+// Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
 // or the last argument if all previous fields are null.
-coalesce("first_field", "second_field", constant("default_value"))
+coalesce("preferredName", field("fullName"), "Anonymous")
 
 ```
 
@@ -9183,6 +9183,11 @@ ifAbsent(field("optional_field"), "default_value")
 
 ### ifNull(ifExpr, elseExpr) {:#ifnull_0e6d161}
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the `elseExpr` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
+
 <b>Signature:</b>
 
 ```typescript
@@ -9193,12 +9198,23 @@ export declare function ifNull(ifExpr: Expression, elseExpr: Expression): Expres
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ifExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
-|  elseExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
+|  ifExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to check for null. |
+|  elseExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that will be evaluated and returned if <code>ifExpr</code> is null or absent. |
 
 <b>Returns:</b>
 
 [Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+A new Expression representing the ifNull operation.
+
+### Example
+
+
+```typescript
+// Returns the user's preferred name, or if that is null or absent, returns their full name.
+ifNull(field("preferredName"), field("fullName"))
+
+```
 
 ### ifNull(ifExpr, elseValue) {:#ifnull_c34e5ed}
 
@@ -9230,9 +9246,8 @@ A new \[Expression\] representing the ifNull operation.
 
 
 ```typescript
-// Returns the value of the optional field 'optional_field', or returns 'default_value'
-// if the field is null or absent.
-ifNull(field("optional_field"), "default_value")
+// Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+ifNull(field("displayName"), "Anonymous")
 
 ```
 
@@ -9315,7 +9330,7 @@ ifAbsent("optional_field", "default_value")
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseExpr` argument if `ifFieldName` is null or absent, else return the value of the field.
+Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null or absent, else return the value of the field.
 
 <b>Signature:</b>
 
@@ -9340,13 +9355,12 @@ A new Expression representing the ifNull operation.
 
 
 ```typescript
-// Returns the value of the optional field 'optional_field', or returns the value of
-// 'default_field' if 'optional_field' is null or absent.
-ifNull("optional_field", field("default_field"))
+// Returns the user's preferred name, or if that is null or absent, returns their full name.
+ifNull("preferredName", field("fullName"))
 
 ```
 
-### ifNull(ifFieldName, elseValue) {:#ifnull_d8f2823}
+### ifNull(ifFieldName, elseValue) {:#ifnull_587c2f0}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -9356,15 +9370,15 @@ Creates an expression that returns the `elseValue` argument if `ifFieldName` is 
 <b>Signature:</b>
 
 ```typescript
-export declare function ifNull(ifFieldName: string | Expression, elseValue: Expression | unknown): Expression;
+export declare function ifNull(ifFieldName: string, elseValue: unknown): Expression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ifFieldName | string \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The field to check for null or absence. |
-|  elseValue | [Expression](./firestore_lite_pipelines.expression.md#expression_class) \| unknown | The value that will be returned if \[ifFieldName\] is null or absent. |
+|  ifFieldName | string | The field to check for null or absence. |
+|  elseValue | unknown | The value that will be returned if \[ifFieldName\] is null or absent. |
 
 <b>Returns:</b>
 
@@ -9376,9 +9390,8 @@ A new Expression representing the ifNull operation.
 
 
 ```typescript
-// Returns the value of the optional field 'optional_field', or returns 'default_value'
-// if the field is null or absent.
-ifNull("optional_field", "default_value")
+// Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+ifNull("displayName", "Anonymous")
 
 ```
 

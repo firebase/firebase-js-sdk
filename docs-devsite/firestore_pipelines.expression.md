@@ -111,8 +111,8 @@ export declare abstract class Expression
 |  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
 |  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
 |  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null value, else return the result of this expression evaluation. |
-|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null value, else return the result of this expression evaluation. |
+|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null or absent value, else return the result of this expression evaluation. |
+|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null or absent value, else return the result of this expression evaluation. |
 |  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
 |  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
 |  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
@@ -1515,7 +1515,7 @@ Creates an expression that Returns the first non-null, non-absent argument, with
 <b>Signature:</b>
 
 ```typescript
-coalesce(replacement: Expression | unknown, ...others: Expression[] | unknown[]): FunctionExpression;
+coalesce(replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 ```
 
 #### Parameters
@@ -1523,7 +1523,7 @@ coalesce(replacement: Expression | unknown, ...others: Expression[] | unknown[])
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  replacement | [Expression](./firestore_pipelines.expression.md#expression_class) \| unknown | The value to use if this expression evaluates to null. |
-|  others | [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->\[\] \| unknown\[\] | Optional additional values to check if previous values are null. |
+|  others | Array&lt;[Expression](./firestore_pipelines.expression.md#expression_class) \| unknown&gt; | Optional additional values to check if previous values are null. |
 
 <b>Returns:</b>
 
@@ -2578,7 +2578,41 @@ field("title").arrayGet(0).ifError("Default Title");
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseValue` argument if this expression results in a null value, else return the result of this expression evaluation.
+Creates an expression that returns the `elseValue` argument if this expression results in a null or absent value, else return the result of this expression evaluation.
+
+<b>Signature:</b>
+
+```typescript
+ifNull(elseExpression: Expression): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elseExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The Expression that will be evaluated if this Expression evaluates to a null or absent value. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
+
+A new \[Expression\] representing the ifNull operation.
+
+### Example
+
+
+```typescript
+// Returns the user's preferred name, or if that is null or absent, returns their full name.
+field("preferredName").ifNull(field("fullName"))
+
+```
+
+## Expression.ifNull()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the `elseValue` argument if this expression results in a null or absent value, else return the result of this expression evaluation.
 
 <b>Signature:</b>
 
@@ -2590,7 +2624,7 @@ ifNull(elseValue: unknown): Expression;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  elseValue | unknown | The value that will be returned if this Expression evaluates to a null value. |
+|  elseValue | unknown | The value that will be returned if this Expression evaluates to a null or absent value. |
 
 <b>Returns:</b>
 
@@ -2602,44 +2636,8 @@ A new \[Expression\] representing the ifNull operation.
 
 
 ```typescript
-// Returns the value of the optional field 'optional_field', or returns 'default_value'
-// if the field is null.
-field("optional_field").ifNull("default_value")
-
-```
-
-## Expression.ifNull()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns the `elseValue` argument if this expression results in a null value, else return the result of this expression evaluation.
-
-<b>Signature:</b>
-
-```typescript
-ifNull(elseExpression: unknown): Expression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  elseExpression | unknown | The Expression that will be evaluated if this Expression evaluates to a null or absent value. |
-
-<b>Returns:</b>
-
-[Expression](./firestore_pipelines.expression.md#expression_class)
-
-A new \[Expression\] representing the ifNull operation.
-
-### Example
-
-
-```typescript
-// Returns the value of the optional field 'optional_field', or if that is
-// null or absent, then returns the value of the field `default_field`.
-field("optional_field").ifNull(field('default_field'))
+// Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+field("displayName").ifNull("Anonymous")
 
 ```
 
