@@ -70,11 +70,9 @@ export async function register(
       return;
     }
 
-    // TODO: refresh weekly
     await registerFcmRegistrationWithFid(messaging);
     messaging.lastNotifiedFid = fid;
 
-    // TODO: callback per fid change
     const handler = messaging.onRegisteredHandler;
     if (!handler) {
       return;

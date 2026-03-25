@@ -34,6 +34,7 @@ import { ServiceWorkerGlobalScope } from '../util/sw-types';
 import { _registerComponent, registerVersion } from '@firebase/app';
 import { getToken } from '../api/getToken';
 import { register } from '../api/register';
+import { subscribeFidChangeRegistration } from './fid-change-registration';
 import { messageEventListener } from '../listeners/window-listener';
 
 import { name, version } from '../../package.json';
@@ -49,6 +50,11 @@ const WindowMessagingFactory: InstanceFactory<'messaging'> = (
 
   navigator.serviceWorker.addEventListener('message', e =>
     messageEventListener(messaging as MessagingService, e)
+  );
+
+  messaging._fidChangeUnsubscribe = subscribeFidChangeRegistration(
+    messaging as MessagingService,
+    container.getProvider('installations').getImmediate()
   );
 
   return messaging;
