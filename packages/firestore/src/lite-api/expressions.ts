@@ -3472,12 +3472,6 @@ export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 
 /**
  * @beta
- * Specify time parts for `timestampExtract` expressions.
- */
-export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
-
-/**
- * @beta
  *
  * An interface that represents a selectable expression.
  */
