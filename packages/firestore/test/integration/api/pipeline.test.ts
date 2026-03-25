@@ -170,6 +170,8 @@ import {
   arraySum,
   PipelineSnapshot,
   timestampTruncate,
+  timestampDiff,
+  timestampExtract,
   split,
   type,
   isType
@@ -5128,6 +5130,73 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         'trunc_second': new Timestamp(Date.UTC(2025, 10, 30, 1, 2, 3) / 1000, 0)
       });
     });
+
+    it('supports timestamp difference', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('end'),
+            constant(new Timestamp(1741428000, 0)).as('start')
+          )
+          .select(
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
+            field('end')
+              .timestampDiff(field('start'), 'minute')
+              .as('diffMinute'),
+            field('end')
+              .timestampDiff(field('start'), 'second')
+              .as('diffSecond'),
+            field('start').timestampDiff(field('end'), 'hour').as('diffHourNeg')
+          )
+      );
+
+      expectResults(snapshot, {
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
+      });
+    }).timeout(10000);
+
+    it('supports timestamp extraction', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(constant(new Timestamp(1741437296, 123456789)).as('ts'))
+          .select(
+            timestampExtract(field('ts'), 'year').as('year'),
+            field('ts').timestampExtract('month').as('month'),
+            timestampExtract(field('ts'), 'day').as('day'),
+            field('ts').timestampExtract('hour').as('hour'),
+            timestampExtract(field('ts'), 'minute').as('minute'),
+            field('ts').timestampExtract('second').as('second'),
+            timestampExtract(field('ts'), 'millisecond').as('millis'),
+            field('ts').timestampExtract('microsecond').as('micros'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
+            field('ts')
+              .timestampExtract('hour', 'America/Los_Angeles')
+              .as('hourLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        year: 2025,
+        month: 3,
+        day: 8,
+        hour: 12,
+        minute: 34,
+        second: 56,
+        millis: 123,
+        micros: 123456,
+        dayOfYear: 67,
+        hourLa: 4
+      });
+    }).timeout(10000);
 
     it('supports split', async () => {
       const results = await execute(

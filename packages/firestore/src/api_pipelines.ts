@@ -147,6 +147,7 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   countIf,
@@ -180,6 +181,7 @@ export {
   log10,
   arraySum,
   timestampTruncate,
+  timestampExtract,
   split,
   Expression,
   AliasedExpression,
@@ -192,6 +194,7 @@ export {
   AliasedAggregate,
   Selectable,
   TimeGranularity,
+  TimePart,
   Type
 } from './lite-api/expressions';
 
