@@ -548,7 +548,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     // asynchronous, fire and forget
     this.sendCancelMessage(cancelBody).catch(err => {
-      logError(`Failed to send unsubscribe message: ${err}`);
+      logError(`Stream Transport failed to send unsubscribe message: ${err}`);
     });
   }
 

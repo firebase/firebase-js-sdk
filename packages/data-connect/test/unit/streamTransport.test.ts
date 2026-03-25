@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import * as logger from '../../src/logger';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
@@ -563,6 +564,7 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should asynchronously clean up and log error if sendMessage fails', async () => {
+          const logErrorStub = sinon.stub(logger, 'logError');
           const hook = sinon.spy();
           transport.invokeSubscribe(hook, queryName1, variables1);
 
@@ -574,26 +576,24 @@ describe('AbstractDataConnectStreamTransport', () => {
           const sendMessageStub = sinon
             .stub(transport, 'sendMessage')
             .rejects(expectedError);
-          const consoleErrorStub = sinon.stub(console, 'error');
           transport.invokeUnsubscribe(queryName1, variables1);
           // invokeUnsubscribe's sendMessage is fire and forget
           await sleep(500);
 
           expect(sendMessageStub).to.have.been.calledOnce;
+          expect(logErrorStub).to.have.been.calledOnce;
+          expect(logErrorStub).to.have.been.calledWithMatch(
+            'Stream Transport failed to send unsubscribe message'
+          );
 
           expect(transport.activeSubscribeRequests.has(expectedKey)).to.be
             .false;
           expect(transport.subscribeNotificationHooks.has(subscribeRequestId))
             .to.be.false;
-
-          expect(consoleErrorStub).to.have.been.calledOnce;
-          expect(consoleErrorStub).to.have.been.calledWith(
-            'Failed to send unsubscribe message',
-            expectedError
-          );
         });
       });
     });
+
     describe('Incoming Responses from Server', () => {
       const expectedData1 = { result: 'result', num: 1 };
       const expectedData2 = { result: 'result', num: 2 };

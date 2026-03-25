@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import * as logger from '../../src/logger';
 import {
   WebSocketCloseCode,
   WebSocketTransport,
@@ -251,6 +252,11 @@ describe('WebSocketTransport', () => {
   });
 
   describe('handleWebSocketMessage', () => {
+    let logErrorStub: sinon.SinonStub;
+    beforeEach(() => {
+      logErrorStub = sinon.stub(logger, 'logError');
+    });
+
     const messageWithExtensions = {
       result: {
         requestId: '1',
@@ -327,6 +333,10 @@ describe('WebSocketTransport', () => {
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message is not an object'
       );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
+      );
     });
 
     it('should close connection with protocol error if result is missing', async () => {
@@ -341,6 +351,10 @@ describe('WebSocketTransport', () => {
       expect(transport.connection!.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include result'
+      );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
       );
     });
 
@@ -357,6 +371,10 @@ describe('WebSocketTransport', () => {
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message result is not an object'
       );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
+      );
     });
 
     it('should close connection with protocol error if requestId is missing', async () => {
@@ -371,6 +389,10 @@ describe('WebSocketTransport', () => {
       expect(transport.connection!.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include requestId'
+      );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
       );
     });
   });
