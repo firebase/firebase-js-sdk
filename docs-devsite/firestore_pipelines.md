@@ -2864,7 +2864,7 @@ export declare function coalesce(expression: Expression, replacement: Expression
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new Expression representing the coalesce operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the coalesce operation.
 
 ### Example
 
@@ -5532,7 +5532,7 @@ export declare function coalesce(fieldName: string, replacement: Expression | un
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new Expression representing the coalesce operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the coalesce operation.
 
 ### Example
 
@@ -5540,7 +5540,7 @@ A new Expression representing the coalesce operation.
 ```typescript
 // Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
 // or the last argument if all previous fields are null.
-coalesce("preferredName", field("fullName"), "Anonymous")
+coalesce("preferredName", field("fullName"), constant("Anonymous"))
 
 ```
 
@@ -9528,7 +9528,7 @@ export declare function ifNull(ifExpr: Expression, elseExpr: Expression): Expres
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new Expression representing the ifNull operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
 ### Example
 
@@ -9565,7 +9565,7 @@ export declare function ifNull(ifExpr: Expression, elseValue: unknown): Expressi
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new \[Expression\] representing the ifNull operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
 ### Example
 
@@ -9676,7 +9676,7 @@ export declare function ifNull(ifFieldName: string, elseExpr: Expression): Expre
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new Expression representing the ifNull operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
 ### Example
 
@@ -9713,7 +9713,7 @@ export declare function ifNull(ifFieldName: string, elseValue: unknown): Express
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new Expression representing the ifNull operation.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the ifNull operation.
 
 ### Example
 

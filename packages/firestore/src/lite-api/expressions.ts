@@ -3266,7 +3266,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param elseExpression - The Expression that will be evaluated if this Expression evaluates to a null or absent value.
-   * @returns A new [Expression] representing the ifNull operation.
+   * @returns A new `Expression` representing the ifNull operation.
    */
   ifNull(elseExpression: Expression): Expression;
 
@@ -3286,7 +3286,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * ```
    *
    * @param elseValue - The value that will be returned if this Expression evaluates to a null or absent value.
-   * @returns A new [Expression] representing the ifNull operation.
+   * @returns A new `Expression` representing the ifNull operation.
    */
   ifNull(elseValue: unknown): Expression;
   ifNull(elseValueOrExpression: Expression | unknown): Expression {
@@ -3304,10 +3304,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @example
    * ```typescript
-   * // Return "Anonymous" if the 'name' field is null.
-   * field("name").coalesce("Anonymous");
-   * // Return "val1" if "val1" is not null, otherwise "val2", or "default" if both are null.
-   * field("val1").coalesce(field("val2"), "default");
+   * // Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
+   * // or the last argument if all previous fields are null.
+   * field("preferredName").coalesce(field("fullName"), "Anonymous");
    * ```
    *
    * @param replacement - The value to use if this expression evaluates to null.
@@ -10765,7 +10764,7 @@ export function ifAbsent(
  * @param ifExpr - The expression to check for null.
  * @param elseExpr - The expression that will be evaluated and returned if `ifExpr` is
  * null or absent.
- * @returns A new Expression representing the ifNull operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
 export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
 
@@ -10786,7 +10785,7 @@ export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
  *
  * @param ifExpr - The expression to check for absence.
  * @param elseValue - The value that will be returned if `ifExpr` evaluates to a null or absent value.
- * @returns A new [Expression] representing the ifNull operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
 export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
 
@@ -10808,7 +10807,7 @@ export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
  * @param ifFieldName - The field to check for null or absence.
  * @param elseExpr - The expression that will be evaluated and returned if `ifFieldName` is
  * null or absent.
- * @returns A new Expression representing the ifNull operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
 export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
 
@@ -10829,7 +10828,7 @@ export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
  *
  * @param ifFieldName - The field to check for null or absence.
  * @param elseValue - The value that will be returned if [ifFieldName] is null or absent.
- * @returns A new Expression representing the ifNull operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression}  representing the ifNull operation.
  */
 export function ifNull(ifFieldName: string, elseValue: unknown): Expression;
 export function ifNull(
@@ -10854,7 +10853,7 @@ export function ifNull(
  * @param expression - The first expression to check for null.
  * @param replacement - The fallback expression or value if the first one is null.
  * @param others - Optional additional expressions to check if previous ones are null.
- * @returns A new Expression representing the coalesce operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the coalesce operation.
  */
 export function coalesce(
   expression: Expression,
@@ -10871,13 +10870,13 @@ export function coalesce(
  * ```typescript
  * // Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
  * // or the last argument if all previous fields are null.
- * coalesce("preferredName", field("fullName"), "Anonymous")
+ * coalesce("preferredName", field("fullName"), constant("Anonymous"))
  * ```
  *
  * @param fieldName - The name of the first field to check for null.
  * @param replacement - The fallback expression or value if the first one is null.
  * @param others - Optional additional expressions to check if previous ones are null.
- * @returns A new Expression representing the coalesce operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the coalesce operation.
  */
 export function coalesce(
   fieldName: string,

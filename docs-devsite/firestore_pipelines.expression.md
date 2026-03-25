@@ -1539,10 +1539,9 @@ A new `Expression` representing the coalesce operation.
 
 
 ```typescript
-// Return "Anonymous" if the 'name' field is null.
-field("name").coalesce("Anonymous");
-// Return "val1" if "val1" is not null, otherwise "val2", or "default" if both are null.
-field("val1").coalesce(field("val2"), "default");
+// Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
+// or the last argument if all previous fields are null.
+field("preferredName").coalesce(field("fullName"), "Anonymous");
 
 ```
 
@@ -2602,7 +2601,7 @@ ifNull(elseExpression: Expression): Expression;
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new \[Expression\] representing the ifNull operation.
+A new `Expression` representing the ifNull operation.
 
 ### Example
 
@@ -2638,7 +2637,7 @@ ifNull(elseValue: unknown): Expression;
 
 [Expression](./firestore_pipelines.expression.md#expression_class)
 
-A new \[Expression\] representing the ifNull operation.
+A new `Expression` representing the ifNull operation.
 
 ### Example
 
