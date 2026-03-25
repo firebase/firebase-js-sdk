@@ -19,6 +19,7 @@ import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { logError } from '../../logger';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
@@ -132,9 +133,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       };
       ws.onmessage = ev =>
         this.handleWebSocketMessage(ev).catch(async reason => {
-          console.error(
-            'DataConnect WebSocket protocol error, closing stream:',
-            reason
+          logError(
+            `DataConnect WebSocket protocol error, closing stream: ${reason}`
           );
           if (this.connection) {
             if (reason instanceof WebSocketDataConnectError) {

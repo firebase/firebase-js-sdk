@@ -21,6 +21,7 @@ import {
   DataConnectOperationError,
   DataConnectOperationFailureResponse
 } from '../../core/error';
+import { logError } from '../../logger';
 import {
   AbstractDataConnectTransport,
   DataConnectResponse,
@@ -69,7 +70,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
   private _pendingClose = false;
 
-  /** TODO(stephenarosaj): */
+  /** TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries */
   get isUnableToConnect(): boolean {
     return false;
   }
@@ -547,7 +548,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     // asynchronous, fire and forget
     this.sendCancelMessage(cancelBody).catch(err => {
-      console.error('Failed to send unsubscribe message', err);
+      logError(`Failed to send unsubscribe message: ${err}`);
     });
   }
 
