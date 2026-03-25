@@ -54,7 +54,7 @@ const SILENT_ERROR = 'SILENT_ERROR';
 const DEFAULT_MAX_SEQUENTIAL_FUNCTION_CALLS = 10;
 
 /**
- * ChatSession class that enables sending chat messages and stores
+ * Base class for ChatSession that enables sending chat messages and stores
  * history of sent and received messages so far.
  *
  * @public
@@ -95,7 +95,7 @@ export abstract class ChatSessionBase<
 
   /**
    * Format Content into a request for generateContent or
-   * generateContentStream.
+   * generateContentStream (or their template versions).
    * @internal
    */
   abstract _formatRequest(
@@ -103,11 +103,19 @@ export abstract class ChatSessionBase<
     tempHistory: Content[]
   ): RequestType;
 
+  /**
+   * Type-specific generate content calls (inherited classes may implement this
+   * to call basic generateContent() or the template version)
+   */
   abstract _callGenerateContent(
     formattedRequest: RequestType,
     singleRequestOptions?: RequestOptions
   ): Promise<GenerateContentResult>;
 
+  /**
+   * Type-specific generate content stream calls (inherited classes may implement this
+   * to call basic generateContentStream() or the template version)
+   */
   abstract _callGenerateContentStream(
     formattedRequest: RequestType,
     singleRequestOptions?: RequestOptions

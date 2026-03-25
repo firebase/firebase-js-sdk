@@ -76,6 +76,11 @@ export class ChatSession extends ChatSessionBase<
     };
   }
 
+  /**
+   * Calls default generateContent() (versus a specialized one like
+   * templateGenerateContent).
+   * @internal
+   */
   _callGenerateContent(
     formattedRequest: GenerateContentRequest,
     singleRequestOptions?: RequestOptions
@@ -92,6 +97,11 @@ export class ChatSession extends ChatSessionBase<
     );
   }
 
+  /**
+   * Calls default generateContentStream() (versus a specialized one like
+   * templateGenerateContentStream).
+   * @internal
+   */
   _callGenerateContentStream(
     formattedRequest: GenerateContentRequest,
     singleRequestOptions?: RequestOptions

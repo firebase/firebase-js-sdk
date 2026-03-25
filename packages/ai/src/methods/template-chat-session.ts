@@ -70,6 +70,11 @@ export class TemplateChatSession extends ChatSessionBase<
     } as T;
   }
 
+  /**
+   * Calls the specific templateGenerateContent() function needed for
+   * this specialized TemplateChatSession.
+   * @internal
+   */
   _callGenerateContent(
     formattedRequest: TemplateGenerateContentRequest,
     singleRequestOptions?: RequestOptions
@@ -85,6 +90,11 @@ export class TemplateChatSession extends ChatSessionBase<
     );
   }
 
+  /**
+   * Calls the specific templateGenerateContentStream() function needed for
+   * this specialized TemplateChatSession.
+   * @internal
+   */
   _callGenerateContentStream(
     formattedRequest: TemplateGenerateContentRequest,
     singleRequestOptions?: RequestOptions
