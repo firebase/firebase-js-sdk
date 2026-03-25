@@ -12611,19 +12611,6 @@ Specify time units for expressions.
 export declare type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 ```
 
-## TimePart
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Specify time parts for `timestampExtract` expressions.
-
-<b>Signature:</b>
-
-```typescript
-export declare type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
-```
-
 ## Type
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
