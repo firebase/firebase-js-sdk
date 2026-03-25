@@ -26,6 +26,10 @@ import { AggregateSpec } from '../lite-api/aggregate_types';
 import { getDatastore } from '../lite-api/components';
 import { Pipeline } from '../lite-api/pipeline';
 import { Query } from '../lite-api/reference';
+import {
+  newUserDataReader,
+  UserDataSource
+} from '../lite-api/user_data_reader';
 import { ExecutePipelineRequest as ProtoExecutePipelineRequest } from '../protos/firestore_proto_api';
 import { cast } from '../util/input_validation';
 import { mapToArray } from '../util/obj';
@@ -116,6 +120,15 @@ export function _internalPipelineToExecutePipelineRequestProto(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): any {
   const firestore = cast(pipeline._db, Firestore);
+
+  const userDataReader = newUserDataReader(firestore);
+  const context = userDataReader.createContext(
+    UserDataSource.Argument,
+    '_internalPipelineToExecutePipelineRequestProto'
+  );
+
+  pipeline._readUserData(context);
+
   const datastore = getDatastore(firestore);
   const serializer = datastore.serializer;
   if (serializer === undefined) {
