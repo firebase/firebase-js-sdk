@@ -88,6 +88,7 @@
     "@firebase/app": "0.x",
     "@firebase/app-types": "0.x",
     "@types/react": ">= 16.8.0",
+    "next": ">= 13.0.0",
     "react": ">= 16.8.0",
     "react-router-dom": ">= 6.0.0"
   },
@@ -105,6 +106,9 @@
       "optional": true
     },
     "react-router-dom": {
+      "optional": true
+    },
+    "next": {
       "optional": true
     }
   },
@@ -138,6 +142,7 @@
     "@angular/router": "19.2.15",
     "@firebase/app": "0.14.10",
     "@firebase/util": "1.15.0",
+    "@opentelemetry/sdk-trace-web": "2.1.0",
     "@rollup/plugin-json": "6.1.0",
     "@rollup/plugin-replace": "6.0.2",
     "@testing-library/dom": "10.4.1",

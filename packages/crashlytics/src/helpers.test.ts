@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
+import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
 import {
@@ -164,7 +165,8 @@ describe('helpers', () => {
     it('should log app version from telemetry options', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider
+        fakeLoggerProvider,
+        fakeTracingProvider
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
