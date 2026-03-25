@@ -29,7 +29,17 @@ import {
 import { AbstractDataConnectStreamTransport } from './streamTransport';
 import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
 
+/** The WebSocket implementation to be used by the {@link WebSocketTransport}. */
 let connectWebSocket: typeof WebSocket | null = globalThis.WebSocket;
+
+/**
+ * This function is ONLY used for testing and for ensuring compatability in environments which may
+ * be using a poyfill and/or bundlers. It should not be called by users of the Firebase JS SDK.
+ * @internal
+ */
+export function initializeWebSocket(webSocketImpl: typeof WebSocket): void {
+  connectWebSocket = webSocketImpl;
+}
 
 /**
  * Error with associated {@link WebSocketCloseCode} to be passed to {@link WebSocket.close}
@@ -53,11 +63,6 @@ export enum WebSocketCloseCode {
   GRACEFUL_CLOSE = 1000,
   GOING_AWAY = 1001,
   PROTOCOL_ERROR = 1002
-}
-
-/** Set the WebSocket implementation to be used by the {@link WebSocketTransport}. */
-export function initializeWebSocket(webSocketImpl: typeof WebSocket): void {
-  connectWebSocket = webSocketImpl;
 }
 
 /**

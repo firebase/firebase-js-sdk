@@ -32,10 +32,18 @@ import {
 import { SDK_VERSION } from '../../core/version';
 import { logError } from '../../logger';
 
+/** The fetch implementation to be used by the {@link RESTTransport}. */
 let connectFetch: typeof fetch | null = globalThis.fetch;
+
+/**
+ * This function is ONLY used for testing and for ensuring compatability in environments which may
+ * be using a poyfill and/or bundlers. It should not be called by users of the Firebase JS SDK.
+ * @internal
+ */
 export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
 }
+
 function getGoogApiClientValue(
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType
