@@ -276,7 +276,7 @@ describe('Top level API', () => {
           'error.type': 'TestError',
           'error.stack': '...stack trace...',
           [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-          'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+          'logging.googleapis.com/trace': `my-trace`,
           'logging.googleapis.com/spanId': `my-span`,
           [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
         });
