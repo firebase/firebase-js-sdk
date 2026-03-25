@@ -34,6 +34,7 @@ import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
+import { sessionContextManager } from './session-context-manager';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -74,12 +75,14 @@ export function createTracingProvider(
     resource,
     spanProcessors: [
       new FirebaseSpanProcessor(),
+      // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
     ]
   });
 
   provider.register({
+    contextManager: sessionContextManager,
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })

@@ -270,169 +270,172 @@ describe('Top level API', () => {
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
         [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
+        'logging.googleapis.com/trace': `my-trace`,
         'logging.googleapis.com/spanId': `my-span`,
         [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
+    } finally {
+      getActiveSpanStub.restore();
+    }
+  });
+
+  it('should propagate custom attributes', () => {
+    const error = new Error('This is a test error');
+    error.stack = '...stack trace...';
+    error.name = 'TestError';
+
+    recordError(fakeCrashlytics, error, {
+      strAttr: 'string attribute',
+      mapAttr: {
+        boolAttr: true,
+        numAttr: 2
+      },
+      arrAttr: [1, 2, 3]
     });
 
-    it('should propagate custom attributes', () => {
-      const error = new Error('This is a test error');
-      error.stack = '...stack trace...';
-      error.name = 'TestError';
+    expect(emittedLogs.length).to.equal(1);
+    const log = emittedLogs[0];
+    expect(log.attributes).to.deep.equal({
+      'error.type': 'TestError',
+      'error.stack': '...stack trace...',
+      [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+      strAttr: 'string attribute',
+      mapAttr: {
+        boolAttr: true,
+        numAttr: 2
+      },
+      arrAttr: [1, 2, 3],
+      [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+    });
+  });
 
-      recordError(fakeCrashlytics, error, {
-        strAttr: 'string attribute',
-        mapAttr: {
-          boolAttr: true,
-          numAttr: 2
-        },
-        arrAttr: [1, 2, 3]
+  it('should use explicit app version when provided', () => {
+    AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
+    const crashlytics = new CrashlyticsService(
+      fakeCrashlytics.app,
+      fakeLoggerProvider
+    );
+    crashlytics.options = {
+      appVersion: '1.0.0'
+    };
+
+    recordError(crashlytics, 'a string error');
+
+    expect(emittedLogs.length).to.equal(1);
+    const log = emittedLogs[0];
+    expect(log.attributes).to.deep.equal({
+      [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
+      [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+    });
+  });
+
+  it('should use auto constants if available', () => {
+    AUTO_CONSTANTS.appVersion = '1.2.3';
+
+    recordError(fakeCrashlytics, 'a string error');
+
+    expect(emittedLogs.length).to.equal(1);
+    const log = emittedLogs[0];
+    expect(log.attributes).to.deep.equal({
+      [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+      [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+    });
+  });
+
+  it('should retrieve framework-specific attributes', () => {
+    const error = new Error('This is a test error');
+    error.stack = '...stack trace...';
+    error.name = 'TestError';
+
+    (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider =
+      () => ({
+        'framework_attr1': 'framework attribute #1',
+        'framework_attr2': 'framework attribute #2'
       });
+
+    recordError(fakeCrashlytics, error);
+
+    expect(emittedLogs.length).to.equal(1);
+    const log = emittedLogs[0];
+    expect(log.attributes).to.deep.equal({
+      'error.type': 'TestError',
+      'error.stack': '...stack trace...',
+      [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+      'framework_attr1': 'framework attribute #1',
+      'framework_attr2': 'framework attribute #2',
+      [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+    });
+  });
+
+  describe('Session Metadata', () => {
+    it('should retrieve existing session ID from sessionStorage', () => {
+      storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session-id';
+
+      recordError(fakeCrashlytics, 'error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        strAttr: 'string attribute',
-        mapAttr: {
-          boolAttr: true,
-          numAttr: 2
-        },
-        arrAttr: [1, 2, 3],
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+      expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        'existing-session-id'
+      );
     });
 
-    it('should use explicit app version when provided', () => {
-      AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
-      const crashlytics = new CrashlyticsService(
-        fakeCrashlytics.app,
-        fakeLoggerProvider
-      );
-      crashlytics.options = {
-        appVersion: '1.0.0'
+    it('should handle errors when sessionStorage.getItem throws', () => {
+      const sessionStorageMock: Partial<Storage> = {
+        getItem: () => {
+          throw new Error('SecurityError');
+        },
+        setItem: () => { }
       };
 
-      recordError(crashlytics, 'a string error');
+      Object.defineProperty(global, 'sessionStorage', {
+        value: sessionStorageMock,
+        writable: true
+      });
+
+      recordError(fakeCrashlytics, 'error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+      expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+        .undefined;
     });
 
-    it('should use auto constants if available', () => {
-      AUTO_CONSTANTS.appVersion = '1.2.3';
+    it('should handle errors when sessionStorage.setItem throws', () => {
+      const sessionStorageMock: Partial<Storage> = {
+        getItem: () => null, // Emulate no existing session ID
+        setItem: () => {
+          throw new Error('SecurityError');
+        }
+      };
 
-      recordError(fakeCrashlytics, 'a string error');
+      Object.defineProperty(global, 'sessionStorage', {
+        value: sessionStorageMock,
+        writable: true
+      });
+
+      recordError(fakeCrashlytics, 'error');
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
-    });
-
-    it('should retrieve framework-specific attributes', () => {
-      const error = new Error('This is a test error');
-      error.stack = '...stack trace...';
-      error.name = 'TestError';
-
-      (fakeCrashlytics as CrashlyticsService).frameworkAttributesProvider =
-        () => ({
-          'framework_attr1': 'framework attribute #1',
-          'framework_attr2': 'framework attribute #2'
-        });
-
-      recordError(fakeCrashlytics, error);
-
-      expect(emittedLogs.length).to.equal(1);
-      const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        'framework_attr1': 'framework attribute #1',
-        'framework_attr2': 'framework attribute #2',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
-    });
-
-    describe('Session Metadata', () => {
-      it('should retrieve existing session ID from sessionStorage', () => {
-        storage[CRASHLYTICS_SESSION_ID_KEY] = 'existing-session-id';
-
-        recordError(fakeCrashlytics, 'error');
-
-        expect(emittedLogs.length).to.equal(1);
-        const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
-          'existing-session-id'
-        );
-      });
-
-      it('should handle errors when sessionStorage.getItem throws', () => {
-        const sessionStorageMock: Partial<Storage> = {
-          getItem: () => {
-            throw new Error('SecurityError');
-          },
-          setItem: () => {}
-        };
-
-        Object.defineProperty(global, 'sessionStorage', {
-          value: sessionStorageMock,
-          writable: true
-        });
-
-        recordError(fakeCrashlytics, 'error');
-
-        expect(emittedLogs.length).to.equal(1);
-        const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
-          .undefined;
-      });
-
-      it('should handle errors when sessionStorage.setItem throws', () => {
-        const sessionStorageMock: Partial<Storage> = {
-          getItem: () => null, // Emulate no existing session ID
-          setItem: () => {
-            throw new Error('SecurityError');
-          }
-        };
-
-        Object.defineProperty(global, 'sessionStorage', {
-          value: sessionStorageMock,
-          writable: true
-        });
-
-        recordError(fakeCrashlytics, 'error');
-
-        expect(emittedLogs.length).to.equal(1);
-        const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
-          .undefined;
-      });
+      expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+        .undefined;
     });
   });
+});
 
-  describe('flush()', () => {
-    it('should flush logs correctly', async () => {
-      recordError(fakeCrashlytics, 'error1');
-      recordError(fakeCrashlytics, 'error2');
+describe('flush()', () => {
+  it('should flush logs correctly', async () => {
+    recordError(fakeCrashlytics, 'error1');
+    recordError(fakeCrashlytics, 'error2');
 
-      expect(emittedLogs.length).to.equal(2);
+    expect(emittedLogs.length).to.equal(2);
 
-      await flush(fakeCrashlytics);
+    await flush(fakeCrashlytics);
 
-      expect(emittedLogs.length).to.equal(0);
-    });
+    expect(emittedLogs.length).to.equal(0);
   });
+});
 });
 
 function getFakeApp(): FirebaseApp {
@@ -441,10 +444,10 @@ function getFakeApp(): FirebaseApp {
     new Component(
       'installations-internal',
       () =>
-        ({
-          getId: async () => 'iid',
-          getToken: async () => 'authToken'
-        } as _FirebaseInstallationsInternal),
+      ({
+        getId: async () => 'iid',
+        getToken: async () => 'authToken'
+      } as _FirebaseInstallationsInternal),
       ComponentType.PUBLIC
     )
   );
@@ -470,7 +473,7 @@ function getFakeApp(): FirebaseApp {
       // @ts-ignore
       () => {
         return {
-          triggerHeartbeat: () => {}
+          triggerHeartbeat: () => { }
         };
       },
       ComponentType.PUBLIC
