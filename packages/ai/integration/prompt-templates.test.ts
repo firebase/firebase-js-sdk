@@ -83,7 +83,9 @@ describe('Prompt templates', function () {
               }
             ]
           });
-          const result = await chat.sendMessage('What is the weather in Paris?');
+          const result = await chat.sendMessage(
+            'What is the weather in Paris?'
+          );
           expect(result.response.text()).to.be.a('string');
         });
       });

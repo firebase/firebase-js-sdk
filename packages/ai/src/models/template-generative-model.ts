@@ -68,7 +68,7 @@ export class TemplateGenerativeModel {
    */
   async generateContent(
     templateId: string,
-    templateVariables: object,
+    templateVariables: Record<string, unknown>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
@@ -96,7 +96,7 @@ export class TemplateGenerativeModel {
    */
   async generateContentStream(
     templateId: string,
-    templateVariables: object,
+    templateVariables: Record<string, unknown>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(

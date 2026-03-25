@@ -139,17 +139,18 @@ export class BooleanSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
+// Warning: (ae-forgotten-export) The symbol "ChatSessionBase" needs to be exported by the entry point index.d.ts
+//
 // @public
-export class ChatSession {
+export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // (undocumented)
+    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // (undocumented)
+    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
     _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
@@ -158,7 +159,7 @@ export class ChatSession {
     requestOptions?: RequestOptions | undefined;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    }
+}
 
 // @beta
 export interface ChromeAdapter {
@@ -1157,7 +1158,7 @@ export interface PromptFeedback {
 // @public
 export interface RequestOptions {
     baseUrl?: string;
-    maxSequentalFunctionCalls?: number;
+    maxSequentialFunctionCalls?: number;
     timeout?: number;
 }
 
@@ -1366,22 +1367,21 @@ export class StringSchema extends Schema {
 }
 
 // @public
-export class TemplateChatSession {
+export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateGenerateContentRequest, TemplateFunctionDeclarationsTool> {
     constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
+    // (undocumented)
+    _callGenerateContent(formattedRequest: TemplateGenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // (undocumented)
+    _callGenerateContentStream(formattedRequest: TemplateGenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): object;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
+    _formatRequest<T>(incomingContent: Content, tempHistory: Content[]): T;
     // (undocumented)
     params: StartTemplateChatParams;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    }
+}
 
 // @public
 export interface TemplateFunctionDeclaration {
@@ -1396,13 +1396,25 @@ export interface TemplateFunctionDeclarationsTool {
     functionDeclarations?: TemplateFunctionDeclaration[];
 }
 
+// @public
+export interface TemplateGenerateContentRequest {
+    // (undocumented)
+    history?: Content[];
+    // (undocumented)
+    inputs: Record<string, unknown>;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsTool[];
+}
+
 // @beta
 export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }

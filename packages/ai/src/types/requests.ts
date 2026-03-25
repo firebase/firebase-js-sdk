@@ -75,6 +75,18 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
+ * Request sent through {@link GenerativeModel.templateGenerateContent}
+ * @public
+ */
+export interface TemplateGenerateContentRequest {
+  inputs?: Record<string, unknown>;
+  history?: Content[];
+  tools?: TemplateFunctionDeclarationsTool[];
+  toolConfig?: ToolConfig;
+  [key: string]: unknown;
+}
+
+/**
  * Safety setting that can be sent as part of request parameters.
  * @public
  */
@@ -281,7 +293,7 @@ export interface RequestOptions {
    * When it reaches this limit, it will return the last response received
    * from the model, whether it is a text response or further function calls.
    */
-  maxSequentalFunctionCalls?: number;
+  maxSequentialFunctionCalls?: number;
 }
 
 /**

@@ -77,9 +77,7 @@ describe('TemplateChatSession', () => {
     it('adds message and response to history', async () => {
       const fakeContent: Content = {
         role: 'model',
-        parts: [
-          { text: 'hi' }
-        ]
+        parts: [{ text: 'hi' }]
       };
       const fakeResponse = {
         candidates: [
@@ -114,9 +112,9 @@ describe('TemplateChatSession', () => {
       expect(
         (templateGenerateContentStub.args[1][2] as any).history[0].parts[0].text
       ).to.equal('hello');
-      expect((templateGenerateContentStub.args[1][2] as any).history[1]).to.deep.equal(
-        fakeResponse.candidates[0].content
-      );
+      expect(
+        (templateGenerateContentStub.args[1][2] as any).history[1]
+      ).to.deep.equal(fakeResponse.candidates[0].content);
       expect(
         (templateGenerateContentStub.args[1][2] as any).history[2].parts[0].text
       ).to.equal('hello 2');
@@ -173,6 +171,7 @@ describe('TemplateChatSession', () => {
     };
     const functionCallPartFarewell = {
       functionCall: {
+        id: 789,
         name: 'getFarewell',
         args: { username: 'Bob' }
       }
@@ -207,28 +206,28 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(
-          fakeApiSettings,
-          {
-            templateId: TEMPLATE_ID,
-            tools: [
-              {
-                functionDeclarations: [
-                  getFunctionDeclarationGreeting(greetingSpy)
-                ]
-              }
-            ]
-          }
-        );
+        const chatSession = new TemplateChatSession(fakeApiSettings, {
+          templateId: TEMPLATE_ID,
+          tools: [
+            {
+              functionDeclarations: [
+                getFunctionDeclarationGreeting(greetingSpy)
+              ]
+            }
+          ]
+        });
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
           result.response.candidates?.[0].content.parts[0].text
         ).to.include('final response');
         expect(templateGenerateContentStub).to.be.calledTwice;
-        
-        const functionResponseHistory = (templateGenerateContentStub.secondCall.args[2] as any).history;
-        const lastTurnParts = functionResponseHistory[functionResponseHistory.length - 1].parts;
-        
+
+        const functionResponseHistory = (
+          templateGenerateContentStub.secondCall.args[2] as any
+        ).history;
+        const lastTurnParts =
+          functionResponseHistory[functionResponseHistory.length - 1].parts;
+
         expect(lastTurnParts.length).to.equal(1);
         expect(lastTurnParts[0].functionResponse).to.deep.equal({
           name: 'getGreeting',
@@ -269,35 +268,36 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(
-          fakeApiSettings,
-          {
-            templateId: TEMPLATE_ID,
-            tools: [
-              {
-                functionDeclarations: [
-                  getFunctionDeclarationGreeting(greetingSpy),
-                  getFunctionDeclarationFarewell(farewellSpy)
-                ]
-              }
-            ]
-          }
-        );
+        const chatSession = new TemplateChatSession(fakeApiSettings, {
+          templateId: TEMPLATE_ID,
+          tools: [
+            {
+              functionDeclarations: [
+                getFunctionDeclarationGreeting(greetingSpy),
+                getFunctionDeclarationFarewell(farewellSpy)
+              ]
+            }
+          ]
+        });
         const result = await chatSession.sendMessage('My name is Bob');
         expect(
           result.response.candidates?.[0].content.parts[0].text
         ).to.include('final response');
         expect(templateGenerateContentStub).to.be.calledTwice;
-        
-        const functionResponseHistory = (templateGenerateContentStub.secondCall.args[2] as any).history;
-        const lastTurnParts = functionResponseHistory[functionResponseHistory.length - 1].parts;
-        
+
+        const functionResponseHistory = (
+          templateGenerateContentStub.secondCall.args[2] as any
+        ).history;
+        const lastTurnParts =
+          functionResponseHistory[functionResponseHistory.length - 1].parts;
+
         expect(lastTurnParts.length).to.equal(2);
         expect(lastTurnParts[0].functionResponse).to.deep.equal({
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
         expect(lastTurnParts[1].functionResponse).to.deep.equal({
+          id: 789,
           name: 'getFarewell',
           response: { farewell: 'Bye, Bob' }
         });
@@ -347,7 +347,7 @@ describe('TemplateChatSession', () => {
             ]
           },
           {
-            maxSequentalFunctionCalls: 0
+            maxSequentialFunctionCalls: 0
           }
         );
         const result = await chatSession.sendMessage('My name is Bob');
@@ -390,27 +390,27 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(
-          fakeApiSettings,
-          {
-            templateId: TEMPLATE_ID,
-            tools: [
-              {
-                functionDeclarations: [
-                  getFunctionDeclarationGreeting(greetingSpy)
-                ]
-              }
-            ]
-          }
-        );
+        const chatSession = new TemplateChatSession(fakeApiSettings, {
+          templateId: TEMPLATE_ID,
+          tools: [
+            {
+              functionDeclarations: [
+                getFunctionDeclarationGreeting(greetingSpy)
+              ]
+            }
+          ]
+        });
         const result = await chatSession.sendMessageStream('My name is Bob');
-        
+
         await result.response;
         expect(templateGenerateContentStreamStub).to.be.calledTwice;
-        
-        const functionResponseHistory = (templateGenerateContentStreamStub.secondCall.args[2] as any).history;
-        const lastTurnParts = functionResponseHistory[functionResponseHistory.length - 1].parts;
-        
+
+        const functionResponseHistory = (
+          templateGenerateContentStreamStub.secondCall.args[2] as any
+        ).history;
+        const lastTurnParts =
+          functionResponseHistory[functionResponseHistory.length - 1].parts;
+
         expect(lastTurnParts.length).to.equal(1);
         expect(lastTurnParts[0].functionResponse).to.deep.equal({
           name: 'getGreeting',

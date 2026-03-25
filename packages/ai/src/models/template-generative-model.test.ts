@@ -192,9 +192,7 @@ describe('TemplateGenerativeModel', () => {
         templateVariables: TEMPLATE_VARS,
         tools: [
           {
-            functionDeclarations: [
-              { name: 'testFunction' }
-            ] // Testing that tools are passed along
+            functionDeclarations: [{ name: 'testFunction' }] // Testing that tools are passed along
           }
         ],
         toolConfig: {
