@@ -63,6 +63,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [not(booleanExpr)](./firestore_lite_pipelines.md#not_c5b8fb1) | <b><i>(Public Preview)</i></b> Creates an expression that negates a filter condition. |
 |  <b>function(condition, ...)</b> |
 |  [conditional(condition, thenExpr, elseExpr)](./firestore_lite_pipelines.md#conditional_07a206d) | <b><i>(Public Preview)</i></b> Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false. |
+|  [switchOn(condition, result, others)](./firestore_lite_pipelines.md#switchon_02b8caf) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
 |  [documentId(documentPath)](./firestore_lite_pipelines.md#documentid_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
 |  <b>function(documentPathExpr, ...)</b> |
@@ -280,6 +281,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [logicalMaximum(first, second, others)](./firestore_lite_pipelines.md#logicalmaximum_83be015) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
 |  [logicalMinimum(first, second, others)](./firestore_lite_pipelines.md#logicalminimum_83be015) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest value between multiple input expressions and literal values. Based on Firestore's value type ordering. |
 |  [multiply(first, second)](./firestore_lite_pipelines.md#multiply_846ca1b) | <b><i>(Public Preview)</i></b> Creates an expression that multiplies two expressions together. |
+|  [nor(first, second, more)](./firestore_lite_pipelines.md#nor_e0c48bd) | <b><i>(Public Preview)</i></b> Creates an expression that performs a logical 'NOR' operation on multiple filter conditions. |
 |  [or(first, second, more)](./firestore_lite_pipelines.md#or_e0c48bd) | <b><i>(Public Preview)</i></b> Creates an expression that performs a logical 'OR' operation on multiple filter conditions. |
 |  [xor(first, second, additionalConditions)](./firestore_lite_pipelines.md#xor_8197113) | <b><i>(Public Preview)</i></b> Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions. |
 |  <b>function(firstArray, ...)</b> |
@@ -1857,6 +1859,49 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
 conditional(
     greaterThan("age", 18), constant("Adult"), constant("Minor"));
+
+```
+
+### switchOn(condition, result, others) {:#switchon_02b8caf}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to the result corresponding to the first true condition.
+
+This function behaves like a `switch` statement. It accepts an alternating sequence of conditions and their corresponding results. If an odd number of arguments is provided, the final argument serves as a default fallback result. If no default is provided and no condition evaluates to true, it throws an error.
+
+<b>Signature:</b>
+
+```typescript
+export declare function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  condition | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The first condition to check. |
+|  result | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The result if the first condition is true. |
+|  others | Array&lt;[BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class)<!-- -->&gt; | Additional conditions and results, and optionally a default value. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new Expression representing the switch operation.
+
+### Example
+
+
+```typescript
+// Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
+// and default to "Unknown" if none of the conditions are true.
+switchOn(
+  equal(field("status"), 1), constant("Active"),
+  equal(field("status"), 2), constant("Pending"),
+  constant("Unknown")
+)
 
 ```
 
@@ -9031,6 +9076,45 @@ multiply(field("quantity"), field("price"));
 
 ```
 
+### nor(first, second, more) {:#nor_e0c48bd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
+
+<b>Signature:</b>
+
+```typescript
+export declare function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  first | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The first filter condition. |
+|  second | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The second filter condition. |
+|  more | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->\[\] | Additional filter conditions to 'NOR' together. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) representing the logical 'NOR' operation.
+
+### Example
+
+
+```typescript
+// Check if neither the 'age' field is greater than 18 nor the 'city' field is "London"
+const condition = nor(
+  greaterThan("age", 18),
+  equal("city", "London")
+);
+
+```
+
 ### or(first, second, more) {:#or_e0c48bd}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -12525,6 +12609,19 @@ Specify time units for expressions.
 
 ```typescript
 export declare type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
+```
+
+## TimePart
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Specify time parts for `timestampExtract` expressions.
+
+<b>Signature:</b>
+
+```typescript
+export declare type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 ```
 
 ## Type

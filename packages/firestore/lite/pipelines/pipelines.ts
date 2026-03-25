@@ -132,6 +132,8 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
