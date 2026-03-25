@@ -302,8 +302,8 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(ifFieldName, ...)</b> |
 |  [ifAbsent(ifFieldName, elseExpr)](./firestore_pipelines.md#ifabsent_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
 |  [ifAbsent(ifFieldName, elseValue)](./firestore_pipelines.md#ifabsent_d8f2823) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
-|  [ifNull(ifFieldName, elseExpr)](./firestore_pipelines.md#ifnull_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> field is null or absent, else return the value of the field. |
-|  [ifNull(ifFieldName, elseValue)](./firestore_pipelines.md#ifnull_587c2f0) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is null or absent, else return the value of the field. |
+|  [ifNull(ifFieldName, elseExpr)](./firestore_pipelines.md#ifnull_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
+|  [ifNull(ifFieldName, elseValue)](./firestore_pipelines.md#ifnull_587c2f0) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is null, else return the value of the field. |
 |  <b>function(input, ...)</b> |
 |  [substring(input, position, length)](./firestore_pipelines.md#substring_e6e0aa3) | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of a string or byte array. |
 |  [substring(input, position, length)](./firestore_pipelines.md#substring_ab56dc6) | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of a string or byte array. |
@@ -9509,6 +9509,8 @@ ifAbsent(field("optional_field"), "default_value")
 
 Creates an expression that returns the `elseExpr` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
 
+This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+
 <b>Signature:</b>
 
 ```typescript
@@ -9543,6 +9545,8 @@ ifNull(field("preferredName"), field("fullName"))
 > 
 
 Creates an expression that returns the `elseValue` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
+
+This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -9651,7 +9655,9 @@ ifAbsent("optional_field", "default_value")
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null or absent, else return the value of the field.
+Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null, else return the value of the field.
+
+This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -9686,7 +9692,9 @@ ifNull("preferredName", field("fullName"))
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseValue` argument if `ifFieldName` is null or absent, else return the value of the field.
+Creates an expression that returns the `elseValue` argument if `ifFieldName` is null, else return the value of the field.
+
+This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
 
 <b>Signature:</b>
 

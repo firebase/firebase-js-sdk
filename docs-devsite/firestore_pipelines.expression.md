@@ -111,8 +111,8 @@ export declare abstract class Expression
 |  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
 |  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
 |  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null or absent value, else return the result of this expression evaluation. |
-|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null or absent value, else return the result of this expression evaluation. |
+|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null value, else return the result of this expression evaluation. |
+|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in a null value, else return the result of this expression evaluation. |
 |  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
 |  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
 |  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
@@ -2582,7 +2582,9 @@ field("title").arrayGet(0).ifError("Default Title");
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseValue` argument if this expression results in a null or absent value, else return the result of this expression evaluation.
+Creates an expression that returns the `elseValue` argument if this expression results in a null value, else return the result of this expression evaluation.
+
+This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -2616,7 +2618,9 @@ field("preferredName").ifNull(field("fullName"))
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseValue` argument if this expression results in a null or absent value, else return the result of this expression evaluation.
+Creates an expression that returns the `elseValue` argument if this expression results in a null value, else return the result of this expression evaluation.
+
+This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
 
 <b>Signature:</b>
 

@@ -3252,8 +3252,12 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Creates an expression that returns the `elseValue` argument if this expression results in a null or absent value, else
+   * Creates an expression that returns the `elseValue` argument if this expression results in a null value, else
    * return the result of this expression evaluation.
+   *
+   * @remarks
+   * This function provides a fallback for both absent and explicit null values. In contrast, {@link ifAbsent}
+   * only triggers for missing fields.
    *
    * @example
    * ```typescript
@@ -3268,8 +3272,12 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Creates an expression that returns the `elseValue` argument if this expression results in a null or absent value, else
+   * Creates an expression that returns the `elseValue` argument if this expression results in a null value, else
    * return the result of this expression evaluation.
+   *
+   * @remarks
+   * This function provides a fallback for both absent and explicit null values. In contrast, {@link ifAbsent}
+   * only triggers for missing fields.
    *
    * @example
    * ```typescript
@@ -10744,6 +10752,10 @@ export function ifAbsent(
  * Creates an expression that returns the `elseExpr` argument if `ifExpr` is null, else
  * return the result of the `ifExpr` argument evaluation.
  *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * {@link ifAbsent} only triggers for missing fields.
+ *
  * @example
  * ```typescript
  * // Returns the user's preferred name, or if that is null or absent, returns their full name.
@@ -10762,6 +10774,10 @@ export function ifNull(ifExpr: Expression, elseExpr: Expression): Expression;
  * Creates an expression that returns the `elseValue` argument if `ifExpr` is null, else
  * return the result of the `ifExpr` argument evaluation.
  *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * {@link ifAbsent} only triggers for missing fields.
+ *
  * @example
  * ```typescript
  * // Returns the user's display name, or returns "Anonymous" if the field is null or absent.
@@ -10776,8 +10792,12 @@ export function ifNull(ifExpr: Expression, elseValue: unknown): Expression;
 
 /**
  * @beta
- * Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null or absent, else
+ * Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null, else
  * return the value of the field.
+ *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * {@link ifAbsent} only triggers for missing fields.
  *
  * @example
  * ```typescript
@@ -10794,8 +10814,12 @@ export function ifNull(ifFieldName: string, elseExpr: Expression): Expression;
 
 /**
  * @beta
- * Creates an expression that returns the `elseValue` argument if `ifFieldName` is null or absent, else
+ * Creates an expression that returns the `elseValue` argument if `ifFieldName` is null, else
  * return the value of the field.
+ *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * {@link ifAbsent} only triggers for missing fields.
  *
  * @example
  * ```typescript
