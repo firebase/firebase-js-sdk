@@ -120,6 +120,8 @@ import {
   documentId,
   substring,
   xor,
+  nor,
+  switchOn,
   field,
   constant,
   FindNearestStageOptions,
@@ -1541,6 +1543,27 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         );
       });
 
+      it('where with nor', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              nor(
+                equal('genre', 'Romance'),
+                equal('genre', 'Dystopian'),
+                equal('genre', 'Fantasy'),
+                greaterThan('published', 1949)
+              )
+            )
+            .select('title')
+        );
+        expectResults(
+          snapshot,
+          { title: 'Crime and Punishment' },
+          { title: 'The Great Gatsby' }
+        );
+      });
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -5289,6 +5312,111 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         isMap: true,
         isArray: true,
         isStrNum: false
+      });
+    });
+
+    it('supports nor', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              a: false,
+              b: false,
+              c: true,
+              d: null
+            })
+          )
+          .select(
+            nor(field('a').asBoolean(), field('b').asBoolean()).as(
+              'twoConditions'
+            ),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('c').asBoolean()
+            ).as('threeConditions'),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('d').asBoolean()
+            ).as('threeConditionsWithNull')
+          )
+      );
+
+      expectResults(snapshot, {
+        twoConditions: true,
+        threeConditions: false,
+        threeConditionsWithNull: null
+      });
+    });
+
+    describe('switchOn', () => {
+      it('supports basic switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 1 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                constant('NA')
+              ).as('result1'),
+              switchOn(
+                equal(field('value'), 2),
+                constant('two'),
+                constant('NA')
+              ).as('result2')
+            )
+        );
+        expectResults(snapshot, { result1: 'one', result2: 'NA' });
+      });
+
+      it('supports multi-branch switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 2 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                equal(field('value'), 2),
+                constant('two'),
+                equal(field('value'), 3),
+                constant('three'),
+                constant('default')
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, { result: 'two' });
+      });
+
+      it('throws if no match and no default', async () => {
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .limit(1)
+              .replaceWith(map({ value: 5 }))
+              .select(
+                switchOn(
+                  equal(field('value'), 1),
+                  constant('one'),
+                  equal(field('value'), 2),
+                  constant('two')
+                ).as('result')
+              )
+          )
+        ).to.be.rejectedWith(/all switch cases evaluate to false/);
       });
     });
 

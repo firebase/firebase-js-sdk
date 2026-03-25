@@ -1104,6 +1104,9 @@ export function multiply(first: Expression, second: Expression | unknown): Funct
 export function multiply(fieldName: string, second: Expression | unknown): FunctionExpression;
 
 // @beta
+export function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+
+// @beta
 export function not(booleanExpr: BooleanExpression): BooleanExpression;
 
 // @beta
@@ -1471,6 +1474,9 @@ export function sum(expression: Expression): AggregateFunction;
 
 // @beta
 export function sum(fieldName: string): AggregateFunction;
+
+// @beta
+export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
 
 // @beta
 export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
