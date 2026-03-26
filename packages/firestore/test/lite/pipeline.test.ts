@@ -1898,6 +1898,35 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
       });
 
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
+          'book9'
+        );
+      });
+
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
