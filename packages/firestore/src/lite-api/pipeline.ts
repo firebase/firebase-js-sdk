@@ -316,7 +316,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
+   * @public
    * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
    * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
    *
@@ -347,7 +347,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalExpressions: AliasedExpression[]
   ): Pipeline;
   /**
-   * @beta
+   * @public
    * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
    * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
    *

@@ -1186,7 +1186,11 @@ export class Pipeline {
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "define" is marked as @public, but its signature references "AliasedExpression" which is marked as @beta
+    //
+    // @public
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
+    // @public
     define(options: DefineStageOptions): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
