@@ -66,7 +66,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [switchOn(condition, result, others)](./firestore_pipelines.md#switchon_02b8caf) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
 |  [documentId(documentPath)](./firestore_pipelines.md#documentid_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
-|  [parent\_2(documentPath)](./firestore_pipelines.md#parent_2_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
+|  [parent(documentPath)](./firestore_pipelines.md#parent_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
 |  <b>function(documentPathExpr, ...)</b> |
 |  [documentId(documentPathExpr)](./firestore_pipelines.md#documentid_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
 |  [parent\_2(documentPathExpr)](./firestore_pipelines.md#parent_2_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
