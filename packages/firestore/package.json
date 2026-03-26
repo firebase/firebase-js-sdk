@@ -26,7 +26,7 @@
     "test:lite:prod": "ts-node ./scripts/run-tests.ts --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod:nameddb": "ts-node ./scripts/run-tests.ts --platform node_lite --databaseId=enterprise --main=lite/index.ts  --firestoreEdition=enterprise 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --lite",
-    "test:lite:browser:nameddb": "karma start --lite --databaseId=enterprise  --firestoreEdition=enterprise",
+    "test:lite:browser:nameddb": "karma start --lite --databaseId=enterprise --firestoreEdition=enterprise",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "test": "run-s --npm-path npm lint assertion-id:check test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",

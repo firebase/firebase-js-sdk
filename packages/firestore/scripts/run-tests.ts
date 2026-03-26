@@ -83,8 +83,9 @@ if (argv.databaseId) {
 }
 
 if (argv.firestoreEdition) {
-  if (argv.firestoreEdition.toLowerCase() === 'enterprise')
-  process.env.RUN_ENTERPRISE_TESTS = 'true';
+  if (argv.firestoreEdition.toLowerCase() === 'enterprise') {
+    process.env.RUN_ENTERPRISE_TESTS = 'true';
+  }
 }
 
 if (argv.grep) {
