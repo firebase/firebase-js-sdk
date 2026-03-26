@@ -23,7 +23,7 @@ The Firebase AI Web SDK.
 |  [getImagenModel(ai, modelParams, requestOptions)](./ai.md#getimagenmodel_e1f6645) | Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.<!-- -->Only Imagen 3 models (named <code>imagen-3.0-*</code>) are supported. |
 |  [getLiveGenerativeModel(ai, modelParams)](./ai.md#getlivegenerativemodel_f2099ac) | <b><i>(Public Preview)</i></b> Returns a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) class for real-time, bidirectional communication.<!-- -->The Live API is only supported in modern browser windows and Node &gt;<!-- -->= 22. |
 |  [getTemplateGenerativeModel(ai, requestOptions)](./ai.md#gettemplategenerativemodel_9476bbc) | <b><i>(Public Preview)</i></b> Returns a [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) class for executing server-side templates. |
-|  [getTemplateImagenModel(ai, requestOptions)](./ai.md#gettemplateimagenmodel_9476bbc) | <b><i>(Public Preview)</i></b> Returns a [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) class for executing server-side Imagen templates. |
+|  [getTemplateImagenModel(ai, requestOptions)](./ai.md#gettemplateimagenmodel_9476bbc) | Returns a [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) class for executing server-side Imagen templates. |
 |  <b>function(liveSession, ...)</b> |
 |  [startAudioConversation(liveSession, options)](./ai.md#startaudioconversation_01c8e7f) | <b><i>(Public Preview)</i></b> Starts a real-time, bidirectional audio conversation with the model. This helper function manages the complexities of microphone access, audio recording, playback, and interruptions. |
 
@@ -50,7 +50,7 @@ The Firebase AI Web SDK.
 |  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
 |  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
-|  [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) | <b><i>(Public Preview)</i></b> Class for Imagen model APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateImagenModel()](./ai.md#gettemplateimagenmodel_9476bbc)<!-- -->. |
+|  [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) | Class for Imagen model APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateImagenModel()](./ai.md#gettemplateimagenmodel_9476bbc)<!-- -->. |
 |  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
 
 ## Interfaces
@@ -293,6 +293,11 @@ export declare function getGenerativeModel(ai: AI, modelParams: ModelParams | Hy
 
 ### getImagenModel(ai, modelParams, requestOptions) {:#getimagenmodel_e1f6645}
 
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
+
 Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.
 
 Only Imagen 3 models (named `imagen-3.0-*`<!-- -->) are supported.
@@ -375,7 +380,9 @@ export declare function getTemplateGenerativeModel(ai: AI, requestOptions?: Requ
 
 ### getTemplateImagenModel(ai, requestOptions) {:#gettemplateimagenmodel_9476bbc}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
 > 
 
 Returns a [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) class for executing server-side Imagen templates.
@@ -632,6 +639,11 @@ HarmSeverity: {
 
 ## ImagenAspectRatio
 
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
+
 Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
@@ -652,6 +664,11 @@ ImagenAspectRatio: {
 
 ## ImagenPersonFilterLevel
 
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
+
 A filter level controlling whether generation of images containing people or faces is allowed.
 
 See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
@@ -667,6 +684,11 @@ ImagenPersonFilterLevel: {
 ```
 
 ## ImagenSafetyFilterLevel
+
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
 
 A filter level controlling how aggressively to filter sensitive content.
 
@@ -960,6 +982,11 @@ export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 ## ImagenAspectRatio
 
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
+
 Aspect ratios for Imagen images.
 
 To specify an aspect ratio for generated images, set the `aspectRatio` property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.
@@ -974,6 +1001,11 @@ export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAs
 
 ## ImagenPersonFilterLevel
 
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
+
 A filter level controlling whether generation of images containing people or faces is allowed.
 
 See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details.
@@ -985,6 +1017,11 @@ export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typ
 ```
 
 ## ImagenSafetyFilterLevel
+
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
 
 A filter level controlling how aggressively to filter sensitive content.
 

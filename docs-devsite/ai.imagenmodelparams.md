@@ -10,6 +10,11 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ImagenModelParams interface
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> 
+
 Parameters for configuring an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class)<!-- -->.
 
 <b>Signature:</b>
