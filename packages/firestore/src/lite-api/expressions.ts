@@ -2040,7 +2040,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * @public
    * Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
    *
    * @example
@@ -2054,9 +2054,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    */
   getField(key: string | Expression): Expression {
     return new FunctionExpression(
-      'field',
+      'get_field',
       [this, valueToDefaultExpr(key)],
-      'field'
+      'get_field'
     );
   }
 
@@ -8775,7 +8775,7 @@ export function mapEntries(
 }
 
 /**
- * @beta
+ * @public
  * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
  *
  * @example
@@ -8789,7 +8789,7 @@ export function mapEntries(
  */
 export function getField(expression: Expression, key: string): Expression;
 /**
- * @beta
+ * @public
  * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
  *
  * @example
@@ -8806,7 +8806,7 @@ export function getField(
   keyExpr: Expression
 ): Expression;
 /**
- * @beta
+ * @public
  * Creates an expression that returns the value of a field from the document with the given field name.
  *
  * @example
@@ -8820,7 +8820,7 @@ export function getField(
  */
 export function getField(fieldName: string, key: string): Expression;
 /**
- * @beta
+ * @public
  * Creates an expression that returns the value of a field from the document with the given field name.
  *
  * @example
@@ -10949,7 +10949,7 @@ export function timestampTruncate(
 }
 
 /**
- * @beta
+ * @public
  * Creates an expression that retrieves the value of a variable bound via `define()`.
  *
  * @example
@@ -11004,7 +11004,7 @@ export class VariableExpression extends Expression {
 }
 
 /**
- * @beta
+ * @public
  * Creates an expression that represents the current document being processed.
  *
  * @example

@@ -396,7 +396,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
+   * @public
    * Converts this Pipeline into an expression that evaluates to an array of results.
    *
    * <p>Result Unwrapping:</p>
@@ -464,7 +464,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
+   * @public
    * Converts this Pipeline into an expression that evaluates to a single scalar result.
    *
    * <p><b>Runtime Validation:</b> The runtime validates that the result set contains zero or one item. If

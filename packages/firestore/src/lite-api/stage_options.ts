@@ -107,12 +107,12 @@ export type CollectionGroupStageOptions = StageOptions & {
 };
 
 /**
- * @beta
+ * @public
  * Options defining how a `SubcollectionStage` is evaluated.
  */
 export type SubcollectionStageOptions = StageOptions & {
   /**
-   * @beta
+   * @public
    * The relative path to the subcollection.
    */
   path: string;
@@ -160,7 +160,7 @@ export type RemoveFieldsStageOptions = StageOptions & {
   fields: Array<Field | string>;
 };
 /**
- * @beta
+ * @public
  * Options defining how a DefineStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(define:1)}.
  */
 export type DefineStageOptions = StageOptions & {

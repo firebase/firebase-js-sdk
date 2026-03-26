@@ -145,7 +145,7 @@ export class RemoveFields extends Stage {
 }
 
 /**
- * @beta
+ * @public
  */
 export class Define extends Stage {
   get _name(): string {

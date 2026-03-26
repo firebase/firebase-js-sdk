@@ -245,7 +245,7 @@ export class PipelineSource<PipelineType> {
 }
 
 /**
- * @beta
+ * @public
  * Creates a new Pipeline targeted at a subcollection relative to the current document context.
  * This creates a pipeline without a database instance, suitable for embedding as a subquery.
  * If executed directly, this pipeline will fail.
@@ -254,7 +254,7 @@ export class PipelineSource<PipelineType> {
  */
 export function subcollection(path: string): Pipeline;
 /**
- * @beta
+ * @public
  * Creates a new Pipeline targeted at a subcollection relative to the current document context.
  * This creates a pipeline without a database instance, suitable for embedding as a subquery.
  * If executed directly, this pipeline will fail.
