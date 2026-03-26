@@ -31,14 +31,6 @@ class SessionContextManager extends ZoneContextManager {
   getSessionSpan(): Span | undefined {
     return this._sessionSpan;
   }
-
-  override active(): Context {
-    const context = super.active();
-    if (this._sessionSpan && !trace.getSpan(context)) {
-      return trace.setSpan(context, this._sessionSpan);
-    }
-    return context;
-  }
 }
 
 /**

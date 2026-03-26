@@ -22,7 +22,7 @@ import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
-import { FirebaseCrashlytics } from '.';
+import { FirebaseCrashlytics, FirebaseCrashlyticsSession } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
 
@@ -99,5 +99,33 @@ describe('FirebaseCrashlytics', () => {
     );
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+  });
+});
+
+describe('FirebaseCrashlyticsSession', () => {
+  let runWithCrashlyticsSessionStub: sinon.SinonStub;
+  let fakeApp: FirebaseApp;
+
+  beforeEach(() => {
+    fakeApp = { name: 'fakeApp' } as FirebaseApp;
+    runWithCrashlyticsSessionStub = stub(
+      crashlytics,
+      'runWithCrashlyticsSession'
+    ).callsFake((_app, fn) => fn({} as any));
+  });
+
+  afterEach(() => {
+    restore();
+  });
+
+  it('calls runWithCrashlyticsSession and renders children', () => {
+    const { getByText } = render(
+      <FirebaseCrashlyticsSession firebaseApp={fakeApp}>
+        <div>Test Child</div>
+      </FirebaseCrashlyticsSession>
+    );
+
+    expect(runWithCrashlyticsSessionStub).to.have.been.calledWith(fakeApp);
+    expect(getByText('Test Child')).to.not.be.null;
   });
 });

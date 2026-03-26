@@ -29,7 +29,8 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics } from './api';
+import * as crashlytics from './api';
+const { recordError, flush, getCrashlytics, runWithCrashlyticsSession } = crashlytics;
 import {
   LOG_ENTRY_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
@@ -62,13 +63,20 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
+const staticSpan = {
+  end: () => {},
+  spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' }),
+  setAttribute: (key: string, value: any) => {
+    staticSpan.attributes[key] = value;
+  },
+  attributes: {} as any
+};
+
 const fakeTracingProvider = {
   getTracer: () => ({
-    startActiveSpan: (name: string, fn: (span: any) => any) =>
-      fn({
-        end: () => {},
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-      })
+    startActiveSpan: (name: string, fn: (span: any) => any) => {
+      return fn(staticSpan);
+    }
   }),
   register: () => {},
   shutdown: () => Promise.resolve()
@@ -96,8 +104,10 @@ describe('Top level API', () => {
   beforeEach(() => {
     // Clear the logs before each test.
     emittedLogs.length = 0;
-    app = getFakeApp();
     storage = {};
+    AUTO_CONSTANTS.appVersion = '1.2.3';
+
+    app = getFakeApp();
 
     // @ts-ignore
     originalSessionStorage = global.sessionStorage;
@@ -138,6 +148,7 @@ describe('Top level API', () => {
       writable: true
     });
     delete AUTO_CONSTANTS.appVersion;
+    sinon.restore();
   });
 
   describe('getCrashlytics()', () => {
@@ -188,6 +199,34 @@ describe('Top level API', () => {
       getCrashlytics(getFakeApp());
 
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal('existing-session');
+    });
+  });
+
+  describe('runWithCrashlyticsSession()', () => {
+    beforeEach(() => {
+      staticSpan.attributes = {};
+    });
+
+    it('should start an active span and execute the provided function', () => {
+      const result = runWithCrashlyticsSession(fakeCrashlytics, (span) => {
+        expect(span).to.equal(staticSpan);
+        return 'success';
+      });
+
+      expect(result).to.equal('success');
+    });
+
+    it('should set session ID on the span if present in storage', () => {
+      storage[CRASHLYTICS_SESSION_ID_KEY] = 'test-session-id';
+      
+      let capturedSpan: any;
+      runWithCrashlyticsSession(fakeCrashlytics, (span) => {
+        capturedSpan = span;
+      });
+
+      expect(capturedSpan).to.equal(staticSpan);
+      expect(capturedSpan.attributes).to.not.be.undefined;
+      expect(capturedSpan.attributes[LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal('test-session-id');
     });
   });
 

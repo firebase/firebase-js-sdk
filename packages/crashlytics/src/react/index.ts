@@ -17,9 +17,9 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics, runWithCrashlyticsSession } from '../api';
 import { CrashlyticsOptions } from '../public-types';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 registerCrashlytics();
 
@@ -108,4 +108,42 @@ export function FirebaseCrashlytics({
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;
+}
+
+/**
+ * A component that starts a Crashlytics session and makes it active for its children.
+ *
+ * This component should be used at the root of your application.
+ *
+ * @example
+ * ```tsx
+ * <FirebaseCrashlyticsSession firebaseApp={app}>
+ *   <App />
+ * </FirebaseCrashlyticsSession>
+ * ```
+ *
+ * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param crashlyticsOptions - {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ * @param children - The children to render within the session.
+ *
+ * @public
+ */
+export function FirebaseCrashlyticsSession({
+  firebaseApp,
+  crashlyticsOptions,
+  children
+}: {
+  firebaseApp: FirebaseApp;
+  crashlyticsOptions?: CrashlyticsOptions;
+  children: React.ReactNode;
+}): React.ReactElement {
+  return runWithCrashlyticsSession(
+    firebaseApp,
+    () => {
+      // While this function is running, the session span is active.
+      // The children elements are created during this time.
+      return React.createElement(React.Fragment, null, children);
+    },
+    crashlyticsOptions
+  );
 }

@@ -16,11 +16,15 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { LOG_ENTRY_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
+import {
+  LOG_ENTRY_ATTRIBUTE_KEYS,
+  CRASHLYTICS_TYPE,
+  CRASHLYTICS_SESSION_ID_KEY
+} from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
-import { trace } from '@opentelemetry/api';
+import { trace, Span } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
 import { flush, getAppVersion, getSessionId } from './helpers';
 import { CrashlyticsInternal } from './types';
@@ -63,6 +67,56 @@ export function getCrashlytics(
     crashlytics.options = options;
   }
   return crashlytics;
+}
+
+/**
+ * Executes a function within the context of a new Crashlytics session.
+ *
+ * @example
+ * ```javascript
+ * runWithCrashlyticsSession(app, () => {
+ *   // All code executed here will be associated with the same session.
+ *   render(<App />);
+ * });
+ * ```
+ *
+ * @param app - The {@link @firebase/app#FirebaseApp} to use.
+ * @param fn - The function to execute.
+ * @param options - {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ * @returns The result of the function execution.
+ *
+ * @public
+ */
+export function runWithCrashlyticsSession<T>(
+  appOrCrashlytics: FirebaseApp | Crashlytics,
+  fn: (span: Span) => T,
+  options?: CrashlyticsOptions
+): T {
+  const crashlytics =
+    'app' in appOrCrashlytics
+      ? (appOrCrashlytics as Crashlytics)
+      : getCrashlytics(appOrCrashlytics as FirebaseApp, options);
+  const { tracingProvider } = crashlytics as CrashlyticsInternal;
+  const tracer = tracingProvider.getTracer('session-tracer');
+
+  let sessionId = getSessionId();
+  if (!sessionId && typeof crypto?.randomUUID === 'function') {
+    sessionId = crypto.randomUUID();
+    try {
+      sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
+    } catch (e) {
+      // Ignore errors accessing sessionStorage
+    }
+  }
+
+  return tracer.startActiveSpan('session', span => {
+    if (sessionId) {
+      span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+    }
+    span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION, getAppVersion(crashlytics));
+    
+    return fn(span);
+  });
 }
 
 /**
