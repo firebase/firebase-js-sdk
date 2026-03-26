@@ -1948,18 +1948,16 @@ documentId(myDocumentReference);
 
 ```
 
-### parent\_2(documentPath) {:#parent_2_cef293c}
+### parent(documentPath) {:#parent_cef293c}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the parent of a document reference.
 
 <b>Signature:</b>
 
 ```typescript
-declare function parent_2(documentPath: string | DocumentReference): FunctionExpression;
-```
+declare function parent(documentPath: string | DocumentReference): FunctionExpression;
 
 #### Parameters
 
