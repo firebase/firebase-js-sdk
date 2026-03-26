@@ -11056,8 +11056,15 @@ export function timestampTruncate(
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: matches('menu', 'waffles')
+ * })
+ * ```
+ *
  * @param searchField Search the specified field.
- * @param rquery Define the search query using the search DTS.
+ * @param rquery Define the search query using the search DSL.
  */
 export function matches(
   searchField: string | Field,
@@ -11067,11 +11074,18 @@ export function matches(
 }
 
 /**
- * Perform a full-text search on the document.
+ * Perform a full-text search on all indexed search fields in the document.
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
- * @param rquery Define the search query using the rquery DTS.
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: documentMatches('waffles OR pancakes')
+ * })
+ * ```
+ *
+ * @param rquery Define the search query using the search DSL.
  */
 export function documentMatches(
   rquery: string | Expression
@@ -11085,9 +11099,17 @@ export function documentMatches(
 
 /**
  * Evaluates to the search score that reflects the topicality of the document
- * to all of the text predicates (`queryMatch`)
+ * to all of the text predicates (for example: `documentMatches`)
  * in the search query. If `SearchOptions.query` is not set or does not contain
  * any text predicates, then this topicality score will always be `0`.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   sort: score().descending()
+ * })
+ * ```
  *
  * @remarks This Expression can only be used within a `Search` stage.
  */
@@ -11100,7 +11122,7 @@ export function score(): Expression {
  */
 export interface SnippetOptions {
   /**
-   * Define the search query using the search DTS.
+   * Define the search query using the search DSL.
    */
   rquery: string;
 
@@ -11128,8 +11150,16 @@ export interface SnippetOptions {
  *
  * @remarks This Expression can only be used within a `Search` stage.
  *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   addFields: { snippet: snippet('menu', 'waffles') }
+ * })
+ * ```
+ *
  * @param searchField Search the specified field for matching terms.
- * @param rquery Define the search query using the search DTS (TODO(search) link).
+ * @param rquery Define the search query using the search DSL.
  */
 export function snippet(
   searchField: string | Field,
@@ -11143,7 +11173,7 @@ export function snippet(
  * @remarks This Expression can only be used within a `Search` stage.
  *
  * @param searchField Search the specified field for matching terms.
- * @param options Define the search query using the search DTS (TODO(search) link).
+ * @param options Define the search query using the search DSL.
  */
 export function snippet(
   searchField: string | Field,
@@ -11163,6 +11193,14 @@ export function snippet(
  * field and the query location.
  *
  * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   sort: geoDistance('location', new GeoPoint(37.0, -122.0)).ascending()
+ * })
+ * ```
  *
  * @param fieldName - Specifies the field in the document which contains
  * the first GeoPoint for distance computation.

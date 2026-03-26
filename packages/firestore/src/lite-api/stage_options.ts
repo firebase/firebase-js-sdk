@@ -289,11 +289,11 @@ export type SearchStageOptions = StageOptions & {
    * are supported in the Search query.
    *
    * @example
-   * ```
+   * ```typescript
    * db.pipeline().collection('restaurants').search({
    *   query: or(
-   *     documentContainsText("breakfast"),
-   *     field('menu').containsText('waffle AND coffee')
+   *     documentMatches("breakfast"),
+   *     field('menu').matches('waffle AND coffee')
    *   )
    * })
    * ```
@@ -317,8 +317,8 @@ export type SearchStageOptions = StageOptions & {
   // TODO(search) add indexPartition after languageCode
 
   /**
-   * The maximum number of documents for the search stage to score. Documents
-   * will be processed in the pre-sort order specified by the search index.
+   * The maximum number of documents to retrieve. Documents will be retrieved in the
+   * pre-sort order specified by the search index.
    */
   retrievalDepth?: number;
 
