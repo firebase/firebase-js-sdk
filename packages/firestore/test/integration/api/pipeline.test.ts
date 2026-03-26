@@ -1926,8 +1926,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         expectResults(
           snapshot,
           'book1',
-          'book10',
           'book1',
+          'book10',
           'book2',
           'book3',
           'book4',
