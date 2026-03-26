@@ -137,6 +137,8 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -189,6 +191,7 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   abs,
@@ -217,6 +220,7 @@ export {
   timestampTruncate,
   variable,
   currentDocument,
+  timestampExtract,
   AliasedExpression,
   Field,
   Constant,
@@ -228,5 +232,6 @@ export {
   BooleanExpression,
   AggregateFunction,
   TimeGranularity,
+  TimePart,
   Type
 } from '../../src/lite-api/expressions';

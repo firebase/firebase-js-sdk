@@ -1,5 +1,46 @@
 # firebase
 
+## 12.11.0
+
+### Minor Changes
+
+- [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec) [#9614](https://github.com/firebase/firebase-js-sdk/pull/9614) - Add validateArgsWithOptions() to Data Connect (internal change, no need to add to public release notes).
+
+- [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e) [#9693](https://github.com/firebase/firebase-js-sdk/pull/9693) (fixes [#9625](https://github.com/firebase/firebase-js-sdk/issues/9625)) - Added `responseJsonSchema` to `GenerationConfig`.
+
+- [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440) [#9492](https://github.com/firebase/firebase-js-sdk/pull/9492) - Add support for array expressions `arrayFirst`, `arrayFirstN`,`arrayLast`,`arrayLastN`,`arrayMinimum`,`arrayMinimumN`,`arrayMaximum`,`arrayMaximumN`,`arrayIndexOf`, `arrayLastIndexOf` and `arrayIndexOfAll`
+
+### Patch Changes
+
+- Updated dependencies [[`54ff05e`](https://github.com/firebase/firebase-js-sdk/commit/54ff05ef922016fee2e9e6f4b8aea30120170da7), [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec), [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e), [`a383770`](https://github.com/firebase/firebase-js-sdk/commit/a3837700877822acd1bad82431a051d64f479508), [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440), [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/app@0.14.10
+  - @firebase/firestore@4.13.0
+  - @firebase/data-connect@0.5.0
+  - @firebase/ai@2.10.0
+  - @firebase/functions@0.13.3
+  - @firebase/database@1.1.2
+  - @firebase/storage@0.14.2
+  - @firebase/auth@1.12.2
+  - @firebase/util@1.15.0
+  - @firebase/analytics@0.10.21
+  - @firebase/app-check@0.11.2
+  - @firebase/app-compat@0.5.10
+  - @firebase/installations@0.6.21
+  - @firebase/messaging@0.12.25
+  - @firebase/performance@0.7.11
+  - @firebase/remote-config@0.8.2
+  - @firebase/firestore-compat@0.4.7
+  - @firebase/functions-compat@0.4.3
+  - @firebase/database-compat@2.1.2
+  - @firebase/storage-compat@0.4.2
+  - @firebase/auth-compat@0.6.4
+  - @firebase/analytics-compat@0.2.27
+  - @firebase/app-check-compat@0.4.2
+  - @firebase/installations-compat@0.2.21
+  - @firebase/messaging-compat@0.2.25
+  - @firebase/performance-compat@0.2.24
+  - @firebase/remote-config-compat@0.2.23
+
 ## 12.10.0
 
 ### Minor Changes

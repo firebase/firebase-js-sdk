@@ -56,12 +56,12 @@ export {
 } from './lite-api/stage_options';
 
 export {
-  field,
   constant,
   add,
   subtract,
   multiply,
   divide,
+  field,
   mod,
   equal,
   notEqual,
@@ -90,6 +90,8 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -147,6 +149,7 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   countIf,
@@ -180,6 +183,7 @@ export {
   log10,
   arraySum,
   timestampTruncate,
+  timestampExtract,
   split,
   variable,
   currentDocument,
@@ -194,6 +198,7 @@ export {
   AliasedAggregate,
   Selectable,
   TimeGranularity,
+  TimePart,
   Type
 } from './lite-api/expressions';
 

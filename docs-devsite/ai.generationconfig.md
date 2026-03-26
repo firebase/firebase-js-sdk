@@ -26,6 +26,7 @@ export interface GenerationConfig
 |  [frequencyPenalty](./ai.generationconfig.md#generationconfigfrequencypenalty) | number |  |
 |  [maxOutputTokens](./ai.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./ai.generationconfig.md#generationconfigpresencepenalty) | number |  |
+|  [responseJsonSchema](./ai.generationconfig.md#generationconfigresponsejsonschema) | { \[key: string\]: unknown; } | Output schema of the generated response. This is an alternative to <code>responseSchema</code> that accepts \[JSON Schema\](https://json-schema.org/).<!-- -->If set, <code>responseSchema</code> must be omitted, but <code>responseMimeType</code> is required and must be set to <code>application/json</code>. |
 |  [responseMimeType](./ai.generationconfig.md#generationconfigresponsemimetype) | string | Output response MIME type of the generated candidate text. Supported MIME types are <code>text/plain</code> (default, text output), <code>application/json</code> (JSON response in the candidates), and <code>text/x.enum</code>. |
 |  [responseModalities](./ai.generationconfig.md#generationconfigresponsemodalities) | [ResponseModality](./ai.md#responsemodality)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [responseSchema](./ai.generationconfig.md#generationconfigresponseschema) | [TypedSchema](./ai.md#typedschema) \| [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) | Output response schema of the generated candidate text. This value can be a class generated with a [Schema](./ai.schema.md#schema_class) static method like <code>Schema.string()</code> or <code>Schema.object()</code> or it can be a plain JS object matching the [SchemaRequest](./ai.schemarequest.md#schemarequest_interface) interface. <br/>Note: This only applies when the specified <code>responseMimeType</code> supports a schema; currently this is limited to <code>application/json</code> and <code>text/x.enum</code>. |
@@ -65,6 +66,20 @@ maxOutputTokens?: number;
 
 ```typescript
 presencePenalty?: number;
+```
+
+## GenerationConfig.responseJsonSchema
+
+Output schema of the generated response. This is an alternative to `responseSchema` that accepts \[JSON Schema\](https://json-schema.org/).
+
+If set, `responseSchema` must be omitted, but `responseMimeType` is required and must be set to `application/json`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+responseJsonSchema?: {
+        [key: string]: unknown;
+    };
 ```
 
 ## GenerationConfig.responseMimeType

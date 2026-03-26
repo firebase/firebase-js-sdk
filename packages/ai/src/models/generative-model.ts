@@ -201,4 +201,24 @@ function validateGenerationConfig(generationConfig: GenerationConfig): void {
       `Cannot set both thinkingBudget and thinkingLevel in a config.`
     );
   }
+  if (
+    // != allows for null and undefined.
+    generationConfig.responseSchema != null &&
+    generationConfig.responseJsonSchema != null
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `Cannot set both responseSchema and responseJsonSchema in a config.`
+    );
+  }
+  if (
+    (generationConfig.responseSchema != null ||
+      generationConfig.responseJsonSchema != null) &&
+    generationConfig.responseMimeType
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `responseMimeType must be set if responseSchema or responseJsonSchema are set.`
+    );
+  }
 }

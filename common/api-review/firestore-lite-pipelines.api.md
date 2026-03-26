@@ -358,7 +358,9 @@ export function countDistinct(expr: Expression | string): AggregateFunction;
 // @beta
 export function countIf(booleanExpr: BooleanExpression): AggregateFunction;
 
-// @beta
+// Warning: (ae-incompatible-release-tags) The symbol "currentDocument" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public
 export function currentDocument(): Expression;
 
 // @beta
@@ -367,7 +369,9 @@ export function currentTimestamp(): FunctionExpression;
 // @beta
 export type DatabaseStageOptions = StageOptions & {};
 
-// @beta
+// Warning: (ae-incompatible-release-tags) The symbol "DefineStageOptions" is marked as @public, but its signature references "StageOptions" which is marked as @beta
+//
+// @public
 export type DefineStageOptions = StageOptions & {
     variables: AliasedExpression[];
 };
@@ -616,6 +620,7 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    // @public
     getField(key: string | Expression): Expression;
     /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
@@ -773,6 +778,14 @@ export abstract class Expression {
     timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampDiff(start: Expression, unit: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampExtract(part: TimePart, timezone?: string | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampExtract(part: Expression, timezone?: string | Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -1114,6 +1127,9 @@ export function multiply(first: Expression, second: Expression | unknown): Funct
 export function multiply(fieldName: string, second: Expression | unknown): FunctionExpression;
 
 // @beta
+export function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+
+// @beta
 export function not(booleanExpr: BooleanExpression): BooleanExpression;
 
 // @beta
@@ -1193,7 +1209,13 @@ export class Pipeline {
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     sort(options: SortStageOptions): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "toArrayExpression" is marked as @public, but its signature references "Expression" which is marked as @beta
+    //
+    // @public
     toArrayExpression(): Expression;
+    // Warning: (ae-incompatible-release-tags) The symbol "toScalarExpression" is marked as @public, but its signature references "Expression" which is marked as @beta
+    //
+    // @public
     toScalarExpression(): Expression;
     union(other: Pipeline): Pipeline;
     union(options: UnionStageOptions): Pipeline;
@@ -1456,13 +1478,19 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
 // @beta
 export function stringReverse(field: string): FunctionExpression;
 
-// @beta
+// Warning: (ae-incompatible-release-tags) The symbol "subcollection" is marked as @public, but its signature references "Pipeline" which is marked as @beta
+//
+// @public
 export function subcollection(path: string): Pipeline;
 
-// @beta
+// Warning: (ae-incompatible-release-tags) The symbol "subcollection" is marked as @public, but its signature references "Pipeline" which is marked as @beta
+//
+// @public
 export function subcollection(options: SubcollectionStageOptions): Pipeline;
 
-// @beta
+// Warning: (ae-incompatible-release-tags) The symbol "SubcollectionStageOptions" is marked as @public, but its signature references "StageOptions" which is marked as @beta
+//
+// @public
 export type SubcollectionStageOptions = StageOptions & {
     path: string;
 };
@@ -1498,7 +1526,13 @@ export function sum(expression: Expression): AggregateFunction;
 export function sum(fieldName: string): AggregateFunction;
 
 // @beta
+export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
+
+// @beta
 export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+
+// @beta
+export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 
 // @beta
 export function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
@@ -1508,6 +1542,33 @@ export function timestampAdd(timestamp: Expression, unit: 'microsecond' | 'milli
 
 // @beta
 export function timestampAdd(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+
+// Warning: (ae-incompatible-release-tags) The symbol "timestampDiff" is marked as @public, but its signature references "Expression" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "timestampDiff" is marked as @public, but its signature references "FunctionExpression" which is marked as @beta
+//
+// @public (undocumented)
+export function timestampDiff(endFieldName: string, startFieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endFieldName: string, startExpression: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endExpression: Expression, startFieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endExpression: Expression, startExpression: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(fieldName: string, part: Expression, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(timestampExpression: Expression, part: TimePart, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(timestampExpression: Expression, part: Expression, timezone?: string | Expression): FunctionExpression;
 
 // @beta
 export function timestampSubtract(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
@@ -1616,7 +1677,9 @@ export type UnnestStageOptions = StageOptions & {
     indexField?: string;
 };
 
-// @beta
+// Warning: (ae-incompatible-release-tags) The symbol "variable" is marked as @public, but its signature references "Expression" which is marked as @beta
+//
+// @public
 export function variable(name: string): Expression;
 
 // @beta
