@@ -1382,13 +1382,14 @@ export function score(): Expression;
 //
 // @public
 export type SearchStageOptions = StageOptions & {
-    query?: BooleanExpression | string;
-    limit?: number;
+    query: BooleanExpression | string;
+    languageCode?: string;
     retrievalDepth?: number;
     sort?: Ordering | Ordering[];
-    addFields?: Selectable[];
-    select?: Array<Selectable | string>;
     offset?: number;
+    limit?: number;
+    select?: Array<Selectable | string>;
+    addFields?: Selectable[];
     queryEnhancement?: QueryEnhancement;
 };
 
@@ -1447,11 +1448,11 @@ export function sqrt(expression: Expression): FunctionExpression;
 export function sqrt(fieldName: string): FunctionExpression;
 
 // @beta
-export interface StageOptions {
+export type StageOptions = {
     rawOptions?: {
         [name: string]: unknown;
     };
-}
+};
 
 // @beta
 export function startsWith(fieldName: string, prefix: string): BooleanExpression;
@@ -1679,10 +1680,10 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8176:5 - (ae-incompatible-release-tags) The symbol "query" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8190:5 - (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8194:5 - (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
-// /Users/markduckworth/projects/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8199:5 - (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/firestore-sdks/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8169:5 - (ae-incompatible-release-tags) The symbol "query" is marked as @public, but its signature references "BooleanExpression" which is marked as @beta
+// /Users/markduckworth/firestore-sdks/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8183:5 - (ae-incompatible-release-tags) The symbol "sort" is marked as @public, but its signature references "Ordering" which is marked as @beta
+// /Users/markduckworth/firestore-sdks/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8196:5 - (ae-incompatible-release-tags) The symbol "select" is marked as @public, but its signature references "Selectable" which is marked as @beta
+// /Users/markduckworth/firestore-sdks/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:8200:5 - (ae-incompatible-release-tags) The symbol "addFields" is marked as @public, but its signature references "Selectable" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 
