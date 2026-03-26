@@ -95,12 +95,11 @@ export function recordError(
 
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
-    customAttributes[
-      'logging.googleapis.com/trace'
-    ] = `projects/${crashlytics.app.options.projectId}/traces/${activeSpanContext.traceId}`;
+  if (activeSpanContext?.traceId) {
+    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID] =
+      activeSpanContext.traceId;
     if (activeSpanContext?.spanId) {
-      customAttributes['logging.googleapis.com/spanId'] =
+      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID] =
         activeSpanContext.spanId;
     }
   }
