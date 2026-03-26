@@ -4689,9 +4689,9 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .limit(1)
           .select(
-            parent(
-              doc(randomCol, 'book4', 'reviews', 'review1')
-            ).as('parentRefStatic'),
+            parent(doc(randomCol, 'book4', 'reviews', 'review1')).as(
+              'parentRefStatic'
+            ),
             constant(doc(randomCol, 'book4', 'reviews', 'review1'))
               .parent()
               .as('parentRefInstance')

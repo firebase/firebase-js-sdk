@@ -66,10 +66,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [switchOn(condition, result, others)](./firestore_lite_pipelines.md#switchon_02b8caf) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
 |  [documentId(documentPath)](./firestore_lite_pipelines.md#documentid_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
-|  [parent(documentPath)](./firestore_lite_pipelines.md#parent_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
+|  [parent\_2(documentPath)](./firestore_lite_pipelines.md#parent_2_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
 |  <b>function(documentPathExpr, ...)</b> |
 |  [documentId(documentPathExpr)](./firestore_lite_pipelines.md#documentid_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
-|  [parent(documentPathExpr)](./firestore_lite_pipelines.md#parent_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
+|  [parent\_2(documentPathExpr)](./firestore_lite_pipelines.md#parent_2_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
 |  <b>function(element, ...)</b> |
 |  [notEqualAny(element, values)](./firestore_lite_pipelines.md#notequalany_c2c5bcb) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
 |  [notEqualAny(element, arrayExpression)](./firestore_lite_pipelines.md#notequalany_16b2851) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
