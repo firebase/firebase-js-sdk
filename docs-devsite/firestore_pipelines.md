@@ -66,8 +66,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [switchOn(condition, result, others)](./firestore_pipelines.md#switchon_02b8caf) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
 |  [documentId(documentPath)](./firestore_pipelines.md#documentid_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
+|  [parent\_2(documentPath)](./firestore_pipelines.md#parent_2_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
 |  <b>function(documentPathExpr, ...)</b> |
 |  [documentId(documentPathExpr)](./firestore_pipelines.md#documentid_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
+|  [parent\_2(documentPathExpr)](./firestore_pipelines.md#parent_2_9a69021) | <b><i>(Public Preview)</i></b> Creates an expression that returns the parent of a document reference. |
 |  <b>function(element, ...)</b> |
 |  [notEqualAny(element, values)](./firestore_pipelines.md#notequalany_c2c5bcb) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
 |  [notEqualAny(element, arrayExpression)](./firestore_pipelines.md#notequalany_16b2851) | <b><i>(Public Preview)</i></b> Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
@@ -1946,6 +1948,40 @@ documentId(myDocumentReference);
 
 ```
 
+### parent\_2(documentPath) {:#parent_2_cef293c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the parent of a document reference.
+
+<b>Signature:</b>
+
+```typescript
+declare function parent_2(documentPath: string | DocumentReference): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  documentPath | string \| [DocumentReference](./firestore_.documentreference.md#documentreference_class) | A string path or DocumentReference to get the parent from. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the parent operation.
+
+### Example
+
+
+```typescript
+// Get the parent of a document reference.
+parent(myDocumentReference);
+
+```
+
 ## function(documentPathExpr, ...)
 
 ### documentId(documentPathExpr) {:#documentid_9a69021}
@@ -1979,6 +2015,40 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Get the document ID from a path.
 documentId(field("__path__"));
+
+```
+
+### parent\_2(documentPathExpr) {:#parent_2_9a69021}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that returns the parent of a document reference.
+
+<b>Signature:</b>
+
+```typescript
+declare function parent_2(documentPathExpr: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  documentPathExpr | [Expression](./firestore_pipelines.expression.md#expression_class) | An Expression evaluating to a document reference. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the parent operation.
+
+### Example
+
+
+```typescript
+// Get the parent of a document reference.
+parent(field("__path__"));
 
 ```
 

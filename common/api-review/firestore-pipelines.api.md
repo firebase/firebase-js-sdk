@@ -697,6 +697,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     notEqualAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    parent(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     pow(exponent: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     pow(exponent: number): FunctionExpression;
@@ -1167,6 +1169,14 @@ export class Ordering {
     // (undocumented)
     readonly expr: Expression;
 }
+
+// @beta
+function parent_2(documentPath: string | DocumentReference): FunctionExpression;
+
+// @beta
+function parent_2(documentPathExpr: Expression): FunctionExpression;
+
+export { parent_2 as parent }
 
 // @beta (undocumented)
 export class Pipeline {

@@ -4628,9 +4628,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             parent(
               doc(firestore, randomCol.path + '/book4/reviews/review1')
             ).as('parentRefStatic'),
-            constant(
-              doc(firestore, randomCol.path + '/book4/reviews/review1')
-            )
+            constant(doc(firestore, randomCol.path + '/book4/reviews/review1'))
               .parent()
               .as('parentRefInstance')
           )
