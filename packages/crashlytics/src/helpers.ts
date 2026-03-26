@@ -24,6 +24,7 @@ import {
 import { Crashlytics } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { sessionContextManager } from './tracing/session-context-manager';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -57,7 +58,9 @@ export function getSessionId(): string | undefined {
  */
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, tracingProvider } =
+    crashlytics as CrashlyticsInternal;
+
   if (
     typeof sessionStorage !== 'undefined' &&
     typeof crypto?.randomUUID === 'function'
@@ -66,6 +69,15 @@ export function startNewSession(crashlytics: Crashlytics): void {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
 
+      const tracer = tracingProvider.getTracer('session-tracer');
+      const span = tracer.startSpan('session-start');
+      span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(
+        LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION,
+        getAppVersion(crashlytics)
+      );
+      sessionContextManager.setSessionSpan(span);
+
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
@@ -73,7 +85,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
         body: 'Session created',
         attributes: {
           [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics)
+          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
+          [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
+          [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
         }
       });
     } catch (e) {
@@ -90,10 +104,12 @@ export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
+        sessionContextManager.getSessionSpan()?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
+      sessionContextManager.getSessionSpan()?.end();
       await flush(crashlytics);
     });
   }
