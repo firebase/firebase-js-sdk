@@ -165,7 +165,7 @@ export type RemoveFieldsStageOptions = StageOptions & {
  */
 export type DefineStageOptions = StageOptions & {
   /**
-   * @beta
+   * @public
    * The variables to define.
    */
   variables: AliasedExpression[];

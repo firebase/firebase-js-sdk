@@ -1737,6 +1737,10 @@ export type WhereStageOptions = StageOptions & {
 export function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
 
 
+// Warnings were encountered during analysis:
+//
+// /Users/dlarocque/workspace/sdk/firebase-js-sdk/packages/firestore/dist/pipelines.d.ts:1775:5 - (ae-incompatible-release-tags) The symbol "variables" is marked as @public, but its signature references "AliasedExpression" which is marked as @beta
+
 // (No @packageDocumentation comment for this package)
 
 ```
