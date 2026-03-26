@@ -49,6 +49,7 @@ The Firebase AI Web SDK.
 |  [ObjectSchema](./ai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of <code>Schema</code> objects. |
 |  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
+|  [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class) | ChatSession class that enables sending chat messages and stores history of sent and received messages so far for a server template. |
 |  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
 |  [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) | <b><i>(Public Preview)</i></b> Class for Imagen model APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateImagenModel()](./ai.md#gettemplateimagenmodel_9476bbc)<!-- -->. |
 |  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
@@ -138,6 +139,10 @@ The Firebase AI Web SDK.
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
+|  [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | Params for [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->. |
+|  [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface) | Structured representation of a template function declaration. Included in this declaration are the function name and parameters. This <code>TemplateFunctionDeclaration</code> is a representation of a block of code that can be used as a Tool by the model and executed by the client. Note: Template function declarations do not support description fields. |
+|  [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface) | A piece of code that enables the system to interact with external systems. |
+|  [TemplateGenerateContentRequest](./ai.templategeneratecontentrequest.md#templategeneratecontentrequest_interface) | Request sent through  |
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
@@ -211,6 +216,7 @@ The Firebase AI Web SDK.
 |  [ResponseModality](./ai.md#responsemodality) | <b><i>(Public Preview)</i></b> Generation modalities to be returned in generation responses. |
 |  [Role](./ai.md#role) | Role is the producer of the content. |
 |  [SchemaType](./ai.md#schematype) | Contains the list of OpenAPI data types as defined by the [OpenAPI specification](https://swagger.io/docs/specification/data-models/data-types/) |
+|  [TemplateTool](./ai.md#templatetool) | Defines a tool that a template model can call to access external knowledge. Only function declarations are currently supported for templates. |
 |  [ThinkingLevel](./ai.md#thinkinglevel) | A preset that controls the model's "thinking" process. Use <code>ThinkingLevel.LOW</code> for faster responses on less complex tasks, and <code>ThinkingLevel.HIGH</code> for better reasoning on more complex tasks. |
 |  [Tool](./ai.md#tool) | Defines a tool that model can call to access external knowledge. |
 |  [TypedSchema](./ai.md#typedschema) | A type that includes all specific Schema types. |
@@ -1145,6 +1151,16 @@ Contains the list of OpenAPI data types as defined by the [OpenAPI specification
 
 ```typescript
 export type SchemaType = (typeof SchemaType)[keyof typeof SchemaType];
+```
+
+## TemplateTool
+
+Defines a tool that a template model can call to access external knowledge. Only function declarations are currently supported for templates.
+
+<b>Signature:</b>
+
+```typescript
+export type TemplateTool = TemplateFunctionDeclarationsTool;
 ```
 
 ## ThinkingLevel

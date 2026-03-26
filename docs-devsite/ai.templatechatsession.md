@@ -9,45 +9,44 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# ChatSession class
-ChatSession class that enables sending chat messages and stores history of sent and received messages so far.
+# TemplateChatSession class
+ChatSession class that enables sending chat messages and stores history of sent and received messages so far for a server template.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> 
+export declare class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> 
 ```
-<b>Extends:</b> ChatSessionBase&lt;[StartChatParams](./ai.startchatparams.md#startchatparams_interface)<!-- -->, [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface)<!-- -->, [FunctionDeclarationsTool](./ai.functiondeclarationstool.md#functiondeclarationstool_interface)<!-- -->&gt;
+<b>Extends:</b> ChatSessionBase&lt;[StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface)<!-- -->, TemplateRequestInternal, [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface)<!-- -->&gt;
 
 ## Constructors
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(apiSettings, model, chromeAdapter, params, requestOptions)](./ai.chatsession.md#chatsessionconstructor) |  | Constructs a new instance of the <code>ChatSession</code> class |
+|  [(constructor)(apiSettings, params, requestOptions)](./ai.templatechatsession.md#templatechatsessionconstructor) |  | Constructs a new instance of the <code>TemplateChatSession</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [model](./ai.chatsession.md#chatsessionmodel) |  | string |  |
-|  [params](./ai.chatsession.md#chatsessionparams) |  | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) \| undefined |  |
-|  [requestOptions](./ai.chatsession.md#chatsessionrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  [params](./ai.templatechatsession.md#templatechatsessionparams) |  | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) |  |
+|  [requestOptions](./ai.templatechatsession.md#templatechatsessionrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [sendMessage(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request, singleRequestOptions)](./ai.chatsession.md#chatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
+|  [sendMessage(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
-## ChatSession.(constructor)
+## TemplateChatSession.(constructor)
 
-Constructs a new instance of the `ChatSession` class
+Constructs a new instance of the `TemplateChatSession` class
 
 <b>Signature:</b>
 
 ```typescript
-constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
+constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
 ```
 
 #### Parameters
@@ -55,28 +54,18 @@ constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapt
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  apiSettings | ApiSettings |  |
-|  model | string |  |
-|  chromeAdapter | [ChromeAdapter](./ai.chromeadapter.md#chromeadapter_interface) \| undefined |  |
-|  params | [StartChatParams](./ai.startchatparams.md#startchatparams_interface) \| undefined |  |
+|  params | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) |  |
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
 
-## ChatSession.model
+## TemplateChatSession.params
 
 <b>Signature:</b>
 
 ```typescript
-model: string;
+params: StartTemplateChatParams;
 ```
 
-## ChatSession.params
-
-<b>Signature:</b>
-
-```typescript
-params?: StartChatParams | undefined;
-```
-
-## ChatSession.requestOptions
+## TemplateChatSession.requestOptions
 
 <b>Signature:</b>
 
@@ -84,7 +73,7 @@ params?: StartChatParams | undefined;
 requestOptions?: RequestOptions | undefined;
 ```
 
-## ChatSession.sendMessage()
+## TemplateChatSession.sendMessage()
 
 Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)
 
@@ -105,7 +94,7 @@ sendMessage(request: string | Array<string | Part>, singleRequestOptions?: Singl
 
 Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)<!-- -->&gt;
 
-## ChatSession.sendMessageStream()
+## TemplateChatSession.sendMessageStream()
 
 Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise.
 
