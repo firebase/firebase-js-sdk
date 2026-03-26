@@ -56,6 +56,55 @@ describe('TemplateChatSession', () => {
   afterEach(() => {
     restore();
   });
+  describe('formatRequest()', () => {
+    it(
+      'should rename functionDeclarations to templateFunctions' +
+        ' and parameters to inputSchema',
+      () => {
+        const chatSession = new TemplateChatSession(fakeApiSettings, {
+          templateId: TEMPLATE_ID,
+          tools: [
+            {
+              functionDeclarations: [
+                {
+                  name: 'imAFunction',
+                  parameters: { type: 'object' }
+                }
+              ]
+            }
+          ]
+        });
+        const formattedRequest = chatSession._formatRequest(
+          { role: 'user', parts: [] },
+          []
+        );
+        //@ts-expect-error
+        expect(formattedRequest.tools?.[0].functionDeclarations).to.not.exist;
+        //@ts-expect-error
+        expect(formattedRequest.tools?.[0].templateFunctions?.[0].parameters).to
+          .not.exist;
+        expect(
+          formattedRequest.tools?.[0].templateFunctions?.[0]?.inputSchema?.type
+        ).to.equal('object');
+        expect(
+          formattedRequest.tools?.[0].templateFunctions?.[0]?.name
+        ).to.equal('imAFunction');
+      }
+    );
+    it('should not include any properties not provided in params', () => {
+      const chatSession = new TemplateChatSession(fakeApiSettings, {
+        templateId: TEMPLATE_ID
+      });
+      const formattedRequest = chatSession._formatRequest(
+        { role: 'user', parts: [] },
+        []
+      );
+      expect(formattedRequest.tools).to.not.exist;
+      expect(formattedRequest.toolConfig).to.not.exist;
+      expect(formattedRequest.templateVariables).to.not.exist;
+      expect(formattedRequest.history).to.exist;
+    });
+  });
 
   describe('sendMessage()', () => {
     it('generateContent errors should be catchable', async () => {

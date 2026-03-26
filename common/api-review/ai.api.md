@@ -145,9 +145,9 @@ export class BooleanSchema extends Schema {
 export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
+    // @internal
     _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // (undocumented)
+    // @internal
     _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
     _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
@@ -1366,15 +1366,17 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @public, but its signature references "TemplateRequestInternal" which is marked as @internal
+//
 // @public
-export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateGenerateContentRequest, TemplateFunctionDeclarationsTool> {
+export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> {
     constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
-    // (undocumented)
-    _callGenerateContent(formattedRequest: TemplateGenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // (undocumented)
-    _callGenerateContentStream(formattedRequest: TemplateGenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
-    _formatRequest<T>(incomingContent: Content, tempHistory: Content[]): T;
+    _callGenerateContent(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _callGenerateContentStream(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): TemplateRequestInternal;
     // (undocumented)
     params: StartTemplateChatParams;
     // (undocumented)
@@ -1391,17 +1393,34 @@ export interface TemplateFunctionDeclaration {
     parameters?: ObjectSchema | ObjectSchemaRequest;
 }
 
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface TemplateFunctionDeclarationInternal extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+    // (undocumented)
+    inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
 // @public
 export interface TemplateFunctionDeclarationsTool {
     functionDeclarations?: TemplateFunctionDeclaration[];
 }
 
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationsToolInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateFunctionDeclarationsToolInternal {
+    templateFunctions?: TemplateFunctionDeclarationInternal[];
+}
+
 // @public
 export interface TemplateGenerateContentRequest {
     // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
     history?: Content[];
     // (undocumented)
-    inputs: Record<string, unknown>;
+    inputs?: Record<string, unknown>;
     // (undocumented)
     toolConfig?: ToolConfig;
     // (undocumented)
@@ -1426,6 +1445,14 @@ export class TemplateImagenModel {
     _apiSettings: ApiSettings;
     generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateRequestInternal extends Omit<TemplateGenerateContentRequest, 'tools'> {
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsToolInternal[];
 }
 
 // @public

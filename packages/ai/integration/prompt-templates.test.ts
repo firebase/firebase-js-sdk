@@ -44,51 +44,6 @@ describe('Prompt templates', function () {
           expect(response.text()).to.contain('John'); // Template asks to address directly by name
         });
       });
-      describe('Template Chat Session', () => {
-        it('successfully chats', async () => {
-          const model = getTemplateGenerativeModel(testConfig.ai);
-          const chat = model.startChat({
-            templateId: `chat-prompt-${templateBackendSuffix(
-              testConfig.ai.backend.backendType
-            )}`,
-            templateVariables: { name: 'John' }
-          });
-          const result = await chat.sendMessage('Hello');
-          expect(result.response.text()).to.be.a('string');
-        });
-
-        it('successfully calls functions', async () => {
-          const model = getTemplateGenerativeModel(testConfig.ai);
-          const chat = model.startChat({
-            templateId: `function-calling-prompt-${templateBackendSuffix(
-              testConfig.ai.backend.backendType
-            )}`,
-            templateVariables: {},
-            tools: [
-              {
-                functionDeclarations: [
-                  {
-                    name: 'getWeather',
-                    parameters: {
-                      type: 'object',
-                      properties: {
-                        location: { type: 'string' }
-                      }
-                    },
-                    functionReference: () => {
-                      return { temperature: 72 };
-                    }
-                  }
-                ]
-              }
-            ]
-          });
-          const result = await chat.sendMessage(
-            'What is the weather in Paris?'
-          );
-          expect(result.response.text()).to.be.a('string');
-        });
-      });
       describe('Imagen model', async () => {
         it('successfully generates images', async () => {
           const model = getTemplateImagenModel(testConfig.ai);

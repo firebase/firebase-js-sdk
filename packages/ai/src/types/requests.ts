@@ -87,6 +87,15 @@ export interface TemplateGenerateContentRequest {
 }
 
 /**
+ * Internal version of teh template generate content request.
+ * @internal
+ */
+export interface TemplateRequestInternal
+  extends Omit<TemplateGenerateContentRequest, 'tools'> {
+  tools?: TemplateFunctionDeclarationsToolInternal[];
+}
+
+/**
  * Safety setting that can be sent as part of request parameters.
  * @public
  */
@@ -503,6 +512,14 @@ export interface TemplateFunctionDeclaration {
 }
 
 /**
+ * @internal
+ */
+export interface TemplateFunctionDeclarationInternal
+  extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+  inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
+/**
  * A piece of code that enables the system to interact with external systems.
  * @public
  */
@@ -512,6 +529,18 @@ export interface TemplateFunctionDeclarationsTool {
    * to be passed to the server-side template execution.
    */
   functionDeclarations?: TemplateFunctionDeclaration[];
+}
+
+/**
+ * The modified interface for the tool that is sent to the backend.
+ * @internal
+ */
+export interface TemplateFunctionDeclarationsToolInternal {
+  /**
+   * Optional. One or more function declarations
+   * to be passed to the server-side template execution.
+   */
+  templateFunctions?: TemplateFunctionDeclarationInternal[];
 }
 
 /**

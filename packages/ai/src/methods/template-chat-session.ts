@@ -23,8 +23,10 @@ import {
   RequestOptions,
   SingleRequestOptions,
   StartTemplateChatParams,
+  TemplateFunctionDeclarationInternal,
   TemplateFunctionDeclarationsTool,
-  TemplateGenerateContentRequest
+  TemplateFunctionDeclarationsToolInternal,
+  TemplateRequestInternal
 } from '../types';
 import { validateChatHistory } from './chat-session-helpers';
 import {
@@ -42,7 +44,7 @@ import { ChatSessionBase } from './chat-session-base';
  */
 export class TemplateChatSession extends ChatSessionBase<
   StartTemplateChatParams,
-  TemplateGenerateContentRequest,
+  TemplateRequestInternal,
   TemplateFunctionDeclarationsTool
 > {
   constructor(
@@ -61,13 +63,40 @@ export class TemplateChatSession extends ChatSessionBase<
    * Format the internal state to the body payload for `templateGenerateContent`.
    * @internal
    */
-  _formatRequest<T>(incomingContent: Content, tempHistory: Content[]): T {
-    return {
-      inputs: this.params.templateVariables,
-      history: [...this._history, ...tempHistory, incomingContent],
-      tools: this.params.tools,
-      toolConfig: this.params.toolConfig
-    } as T;
+  _formatRequest(
+    incomingContent: Content,
+    tempHistory: Content[]
+  ): TemplateRequestInternal {
+    const request: TemplateRequestInternal = {
+      history: [...this._history, ...tempHistory, incomingContent]
+    };
+    if (this.params.templateVariables) {
+      request.inputs = this.params.templateVariables;
+    }
+    if (this.params.tools) {
+      request.tools = this.params.tools?.map(tool => {
+        if (tool.functionDeclarations) {
+          return {
+            templateFunctions: tool.functionDeclarations.map(declaration => {
+              if (declaration.parameters) {
+                const newDeclaration = { ...declaration };
+                delete newDeclaration.parameters;
+                (
+                  newDeclaration as TemplateFunctionDeclarationInternal
+                ).inputSchema = declaration.parameters;
+                return newDeclaration;
+              }
+              return declaration;
+            })
+          };
+        }
+        return tool as TemplateFunctionDeclarationsToolInternal;
+      });
+    }
+    if (this.params.toolConfig) {
+      request.toolConfig = this.params.toolConfig;
+    }
+    return request;
   }
 
   /**
@@ -76,7 +105,7 @@ export class TemplateChatSession extends ChatSessionBase<
    * @internal
    */
   _callGenerateContent(
-    formattedRequest: TemplateGenerateContentRequest,
+    formattedRequest: TemplateRequestInternal,
     singleRequestOptions?: RequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
@@ -96,7 +125,7 @@ export class TemplateChatSession extends ChatSessionBase<
    * @internal
    */
   _callGenerateContentStream(
-    formattedRequest: TemplateGenerateContentRequest,
+    formattedRequest: TemplateRequestInternal,
     singleRequestOptions?: RequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
