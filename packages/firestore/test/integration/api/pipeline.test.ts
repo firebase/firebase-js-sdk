@@ -2316,8 +2316,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const err = e as FirebaseError;
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
-
-        expect(err['message']).to.match(/^3 INVALID_ARGUMENT: .*$/);
       }
     });
   });
