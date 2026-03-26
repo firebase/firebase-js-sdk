@@ -2018,18 +2018,16 @@ documentId(field("__path__"));
 
 ```
 
-### parent\_2(documentPathExpr) {:#parent_2_9a69021}
+### parent(documentPathExpr) {:#parent_9a69021}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the parent of a document reference.
 
 <b>Signature:</b>
 
 ```typescript
-declare function parent_2(documentPathExpr: Expression): FunctionExpression;
-```
+declare function parent(documentPathExpr: Expression): FunctionExpression;
 
 #### Parameters
 
