@@ -104,6 +104,7 @@ export {
   map,
   mod,
   documentId,
+  parent,
   equal,
   notEqual,
   lessThan,

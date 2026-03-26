@@ -72,6 +72,7 @@ import {
   length,
   mod,
   documentId,
+  parent,
   equal,
   notEqual,
   lessThan,
@@ -4680,6 +4681,33 @@ describe.skipClassic('Firestore Pipelines', () => {
         docId: 'book4'
       });
     });
+
+    it('supports parent', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            parent(
+              doc(firestore, randomCol.path + '/book4/reviews/review1')
+            ).as('parentRefStatic'),
+            constant(
+              doc(firestore, randomCol.path + '/book4/reviews/review1')
+            )
+              .parent()
+              .as('parentRefInstance')
+          )
+          .select(
+            field('parentRefStatic').documentId().as('parentIdStatic'),
+            field('parentRefInstance').documentId().as('parentIdInstance')
+          )
+      );
+      expectResults(snapshot, {
+        parentIdStatic: 'book4',
+        parentIdInstance: 'book4'
+      });
+    }).timeout(10000);
 
     it('supports substring', async () => {
       let snapshot = await execute(

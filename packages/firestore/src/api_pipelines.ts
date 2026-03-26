@@ -158,6 +158,7 @@ export {
   mapRemove,
   mapMerge,
   documentId,
+  parent,
   substring,
   countDistinct,
   ceil,
