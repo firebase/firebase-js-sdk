@@ -26,6 +26,7 @@ import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { CrashlyticsOptions } from './public-types';
+import { createTracingProvider } from './tracing/tracing-provider';
 
 export function registerCrashlytics(): void {
   _registerComponent(
@@ -37,8 +38,11 @@ export function registerCrashlytics(): void {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const loggerProvider = createLoggerProvider(app, crashlyticsOptions);
+        
+        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'http://localhost';
+        const tracingProvider = createTracingProvider(app, tracingUrl);
 
-        return new CrashlyticsService(app, loggerProvider);
+        return new CrashlyticsService(app, loggerProvider, tracingProvider);
       },
       ComponentType.PUBLIC
     ).setMultipleInstances(true)

@@ -18,6 +18,8 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
+import sinon from 'sinon';
+import { trace } from '@opentelemetry/api';
 
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
@@ -63,7 +65,8 @@ describe('helpers', () => {
         appId: 'my-appid'
       }
     },
-    loggerProvider: fakeLoggerProvider
+    loggerProvider: fakeLoggerProvider,
+    tracingProvider: null
   };
 
   beforeEach(() => {
@@ -93,6 +96,13 @@ describe('helpers', () => {
       value: cryptoMock,
       writable: true
     });
+
+    sinon.stub(trace, 'getTracer').returns({
+      startSpan: () => ({
+        setAttribute: () => {},
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      })
+    } as any);
   });
 
   afterEach(() => {
@@ -121,7 +131,9 @@ describe('helpers', () => {
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
         [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset'
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
 
@@ -131,14 +143,17 @@ describe('helpers', () => {
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3'
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
 
     it('should log app version from telemetry options', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider
+        fakeLoggerProvider,
+        null
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
@@ -146,7 +161,9 @@ describe('helpers', () => {
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9'
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
   });

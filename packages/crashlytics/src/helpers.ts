@@ -16,6 +16,7 @@
  */
 
 import { SeverityNumber } from '@opentelemetry/api-logs';
+import { trace } from '@opentelemetry/api';
 import * as constants from './auto-constants';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -24,6 +25,7 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { sessionContextManager } from './tracing/session-context-manager';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -60,6 +62,7 @@ export function getSessionId(): string | undefined {
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
   const { loggerProvider } = crashlytics as CrashlyticsInternal;
+
   if (
     typeof sessionStorage !== 'undefined' &&
     typeof crypto?.randomUUID === 'function'
@@ -67,6 +70,15 @@ export function startNewSession(crashlytics: Crashlytics): void {
     try {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
+
+      const tracer = trace.getTracer('session-tracer');
+      const span = tracer.startSpan('session-start');
+      span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(
+        CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION,
+        getAppVersion((crashlytics as CrashlyticsService).options)
+      );
+      sessionContextManager.setSessionSpan(span);
 
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
@@ -77,7 +89,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
           [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
             (crashlytics as CrashlyticsService).options
-          )
+          ),
+          [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
+          [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
         }
       });
     } catch (e) {
@@ -94,10 +108,12 @@ export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
+        sessionContextManager.getSessionSpan()?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
+      sessionContextManager.getSessionSpan()?.end();
       await flush(crashlytics);
     });
   }

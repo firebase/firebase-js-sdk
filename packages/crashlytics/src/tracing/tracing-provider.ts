@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 062d7af72 (Snapshot of crashlytics tracing feature)
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
@@ -31,11 +34,14 @@ import {
   ConsoleSpanExporter
 } from '@opentelemetry/sdk-trace-web';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
+import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { FirebaseApp } from '@firebase/app';
+import { FirebaseSpanProcessor } from './firebase-span-processor';
+import { sessionContextManager } from './session-context-manager';
 import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider } from '../types';
-import { FirebaseApp } from '@firebase/app';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -44,8 +50,7 @@ import { FirebaseApp } from '@firebase/app';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  endpointUrl: string,
-  dynamicHeaderProviders: DynamicHeaderProvider[] = []
+  tracingUrl: string
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -59,36 +64,42 @@ export function createTracingProvider(
     'cloud.provider': 'gcp'
   });
 
-  if (endpointUrl.endsWith('/')) {
-    endpointUrl = endpointUrl.slice(0, -1);
+  if (tracingUrl.endsWith('/')) {
+    tracingUrl = tracingUrl.slice(0, -1);
   }
 
-  const otlpEndpoint = `http://localhost:4318/v1/traces`; //`${endpointUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  const otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
 
-  const traceExporter = new OTLPTraceExporter(
-    {
-      url: otlpEndpoint,
-      headers: {
-        'X-Goog-User-Project': projectId || '',
-        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
-      }
+  const traceExporter = new OTLPTraceExporter({
+    url: otlpEndpoint,
+    headers: {
+      'X-Goog-User-Project': projectId || '',
+      ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
     }
-  );
+  });
 
   const provider = new WebTracerProvider({
     resource,
-    spanProcessors: [new BatchSpanProcessor(traceExporter)]
+    spanProcessors: [
+      new FirebaseSpanProcessor(),
+      // TODO: Remove console exporter before we ship
+      new SimpleSpanProcessor(new ConsoleSpanExporter()),
+      new BatchSpanProcessor(traceExporter)
+    ]
   });
 
   provider.register({
+    contextManager: sessionContextManager,
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })
   });
 
-
   registerInstrumentations({
-    instrumentations: [new FetchInstrumentation()]
+    instrumentations: [
+      new FetchInstrumentation(),
+      new XMLHttpRequestInstrumentation()
+    ]
   });
 
   return provider;
