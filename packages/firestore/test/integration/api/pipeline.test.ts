@@ -712,16 +712,18 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
     it('throws on undefined in a map', async () => {
       expect(() => {
-        void execute(firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(
-            map({
-              'number': 1,
-              undefined
-            }).as('foo')
-          ));
+        void execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              map({
+                'number': 1,
+                undefined
+              }).as('foo')
+            )
+        );
       }).to.throw(
         'Function map() called with invalid data. Unsupported field value: undefined'
       );
@@ -729,13 +731,16 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
     it('throws on undefined in an array', async () => {
       expect(() => {
-        void execute(firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(array([1, undefined]).as('foo')));
+        void execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(array([1, undefined]).as('foo'))
+        );
       }).to.throw(
-        'Function array() called with invalid data. Unsupported field value: undefined');
+        'Function array() called with invalid data. Unsupported field value: undefined'
+      );
     });
 
     it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
