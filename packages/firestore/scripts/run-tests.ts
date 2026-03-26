@@ -39,6 +39,9 @@ const argv = yargs
     databaseId: {
       type: 'string'
     },
+    firestoreEdition: {
+      type: 'string'
+    },
     grep: {
       type: 'string',
       description: 'Filter tests by name (regex)'
@@ -77,6 +80,11 @@ if (argv.persistence) {
 
 if (argv.databaseId) {
   process.env.FIRESTORE_TARGET_DB_ID = argv.databaseId;
+}
+
+if (argv.firestoreEdition) {
+  if (argv.firestoreEdition.toLowerCase() === 'enterprise')
+  process.env.RUN_ENTERPRISE_TESTS = 'true';
 }
 
 if (argv.grep) {
