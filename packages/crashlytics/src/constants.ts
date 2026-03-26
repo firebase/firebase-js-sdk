@@ -25,7 +25,9 @@ export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 export const LOG_ENTRY_ATTRIBUTE_KEYS = {
   APP_VERSION: 'app_version',
   SESSION_ID: 'session_id',
-  USER_ID: 'user_id'
+  USER_ID: 'user_id',
+  TRACE_ID: 'logging.googleapis.com/trace',
+  SPAN_ID: 'logging.googleapis.com/spanId'
 };
 
 /**

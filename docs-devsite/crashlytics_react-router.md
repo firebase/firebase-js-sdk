@@ -15,7 +15,7 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Function | Description |
 |  --- | --- |
-|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props })](./crashlytics_react-router.md#crashlyticsroutes_707e4a5) | A wrapper around  that automatically captures errors in route components.<!-- -->This component acts as a replacement for <code>Routes</code> from <code>react-router-dom</code>. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes). |
+|  [CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props })](./crashlytics_react-router.md#crashlyticsroutes_707e4a5) | A wrapper around <code>Routes</code> from <code>react-router-dom</code> that automatically captures errors in route components.<!-- -->This component acts as a replacement for <code>Routes</code> from <code>react-router-dom</code>. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes). |
 
 ## Interfaces
 
@@ -28,7 +28,7 @@ https://github.com/firebase/firebase-js-sdk
 
 ### CrashlyticsRoutes({ firebaseApp, crashlyticsOptions, children, ...props }) {:#crashlyticsroutes_707e4a5}
 
-A wrapper around  that automatically captures errors in route components.
+A wrapper around `Routes` from `react-router-dom` that automatically captures errors in route components.
 
 This component acts as a replacement for `Routes` from `react-router-dom`<!-- -->. It wraps the routes in an error boundary that captures errors thrown during rendering and reports them to Crashlytics. The error boundary is reset on navigation (path changes).
 
