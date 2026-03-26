@@ -26,7 +26,12 @@ import {
 import { SDK_VERSION } from '../core/version';
 import { logError } from '../logger';
 
-import { CallerSdkType, CallerSdkTypeEnum } from './transport';
+import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  Extensions,
+  DataConnectResponse
+} from './transport';
 
 let connectFetch: typeof fetch | null = globalThis.fetch;
 export function initializeFetch(fetchImpl: typeof fetch): void {
@@ -52,7 +57,7 @@ export interface DataConnectFetchBody<T> {
   operationName: string;
   variables: T;
 }
-export function dcFetch<T, U>(
+export async function dcFetch<T, U>(
   url: string,
   body: DataConnectFetchBody<U>,
   { signal }: AbortController,
@@ -62,7 +67,7 @@ export function dcFetch<T, U>(
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType,
   _isUsingEmulator: boolean
-): Promise<{ data: T; errors: Error[] }> {
+): Promise<DataConnectResponse<T>> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
@@ -90,51 +95,54 @@ export function dcFetch<T, U>(
     fetchOptions.credentials = 'include';
   }
 
-  return connectFetch(url, fetchOptions)
-    .catch(err => {
-      throw new DataConnectError(
-        Code.OTHER,
-        'Failed to fetch: ' + JSON.stringify(err)
-      );
-    })
-    .then(async response => {
-      let jsonResponse = null;
-      try {
-        jsonResponse = await response.json();
-      } catch (e) {
-        throw new DataConnectError(Code.OTHER, JSON.stringify(e));
-      }
-      const message = getMessage(jsonResponse);
-      if (response.status >= 400) {
-        logError(
-          'Error while performing request: ' + JSON.stringify(jsonResponse)
-        );
-        if (response.status === 401) {
-          throw new DataConnectError(Code.UNAUTHORIZED, message);
-        }
-        throw new DataConnectError(Code.OTHER, message);
-      }
-      return jsonResponse;
-    })
-    .then(res => {
-      if (res.errors && res.errors.length) {
-        const stringified = JSON.stringify(res.errors);
-        const response: DataConnectOperationFailureResponse = {
-          errors: res.errors,
-          data: res.data
-        };
-        throw new DataConnectOperationError(
-          'DataConnect error while performing request: ' + stringified,
-          response
-        );
-      }
-      return res;
-    });
+  let response: Response;
+  try {
+    response = await connectFetch(url, fetchOptions);
+  } catch (err) {
+    throw new DataConnectError(
+      Code.OTHER,
+      'Failed to fetch: ' + JSON.stringify(err)
+    );
+  }
+  let jsonResponse: JsonResponse<T>;
+  try {
+    jsonResponse = await response.json();
+  } catch (e) {
+    throw new DataConnectError(Code.OTHER, JSON.stringify(e));
+  }
+  const message = getErrorMessage(jsonResponse);
+  if (response.status >= 400) {
+    logError('Error while performing request: ' + JSON.stringify(jsonResponse));
+    if (response.status === 401) {
+      throw new DataConnectError(Code.UNAUTHORIZED, message);
+    }
+    throw new DataConnectError(Code.OTHER, message);
+  }
+  if (jsonResponse.errors && jsonResponse.errors.length) {
+    const stringified = JSON.stringify(jsonResponse.errors);
+    const failureResponse: DataConnectOperationFailureResponse = {
+      errors: jsonResponse.errors,
+      data: jsonResponse.data as Record<string, unknown>
+    };
+    throw new DataConnectOperationError(
+      'DataConnect error while performing request: ' + stringified,
+      failureResponse
+    );
+  }
+  if (!jsonResponse.extensions) {
+    jsonResponse.extensions = {
+      dataConnect: []
+    };
+  }
+  return jsonResponse as DataConnectResponse<T>;
 }
-interface MessageObject {
+interface JsonResponse<T> {
   message?: string;
+  errors: [];
+  data: Record<string, unknown> | T | null;
+  extensions?: Extensions;
 }
-function getMessage(obj: MessageObject): string {
+function getErrorMessage(obj: JsonResponse<unknown>): string {
   if ('message' in obj && obj.message) {
     return obj.message;
   }

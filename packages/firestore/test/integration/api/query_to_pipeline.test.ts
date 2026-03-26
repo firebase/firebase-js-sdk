@@ -814,4 +814,71 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
       }
     );
   });
+
+  it('not-in removes existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 2 },
+        doc2: { field: 1 },
+        doc3: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, where('field', 'not-in', [1]));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc3 (missing 'field') should be included because 'not-in' (and implicit order by)
+        // should NOT generate an existence filter.
+        verifyResults(snapshot, { field: 2 }, {});
+      }
+    );
+  });
+
+  it('not-equal removes existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 2 },
+        doc2: { field: 1 },
+        doc3: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, where('field', '!=', 1));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc3 (missing 'field') should be included.
+        verifyResults(snapshot, { field: 2 }, {});
+      }
+    );
+  });
+
+  it('inequality maintains existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 0 },
+        doc2: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, where('field', '<', 1));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc2 (missing 'field') should be EXCLUDED by the inequality filter itself.
+        verifyResults(snapshot, { field: 0 });
+      }
+    );
+  });
+
+  it('explicit order maintains existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 1 },
+        doc2: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, orderBy('field'));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc2 (missing 'field') should be EXCLUDED by the explicit orderBy existence filter.
+        verifyResults(snapshot, { field: 1 });
+      }
+    );
+  });
 });

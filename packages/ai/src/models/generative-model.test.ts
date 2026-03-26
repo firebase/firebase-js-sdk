@@ -667,7 +667,7 @@ describe('GenerativeModel dispatch logic', () => {
       makeRequestStub = stub(request, 'makeRequest').resolves(
         getMockResponseStreaming(
           'vertexAI',
-          'unary-success-basic-reply-short.json'
+          'streaming-success-basic-reply-short.txt'
         ) as Response
       );
     } else {
@@ -686,7 +686,10 @@ describe('GenerativeModel dispatch logic', () => {
       isAvailable: stub(),
       generateContent: stub().resolves(new Response(JSON.stringify({}))),
       generateContentStream: stub().resolves(
-        new Response(new ReadableStream())
+        getMockResponseStreaming(
+          'vertexAI',
+          'streaming-success-basic-reply-short.txt'
+        ) as Response
       ),
       countTokens: stub().resolves(new Response(JSON.stringify({}))),
       mode: InferenceMode.PREFER_ON_DEVICE

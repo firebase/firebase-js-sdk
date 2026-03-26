@@ -22,7 +22,8 @@ const config: Config = {
   testEnvironment: './fix-jsdom-environment.ts',
   globals: {
     FIREBASE_APPCHECK_DEBUG_TOKEN: process.env.APP_CHECK_DEBUG_TOKEN
-  }
+  },
+  resolver: './jest-resolver.js'
 };
 
 export default config;

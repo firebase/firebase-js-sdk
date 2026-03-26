@@ -21,11 +21,12 @@ import { ApiSettings } from '../types/internal';
 import {
   DEFAULT_DOMAIN,
   DEFAULT_FETCH_TIMEOUT_MS,
+  HYBRID_TAG,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
-import { BackendType } from '../public-types';
+import { BackendType, InferenceMode } from '../public-types';
 
 export const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
 export const ABORT_ERROR_NAME = 'AbortError';
@@ -137,17 +138,28 @@ export class WebSocketUrl {
 /**
  * Log language and "fire/version" to x-goog-api-client
  */
-function getClientHeaders(): string {
+function getClientHeaders(url: RequestURL): string {
   const loggingTags = [];
   loggingTags.push(`${LANGUAGE_TAG}/${PACKAGE_VERSION}`);
   loggingTags.push(`fire/${PACKAGE_VERSION}`);
+  /**
+   * No call would be made if ONLY_ON_DEVICE.
+   * ONLY_IN_CLOUD does not indicate an intention to use hybrid.
+   */
+  if (
+    url.params.apiSettings.inferenceMode === InferenceMode.PREFER_ON_DEVICE ||
+    url.params.apiSettings.inferenceMode === InferenceMode.PREFER_IN_CLOUD
+  ) {
+    // No version
+    loggingTags.push(HYBRID_TAG);
+  }
   return loggingTags.join(' ');
 }
 
 export async function getHeaders(url: RequestURL): Promise<Headers> {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
-  headers.append('x-goog-api-client', getClientHeaders());
+  headers.append('x-goog-api-client', getClientHeaders(url));
   headers.append('x-goog-api-key', url.params.apiSettings.apiKey);
   if (url.params.apiSettings.automaticDataCollectionEnabled) {
     headers.append('X-Firebase-Appid', url.params.apiSettings.appId);

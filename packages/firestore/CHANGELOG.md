@@ -1,5 +1,59 @@
 # @firebase/firestore
 
+## 4.13.0
+
+### Minor Changes
+
+- [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440) [#9492](https://github.com/firebase/firebase-js-sdk/pull/9492) - Add support for array expressions `arrayFirst`, `arrayFirstN`,`arrayLast`,`arrayLastN`,`arrayMinimum`,`arrayMinimumN`,`arrayMaximum`,`arrayMaximumN`,`arrayIndexOf`, `arrayLastIndexOf` and `arrayIndexOfAll`
+
+### Patch Changes
+
+- [`54ff05e`](https://github.com/firebase/firebase-js-sdk/commit/54ff05ef922016fee2e9e6f4b8aea30120170da7) [#9715](https://github.com/firebase/firebase-js-sdk/pull/9715) - **Beta API Breaking change**: Defer pipeline user data validation from initialization to `execute()`. This breaking change is allowed in a non-major release since the Firestore Pipelines API is currently in Public Preview.
+
+- [`a383770`](https://github.com/firebase/firebase-js-sdk/commit/a3837700877822acd1bad82431a051d64f479508) [#9622](https://github.com/firebase/firebase-js-sdk/pull/9622) - Fixed X is not a function issues observed in server side rendering APIs.
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 4.12.0
+
+### Minor Changes
+
+- [`14d9745`](https://github.com/firebase/firebase-js-sdk/commit/14d974550c1df023e563c22619dc68b9182946e0) [#9483](https://github.com/firebase/firebase-js-sdk/pull/9483) - Support added for `mapSet`, `mapValues`, `mapEntries`, `mapKeys` Pipelines expressions.
+
+- [`f8996c4`](https://github.com/firebase/firebase-js-sdk/commit/f8996c4cec849db4d6f9dad1df728a49cc063b96) [#9479](https://github.com/firebase/firebase-js-sdk/pull/9479) - Support added for the following string Pipeline expressions: `stringRepeat`, `stringReplaceOne`, `stringReplaceAll`, `stringIndexOf`, `ltrim`, `rtrim`.
+
+- [`659d9bb`](https://github.com/firebase/firebase-js-sdk/commit/659d9bb7987c1fb7bc9f3d772fe1c467f7e4f80f) [#9576](https://github.com/firebase/firebase-js-sdk/pull/9576) - Add support for first, last, array_agg and array_agg_distinct expressions
+
+- [`852162b`](https://github.com/firebase/firebase-js-sdk/commit/852162bc94935a826b548e71ac124749ab3e799f) [#9498](https://github.com/firebase/firebase-js-sdk/pull/9498) - Add support for rand and trunc pipeline expressions
+
+- [`6041509`](https://github.com/firebase/firebase-js-sdk/commit/60415091e1cb2481255343122a18c9f2845ca505) [#9484](https://github.com/firebase/firebase-js-sdk/pull/9484) - feat(firestore): Support added for the `isType` Pipeline expression.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 4.11.0
+
+### Minor Changes
+
+- [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded) [#9459](https://github.com/firebase/firebase-js-sdk/pull/9459) - Add support for `regexFind` and `regexFindAll` Pipeline expressions.
+
+### Patch Changes
+
+- [`65a553b`](https://github.com/firebase/firebase-js-sdk/commit/65a553baf435be2463477ef9ddb114f26a2845ce) [#9472](https://github.com/firebase/firebase-js-sdk/pull/9472) - Log a warning when `databaseId` is not found.
+
+## 4.10.0
+
+### Minor Changes
+
+- [`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7) [#9356](https://github.com/firebase/firebase-js-sdk/pull/9356) - Release Firestore Pipelines for Enterprise edition in public preview.
+
 ## 4.9.3
 
 ### Patch Changes

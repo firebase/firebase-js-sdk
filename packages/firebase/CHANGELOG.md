@@ -1,5 +1,142 @@
 # firebase
 
+## 12.11.0
+
+### Minor Changes
+
+- [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec) [#9614](https://github.com/firebase/firebase-js-sdk/pull/9614) - Add validateArgsWithOptions() to Data Connect (internal change, no need to add to public release notes).
+
+- [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e) [#9693](https://github.com/firebase/firebase-js-sdk/pull/9693) (fixes [#9625](https://github.com/firebase/firebase-js-sdk/issues/9625)) - Added `responseJsonSchema` to `GenerationConfig`.
+
+- [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440) [#9492](https://github.com/firebase/firebase-js-sdk/pull/9492) - Add support for array expressions `arrayFirst`, `arrayFirstN`,`arrayLast`,`arrayLastN`,`arrayMinimum`,`arrayMinimumN`,`arrayMaximum`,`arrayMaximumN`,`arrayIndexOf`, `arrayLastIndexOf` and `arrayIndexOfAll`
+
+### Patch Changes
+
+- Updated dependencies [[`54ff05e`](https://github.com/firebase/firebase-js-sdk/commit/54ff05ef922016fee2e9e6f4b8aea30120170da7), [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec), [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e), [`a383770`](https://github.com/firebase/firebase-js-sdk/commit/a3837700877822acd1bad82431a051d64f479508), [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440), [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/app@0.14.10
+  - @firebase/firestore@4.13.0
+  - @firebase/data-connect@0.5.0
+  - @firebase/ai@2.10.0
+  - @firebase/functions@0.13.3
+  - @firebase/database@1.1.2
+  - @firebase/storage@0.14.2
+  - @firebase/auth@1.12.2
+  - @firebase/util@1.15.0
+  - @firebase/analytics@0.10.21
+  - @firebase/app-check@0.11.2
+  - @firebase/app-compat@0.5.10
+  - @firebase/installations@0.6.21
+  - @firebase/messaging@0.12.25
+  - @firebase/performance@0.7.11
+  - @firebase/remote-config@0.8.2
+  - @firebase/firestore-compat@0.4.7
+  - @firebase/functions-compat@0.4.3
+  - @firebase/database-compat@2.1.2
+  - @firebase/storage-compat@0.4.2
+  - @firebase/auth-compat@0.6.4
+  - @firebase/analytics-compat@0.2.27
+  - @firebase/app-check-compat@0.4.2
+  - @firebase/installations-compat@0.2.21
+  - @firebase/messaging-compat@0.2.25
+  - @firebase/performance-compat@0.2.24
+  - @firebase/remote-config-compat@0.2.23
+
+## 12.10.0
+
+### Minor Changes
+
+- [`14d9745`](https://github.com/firebase/firebase-js-sdk/commit/14d974550c1df023e563c22619dc68b9182946e0) [#9483](https://github.com/firebase/firebase-js-sdk/pull/9483) - Support added for `mapSet`, `mapValues`, `mapEntries`, `mapKeys` Pipelines expressions.
+
+- [`47f8521`](https://github.com/firebase/firebase-js-sdk/commit/47f85219d570f05c196e0085f2892d1297308fed) [#9489](https://github.com/firebase/firebase-js-sdk/pull/9489) - Added automatic function calling capability when using `ChatSession`.
+
+- [`f8996c4`](https://github.com/firebase/firebase-js-sdk/commit/f8996c4cec849db4d6f9dad1df728a49cc063b96) [#9479](https://github.com/firebase/firebase-js-sdk/pull/9479) - Support added for the following string Pipeline expressions: `stringRepeat`, `stringReplaceOne`, `stringReplaceAll`, `stringIndexOf`, `ltrim`, `rtrim`.
+
+- [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca) [#9439](https://github.com/firebase/firebase-js-sdk/pull/9439) - Add Memory-Based caching to Queries in Firebase Data Connect.
+
+- [`659d9bb`](https://github.com/firebase/firebase-js-sdk/commit/659d9bb7987c1fb7bc9f3d772fe1c467f7e4f80f) [#9576](https://github.com/firebase/firebase-js-sdk/pull/9576) - Add support for first, last, array_agg and array_agg_distinct expressions
+
+- [`852162b`](https://github.com/firebase/firebase-js-sdk/commit/852162bc94935a826b548e71ac124749ab3e799f) [#9498](https://github.com/firebase/firebase-js-sdk/pull/9498) - Add support for rand and trunc pipeline expressions
+
+- [`6041509`](https://github.com/firebase/firebase-js-sdk/commit/60415091e1cb2481255343122a18c9f2845ca505) [#9484](https://github.com/firebase/firebase-js-sdk/pull/9484) - feat(firestore): Support added for the `isType` Pipeline expression.
+
+### Patch Changes
+
+- Updated dependencies [[`14d9745`](https://github.com/firebase/firebase-js-sdk/commit/14d974550c1df023e563c22619dc68b9182946e0), [`47f8521`](https://github.com/firebase/firebase-js-sdk/commit/47f85219d570f05c196e0085f2892d1297308fed), [`f8996c4`](https://github.com/firebase/firebase-js-sdk/commit/f8996c4cec849db4d6f9dad1df728a49cc063b96), [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca), [`659d9bb`](https://github.com/firebase/firebase-js-sdk/commit/659d9bb7987c1fb7bc9f3d772fe1c467f7e4f80f), [`852162b`](https://github.com/firebase/firebase-js-sdk/commit/852162bc94935a826b548e71ac124749ab3e799f), [`6041509`](https://github.com/firebase/firebase-js-sdk/commit/60415091e1cb2481255343122a18c9f2845ca505)]:
+  - @firebase/firestore@4.12.0
+  - @firebase/app@0.14.9
+  - @firebase/ai@2.9.0
+  - @firebase/data-connect@0.4.0
+  - @firebase/util@1.14.0
+  - @firebase/firestore-compat@0.4.6
+  - @firebase/analytics@0.10.20
+  - @firebase/app-check@0.11.1
+  - @firebase/app-compat@0.5.9
+  - @firebase/auth@1.12.1
+  - @firebase/database@1.1.1
+  - @firebase/functions@0.13.2
+  - @firebase/installations@0.6.20
+  - @firebase/messaging@0.12.24
+  - @firebase/performance@0.7.10
+  - @firebase/remote-config@0.8.1
+  - @firebase/storage@0.14.1
+  - @firebase/analytics-compat@0.2.26
+  - @firebase/app-check-compat@0.4.1
+  - @firebase/auth-compat@0.6.3
+  - @firebase/database-compat@2.1.1
+  - @firebase/functions-compat@0.4.2
+  - @firebase/installations-compat@0.2.20
+  - @firebase/messaging-compat@0.2.24
+  - @firebase/performance-compat@0.2.23
+  - @firebase/remote-config-compat@0.2.22
+  - @firebase/storage-compat@0.4.1
+
+## 12.9.0
+
+### Minor Changes
+
+- [`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c) [#9461](https://github.com/firebase/firebase-js-sdk/pull/9461) - AI Logic: Extend the `LiveSession.receive()` return types to include a `LiveServiceGoingAwayNotice`
+  which signifies that the service will soon close the session.
+
+- [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8) [#9475](https://github.com/firebase/firebase-js-sdk/pull/9475) - Remove "preview" tags from code execution and URL context documentation.
+
+- [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59) [#9462](https://github.com/firebase/firebase-js-sdk/pull/9462) - Add params on `UsageMetadata` that provide cache-related usage data when the implicit caching feature is used.
+
+- [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded) [#9459](https://github.com/firebase/firebase-js-sdk/pull/9459) - Add support for `regexFind` and `regexFindAll` Pipeline expressions.
+
+### Patch Changes
+
+- Updated dependencies [[`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c), [`691a506`](https://github.com/firebase/firebase-js-sdk/commit/691a506ecaa10ac3f0354313f5de5a47f4c85199), [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8), [`65a553b`](https://github.com/firebase/firebase-js-sdk/commit/65a553baf435be2463477ef9ddb114f26a2845ce), [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59), [`08e3acd`](https://github.com/firebase/firebase-js-sdk/commit/08e3acdf098dc5499081c610bcbe428f376f9ded)]:
+  - @firebase/app@0.14.8
+  - @firebase/ai@2.8.0
+  - @firebase/firestore@4.11.0
+  - @firebase/app-compat@0.5.8
+  - @firebase/firestore-compat@0.4.5
+
+## 12.8.0
+
+### Minor Changes
+
+- [`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7) [#9356](https://github.com/firebase/firebase-js-sdk/pull/9356) - Release Firestore Pipelines for Enterprise edition in public preview.
+
+- [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8) [#8890](https://github.com/firebase/firebase-js-sdk/pull/8890) (fixes [#8859](https://github.com/firebase/firebase-js-sdk/issues/8859)) - Add support for `AbortSignal`, allowing requests to be aborted.
+
+- [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544) [#9424](https://github.com/firebase/firebase-js-sdk/pull/9424) - Added ability to specify thinking levels in `thinkingConfig`.
+
+- [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9) [#9440](https://github.com/firebase/firebase-js-sdk/pull/9440) - Update default hybrid-in-cloud model to `gemini-2.5-flash-lite`.
+
+- [`b282744`](https://github.com/firebase/firebase-js-sdk/commit/b2827448bf8b51e2a1d0343092989a7b79fc0491) [#9449](https://github.com/firebase/firebase-js-sdk/pull/9449) - Web support for ABT and Rollouts
+
+### Patch Changes
+
+- Updated dependencies [[`83e6864`](https://github.com/firebase/firebase-js-sdk/commit/83e686478cea10c707909369dcf590cb09c59ef7), [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8), [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544), [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9), [`b282744`](https://github.com/firebase/firebase-js-sdk/commit/b2827448bf8b51e2a1d0343092989a7b79fc0491)]:
+  - @firebase/firestore@4.10.0
+  - @firebase/app@0.14.7
+  - @firebase/ai@2.7.0
+  - @firebase/remote-config@0.8.0
+  - @firebase/firestore-compat@0.4.4
+  - @firebase/app-compat@0.5.7
+  - @firebase/remote-config-compat@0.2.21
+
 ## 12.7.0
 
 ### Minor Changes

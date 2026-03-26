@@ -23,6 +23,7 @@ import {
   FunctionResponse,
   LiveResponseType,
   LiveServerContent,
+  LiveServerGoingAwayNotice,
   LiveServerToolCall,
   LiveServerToolCallCancellation
 } from '../types';
@@ -239,13 +240,16 @@ describe('LiveSession', () => {
         toolCallCancellation: { functionIds: ['123'] }
       });
       mockHandler.simulateServerMessage({
+        goAway: { timeLeft: '30s' }
+      });
+      mockHandler.simulateServerMessage({
         serverContent: { turnComplete: true }
       });
       await new Promise<void>(r => setTimeout(() => r(), 10)); // Wait for the listener to process messages
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.have.lengthOf(4);
+      expect(responses).to.have.lengthOf(5);
       expect(responses[0]).to.deep.equal({
         type: LiveResponseType.SERVER_CONTENT,
         modelTurn: { parts: [{ text: 'response 1' }] }
@@ -258,6 +262,60 @@ describe('LiveSession', () => {
         type: LiveResponseType.TOOL_CALL_CANCELLATION,
         functionIds: ['123']
       } as LiveServerToolCallCancellation);
+      expect(responses[3]).to.deep.equal({
+        type: LiveResponseType.GOING_AWAY_NOTICE,
+        timeLeft: 30
+      } as LiveServerGoingAwayNotice);
+      expect(responses[4]).to.deep.equal({
+        type: LiveResponseType.SERVER_CONTENT,
+        turnComplete: true
+      } as LiveServerContent);
+    });
+
+    it('should correctly parse high precision duration in LiveServerGoingAwayNotice', async () => {
+      const receivePromise = (async () => {
+        const responses = [];
+        for await (const response of session.receive()) {
+          responses.push(response);
+        }
+        return responses;
+      })();
+
+      mockHandler.simulateServerMessage({
+        goAway: { timeLeft: '3.000000001s' }
+      });
+      await new Promise<void>(r => setTimeout(() => r(), 10));
+      mockHandler.endStream();
+
+      const responses = await receivePromise;
+      expect(responses).to.have.lengthOf(1);
+      expect(responses[0]).to.deep.equal({
+        type: LiveResponseType.GOING_AWAY_NOTICE,
+        timeLeft: 3.000000001
+      } as LiveServerGoingAwayNotice);
+    });
+
+    it('should default timeLeft to 0 if format is invalid', async () => {
+      const receivePromise = (async () => {
+        const responses = [];
+        for await (const response of session.receive()) {
+          responses.push(response);
+        }
+        return responses;
+      })();
+
+      mockHandler.simulateServerMessage({
+        goAway: { timeLeft: 'invalid' }
+      });
+      await new Promise<void>(r => setTimeout(() => r(), 10));
+      mockHandler.endStream();
+
+      const responses = await receivePromise;
+      expect(responses).to.have.lengthOf(1);
+      expect(responses[0]).to.deep.equal({
+        type: LiveResponseType.GOING_AWAY_NOTICE,
+        timeLeft: 0
+      } as LiveServerGoingAwayNotice);
     });
 
     it('should log a warning and skip messages that are not objects', async () => {

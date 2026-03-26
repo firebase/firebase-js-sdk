@@ -65,6 +65,7 @@ import {
   equal,
   reverse,
   toUpper,
+  trim,
   euclideanDistance,
   greaterThan,
   like,
@@ -74,39 +75,66 @@ import {
   lessThanOrEqual,
   arrayLength,
   mapGet,
+  mapSet,
+  mapKeys,
+  mapValues,
+  mapEntries,
   notEqual,
   or,
   regexContains,
+  regexFind,
+  regexFindAll,
   regexMatch,
   startsWith,
-  stringConcat,
-  subtract,
-  conditional,
-  equalAny,
-  logicalMaximum,
-  notEqualAny,
-  multiply,
-  countIf,
-  exists,
   charLength,
-  minimum,
-  maximum,
-  isError,
+  conditional,
+  countIf,
+  equalAny,
+  exists,
+  first,
+  last,
+  arrayAgg,
+  arrayAggDistinct,
   ifError,
-  trim,
+  isError,
+  logicalMaximum,
+  logicalMinimum,
+  ltrim,
+  maximum,
+  minimum,
+  multiply,
+  notEqualAny,
+  stringConcat,
+  stringIndexOf,
+  stringRepeat,
+  stringReplaceAll,
+  stringReplaceOne,
+  subtract,
   isAbsent,
   timestampSubtract,
+  arrayIndexOf,
+  arrayLastIndexOf,
+  arrayIndexOfAll,
   mapRemove,
   mapMerge,
   documentId,
   substring,
-  logicalMinimum,
   xor,
+  nor,
+  switchOn,
   field,
   constant,
   FindNearestStageOptions,
   AggregateFunction,
   arrayGet,
+  arrayFirst,
+  arrayFirstN,
+  arrayLast,
+  arrayLastN,
+  arrayMaximum,
+  arrayMaximumN,
+  arrayMinimum,
+  arrayMinimumN,
   ascending,
   byteLength,
   FunctionExpression,
@@ -123,11 +151,14 @@ import {
   floor,
   exp,
   pow,
+  rand,
   round,
+  rtrim,
   collectionId,
   ln,
   log,
   sqrt,
+  trunc,
   stringReverse,
   length,
   abs,
@@ -139,8 +170,11 @@ import {
   arraySum,
   PipelineSnapshot,
   timestampTruncate,
+  timestampDiff,
+  timestampExtract,
   split,
-  type
+  type,
+  isType
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
@@ -960,6 +994,54 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         });
       });
 
+      it('returns first and last accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('published').ascending())
+            .aggregate(
+              first('rating').as('firstBookRating'),
+              first('title').as('firstBookTitle'),
+              last('rating').as('lastBookRating'),
+              last('title').as('lastBookTitle')
+            )
+        );
+        expectResults(snapshot, {
+          firstBookRating: 4.5,
+          firstBookTitle: 'Pride and Prejudice',
+          lastBookRating: 4.1,
+          lastBookTitle: "The Handmaid's Tale"
+        });
+      });
+
+      it('returns arrayAgg accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('published').ascending())
+            .aggregate(arrayAgg('rating').as('allRatings'))
+        );
+        expectResults(snapshot, {
+          allRatings: [4.5, 4.3, 4.0, 4.2, 4.7, 4.2, 4.6, 4.3, 4.2, 4.1]
+        });
+      });
+
+      it('returns arrayAggDistinct accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(arrayAggDistinct('rating').as('allDistinctRatings'))
+        );
+        const data = snapshot.results[0].data();
+        data['allDistinctRatings'].sort((a: number, b: number) => a - b);
+        expect(data).to.deep.equal({
+          allDistinctRatings: [4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7]
+        });
+      });
+
       it('returns countif accumulation', async () => {
         let snapshot = await execute(
           firestore
@@ -1463,6 +1545,27 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         );
       });
 
+      it('where with nor', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              nor(
+                equal('genre', 'Romance'),
+                equal('genre', 'Dystopian'),
+                equal('genre', 'Fantasy'),
+                greaterThan('published', 1949)
+              )
+            )
+            .select('title')
+        );
+        expectResults(
+          snapshot,
+          { title: 'Crime and Punishment' },
+          { title: 'The Great Gatsby' }
+        );
+      });
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -1803,6 +1906,35 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           'book8',
           'book8',
           'book9',
+          'book9'
+        );
+      });
+
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
           'book9'
         );
       });
@@ -2500,6 +2632,41 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expect(snapshot.results.length).to.equal(5);
     });
 
+    it('testRegexFind', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(regexFind('title', '^\\w+').as('firstWordInTitle'))
+          .select('firstWordInTitle')
+          .sort(field('firstWordInTitle').ascending())
+          .limit(3)
+      );
+      expectResults(
+        snapshot,
+        { firstWordInTitle: '1984' },
+        { firstWordInTitle: 'Crime' },
+        { firstWordInTitle: 'Dune' }
+      );
+    });
+
+    it('testRegexFindAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(regexFindAll('title', '\\w+').as('wordsInTitle'))
+          .select('wordsInTitle')
+          .sort(field('wordsInTitle').ascending())
+          .limit(3)
+      );
+      expectResults(
+        snapshot,
+        { wordsInTitle: ['1984'] },
+        { wordsInTitle: ['Crime', 'and', 'Punishment'] },
+        { wordsInTitle: ['Dune'] }
+      );
+    });
     it('testRegexMatches', async () => {
       const snapshot = await execute(
         firestore
@@ -2804,6 +2971,116 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
+    it('test mapSet', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapSet('existingField', 'bar', 2).as('modifiedField'),
+            mapSet(map({}), 'a', 1).as('simple'),
+            mapSet(map({ a: 1 }), 'b', 2).as('add'),
+            mapSet(map({ a: 1 }), 'a', 2).as('overwrite'),
+            mapSet(map({ a: 1, b: 2 }), 'a', 3, 'c', 4).as('multi'),
+            mapSet(map({ a: 1 }), 'a', field('non_existent')).as('remove'),
+            mapSet(map({ a: 1 }), 'b', null).as('setNull'),
+            mapSet(map({ a: { b: 1 } }), 'a.b', 2).as('setDotted'),
+            mapSet(map({}), '', 'empty').as('setEmptyKey'),
+            mapSet(map({ a: 1 }), 'b', add(constant(1), constant(2))).as(
+              'setExprVal'
+            ),
+            mapSet(map({}), 'obj', map({ hidden: true })).as('setNestedMap'),
+            mapSet(map({}), '~!@#$%^&*()_+', 'special').as('setSpecialChars')
+          )
+      );
+      expectResults(snapshot, {
+        existingField: { foo: 1 },
+        modifiedField: { foo: 1, bar: 2 },
+        simple: { a: 1 },
+        add: { a: 1, b: 2 },
+        overwrite: { a: 2 },
+        multi: { a: 3, b: 2, c: 4 },
+        remove: {},
+        setNull: { a: 1, b: null },
+        setDotted: { a: { b: 1 }, 'a.b': 2 },
+        setEmptyKey: { '': 'empty' },
+        setExprVal: { a: 1, b: 3 },
+        setNestedMap: { obj: { hidden: true } },
+        setSpecialChars: { '~!@#$%^&*()_+': 'special' }
+      });
+    });
+
+    it('test mapKeys', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapKeys('existingField').as('existingKeys'),
+            mapKeys(map({ a: 1, b: 2 })).as('keys'),
+            mapKeys(map({})).as('empty_keys'),
+            mapKeys(map({ a: { nested: true } })).as('nested_keys')
+          )
+      );
+
+      const res = snapshot.results[0].data();
+      expect(res.existingKeys).to.have.members(['foo']);
+      expect(res.keys).to.have.members(['a', 'b']);
+      expect(res.empty_keys).to.deep.equal([]);
+      expect(res.nested_keys).to.have.members(['a']);
+    });
+
+    it('test mapValues', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapValues('existingField').as('existingValues'),
+            mapValues(map({ a: 1, b: 2 })).as('values'),
+            mapValues(map({})).as('empty_values'),
+            mapValues(map({ a: { nested: true } })).as('nested_values')
+          )
+      );
+      const res = snapshot.results[0].data();
+      expect(res.existingValues).to.have.members([1]);
+      expect(res.values).to.have.members([1, 2]);
+      expect(res.empty_values).to.deep.equal([]);
+      expect(res.nested_values).to.deep.include.members([{ nested: true }]);
+    });
+
+    it('test mapEntries', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapEntries('existingField').as('existingEntries'),
+            mapEntries(map({ a: 1, b: 2 })).as('entries'),
+            mapEntries(map({})).as('empty_entries'),
+            mapEntries(map({ a: { nested: true } })).as('nested_entries')
+          )
+      );
+      const res = snapshot.results[0].data();
+      expect(res.existingEntries).to.deep.include.members([{ k: 'foo', v: 1 }]);
+      expect(res.entries).to.deep.include.members([
+        { k: 'a', v: 1 },
+        { k: 'b', v: 2 }
+      ]);
+      expect(res.empty_entries).to.deep.equal([]);
+      expect(res.nested_entries).to.deep.include.members([
+        { k: 'a', v: { nested: true } }
+      ]);
+    });
+
     describe('rawFunction', () => {
       it('add selectable', async () => {
         const snapshot = await execute(
@@ -2968,6 +3245,596 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(field('tags').arrayGet(0).as('firstTag'))
       );
       expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayFirst', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayFirst('tags').as('firstTag'))
+      );
+      const expectedResults = [
+        {
+          firstTag: 'adventure'
+        },
+        {
+          firstTag: 'politics'
+        },
+        {
+          firstTag: 'classic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayFirst().as('firstTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null
+            })
+          )
+          .select(
+            arrayFirst('empty').as('emptyResult'),
+            arrayFirst('nullVal').as('nullResult'),
+            arrayFirst('nonExistent').as('absentResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        // no emptyResult because arrayFirst returns UNSET for empty arrays
+        nullResult: null,
+        absentResult: null
+      });
+    });
+
+    it('supports arrayFirstN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayFirstN('tags', 2).as('firstTwoTags'))
+      );
+      const expectedResults = [
+        {
+          firstTwoTags: ['adventure', 'magic']
+        },
+        {
+          firstTwoTags: ['politics', 'desert']
+        },
+        {
+          firstTwoTags: ['classic', 'social commentary']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayFirstN(2).as('firstTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null
+            })
+          )
+          .select(
+            arrayFirstN('empty', 1).as('emptyResult'),
+            arrayFirstN('nullVal', 1).as('nullResult'),
+            arrayFirstN('nonExistent', 1).as('absentResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: [],
+        nullResult: null,
+        absentResult: null
+      });
+    });
+
+    it('supports arrayLast', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayLast('tags').as('lastTag'))
+      );
+      const expectedResults = [
+        {
+          lastTag: 'epic'
+        },
+        {
+          lastTag: 'ecology'
+        },
+        {
+          lastTag: 'love'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayLast().as('lastTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null
+            })
+          )
+          .select(
+            arrayLast('empty').as('emptyResult'),
+            arrayLast('nullVal').as('nullResult'),
+            arrayLast('nonExistent').as('absentResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        // no emptyResult because arrayLast returns UNSET for empty arrays
+        nullResult: null,
+        absentResult: null
+      });
+    });
+
+    it('supports arrayLastN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayLastN('tags', 2).as('lastTwoTags'))
+      );
+      const expectedResults = [
+        {
+          lastTwoTags: ['magic', 'epic']
+        },
+        {
+          lastTwoTags: ['desert', 'ecology']
+        },
+        {
+          lastTwoTags: ['social commentary', 'love']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayLastN(2).as('lastTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null
+            })
+          )
+          .select(
+            arrayLastN('empty', 1).as('emptyResult'),
+            arrayLastN('nullVal', 1).as('nullResult'),
+            arrayLastN('nonExistent', 1).as('absentResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: [],
+        nullResult: null,
+        absentResult: null
+      });
+    });
+
+    it('supports arrayMaximum', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMaximum('tags').as('maxTag'))
+      );
+      const expectedResults = [
+        {
+          maxTag: 'magic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMaximum().as('maxTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent and mixed types
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null,
+              mixed: [1, '2', 3, '10'] // Strings > Numbers in Firestore
+            })
+          )
+          .select(
+            arrayMaximum('empty').as('emptyResult'),
+            arrayMaximum('nullVal').as('nullResult'),
+            arrayMaximum('nonExistent').as('absentResult'),
+            arrayMaximum('mixed').as('mixedResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: null,
+        nullResult: null,
+        absentResult: null,
+        mixedResult: '2' // "2" > "10" > 3 > 1
+      });
+    });
+
+    it('supports arrayMaximumN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMaximumN('tags', 2).as('maxTwoTags'))
+      );
+      const expectedResults = [
+        {
+          maxTwoTags: ['magic', 'epic']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMaximumN(2).as('maxTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayMinimum', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMinimum('tags').as('minTag'))
+      );
+      const expectedResults = [
+        {
+          minTag: 'adventure'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMinimum().as('minTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent and mixed types
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null,
+              mixed: [1, '2', 3, '10'] // Strings > Numbers in Firestore
+            })
+          )
+          .select(
+            arrayMinimum('empty').as('emptyResult'),
+            arrayMinimum('nullVal').as('nullResult'),
+            arrayMinimum('nonExistent').as('absentResult'),
+            arrayMinimum('mixed').as('mixedResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: null,
+        nullResult: null,
+        absentResult: null,
+        mixedResult: 1 // 1 < 3 < "10" < "2"
+      });
+    });
+
+    it('supports arrayMinimumN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMinimumN('tags', 2).as('minTwoTags'))
+      );
+      const expectedResults = [
+        {
+          minTwoTags: ['adventure', 'epic']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMinimumN(2).as('minTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayIndexOf', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            arrayIndexOf('tags', 'adventure').as('indexFirst'),
+            arrayIndexOf(field('tags'), 'magic').as('indexSecond'),
+            field('tags').arrayIndexOf('adventure').as('indexFirst2'),
+            arrayIndexOf('tags', 'nonexistent').as('indexNone'),
+            arrayIndexOf('empty', 'anything').as('indexEmpty')
+          )
+      );
+
+      const expectedResults = [
+        {
+          indexFirst: 0,
+          indexSecond: 1,
+          indexFirst2: 0,
+          indexNone: -1,
+          indexEmpty: null
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with duplicate values
+      const snapshotDuplicates = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 2, 1]
+            })
+          )
+          .select(
+            arrayIndexOf('arr', 2).as('firstIndex'),
+            arrayLastIndexOf('arr', 2).as('lastIndex')
+          )
+      );
+
+      expectResults(snapshotDuplicates, {
+        firstIndex: 1,
+        lastIndex: 3
+      });
+
+      // Test with null value
+      const snapshotNull = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3, 2, 1],
+              nullArr: null
+            })
+          )
+          .select(
+            arrayIndexOf('arr', null).as('firstIndex'),
+            arrayIndexOf('nullArr', null).as('firstIndexNull')
+          )
+      );
+
+      expectResults(snapshotNull, {
+        firstIndex: 1,
+        firstIndexNull: null
+      });
+    });
+
+    it('supports arrayLastIndexOf', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            arrayLastIndexOf('tags', 'adventure').as('lastIndexFirst'),
+            arrayLastIndexOf(field('tags'), 'epic').as('lastIndexLast'),
+            field('tags').arrayLastIndexOf('adventure').as('lastIndexFirst2'),
+            arrayLastIndexOf('tags', 'nonexistent').as('lastIndexNone'),
+            arrayLastIndexOf('empty', 'anything').as('lastIndexEmpty')
+          )
+      );
+
+      const expectedResults = [
+        {
+          lastIndexFirst: 0,
+          lastIndexLast: 2,
+          lastIndexFirst2: 0,
+          lastIndexNone: -1,
+          lastIndexEmpty: null
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with duplicate values
+      const snapshotDuplicates = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 2, 1]
+            })
+          )
+          .select(
+            arrayIndexOf('arr', 2).as('firstIndex'),
+            arrayLastIndexOf('arr', 2).as('lastIndex')
+          )
+      );
+
+      expectResults(snapshotDuplicates, {
+        firstIndex: 1,
+        lastIndex: 3
+      });
+    });
+
+    it('supports arrayIndexOfAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            arrayIndexOfAll('tags', 'adventure').as('indicesFirst'),
+            arrayIndexOfAll(field('tags'), 'epic').as('indicesLast'),
+            field('tags').arrayIndexOfAll('nonexistent').as('indicesNone'),
+            arrayIndexOfAll('empty', 'anything').as('indicesEmpty')
+          )
+      );
+
+      const expectedResults = [
+        {
+          indicesFirst: [0],
+          indicesLast: [2],
+          indicesNone: [],
+          indicesEmpty: null
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with duplicate values
+      const snapshotDuplicates = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 2, 1]
+            })
+          )
+          .select(
+            arrayIndexOfAll('arr', 1).as('indices1'),
+            arrayIndexOfAll('arr', 2).as('indices2')
+          )
+      );
+
+      expectResults(snapshotDuplicates, {
+        indices1: [0, 4],
+        indices2: [1, 3]
+      });
+
+      // Test with null values
+      const snapshotNulls = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3, null, 1],
+              nullArr: null
+            })
+          )
+          .select(
+            arrayIndexOfAll('arr', null).as('indices1'),
+            arrayIndexOfAll('nullArr', null).as('indicesNull')
+          )
+      );
+
+      expectResults(snapshotNulls, {
+        indices1: [1, 3],
+        indicesNull: null
+      });
     });
 
     it('supports map', async () => {
@@ -3323,6 +4190,21 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
     });
 
+    it('testRand', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(rand().as('randomNumber'))
+          .limit(1)
+      );
+      expect(snapshot.results.length).to.equal(1);
+      const randomNumber = snapshot.results[0].data()['randomNumber'] as number;
+      expect(randomNumber).to.be.a('number');
+      expect(randomNumber).to.be.gte(0);
+      expect(randomNumber).to.be.lt(1);
+    });
+
     it('can round a numeric value', async () => {
       const snapshot = await execute(
         firestore
@@ -3404,6 +4286,60 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         '1': 4.1,
         '2': 4.12,
         '4': 4.1235
+      });
+    });
+
+    it('can truncate a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('Pride and Prejudice'))
+          .limit(1)
+          .select(field('rating').trunc().as('truncatedRating'))
+      );
+      expectResults(snapshot, {
+        truncatedRating: 4
+      });
+    });
+
+    it('can truncate a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('Pride and Prejudice'))
+          .limit(1)
+          .select(trunc('rating').as('truncatedRating'))
+      );
+      expectResults(snapshot, {
+        truncatedRating: 4
+      });
+    });
+
+    it('can truncate a numeric value to specified precision', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              foo: 4.123456
+            })
+          )
+          .select(
+            field('foo').trunc(0).as('0'),
+            trunc('foo', 1).as('1'),
+            trunc('foo', constant(2)).as('2'),
+            trunc(field('foo'), 4).as('4')
+          )
+      );
+      expectResults(snapshot, {
+        '0': 4,
+        '1': 4.1,
+        '2': 4.12,
+        '4': 4.1234
       });
     });
 
@@ -3818,6 +4754,191 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
+    it('testLTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
+          )
+          .select(
+            ltrim('spacedTitle').as('ltrimmedTitle'),
+            field('userNameWithQuotes').ltrim('"').as('userName'),
+            field('bytes')
+              .ltrim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        ltrimmedTitle: "The Hitchhiker's Guide to the Galaxy ",
+        userName: 'alice"',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x00, 0x00]))
+      });
+    });
+
+    it('testRTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
+          )
+          .select(
+            rtrim('spacedTitle').as('rtrimmedTitle'),
+            field('userNameWithQuotes').rtrim('"').as('userName'),
+            field('bytes')
+              .rtrim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        rtrimmedTitle: " The Hitchhiker's Guide to the Galaxy",
+        userName: '"alice',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x00, 0x01, 0x02]))
+      });
+    });
+
+    it('testStringRepeat', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x03]))
+            })
+          )
+          .select(
+            stringRepeat(field('title'), 2).as('repeatedTitle'),
+            stringRepeat(field('bytes'), 2).as('repeatedBytes')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        repeatedTitle:
+          "The Hitchhiker's Guide to the GalaxyThe Hitchhiker's Guide to the Galaxy",
+        repeatedBytes: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x02, 0x03, 0x01, 0x02, 0x03])
+        )
+      });
+    });
+
+    it('testStringReplaceAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02]))
+            })
+          )
+          .select(
+            stringReplaceAll(field('title'), 'the', 'a').as('replacedAll'),
+            stringReplaceAll(toLower('title'), 'the', 'a').as(
+              'replacedAllLower'
+            ),
+            stringReplaceAll(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03, 0x03, 0x03]))
+            ).as('replacedEntireByteArray'),
+            stringReplaceAll(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03]))
+            ).as('replacedMultipleBytes')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        replacedAll: "The Hitchhiker's Guide to a Galaxy",
+        replacedAllLower: "a hitchhiker's guide to a galaxy",
+        replacedEntireByteArray: Bytes.fromUint8Array(
+          Uint8Array.from([0x03, 0x03, 0x03])
+        ),
+        replacedMultipleBytes: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x03, 0x03])
+        )
+      });
+    });
+
+    it('testStringReplaceOne', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02]))
+            })
+          )
+          .select(
+            stringReplaceOne(field('title'), 'e', 'X').as('replacedOne'),
+            stringReplaceOne(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03]))
+            ).as('replacedOneByte')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        replacedOne: "ThX Hitchhiker's Guide to the Galaxy",
+        replacedOneByte: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x03, 0x02])
+        )
+      });
+    });
+
+    it('testStringIndexOf', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x03]))
+            })
+          )
+          .select(
+            stringIndexOf(field('title'), 'Guide').as('indexOfGuide'),
+            stringIndexOf(
+              field('bytes'),
+              constant(Bytes.fromUint8Array(Uint8Array.from([0x02])))
+            ).as('indexOfByte')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        indexOfGuide: 17,
+        indexOfByte: 1
+      });
+    });
+
     it('test reverse', async () => {
       const snapshot = await execute(
         firestore
@@ -4039,6 +5160,73 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       });
     });
 
+    it('supports timestamp difference', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('end'),
+            constant(new Timestamp(1741428000, 0)).as('start')
+          )
+          .select(
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
+            field('end')
+              .timestampDiff(field('start'), 'minute')
+              .as('diffMinute'),
+            field('end')
+              .timestampDiff(field('start'), 'second')
+              .as('diffSecond'),
+            field('start').timestampDiff(field('end'), 'hour').as('diffHourNeg')
+          )
+      );
+
+      expectResults(snapshot, {
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
+      });
+    }).timeout(10000);
+
+    it('supports timestamp extraction', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(constant(new Timestamp(1741437296, 123456789)).as('ts'))
+          .select(
+            timestampExtract(field('ts'), 'year').as('year'),
+            field('ts').timestampExtract('month').as('month'),
+            timestampExtract(field('ts'), 'day').as('day'),
+            field('ts').timestampExtract('hour').as('hour'),
+            timestampExtract(field('ts'), 'minute').as('minute'),
+            field('ts').timestampExtract('second').as('second'),
+            timestampExtract(field('ts'), 'millisecond').as('millis'),
+            field('ts').timestampExtract('microsecond').as('micros'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
+            field('ts')
+              .timestampExtract('hour', 'America/Los_Angeles')
+              .as('hourLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        year: 2025,
+        month: 3,
+        day: 8,
+        hour: 12,
+        minute: 34,
+        second: 56,
+        millis: 123,
+        micros: 123456,
+        dayOfYear: 67,
+        hourLa: 4
+      });
+    }).timeout(10000);
+
     it('supports split', async () => {
       const results = await execute(
         firestore
@@ -4153,6 +5341,180 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         vector: 'vector',
         map: 'map',
         array: 'array'
+      });
+    });
+
+    it('supports isType', async () => {
+      const result = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]))),
+              docRef: constant(doc(firestore, randomCol.path, 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                numberK: 1,
+                stringK: 'a string'
+              }),
+              array: array([1, '2', true])
+            })
+          )
+          .select(
+            isType(field('int'), 'int64').as('isInt64'),
+            isType(field('int'), 'number').as('isInt64IsNumber'),
+            isType(field('int'), 'decimal128').as('isInt64IsDecimal128'),
+            field('float').isType('float64').as('isFloat64'),
+            field('float').isType('number').as('isFloat64IsNumber'),
+            field('float').isType('decimal128').as('isFloat64IsDecimal128'),
+            isType('str', 'string').as('isStr'),
+            isType('int', 'string').as('isNumStr'),
+            field('bool').isType('boolean').as('isBool'),
+            isType('null', 'null').as('isNull'),
+            field('geoPoint').isType('geo_point').as('isGeoPoint'),
+            isType('timestamp', 'timestamp').as('isTimestamp'),
+            field('bytes').isType('bytes').as('isBytes'),
+            isType('docRef', 'reference').as('isDocRef'),
+            field('vector').isType('vector').as('isVector'),
+            isType('map', 'map').as('isMap'),
+            field('array').isType('array').as('isArray'),
+            field('str').isType('int64').as('isStrNum')
+          )
+      );
+
+      expectResults(result, {
+        isInt64: true,
+        isInt64IsNumber: true,
+        isInt64IsDecimal128: false,
+        isFloat64: true,
+        isFloat64IsNumber: true,
+        isFloat64IsDecimal128: false,
+        isStr: true,
+        isNumStr: false,
+        isBool: true,
+        isNull: true,
+        isGeoPoint: true,
+        isTimestamp: true,
+        isBytes: true,
+        isDocRef: true,
+        isVector: true,
+        isMap: true,
+        isArray: true,
+        isStrNum: false
+      });
+    });
+
+    it('supports nor', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              a: false,
+              b: false,
+              c: true,
+              d: null
+            })
+          )
+          .select(
+            nor(field('a').asBoolean(), field('b').asBoolean()).as(
+              'twoConditions'
+            ),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('c').asBoolean()
+            ).as('threeConditions'),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('d').asBoolean()
+            ).as('threeConditionsWithNull')
+          )
+      );
+
+      expectResults(snapshot, {
+        twoConditions: true,
+        threeConditions: false,
+        threeConditionsWithNull: null
+      });
+    });
+
+    describe('switchOn', () => {
+      it('supports basic switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 1 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                constant('NA')
+              ).as('result1'),
+              switchOn(
+                equal(field('value'), 2),
+                constant('two'),
+                constant('NA')
+              ).as('result2')
+            )
+        );
+        expectResults(snapshot, { result1: 'one', result2: 'NA' });
+      });
+
+      it('supports multi-branch switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 2 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                equal(field('value'), 2),
+                constant('two'),
+                equal(field('value'), 3),
+                constant('three'),
+                constant('default')
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, { result: 'two' });
+      });
+
+      it('throws if no match and no default', async () => {
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .limit(1)
+              .replaceWith(map({ value: 5 }))
+              .select(
+                switchOn(
+                  equal(field('value'), 1),
+                  constant('one'),
+                  equal(field('value'), 2),
+                  constant('two')
+                ).as('result')
+              )
+          )
+        ).to.be.rejectedWith(/all switch cases evaluate to false/);
       });
     });
 

@@ -1,5 +1,31 @@
 ## Unreleased
 
+## 0.5.0
+
+### Minor Changes
+
+- [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec) [#9614](https://github.com/firebase/firebase-js-sdk/pull/9614) - Add validateArgsWithOptions() to Data Connect (internal change, no need to add to public release notes).
+
+### Patch Changes
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 0.4.0
+
+### Minor Changes
+
+- [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca) [#9439](https://github.com/firebase/firebase-js-sdk/pull/9439) - Add Memory-Based caching to Queries in Firebase Data Connect.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
 ## 0.3.12
 
 ### Patch Changes

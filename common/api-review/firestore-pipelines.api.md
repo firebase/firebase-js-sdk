@@ -66,6 +66,18 @@ export function and(first: BooleanExpression, second: BooleanExpression, ...more
 export function array(elements: unknown[]): FunctionExpression;
 
 // @beta
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAgg(fieldName: string): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+// @beta
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+
+// @beta
 export function arrayConcat(firstArray: Expression, secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
 
 // @beta
@@ -108,6 +120,24 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @beta
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayFirstN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayGet(arrayField: string, offset: number): FunctionExpression;
 
 // @beta
@@ -120,10 +150,82 @@ export function arrayGet(arrayExpression: Expression, offset: number): FunctionE
 export function arrayGet(arrayExpression: Expression, offsetExpr: Expression): FunctionExpression;
 
 // @beta
+export function arrayIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayIndexOfAll(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLast(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(fieldName: string, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastIndexOf(arrayExpression: Expression, search: unknown | Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayLastN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
 export function arrayLength(fieldName: string): FunctionExpression;
 
 // @beta
 export function arrayLength(array: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMaximumN(arrayExpression: Expression, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+// @beta
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(fieldName: string, n: Expression): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionExpression;
+
+// @beta
+export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @beta
 export function arraySum(fieldName: string): FunctionExpression;
@@ -380,6 +482,10 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     add(second: Expression | unknown): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayAgg(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
+    arrayAggDistinct(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     arrayConcat(secondArray: Expression | unknown[], ...otherArrays: Array<Expression | unknown[]>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayContains(expression: Expression): BooleanExpression;
@@ -394,11 +500,47 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFirst(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayFirstN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayGet(offset: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayGet(offsetExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayIndexOfAll(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLast(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastIndexOf(search: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayLastN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayLength(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMaximumN(n: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayMinimumN(n: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -465,6 +607,8 @@ export abstract class Expression {
     // (undocumented)
     abstract readonly expressionType: ExpressionType;
     /* Excluded from this release type: _readUserData */
+    first(): AggregateFunction;
+    /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
@@ -487,9 +631,13 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     isError(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    isType(type: Type): BooleanExpression;
+    /* Excluded from this release type: _readUserData */
     join(delimiterExpression: Expression): Expression;
     /* Excluded from this release type: _readUserData */
     join(delimiter: string): Expression;
+    /* Excluded from this release type: _readUserData */
+    last(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
     length(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -513,13 +661,23 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     logicalMinimum(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapEntries(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     mapGet(subfield: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapKeys(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapMerge(secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(key: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     mapRemove(keyExpr: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapSet(key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    mapValues(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     maximum(): AggregateFunction;
     /* Excluded from this release type: _readUserData */
@@ -547,6 +705,14 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     regexContains(pattern: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    regexFind(pattern: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFind(pattern: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFindAll(pattern: string): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    regexFindAll(pattern: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     regexMatch(pattern: string): BooleanExpression;
     /* Excluded from this release type: _readUserData */
     regexMatch(pattern: Expression): BooleanExpression;
@@ -558,6 +724,8 @@ export abstract class Expression {
     round(decimalPlaces: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     round(decimalPlaces: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     split(delimiter: string): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -575,6 +743,14 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     stringContains(expr: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    stringIndexOf(search: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringRepeat(repetitions: number | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceAll(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    stringReplaceOne(find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     stringReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     substring(position: number, length?: number): FunctionExpression;
@@ -589,11 +765,19 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    timestampAdd(unit: TimeUnit, amount: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampDiff(start: Expression, unit: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampExtract(part: TimePart, timezone?: string | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampExtract(part: Expression, timezone?: string | Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    timestampSubtract(unit: TimeUnit, amount: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampToUnixMicros(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -610,6 +794,12 @@ export abstract class Expression {
     toUpper(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     trim(valueToTrim?: string | Expression | Bytes): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    trunc(decimalPlaces: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     type(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -653,6 +843,12 @@ export type FindNearestStageOptions = StageOptions & {
     limit?: number;
     distanceField?: string;
 };
+
+// @beta
+export function first(expression: Expression): AggregateFunction;
+
+// @beta
+export function first(fieldName: string): AggregateFunction;
 
 // @beta
 export function floor(expr: Expression): FunctionExpression;
@@ -723,6 +919,12 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @beta
+export function isType(fieldName: string, type: Type): BooleanExpression;
+
+// @beta
+export function isType(expression: Expression, type: Type): BooleanExpression;
+
+// @beta
 export function join(arrayFieldName: string, delimiter: string): Expression;
 
 // @beta
@@ -733,6 +935,12 @@ export function join(arrayExpression: Expression, delimiter: string): Expression
 
 // @beta
 export function join(arrayFieldName: string, delimiterExpression: Expression): Expression;
+
+// @beta
+export function last(expression: Expression): AggregateFunction;
+
+// @beta
+export function last(fieldName: string): AggregateFunction;
 
 // @beta
 function length_2(fieldName: string): FunctionExpression;
@@ -820,13 +1028,31 @@ export function logicalMinimum(first: Expression, second: Expression | unknown, 
 export function logicalMinimum(fieldName: string, second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
 
 // @beta
+export function ltrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function ltrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export function map(elements: Record<string, unknown>): FunctionExpression;
+
+// @beta
+export function mapEntries(mapField: string): FunctionExpression;
+
+// @beta
+export function mapEntries(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapGet(fieldName: string, subField: string): FunctionExpression;
 
 // @beta
 export function mapGet(mapExpression: Expression, subField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapField: string): FunctionExpression;
+
+// @beta
+export function mapKeys(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function mapMerge(mapField: string, secondMap: Record<string, unknown> | Expression, ...otherMaps: Array<Record<string, unknown> | Expression>): FunctionExpression;
@@ -845,6 +1071,18 @@ export function mapRemove(mapField: string, keyExpr: Expression): FunctionExpres
 
 // @beta
 export function mapRemove(mapExpr: Expression, keyExpr: Expression): FunctionExpression;
+
+// @beta
+export function mapSet(mapField: string, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapSet(mapExpression: Expression, key: string | Expression, value: unknown, ...moreKeyValues: unknown[]): FunctionExpression;
+
+// @beta
+export function mapValues(mapField: string): FunctionExpression;
+
+// @beta
+export function mapValues(mapExpression: Expression): FunctionExpression;
 
 // @beta
 export function maximum(expression: Expression): AggregateFunction;
@@ -875,6 +1113,9 @@ export function multiply(first: Expression, second: Expression | unknown): Funct
 
 // @beta
 export function multiply(fieldName: string, second: Expression | unknown): FunctionExpression;
+
+// @beta
+export function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
 
 // @beta
 export function not(booleanExpr: BooleanExpression): BooleanExpression;
@@ -1024,15 +1265,31 @@ export class PipelineSnapshot {
 // @beta
 export class PipelineSource<PipelineType> {
     collection(collection: string | Query): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collection(options: CollectionStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collectionGroup(collectionId: string): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     createFrom(query: Query): Pipeline;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     database(): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     database(options: DatabaseStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     documents(docs: Array<string | DocumentReference>): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     documents(options: DocumentsStageOptions): PipelineType;
-    }
+}
 
 // @beta
 export function pow(base: Expression, exponent: Expression): FunctionExpression;
@@ -1047,6 +1304,9 @@ export function pow(base: string, exponent: Expression): FunctionExpression;
 export function pow(base: string, exponent: number): FunctionExpression;
 
 // @beta
+export function rand(): FunctionExpression;
+
+// @beta
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
 
 // @beta
@@ -1057,6 +1317,30 @@ export function regexContains(stringExpression: Expression, pattern: string): Bo
 
 // @beta
 export function regexContains(stringExpression: Expression, pattern: Expression): BooleanExpression;
+
+// @beta
+export function regexFind(fieldName: string, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFind(fieldName: string, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFind(stringExpression: Expression, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFind(stringExpression: Expression, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFindAll(fieldName: string, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFindAll(fieldName: string, pattern: Expression): FunctionExpression;
+
+// @beta
+export function regexFindAll(stringExpression: Expression, pattern: string): FunctionExpression;
+
+// @beta
+export function regexFindAll(stringExpression: Expression, pattern: Expression): FunctionExpression;
 
 // @beta
 export function regexMatch(fieldName: string, pattern: string): BooleanExpression;
@@ -1097,6 +1381,12 @@ export function round(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @beta
 export function round(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function rtrim(fieldName: string, valueToTrim?: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function rtrim(expression: Expression, valueToTrim?: string | Expression | Bytes): FunctionExpression;
 
 // @beta
 export type SampleStageOptions = StageOptions & OneOf<{
@@ -1176,6 +1466,30 @@ export function stringContains(stringExpression: Expression, substring: string):
 export function stringContains(stringExpression: Expression, substring: Expression): BooleanExpression;
 
 // @beta
+export function stringIndexOf(fieldName: string, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringIndexOf(expression: Expression, search: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringRepeat(fieldName: string, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringRepeat(expression: Expression, repetitions: number | Expression): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceAll(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(fieldName: string, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
+export function stringReplaceOne(expression: Expression, find: string | Expression | Bytes, replacement: string | Expression | Bytes): FunctionExpression;
+
+// @beta
 export function stringReverse(stringExpression: Expression): FunctionExpression;
 
 // @beta
@@ -1212,25 +1526,55 @@ export function sum(expression: Expression): AggregateFunction;
 export function sum(fieldName: string): AggregateFunction;
 
 // @beta
-export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
+
+// @beta
+export type TimeGranularity = TimeUnit | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | 'isoyear';
+
+// @beta
+export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 
 // @beta
 export function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
 // @beta
-export function timestampAdd(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampAdd(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
+
+// @beta
+export function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endFieldName: string, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endExpression: Expression, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endExpression: Expression, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(fieldName: string, part: Expression, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(timestampExpression: Expression, part: TimePart, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(timestampExpression: Expression, part: Expression, timezone?: string | Expression): FunctionExpression;
 
 // @beta
 export function timestampSubtract(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
 // @beta
-export function timestampSubtract(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampSubtract(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampSubtract(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampSubtract(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
 export function timestampToUnixMicros(expr: Expression): FunctionExpression;
@@ -1263,6 +1607,9 @@ export function timestampTruncate(timestampExpression: Expression, granularity: 
 export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
 
 // @beta
+export type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
+
+// @beta
 export function toLower(fieldName: string): FunctionExpression;
 
 // @beta
@@ -1279,6 +1626,21 @@ export function trim(fieldName: string, valueToTrim?: string | Expression): Func
 
 // @beta
 export function trim(stringExpression: Expression, valueToTrim?: string | Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression): FunctionExpression;
+
+// @beta
+export function trunc(fieldName: string, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @beta
+export type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 
 // @beta
 export function type(fieldName: string): FunctionExpression;

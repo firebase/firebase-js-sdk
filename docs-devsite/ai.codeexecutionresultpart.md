@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # CodeExecutionResultPart interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents the code execution result from the model.
 
 <b>Signature:</b>
@@ -25,19 +22,16 @@ export interface CodeExecutionResultPart
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecutionResult](./ai.codeexecutionresultpart.md#codeexecutionresultpartcodeexecutionresult) | [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | <b><i>(Public Preview)</i></b> |
-|  [executableCode](./ai.codeexecutionresultpart.md#codeexecutionresultpartexecutablecode) | never | <b><i>(Public Preview)</i></b> |
-|  [fileData](./ai.codeexecutionresultpart.md#codeexecutionresultpartfiledata) | never | <b><i>(Public Preview)</i></b> |
-|  [functionCall](./ai.codeexecutionresultpart.md#codeexecutionresultpartfunctioncall) | never | <b><i>(Public Preview)</i></b> |
-|  [functionResponse](./ai.codeexecutionresultpart.md#codeexecutionresultpartfunctionresponse) | never | <b><i>(Public Preview)</i></b> |
-|  [inlineData](./ai.codeexecutionresultpart.md#codeexecutionresultpartinlinedata) | never | <b><i>(Public Preview)</i></b> |
-|  [text](./ai.codeexecutionresultpart.md#codeexecutionresultparttext) | never | <b><i>(Public Preview)</i></b> |
-|  [thought](./ai.codeexecutionresultpart.md#codeexecutionresultpartthought) | never | <b><i>(Public Preview)</i></b> |
+|  [codeExecutionResult](./ai.codeexecutionresultpart.md#codeexecutionresultpartcodeexecutionresult) | [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) |  |
+|  [executableCode](./ai.codeexecutionresultpart.md#codeexecutionresultpartexecutablecode) | never |  |
+|  [fileData](./ai.codeexecutionresultpart.md#codeexecutionresultpartfiledata) | never |  |
+|  [functionCall](./ai.codeexecutionresultpart.md#codeexecutionresultpartfunctioncall) | never |  |
+|  [functionResponse](./ai.codeexecutionresultpart.md#codeexecutionresultpartfunctionresponse) | never |  |
+|  [inlineData](./ai.codeexecutionresultpart.md#codeexecutionresultpartinlinedata) | never |  |
+|  [text](./ai.codeexecutionresultpart.md#codeexecutionresultparttext) | never |  |
+|  [thought](./ai.codeexecutionresultpart.md#codeexecutionresultpartthought) | never |  |
 
 ## CodeExecutionResultPart.codeExecutionResult
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -47,9 +41,6 @@ codeExecutionResult?: CodeExecutionResult;
 
 ## CodeExecutionResultPart.executableCode
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -57,9 +48,6 @@ executableCode?: never;
 ```
 
 ## CodeExecutionResultPart.fileData
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -69,9 +57,6 @@ fileData: never;
 
 ## CodeExecutionResultPart.functionCall
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -79,9 +64,6 @@ functionCall?: never;
 ```
 
 ## CodeExecutionResultPart.functionResponse
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -91,9 +73,6 @@ functionResponse?: never;
 
 ## CodeExecutionResultPart.inlineData
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -102,9 +81,6 @@ inlineData?: never;
 
 ## CodeExecutionResultPart.text
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -112,9 +88,6 @@ text?: never;
 ```
 
 ## CodeExecutionResultPart.thought
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

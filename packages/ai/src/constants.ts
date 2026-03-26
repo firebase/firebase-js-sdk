@@ -32,6 +32,8 @@ export const PACKAGE_VERSION = version;
 
 export const LANGUAGE_TAG = 'gl-js';
 
+export const HYBRID_TAG = 'hybrid';
+
 export const DEFAULT_FETCH_TIMEOUT_MS = 180 * 1000;
 
 /**

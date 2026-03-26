@@ -1,5 +1,54 @@
 # @firebase/ai
 
+## 2.10.0
+
+### Minor Changes
+
+- [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e) [#9693](https://github.com/firebase/firebase-js-sdk/pull/9693) (fixes [#9625](https://github.com/firebase/firebase-js-sdk/issues/9625)) - Added `responseJsonSchema` to `GenerationConfig`.
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 2.9.0
+
+### Minor Changes
+
+- [`47f8521`](https://github.com/firebase/firebase-js-sdk/commit/47f85219d570f05c196e0085f2892d1297308fed) [#9489](https://github.com/firebase/firebase-js-sdk/pull/9489) - Added automatic function calling capability when using `ChatSession`.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 2.8.0
+
+### Minor Changes
+
+- [`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c) [#9461](https://github.com/firebase/firebase-js-sdk/pull/9461) - AI Logic: Extend the `LiveSession.receive()` return types to include a `LiveServiceGoingAwayNotice`
+  which signifies that the service will soon close the session.
+
+- [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8) [#9475](https://github.com/firebase/firebase-js-sdk/pull/9475) - Remove "preview" tags from code execution and URL context documentation.
+
+- [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59) [#9462](https://github.com/firebase/firebase-js-sdk/pull/9462) - Add params on `UsageMetadata` that provide cache-related usage data when the implicit caching feature is used.
+
+### Patch Changes
+
+- [`691a506`](https://github.com/firebase/firebase-js-sdk/commit/691a506ecaa10ac3f0354313f5de5a47f4c85199) [#9469](https://github.com/firebase/firebase-js-sdk/pull/9469) - Internal: Add tag to log requests made to cloud while in hybrid mode.
+
+## 2.7.0
+
+### Minor Changes
+
+- [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8) [#8890](https://github.com/firebase/firebase-js-sdk/pull/8890) (fixes [#8859](https://github.com/firebase/firebase-js-sdk/issues/8859)) - Add support for `AbortSignal`, allowing requests to be aborted.
+
+- [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544) [#9424](https://github.com/firebase/firebase-js-sdk/pull/9424) - Added ability to specify thinking levels in `thinkingConfig`.
+
+- [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9) [#9440](https://github.com/firebase/firebase-js-sdk/pull/9440) - Update default hybrid-in-cloud model to `gemini-2.5-flash-lite`.
+
 ## 2.6.1
 
 ### Patch Changes
