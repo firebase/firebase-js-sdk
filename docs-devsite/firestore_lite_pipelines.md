@@ -99,7 +99,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arraySum(expression)](./firestore_lite_pipelines.md#arraysum_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
 |  [average(expression)](./firestore_lite_pipelines.md#average_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of values from an expression across multiple stage inputs. |
 |  [ceil(expression)](./firestore_lite_pipelines.md#ceil_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
-|  [coalesce(expression, replacement, others)](./firestore_lite_pipelines.md#coalesce_00859cb) | <b><i>(Public Preview)</i></b> Creates an expression that Returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
+|  [coalesce(expression, replacement, others)](./firestore_lite_pipelines.md#coalesce_00859cb) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
 |  [collectionId(expression)](./firestore_lite_pipelines.md#collectionid_1138a27) | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path. |
 |  [count(expression)](./firestore_lite_pipelines.md#count_1138a27) | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs with valid evaluations of the provided expression. |
 |  [divide(expression, value)](./firestore_lite_pipelines.md#divide_01df3cf) | <b><i>(Public Preview)</i></b> Creates an expression that divides an expression by a constant value. |
@@ -178,7 +178,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [byteLength(fieldName)](./firestore_lite_pipelines.md#bytelength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob. |
 |  [ceil(fieldName)](./firestore_lite_pipelines.md#ceil_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
 |  [charLength(fieldName)](./firestore_lite_pipelines.md#charlength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the character length of a string field in UTF8. |
-|  [coalesce(fieldName, replacement, others)](./firestore_lite_pipelines.md#coalesce_249958e) | <b><i>(Public Preview)</i></b> Creates an expression that Returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
+|  [coalesce(fieldName, replacement, others)](./firestore_lite_pipelines.md#coalesce_249958e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
 |  [collectionId(fieldName)](./firestore_lite_pipelines.md#collectionid_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path. |
 |  [concat(fieldName, second, others)](./firestore_lite_pipelines.md#concat_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed. |
 |  [cosineDistance(fieldName, vector)](./firestore_lite_pipelines.md#cosinedistance_463a23e) | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between a field's vector value and a literal vector value. |
@@ -303,7 +303,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [ifAbsent(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifabsent_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
 |  [ifAbsent(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifabsent_d8f2823) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is absent, else return the value of the field. |
 |  [ifNull(ifFieldName, elseExpr)](./firestore_lite_pipelines.md#ifnull_e6dabea) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseExpr</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
-|  [ifNull(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifnull_587c2f0) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> is null, else return the value of the field. |
+|  [ifNull(ifFieldName, elseValue)](./firestore_lite_pipelines.md#ifnull_587c2f0) | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if <code>ifFieldName</code> field is null, else return the value of the field. |
 |  <b>function(input, ...)</b> |
 |  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_e6e0aa3) | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of a string or byte array. |
 |  [substring(input, position, length)](./firestore_lite_pipelines.md#substring_ab56dc6) | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of a string or byte array. |
@@ -2838,7 +2838,7 @@ ceil(field("price"));
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that Returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
+Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
 
 <b>Signature:</b>
 
@@ -5506,7 +5506,7 @@ charLength("name");
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that Returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
+Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
 
 <b>Signature:</b>
 
@@ -9516,7 +9516,7 @@ export declare function ifNull(ifExpr: Expression, elseExpr: Expression): Functi
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  ifExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to check for null. |
-|  elseExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that will be evaluated and returned if <code>ifExpr</code> is null or absent. |
+|  elseExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that will be evaluated and returned if <code>ifExpr</code> is null. |
 
 <b>Returns:</b>
 
@@ -9528,7 +9528,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Returns the user's preferred name, or if that is null or absent, returns their full name.
+// Returns the user's preferred name, or if that is null, returns their full name.
 ifNull(field("preferredName"), field("fullName"))
 
 ```
@@ -9552,8 +9552,8 @@ export declare function ifNull(ifExpr: Expression, elseValue: unknown): Function
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ifExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to check for absence. |
-|  elseValue | unknown | The value that will be returned if <code>ifExpr</code> evaluates to a null or absent value. |
+|  ifExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression to check for null. |
+|  elseValue | unknown | The value that will be returned if <code>ifExpr</code> evaluates to null. |
 
 <b>Returns:</b>
 
@@ -9565,7 +9565,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+// Returns the user's display name, or returns "Anonymous" if the field is null.
 ifNull(field("displayName"), "Anonymous")
 
 ```
@@ -9663,8 +9663,8 @@ export declare function ifNull(ifFieldName: string, elseExpr: Expression): Funct
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ifFieldName | string | The field to check for null or absence. |
-|  elseExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that will be evaluated and returned if <code>ifFieldName</code> is null or absent. |
+|  ifFieldName | string | The field to check for null. |
+|  elseExpr | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression that will be evaluated and returned if <code>ifFieldName</code> is null. |
 
 <b>Returns:</b>
 
@@ -9676,7 +9676,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Returns the user's preferred name, or if that is null or absent, returns their full name.
+// Returns the user's preferred name, or if that is null, returns their full name.
 ifNull("preferredName", field("fullName"))
 
 ```
@@ -9686,7 +9686,7 @@ ifNull("preferredName", field("fullName"))
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Creates an expression that returns the `elseValue` argument if `ifFieldName` is null, else return the value of the field.
+Creates an expression that returns the `elseValue` argument if `ifFieldName` field is null, else return the value of the field.
 
 This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
 
@@ -9700,8 +9700,8 @@ export declare function ifNull(ifFieldName: string, elseValue: unknown): Functio
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  ifFieldName | string | The field to check for null or absence. |
-|  elseValue | unknown | The value that will be returned if \[ifFieldName\] is null or absent. |
+|  ifFieldName | string | The field to check for null. |
+|  elseValue | unknown | The value that will be returned if <code>ifFieldName</code> is null. |
 
 <b>Returns:</b>
 
@@ -9713,7 +9713,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 
 ```typescript
-// Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+// Returns the user's display name, or returns "Anonymous" if the field is null.
 ifNull("displayName", "Anonymous")
 
 ```

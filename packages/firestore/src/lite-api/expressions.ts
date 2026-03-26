@@ -3252,40 +3252,40 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Creates an expression that returns the `elseValue` argument if this expression results in a null value, else
+   * Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else
    * return the result of this expression evaluation.
    *
    * @remarks
-   * This function provides a fallback for both absent and explicit null values. In contrast, {@link ifAbsent}
-   * only triggers for missing fields.
+   * This function provides a fallback for both absent and explicit null values. In contrast,
+   * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
    *
    * @example
    * ```typescript
-   * // Returns the user's preferred name, or if that is null or absent, returns their full name.
+   * // Returns the user's preferred name, or if that is null, returns their full name.
    * field("preferredName").ifNull(field("fullName"))
    * ```
    *
-   * @param elseExpression - The Expression that will be evaluated if this Expression evaluates to a null or absent value.
+   * @param elseExpression - The Expression that will be evaluated if this Expression evaluates to null.
    * @returns A new `Expression` representing the ifNull operation.
    */
   ifNull(elseExpression: Expression): FunctionExpression;
 
   /**
    * @beta
-   * Creates an expression that returns the `elseValue` argument if this expression results in a null value, else
+   * Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else
    * return the result of this expression evaluation.
    *
    * @remarks
-   * This function provides a fallback for both absent and explicit null values. In contrast, {@link ifAbsent}
-   * only triggers for missing fields.
+   * This function provides a fallback for both absent and explicit null values. In contrast,
+   * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
    *
    * @example
    * ```typescript
-   * // Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+   * // Returns the user's display name, or returns "Anonymous" if the field is null.
    * field("displayName").ifNull("Anonymous")
    * ```
    *
-   * @param elseValue - The value that will be returned if this Expression evaluates to a null or absent value.
+   * @param elseValue - The value that will be returned if this Expression evaluates to null.
    * @returns A new `Expression` representing the ifNull operation.
    */
   ifNull(elseValue: unknown): FunctionExpression;
@@ -3299,7 +3299,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    * @beta
-   * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+   * Creates an expression that returns the first non-null, non-absent argument, without evaluating
    * the rest of the arguments. When all arguments are null or absent, returns the last argument.
    *
    * @example
@@ -10753,17 +10753,16 @@ export function ifAbsent(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link ifAbsent} only triggers for missing fields.
+ * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
  *
  * @example
  * ```typescript
- * // Returns the user's preferred name, or if that is null or absent, returns their full name.
+ * // Returns the user's preferred name, or if that is null, returns their full name.
  * ifNull(field("preferredName"), field("fullName"))
  * ```
  *
  * @param ifExpr - The expression to check for null.
- * @param elseExpr - The expression that will be evaluated and returned if `ifExpr` is
- * null or absent.
+ * @param elseExpr - The expression that will be evaluated and returned if `ifExpr` is null.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
 export function ifNull(
@@ -10778,16 +10777,16 @@ export function ifNull(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link ifAbsent} only triggers for missing fields.
+ * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
  *
  * @example
  * ```typescript
- * // Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+ * // Returns the user's display name, or returns "Anonymous" if the field is null.
  * ifNull(field("displayName"), "Anonymous")
  * ```
  *
- * @param ifExpr - The expression to check for absence.
- * @param elseValue - The value that will be returned if `ifExpr` evaluates to a null or absent value.
+ * @param ifExpr - The expression to check for null.
+ * @param elseValue - The value that will be returned if `ifExpr` evaluates to null.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
 export function ifNull(
@@ -10802,17 +10801,16 @@ export function ifNull(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link ifAbsent} only triggers for missing fields.
+ * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
  *
  * @example
  * ```typescript
- * // Returns the user's preferred name, or if that is null or absent, returns their full name.
+ * // Returns the user's preferred name, or if that is null, returns their full name.
  * ifNull("preferredName", field("fullName"))
  * ```
  *
- * @param ifFieldName - The field to check for null or absence.
- * @param elseExpr - The expression that will be evaluated and returned if `ifFieldName` is
- * null or absent.
+ * @param ifFieldName - The field to check for null.
+ * @param elseExpr - The expression that will be evaluated and returned if `ifFieldName` is null.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
  */
 export function ifNull(
@@ -10822,21 +10820,21 @@ export function ifNull(
 
 /**
  * @beta
- * Creates an expression that returns the `elseValue` argument if `ifFieldName` is null, else
+ * Creates an expression that returns the `elseValue` argument if `ifFieldName` field is null, else
  * return the value of the field.
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link ifAbsent} only triggers for missing fields.
+ * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
  *
  * @example
  * ```typescript
- * // Returns the user's display name, or returns "Anonymous" if the field is null or absent.
+ * // Returns the user's display name, or returns "Anonymous" if the field is null.
  * ifNull("displayName", "Anonymous")
  * ```
  *
- * @param ifFieldName - The field to check for null or absence.
- * @param elseValue - The value that will be returned if [ifFieldName] is null or absent.
+ * @param ifFieldName - The field to check for null.
+ * @param elseValue - The value that will be returned if `ifFieldName` is null.
  * @returns A new {@link @firebase/firestore/pipelines#Expression}  representing the ifNull operation.
  */
 export function ifNull(
@@ -10852,7 +10850,7 @@ export function ifNull(
 
 /**
  * @beta
- * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+ * Creates an expression that returns the first non-null, non-absent argument, without evaluating
  * the rest of the arguments. When all arguments are null or absent, returns the last argument.
  *
  * @example
@@ -10875,7 +10873,7 @@ export function coalesce(
 
 /**
  * @beta
- * Creates an expression that Returns the first non-null, non-absent argument, without evaluating
+ * Creates an expression that returns the first non-null, non-absent argument, without evaluating
  * the rest of the arguments. When all arguments are null or absent, returns the last argument.
  *
  * @example
