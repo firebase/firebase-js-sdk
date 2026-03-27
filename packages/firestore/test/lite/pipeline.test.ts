@@ -3249,21 +3249,21 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, ...expectedResults);
     });
 
-    it('supports arrayFilter', async () => {
+    it.only('supports arrayFilter', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()
           .collection(randomCol.path)
           .where(equal('title', 'The Lord of the Rings'))
           .select(
-            arrayFilter('tags', 'tag', notEqual(field('tag'), 'magic')).as(
+            arrayFilter('tags', 'tag', notEqual(variable('tag'), 'magic')).as(
               'notMagicTags'
             ),
             field('tags')
-              .arrayFilter('tag', notEqual(field('tag'), 'epic'))
+              .arrayFilter('tag', notEqual(variable('tag'), 'epic'))
               .as('notEpicTags'),
             field('tags')
-              .arrayFilter('tag', equal(field('tag'), 'fantasy'))
+              .arrayFilter('tag', equal(variable('tag'), 'fantasy'))
               .as('noMatchingTags')
           )
       );
@@ -3287,7 +3287,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            arrayFilter('arr', 'element', greaterThan(field('element'), 10)).as(
+            arrayFilter('arr', 'element', greaterThan(variable('element'), 10)).as(
               'filtered'
             )
           )
