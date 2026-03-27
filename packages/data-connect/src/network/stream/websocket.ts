@@ -142,11 +142,15 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
             `DataConnect WebSocket protocol error, closing stream: ${reason}`
           );
           if (this.connection) {
+            // TODO(stephenarosaj): Node environments only support close codes 1000 or 3000-4999 - update to use 3000-4999 range to specify why we're closing
             if (reason instanceof WebSocketDataConnectError) {
-              this.connection.close(reason.closeCode, reason.message);
+              this.connection.close(
+                WebSocketCloseCode.GRACEFUL_CLOSE,
+                reason.message
+              );
             } else {
               this.connection.close(
-                WebSocketCloseCode.PROTOCOL_ERROR,
+                WebSocketCloseCode.GRACEFUL_CLOSE,
                 'Protocol Error'
               );
             }

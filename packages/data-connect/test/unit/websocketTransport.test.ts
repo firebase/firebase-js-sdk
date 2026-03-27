@@ -330,7 +330,7 @@ describe('WebSocketTransport', () => {
       );
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -349,7 +349,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message did not include result'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -368,7 +368,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message result is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -387,7 +387,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message did not include requestId'
       );
       expect(logErrorStub).to.have.been.calledOnce;

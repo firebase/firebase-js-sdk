@@ -70,7 +70,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
   private _pendingClose = false;
 
-  /** TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries */
+  // TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries
   get isUnableToConnect(): boolean {
     return false;
   }
