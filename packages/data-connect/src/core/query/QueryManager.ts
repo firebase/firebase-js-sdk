@@ -419,6 +419,15 @@ export class QueryManager {
       refType: QUERY_STR
     });
     return async response => {
+      if (response.errors && response.errors.length > 0) {
+        const stringified = JSON.stringify(response.errors);
+        const error = new DataConnectError(
+          Code.OTHER,
+          'DataConnect error while received from subscribe notification: ' + stringified
+        );
+        this.publishErrorToSubscribers(key, error);
+        return;
+      }
       const fetchTime = Date.now().toString();
       const queryResult: QueryResult<Data, Variables> = {
         ref: queryRef,
