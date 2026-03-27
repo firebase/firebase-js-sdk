@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import * as logger from '../../src/logger';
 import {
   WebSocketCloseCode,
   WebSocketTransport,
@@ -41,7 +42,7 @@ interface TransportWithInternals {
   closeConnection(): Promise<void>;
   sendMessage(req: DataConnectStreamRequest<unknown>): Promise<void>;
   connection: MockWebSocket | undefined;
-  isReady: boolean;
+  streamIsReady: boolean;
   handleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
@@ -159,22 +160,22 @@ describe('WebSocketTransport', () => {
     });
   });
 
-  describe('isReady', () => {
+  describe('streamIsReady', () => {
     it('should be false initially', () => {
-      expect(transport.isReady).to.be.false;
+      expect(transport.streamIsReady).to.be.false;
     });
 
     it('should be false while connecting', async () => {
       const openPromise = transport.openConnection();
       await expectIsNotSettled(openPromise);
-      expect(transport.isReady).to.be.false;
+      expect(transport.streamIsReady).to.be.false;
     });
 
     it('should be true when connected', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
-      expect(transport.isReady).to.be.true;
+      expect(transport.streamIsReady).to.be.true;
     });
 
     it('should be false after disconnected', async () => {
@@ -182,7 +183,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateOpen();
       await openPromise;
       await transport.connection!.simulateClose();
-      expect(transport.isReady).to.be.false;
+      expect(transport.streamIsReady).to.be.false;
     });
   });
 
@@ -251,6 +252,11 @@ describe('WebSocketTransport', () => {
   });
 
   describe('handleWebSocketMessage', () => {
+    let logErrorStub: sinon.SinonStub;
+    beforeEach(() => {
+      logErrorStub = sinon.stub(logger, 'logError');
+    });
+
     const messageWithExtensions = {
       result: {
         requestId: '1',
@@ -327,6 +333,10 @@ describe('WebSocketTransport', () => {
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message is not an object'
       );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
+      );
     });
 
     it('should close connection with protocol error if result is missing', async () => {
@@ -341,6 +351,10 @@ describe('WebSocketTransport', () => {
       expect(transport.connection!.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include result'
+      );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
       );
     });
 
@@ -357,6 +371,10 @@ describe('WebSocketTransport', () => {
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message result is not an object'
       );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
+      );
     });
 
     it('should close connection with protocol error if requestId is missing', async () => {
@@ -371,6 +389,10 @@ describe('WebSocketTransport', () => {
       expect(transport.connection!.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include requestId'
+      );
+      expect(logErrorStub).to.have.been.calledOnce;
+      expect(logErrorStub).to.have.been.calledWithMatch(
+        'DataConnect WebSocket protocol error, closing stream'
       );
     });
   });

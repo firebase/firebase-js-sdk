@@ -19,6 +19,7 @@ import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { logError } from '../../logger';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
@@ -28,7 +29,17 @@ import {
 import { AbstractDataConnectStreamTransport } from './streamTransport';
 import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
 
+/** The WebSocket implementation to be used by the {@link WebSocketTransport}. */
 let connectWebSocket: typeof WebSocket | null = globalThis.WebSocket;
+
+/**
+ * This function is ONLY used for testing and for ensuring compatability in environments which may
+ * be using a poyfill and/or bundlers. It should not be called by users of the Firebase JS SDK.
+ * @internal
+ */
+export function initializeWebSocket(webSocketImpl: typeof WebSocket): void {
+  connectWebSocket = webSocketImpl;
+}
 
 /**
  * Error with associated {@link WebSocketCloseCode} to be passed to {@link WebSocket.close}
@@ -54,11 +65,6 @@ export enum WebSocketCloseCode {
   PROTOCOL_ERROR = 1002
 }
 
-/** Set the WebSocket implementation to be used by the {@link WebSocketTransport}. */
-export function initializeWebSocket(webSocketImpl: typeof WebSocket): void {
-  connectWebSocket = webSocketImpl;
-}
-
 /**
  * An {@link AbstractDataConnectStreamTransport | Stream Transport} implementation that uses {@link WebSocket | WebSockets} to stream requests and responses.
  * This class handles the lifecycle of the WebSocket connection, including automatic
@@ -69,8 +75,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   /** The current connection to the server. Undefined if disconnected. */
   private connection: WebSocket | undefined = undefined;
 
-  /** Is the connection ready to send/receive messages? */
-  get isReady(): boolean {
+  get streamIsReady(): boolean {
     return this.connection?.readyState === WebSocket.OPEN;
   }
 
@@ -108,7 +113,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * @returns A promise that resolves when the stream is open and ready.
    */
   private ensureConnection(): Promise<void> {
-    if (this.isReady) {
+    if (this.streamIsReady) {
       return Promise.resolve();
     }
     if (this.connectionAttempt) {
@@ -133,9 +138,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       };
       ws.onmessage = ev =>
         this.handleWebSocketMessage(ev).catch(async reason => {
-          console.error(
-            'DataConnect WebSocket protocol error, closing stream:',
-            reason
+          logError(
+            `DataConnect WebSocket protocol error, closing stream: ${reason}`
           );
           if (this.connection) {
             if (reason instanceof WebSocketDataConnectError) {

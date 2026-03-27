@@ -21,6 +21,7 @@ import {
   DataConnectOperationError,
   DataConnectOperationFailureResponse
 } from '../../core/error';
+import { logError } from '../../logger';
 import {
   AbstractDataConnectTransport,
   DataConnectResponse,
@@ -57,6 +58,36 @@ interface TrackedExecuteRequestPromise<Data> {
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
+  /** Optional callback invoked when the stream closes gracefully. */
+  onGracefulStreamClose?: () => void;
+
+  /** True if the physical stream connection is fully open and ready to transmit data. */
+  abstract get streamIsReady(): boolean;
+
+  /** Is the stream currently waiting to close connection? */
+  get isPendingClose(): boolean {
+    return this._pendingClose;
+  }
+  private _pendingClose = false;
+
+  /** TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries */
+  get isUnableToConnect(): boolean {
+    return false;
+  }
+
+  /** True if there are active subscriptions on the stream */
+  get hasActiveSubscriptions(): boolean {
+    return this.activeSubscribeRequests.size > 0;
+  }
+
+  /** True if there are active execute or mutation requests on the stream */
+  get hasActiveExecuteRequests(): boolean {
+    return (
+      this.activeQueryExecuteRequests.size > 0 ||
+      this.activeMutationExecuteRequests.size > 0
+    );
+  }
+
   /**
    * Open a physical connection to the server.
    * @returns a promise which resolves when the connection is ready, or rejects if it fails to open.
@@ -517,7 +548,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     // asynchronous, fire and forget
     this.sendCancelMessage(cancelBody).catch(err => {
-      console.error('Failed to send unsubscribe message', err);
+      logError(`Stream Transport failed to send unsubscribe message: ${err}`);
     });
   }
 

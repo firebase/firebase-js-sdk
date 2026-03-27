@@ -28,18 +28,50 @@ import {
 } from '../../src/network';
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { RESTTransport } from '../../src/network/rest';
+import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
+import { WebSocketTransport } from '../../src/network/stream/websocket';
 
 use(chaiAsPromised);
 use(sinonChai);
 
+/** Interface that exposes private fields of TransportManager for testing purposes. */
+interface ManagerWithInternals {
+  invokeQuery<Data, Variables>(
+    queryName: string,
+    body?: Variables
+  ): Promise<DataConnectResponseWithMaxAge<Data>>;
+  invokeMutation<Data, Variables>(
+    queryName: string,
+    body?: Variables
+  ): Promise<DataConnectResponse<Data>>;
+  invokeSubscribe<Data, Variables>(
+    notificationHook: SubscribeNotificationHook<Data>,
+    queryName: string,
+    body?: Variables
+  ): void;
+  invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void;
+  useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
+  onAuthTokenChanged: (token: string | null) => void;
+  restTransport: RESTTransport;
+  streamTransport?: AbstractDataConnectStreamTransport;
+  initStreamTransport(): AbstractDataConnectStreamTransport;
+  executeShouldUseStream(): boolean;
+}
+
 describe('DataConnectTransportManager', () => {
-  let manager: DataConnectTransportManager;
+  let manager: ManagerWithInternals;
   const options: DataConnectOptions = {
     projectId: 'test-project',
     location: 'us-central1',
     connector: 'test-connector',
     service: 'test-service'
   };
+
+  beforeEach(() => {
+    manager = new DataConnectTransportManager(
+      options
+    ) as unknown as ManagerWithInternals;
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -48,97 +80,334 @@ describe('DataConnectTransportManager', () => {
   interface TestVariables {
     key: string;
   }
-  const testVariables: TestVariables = { key: 'one' };
+  const queryName1 = 'testQuery1';
+  // const queryName2 = 'testQuery2';
+  const mutationName1 = 'testMutation1';
+  const variables1: TestVariables = { key: 'one' };
+  // const variables2: TestVariables = { key: 'two' };
 
   interface TestData {
     value: number;
   }
-  const testData: TestData = { value: 1 };
+  const testResponse = { data: { value: 1 } } as DataConnectResponse<TestData>;
 
-  it('should delegate invokeQuery to RESTTransport', async () => {
-    manager = new DataConnectTransportManager(options);
-    const stub = sinon
-      .stub(
-        (manager as unknown as { restTransport: RESTTransport }).restTransport,
-        'invokeQuery'
-      )
-      .resolves({ data: testData } as DataConnectResponseWithMaxAge<TestData>);
+  const expectedError = new Error('stream error');
 
-    await manager.invokeQuery<TestData, TestVariables>(
-      'testQuery',
-      testVariables
-    );
+  describe('stream transport initialization', () => {
+    it('initStreamTransport should initialize stream transport only once', () => {
+      expect(manager.streamTransport).to.be.undefined;
 
-    expect(stub).to.have.been.calledOnceWith('testQuery', testVariables);
+      const transport1 = manager.initStreamTransport();
+      expect(transport1).to.exist;
+      expect(manager.streamTransport).to.equal(transport1);
+
+      const transport2 = manager.initStreamTransport();
+      expect(transport2).to.equal(transport1);
+    });
   });
 
-  it('should delegate invokeMutation to RESTTransport', async () => {
-    manager = new DataConnectTransportManager(options);
-    const stub = sinon
-      .stub(
-        (manager as unknown as { restTransport: RESTTransport }).restTransport,
-        'invokeMutation'
-      )
-      .resolves({ data: testData } as DataConnectResponse<TestData>);
+  describe('default transport routing', () => {
+    let stubRestTransport: sinon.SinonStubbedInstance<RESTTransport>;
+    let stubStreamTransport: sinon.SinonStubbedInstance<WebSocketTransport>;
+    let initStreamStub: sinon.SinonStub;
+    beforeEach(() => {
+      stubRestTransport = {
+        invokeQuery: sinon.stub(),
+        invokeMutation: sinon.stub(),
+        invokeSubscribe: sinon.stub(),
+        invokeUnsubscribe: sinon.stub(),
+        useEmulator: sinon.stub(),
+        onAuthTokenChanged: sinon.stub()
+      } as unknown as sinon.SinonStubbedInstance<RESTTransport>;
+      stubStreamTransport = {
+        invokeQuery: sinon.stub(),
+        invokeMutation: sinon.stub(),
+        invokeSubscribe: sinon.stub(),
+        invokeUnsubscribe: sinon.stub(),
+        useEmulator: sinon.stub(),
+        onAuthTokenChanged: sinon.stub(),
+        hasActiveSubscriptions: false
+      } as unknown as sinon.SinonStubbedInstance<WebSocketTransport>;
+      manager.restTransport = stubRestTransport as unknown as RESTTransport;
+      initStreamStub = sinon
+        .stub(manager, 'initStreamTransport')
+        .callsFake(() => {
+          manager.streamTransport =
+            stubStreamTransport as unknown as AbstractDataConnectStreamTransport;
+          return stubStreamTransport as unknown as AbstractDataConnectStreamTransport;
+        });
+    });
 
-    await manager.invokeMutation<TestData, TestVariables>(
-      'testMutation',
-      testVariables
-    );
+    it('stream transport should not be initialized by default', () => {
+      expect(manager.streamTransport).to.be.undefined;
+      expect(initStreamStub).to.not.have.been.called;
+    });
 
-    expect(stub).to.have.been.calledOnceWith('testMutation', testVariables);
+    it('invokeQuery should route to REST by default and not initialize stream transport', async () => {
+      stubRestTransport.invokeQuery.resolves(testResponse);
+      await manager.invokeQuery<TestData, TestVariables>(
+        queryName1,
+        variables1
+      );
+      expect(stubRestTransport.invokeQuery).to.have.been.calledWith(
+        queryName1,
+        variables1
+      );
+      expect(manager.streamTransport).to.be.undefined;
+      expect(initStreamStub).to.not.have.been.called;
+    });
+
+    it('invokeMutation should route to REST by default and not initialize stream transport', async () => {
+      stubRestTransport.invokeMutation.resolves(testResponse);
+      await manager.invokeMutation<TestData, TestVariables>(
+        mutationName1,
+        variables1
+      );
+      expect(stubRestTransport.invokeMutation).to.have.been.calledWith(
+        mutationName1,
+        variables1
+      );
+      expect(manager.streamTransport).to.be.undefined;
+      expect(initStreamStub).to.not.have.been.called;
+    });
+
+    it('invokeSubscribe should route to streaming by default and initialize stream transport', () => {
+      const hook: SubscribeNotificationHook<TestData> = () => {};
+      manager.invokeSubscribe<TestData, TestVariables>(
+        hook,
+        queryName1,
+        variables1
+      );
+      expect(stubRestTransport.invokeSubscribe).to.not.have.been.called;
+      expect(stubStreamTransport.invokeSubscribe).to.have.been.calledWith(
+        hook,
+        queryName1,
+        variables1
+      );
+      expect(manager.streamTransport).to.exist;
+      expect(initStreamStub).to.have.been.called;
+    });
+
+    it('invokeUnsubscribe should route to streaming by default when stream transport is already initialized and not initialize stream transport', () => {
+      manager.invokeUnsubscribe(queryName1, variables1);
+      expect(manager.streamTransport).to.be.undefined;
+      expect(initStreamStub).to.not.have.been.called;
+      expect(stubRestTransport.invokeUnsubscribe).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+
+      manager.initStreamTransport();
+      manager.invokeUnsubscribe(queryName1, variables1);
+      expect(stubRestTransport.invokeUnsubscribe).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledWith(
+        queryName1,
+        variables1
+      );
+    });
+
+    it('useEmulator should route to REST and streaming', () => {
+      manager.initStreamTransport();
+
+      manager.useEmulator('localhost', 9000, false);
+
+      expect(stubRestTransport.useEmulator).to.have.been.calledOnceWith(
+        'localhost',
+        9000,
+        false
+      );
+      expect(stubStreamTransport.useEmulator).to.have.been.calledOnceWith(
+        'localhost',
+        9000,
+        false
+      );
+    });
+
+    it('onAuthTokenChanged should route to REST and streaming', () => {
+      manager.initStreamTransport();
+
+      manager.onAuthTokenChanged('new-token');
+
+      expect(stubRestTransport.onAuthTokenChanged).to.have.been.calledOnceWith(
+        'new-token'
+      );
+      expect(
+        stubStreamTransport.onAuthTokenChanged
+      ).to.have.been.calledOnceWith('new-token');
+    });
   });
 
-  it('should delegate invokeSubscribe to RESTTransport', () => {
-    manager = new DataConnectTransportManager(options);
-    const stub = sinon.stub(
-      (manager as unknown as { restTransport: RESTTransport }).restTransport,
-      'invokeSubscribe'
-    );
+  describe('dynamic transport routing', () => {
+    it('executeShouldUseStream should return false if streamTransport is not initialized', () => {
+      expect(manager.executeShouldUseStream()).to.be.false;
+    });
 
-    const hook: SubscribeNotificationHook<TestData> = () => {};
-    manager.invokeSubscribe<TestData, TestVariables>(
-      hook,
-      'testSub',
-      testVariables
-    );
+    it('executeShouldUseStream should return true only when all stream conditions are met', () => {
+      const streamTransport = manager.initStreamTransport();
 
-    expect(stub).to.have.been.calledOnceWith(hook, 'testSub', testVariables);
-  });
+      // Default state: not ready, no subs, no pending close
+      const streamIsReadyStub = sinon
+        .stub(streamTransport, 'streamIsReady')
+        .get(() => false);
+      const hasActiveSubscriptionsStub = sinon
+        .stub(streamTransport, 'hasActiveSubscriptions')
+        .get(() => false);
+      const isPendingCloseStub = sinon
+        .stub(streamTransport, 'isPendingClose')
+        .get(() => false);
 
-  it('should delegate invokeUnsubscribe to RESTTransport', () => {
-    manager = new DataConnectTransportManager(options);
-    const stub = sinon.stub(
-      (manager as unknown as { restTransport: RESTTransport }).restTransport,
-      'invokeUnsubscribe'
-    );
+      expect(manager.executeShouldUseStream()).to.be.false;
 
-    manager.invokeUnsubscribe<TestVariables>('testSub', testVariables);
+      // make stream ready, but still no active subscriptions
+      streamIsReadyStub.get(() => true);
+      expect(manager.executeShouldUseStream()).to.be.false;
 
-    expect(stub).to.have.been.calledOnceWith('testSub', testVariables);
-  });
+      // add active subscriptions
+      hasActiveSubscriptionsStub.get(() => true);
+      expect(manager.executeShouldUseStream()).to.be.true;
 
-  it('should delegate useEmulator to RESTTransport', () => {
-    manager = new DataConnectTransportManager(options);
-    const stub = sinon.stub(
-      (manager as unknown as { restTransport: RESTTransport }).restTransport,
-      'useEmulator'
-    );
+      // pending close overrides readiness / active subscriptions
+      isPendingCloseStub.get(() => true);
+      expect(manager.executeShouldUseStream()).to.be.false;
+    });
 
-    manager.useEmulator('localhost', 9000, false);
+    describe('invokeQuery dynamic routing', () => {
+      it('invokeQuery should route to stream if executeShouldUseStream returns true', async () => {
+        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+        const streamTransport = manager.initStreamTransport();
 
-    expect(stub).to.have.been.calledOnceWith('localhost', 9000, false);
-  });
+        const restSpy = sinon.stub(manager.restTransport, 'invokeQuery');
+        const streamSpy = sinon
+          .stub(streamTransport, 'invokeQuery')
+          .resolves(testResponse);
 
-  it('should delegate onAuthTokenChanged to RESTTransport', () => {
-    manager = new DataConnectTransportManager(options);
-    const stub = sinon.stub(
-      (manager as unknown as { restTransport: RESTTransport }).restTransport,
-      'onAuthTokenChanged'
-    );
+        await manager.invokeQuery(queryName1, variables1);
 
-    manager.onAuthTokenChanged('new-token');
+        expect(streamSpy).to.have.been.calledOnceWith(queryName1, variables1);
+        expect(restSpy).to.have.not.been.called;
+      });
 
-    expect(stub).to.have.been.calledOnceWith('new-token');
+      it('streaming invokeQuery should throw an error if stream transport throws an error and isUnableToConnect is false', async () => {
+        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+        const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+
+        const streamStub = sinon
+          .stub(streamTransport, 'invokeQuery')
+          .rejects(expectedError);
+        const restStub = sinon
+          .stub(manager.restTransport, 'invokeQuery')
+          .resolves(testResponse);
+
+        await expect(
+          manager.invokeQuery(queryName1, variables1)
+        ).to.be.rejectedWith(expectedError);
+
+        expect(streamStub).to.have.been.calledOnceWith(queryName1, variables1);
+        expect(restStub).to.not.have.been.called;
+      });
+
+      it('streaming invokeQuery should fallback to REST if stream transport throws an error and isUnableToConnect is true', async () => {
+        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+        const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+
+        const streamStub = sinon
+          .stub(streamTransport, 'invokeQuery')
+          .rejects(expectedError);
+        const restStub = sinon
+          .stub(manager.restTransport, 'invokeQuery')
+          .resolves(testResponse);
+
+        await manager.invokeQuery(queryName1, variables1);
+
+        expect(streamStub).to.have.been.calledOnceWith(queryName1, variables1);
+        expect(restStub).to.have.been.calledOnceWith(queryName1, variables1);
+      });
+    });
+
+    describe('invokeMutation dynamic routing', () => {
+      it('invokeMutation should route to stream if executeShouldUseStream() returns true', async () => {
+        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+        const streamTransport = manager.initStreamTransport();
+
+        const restSpy = sinon.stub(manager.restTransport, 'invokeMutation');
+        const streamSpy = sinon
+          .stub(streamTransport, 'invokeMutation')
+          .resolves(testResponse);
+
+        await manager.invokeMutation(mutationName1, variables1);
+
+        expect(streamSpy).to.have.been.calledOnceWith(
+          mutationName1,
+          variables1
+        );
+        expect(restSpy).to.have.not.been.called;
+      });
+
+      it('streaming invokeMutation should throw an error if stream transport throws an error and isUnableToConnect is false', async () => {
+        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+        const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+
+        const streamStub = sinon
+          .stub(streamTransport, 'invokeMutation')
+          .rejects(expectedError);
+        const restStub = sinon
+          .stub(manager.restTransport, 'invokeMutation')
+          .resolves(testResponse);
+
+        await expect(
+          manager.invokeMutation(mutationName1, variables1)
+        ).to.be.rejectedWith(expectedError);
+
+        expect(streamStub).to.have.been.calledOnceWith(
+          mutationName1,
+          variables1
+        );
+        expect(restStub).to.not.have.been.called;
+      });
+
+      it('streaming invokeMutation should fallback to REST if stream transport throws an error and isUnableToConnect is true', async () => {
+        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+        const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+
+        const streamStub = sinon
+          .stub(streamTransport, 'invokeMutation')
+          .rejects(expectedError);
+        const restStub = sinon
+          .stub(manager.restTransport, 'invokeMutation')
+          .resolves(testResponse);
+
+        await manager.invokeMutation(mutationName1, variables1);
+
+        expect(streamStub).to.have.been.calledOnceWith(
+          mutationName1,
+          variables1
+        );
+        expect(restStub).to.have.been.calledOnceWith(mutationName1, variables1);
+      });
+    });
+
+    describe('invokeSubscribe dynamic routing', () => {
+      it('invokeSubscribe should throw an error if isUnableToConnect is true', () => {
+        const hook: SubscribeNotificationHook<TestData> = () => {};
+        const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+
+        const streamStub = sinon
+          .stub(streamTransport, 'invokeSubscribe')
+          .rejects(expectedError);
+        const restStub = sinon
+          .stub(manager.restTransport, 'invokeSubscribe')
+          .resolves(testResponse);
+
+        expect(() =>
+          manager.invokeSubscribe(hook, queryName1, variables1)
+        ).to.throw('Subscriptions are unavailable');
+
+        expect(streamStub).to.not.have.been.called;
+        expect(restStub).to.not.have.been.called;
+      });
+    });
   });
 });
