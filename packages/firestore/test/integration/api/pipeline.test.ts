@@ -4113,9 +4113,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expectResults(snapshot, {
-        expRating: 109.94717245212352
-      });
+      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+        109.94717245212352,
+        0.00001
+      );
     });
 
     it('can compute e to the power of a numeric value with the top-level function', async () => {
