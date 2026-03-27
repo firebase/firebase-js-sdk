@@ -67,6 +67,7 @@ jobs:
         env:
           GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG: ${{ github.event.client_payload.versionOrTag }}
       - name: Deploy "callTest" cloud function
+        continue-on-error: true
         run: |
           pushd functions
           npm install

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+export { PipelineSource, subcollection } from './lite-api/pipeline-source';
 
 export { OneOf } from './util/types';
 
@@ -35,10 +35,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -54,12 +56,12 @@ export {
 } from './lite-api/stage_options';
 
 export {
-  field,
   constant,
   add,
   subtract,
   multiply,
   divide,
+  field,
   mod,
   equal,
   notEqual,
@@ -90,6 +92,8 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -147,6 +151,7 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   countIf,
@@ -180,7 +185,10 @@ export {
   log10,
   arraySum,
   timestampTruncate,
+  timestampExtract,
   split,
+  variable,
+  currentDocument,
   Expression,
   AliasedExpression,
   Field,
@@ -192,6 +200,7 @@ export {
   AliasedAggregate,
   Selectable,
   TimeGranularity,
+  TimePart,
   Type
 } from './lite-api/expressions';
 

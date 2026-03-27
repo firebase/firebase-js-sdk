@@ -20,6 +20,7 @@ import {
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
@@ -82,6 +83,14 @@ declare module './database' {
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
+  if (!pipeline._db) {
+    return Promise.reject(
+      new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+      )
+    );
+  }
   const datastore = getDatastore(pipeline._db);
   const firestore = cast(pipeline._db, Firestore);
 
@@ -119,7 +128,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
             userDataWriter,
             element.fields!,
             element.key?.path
-              ? new DocumentReference(pipeline._db, null, element.key)
+              ? new DocumentReference(firestore, null, element.key)
               : undefined,
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()

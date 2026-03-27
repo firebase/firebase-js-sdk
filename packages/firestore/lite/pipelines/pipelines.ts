@@ -48,7 +48,10 @@ export type {
   Bytes
 } from '../index';
 
-export { PipelineSource } from '../../src/lite-api/pipeline-source';
+export {
+  PipelineSource,
+  subcollection
+} from '../../src/lite-api/pipeline-source';
 
 export { OneOf } from '../../src/util/types';
 
@@ -65,10 +68,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -134,6 +139,8 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -186,6 +193,7 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   abs,
@@ -212,6 +220,9 @@ export {
   arraySum,
   split,
   timestampTruncate,
+  variable,
+  currentDocument,
+  timestampExtract,
   AliasedExpression,
   Field,
   Constant,
@@ -223,5 +234,6 @@ export {
   BooleanExpression,
   AggregateFunction,
   TimeGranularity,
+  TimePart,
   Type
 } from '../../src/lite-api/expressions';

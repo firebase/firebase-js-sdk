@@ -20,6 +20,7 @@ import { OneOf } from '../util/types';
 
 import {
   AliasedAggregate,
+  AliasedExpression,
   BooleanExpression,
   Expression,
   Field,
@@ -104,6 +105,19 @@ export type CollectionGroupStageOptions = StageOptions & {
    */
   forceIndex?: string;
 };
+
+/**
+ * @public
+ * Options defining how a `SubcollectionStage` is evaluated.
+ */
+export type SubcollectionStageOptions = StageOptions & {
+  /**
+   * @public
+   * The relative path to the subcollection.
+   */
+  path: string;
+};
+
 /**
  * @beta
  * Options defining how a DatabaseStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(database:1)}.
@@ -144,6 +158,17 @@ export type RemoveFieldsStageOptions = StageOptions & {
    * The fields to remove from each document.
    */
   fields: Array<Field | string>;
+};
+/**
+ * @public
+ * Options defining how a DefineStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(define:1)}.
+ */
+export type DefineStageOptions = StageOptions & {
+  /**
+   * @public
+   * The variables to define.
+   */
+  variables: AliasedExpression[];
 };
 /**
  * @beta

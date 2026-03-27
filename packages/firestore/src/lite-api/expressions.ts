@@ -26,6 +26,7 @@ import {
   JsonProtoSerializer,
   ProtoValueSerializable,
   toMapValue,
+  toPipelineValue,
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
@@ -37,6 +38,7 @@ import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
+import type { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -53,7 +55,9 @@ export type ExpressionType =
   | 'Function'
   | 'AggregateFunction'
   | 'ListOfExpressions'
-  | 'AliasedExpression';
+  | 'AliasedExpression'
+  | 'Variable'
+  | 'PipelineValue';
 
 /**
  * @beta
@@ -2086,6 +2090,27 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @public
+   * Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
+   *
+   * @example
+   * ```typescript
+   * // Get the value of the "city" field in the "address" document.
+   * field("address").getField("city")
+   * ```
+   *
+   * @param key The field to access in the document.
+   * @returns A new `Expression` representing the value of the field in the document.
+   */
+  getField(key: string | Expression): Expression {
+    return new FunctionExpression(
+      'get_field',
+      [this, valueToDefaultExpr(key)],
+      'get_field'
+    );
+  }
+
+  /**
    * @beta
    * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
    * expression or field.
@@ -2667,6 +2692,113 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
       'timestamp_subtract',
       [this, valueToDefaultExpr(unit), valueToDefaultExpr(amount)],
       'timestampSubtract'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that calculates the difference between this timestamp and another timestamp.
+   *
+   * @example
+   * ```typescript
+   * // Calculate the difference determined by fields 'startTime' and 'unit'.
+   * field("endTime").timestampDiff(field("startTime"), field("unit"));
+   * ```
+   *
+   * @param start - The expression evaluating to the starting timestamp.
+   * @param unit - The expression evaluates to a unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an integer.
+   */
+  timestampDiff(start: Expression, unit: Expression): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that calculates the difference between this timestamp and another timestamp.
+   *
+   * @example
+   * ```typescript
+   * // Calculate the difference in days between 'endTime' and 'startTime' fields.
+   * field("endTime").timestampDiff("startTime", "day");
+   * ```
+   *
+   * @param start - The field name of the starting timestamp.
+   * @param unit - The unit of time for the difference (e.g., "day", "hour").
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an integer.
+   */
+  timestampDiff(
+    start: string | Expression,
+    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'
+  ): FunctionExpression;
+  timestampDiff(
+    start: string | Expression,
+    unit:
+      | 'microsecond'
+      | 'millisecond'
+      | 'second'
+      | 'minute'
+      | 'hour'
+      | 'day'
+      | Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'timestamp_diff',
+      [this, fieldOrExpression(start), valueToDefaultExpr(unit)],
+      'timestampDiff'
+    );
+  }
+
+  /**
+   * @beta
+   * Creates an expression that extracts a specified part from this timestamp expression.
+   *
+   * @example
+   * ```typescript
+   * // Extract the year from the 'createdAt' field.
+   * field('createdAt').timestampExtract('year')
+   * ```
+   *
+   * @param part - The part to extract from the timestamp (e.g., "year", "month", "day").
+   * @param timezone - The timezone to use for extraction. Valid values are from
+   * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the extracted part as an integer.
+   */
+  timestampExtract(
+    part: TimePart,
+    timezone?: string | Expression
+  ): FunctionExpression;
+
+  /**
+   * @beta
+   * Creates an expression that extracts a specified part from this timestamp expression.
+   *
+   * @example
+   * ```typescript
+   * // Extract the part specified by the field 'extractionPart' from 'createdAt'.
+   * field('createdAt').timestampExtract(field('extractionPart'))
+   * ```
+   *
+   * @param part - The expression evaluating to the part to extract.
+   * @param timezone - The timezone to use for extraction. Valid values are from
+   * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the extracted part as an integer.
+   */
+  timestampExtract(
+    part: Expression,
+    timezone?: string | Expression
+  ): FunctionExpression;
+  timestampExtract(
+    part: TimePart | Expression,
+    timezone?: string | Expression
+  ): FunctionExpression {
+    const internalPart = isString(part) ? part.toLowerCase() : part;
+    const args = [this, valueToDefaultExpr(internalPart)];
+    if (timezone) {
+      args.push(valueToDefaultExpr(timezone));
+    }
+    return new FunctionExpression(
+      'timestamp_extract',
+      args,
+      'timestampExtract'
     );
   }
 
@@ -3434,6 +3566,12 @@ export type TimeGranularity =
   | 'quarter'
   | 'year'
   | 'isoYear';
+
+/**
+ * @beta
+ * Specify time parts for `timestampExtract` expressions.
+ */
+export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 
 /**
  * @beta
@@ -8909,6 +9047,72 @@ export function mapEntries(
 }
 
 /**
+ * @public
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField(field("address"), "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(expression: Expression, key: string): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the key resulting from the "addressField" variable in the "address" document.
+ * getField(field("address", variable("addressField")),
+ * ```
+ *
+ * @param key The expression representing the key to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(
+  expression: Expression,
+  keyExpr: Expression
+): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, key: string): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", variable("addressField"))
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, keyExpr: Expression): Expression;
+export function getField(
+  fieldOrExpr: string | Expression,
+  keyOrExpr: string | Expression
+): Expression {
+  return fieldOrExpression(fieldOrExpr).getField(keyOrExpr);
+}
+
+/**
  * @beta
  *
  * Creates an aggregation that counts the total number of stage inputs.
@@ -10040,6 +10244,37 @@ export function or(
 
 /**
  * @beta
+ *
+ * Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
+ *
+ * @example
+ * ```typescript
+ * // Check if neither the 'age' field is greater than 18 nor the 'city' field is "London"
+ * const condition = nor(
+ *   greaterThan("age", 18),
+ *   equal("city", "London")
+ * );
+ * ```
+ *
+ * @param first - The first filter condition.
+ * @param second - The second filter condition.
+ * @param more - Additional filter conditions to 'NOR' together.
+ * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the logical 'NOR' operation.
+ */
+export function nor(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression {
+  return new FunctionExpression(
+    'nor',
+    [first, second, ...more],
+    'nor'
+  ).asBoolean();
+}
+
+/**
+ * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
  *
  * @example
@@ -10685,6 +10920,48 @@ export function ifAbsent(
 
 /**
  * @beta
+ * Creates an expression that evaluates to the result corresponding to the first true condition.
+ *
+ * @remarks
+ * This function behaves like a `switch` statement. It accepts an alternating sequence of conditions
+ * and their corresponding results.
+ * If an odd number of arguments is provided, the final argument serves as a default fallback result.
+ * If no default is provided and no condition evaluates to true, it throws an error.
+ *
+ * @example
+ * ```typescript
+ * // Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
+ * // and default to "Unknown" if none of the conditions are true.
+ * switchOn(
+ *   equal(field("status"), 1), constant("Active"),
+ *   equal(field("status"), 2), constant("Pending"),
+ *   constant("Unknown")
+ * )
+ * ```
+ *
+ * @param condition - The first condition to check.
+ * @param result - The result if the first condition is true.
+ * @param others - Additional conditions and results, and optionally a default value.
+ * @returns A new Expression representing the switch operation.
+ */
+export function switchOn(
+  condition: BooleanExpression,
+  result: Expression,
+  ...others: Array<BooleanExpression | Expression>
+): FunctionExpression {
+  return new FunctionExpression(
+    'switch_on',
+    [
+      valueToDefaultExpr(condition),
+      valueToDefaultExpr(result),
+      ...others.map(valueToDefaultExpr)
+    ],
+    'switchOn'
+  );
+}
+
+/**
+ * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
  * @example
@@ -10922,7 +11199,7 @@ export function split(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the beginning of the day.
- * field('createdAt').timestampTruncate('day')
+ * timestampTruncate('createdAt', 'day')
  * ```
  *
  * @param fieldName - Truncate the timestamp value contained in this field.
@@ -10944,7 +11221,7 @@ export function timestampTruncate(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
- * field('createdAt').timestampTruncate(field('granularity'))
+ * timestampTruncate('createdAt', field('granularity'))
  * ```
  *
  * @param fieldName - Truncate the timestamp value contained in this field.
@@ -10966,7 +11243,7 @@ export function timestampTruncate(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the beginning of the day.
- * field('createdAt').timestampTruncate('day')
+ * timestampTruncate(field('createdAt'), 'day')
  * ```
  *
  * @param timestampExpression - Truncate the timestamp value that is returned by this expression.
@@ -10988,7 +11265,7 @@ export function timestampTruncate(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
- * field('createdAt').timestampTruncate(field('granularity'))
+ * timestampTruncate(field('createdAt'), field('granularity'))
  * ```
  *
  * @param timestampExpression - Truncate the timestamp value that is returned by this expression.
@@ -11012,6 +11289,343 @@ export function timestampTruncate(
     : granularity;
   return fieldOrExpression(fieldNameOrExpression).timestampTruncate(
     internalGranularity,
+    timezone
+  );
+}
+
+/**
+ * @public
+ * Creates an expression that retrieves the value of a variable bound via `define()`.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection("products")
+ *   .define(
+ *     field("price").multiply(0.9).as("discountedPrice"),
+ *     field("stock").add(10).as("newStock")
+ *   )
+ *   .where(variable("discountedPrice").lessThan(100))
+ *   .select(field("name"), variable("newStock"));
+ * ```
+ *
+ * @param name - The name of the variable to retrieve.
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the variable's value.
+ */
+export function variable(name: string): Expression {
+  return new VariableExpression(name);
+}
+
+/**
+ * @internal
+ *
+ * Expression representing a variable reference. This evaluates to the value of a variable
+ * defined in a pipeline.
+ */
+export class VariableExpression extends Expression {
+  readonly _methodName?: string | undefined;
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly name: string) {
+    super();
+  }
+
+  expressionType: ExpressionType = 'Variable';
+
+  /**
+   * @internal
+   */
+  _toProto(_: JsonProtoSerializer): ProtoValue {
+    return {
+      variableReferenceValue: this.name
+    };
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(_: ParseContext): void {}
+}
+
+/**
+ * @public
+ * Creates an expression that represents the current document being processed.
+ *
+ * @example
+ * ```typescript
+ * // Define the current document as a variable "doc"
+ * firestore.pipeline().collection("books")
+ *     .define(currentDocument().as("doc"))
+ *     // Access a field from the defined document variable
+ *     .select(variable("doc").mapGet("title"));
+ * ```
+ *
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the current document.
+ */
+export function currentDocument(): Expression {
+  return new FunctionExpression('current_document', []);
+}
+
+/**
+ * @internal
+ */
+export function pipelineValue(pipeline: Pipeline): PipelineValueExpression {
+  return new PipelineValueExpression(pipeline);
+}
+
+/**
+ * @internal
+ */
+class PipelineValueExpression extends Expression {
+  readonly _methodName?: string | undefined;
+  expressionType: ExpressionType = 'PipelineValue';
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly pipeline: Pipeline) {
+    super();
+  }
+
+  /**
+   * @internal
+   */
+  _toProto(jsonProtoSerializer: JsonProtoSerializer): ProtoValue {
+    return toPipelineValue(this.pipeline._toProto(jsonProtoSerializer));
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(context: ParseContext): void {
+    this.pipeline._readUserData(context);
+  }
+}
+
+/*
+ * @beta
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between 'endTime' and 'startTime' fields.
+ * timestampDiff('endTime', 'startTime', 'day')
+ * ```
+ *
+ * @param endFieldName - The name of the field representing the ending timestamp.
+ * @param startFieldName - The name of the field representing the starting timestamp.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endFieldName: string,
+  startFieldName: string,
+  unit:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between 'endTime' field and a starting timestamp expression.
+ * timestampDiff('endTime', field('startTime'), 'day')
+ * ```
+ *
+ * @param endFieldName - The name of the field representing the ending timestamp.
+ * @param startExpression - The starting timestamp for the difference calculation.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endFieldName: string,
+  startExpression: Expression,
+  unit:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between an ending timestamp expression and 'startTime' field.
+ * timestampDiff(field('endTime'), 'startTime', 'day')
+ * ```
+ *
+ * @param endExpression - The ending timestamp for the difference calculation.
+ * @param startFieldName - The name of the field representing the starting timestamp.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endExpression: Expression,
+  startFieldName: string,
+  unit:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between two timestamp expressions.
+ * timestampDiff(field('endTime'), field('startTime'), 'day')
+ * ```
+ *
+ * @param endExpression - The ending timestamp for the difference calculation.
+ * @param startExpression - The starting timestamp for the difference calculation.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endExpression: Expression,
+  startExpression: Expression,
+  unit:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | Expression
+): FunctionExpression;
+export function timestampDiff(
+  endFieldNameOrExpression: string | Expression,
+  startFieldNameOrExpression: string | Expression,
+  unit:
+    | 'microsecond'
+    | 'millisecond'
+    | 'second'
+    | 'minute'
+    | 'hour'
+    | 'day'
+    | Expression
+): FunctionExpression {
+  const normalizedEnd = fieldOrExpression(endFieldNameOrExpression);
+  const normalizedStart = fieldOrExpression(startFieldNameOrExpression);
+  const normalizedUnit = valueToDefaultExpr(unit);
+  return normalizedEnd.timestampDiff(normalizedStart, normalizedUnit);
+}
+
+/**
+ * @beta
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the year from the 'createdAt' timestamp.
+ * timestampExtract('createdAt', 'year')
+ * ```
+ *
+ * @param fieldName - The name of the field representing the timestamp.
+ * @param part - The part to extract from the timestamp (e.g., "year", "month", "day").
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  fieldName: string,
+  part: TimePart,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the part specified by the field 'part' from 'createdAt'.
+ * timestampExtract('createdAt', field('part'))
+ * ```
+ *
+ * @param fieldName - The name of the field representing the timestamp.
+ * @param part - The expression evaluating to the part to extract.
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  fieldName: string,
+  part: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the year from the timestamp returned by the expression.
+ * timestampExtract(field('createdAt'), 'year')
+ * ```
+ *
+ * @param timestampExpression - The expression evaluating to the timestamp.
+ * @param part - The part to extract from the timestamp (e.g., "year", "month", "day").
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  timestampExpression: Expression,
+  part: TimePart,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * @beta
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the part specified by the field 'part' from the timestamp.
+ * timestampExtract(field('createdAt'), field('part'))
+ * ```
+ *
+ * @param timestampExpression - The expression evaluating to the timestamp.
+ * @param part - The expression evaluating to the part to extract.
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  timestampExpression: Expression,
+  part: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
+export function timestampExtract(
+  fieldNameOrExpression: string | Expression,
+  part: TimePart | Expression,
+  timezone?: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).timestampExtract(
+    valueToDefaultExpr(isString(part) ? part.toLowerCase() : part),
     timezone
   );
 }
@@ -11162,6 +11776,10 @@ export function isExpr(val: unknown): val is Expression {
 
 export function isBooleanExpr(val: unknown): val is BooleanExpression {
   return val instanceof BooleanExpression;
+}
+
+export function isAliasedExpr(val: unknown): val is AliasedExpression {
+  return val instanceof AliasedExpression;
 }
 
 export function isField(val: unknown): val is Field {
