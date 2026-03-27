@@ -9503,7 +9503,7 @@ ifAbsent(field("optional_field"), "default_value")
 
 Creates an expression that returns the `elseExpr` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
 
-This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -9540,7 +9540,7 @@ ifNull(field("preferredName"), field("fullName"))
 
 Creates an expression that returns the `elseValue` argument if `ifExpr` is null, else return the result of the `ifExpr` argument evaluation.
 
-This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -9651,7 +9651,7 @@ ifAbsent("optional_field", "default_value")
 
 Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null, else return the value of the field.
 
-This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -9688,7 +9688,7 @@ ifNull("preferredName", field("fullName"))
 
 Creates an expression that returns the `elseValue` argument if `ifFieldName` field is null, else return the value of the field.
 
-This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
 
 <b>Signature:</b>
 

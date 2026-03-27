@@ -2583,7 +2583,7 @@ field("title").arrayGet(0).ifError("Default Title");
 
 Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else return the result of this expression evaluation.
 
-This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
 
 <b>Signature:</b>
 
@@ -2619,7 +2619,7 @@ field("preferredName").ifNull(field("fullName"))
 
 Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else return the result of this expression evaluation.
 
-This function provides a fallback for both absent and explicit null values. In contrast,  only triggers for missing fields.
+This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
 
 <b>Signature:</b>
 

@@ -3257,7 +3257,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @remarks
    * This function provides a fallback for both absent and explicit null values. In contrast,
-   * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
+   * `ifAbsent()` only triggers for missing fields.
    *
    * @example
    * ```typescript
@@ -3277,7 +3277,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    *
    * @remarks
    * This function provides a fallback for both absent and explicit null values. In contrast,
-   * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
+   * `ifAbsent()` only triggers for missing fields.
    *
    * @example
    * ```typescript
@@ -10753,7 +10753,7 @@ export function ifAbsent(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
+ * `ifAbsent()` only triggers for missing fields.
  *
  * @example
  * ```typescript
@@ -10777,7 +10777,7 @@ export function ifNull(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
+ * `ifAbsent()` only triggers for missing fields.
  *
  * @example
  * ```typescript
@@ -10801,7 +10801,7 @@ export function ifNull(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
+ * `ifAbsent()` only triggers for missing fields.
  *
  * @example
  * ```typescript
@@ -10825,7 +10825,7 @@ export function ifNull(
  *
  * @remarks
  * This function provides a fallback for both absent and explicit null values. In contrast,
- * {@link @firebase/firestore/pipelines#ifAbsent} only triggers for missing fields.
+ * `ifAbsent()` only triggers for missing fields.
  *
  * @example
  * ```typescript
