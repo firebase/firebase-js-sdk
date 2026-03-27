@@ -2747,11 +2747,11 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   /**
    * @beta
    *
-   * Creates an expression that returns the parent of a document reference.
+   * Creates an expression that returns the parent document reference of a document reference.
    *
    * @example
    * ```typescript
-   * // Get the parent of a document reference.
+   * // Get the parent document reference of a document reference.
    * field("__path__").parent();
    * ```
    *
@@ -4699,11 +4699,11 @@ export function documentId(
 /**
  * @beta
  *
- * Creates an expression that returns the parent of a document reference.
+ * Creates an expression that returns the parent document reference of a document reference.
  *
  * @example
  * ```typescript
- * // Get the parent of a document reference.
+ * // Get the parent document reference of a document reference.
  * parent(myDocumentReference);
  * ```
  *
@@ -4717,11 +4717,11 @@ export function parent(
 /**
  * @beta
  *
- * Creates an expression that returns the parent of a document reference.
+ * Creates an expression that returns the parent document reference of a document reference.
  *
  * @example
  * ```typescript
- * // Get the parent of a document reference.
+ * // Get the parent document reference of a document reference.
  * parent(field("__path__"));
  * ```
  *
