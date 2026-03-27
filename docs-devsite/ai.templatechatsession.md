@@ -17,7 +17,7 @@ ChatSession class that enables sending chat messages and stores history of sent 
 ```typescript
 export declare class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> 
 ```
-<b>Extends:</b> ChatSessionBase&lt;[StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface)<!-- -->, TemplateRequestInternal, [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface)<!-- -->&gt;
+<b>Extends:</b> [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class)<!-- -->&lt;[StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface)<!-- -->, TemplateRequestInternal, [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface)<!-- -->&gt;
 
 ## Constructors
 

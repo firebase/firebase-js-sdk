@@ -139,8 +139,6 @@ export class BooleanSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// Warning: (ae-forgotten-export) The symbol "ChatSessionBase" needs to be exported by the entry point index.d.ts
-//
 // @public
 export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
@@ -159,6 +157,31 @@ export class ChatSession extends ChatSessionBase<StartChatParams, GenerateConten
     requestOptions?: RequestOptions | undefined;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+}
+
+// @public
+export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
+    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
+    // (undocumented)
+    protected _apiSettings: ApiSettings;
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
+    getHistory(): Promise<Content[]>;
+    // (undocumented)
+    protected _history: Content[];
+    // (undocumented)
+    params?: ParamsType | undefined;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    protected _sendPromise: Promise<void>;
 }
 
 // @beta
@@ -1342,7 +1365,7 @@ export interface StartChatParams extends BaseParams {
 }
 
 // @public
-export interface StartTemplateChatParams extends BaseParams {
+export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     // (undocumented)
     history?: Content[];
     // (undocumented)

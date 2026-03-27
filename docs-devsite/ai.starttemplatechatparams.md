@@ -15,9 +15,9 @@ Params for [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md
 <b>Signature:</b>
 
 ```typescript
-export interface StartTemplateChatParams extends BaseParams 
+export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> 
 ```
-<b>Extends:</b> [BaseParams](./ai.baseparams.md#baseparams_interface)
+<b>Extends:</b> Omit&lt;[StartChatParams](./ai.startchatparams.md#startchatparams_interface)<!-- -->, 'tools'&gt;
 
 ## Properties
 

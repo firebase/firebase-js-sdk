@@ -28,6 +28,8 @@ toc:
     path: /docs/reference/js/ai.booleanschema.md
   - title: ChatSession
     path: /docs/reference/js/ai.chatsession.md
+  - title: ChatSessionBase
+    path: /docs/reference/js/ai.chatsessionbase.md
   - title: ChromeAdapter
     path: /docs/reference/js/ai.chromeadapter.md
   - title: Citation

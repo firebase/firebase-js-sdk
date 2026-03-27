@@ -17,7 +17,7 @@ ChatSession class that enables sending chat messages and stores history of sent 
 ```typescript
 export declare class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> 
 ```
-<b>Extends:</b> ChatSessionBase&lt;[StartChatParams](./ai.startchatparams.md#startchatparams_interface)<!-- -->, [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface)<!-- -->, [FunctionDeclarationsTool](./ai.functiondeclarationstool.md#functiondeclarationstool_interface)<!-- -->&gt;
+<b>Extends:</b> [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class)<!-- -->&lt;[StartChatParams](./ai.startchatparams.md#startchatparams_interface)<!-- -->, [GenerateContentRequest](./ai.generatecontentrequest.md#generatecontentrequest_interface)<!-- -->, [FunctionDeclarationsTool](./ai.functiondeclarationstool.md#functiondeclarationstool_interface)<!-- -->&gt;
 
 ## Constructors
 

@@ -249,7 +249,8 @@ export interface StartChatParams extends BaseParams {
  * Params for {@link TemplateGenerativeModel.startChat}.
  * @public
  */
-export interface StartTemplateChatParams extends BaseParams {
+export interface StartTemplateChatParams
+  extends Omit<StartChatParams, 'tools'> {
   templateId: string;
   templateVariables?: Record<string, unknown>;
   history?: Content[];
