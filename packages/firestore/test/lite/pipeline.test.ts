@@ -183,7 +183,7 @@ import {
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();

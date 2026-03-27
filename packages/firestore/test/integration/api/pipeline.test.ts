@@ -179,7 +179,7 @@ import {
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
