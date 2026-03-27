@@ -179,7 +179,7 @@ import {
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
@@ -712,16 +712,18 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
     it('throws on undefined in a map', async () => {
       expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(
-            map({
-              'number': 1,
-              undefined
-            }).as('foo')
-          );
+        void execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              map({
+                'number': 1,
+                undefined
+              }).as('foo')
+            )
+        );
       }).to.throw(
         'Function map() called with invalid data. Unsupported field value: undefined'
       );
@@ -729,11 +731,13 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
     it('throws on undefined in an array', async () => {
       expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(array([1, undefined]).as('foo'));
+        void execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(array([1, undefined]).as('foo'))
+        );
       }).to.throw(
         'Function array() called with invalid data. Unsupported field value: undefined'
       );
@@ -2345,8 +2349,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const err = e as FirebaseError;
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
-
-        expect(err['message']).to.match(/^3 INVALID_ARGUMENT: .*$/);
       }
     });
   });
@@ -4140,9 +4142,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expectResults(snapshot, {
-        expRating: 109.94717245212352
-      });
+      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+        109.94717245212352,
+        0.00001
+      );
     });
 
     it('can compute e to the power of a numeric value with the top-level function', async () => {

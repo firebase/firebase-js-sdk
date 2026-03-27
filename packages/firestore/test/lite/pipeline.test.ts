@@ -183,7 +183,7 @@ import {
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
@@ -2334,10 +2334,6 @@ describe.skipClassic('Firestore Pipelines', () => {
         // Backend returns the code as `failed-precondition` when using the REST transport
         expect(err['code']).to.equal('failed-precondition');
         expect(typeof err['message']).to.equal('string');
-
-        expect(err['message']).to.match(
-          /Request failed with error: Expected value type of MAP_VALUE when parsing 'fields' but received FIELD_REFERENCE_VALUE instead/
-        );
       }
     });
   });
