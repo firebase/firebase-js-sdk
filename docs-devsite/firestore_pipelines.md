@@ -63,6 +63,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [not(booleanExpr)](./firestore_pipelines.md#not_c5b8fb1) | <b><i>(Public Preview)</i></b> Creates an expression that negates a filter condition. |
 |  <b>function(condition, ...)</b> |
 |  [conditional(condition, thenExpr, elseExpr)](./firestore_pipelines.md#conditional_07a206d) | <b><i>(Public Preview)</i></b> Creates a conditional expression that evaluates to a 'then' expression if a condition is true and an 'else' expression if the condition is false. |
+|  [switchOn(condition, result, others)](./firestore_pipelines.md#switchon_02b8caf) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
 |  [documentId(documentPath)](./firestore_pipelines.md#documentid_cef293c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
 |  <b>function(documentPathExpr, ...)</b> |
@@ -73,6 +74,12 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(elements, ...)</b> |
 |  [array(elements)](./firestore_pipelines.md#array_7d853aa) | <b><i>(Public Preview)</i></b> Creates an expression that creates a Firestore array value from an input array. |
 |  [map(elements)](./firestore_pipelines.md#map_ce5dee1) | <b><i>(Public Preview)</i></b> Creates an expression that creates a Firestore map value from an input object. |
+|  <b>function(endExpression, ...)</b> |
+|  [timestampDiff(endExpression, startFieldName, unit)](./firestore_pipelines.md#timestampdiff_4370feb) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endExpression, startExpression, unit)](./firestore_pipelines.md#timestampdiff_bc0830f) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
+|  <b>function(endFieldName, ...)</b> |
+|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_pipelines.md#timestampdiff_f60102c) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endFieldName, startExpression, unit)](./firestore_pipelines.md#timestampdiff_6e54d92) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(expr, ...)</b> |
 |  [abs(expr)](./firestore_pipelines.md#abs_005f3d4) | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
 |  [ascending(expr)](./firestore_pipelines.md#ascending_005f3d4) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on an expression. |
@@ -248,8 +255,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [subtract(fieldName, expression)](./firestore_pipelines.md#subtract_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts an expression from a field's value. |
 |  [subtract(fieldName, value)](./firestore_pipelines.md#subtract_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from a field's value. |
 |  [sum(fieldName)](./firestore_pipelines.md#sum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a field's values across multiple stage inputs. |
-|  [timestampAdd(fieldName, unit, amount)](./firestore_pipelines.md#timestampadd_341fe7d) | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to a timestamp represented by a field. |
-|  [timestampSubtract(fieldName, unit, amount)](./firestore_pipelines.md#timestampsubtract_341fe7d) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp represented by a field. |
+|  [timestampAdd(fieldName, unit, amount)](./firestore_pipelines.md#timestampadd_3b0a297) | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to a timestamp represented by a field. |
+|  [timestampExtract(fieldName, part, timezone)](./firestore_pipelines.md#timestampextract_a51c205) | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampExtract(fieldName, part, timezone)](./firestore_pipelines.md#timestampextract_2d51eac) | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampSubtract(fieldName, unit, amount)](./firestore_pipelines.md#timestampsubtract_3b0a297) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp represented by a field. |
 |  [timestampToUnixMicros(fieldName)](./firestore_pipelines.md#timestamptounixmicros_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
 |  [timestampToUnixMillis(fieldName)](./firestore_pipelines.md#timestamptounixmillis_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
 |  [timestampToUnixSeconds(fieldName)](./firestore_pipelines.md#timestamptounixseconds_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
@@ -272,6 +281,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [logicalMaximum(first, second, others)](./firestore_pipelines.md#logicalmaximum_83be015) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
 |  [logicalMinimum(first, second, others)](./firestore_pipelines.md#logicalminimum_83be015) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest value between multiple input expressions and literal values. Based on Firestore's value type ordering. |
 |  [multiply(first, second)](./firestore_pipelines.md#multiply_846ca1b) | <b><i>(Public Preview)</i></b> Creates an expression that multiplies two expressions together. |
+|  [nor(first, second, more)](./firestore_pipelines.md#nor_e0c48bd) | <b><i>(Public Preview)</i></b> Creates an expression that performs a logical 'NOR' operation on multiple filter conditions. |
 |  [or(first, second, more)](./firestore_pipelines.md#or_e0c48bd) | <b><i>(Public Preview)</i></b> Creates an expression that performs a logical 'OR' operation on multiple filter conditions. |
 |  [xor(first, second, additionalConditions)](./firestore_pipelines.md#xor_8197113) | <b><i>(Public Preview)</i></b> Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions. |
 |  <b>function(firstArray, ...)</b> |
@@ -352,10 +362,12 @@ https://github.com/firebase/firebase-js-sdk
 |  [trim(stringExpression, valueToTrim)](./firestore_pipelines.md#trim_dd54322) | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array expression. |
 |  <b>function(timestamp, ...)</b> |
 |  [timestampAdd(timestamp, unit, amount)](./firestore_pipelines.md#timestampadd_98418f9) | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to a timestamp. |
-|  [timestampAdd(timestamp, unit, amount)](./firestore_pipelines.md#timestampadd_ffe8e57) | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to a timestamp. |
+|  [timestampAdd(timestamp, unit, amount)](./firestore_pipelines.md#timestampadd_06ef927) | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to a timestamp. |
 |  [timestampSubtract(timestamp, unit, amount)](./firestore_pipelines.md#timestampsubtract_98418f9) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp. |
-|  [timestampSubtract(timestamp, unit, amount)](./firestore_pipelines.md#timestampsubtract_ffe8e57) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp. |
+|  [timestampSubtract(timestamp, unit, amount)](./firestore_pipelines.md#timestampsubtract_06ef927) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp. |
 |  <b>function(timestampExpression, ...)</b> |
+|  [timestampExtract(timestampExpression, part, timezone)](./firestore_pipelines.md#timestampextract_b2f8f48) | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from a timestamp. |
+|  [timestampExtract(timestampExpression, part, timezone)](./firestore_pipelines.md#timestampextract_73e0311) | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from a timestamp. |
 |  [timestampTruncate(timestampExpression, granularity, timezone)](./firestore_pipelines.md#timestamptruncate_ad5d843) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
 |  [timestampTruncate(timestampExpression, granularity, timezone)](./firestore_pipelines.md#timestamptruncate_d6ab2a4) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
 |  <b>function(tryExpr, ...)</b> |
@@ -451,6 +463,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [SetOptions](./firestore_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [TimeGranularity](./firestore_pipelines.md#timegranularity) | <b><i>(Public Preview)</i></b> Specify time granularity for expressions. |
+|  [TimePart](./firestore_pipelines.md#timepart) | <b><i>(Public Preview)</i></b> Specify time parts for <code>timestampExtract</code> expressions. |
+|  [TimeUnit](./firestore_pipelines.md#timeunit) | <b><i>(Public Preview)</i></b> Specify time units for expressions. |
 |  [Type](./firestore_pipelines.md#type) | <b><i>(Public Preview)</i></b> An enumeration of the different types generated by the Firestore backend.<ul> <li>Numerics evaluate directly to backend representation (<code>int64</code> or <code>float64</code>), not JS <code>number</code>.</li> <li>JavaScript <code>Date</code> and firestore <code>Timestamp</code> objects strictly evaluate to <code>'timestamp'</code>.</li> <li>Advanced configurations parsing backend types (such as <code>decimal128</code>, <code>max_key</code> or <code>min_key</code> from BSON) are also incorporated in this union string type. Note that <code>decimal128</code> is a backend-only numeric type that the JavaScript SDK cannot create natively, but can be evaluated in pipelines.</li> </ul> |
 |  [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
 |  [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) | <b><i>(Public Preview)</i></b> Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
@@ -1854,6 +1868,49 @@ conditional(
 
 ```
 
+### switchOn(condition, result, others) {:#switchon_02b8caf}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that evaluates to the result corresponding to the first true condition.
+
+This function behaves like a `switch` statement. It accepts an alternating sequence of conditions and their corresponding results. If an odd number of arguments is provided, the final argument serves as a default fallback result. If no default is provided and no condition evaluates to true, it throws an error.
+
+<b>Signature:</b>
+
+```typescript
+export declare function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  condition | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The first condition to check. |
+|  result | [Expression](./firestore_pipelines.expression.md#expression_class) | The result if the first condition is true. |
+|  others | Array&lt;[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) \| [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->&gt; | Additional conditions and results, and optionally a default value. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new Expression representing the switch operation.
+
+### Example
+
+
+```typescript
+// Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
+// and default to "Unknown" if none of the conditions are true.
+switchOn(
+  equal(field("status"), 1), constant("Active"),
+  equal(field("status"), 2), constant("Pending"),
+  constant("Unknown")
+)
+
+```
+
 ## function(documentPath, ...)
 
 ### documentId(documentPath) {:#documentid_cef293c}
@@ -2065,6 +2122,154 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Create a map from the input object and reference the 'baz' field value from the input document.
 map({foo: 'bar', baz: field('baz')}).as('data');
+
+```
+
+## function(endExpression, ...)
+
+### timestampDiff(endExpression, startFieldName, unit) {:#timestampdiff_4370feb}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between two timestamps.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampDiff(endExpression: Expression, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  endExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The ending timestamp for the difference calculation. |
+|  startFieldName | string | The name of the field representing the starting timestamp. |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) \| [Expression](./firestore_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the difference as an integer.
+
+### Example
+
+
+```typescript
+// Calculate the difference in days between an ending timestamp expression and 'startTime' field.
+timestampDiff(field('endTime'), 'startTime', 'day')
+
+```
+
+### timestampDiff(endExpression, startExpression, unit) {:#timestampdiff_bc0830f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between two timestamps.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampDiff(endExpression: Expression, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  endExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The ending timestamp for the difference calculation. |
+|  startExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The starting timestamp for the difference calculation. |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) \| [Expression](./firestore_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the difference as an integer.
+
+### Example
+
+
+```typescript
+// Calculate the difference in days between two timestamp expressions.
+timestampDiff(field('endTime'), field('startTime'), 'day')
+
+```
+
+## function(endFieldName, ...)
+
+### timestampDiff(endFieldName, startFieldName, unit) {:#timestampdiff_f60102c}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between two timestamps.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  endFieldName | string | The name of the field representing the ending timestamp. |
+|  startFieldName | string | The name of the field representing the starting timestamp. |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) \| [Expression](./firestore_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the difference as an integer.
+
+### Example
+
+
+```typescript
+// Calculate the difference in days between 'endTime' and 'startTime' fields.
+timestampDiff('endTime', 'startTime', 'day')
+
+```
+
+### timestampDiff(endFieldName, startExpression, unit) {:#timestampdiff_6e54d92}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between two timestamps.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampDiff(endFieldName: string, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  endFieldName | string | The name of the field representing the ending timestamp. |
+|  startExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The starting timestamp for the difference calculation. |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) \| [Expression](./firestore_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the difference as an integer.
+
+### Example
+
+
+```typescript
+// Calculate the difference in days between 'endTime' field and a starting timestamp expression.
+timestampDiff('endTime', field('startTime'), 'day')
 
 ```
 
@@ -7993,7 +8198,7 @@ sum("orderAmount").as("totalRevenue");
 
 ```
 
-### timestampAdd(fieldName, unit, amount) {:#timestampadd_341fe7d}
+### timestampAdd(fieldName, unit, amount) {:#timestampadd_3b0a297}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -8003,7 +8208,7 @@ Creates an expression that adds a specified amount of time to a timestamp repres
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampAdd(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export declare function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 ```
 
 #### Parameters
@@ -8011,7 +8216,7 @@ export declare function timestampAdd(fieldName: string, unit: 'microsecond' | 'm
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field representing the timestamp. |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to add (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time to add (e.g., "day", "hour"). |
 |  amount | number | The amount of time to add. |
 
 <b>Returns:</b>
@@ -8029,7 +8234,79 @@ timestampAdd("timestamp", "day", 1);
 
 ```
 
-### timestampSubtract(fieldName, unit, amount) {:#timestampsubtract_341fe7d}
+### timestampExtract(fieldName, part, timezone) {:#timestampextract_a51c205}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that extracts a specified part from a timestamp.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field representing the timestamp. |
+|  part | [TimePart](./firestore_pipelines.md#timepart) | The part to extract from the timestamp (e.g., "year", "month", "day"). |
+|  timezone | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The timezone to use for extraction. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1." |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the extracted part as an integer.
+
+### Example
+
+
+```typescript
+// Extract the year from the 'createdAt' timestamp.
+timestampExtract('createdAt', 'year')
+
+```
+
+### timestampExtract(fieldName, part, timezone) {:#timestampextract_2d51eac}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that extracts a specified part from a timestamp.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampExtract(fieldName: string, part: Expression, timezone?: string | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field representing the timestamp. |
+|  part | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluating to the part to extract. |
+|  timezone | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The timezone to use for extraction. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1." |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the extracted part as an integer.
+
+### Example
+
+
+```typescript
+// Extract the part specified by the field 'part' from 'createdAt'.
+timestampExtract('createdAt', field('part'))
+
+```
+
+### timestampSubtract(fieldName, unit, amount) {:#timestampsubtract_3b0a297}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -8039,7 +8316,7 @@ Creates an expression that subtracts a specified amount of time from a timestamp
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampSubtract(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export declare function timestampSubtract(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 ```
 
 #### Parameters
@@ -8047,7 +8324,7 @@ export declare function timestampSubtract(fieldName: string, unit: 'microsecond'
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  fieldName | string | The name of the field representing the timestamp. |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to subtract (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time to subtract (e.g., "day", "hour"). |
 |  amount | number | The amount of time to subtract. |
 
 <b>Returns:</b>
@@ -8199,7 +8476,7 @@ A new `Expression` representing the truncated timestamp.
 
 ```typescript
 // Truncate the 'createdAt' timestamp to the beginning of the day.
-field('createdAt').timestampTruncate('day')
+timestampTruncate('createdAt', 'day')
 
 ```
 
@@ -8235,7 +8512,7 @@ A new `Expression` representing the truncated timestamp.
 
 ```typescript
 // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
-field('createdAt').timestampTruncate(field('granularity'))
+timestampTruncate('createdAt', field('granularity'))
 
 ```
 
@@ -8802,6 +9079,45 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Multiply the 'quantity' field by the 'price' field
 multiply(field("quantity"), field("price"));
+
+```
+
+### nor(first, second, more) {:#nor_e0c48bd}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
+
+<b>Signature:</b>
+
+```typescript
+export declare function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  first | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The first filter condition. |
+|  second | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The second filter condition. |
+|  more | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)<!-- -->\[\] | Additional filter conditions to 'NOR' together. |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+
+A new [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) representing the logical 'NOR' operation.
+
+### Example
+
+
+```typescript
+// Check if neither the 'age' field is greater than 18 nor the 'city' field is "London"
+const condition = nor(
+  greaterThan("age", 18),
+  equal("city", "London")
+);
 
 ```
 
@@ -11052,7 +11368,7 @@ timestampAdd(field("timestamp"), field("unit"), field("amount"));
 
 ```
 
-### timestampAdd(timestamp, unit, amount) {:#timestampadd_ffe8e57}
+### timestampAdd(timestamp, unit, amount) {:#timestampadd_06ef927}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -11062,7 +11378,7 @@ Creates an expression that adds a specified amount of time to a timestamp.
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampAdd(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export declare function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 ```
 
 #### Parameters
@@ -11070,7 +11386,7 @@ export declare function timestampAdd(timestamp: Expression, unit: 'microsecond' 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  timestamp | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the timestamp. |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to add (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time to add (e.g., "day", "hour"). |
 |  amount | number | The amount of time to add. |
 
 <b>Returns:</b>
@@ -11124,7 +11440,7 @@ timestampSubtract(field("timestamp"), field("unit"), field("amount"));
 
 ```
 
-### timestampSubtract(timestamp, unit, amount) {:#timestampsubtract_ffe8e57}
+### timestampSubtract(timestamp, unit, amount) {:#timestampsubtract_06ef927}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
@@ -11134,7 +11450,7 @@ Creates an expression that subtracts a specified amount of time from a timestamp
 <b>Signature:</b>
 
 ```typescript
-export declare function timestampSubtract(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export declare function timestampSubtract(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 ```
 
 #### Parameters
@@ -11142,7 +11458,7 @@ export declare function timestampSubtract(timestamp: Expression, unit: 'microsec
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  timestamp | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the timestamp. |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to subtract (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time to subtract (e.g., "day", "hour"). |
 |  amount | number | The amount of time to subtract. |
 
 <b>Returns:</b>
@@ -11161,6 +11477,78 @@ timestampSubtract(field("timestamp"), "day", 1);
 ```
 
 ## function(timestampExpression, ...)
+
+### timestampExtract(timestampExpression, part, timezone) {:#timestampextract_b2f8f48}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that extracts a specified part from a timestamp.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampExtract(timestampExpression: Expression, part: TimePart, timezone?: string | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  timestampExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluating to the timestamp. |
+|  part | [TimePart](./firestore_pipelines.md#timepart) | The part to extract from the timestamp (e.g., "year", "month", "day"). |
+|  timezone | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The timezone to use for extraction. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1." |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the extracted part as an integer.
+
+### Example
+
+
+```typescript
+// Extract the year from the timestamp returned by the expression.
+timestampExtract(field('createdAt'), 'year')
+
+```
+
+### timestampExtract(timestampExpression, part, timezone) {:#timestampextract_73e0311}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that extracts a specified part from a timestamp.
+
+<b>Signature:</b>
+
+```typescript
+export declare function timestampExtract(timestampExpression: Expression, part: Expression, timezone?: string | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  timestampExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluating to the timestamp. |
+|  part | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression evaluating to the part to extract. |
+|  timezone | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The timezone to use for extraction. Valid values are from the TZ database (e.g., "America/Los\_Angeles") or in the format "Etc/GMT-1." |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the extracted part as an integer.
+
+### Example
+
+
+```typescript
+// Extract the part specified by the field 'part' from the timestamp.
+timestampExtract(field('createdAt'), field('part'))
+
+```
 
 ### timestampTruncate(timestampExpression, granularity, timezone) {:#timestamptruncate_ad5d843}
 
@@ -11194,7 +11582,7 @@ A new `Expression` representing the truncated timestamp.
 
 ```typescript
 // Truncate the 'createdAt' timestamp to the beginning of the day.
-field('createdAt').timestampTruncate('day')
+timestampTruncate(field('createdAt'), 'day')
 
 ```
 
@@ -11230,7 +11618,7 @@ A new `Expression` representing the truncated timestamp.
 
 ```typescript
 // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
-field('createdAt').timestampTruncate(field('granularity'))
+timestampTruncate(field('createdAt'), field('granularity'))
 
 ```
 
@@ -12269,7 +12657,33 @@ Specify time granularity for expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+export declare type TimeGranularity = TimeUnit | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | 'isoyear';
+```
+
+## TimePart
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Specify time parts for `timestampExtract` expressions.
+
+<b>Signature:</b>
+
+```typescript
+export declare type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
+```
+
+## TimeUnit
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Specify time units for expressions.
+
+<b>Signature:</b>
+
+```typescript
+export declare type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 ```
 
 ## Type
