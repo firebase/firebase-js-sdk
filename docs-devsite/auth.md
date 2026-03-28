@@ -20,7 +20,7 @@ Firebase Authentication
 |  [getAuth(app)](./auth.md#getauth_cf608e1) | Returns the Auth instance associated with the provided [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface)<!-- -->. If no instance exists, initializes an Auth instance with platform-specific default dependencies. |
 |  [initializeAuth(app, deps)](./auth.md#initializeauth_ca77c9b) | Initializes an [Auth](./auth.auth.md#auth_interface) instance with fine-grained control over [Dependencies](./auth.dependencies.md#dependencies_interface)<!-- -->. |
 |  <b>function(storage, ...)</b> |
-|  [getReactNativePersistence(storage)](./auth.md#getreactnativepersistence_bab4ada) | Returns a persistence object that wraps <code>AsyncStorage</code> imported from <code>react-native</code> or <code>@react-native-community/async-storage</code>, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->. |
+|  [getReactNativePersistence(storage)](./auth.md#getreactnativepersistence_bab4ada) | Returns a persistence object that wraps <code>AsyncStorage</code> imported from <code>react-native</code> or <code>@react-native-async-storage/async-storage</code>, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->. |
 |  <b>function(auth, ...)</b> |
 |  [applyActionCode(auth, oobCode)](./auth.md#applyactioncode_d2ae15a) | Applies a verification code sent to the user by email or other out-of-band mechanism. |
 |  [beforeAuthStateChanged(auth, callback, onAbort)](./auth.md#beforeauthstatechanged_22f2ab6) | Adds a blocking callback that runs before an auth state change sets a new user. |
@@ -232,7 +232,7 @@ export declare function initializeAuth(app: FirebaseApp, deps?: Dependencies): A
 
 ### getReactNativePersistence(storage) {:#getreactnativepersistence_bab4ada}
 
-Returns a persistence object that wraps `AsyncStorage` imported from `react-native` or `@react-native-community/async-storage`<!-- -->, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->.
+Returns a persistence object that wraps `AsyncStorage` imported from `react-native` or `@react-native-async-storage/async-storage`<!-- -->, and can be used in the persistence dependency field in [initializeAuth()](./auth.md#initializeauth_ca77c9b)<!-- -->.
 
 <b>Signature:</b>
 
