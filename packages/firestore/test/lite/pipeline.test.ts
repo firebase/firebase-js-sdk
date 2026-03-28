@@ -174,6 +174,8 @@ import {
   arrayFirst,
   arrayFirstN,
   arrayFilter,
+  arrayTransform,
+  arrayTransformWithIndex,
   arraySlice,
   arrayLast,
   arrayLastN,
@@ -3287,14 +3289,100 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            arrayFilter('arr', 'element', greaterThan(variable('element'), 10)).as(
-              'filtered'
-            )
+            arrayFilter(
+              'arr',
+              'element',
+              greaterThan(variable('element'), 10)
+            ).as('filtered')
           )
       );
 
       expectResults(snapshot, {
         filtered: [20.0, 30]
+      });
+    });
+
+    it('supports arrayTransform and arrayTransformWithIndex', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ arr: [10, 20, 30] }))
+          .select(
+            arrayTransform(
+              'arr',
+              'element',
+              multiply(variable('element'), 10)
+            ).as('staticTransform'),
+            field('arr')
+              .arrayTransform('element', multiply(variable('element'), 10))
+              .as('instanceTransform'),
+            arrayTransformWithIndex(
+              'arr',
+              'element',
+              'i',
+              add(variable('element'), variable('i'))
+            ).as('staticTransformWithIndex'),
+            field('arr')
+              .arrayTransformWithIndex(
+                'element',
+                'i',
+                add(variable('element'), variable('i'))
+              )
+              .as('instanceTransformWithIndex')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticTransform: [100, 200, 300],
+        instanceTransform: [100, 200, 300],
+        staticTransformWithIndex: [10, 21, 32],
+        instanceTransformWithIndex: [10, 21, 32]
+      });
+    });
+
+    it('supports arrayTransform with empty array and nulls', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3],
+              empty: []
+            })
+          )
+          .select(
+            field('arr')
+              .arrayTransform('element', add(variable('element'), 1))
+              .as('transformedWithNulls'),
+            field('empty')
+              .arrayTransform('element', add(variable('element'), 1))
+              .as('transformedEmpty'),
+            field('arr')
+              .arrayTransformWithIndex(
+                'element',
+                'idx',
+                add(variable('element'), variable('idx'))
+              )
+              .as('transformedWithIndex'),
+            field('empty')
+              .arrayTransformWithIndex(
+                'element',
+                'idx',
+                add(variable('element'), variable('idx'))
+              )
+              .as('transformedEmptyWithIndex')
+          )
+      );
+
+      expectResults(snapshot, {
+        transformedWithNulls: [2, null, 4],
+        transformedEmpty: [],
+        transformedWithIndex: [1, null, 5],
+        transformedEmptyWithIndex: []
       });
     });
 

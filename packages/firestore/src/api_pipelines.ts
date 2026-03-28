@@ -75,6 +75,8 @@ export {
   arrayContainsAny,
   arrayContainsAll,
   arrayFilter,
+  arrayTransform,
+  arrayTransformWithIndex,
   arrayFirst,
   arrayFirstN,
   arrayGet,

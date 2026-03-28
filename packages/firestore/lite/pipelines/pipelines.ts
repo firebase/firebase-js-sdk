@@ -124,6 +124,8 @@ export {
   arrayFilter,
   arrayFirst,
   arrayFirstN,
+  arrayTransform,
+  arrayTransformWithIndex,
   arrayGet,
   arraySlice,
   arrayIndexOf,

@@ -1531,6 +1531,61 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * Creates an expression that applies a provided transformation to each element in an array.
+   *
+   * @example
+   * ```typescript
+   * // Transform the 'scores' array by multiplying each score by 10
+   * field("scores").arrayTransform("score", multiply(variable("score"), 10));
+   * ```
+   *
+   * @param elementAlias - The variable name to use for each element.
+   * @param transform - The lambda expression used to transform the elements.
+   * @returns A new `Expression` representing the arrayTransform operation.
+   */
+  arrayTransform(
+    elementAlias: string,
+    transform: Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'array_transform',
+      [this, valueToDefaultExpr(elementAlias), transform],
+      'arrayTransform'
+    );
+  }
+
+  /**
+   * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+   *
+   * @example
+   * ```typescript
+   * // Transform the 'scores' array by adding the index to each score
+   * field("scores").arrayTransformWithIndex("score", "i", add(variable("score"), variable("i")));
+   * ```
+   *
+   * @param elementAlias - The variable name to use for each element.
+   * @param indexAlias - The variable name to use for the current index.
+   * @param transform - The lambda expression used to transform the elements.
+   * @returns A new `Expression` representing the arrayTransform operation.
+   */
+  arrayTransformWithIndex(
+    elementAlias: string,
+    indexAlias: string,
+    transform: Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'array_transform',
+      [
+        this,
+        valueToDefaultExpr(elementAlias),
+        valueToDefaultExpr(indexAlias),
+        transform
+      ],
+      'arrayTransformWithIndex'
+    );
+  }
+
+  /**
    * @beta
    * Returns a subset of the array.
    *
@@ -7016,8 +7071,109 @@ export function arrayFilter(
 }
 
 /**
- * @beta
+ * Creates an expression that applies a provided transformation to each element in an array.
  *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by multiplying each score by 10
+ * arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param transform - The lambda expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransform(
+  arrayExpression: Expression,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by multiplying each score by 10
+ * arrayTransform("scores", "score", multiply(variable("score"), 10));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param transform - The expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransform(
+  fieldName: string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
+export function arrayTransform(
+  array: Expression | string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayTransform(elementAlias, transform);
+}
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by adding the index to each score
+ * arrayTransformWithIndex(field("scores"), "score", "i", add(variable("score"), variable("i")));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param indexAlias - The variable name to use for the current index.
+ * @param transform - The expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransformWithIndex(
+  arrayExpression: Expression,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by adding the index to each score
+ * arrayTransformWithIndex("scores", "score", "i", add(variable("score"), variable("i")));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param indexAlias - The variable name to use for the current index.
+ * @param transform - The lambda expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransformWithIndex(
+  fieldName: string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
+export function arrayTransformWithIndex(
+  array: Expression | string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayTransformWithIndex(
+    elementAlias,
+    indexAlias,
+    transform
+  );
+}
+
+/**
  * Creates an expression that returns a subset of an array.
  *
  * @example
@@ -7041,8 +7197,6 @@ export function arraySlice(
 ): FunctionExpression;
 
 /**
- * @beta
- *
  * Creates an expression that returns a subset of an array.
  *
  * @example
