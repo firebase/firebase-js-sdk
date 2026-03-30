@@ -182,18 +182,22 @@ export class QueryManager {
     // We want to ignore the error and let subscriptions handle it
     promise.then(undefined, err => {});
 
-    if (!this.callbacks.has(key)) {
-      this.callbacks.set(key, []);
+    if (this.callbacks.has(key)) {
+      this.callbacks
+        .get(key)!
+        .push(subscription as DataConnectSubscription<unknown, unknown>);
+    } else {
+      this.callbacks.set(key, [
+        subscription as DataConnectSubscription<unknown, unknown>
+      ]);
 
+      // only invoke subscription if we don't already have an active subscription
       this.transport.invokeSubscribe<Data, Variables>(
         this.makeSubscribeNotificationHook(queryRef),
         queryRef.name,
         queryRef.variables
       );
     }
-    this.callbacks
-      .get(key)!
-      .push(subscription as DataConnectSubscription<unknown, unknown>);
 
     return unsubscribe;
   }
