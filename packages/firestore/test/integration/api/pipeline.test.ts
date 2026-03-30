@@ -2351,7 +2351,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         expect(typeof err['message']).to.equal('string');
 
         expect(err['message']).to.match(
-          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+          /Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
         );
       }
     });
