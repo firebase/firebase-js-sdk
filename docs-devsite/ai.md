@@ -295,7 +295,7 @@ export declare function getGenerativeModel(ai: AI, modelParams: ModelParams | Hy
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 Returns an [ImagenModel](./ai.imagenmodel.md#imagenmodel_class) class with methods for using Imagen.
@@ -382,7 +382,7 @@ export declare function getTemplateGenerativeModel(ai: AI, requestOptions?: Requ
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 Returns a [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) class for executing server-side Imagen templates.
@@ -641,7 +641,7 @@ HarmSeverity: {
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 Aspect ratios for Imagen images.
@@ -666,7 +666,7 @@ ImagenAspectRatio: {
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 A filter level controlling whether generation of images containing people or faces is allowed.
@@ -687,7 +687,7 @@ ImagenPersonFilterLevel: {
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 A filter level controlling how aggressively to filter sensitive content.
@@ -984,7 +984,7 @@ export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 Aspect ratios for Imagen images.
@@ -1003,7 +1003,7 @@ export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAs
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 A filter level controlling whether generation of images containing people or faces is allowed.
@@ -1020,7 +1020,7 @@ export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typ
 
 > Warning: This API is now obsolete.
 > 
-> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models).](https://firebase.google.com/docs/ai-logic/imagen-models-migration)
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 A filter level controlling how aggressively to filter sensitive content.

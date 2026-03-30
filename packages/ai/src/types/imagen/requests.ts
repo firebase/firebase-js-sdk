@@ -23,7 +23,7 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -57,7 +57,7 @@ export interface ImagenModelParams {
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -121,7 +121,7 @@ export interface ImagenGenerationConfig {
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -160,7 +160,7 @@ export const ImagenSafetyFilterLevel = {
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -176,7 +176,7 @@ export type ImagenSafetyFilterLevel =
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -212,7 +212,7 @@ export const ImagenPersonFilterLevel = {
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -228,7 +228,7 @@ export type ImagenPersonFilterLevel =
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -256,7 +256,7 @@ export interface ImagenSafetySettings {
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -295,7 +295,7 @@ export const ImagenAspectRatio = {
  * @deprecated All Imagen models are deprecated and will shut down as
  * early as June 2026. As a replacement, you can
  * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
- * migrate your apps to use Gemini Image models (the "Nano Banana" models).}
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
