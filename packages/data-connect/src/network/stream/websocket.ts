@@ -55,6 +55,7 @@ class WebSocketDataConnectError extends DataConnectError {
   }
 }
 
+// TODO(stephenarosaj): Node environments only support close codes 1000 or 3000-4999 - update to use 3000-4999 range to specify why we're closing
 /**
  * Defined by https://www.rfc-editor.org/rfc/rfc6455#section-7.4
  * @internal
