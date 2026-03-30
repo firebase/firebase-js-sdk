@@ -172,7 +172,9 @@ export class DataConnect {
       return;
     }
     if (this._transportClass === undefined) {
-      logDebug('transportClass not provided. Defaulting to DataConnectTransportManager.');
+      logDebug(
+        'transportClass not provided. Defaulting to DataConnectTransportManager.'
+      );
       this._transportClass = DataConnectTransportManager;
     }
 

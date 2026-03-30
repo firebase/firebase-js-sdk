@@ -42,8 +42,12 @@ describe('caching', () => {
     app = firebaseApp;
 
     // Stub transport to prevent real network calls for subscribe.
-    sinon.stub(DataConnectTransportManager.prototype, 'invokeSubscribe').returns();
-    sinon.stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe').returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
+      .returns();
   });
   afterEach(async () => {
     await deleteApp(app);

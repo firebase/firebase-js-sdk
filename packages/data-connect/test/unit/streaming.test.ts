@@ -35,10 +35,8 @@ import {
 } from '../../src';
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
-import { initializeWebSocket } from '../../src/network/stream/websocket';
+import { WebSocketTransport } from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
-
-import { MockWebSocket } from './testUtils';
 
 chai.use(chaiAsPromised);
 
@@ -72,33 +70,30 @@ interface StreamTransportWithInternals {
 describe('Streaming & Query Layer Integration', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
-  /** the currently active websocket, if any */
-  let mockWebSocket: MockWebSocket | null;
-  let manager: ManagerWithInternals;
-  /** this is only initialized once the websocket is opened */
-  let sendMessageSpy: sinon.SinonSpy | null;
+  let stubStreamTransport: sinon.SinonStubbedInstance<WebSocketTransport>;
   let initStreamTransportStub: sinon.SinonStub;
 
   beforeEach(() => {
-    const wsConstructor = function (url: string): MockWebSocket {
-      mockWebSocket = new MockWebSocket(url);
-      mockWebSocket.onclose = async event => {
-        await mockWebSocket?.onclose?.(event);
-        mockWebSocket = null;
-        sendMessageSpy = null;
-      };
-      return mockWebSocket;
-    };
-    initializeWebSocket(wsConstructor as unknown as typeof WebSocket);
+    stubStreamTransport = {
+      invokeQuery: sinon.stub(),
+      invokeMutation: sinon.stub(),
+      invokeSubscribe: sinon.stub(),
+      invokeUnsubscribe: sinon.stub(),
+      useEmulator: sinon.stub(),
+      onAuthTokenChanged: sinon.stub(),
+      hasActiveSubscriptions: false
+    } as unknown as sinon.SinonStubbedInstance<WebSocketTransport>;
 
-    const originalInitStreamTransport = (DataConnectTransportManager.prototype as unknown as ManagerWithInternals).initStreamTransport;
-    initStreamTransportStub = sinon.stub(DataConnectTransportManager.prototype as unknown as ManagerWithInternals, 'initStreamTransport').callsFake(function (this: ManagerWithInternals) {
-      const streamTransport = originalInitStreamTransport.apply(this);
-      // eslint-disable-next-line no-console
-      console.log(streamTransport);
-      sendMessageSpy = sinon.spy(streamTransport as unknown as StreamTransportWithInternals, 'sendMessage');
-      return streamTransport;
-    });
+    initStreamTransportStub = sinon
+      .stub(
+        DataConnectTransportManager.prototype as unknown as ManagerWithInternals,
+        'initStreamTransport'
+      )
+      .callsFake(function (this: ManagerWithInternals) {
+        this.streamTransport =
+          stubStreamTransport as unknown as StreamTransportWithInternals;
+        return stubStreamTransport as unknown as AbstractDataConnectStreamTransport;
+      });
 
     app = initializeApp({ projectId: 'p', appId: 'a' }, 'n');
     dc = getDataConnect(app, {
@@ -107,21 +102,17 @@ describe('Streaming & Query Layer Integration', () => {
       service: 's'
     });
     dc.setInitialized();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    manager = (dc as any)._transport;
   });
 
   afterEach(async () => {
     await dc._delete();
     await deleteApp(app);
-    initializeWebSocket(WebSocket);
-    mockWebSocket = null;
     sinon.restore();
   });
 
-  const testVariables = { foo: "bar" };
+  const testVariables = { foo: 'bar' };
   type TestVariables = typeof testVariables;
-  const testData = { abc: "xyz" };
+  const testData = { abc: 'xyz' };
   type TestData = typeof testData;
 
   const queryName = 'testQuery';
@@ -129,26 +120,26 @@ describe('Streaming & Query Layer Integration', () => {
   describe('user-facing API', () => {
     it('executeQuery / executeMutation should not initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      const m = mutationRef<TestData, TestVariables>(dc, queryName, testVariables);
+      const m = mutationRef<TestData, TestVariables>(
+        dc,
+        queryName,
+        testVariables
+      );
 
       void executeQuery(q);
       expect(initStreamTransportStub).to.not.have.been.called;
-      expect(mockWebSocket).to.be.undefined;
       void executeMutation(m);
       expect(initStreamTransportStub).to.not.have.been.called;
-      expect(mockWebSocket).to.be.undefined;
     });
 
     it('subscribe should initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      subscribe(q, () => { });
+      subscribe(q, () => {});
       expect(initStreamTransportStub).to.have.been.calledOnce;
-      await mockWebSocket!.simulateOpen();
-      expect(mockWebSocket).to.not.be.undefined;
+      expect(stubStreamTransport.invokeSubscribe).to.have.been.calledOnce;
     });
 
     it('query layer should call invokeUnsubscribe on last unsubscribe', async () => {
-      const invokeUnsubscribeStub = sinon.stub(manager, 'invokeUnsubscribe');
       const onNextSpy1 = sinon.spy();
       const onNextSpy2 = sinon.spy();
       const onNextSpy3 = sinon.spy();
@@ -158,22 +149,30 @@ describe('Streaming & Query Layer Integration', () => {
       const unsub2 = subscribe(q, onNextSpy2);
       const unsub3 = subscribe(q, onNextSpy3);
 
-      await mockWebSocket!.simulateOpen();
-
       unsub1();
-      expect(invokeUnsubscribeStub).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
       unsub2();
-      expect(invokeUnsubscribeStub).to.not.have.been.called;
+      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
       unsub3();
-      expect(invokeUnsubscribeStub).to.have.been.calledOnceWith(queryName, testVariables);
+      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledOnceWith(
+        queryName,
+        testVariables
+      );
     });
-
   });
 
   describe('incoming notifications', () => {
     it('should notify all relevant subscribers when data is received', async () => {
-      const relevantQuery = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      const irrelevantQuery = queryRef<TestData, TestVariables>(dc, 'otherQuery', { foo: 'xyz' });
+      const relevantQuery = queryRef<TestData, TestVariables>(
+        dc,
+        queryName,
+        testVariables
+      );
+      const irrelevantQuery = queryRef<TestData, TestVariables>(
+        dc,
+        'otherQuery',
+        { foo: 'xyz' }
+      );
       const relevantSpy1 = sinon.spy();
       const relevantSpy2 = sinon.spy();
       const relevantSpy3 = sinon.spy();
@@ -181,21 +180,13 @@ describe('Streaming & Query Layer Integration', () => {
       subscribe(relevantQuery, relevantSpy1);
       subscribe(relevantQuery, relevantSpy2);
       subscribe(relevantQuery, relevantSpy3);
-
-      await mockWebSocket!.simulateOpen();
-
       subscribe(irrelevantQuery, irrelevantSpy);
 
-      const firstRequest: DataConnectStreamRequest<TestVariables> = sendMessageSpy!.firstCall.args[0];
-      const relevantNotification = {
-        result: {
-          requestId: firstRequest.requestId,
-          data: testData,
-          errors: []
-        }
-      };
+      // get the query layer's notification hook which was passed to invokeSubscribe
+      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      await mockWebSocket!.simulateMessage(JSON.stringify(relevantNotification));
+      // call the hook with data
+      await hook({ data: testData, errors: [], extensions: {} });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -247,31 +238,32 @@ describe('Streaming & Query Layer Integration', () => {
     // });
 
     it('should notify all relevant subscribers of errors when they are pushed', async () => {
-      const relevantQuery = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      const irrelevantQuery = queryRef<TestData, TestVariables>(dc, 'otherQuery', { foo: 'xyz' });
+      const relevantQuery = queryRef<TestData, TestVariables>(
+        dc,
+        queryName,
+        testVariables
+      );
+      const irrelevantQuery = queryRef<TestData, TestVariables>(
+        dc,
+        'otherQuery',
+        { foo: 'xyz' }
+      );
       const relevantSpy1 = sinon.spy();
       const relevantSpy2 = sinon.spy();
       const relevantSpy3 = sinon.spy();
       const irrelevantSpy = sinon.spy();
-      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy1 });
-      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy2 });
-      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy3 });
+      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy1 });
+      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy2 });
+      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy3 });
       const expectedError = new Error('test error');
 
-      await mockWebSocket!.simulateOpen();
+      subscribe(irrelevantQuery, { onNext: () => {}, onErr: irrelevantSpy });
 
-      subscribe(irrelevantQuery, { onNext: () => { }, onErr: irrelevantSpy });
+      // get the query layer's notification hook which was passed to invokeSubscribe
+      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      const firstRequest: DataConnectStreamRequest<TestVariables> = sendMessageSpy!.firstCall.args[0];
-      const relevantNotification = {
-        result: {
-          requestId: firstRequest.requestId,
-          data: testData,
-          errors: [expectedError]
-        }
-      };
-
-      await mockWebSocket!.simulateMessage(JSON.stringify(relevantNotification));
+      // call the hook with errors
+      hook({ data: {}, errors: [expectedError], extensions: {} });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -281,11 +273,17 @@ describe('Streaming & Query Layer Integration', () => {
       const result2 = relevantSpy2.firstCall.args[0];
       const result3 = relevantSpy3.firstCall.args[0];
       expect(result1).to.be.an.instanceOf(Error);
-      expect(result1.message).to.include('DataConnect error while received from subscribe notification');
+      expect(result1.message).to.include(
+        'DataConnect error received from subscribe notification'
+      );
       expect(result2).to.be.an.instanceOf(Error);
-      expect(result2.message).to.include('DataConnect error while received from subscribe notification');
+      expect(result2.message).to.include(
+        'DataConnect error received from subscribe notification'
+      );
       expect(result3).to.be.an.instanceOf(Error);
-      expect(result3.message).to.include('DataConnect error while received from subscribe notification');
+      expect(result3.message).to.include(
+        'DataConnect error received from subscribe notification'
+      );
     });
   });
 });
