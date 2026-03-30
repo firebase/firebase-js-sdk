@@ -31,9 +31,11 @@ import {
   getDataConnect,
   mutationRef,
   queryRef,
+  QueryResult,
   subscribe,
   SubscribeNotificationHook
 } from '../../src';
+import { QueryManager } from '../../src/core/query/QueryManager';
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import { WebSocketTransport } from '../../src/network/stream/websocket';
@@ -41,6 +43,10 @@ import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
+
+interface DataConnectWithInternals {
+  _queryManager: QueryManager;
+}
 
 /** Interface that exposes private fields of TransportManager for testing purposes. */
 interface ManagerWithInternals {
@@ -67,6 +73,8 @@ interface StreamTransportWithInternals {
   sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void>;
+  hasActiveSubscriptions: boolean;
+  streamIsReady: boolean;
 }
 
 describe('Streaming & Query Layer Integration', () => {
@@ -119,7 +127,7 @@ describe('Streaming & Query Layer Integration', () => {
 
   const queryName = 'testQuery';
 
-  describe('user-facing API', () => {
+  describe('using stream via user-facing API', () => {
     it('executeQuery / executeMutation should not initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
       const m = mutationRef<TestData, TestVariables>(
@@ -136,7 +144,7 @@ describe('Streaming & Query Layer Integration', () => {
 
     it('subscribe should initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      subscribe(q, () => { });
+      subscribe(q, () => {});
       expect(initStreamTransportStub).to.have.been.calledOnce;
       expect(stubStreamTransport.invokeSubscribe).to.have.been.calledOnce;
     });
@@ -160,6 +168,83 @@ describe('Streaming & Query Layer Integration', () => {
         queryName,
         testVariables
       );
+    });
+
+    it('executeQuery should use stream when stream is active', async () => {
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+
+      stubStreamTransport.invokeQuery.resolves({
+        data: testData,
+        errors: [],
+        extensions: {}
+      });
+
+      // stub preferCacheResults to avoid race condition where subscribe calls invokeQuery asynchronously
+      sinon
+        .stub(
+          (dc as unknown as DataConnectWithInternals)._queryManager,
+          'preferCacheResults'
+        )
+        .resolves({ data: testData, source: 'CACHE' } as QueryResult<
+          TestData,
+          TestVariables
+        >);
+
+      // open a subscription to activate the stream
+      subscribe(q, { onNext: () => {} });
+
+      // force hasActiveSubscriptions and streamIsReady to true so TransportManager routes to stream
+      (
+        stubStreamTransport as unknown as StreamTransportWithInternals
+      ).hasActiveSubscriptions = true;
+      (
+        stubStreamTransport as unknown as StreamTransportWithInternals
+      ).streamIsReady = true;
+
+      // reset history because subscribe might have triggered calls before stub was active or otherwise
+      stubStreamTransport.invokeQuery.resetHistory();
+
+      const result = await executeQuery(q, { fetchPolicy: 'SERVER_ONLY' });
+
+      expect(stubStreamTransport.invokeQuery).to.have.been.calledOnceWith(
+        queryName,
+        testVariables
+      );
+      expect(result.data).to.deep.equal(testData);
+    });
+
+    it('executeMutation should use stream when stream is active', async () => {
+      const m = mutationRef<TestData, TestVariables>(
+        dc,
+        'testMutation',
+        testVariables
+      );
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+
+      // open a subscription to activate the stream
+      subscribe(q, { onNext: () => {} });
+
+      // force hasActiveSubscriptions and streamIsReady to true so TransportManager routes to stream
+      (
+        stubStreamTransport as unknown as StreamTransportWithInternals
+      ).hasActiveSubscriptions = true;
+      (
+        stubStreamTransport as unknown as StreamTransportWithInternals
+      ).streamIsReady = true;
+
+      stubStreamTransport.invokeMutation.resolves({
+        data: testData,
+        errors: [],
+        extensions: {}
+      });
+
+      const result = await executeMutation(m);
+
+      expect(stubStreamTransport.invokeMutation).to.have.been.calledOnceWith(
+        'testMutation',
+        testVariables
+      );
+      expect(result.data).to.deep.equal(testData);
     });
   });
 
@@ -203,11 +288,7 @@ describe('Streaming & Query Layer Integration', () => {
     });
 
     it('should update cache when data is pushed', async () => {
-      const q = queryRef<TestData, TestVariables>(
-        dc,
-        queryName,
-        testVariables
-      );
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
       const onNextSpy = sinon.spy();
       subscribe(q, onNextSpy);
 
@@ -247,10 +328,10 @@ describe('Streaming & Query Layer Integration', () => {
       const relevantSpy3 = sinon.spy();
       const irrelevantSpy = sinon.spy();
 
-      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy1 });
-      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy2 });
-      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy3 });
-      subscribe(irrelevantQuery, { onNext: () => { }, onErr: irrelevantSpy });
+      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy1 });
+      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy2 });
+      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy3 });
+      subscribe(irrelevantQuery, { onNext: () => {}, onErr: irrelevantSpy });
 
       // get the query layer's notification hook which was passed to invokeSubscribe
       const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
