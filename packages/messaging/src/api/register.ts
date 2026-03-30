@@ -71,6 +71,7 @@ export async function register(
       return;
     }
 
+    // TODO: refresh weekly
     await registerFcmRegistrationWithFid(messaging);
     messaging.lastNotifiedFid = fid;
 

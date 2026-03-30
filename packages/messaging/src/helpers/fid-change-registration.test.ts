@@ -21,75 +21,119 @@ import { subscribeFidChangeRegistration } from './fid-change-registration';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
-  getFakeApp,
-  getFakeInstallations
+  getFakeApp
 } from '../testing/fakes/firebase-dependencies';
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
 import { stub } from 'sinon';
 import { expect } from 'chai';
-import * as registerModule from '../api/register';
 import * as installationsApi from '@firebase/installations';
+import * as requestsModule from '../internals/requests';
 import { Stub } from '../testing/sinon-types';
+import { _FirebaseInstallationsInternal } from '@firebase/installations';
 
 describe('subscribeFidChangeRegistration', () => {
   let messaging: MessagingService;
+  /** Same object as `messaging.firebaseDependencies.installations`; `getId` tracks simulated rotation. */
+  let installationsInternal: _FirebaseInstallationsInternal;
+  let currentFid: string;
+  let installations: installationsApi.Installations;
   let onIdChangeStub: Stub<typeof installationsApi.onIdChange>;
-  let registerStub: Stub<typeof registerModule.register>;
+  let requestCreateRegistrationStub: Stub<
+    typeof requestsModule.requestCreateRegistration
+  >;
   let fidChangeCallback: installationsApi.IdChangeCallbackFn | undefined;
+  let unsubscribeStub: ReturnType<typeof stub>;
 
   beforeEach(() => {
     stub(Notification, 'permission').value('granted');
+    const app = getFakeApp();
+    currentFid = 'fid-before-rotation';
+    installationsInternal = {
+      getId: async () => currentFid,
+      getToken: async () => 'authToken'
+    };
+    installations = { app } as installationsApi.Installations;
     messaging = new MessagingService(
-      getFakeApp(),
-      getFakeInstallations(),
+      app,
+      installationsInternal,
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    // Test-only: Fake registration is structurally compatible for our usage here.
+    messaging.swRegistration =
+      new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
 
     fidChangeCallback = undefined;
+    unsubscribeStub = stub();
     onIdChangeStub = stub(installationsApi, 'onIdChange').callsFake(
       (_installations, cb: installationsApi.IdChangeCallbackFn) => {
         fidChangeCallback = cb;
-        return () => {};
+        return unsubscribeStub;
       }
     ) as Stub<typeof installationsApi.onIdChange>;
 
-    registerStub = stub(registerModule, 'register').resolves() as Stub<
-      typeof registerModule.register
-    >;
+    requestCreateRegistrationStub = stub(
+      requestsModule,
+      'requestCreateRegistration'
+    ).resolves() as Stub<typeof requestsModule.requestCreateRegistration>;
   });
 
   afterEach(() => {
     onIdChangeStub.restore();
-    registerStub.restore();
+    requestCreateRegistrationStub.restore();
   });
 
-  it('calls register when Installations invokes the FID change callback and onRegistered is set', async () => {
-    messaging.onRegisteredHandler = stub();
+  it('runs real register when Installations invokes the FID change callback and delivers the new FID via onRegistered', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+    messaging.lastNotifiedFid = 'fid-before-rotation';
 
-    subscribeFidChangeRegistration(
-      messaging,
-      {} as installationsApi.Installations
-    );
+    subscribeFidChangeRegistration(messaging, installations);
 
-    fidChangeCallback!('new-fid');
+    currentFid = 'fid-after-rotation';
+    fidChangeCallback!('fid-after-rotation');
 
-    await Promise.resolve();
+    // `register()` only assigns `_registerNotifyChain` after updateVapidKey/updateSwReg; wait for
+    // that chain (and the inner getId/registerFcm work) to finish.
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    await messaging._registerNotifyChain;
 
-    expect(registerStub).to.have.been.calledOnceWith(messaging);
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('fid-after-rotation');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
-  it('does not call register when onRegistered handler is not set', () => {
+  it('does not call register when onRegistered handler is not set', async () => {
     messaging.onRegisteredHandler = null;
 
-    subscribeFidChangeRegistration(
-      messaging,
-      {} as installationsApi.Installations
-    );
+    subscribeFidChangeRegistration(messaging, installations);
 
+    currentFid = 'new-fid';
     fidChangeCallback!('new-fid');
 
-    expect(registerStub).to.not.have.been.called;
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    await messaging._registerNotifyChain;
+
+    expect(requestCreateRegistrationStub).to.not.have.been.called;
+  });
+
+  it('does not call the unsubscribe function when FID changes (unsubscribe is only for teardown)', async () => {
+    messaging.onRegisteredHandler = stub();
+
+    const unsubscribe = subscribeFidChangeRegistration(
+      messaging,
+      installations
+    );
+    expect(unsubscribe).to.equal(unsubscribeStub);
+
+    messaging.lastNotifiedFid = 'a';
+    currentFid = 'b';
+    fidChangeCallback!('b');
+    currentFid = 'c';
+    fidChangeCallback!('c');
+
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    await messaging._registerNotifyChain;
+
+    expect(unsubscribeStub).to.not.have.been.called;
   });
 });
