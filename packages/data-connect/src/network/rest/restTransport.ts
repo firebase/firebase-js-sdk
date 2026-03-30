@@ -84,28 +84,28 @@ export class RESTTransport extends AbstractDataConnectTransport {
     queryName: string,
     body: Variables
   ) => {
-      const abortController = new AbortController();
+    const abortController = new AbortController();
 
-      // TODO(mtewani): Update to proper value
-      const withAuth = this.withRetry(() =>
-        dcFetch<Data, Variables>(
-          addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
-          {
-            name: this._connectorResourcePath,
-            operationName: queryName,
-            variables: body
-          },
-          abortController,
-          this.appId,
-          this._authToken,
-          this._appCheckToken,
-          this._isUsingGen,
-          this._callerSdkType,
-          this._isUsingEmulator
-        )
-      );
-      return withAuth;
-    };
+    // TODO(mtewani): Update to proper value
+    const withAuth = this.withRetry(() =>
+      dcFetch<Data, Variables>(
+        addToken(`${this.endpointUrl}:executeQuery`, this.apiKey),
+        {
+          name: this._connectorResourcePath,
+          operationName: queryName,
+          variables: body
+        },
+        abortController,
+        this.appId,
+        this._authToken,
+        this._appCheckToken,
+        this._isUsingGen,
+        this._callerSdkType,
+        this._isUsingEmulator
+      )
+    );
+    return withAuth;
+  };
 
   invokeMutation: <Data, Variables>(
     queryName: string,
@@ -114,26 +114,26 @@ export class RESTTransport extends AbstractDataConnectTransport {
     mutationName: string,
     body: Variables
   ) => {
-      const abortController = new AbortController();
-      const taskResult = this.withRetry(() => {
-        return dcFetch<Data, Variables>(
-          addToken(`${this.endpointUrl}:executeMutation`, this.apiKey),
-          {
-            name: this._connectorResourcePath,
-            operationName: mutationName,
-            variables: body
-          },
-          abortController,
-          this.appId,
-          this._authToken,
-          this._appCheckToken,
-          this._isUsingGen,
-          this._callerSdkType,
-          this._isUsingEmulator
-        );
-      });
-      return taskResult;
-    };
+    const abortController = new AbortController();
+    const taskResult = this.withRetry(() => {
+      return dcFetch<Data, Variables>(
+        addToken(`${this.endpointUrl}:executeMutation`, this.apiKey),
+        {
+          name: this._connectorResourcePath,
+          operationName: mutationName,
+          variables: body
+        },
+        abortController,
+        this.appId,
+        this._authToken,
+        this._appCheckToken,
+        this._isUsingGen,
+        this._callerSdkType,
+        this._isUsingEmulator
+      );
+    });
+    return taskResult;
+  };
 
   invokeSubscribe<Data, Variables>(
     notificationHook: SubscribeNotificationHook<Data>,

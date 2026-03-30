@@ -264,7 +264,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     data: any
   ): DataConnectStreamResponse<Data> {
     // eslint-disable-next-line no-console
-    console.log("WEBSOCKET MESSAGE RECEIVED:", JSON.stringify(data)); // DEBUGGING
+    console.log('WEBSOCKET MESSAGE RECEIVED:', JSON.stringify(data)); // DEBUGGING
     let webSocketMessage;
     try {
       webSocketMessage = JSON.parse(data);
