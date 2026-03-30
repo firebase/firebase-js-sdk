@@ -958,7 +958,7 @@ describe('GenerativeModel dispatch logic', () => {
 });
 
 describe('validateGenerationConfig', () => {
-  it('does not allow setting both thinkingBudget and thinkingConfig', () => {
+  it('does not allow setting both thinkingBudget and thinkingLevel', () => {
     expect(() => {
       validateGenerationConfig({
         thinkingConfig: {
@@ -1004,8 +1004,8 @@ describe('validateGenerationConfig', () => {
     }).to.throw();
   });
   it(
-    'does not allow setting responseSchema or responseJsonSchema' +
-      ' without a responseMimeType',
+    'throws if responseSchema or responseJsonSchema are set' +
+      ' and responseMimeType is not "application/json"',
     () => {
       expect(() => {
         validateGenerationConfig({
