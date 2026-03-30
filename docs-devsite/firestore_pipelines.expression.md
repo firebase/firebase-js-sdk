@@ -4904,14 +4904,14 @@ Creates an expression that adds a specified amount of time to this timestamp exp
 <b>Signature:</b>
 
 ```typescript
-timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+timestampAdd(unit: TimeUnit, amount: number): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to add (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time to add (e.g., "day", "hour"). |
 |  amount | number | The amount of time to add. |
 
 <b>Returns:</b>
@@ -4974,7 +4974,7 @@ Creates an expression that calculates the difference between this timestamp and 
 <b>Signature:</b>
 
 ```typescript
-timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'): FunctionExpression;
+timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
 ```
 
 #### Parameters
@@ -4982,7 +4982,7 @@ timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  start | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The field name of the starting timestamp. |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time for the difference (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time for the difference (e.g., "day", "hour"). |
 
 <b>Returns:</b>
 
@@ -5114,14 +5114,14 @@ Creates an expression that subtracts a specified amount of time from this timest
 <b>Signature:</b>
 
 ```typescript
-timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+timestampSubtract(unit: TimeUnit, amount: number): FunctionExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time to subtract (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time to subtract (e.g., "day", "hour"). |
 |  amount | number | The amount of time to subtract. |
 
 <b>Returns:</b>
@@ -5244,7 +5244,7 @@ timestampTruncate(granularity: TimeGranularity, timezone?: string | Expression):
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expression` representing the truncated timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the truncated timestamp.
 
 ### Example
 
@@ -5279,7 +5279,7 @@ timestampTruncate(granularity: Expression, timezone?: string | Expression): Func
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expression` representing the truncated timestamp.
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the truncated timestamp.
 
 ### Example
 

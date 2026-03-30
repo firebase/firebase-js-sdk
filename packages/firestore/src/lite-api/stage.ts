@@ -694,6 +694,7 @@ export class Union extends Stage {
   }
 
   _readUserData(context: ParseContext): void {
+    this.other._readUserData(context);
     super._readUserData(context);
   }
 }
