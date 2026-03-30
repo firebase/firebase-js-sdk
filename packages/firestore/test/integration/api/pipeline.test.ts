@@ -2893,27 +2893,35 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(equal('awards.hugo', true))
-          .sort(field('title').descending())
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              nestedField: {
+                level: {
+                  '1': 'bar'
+                },
+                'level.1': {
+                  'level.2': 'baz'
+                }
+              }
+            })
+          )
           .select(
             'title',
             field('nestedField.level.1'),
             mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
-      expectResults(
-        snapshot,
-        {
-          title: "The Hitchhiker's Guide to the Galaxy",
-          nestedField: { level: {} },
-          nested: true
+      expectResults(snapshot, {
+        title: 'foo',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
         },
-        {
-          title: 'Dune',
-          nestedField: { level: {} },
-          nested: null
-        }
-      );
+        nested: 'baz'
+      });
     });
 
     it('test mapSet', async () => {
