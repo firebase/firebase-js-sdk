@@ -25,13 +25,18 @@ import {
   DataConnect,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
+  executeMutation,
   executeQuery,
   getDataConnect,
+  mutationRef,
   queryRef,
   subscribe,
   SubscribeNotificationHook
 } from '../../src';
+import { DataConnectTransportManager } from '../../src/network/manager';
+import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
 import { initializeWebSocket } from '../../src/network/stream/websocket';
+import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
 import { MockWebSocket } from './testUtils';
 
@@ -53,20 +58,47 @@ interface ManagerWithInternals {
     body?: Variables
   ): void;
   invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void;
+  streamTransport?: StreamTransportWithInternals;
+  initStreamTransport(): AbstractDataConnectStreamTransport;
+}
+
+/** Interface that exposes private fields of AbstractDataConnectStreamTransport for testing purposes. */
+interface StreamTransportWithInternals {
+  sendMessage<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
+  ): Promise<void>;
 }
 
 describe('Streaming & Query Layer Integration', () => {
   let dc: DataConnect;
   let app: FirebaseApp;
-  let mockWebSocket: MockWebSocket;
+  /** the currently active websocket, if any */
+  let mockWebSocket: MockWebSocket | null;
   let manager: ManagerWithInternals;
+  /** this is only initialized once the websocket is opened */
+  let sendMessageSpy: sinon.SinonSpy | null;
+  let initStreamTransportStub: sinon.SinonStub;
 
   beforeEach(() => {
     const wsConstructor = function (url: string): MockWebSocket {
       mockWebSocket = new MockWebSocket(url);
+      mockWebSocket.onclose = async event => {
+        await mockWebSocket?.onclose?.(event);
+        mockWebSocket = null;
+        sendMessageSpy = null;
+      };
       return mockWebSocket;
     };
     initializeWebSocket(wsConstructor as unknown as typeof WebSocket);
+
+    const originalInitStreamTransport = (DataConnectTransportManager.prototype as unknown as ManagerWithInternals).initStreamTransport;
+    initStreamTransportStub = sinon.stub(DataConnectTransportManager.prototype as unknown as ManagerWithInternals, 'initStreamTransport').callsFake(function (this: ManagerWithInternals) {
+      const streamTransport = originalInitStreamTransport.apply(this);
+      // eslint-disable-next-line no-console
+      console.log(streamTransport);
+      sendMessageSpy = sinon.spy(streamTransport as unknown as StreamTransportWithInternals, 'sendMessage');
+      return streamTransport;
+    });
 
     app = initializeApp({ projectId: 'p', appId: 'a' }, 'n');
     dc = getDataConnect(app, {
@@ -74,7 +106,7 @@ describe('Streaming & Query Layer Integration', () => {
       location: 'l',
       service: 's'
     });
-
+    dc.setInitialized();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     manager = (dc as any)._transport;
   });
@@ -83,6 +115,7 @@ describe('Streaming & Query Layer Integration', () => {
     await dc._delete();
     await deleteApp(app);
     initializeWebSocket(WebSocket);
+    mockWebSocket = null;
     sinon.restore();
   });
 
@@ -93,69 +126,76 @@ describe('Streaming & Query Layer Integration', () => {
 
   const queryName = 'testQuery';
 
-  it('should call invokeSubscribe on first subscribe and receive data', async () => {
-    const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-    const onNextSpy = sinon.spy();
-    subscribe(q, onNextSpy);
+  describe('user-facing API', () => {
+    it('executeQuery / executeMutation should not initialize stream', async () => {
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+      const m = mutationRef<TestData, TestVariables>(dc, queryName, testVariables);
 
-    expect(mockWebSocket).to.not.be.undefined;
-    await mockWebSocket.simulateOpen();
+      void executeQuery(q);
+      expect(initStreamTransportStub).to.not.have.been.called;
+      expect(mockWebSocket).to.be.undefined;
+      void executeMutation(m);
+      expect(initStreamTransportStub).to.not.have.been.called;
+      expect(mockWebSocket).to.be.undefined;
+    });
 
-    const responsePayload = {
-      result: {
-        requestId: '1',
-        data: testData,
-        errors: []
-      }
-    };
-    await mockWebSocket.simulateMessage(JSON.stringify(responsePayload));
+    it('subscribe should initialize stream', async () => {
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+      subscribe(q, () => { });
+      expect(initStreamTransportStub).to.have.been.calledOnce;
+      await mockWebSocket!.simulateOpen();
+      expect(mockWebSocket).to.not.be.undefined;
+    });
 
-    expect(onNextSpy.calledOnce).to.be.true;
-    const result = onNextSpy.firstCall.args[0];
-    expect(result.data).to.deep.equal(testData);
-  });
+    it('query layer should call invokeUnsubscribe on last unsubscribe', async () => {
+      const invokeUnsubscribeStub = sinon.stub(manager, 'invokeUnsubscribe');
+      const onNextSpy1 = sinon.spy();
+      const onNextSpy2 = sinon.spy();
+      const onNextSpy3 = sinon.spy();
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
 
-  it('should call invokeUnsubscribe on last unsubscribe', async () => {
-    const invokeUnsubscribeStub = sinon.stub(manager, 'invokeUnsubscribe');
-    const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-    const onNextSpy1 = sinon.spy();
-    const onNextSpy2 = sinon.spy();
+      const unsub1 = subscribe(q, onNextSpy1);
+      const unsub2 = subscribe(q, onNextSpy2);
+      const unsub3 = subscribe(q, onNextSpy3);
 
-    const unsub1 = subscribe(q, onNextSpy1);
-    const unsub2 = subscribe(q, onNextSpy2);
+      await mockWebSocket!.simulateOpen();
 
-    await mockWebSocket.simulateOpen();
+      unsub1();
+      expect(invokeUnsubscribeStub).to.not.have.been.called;
+      unsub2();
+      expect(invokeUnsubscribeStub).to.not.have.been.called;
+      unsub3();
+      expect(invokeUnsubscribeStub).to.have.been.calledOnceWith(queryName, testVariables);
+    });
 
-    unsub1();
-    expect(invokeUnsubscribeStub).to.not.have.been.called;
-    unsub2();
-    expect(invokeUnsubscribeStub).to.have.been.calledOnceWith(queryName, testVariables);
   });
 
   describe('incoming notifications', () => {
-    it('should notify all relevant subscribers when data is pushed', async () => {
-      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+    it('should notify all relevant subscribers when data is received', async () => {
+      const relevantQuery = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+      const irrelevantQuery = queryRef<TestData, TestVariables>(dc, 'otherQuery', { foo: 'xyz' });
       const relevantSpy1 = sinon.spy();
       const relevantSpy2 = sinon.spy();
       const relevantSpy3 = sinon.spy();
       const irrelevantSpy = sinon.spy();
+      subscribe(relevantQuery, relevantSpy1);
+      subscribe(relevantQuery, relevantSpy2);
+      subscribe(relevantQuery, relevantSpy3);
 
-      subscribe(q, relevantSpy1);
-      subscribe(q, relevantSpy2);
-      subscribe(q, relevantSpy3);
-      subscribe(queryRef(dc, "otherQuery"), irrelevantSpy);
+      await mockWebSocket!.simulateOpen();
 
-      await mockWebSocket.simulateOpen();
+      subscribe(irrelevantQuery, irrelevantSpy);
 
-      const responsePayload = {
+      const firstRequest: DataConnectStreamRequest<TestVariables> = sendMessageSpy!.firstCall.args[0];
+      const relevantNotification = {
         result: {
-          requestId: '1',
+          requestId: firstRequest.requestId,
           data: testData,
           errors: []
         }
       };
 
-      await mockWebSocket.simulateMessage(JSON.stringify(responsePayload));
+      await mockWebSocket!.simulateMessage(JSON.stringify(relevantNotification));
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -170,54 +210,82 @@ describe('Streaming & Query Layer Integration', () => {
     });
 
     // it('should update cache when data is pushed', async () => {
-    //   const q = queryRef<{ foo: string }, {}>(dc, 'testQuery', {});
+    //   const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
     //   const onNextSpy = sinon.spy();
 
     //   subscribe(q, onNextSpy);
 
-    //   await mockWebSocket.simulateOpen();
-
-    //   const responsePayload = {
+    //   await mockWebSocket!.simulateOpen();
+    //   const subscribeRequest: DataConnectStreamRequest<TestVariables> = sendMessageSpy!.firstCall.args[0];
+    //   const subscribeNotification = {
     //     result: {
-    //       requestId: '1',
-    //       data: { foo: 'bar' },
+    //       requestId: subscribeRequest.requestId,
+    //       data: testData,
     //       errors: []
     //     }
     //   };
 
-    //   await mockWebSocket.simulateMessage(JSON.stringify(responsePayload));
+    //   await mockWebSocket!.simulateMessage(JSON.stringify(subscribeNotification));
 
-    //   // Verify cache was updated by executing query again - it should prefer cache if allowStale is true,
-    //   // or if we just verify that it doesn't go to rest network (since we are not mocking fetch here, it might fail if it goes to rest).
-    //   // Let's verify executeQuery also uses the stream condition if stream is connected.
-    //   // In our test, stream IS connected.
-    //   // So executeQuery will call invokeQuery on stream which sends an execute message.
     //   const executePromise = executeQuery(q, { fetchPolicy: 'SERVER_ONLY' });
 
-    //   // Since stream is connected, it should send a message to ws.
-    //   await Promise.resolve();
-    //   await Promise.resolve();
-    //   expect(mockWebSocket.send.called).to.be.true;
-    //   const lastCall = mockWebSocket.send.lastCall;
-    //   const msg = JSON.parse(lastCall.args[0]);
-    //   // eslint-disable-next-line no-console
-    //   console.log('Execute Message:', msg);
-    //   expect(msg.execute).to.not.be.undefined;
+    //   expect(mockWebSocket!.send.called).to.be.true;
+    //   expect(subscribeRequest.execute).to.not.be.undefined;
 
-    //   // Simulate response for executeQuery execution.
-    //   // Use the requestId from the actual sent message!
     //   const executeResponse = {
     //     result: {
-    //       requestId: msg.requestId,
-    //       data: { foo: 'baz' },
+    //       requestId: subscribeRequest.requestId,
+    //       data: testData,
     //       errors: []
     //     }
     //   };
-    //   await mockWebSocket.simulateMessage(JSON.stringify(executeResponse));
+    //   await mockWebSocket!.simulateMessage(JSON.stringify(executeResponse));
 
     //   await expect(executePromise).to.be.fulfilled;
     //   const res = await executePromise;
     //   expect(res.data).to.deep.equal({ foo: 'baz' });
     // });
+
+    it('should notify all relevant subscribers of errors when they are pushed', async () => {
+      const relevantQuery = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+      const irrelevantQuery = queryRef<TestData, TestVariables>(dc, 'otherQuery', { foo: 'xyz' });
+      const relevantSpy1 = sinon.spy();
+      const relevantSpy2 = sinon.spy();
+      const relevantSpy3 = sinon.spy();
+      const irrelevantSpy = sinon.spy();
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy1 });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy2 });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy3 });
+      const expectedError = new Error('test error');
+
+      await mockWebSocket!.simulateOpen();
+
+      subscribe(irrelevantQuery, { onNext: () => { }, onErr: irrelevantSpy });
+
+      const firstRequest: DataConnectStreamRequest<TestVariables> = sendMessageSpy!.firstCall.args[0];
+      const relevantNotification = {
+        result: {
+          requestId: firstRequest.requestId,
+          data: testData,
+          errors: [expectedError]
+        }
+      };
+
+      await mockWebSocket!.simulateMessage(JSON.stringify(relevantNotification));
+
+      expect(relevantSpy1.calledOnce).to.be.true;
+      expect(relevantSpy2.calledOnce).to.be.true;
+      expect(relevantSpy3.calledOnce).to.be.true;
+      expect(irrelevantSpy).to.not.have.been.called;
+      const result1 = relevantSpy1.firstCall.args[0];
+      const result2 = relevantSpy2.firstCall.args[0];
+      const result3 = relevantSpy3.firstCall.args[0];
+      expect(result1).to.be.an.instanceOf(Error);
+      expect(result1.message).to.include('DataConnect error while received from subscribe notification');
+      expect(result2).to.be.an.instanceOf(Error);
+      expect(result2.message).to.include('DataConnect error while received from subscribe notification');
+      expect(result3).to.be.an.instanceOf(Error);
+      expect(result3.message).to.include('DataConnect error while received from subscribe notification');
+    });
   });
 });
