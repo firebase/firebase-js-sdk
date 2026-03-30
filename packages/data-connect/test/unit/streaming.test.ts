@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as sinon from 'sinon';
+import sinonChai from 'sinon-chai';
 
 import {
   DataConnect,
@@ -38,6 +39,7 @@ import { AbstractDataConnectStreamTransport } from '../../src/network/stream/str
 import { WebSocketTransport } from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
+chai.use(sinonChai);
 chai.use(chaiAsPromised);
 
 /** Interface that exposes private fields of TransportManager for testing purposes. */
@@ -134,7 +136,7 @@ describe('Streaming & Query Layer Integration', () => {
 
     it('subscribe should initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      subscribe(q, () => {});
+      subscribe(q, () => { });
       expect(initStreamTransportStub).to.have.been.calledOnce;
       expect(stubStreamTransport.invokeSubscribe).to.have.been.calledOnce;
     });
@@ -200,42 +202,33 @@ describe('Streaming & Query Layer Integration', () => {
       expect(result3.data).to.deep.equal(testData);
     });
 
-    // it('should update cache when data is pushed', async () => {
-    //   const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-    //   const onNextSpy = sinon.spy();
+    it('should update cache when data is pushed', async () => {
+      const q = queryRef<TestData, TestVariables>(
+        dc,
+        queryName,
+        testVariables
+      );
+      const onNextSpy = sinon.spy();
+      subscribe(q, onNextSpy);
 
-    //   subscribe(q, onNextSpy);
+      // get the query layer's notification hook which was passed to invokeSubscribe
+      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-    //   await mockWebSocket!.simulateOpen();
-    //   const subscribeRequest: DataConnectStreamRequest<TestVariables> = sendMessageSpy!.firstCall.args[0];
-    //   const subscribeNotification = {
-    //     result: {
-    //       requestId: subscribeRequest.requestId,
-    //       data: testData,
-    //       errors: []
-    //     }
-    //   };
+      // call the hook with data
+      await hook({ data: testData, errors: [], extensions: {} });
 
-    //   await mockWebSocket!.simulateMessage(JSON.stringify(subscribeNotification));
+      // verify CACHE_ONLY executions see the data returned from the notification hook
+      const cacheResult1 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
+      expect(cacheResult1.data).to.deep.equal(testData);
 
-    //   const executePromise = executeQuery(q, { fetchPolicy: 'SERVER_ONLY' });
+      // simulate second notification
+      const newData: TestData = { abc: 'NEW DATA' };
+      await hook({ data: newData, errors: [], extensions: {} });
 
-    //   expect(mockWebSocket!.send.called).to.be.true;
-    //   expect(subscribeRequest.execute).to.not.be.undefined;
-
-    //   const executeResponse = {
-    //     result: {
-    //       requestId: subscribeRequest.requestId,
-    //       data: testData,
-    //       errors: []
-    //     }
-    //   };
-    //   await mockWebSocket!.simulateMessage(JSON.stringify(executeResponse));
-
-    //   await expect(executePromise).to.be.fulfilled;
-    //   const res = await executePromise;
-    //   expect(res.data).to.deep.equal({ foo: 'baz' });
-    // });
+      // verify CACHE_ONLY again
+      const cacheResult2 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
+      expect(cacheResult2.data).to.deep.equal(newData);
+    });
 
     it('should notify all relevant subscribers of errors when they are pushed', async () => {
       const relevantQuery = queryRef<TestData, TestVariables>(
@@ -243,26 +236,27 @@ describe('Streaming & Query Layer Integration', () => {
         queryName,
         testVariables
       );
+      const newVars: TestVariables = { foo: 'NEW VARS' };
       const irrelevantQuery = queryRef<TestData, TestVariables>(
         dc,
         'otherQuery',
-        { foo: 'xyz' }
+        newVars
       );
       const relevantSpy1 = sinon.spy();
       const relevantSpy2 = sinon.spy();
       const relevantSpy3 = sinon.spy();
       const irrelevantSpy = sinon.spy();
-      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy1 });
-      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy2 });
-      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy3 });
-      const expectedError = new Error('test error');
 
-      subscribe(irrelevantQuery, { onNext: () => {}, onErr: irrelevantSpy });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy1 });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy2 });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy3 });
+      subscribe(irrelevantQuery, { onNext: () => { }, onErr: irrelevantSpy });
 
       // get the query layer's notification hook which was passed to invokeSubscribe
       const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
       // call the hook with errors
+      const expectedError = new Error('test error');
       hook({ data: {}, errors: [expectedError], extensions: {} });
 
       expect(relevantSpy1.calledOnce).to.be.true;
