@@ -20,6 +20,7 @@ import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logError } from '../../logger';
+import { websocketUrlBuilder } from '../../util/url';
 import {
   CallerSdkType,
   CallerSdkTypeEnum,
@@ -73,6 +74,22 @@ export enum WebSocketCloseCode {
  * @internal
  */
 export class WebSocketTransport extends AbstractDataConnectStreamTransport {
+  get endpointUrl(): string {
+    return websocketUrlBuilder(
+      {
+        connector: this._connectorName,
+        location: this._location,
+        projectId: this._project,
+        service: this._serviceName
+      },
+      {
+        host: this._host,
+        sslEnabled: this._secure,
+        port: this._port
+      }
+    );
+  }
+
   /** The current connection to the server. Undefined if disconnected. */
   private connection: WebSocket | undefined = undefined;
 
@@ -246,6 +263,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
   ): DataConnectStreamResponse<Data> {
+    // eslint-disable-next-line no-console
+    console.log("WEBSOCKET MESSAGE RECEIVED:", JSON.stringify(data)); // DEBUGGING
     let webSocketMessage;
     try {
       webSocketMessage = JSON.parse(data);

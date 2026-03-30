@@ -21,7 +21,6 @@ import { Code, DataConnectError } from '../core/error';
 import { AuthTokenProvider } from '../core/FirebaseAuthProvider';
 import { SDK_VERSION } from '../core/version';
 import { logDebug } from '../logger';
-import { urlBuilder } from '../util/url';
 
 /**
  * enum representing different flavors of the SDK used by developers
@@ -269,21 +268,8 @@ export abstract class AbstractDataConnectTransport
     });
   }
 
-  get endpointUrl(): string {
-    return urlBuilder(
-      {
-        connector: this._connectorName,
-        location: this._location,
-        projectId: this._project,
-        service: this._serviceName
-      },
-      {
-        host: this._host,
-        sslEnabled: this._secure,
-        port: this._port
-      }
-    );
-  }
+  /** Get the endpoint URL this transport should use to communicate with the backend. */
+  abstract get endpointUrl(): string;
 
   useEmulator(host: string, port?: number, isSecure?: boolean): void {
     this._host = host;

@@ -21,7 +21,7 @@ import { logError } from '../logger';
 
 export const PROD_HOST = 'firebasedataconnect.googleapis.com';
 
-export function urlBuilder(
+export function restUrlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
 ): string {
@@ -41,6 +41,28 @@ export function urlBuilder(
   }
   return `${baseUrl}/v1/projects/${project}/locations/${location}/services/${service}/connectors/${connector}`;
 }
+
+export function websocketUrlBuilder(
+  projectConfig: DataConnectOptions,
+  transportOptions: TransportOptions
+): string {
+  const { location } = projectConfig;
+  const { host, sslEnabled, port } = transportOptions;
+  const protocol = sslEnabled ? 'wss' : 'ws';
+  const realHost = host || PROD_HOST;
+  let baseUrl = `${protocol}://${realHost}`;
+  if (typeof port === 'number') {
+    baseUrl += `:${port}`;
+  } else if (typeof port !== 'undefined') {
+    logError('Port type is of an invalid type');
+    throw new DataConnectError(
+      Code.INVALID_ARGUMENT,
+      'Incorrect type for port passed in!'
+    );
+  }
+  return `${baseUrl}/v1/Connect/locations/${location}`;
+}
+
 export function addToken(url: string, apiKey?: string): string {
   if (!apiKey) {
     return url;
