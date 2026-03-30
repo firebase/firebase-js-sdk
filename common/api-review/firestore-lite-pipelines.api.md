@@ -762,11 +762,19 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    timestampAdd(unit: TimeUnit, amount: number): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampDiff(start: Expression, unit: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampExtract(part: TimePart, timezone?: string | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    timestampExtract(part: Expression, timezone?: string | Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    timestampSubtract(unit: TimeUnit, amount: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampToUnixMicros(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -1104,6 +1112,9 @@ export function multiply(first: Expression, second: Expression | unknown): Funct
 export function multiply(fieldName: string, second: Expression | unknown): FunctionExpression;
 
 // @beta
+export function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
+
+// @beta
 export function not(booleanExpr: BooleanExpression): BooleanExpression;
 
 // @beta
@@ -1156,11 +1167,6 @@ export class Ordering {
 
 // @beta
 export class Pipeline {
-    /* Excluded from this release type: _db */
-    /* Excluded from this release type: userDataReader */
-    /* Excluded from this release type: _userDataWriter */
-    /* Excluded from this release type: stages */
-    /* Excluded from this release type: __constructor */
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
@@ -1217,15 +1223,31 @@ export class PipelineSnapshot {
 // @beta
 export class PipelineSource<PipelineType> {
     collection(collection: string | Query): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collection(options: CollectionStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collectionGroup(collectionId: string): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     createFrom(query: Query): Pipeline;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     database(): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     database(options: DatabaseStageOptions): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     documents(docs: Array<string | DocumentReference>): PipelineType;
+    /* Excluded from this release type: _createPipeline */
+    /* Excluded from this release type: __constructor */
     documents(options: DocumentsStageOptions): PipelineType;
-    }
+}
 
 // @beta
 export function pow(base: Expression, exponent: Expression): FunctionExpression;
@@ -1462,25 +1484,55 @@ export function sum(expression: Expression): AggregateFunction;
 export function sum(fieldName: string): AggregateFunction;
 
 // @beta
-export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
+
+// @beta
+export type TimeGranularity = TimeUnit | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | 'isoyear';
+
+// @beta
+export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 
 // @beta
 export function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
 // @beta
-export function timestampAdd(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampAdd(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
+
+// @beta
+export function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endFieldName: string, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endExpression: Expression, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampDiff(endExpression: Expression, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(fieldName: string, part: Expression, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(timestampExpression: Expression, part: TimePart, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export function timestampExtract(timestampExpression: Expression, part: Expression, timezone?: string | Expression): FunctionExpression;
 
 // @beta
 export function timestampSubtract(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
 // @beta
-export function timestampSubtract(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampSubtract(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampSubtract(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampSubtract(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
 export function timestampToUnixMicros(expr: Expression): FunctionExpression;
@@ -1511,6 +1563,9 @@ export function timestampTruncate(timestampExpression: Expression, granularity: 
 
 // @beta
 export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 
 // @beta
 export function toLower(fieldName: string): FunctionExpression;
