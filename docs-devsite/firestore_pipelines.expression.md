@@ -73,6 +73,8 @@ export declare abstract class Expression
 |  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
 |  [arraySlice(offset, length)](./firestore_pipelines.expression.md#expressionarrayslice) |  | <b><i>(Public Preview)</i></b> Returns a subset of the array. |
 |  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
+|  [arrayTransform(elementAlias, transform)](./firestore_pipelines.expression.md#expressionarraytransform) |  | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(elementAlias, indexAlias, transform)](./firestore_pipelines.expression.md#expressionarraytransformwithindex) |  | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
 |  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
 |  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
@@ -1388,6 +1390,77 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Compute the sum of the elements in the 'scores' field.
 field("scores").arraySum();
+
+```
+
+## Expression.arrayTransform()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+arrayTransform(elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the arrayTransform operation.
+
+### Example
+
+
+```typescript
+// Transform the 'scores' array by multiplying each score by 10
+field("scores").arrayTransform("score", multiply(variable("score"), 10));
+
+```
+
+## Expression.arrayTransformWithIndex()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the arrayTransform operation.
+
+### Example
+
+
+```typescript
+// Transform the 'scores' array by adding the index to each score
+field("scores").arrayTransformWithIndex("score", "i", add(variable("score"), variable("i")));
 
 ```
 

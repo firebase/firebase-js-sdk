@@ -3276,7 +3276,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, ...expectedResults);
     });
 
-    it.only('supports arrayFilter', async () => {
+    it('supports arrayFilter', async () => {
       const snapshot = await execute(
         firestore
           .pipeline()

@@ -1531,6 +1531,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that applies a provided transformation to each element in an array.
    *
    * @example
@@ -1555,6 +1556,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @beta
    * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
    *
    * @example
@@ -7043,6 +7045,7 @@ export function arrayFilter(
 }
 
 /**
+ * @beta
  * Creates an expression that applies a provided transformation to each element in an array.
  *
  * @example
@@ -7063,6 +7066,7 @@ export function arrayTransform(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that applies a provided transformation to each element in an array.
  *
  * @example
@@ -7090,6 +7094,7 @@ export function arrayTransform(
 }
 
 /**
+ * @beta
  * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
  *
  * @example
@@ -7112,6 +7117,7 @@ export function arrayTransformWithIndex(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
  *
  * @example
@@ -7146,6 +7152,7 @@ export function arrayTransformWithIndex(
 }
 
 /**
+ * @beta
  * Creates an expression that returns a subset of an array.
  *
  * @example
@@ -7169,6 +7176,7 @@ export function arraySlice(
 ): FunctionExpression;
 
 /**
+ * @beta
  * Creates an expression that returns a subset of an array.
  *
  * @example
@@ -11515,7 +11523,7 @@ class PipelineValueExpression extends Expression {
   }
 }
 
-/*
+/**
  * @beta
  * Creates an expression that calculates the difference between two timestamps.
  *

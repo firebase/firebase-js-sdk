@@ -246,6 +246,18 @@ export function arraySum(fieldName: string): FunctionExpression;
 export function arraySum(expression: Expression): FunctionExpression;
 
 // @beta
+export function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
+
+// @beta
+export function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
+
+// @beta
+export function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+
+// @beta
+export function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+
+// @beta
 export function ascending(expr: Expression): Ordering;
 
 // @beta
@@ -570,6 +582,10 @@ export abstract class Expression {
     arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arraySum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayTransform(elementAlias: string, transform: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     as(name: string): AliasedExpression;
     /* Excluded from this release type: _readUserData */
@@ -1719,7 +1735,7 @@ export function xor(first: BooleanExpression, second: BooleanExpression, ...addi
 
 // Warnings were encountered during analysis:
 //
-// /Users/dlarocque/workspace/sdk/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1779:5 - (ae-incompatible-release-tags) The symbol "variables" is marked as @public, but its signature references "AliasedExpression" which is marked as @beta
+// /Users/milamamat/firebase/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1917:5 - (ae-incompatible-release-tags) The symbol "variables" is marked as @public, but its signature references "AliasedExpression" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

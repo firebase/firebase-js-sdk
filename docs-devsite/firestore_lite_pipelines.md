@@ -48,6 +48,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_lite_pipelines.md#arrayminimumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arraySlice(arrayExpression, offset, length)](./firestore_lite_pipelines.md#arrayslice_a349bee) | <b><i>(Public Preview)</i></b> Creates an expression that returns a subset of an array. |
+|  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_lite_pipelines.md#arraytransform_28967fa) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_lite_pipelines.md#arraytransformwithindex_2f3b17f) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_lite_pipelines.md#join_313e6aa) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayExpression, delimiter)](./firestore_lite_pipelines.md#join_d088d29) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
@@ -83,8 +85,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [timestampDiff(endExpression, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_4370feb) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
 |  [timestampDiff(endExpression, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_bc0830f) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(endFieldName, ...)</b> |
-|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_c062afd) |  |
-|  [timestampDiff(endFieldName, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_8244545) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
 |  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_f60102c) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
 |  [timestampDiff(endFieldName, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_6e54d92) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(expr, ...)</b> |
@@ -180,6 +180,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(fieldName, n)](./firestore_lite_pipelines.md#arrayminimumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arraySum(fieldName)](./firestore_lite_pipelines.md#arraysum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
+|  [arrayTransform(fieldName, elementAlias, transform)](./firestore_lite_pipelines.md#arraytransform_328a090) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_lite_pipelines.md#arraytransformwithindex_e6629b2) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [ascending(fieldName)](./firestore_lite_pipelines.md#ascending_e5b0480) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_lite_pipelines.md#average_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
 |  [byteLength(fieldName)](./firestore_lite_pipelines.md#bytelength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob. |
@@ -1512,6 +1514,79 @@ arraySlice(field("items"), 2, field("length"));
 
 ```
 
+### arrayTransform(arrayExpression, elementAlias, transform) {:#arraytransform_28967fa}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by multiplying each score by 10
+arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
+
+```
+
+### arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform) {:#arraytransformwithindex_2f3b17f}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by adding the index to each score
+arrayTransformWithIndex(field("scores"), "score", "i", add(variable("score"), variable("i")));
+
+```
+
 ### join(arrayExpression, delimiterExpression) {:#join_313e6aa}
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
@@ -2354,6 +2429,11 @@ timestampDiff(field('endTime'), field('startTime'), 'day')
 
 ### timestampDiff(endFieldName, startFieldName, unit) {:#timestampdiff_f60102c}
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that calculates the difference between two timestamps.
+
 <b>Signature:</b>
 
 ```typescript
@@ -2364,9 +2444,6 @@ export declare function timestampDiff(endFieldName: string, startFieldName: stri
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  endFieldName | string |  |
-|  startFieldName | string |  |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
 |  endFieldName | string | The name of the field representing the ending timestamp. |
 |  startFieldName | string | The name of the field representing the starting timestamp. |
 |  unit | [TimeUnit](./firestore_lite_pipelines.md#timeunit) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
@@ -2375,7 +2452,6 @@ export declare function timestampDiff(endFieldName: string, startFieldName: stri
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
 
-### timestampDiff(endFieldName, startExpression, unit) {:#timestampdiff_8244545}
 A new `Expression` representing the difference as an integer.
 
 ### Example
@@ -5477,6 +5553,79 @@ A new `Expression` representing the sum of the elements in the array.
 ```typescript
 // Compute the sum of the elements in the 'scores' field.
 arraySum("scores");
+
+```
+
+### arrayTransform(fieldName, elementAlias, transform) {:#arraytransform_328a090}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by multiplying each score by 10
+arrayTransform("scores", "score", multiply(variable("score"), 10));
+
+```
+
+### arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform) {:#arraytransformwithindex_e6629b2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by adding the index to each score
+arrayTransformWithIndex("scores", "score", "i", add(variable("score"), variable("i")));
 
 ```
 
