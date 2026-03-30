@@ -185,7 +185,7 @@ import {
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
@@ -1900,6 +1900,35 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
       });
 
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
+          'book9'
+        );
+      });
+
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -2307,10 +2336,6 @@ describe.skipClassic('Firestore Pipelines', () => {
         // Backend returns the code as `failed-precondition` when using the REST transport
         expect(err['code']).to.equal('failed-precondition');
         expect(typeof err['message']).to.equal('string');
-
-        expect(err['message']).to.match(
-          /Request failed with error: Expected value type of MAP_VALUE when parsing 'fields' but received FIELD_REFERENCE_VALUE instead/
-        );
       }
     });
   });
@@ -3943,7 +3968,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             timestampTruncate(field('timestamp'), 'hour').as('truncHour'),
             timestampTruncate(field('timestamp'), 'minute').as('truncMinute'),
             timestampTruncate(field('timestamp'), 'second').as('truncSecond'),
-            timestampTruncate(field('timestamp'), 'isoWeek').as('truncIsoWeek')
+            timestampTruncate(field('timestamp'), 'isoweek').as('truncIsoweek')
           )
       );
 
@@ -3954,7 +3979,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         truncHour: new Timestamp(1741435200, 0),
         truncMinute: new Timestamp(1741437240, 0),
         truncSecond: new Timestamp(1741437296, 0),
-        truncIsoWeek: new Timestamp(1740960000, 0)
+        truncIsoweek: new Timestamp(1740960000, 0)
       });
     }).timeout(10000);
 

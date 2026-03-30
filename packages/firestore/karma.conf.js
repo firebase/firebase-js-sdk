@@ -52,6 +52,13 @@ module.exports = function (config) {
     };
   }
 
+  if (argv.firestoreEdition) {
+    karmaConfig.client = {
+      ...karmaConfig.client,
+      firestoreEdition: argv.firestoreEdition
+    };
+  }
+
   config.set(karmaConfig);
 };
 

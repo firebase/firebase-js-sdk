@@ -2546,19 +2546,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param amount - The amount of time to add.
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
    */
+  timestampAdd(unit: TimeUnit, amount: number): FunctionExpression;
   timestampAdd(
-    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
-    amount: number
-  ): FunctionExpression;
-  timestampAdd(
-    unit:
-      | Expression
-      | 'microsecond'
-      | 'millisecond'
-      | 'second'
-      | 'minute'
-      | 'hour'
-      | 'day',
+    unit: Expression | TimeUnit,
     amount: Expression | number
   ): FunctionExpression {
     return new FunctionExpression(
@@ -2598,19 +2588,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param amount - The amount of time to subtract.
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
    */
+  timestampSubtract(unit: TimeUnit, amount: number): FunctionExpression;
   timestampSubtract(
-    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
-    amount: number
-  ): FunctionExpression;
-  timestampSubtract(
-    unit:
-      | Expression
-      | 'microsecond'
-      | 'millisecond'
-      | 'second'
-      | 'minute'
-      | 'hour'
-      | 'day',
+    unit: Expression | TimeUnit,
     amount: Expression | number
   ): FunctionExpression {
     return new FunctionExpression(
@@ -2650,20 +2630,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param unit - The unit of time for the difference (e.g., "day", "hour").
    * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an integer.
    */
+  timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
   timestampDiff(
     start: string | Expression,
-    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'
-  ): FunctionExpression;
-  timestampDiff(
-    start: string | Expression,
-    unit:
-      | 'microsecond'
-      | 'millisecond'
-      | 'second'
-      | 'minute'
-      | 'hour'
-      | 'day'
-      | Expression
+    unit: TimeUnit | Expression
   ): FunctionExpression {
     return new FunctionExpression(
       'timestamp_diff',
@@ -2715,8 +2685,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     part: TimePart | Expression,
     timezone?: string | Expression
   ): FunctionExpression {
-    const internalPart = isString(part) ? part.toLowerCase() : part;
-    const args = [this, valueToDefaultExpr(internalPart)];
+    const args = [this, valueToDefaultExpr(part)];
     if (timezone) {
       args.push(valueToDefaultExpr(timezone));
     }
@@ -3446,7 +3415,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param granularity - The granularity to truncate to.
    * @param timezone - The timezone to use for truncation. Valid values are from
    * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
-   * @returns A new `Expression` representing the truncated timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the truncated timestamp.
    */
   timestampTruncate(
     granularity: TimeGranularity,
@@ -3465,7 +3434,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * @param granularity - The granularity to truncate to.
    * @param timezone - The timezone to use for truncation. Valid values are from
    * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
-   * @returns A new `Expression` representing the truncated timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the truncated timestamp.
    */
   timestampTruncate(
     granularity: Expression,
@@ -3475,11 +3444,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     granularity: TimeGranularity | Expression,
     timezone?: string | Expression
   ): FunctionExpression {
-    const internalGranularity = isString(granularity)
-      ? granularity.toLowerCase()
-      : granularity;
-
-    const args = [this, valueToDefaultExpr(internalGranularity)];
+    const args = [this, valueToDefaultExpr(granularity)];
     if (timezone) {
       args.push(valueToDefaultExpr(timezone));
     }
@@ -3547,15 +3512,22 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
 /**
  * @beta
- * Specify time granularity for expressions.
+ * Specify time units for expressions.
  */
-export type TimeGranularity =
+export type TimeUnit =
   | 'microsecond'
   | 'millisecond'
   | 'second'
   | 'minute'
   | 'hour'
-  | 'day'
+  | 'day';
+
+/**
+ * @beta
+ * Specify time granularity for expressions.
+ */
+export type TimeGranularity =
+  | TimeUnit
   | 'week'
   | 'week(monday)'
   | 'week(tuesday)'
@@ -3564,11 +3536,11 @@ export type TimeGranularity =
   | 'week(friday)'
   | 'week(saturday)'
   | 'week(sunday)'
-  | 'isoWeek'
+  | 'isoweek'
   | 'month'
   | 'quarter'
   | 'year'
-  | 'isoYear';
+  | 'isoyear';
 
 /**
  * @beta
@@ -9866,7 +9838,7 @@ export function timestampAdd(
  */
 export function timestampAdd(
   timestamp: Expression,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 
@@ -9888,19 +9860,12 @@ export function timestampAdd(
  */
 export function timestampAdd(
   fieldName: string,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 export function timestampAdd(
   timestamp: Expression | string,
-  unit:
-    | Expression
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day',
+  unit: TimeUnit | Expression,
   amount: Expression | number
 ): FunctionExpression {
   const normalizedTimestamp = fieldOrExpression(timestamp);
@@ -9949,7 +9914,7 @@ export function timestampSubtract(
  */
 export function timestampSubtract(
   timestamp: Expression,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 
@@ -9971,19 +9936,12 @@ export function timestampSubtract(
  */
 export function timestampSubtract(
   fieldName: string,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 export function timestampSubtract(
   timestamp: Expression | string,
-  unit:
-    | Expression
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day',
+  unit: TimeUnit | Expression,
   amount: Expression | number
 ): FunctionExpression {
   const normalizedTimestamp = fieldOrExpression(timestamp);
@@ -11271,7 +11229,7 @@ export function timestampTruncate(
   timezone?: string | Expression
 ): FunctionExpression {
   const internalGranularity = isString(granularity)
-    ? valueToDefaultExpr(granularity.toLowerCase())
+    ? valueToDefaultExpr(granularity)
     : granularity;
   return fieldOrExpression(fieldNameOrExpression).timestampTruncate(
     internalGranularity,
@@ -11297,14 +11255,7 @@ export function timestampTruncate(
 export function timestampDiff(
   endFieldName: string,
   startFieldName: string,
-  unit:
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | Expression
+  unit: TimeUnit | Expression
 ): FunctionExpression;
 
 /**
@@ -11325,14 +11276,7 @@ export function timestampDiff(
 export function timestampDiff(
   endFieldName: string,
   startExpression: Expression,
-  unit:
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | Expression
+  unit: TimeUnit | Expression
 ): FunctionExpression;
 
 /**
@@ -11353,14 +11297,7 @@ export function timestampDiff(
 export function timestampDiff(
   endExpression: Expression,
   startFieldName: string,
-  unit:
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | Expression
+  unit: TimeUnit | Expression
 ): FunctionExpression;
 
 /**
@@ -11381,26 +11318,12 @@ export function timestampDiff(
 export function timestampDiff(
   endExpression: Expression,
   startExpression: Expression,
-  unit:
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | Expression
+  unit: TimeUnit | Expression
 ): FunctionExpression;
 export function timestampDiff(
   endFieldNameOrExpression: string | Expression,
   startFieldNameOrExpression: string | Expression,
-  unit:
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | Expression
+  unit: TimeUnit | Expression
 ): FunctionExpression {
   const normalizedEnd = fieldOrExpression(endFieldNameOrExpression);
   const normalizedStart = fieldOrExpression(startFieldNameOrExpression);
@@ -11501,7 +11424,7 @@ export function timestampExtract(
   timezone?: string | Expression
 ): FunctionExpression {
   return fieldOrExpression(fieldNameOrExpression).timestampExtract(
-    valueToDefaultExpr(isString(part) ? part.toLowerCase() : part),
+    valueToDefaultExpr(part),
     timezone
   );
 }

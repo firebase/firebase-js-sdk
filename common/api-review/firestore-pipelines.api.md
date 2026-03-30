@@ -777,11 +777,11 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampAdd(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    timestampAdd(unit: TimeUnit, amount: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampDiff(start: Expression, unit: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'): FunctionExpression;
+    timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampExtract(part: TimePart, timezone?: string | Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -789,7 +789,7 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    timestampSubtract(unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+    timestampSubtract(unit: TimeUnit, amount: number): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     timestampToUnixMicros(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
@@ -1553,7 +1553,7 @@ export function sum(fieldName: string): AggregateFunction;
 export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
 
 // @beta
-export type TimeGranularity = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoWeek' | 'month' | 'quarter' | 'year' | 'isoYear';
+export type TimeGranularity = TimeUnit | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | 'isoyear';
 
 // @beta
 export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
@@ -1562,22 +1562,22 @@ export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 export function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
 // @beta
-export function timestampAdd(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampAdd(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampDiff(endFieldName: string, startFieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+export function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
 
 // @beta
-export function timestampDiff(endFieldName: string, startExpression: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+export function timestampDiff(endFieldName: string, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
 
 // @beta
-export function timestampDiff(endExpression: Expression, startFieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+export function timestampDiff(endExpression: Expression, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
 
 // @beta
-export function timestampDiff(endExpression: Expression, startExpression: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day' | Expression): FunctionExpression;
+export function timestampDiff(endExpression: Expression, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
 
 // @beta
 export function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
@@ -1595,10 +1595,10 @@ export function timestampExtract(timestampExpression: Expression, part: Expressi
 export function timestampSubtract(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
 // @beta
-export function timestampSubtract(timestamp: Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampSubtract(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
-export function timestampSubtract(fieldName: string, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day', amount: number): FunctionExpression;
+export function timestampSubtract(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @beta
 export function timestampToUnixMicros(expr: Expression): FunctionExpression;
@@ -1629,6 +1629,9 @@ export function timestampTruncate(timestampExpression: Expression, granularity: 
 
 // @beta
 export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
+
+// @beta
+export type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 
 // @beta
 export function toLower(fieldName: string): FunctionExpression;
