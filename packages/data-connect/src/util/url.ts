@@ -20,6 +20,7 @@ import { Code, DataConnectError } from '../core/error';
 import { logError } from '../logger';
 
 export const PROD_HOST = 'firebasedataconnect.googleapis.com';
+export const WEBSOCKET_PATH = 'ws/google.firebase.dataconnect.v1.ConnectorStreamService';
 
 export function restUrlBuilder(
   projectConfig: DataConnectOptions,
@@ -60,7 +61,7 @@ export function websocketUrlBuilder(
       'Incorrect type for port passed in!'
     );
   }
-  return `${baseUrl}/v1/Connect/locations/${location}`;
+  return `${baseUrl}/${WEBSOCKET_PATH}/Connect/locations/${location}`;
 }
 
 export function addToken(url: string, apiKey?: string): string {
