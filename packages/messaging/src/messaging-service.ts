@@ -22,7 +22,10 @@ import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
 import { LogEvent } from './interfaces/logging-types';
 import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import {
+  _FirebaseInstallationsInternal,
+  IdChangeUnsubscribeFn
+} from '@firebase/installations';
 import { extractAppConfig } from './helpers/extract-app-config';
 
 export class MessagingService implements _FirebaseService {
@@ -57,6 +60,9 @@ export class MessagingService implements _FirebaseService {
    */
   _registerNotifyChain: Promise<void> = Promise.resolve();
 
+  /** Unsubscribe from Installations `onIdChange` when messaging is deleted. */
+  _fidChangeUnsubscribe: IdChangeUnsubscribeFn | null = null;
+
   logEvents: LogEvent[] = [];
   isLogServiceStarted: boolean = false;
 
@@ -66,7 +72,6 @@ export class MessagingService implements _FirebaseService {
     analyticsProvider: Provider<FirebaseAnalyticsInternalName>
   ) {
     const appConfig = extractAppConfig(app);
-
     this.firebaseDependencies = {
       app,
       appConfig,
@@ -76,6 +81,10 @@ export class MessagingService implements _FirebaseService {
   }
 
   _delete(): Promise<void> {
+    if (this._fidChangeUnsubscribe) {
+      this._fidChangeUnsubscribe();
+      this._fidChangeUnsubscribe = null;
+    }
     return Promise.resolve();
   }
 }

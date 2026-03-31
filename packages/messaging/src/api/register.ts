@@ -57,7 +57,8 @@ export async function register(
   if (!messaging.onRegisteredHandler) {
     throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
   }
-
+  
+  // TODO: refresh weekly
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(messaging, options?.serviceWorkerRegistration);
 
@@ -74,7 +75,6 @@ export async function register(
     await registerFcmRegistrationWithFid(messaging);
     messaging.lastNotifiedFid = fid;
 
-    // TODO: callback per fid change
     const handler = messaging.onRegisteredHandler;
     if (!handler) {
       return;
