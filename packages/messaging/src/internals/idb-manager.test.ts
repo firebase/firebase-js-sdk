@@ -24,7 +24,9 @@ import {
   dbGet,
   dbRemove,
   dbSet,
-  DATABASE_NAME
+  DATABASE_NAME,
+  _resetIdbForTests,
+  _setIdbForTests
 } from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
@@ -40,8 +42,14 @@ describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
   let tokenDetailsA: TokenDetails;
   let tokenDetailsB: TokenDetails;
+  let idbForTests: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Wrap the module namespace in a mutable object so sinon can stub methods reliably.
+    idbForTests = Object.assign({}, idb);
+    _setIdbForTests(idbForTests);
+    // Ensure no prior suite left an open connection or cached promise.
+    await dbDelete();
     firebaseDependencies = getFakeFirebaseDependencies();
     tokenDetailsA = getFakeTokenDetails();
     tokenDetailsB = getFakeTokenDetails();
@@ -51,6 +59,7 @@ describe('idb manager', () => {
 
   afterEach(async () => {
     await dbDelete();
+    _resetIdbForTests();
   });
 
   describe('get / set', () => {
@@ -148,7 +157,7 @@ describe('idb manager', () => {
     dbV1.close();
 
     const realOpenDB = idb.openDB.bind(idb);
-    const openDbStub = stub(idb, 'openDB').callsFake(((
+    const openDbStub = stub(idbForTests, 'openDB').callsFake(((
       name: string,
       version?: number,
       options?: unknown
@@ -171,7 +180,7 @@ describe('idb manager', () => {
       releaseOpen = resolve;
     });
 
-    const openDbStub = stub(idb, 'openDB').callsFake(((
+    const openDbStub = stub(idbForTests, 'openDB').callsFake(((
       name: string,
       version?: number,
       options?: unknown
@@ -196,13 +205,15 @@ describe('idb manager', () => {
 
   it('dbDelete calls deleteDB even if dbPromise is rejected', async () => {
     // Force both "open latest" and fallback open to fail, leaving dbPromise rejected.
-    const openDbStub = stub(idb, 'openDB').rejects(new Error('open failed'));
+    const openDbStub = stub(idbForTests, 'openDB').rejects(
+      new Error('open failed')
+    );
 
     // Trigger dbPromise creation (it will end up rejected).
     await expect(dbGet(firebaseDependencies)).to.be.rejected;
     expect(openDbStub).to.have.been.called;
 
-    const deleteDbStub = stub(idb, 'deleteDB').resolves();
+    const deleteDbStub = stub(idbForTests, 'deleteDB').resolves();
 
     // Should still attempt deletion and not throw.
     await dbDelete();

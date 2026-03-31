@@ -30,6 +30,7 @@ import * as installationsApi from '@firebase/installations';
 import * as requestsModule from '../internals/requests';
 import { Stub } from '../testing/sinon-types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import { dbDelete } from '../internals/idb-manager';
 
 describe('subscribeFidChangeRegistration', () => {
   let messaging: MessagingService;
@@ -78,9 +79,10 @@ describe('subscribeFidChangeRegistration', () => {
     ).resolves() as Stub<typeof requestsModule.requestCreateRegistration>;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     onIdChangeStub.restore();
     requestCreateRegistrationStub.restore();
+    await dbDelete();
   });
 
   it('runs real register when Installations invokes the FID change callback and delivers the new FID via onRegistered', async () => {

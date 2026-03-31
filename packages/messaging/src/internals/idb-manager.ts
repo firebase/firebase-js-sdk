@@ -16,13 +16,12 @@
  */
 
 import * as idb from 'idb';
-import { DBSchema, IDBPDatabase } from 'idb';
+import type { DBSchema, IDBPDatabase } from 'idb';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/registration-details';
 import { migrateOldDatabase } from '../helpers/migrate-old-database';
 
-// Exported for tests.
 export const DATABASE_NAME = 'firebase-messaging-database';
 const DATABASE_VERSION = 2;
 const TOKEN_OBJECT_STORE_NAME = 'firebase-messaging-store';
@@ -45,21 +44,25 @@ export interface FidRegistrationDetails {
   lastRegisterTime: number;
 }
 
-// NOTE: We may open DB v2 (new stores) but fall back to v1 if the upgrade/open fails (e.g.
-// blocked/aborted/unavailable). Since `IDBPDatabase<TSchema>` is not safely assignable across
-// different schemas (the generic affects method signatures deeply), we cache the promise as
-// `IDBPDatabase<unknown>` and narrow/guard at call sites:
-// - Token store is present in both v1 and v2.
-// - FID-registration store exists only in v2, so those helpers are best-effort and handle missing
-//   stores gracefully.
+const defaultIdb = idb;
+let idbImpl = defaultIdb;
+
+// Exported for tests.
+export function _setIdbForTests(impl: typeof idb): void {
+  idbImpl = impl;
+}
+
+export function _resetIdbForTests(): void {
+  idbImpl = defaultIdb;
+}
+
+// Open v2, but fall back to v1 if upgrade/open fails. Cache as `unknown` and guard store access.
 let dbPromise: Promise<IDBPDatabase<unknown>> | null = null;
 function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   if (!dbPromise) {
-    const openLatest = idb.openDB(DATABASE_NAME, DATABASE_VERSION, {
+    const openLatest = idbImpl.openDB(DATABASE_NAME, DATABASE_VERSION, {
       upgrade: (upgradeDb, oldVersion) => {
-        // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
-        // because if there are multiple versions between the old version and the current version, we
-        // want ALL the migrations that correspond to those versions to run, not only the last one.
+        // Intentional fall-through: run all intermediate migrations.
         // eslint-disable-next-line default-case
         switch (oldVersion) {
           case 0:
@@ -69,27 +72,26 @@ function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
             upgradeDb.createObjectStore(FID_REGISTRATION_OBJECT_STORE_NAME);
         }
       },
-      // Multi-tab robustness:
-      // - `blocked`: another tab holds a connection open and prevents this tab from upgrading.
-      // - `blocking`: this tab holds a connection open and prevents another tab from upgrading.
       blocked: () => {
         /* no-op */
       },
-      blocking: (db: any) => {
-        // Close our connection so other tabs can upgrade the DB. Resetting the cached promise
-        // ensures the next call will reopen a fresh connection after the upgrade completes.
+      blocking: (
+        _currentVersion: number,
+        _blockedVersion: number | null,
+        event: IDBVersionChangeEvent
+      ) => {
         dbPromise = null;
-        db.close();
+        (event.target as IDBDatabase | null)?.close();
+      },
+      terminated: () => {
+        dbPromise = null;
       }
     });
 
-    // If the upgrade fails (e.g. blocked/aborted), fall back to opening the previous DB
-    // version so token reads/writes can continue to work.
-    // IMPORTANT: assign `dbPromise` synchronously to avoid concurrent callers initiating
-    // multiple `openDB()` calls before the cache is populated.
+    // Assign synchronously to avoid concurrent openDB() calls.
     dbPromise = (openLatest as unknown as Promise<IDBPDatabase<unknown>>).catch(
       () =>
-        idb.openDB(DATABASE_NAME, DATABASE_VERSION - 1, {
+        idbImpl.openDB(DATABASE_NAME, DATABASE_VERSION - 1, {
           upgrade: (upgradeDb, oldVersion) => {
             // eslint-disable-next-line default-case
             switch (oldVersion) {
@@ -100,9 +102,16 @@ function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
           blocked: () => {
             /* no-op */
           },
-          blocking: (db: any) => {
+          blocking: (
+            _currentVersion: number,
+            _blockedVersion: number | null,
+            event: IDBVersionChangeEvent
+          ) => {
             dbPromise = null;
-            db.close();
+            (event.target as IDBDatabase | null)?.close();
+          },
+          terminated: () => {
+            dbPromise = null;
           }
         }) as unknown as Promise<IDBPDatabase<unknown>>
     );
@@ -110,7 +119,10 @@ function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   return dbPromise as Promise<IDBPDatabase<MessagingDB>>;
 }
 
-/** Gets record(s) from the objectStore that match the given key. */
+function hasObjectStore(db: IDBPDatabase<unknown>, storeName: string): boolean {
+  return db.objectStoreNames.contains(storeName);
+}
+
 export async function dbGet(
   firebaseDependencies: FirebaseInternalDependencies
 ): Promise<TokenDetails | undefined> {
@@ -124,7 +136,6 @@ export async function dbGet(
   if (tokenDetails) {
     return tokenDetails;
   } else {
-    // Check if there is a tokenDetails object in the old DB.
     const oldTokenDetails = await migrateOldDatabase(
       firebaseDependencies.appConfig.senderId
     );
@@ -135,7 +146,6 @@ export async function dbGet(
   }
 }
 
-/** Assigns or overwrites the record for the given key with the given value. */
 export async function dbSet(
   firebaseDependencies: FirebaseInternalDependencies,
   tokenDetails: TokenDetails
@@ -148,7 +158,6 @@ export async function dbSet(
   return tokenDetails;
 }
 
-/** Removes record(s) from the objectStore that match the given key. */
 export async function dbRemove(
   firebaseDependencies: FirebaseInternalDependencies
 ): Promise<void> {
@@ -164,15 +173,18 @@ export async function dbGetFidRegistration(
 ): Promise<FidRegistrationDetails | undefined> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  try {
-    return (await db
-      .transaction(FID_REGISTRATION_OBJECT_STORE_NAME)
-      .objectStore(FID_REGISTRATION_OBJECT_STORE_NAME)
-      .get(key)) as FidRegistrationDetails | undefined;
-  } catch {
-    // If DB fell back to v1 (or store missing), treat as no record.
+  if (
+    !hasObjectStore(
+      db as unknown as IDBPDatabase<unknown>,
+      FID_REGISTRATION_OBJECT_STORE_NAME
+    )
+  ) {
     return undefined;
   }
+  return (await db
+    .transaction(FID_REGISTRATION_OBJECT_STORE_NAME)
+    .objectStore(FID_REGISTRATION_OBJECT_STORE_NAME)
+    .get(key)) as FidRegistrationDetails | undefined;
 }
 
 export async function dbSetFidRegistration(
@@ -181,13 +193,17 @@ export async function dbSetFidRegistration(
 ): Promise<FidRegistrationDetails> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  try {
-    const tx = db.transaction(FID_REGISTRATION_OBJECT_STORE_NAME, 'readwrite');
-    await tx.objectStore(FID_REGISTRATION_OBJECT_STORE_NAME).put(details, key);
-    await tx.done;
-  } catch {
-    // Best-effort: if store missing, skip persistence but don't break callers.
+  if (
+    !hasObjectStore(
+      db as unknown as IDBPDatabase<unknown>,
+      FID_REGISTRATION_OBJECT_STORE_NAME
+    )
+  ) {
+    return details;
   }
+  const tx = db.transaction(FID_REGISTRATION_OBJECT_STORE_NAME, 'readwrite');
+  await tx.objectStore(FID_REGISTRATION_OBJECT_STORE_NAME).put(details, key);
+  await tx.done;
   return details;
 }
 
@@ -203,7 +219,7 @@ export async function dbDelete(): Promise<void> {
   } catch {
     // Ignore open failures; deleting the DB is the recovery mechanism.
   } finally {
-    await idb.deleteDB(DATABASE_NAME);
+    await idbImpl.deleteDB(DATABASE_NAME);
   }
 }
 
