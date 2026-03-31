@@ -275,6 +275,12 @@ export function charLength(fieldName: string): FunctionExpression;
 export function charLength(stringExpression: Expression): FunctionExpression;
 
 // @beta
+export function coalesce(expression: Expression, replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+
+// @beta
+export function coalesce(fieldName: string, replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+
+// @beta
 export type CollectionGroupStageOptions = StageOptions & {
     collectionId: string;
     forceIndex?: string;
@@ -560,6 +566,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     charLength(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    coalesce(replacement: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     collectionId(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     concat(second: Expression | unknown, ...others: Array<Expression | unknown>): FunctionExpression;
@@ -626,6 +634,10 @@ export abstract class Expression {
     ifError(catchExpr: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     ifError(catchValue: unknown): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    ifNull(elseExpression: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    ifNull(elseValue: unknown): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     isAbsent(): BooleanExpression;
     /* Excluded from this release type: _readUserData */
@@ -908,6 +920,18 @@ export function ifError(tryExpr: Expression, catchExpr: Expression): FunctionExp
 
 // @beta
 export function ifError(tryExpr: Expression, catchValue: unknown): FunctionExpression;
+
+// @beta
+export function ifNull(ifExpr: Expression, elseExpr: Expression): FunctionExpression;
+
+// @beta
+export function ifNull(ifExpr: Expression, elseValue: unknown): FunctionExpression;
+
+// @beta
+export function ifNull(ifFieldName: string, elseExpr: Expression): FunctionExpression;
+
+// @beta
+export function ifNull(ifFieldName: string, elseValue: unknown): FunctionExpression;
 
 // @beta
 export function isAbsent(value: Expression): BooleanExpression;
