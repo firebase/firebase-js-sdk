@@ -21,6 +21,7 @@ import { logError } from '../logger';
 
 export const PROD_HOST = 'firebasedataconnect.googleapis.com';
 
+
 export function urlBuilder(
   projectConfig: DataConnectOptions,
   transportOptions: TransportOptions
