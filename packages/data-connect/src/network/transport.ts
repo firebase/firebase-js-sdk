@@ -206,8 +206,7 @@ export function getGoogApiClientValue(
  * @internal
  */
 export abstract class AbstractDataConnectTransport
-  implements DataConnectTransportInterface
-{
+  implements DataConnectTransportInterface {
   protected _host = '';
   protected _port: number | undefined;
   protected _location = 'l';
@@ -249,7 +248,6 @@ export abstract class AbstractDataConnectTransport
       this._project = project;
     }
     this._serviceName = service;
-    this._connectorResourcePath = `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
     if (!connector) {
       throw new DataConnectError(
         Code.INVALID_ARGUMENT,
@@ -257,6 +255,7 @@ export abstract class AbstractDataConnectTransport
       );
     }
     this._connectorName = connector;
+    this._connectorResourcePath = `projects/${this._project}/locations/${this._location}/services/${this._serviceName}/connectors/${this._connectorName}`;
     this.authProvider?.addTokenChangeListener(token => {
       logDebug(`New Token Available: ${token}`);
       this.onAuthTokenChanged(token);
