@@ -4733,7 +4733,6 @@ export function parent(documentPathExpr: Expression): FunctionExpression;
 export function parent(
   documentPath: Expression | string | DocumentReference
 ): FunctionExpression {
-  // @ts-ignore
   const documentPathExpr = valueToDefaultExpr(documentPath);
   return documentPathExpr.parent();
 }
