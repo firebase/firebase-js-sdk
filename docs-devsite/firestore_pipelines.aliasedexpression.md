@@ -10,10 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AliasedExpression class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-
 <b>Signature:</b>
 
 ```typescript
@@ -25,21 +21,18 @@ export declare class AliasedExpression implements Selectable
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(expr, alias, \_methodName)](./firestore_pipelines.aliasedexpression.md#aliasedexpressionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>AliasedExpression</code> class |
+|  [(constructor)(expr, alias, \_methodName)](./firestore_pipelines.aliasedexpression.md#aliasedexpressionconstructor) |  | Constructs a new instance of the <code>AliasedExpression</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [alias](./firestore_pipelines.aliasedexpression.md#aliasedexpressionalias) |  | string | <b><i>(Public Preview)</i></b> |
-|  [expr](./firestore_pipelines.aliasedexpression.md#aliasedexpressionexpr) |  | [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> |
-|  [exprType](./firestore_pipelines.aliasedexpression.md#aliasedexpressionexprtype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> |
-|  [selectable](./firestore_pipelines.aliasedexpression.md#aliasedexpressionselectable) |  | true | <b><i>(Public Preview)</i></b> |
+|  [alias](./firestore_pipelines.aliasedexpression.md#aliasedexpressionalias) |  | string |  |
+|  [expr](./firestore_pipelines.aliasedexpression.md#aliasedexpressionexpr) |  | [Expression](./firestore_pipelines.expression.md#expression_class) |  |
+|  [exprType](./firestore_pipelines.aliasedexpression.md#aliasedexpressionexprtype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) |  |
+|  [selectable](./firestore_pipelines.aliasedexpression.md#aliasedexpressionselectable) |  | true |  |
 
 ## AliasedExpression.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Constructs a new instance of the `AliasedExpression` class
 
@@ -59,9 +52,6 @@ constructor(expr: Expression, alias: string, _methodName: string | undefined);
 
 ## AliasedExpression.alias
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -69,9 +59,6 @@ readonly alias: string;
 ```
 
 ## AliasedExpression.expr
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -81,9 +68,6 @@ readonly expr: Expression;
 
 ## AliasedExpression.exprType
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -91,9 +75,6 @@ exprType: ExpressionType;
 ```
 
 ## AliasedExpression.selectable
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
