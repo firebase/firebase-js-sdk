@@ -87,6 +87,10 @@ export class QueryManager {
     string,
     Array<DataConnectSubscription<unknown, unknown>>
   >();
+  /**
+   * Map of serialized query keys to most recent Query Result. Used as a simple fallback cache
+   * for subsciptions if caching is not enabled.
+   */
   private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
   constructor(
     private transport: DataConnectTransportInterface,
@@ -359,6 +363,7 @@ export class QueryManager {
     return result as QueryResult<Data, Variables>;
   }
 
+  /** Call the registered onNext callbacks for the given key */
   publishDataToSubscribers(
     key: string,
     queryResult: QueryResult<unknown, unknown>
@@ -455,8 +460,6 @@ export class QueryManager {
       this.publishDataToSubscribers(key, queryResult);
       if (this.cache) {
         await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
-      } else {
-        this.subscriptionCache.set(key, queryResult);
       }
     };
   }
