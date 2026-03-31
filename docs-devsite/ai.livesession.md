@@ -29,6 +29,7 @@ export declare class LiveSession
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
+|  [connectionPromise](./ai.livesession.md#livesessionconnectionpromise) |  | Promise&lt;void&gt; | <b><i>(Public Preview)</i></b> Allows external code to await the opening of the websocket connection. |
 |  [inConversation](./ai.livesession.md#livesessioninconversation) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is being controlled by an <code>AudioConversationController</code>. |
 |  [isClosed](./ai.livesession.md#livesessionisclosed) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is closed. |
 
@@ -38,6 +39,7 @@ export declare class LiveSession
 |  --- | --- | --- |
 |  [close()](./ai.livesession.md#livesessionclose) |  | <b><i>(Public Preview)</i></b> Closes this session. All methods on this session will throw an error once this resolves. |
 |  [receive()](./ai.livesession.md#livesessionreceive) |  | <b><i>(Public Preview)</i></b> Yields messages received from the server. This can only be used by one consumer at a time. |
+|  [resumeSession(sessionResumption)](./ai.livesession.md#livesessionresumesession) |  | <b><i>(Public Preview)</i></b> Resumes an existing live session with the server.<!-- -->This closes the current WebSocket connection and establishes a new one using the same configuration (URI, headers, model, system instruction, tools, etc.) as the original session. |
 |  [send(request, turnComplete)](./ai.livesession.md#livesessionsend) |  | <b><i>(Public Preview)</i></b> Sends content to the server. |
 |  [sendAudioRealtime(blob)](./ai.livesession.md#livesessionsendaudiorealtime) |  | <b><i>(Public Preview)</i></b> Sends audio data to the server in realtime. |
 |  [sendFunctionResponses(functionResponses)](./ai.livesession.md#livesessionsendfunctionresponses) |  | <b><i>(Public Preview)</i></b> Sends function responses to the server. |
@@ -45,6 +47,19 @@ export declare class LiveSession
 |  [sendMediaStream(mediaChunkStream)](./ai.livesession.md#livesessionsendmediastream) |  | <b><i>(Public Preview)</i></b> |
 |  [sendTextRealtime(text)](./ai.livesession.md#livesessionsendtextrealtime) |  | <b><i>(Public Preview)</i></b> Sends text to the server in realtime. |
 |  [sendVideoRealtime(blob)](./ai.livesession.md#livesessionsendvideorealtime) |  | <b><i>(Public Preview)</i></b> Sends video data to the server in realtime. |
+
+## LiveSession.connectionPromise
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Allows external code to await the opening of the websocket connection.
+
+<b>Signature:</b>
+
+```typescript
+connectionPromise: Promise<void>;
+```
 
 ## LiveSession.inConversation
 
@@ -98,17 +113,46 @@ Yields messages received from the server. This can only be used by one consumer 
 <b>Signature:</b>
 
 ```typescript
-receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
+receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice | LiveSessionResumptionUpdate>;
 ```
 <b>Returns:</b>
 
-AsyncGenerator&lt;[LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) \| [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) \| [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface) \| [LiveServerGoingAwayNotice](./ai.liveservergoingawaynotice.md#liveservergoingawaynotice_interface)<!-- -->&gt;
+AsyncGenerator&lt;[LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) \| [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) \| [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface) \| [LiveServerGoingAwayNotice](./ai.liveservergoingawaynotice.md#liveservergoingawaynotice_interface) \| [LiveSessionResumptionUpdate](./ai.livesessionresumptionupdate.md#livesessionresumptionupdate_interface)<!-- -->&gt;
 
 An `AsyncGenerator` that yields server messages as they arrive.
 
 #### Exceptions
 
 If the session is already closed, or if we receive a response that we don't support.
+
+## LiveSession.resumeSession()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Resumes an existing live session with the server.
+
+This closes the current WebSocket connection and establishes a new one using the same configuration (URI, headers, model, system instruction, tools, etc.) as the original session.
+
+<b>Signature:</b>
+
+```typescript
+resumeSession(sessionResumption?: SessionResumptionConfig): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  sessionResumption | [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) | The configuration for session resumption, such as the handle to the previous session state to restore. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+#### Exceptions
+
+If the session resumption configuration is unsupported.
 
 ## LiveSession.send()
 

@@ -232,6 +232,12 @@ export interface Content {
     role: Role;
 }
 
+// @beta
+export interface ContextWindowCompressionConfig {
+    slidingWindow?: SlidingWindow;
+    triggerTokens?: number;
+}
+
 // @public
 export interface CountTokensRequest {
     // (undocumented)
@@ -948,6 +954,7 @@ export interface LanguageModelPromptOptions {
 
 // @beta
 export interface LiveGenerationConfig {
+    contextWindowCompression?: ContextWindowCompressionConfig;
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
@@ -966,8 +973,8 @@ export class LiveGenerativeModel extends AIModel {
     //
     // @internal
     constructor(ai: AI, modelParams: LiveModelParams,
-    _webSocketHandler: WebSocketHandler);
-    connect(): Promise<LiveSession>;
+    _webSocketHandler?: WebSocketHandler | undefined);
+    connect(sessionResumption?: SessionResumptionConfig): Promise<LiveSession>;
     // (undocumented)
     generationConfig: LiveGenerationConfig;
     // (undocumented)
@@ -998,6 +1005,7 @@ export const LiveResponseType: {
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
     GOING_AWAY_NOTICE: string;
+    SESSION_RESUMPTION_UPDATE: string;
 };
 
 // @beta
@@ -1037,12 +1045,16 @@ export interface LiveServerToolCallCancellation {
 
 // @beta
 export class LiveSession {
+    // Warning: (ae-forgotten-export) The symbol "_LiveClientSetup" needs to be exported by the entry point index.d.ts
+    //
     // @internal
-    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    constructor(_setupMessage: _LiveClientSetup, _apiSettings: ApiSettings, _sessionResumption?: SessionResumptionConfig | undefined, webSocketHandler?: WebSocketHandler);
     close(): Promise<void>;
+    connectionPromise: Promise<void>;
     inConversation: boolean;
     isClosed: boolean;
-    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice | LiveSessionResumptionUpdate>;
+    resumeSession(sessionResumption?: SessionResumptionConfig): Promise<void>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
@@ -1053,6 +1065,15 @@ export class LiveSession {
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
+
+// @beta
+export interface LiveSessionResumptionUpdate {
+    lastConsumedClientMessageIndex?: number;
+    newHandle?: string;
+    resumable?: boolean;
+    // (undocumented)
+    type: 'sessionResumptionUpdate';
+}
 
 // @public
 export const Modality: {
@@ -1307,9 +1328,19 @@ export interface Segment {
     text: string;
 }
 
+// @beta
+export interface SessionResumptionConfig {
+    handle?: string;
+}
+
 // @public
 export interface SingleRequestOptions extends RequestOptions {
     signal?: AbortSignal;
+}
+
+// @beta
+export interface SlidingWindow {
+    targetTokens?: number;
 }
 
 // @beta

@@ -214,6 +214,7 @@ export interface LiveGenerationConfig {
 /**
  * Configures the sliding window context compression mechanism.
  *
+ * @remarks
  * The context window will be truncated by keeping only a suffix of it.
  *
  * @beta
@@ -228,6 +229,7 @@ export interface SlidingWindow {
 /**
  * Enables context window compression to manage the model's context window.
  *
+ * @remarks
  * This mechanism prevents the context from exceeding a given length.
  *
  * @beta
@@ -248,6 +250,7 @@ export interface ContextWindowCompressionConfig {
 /**
  * Configuration for the session resumption mechanism.
  *
+ * @remarks
  * When included in the session setup, the server will send
  * {@link LiveSessionResumptionUpdate} messages in the response stream.
  *

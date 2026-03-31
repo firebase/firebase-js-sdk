@@ -17,10 +17,8 @@
 
 import { AIModel } from './ai-model';
 import { LiveSession } from '../methods/live-session';
-import { AIError } from '../errors';
 import {
   AI,
-  AIErrorCode,
   BackendType,
   Content,
   LiveGenerationConfig,
@@ -29,10 +27,9 @@ import {
   Tool,
   ToolConfig
 } from '../public-types';
-import { WebSocketHandler } from '../websocket';
-import { WebSocketUrl } from '../requests/request';
 import { formatSystemInstruction } from '../requests/request-helpers';
 import { _LiveClientSetup } from '../types/live-responses';
+import { WebSocketHandler } from '../websocket';
 
 /**
  * Class for Live generative model APIs. The Live API enables low-latency, two-way multimodal
@@ -55,9 +52,10 @@ export class LiveGenerativeModel extends AIModel {
     ai: AI,
     modelParams: LiveModelParams,
     /**
+     * For testing injection
      * @internal
      */
-    private _webSocketHandler: WebSocketHandler
+    private _webSocketHandler?: WebSocketHandler
   ) {
     super(ai, modelParams.model);
     this.generationConfig = modelParams.generationConfig || {};
@@ -71,7 +69,6 @@ export class LiveGenerativeModel extends AIModel {
   /**
    * Starts a {@link LiveSession}.
    *
-   * @param sessionResumption - Optional configuration for session resumption.
    * @returns A {@link LiveSession}.
    * @throws If the connection failed to be established with the server.
    *
@@ -80,22 +77,6 @@ export class LiveGenerativeModel extends AIModel {
   async connect(
     sessionResumption?: SessionResumptionConfig
   ): Promise<LiveSession> {
-    const serverMessages = await this._internalConnect(sessionResumption);
-    return new LiveSession(
-      this._webSocketHandler,
-      serverMessages,
-      async (resumptionConfig?: SessionResumptionConfig) => {
-        return this._internalConnect(resumptionConfig);
-      }
-    );
-  }
-
-  private async _internalConnect(
-    sessionResumption?: SessionResumptionConfig
-  ): Promise<AsyncGenerator<unknown>> {
-    const url = new WebSocketUrl(this._apiSettings);
-    await this._webSocketHandler.connect(url.toString());
-
     let fullModelPath: string;
     if (this._apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
       fullModelPath = `projects/${this._apiSettings.project}/${this.model}`;
@@ -124,30 +105,14 @@ export class LiveGenerativeModel extends AIModel {
       }
     };
 
-    try {
-      // Begin listening for server messages, and begin the handshake by sending the 'setupMessage'
-      const serverMessages = this._webSocketHandler.listen();
-      this._webSocketHandler.send(JSON.stringify(setupMessage));
+    const session = new LiveSession(
+      setupMessage,
+      this._apiSettings,
+      sessionResumption,
+      this._webSocketHandler
+    );
 
-      // Verify we received the handshake response 'setupComplete'
-      const firstMessage = (await serverMessages.next()).value;
-      if (
-        !firstMessage ||
-        !(typeof firstMessage === 'object') ||
-        !('setupComplete' in firstMessage)
-      ) {
-        await this._webSocketHandler.close(1011, 'Handshake failure');
-        throw new AIError(
-          AIErrorCode.RESPONSE_ERROR,
-          'Server connection handshake failed. The server did not respond with a setupComplete message.'
-        );
-      }
-
-      return serverMessages;
-    } catch (e) {
-      // Ensure connection is closed on any setup error
-      await this._webSocketHandler.close();
-      throw e;
-    }
+    await session.connectionPromise;
+    return session;
   }
 }
