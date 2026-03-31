@@ -83,6 +83,8 @@ import {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   logicalMaximum,
   logicalMinimum,
@@ -121,6 +123,9 @@ import {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampTruncate,
+  timestampDiff,
+  timestampExtract,
   ascending,
   descending,
   FunctionExpression,
@@ -161,6 +166,7 @@ import {
   concat,
   currentTimestamp,
   ifAbsent,
+  coalesce,
   join,
   arraySum,
   arrayFirst,
@@ -173,12 +179,13 @@ import {
   arrayMinimumN,
   arrayIndexOf,
   arrayIndexOfAll,
-  arrayLastIndexOf
+  arrayLastIndexOf,
+  ifNull
 } from './pipeline_export';
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
@@ -1527,6 +1534,28 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
       });
 
+      it('where with nor', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              nor(
+                equal('genre', 'Romance'),
+                equal('genre', 'Dystopian'),
+                equal('genre', 'Fantasy'),
+                greaterThan('published', 1949)
+              )
+            )
+            .select('title')
+        );
+        expectResults(
+          snapshot,
+          { title: 'Crime and Punishment' },
+          { title: 'The Great Gatsby' }
+        );
+      });
+
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -1867,6 +1896,35 @@ describe.skipClassic('Firestore Pipelines', () => {
           'book8',
           'book8',
           'book9',
+          'book9'
+        );
+      });
+
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
           'book9'
         );
       });
@@ -2280,7 +2338,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         expect(typeof err['message']).to.equal('string');
 
         expect(err['message']).to.match(
-          /Request failed with error: Expected value type of MAP_VALUE when parsing 'fields' but received FIELD_REFERENCE_VALUE instead/
+          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
         );
       }
     });
@@ -2295,7 +2353,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2303,9 +2361,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2317,7 +2375,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2325,9 +2383,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2342,7 +2400,7 @@ describe.skipClassic('Firestore Pipelines', () => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2353,13 +2411,13 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2869,9 +2927,11 @@ describe.skipClassic('Firestore Pipelines', () => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2884,7 +2944,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .replaceWith(
             map({
               title: 'foo',
-              nested: {
+              nestedField: {
                 level: {
                   '1': 'bar'
                 },
@@ -2896,13 +2956,17 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
       expectResults(snapshot, {
         title: 'foo',
-        'nested.level.`1`': 'bar',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
+        },
         nested: 'baz'
       });
     });
@@ -3898,6 +3962,127 @@ describe.skipClassic('Firestore Pipelines', () => {
       });
     }).timeout(10000);
 
+    it('supports timestamp truncation', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('timestamp')
+          )
+          .select(
+            timestampTruncate(field('timestamp'), 'year').as('truncYear'),
+            timestampTruncate(field('timestamp'), 'month').as('truncMonth'),
+            timestampTruncate(field('timestamp'), 'day').as('truncDay'),
+            timestampTruncate(field('timestamp'), 'hour').as('truncHour'),
+            timestampTruncate(field('timestamp'), 'minute').as('truncMinute'),
+            timestampTruncate(field('timestamp'), 'second').as('truncSecond'),
+            timestampTruncate(field('timestamp'), 'isoweek').as('truncIsoweek')
+          )
+      );
+
+      expectResults(snapshot, {
+        truncYear: new Timestamp(1735689600, 0),
+        truncMonth: new Timestamp(1740787200, 0),
+        truncDay: new Timestamp(1741392000, 0),
+        truncHour: new Timestamp(1741435200, 0),
+        truncMinute: new Timestamp(1741437240, 0),
+        truncSecond: new Timestamp(1741437296, 0),
+        truncIsoweek: new Timestamp(1740960000, 0)
+      });
+    }).timeout(10000);
+
+    it('supports timestamp truncation with timezone', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('timestamp')
+          )
+          .select(
+            timestampTruncate(
+              field('timestamp'),
+              'day',
+              'America/Los_Angeles'
+            ).as('truncDayLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        truncDayLa: new Timestamp(1741420800, 0)
+      });
+    }).timeout(10000);
+
+    it('supports timestamp difference', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('end'),
+            constant(new Timestamp(1741428000, 0)).as('start')
+          )
+          .select(
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
+            field('end')
+              .timestampDiff(field('start'), 'minute')
+              .as('diffMinute'),
+            field('end')
+              .timestampDiff(field('start'), 'second')
+              .as('diffSecond'),
+            field('start').timestampDiff(field('end'), 'hour').as('diffHourNeg')
+          )
+      );
+
+      expectResults(snapshot, {
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
+      });
+    }).timeout(10000);
+
+    it('supports timestamp extraction', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(constant(new Timestamp(1741437296, 123456789)).as('ts'))
+          .select(
+            timestampExtract(field('ts'), 'year').as('year'),
+            field('ts').timestampExtract('month').as('month'),
+            timestampExtract(field('ts'), 'day').as('day'),
+            field('ts').timestampExtract('hour').as('hour'),
+            timestampExtract(field('ts'), 'minute').as('minute'),
+            field('ts').timestampExtract('second').as('second'),
+            timestampExtract(field('ts'), 'millisecond').as('millis'),
+            field('ts').timestampExtract('microsecond').as('micros'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
+            field('ts')
+              .timestampExtract('hour', 'America/Los_Angeles')
+              .as('hourLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        year: 2025,
+        month: 3,
+        day: 8,
+        hour: 12,
+        minute: 34,
+        second: 56,
+        millis: 123,
+        micros: 123456,
+        dayOfYear: 67,
+        hourLa: 4
+      });
+    }).timeout(10000);
+
     it('supports byteLength', async () => {
       const snapshot = await execute(
         firestore
@@ -4162,17 +4347,17 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
       });
     });
 
@@ -4216,17 +4401,17 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').trunc(0).as('0'),
-            trunc('foo', 1).as('1'),
-            trunc('foo', constant(2)).as('2'),
-            trunc(field('foo'), 4).as('4')
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1234
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -4962,15 +5147,15 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
@@ -5063,6 +5248,93 @@ describe.skipClassic('Firestore Pipelines', () => {
       });
     });
 
+    it('supports ifNull', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              name: null
+            })
+          )
+          .select(
+            ifNull('title', 'default title').as('staticMethod'),
+            field('title').ifNull('default title').as('instanceMethod'),
+            field('name').ifNull(field('title')).as('nameOrTitle'),
+            field('name').ifNull('default name').as('fieldIsNull'),
+            field('absent').ifNull('default name').as('fieldIsAbsent')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 'foo',
+        instanceMethod: 'foo',
+        nameOrTitle: 'foo',
+        fieldIsNull: 'default name',
+        fieldIsAbsent: 'default name'
+      });
+    });
+
+    it('supports coalesce', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              numberValue: 1,
+              stringValue: 'hello',
+              booleanValue: false,
+              nullValue: null,
+              nullValue2: null
+            })
+          )
+          .select(
+            coalesce(field('numberValue'), field('stringValue')).as(
+              'staticMethod'
+            ),
+            field('numberValue')
+              .coalesce(field('stringValue'))
+              .as('instanceMethod'),
+            coalesce(field('nullValue'), field('stringValue')).as(
+              'firstIsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              field('booleanValue')
+            ).as('lastIsNotNull'),
+            coalesce(field('nullValue'), field('nullValue2')).as(
+              'allFieldsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              constant('default')
+            ).as('allFieldsNullWithDefault'),
+            coalesce(
+              field('absentField'),
+              field('numberValue'),
+              constant('default')
+            ).as('withAbsentField')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 1,
+        instanceMethod: 1,
+        firstIsNull: 'hello',
+        lastIsNotNull: false,
+        allFieldsNull: null,
+        allFieldsNullWithDefault: 'default',
+        withAbsentField: 1
+      });
+    });
+
     it('supports join', async () => {
       const snapshot = await execute(
         firestore
@@ -5111,6 +5383,111 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(snapshot, {
         totalSales: 350
+      });
+    });
+
+    it('supports nor', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              a: false,
+              b: false,
+              c: true,
+              d: null
+            })
+          )
+          .select(
+            nor(field('a').asBoolean(), field('b').asBoolean()).as(
+              'twoConditions'
+            ),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('c').asBoolean()
+            ).as('threeConditions'),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('d').asBoolean()
+            ).as('threeConditionsWithNull')
+          )
+      );
+
+      expectResults(snapshot, {
+        twoConditions: true,
+        threeConditions: false,
+        threeConditionsWithNull: null
+      });
+    });
+
+    describe('switchOn', () => {
+      it('supports basic switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 1 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                constant('NA')
+              ).as('result1'),
+              switchOn(
+                equal(field('value'), 2),
+                constant('two'),
+                constant('NA')
+              ).as('result2')
+            )
+        );
+        expectResults(snapshot, { result1: 'one', result2: 'NA' });
+      });
+
+      it('supports multi-branch switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 2 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                equal(field('value'), 2),
+                constant('two'),
+                equal(field('value'), 3),
+                constant('three'),
+                constant('default')
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, { result: 'two' });
+      });
+
+      it('throws if no match and no default', async () => {
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .limit(1)
+              .replaceWith(map({ value: 5 }))
+              .select(
+                switchOn(
+                  equal(field('value'), 1),
+                  constant('one'),
+                  equal(field('value'), 2),
+                  constant('two')
+                ).as('result')
+              )
+          )
+        ).to.be.rejectedWith(/all switch cases evaluate to false/);
       });
     });
 

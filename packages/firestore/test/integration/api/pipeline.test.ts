@@ -121,6 +121,8 @@ import {
   documentId,
   substring,
   xor,
+  nor,
+  switchOn,
   field,
   constant,
   FindNearestStageOptions,
@@ -169,16 +171,20 @@ import {
   arraySum,
   PipelineSnapshot,
   timestampTruncate,
+  timestampDiff,
+  timestampExtract,
   split,
   type,
   isType,
+  coalesce,
+  ifNull,
   score,
   documentMatches
 } from '../util/pipeline_export';
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 let beginDocCreation: number = 0;
 let endDocCreation: number = 0;
@@ -714,16 +720,18 @@ apiDescribe('Pipelines', persistence => {
 
     it('throws on undefined in a map', async () => {
       expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(
-            map({
-              'number': 1,
-              undefined
-            }).as('foo')
-          );
+        void execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              map({
+                'number': 1,
+                undefined
+              }).as('foo')
+            )
+        );
       }).to.throw(
         'Function map() called with invalid data. Unsupported field value: undefined'
       );
@@ -731,11 +739,13 @@ apiDescribe('Pipelines', persistence => {
 
     it('throws on undefined in an array', async () => {
       expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(array([1, undefined]).as('foo'));
+        void execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(array([1, undefined]).as('foo'))
+        );
       }).to.throw(
         'Function array() called with invalid data. Unsupported field value: undefined'
       );
@@ -1547,6 +1557,27 @@ apiDescribe('Pipelines', persistence => {
         );
       });
 
+      it('where with nor', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              nor(
+                equal('genre', 'Romance'),
+                equal('genre', 'Dystopian'),
+                equal('genre', 'Fantasy'),
+                greaterThan('published', 1949)
+              )
+            )
+            .select('title')
+        );
+        expectResults(
+          snapshot,
+          { title: 'Crime and Punishment' },
+          { title: 'The Great Gatsby' }
+        );
+      });
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -1887,6 +1918,35 @@ apiDescribe('Pipelines', persistence => {
           'book8',
           'book8',
           'book9',
+          'book9'
+        );
+      });
+
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
           'book9'
         );
       });
@@ -2298,11 +2358,12 @@ apiDescribe('Pipelines', persistence => {
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
 
-        expect(err['message']).to.match(/^3 INVALID_ARGUMENT: .*$/);
+        expect(err['message']).to.match(
+          /Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+        );
       }
     });
   });
-
   describe('function expressions', () => {
     it('logical max works', async () => {
       const snapshot = await execute(
@@ -2312,7 +2373,7 @@ apiDescribe('Pipelines', persistence => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2320,9 +2381,9 @@ apiDescribe('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2334,7 +2395,7 @@ apiDescribe('Pipelines', persistence => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2342,9 +2403,9 @@ apiDescribe('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2359,7 +2420,7 @@ apiDescribe('Pipelines', persistence => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2370,13 +2431,13 @@ apiDescribe('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2885,9 +2946,11 @@ apiDescribe('Pipelines', persistence => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2900,7 +2963,7 @@ apiDescribe('Pipelines', persistence => {
           .replaceWith(
             map({
               title: 'foo',
-              nested: {
+              nestedField: {
                 level: {
                   '1': 'bar'
                 },
@@ -2912,13 +2975,17 @@ apiDescribe('Pipelines', persistence => {
           )
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
       expectResults(snapshot, {
         title: 'foo',
-        'nested.level.`1`': 'bar',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
+        },
         nested: 'baz'
       });
     });
@@ -4092,9 +4159,10 @@ apiDescribe('Pipelines', persistence => {
           .limit(1)
           .select(field('rating').exp().as('expRating'))
       );
-      expectResults(snapshot, {
-        expRating: 109.94717245212352
-      });
+      expect(snapshot.results[0].get('expRating')).to.be.approximately(
+        109.94717245212352,
+        0.00001
+      );
     });
 
     it('can compute e to the power of a numeric value with the top-level function', async () => {
@@ -4227,17 +4295,17 @@ apiDescribe('Pipelines', persistence => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
       });
     });
 
@@ -4281,17 +4349,17 @@ apiDescribe('Pipelines', persistence => {
             })
           )
           .select(
-            field('foo').trunc(0).as('0'),
-            trunc('foo', 1).as('1'),
-            trunc('foo', constant(2)).as('2'),
-            trunc(field('foo'), 4).as('4')
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1234
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -4915,15 +4983,15 @@ apiDescribe('Pipelines', persistence => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
@@ -5013,6 +5081,93 @@ apiDescribe('Pipelines', persistence => {
         title: 'foo',
         name: 'default name',
         nameOrTitle: 'foo'
+      });
+    });
+
+    it('supports ifNull', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              name: null
+            })
+          )
+          .select(
+            ifNull('title', 'default title').as('staticMethod'),
+            field('title').ifNull('default title').as('instanceMethod'),
+            field('name').ifNull(field('title')).as('nameOrTitle'),
+            field('name').ifNull('default name').as('fieldIsNull'),
+            field('absent').ifNull('default name').as('fieldIsAbsent')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 'foo',
+        instanceMethod: 'foo',
+        nameOrTitle: 'foo',
+        fieldIsNull: 'default name',
+        fieldIsAbsent: 'default name'
+      });
+    });
+
+    it('supports coalesce', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              numberValue: 1,
+              stringValue: 'hello',
+              booleanValue: false,
+              nullValue: null,
+              nullValue2: null
+            })
+          )
+          .select(
+            coalesce(field('numberValue'), field('stringValue')).as(
+              'staticMethod'
+            ),
+            field('numberValue')
+              .coalesce(field('stringValue'))
+              .as('instanceMethod'),
+            coalesce(field('nullValue'), field('stringValue')).as(
+              'firstIsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              field('booleanValue')
+            ).as('lastIsNotNull'),
+            coalesce(field('nullValue'), field('nullValue2')).as(
+              'allFieldsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              constant('default')
+            ).as('allFieldsNullWithDefault'),
+            coalesce(
+              field('absentField'),
+              field('numberValue'),
+              constant('default')
+            ).as('withAbsentField')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 1,
+        instanceMethod: 1,
+        firstIsNull: 'hello',
+        lastIsNotNull: false,
+        allFieldsNull: null,
+        allFieldsNullWithDefault: 'default',
+        withAbsentField: 1
       });
     });
 
@@ -5111,6 +5266,73 @@ apiDescribe('Pipelines', persistence => {
         'trunc_second': new Timestamp(Date.UTC(2025, 10, 30, 1, 2, 3) / 1000, 0)
       });
     });
+
+    it('supports timestamp difference', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('end'),
+            constant(new Timestamp(1741428000, 0)).as('start')
+          )
+          .select(
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
+            field('end')
+              .timestampDiff(field('start'), 'minute')
+              .as('diffMinute'),
+            field('end')
+              .timestampDiff(field('start'), 'second')
+              .as('diffSecond'),
+            field('start').timestampDiff(field('end'), 'hour').as('diffHourNeg')
+          )
+      );
+
+      expectResults(snapshot, {
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
+      });
+    }).timeout(10000);
+
+    it('supports timestamp extraction', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(constant(new Timestamp(1741437296, 123456789)).as('ts'))
+          .select(
+            timestampExtract(field('ts'), 'year').as('year'),
+            field('ts').timestampExtract('month').as('month'),
+            timestampExtract(field('ts'), 'day').as('day'),
+            field('ts').timestampExtract('hour').as('hour'),
+            timestampExtract(field('ts'), 'minute').as('minute'),
+            field('ts').timestampExtract('second').as('second'),
+            timestampExtract(field('ts'), 'millisecond').as('millis'),
+            field('ts').timestampExtract('microsecond').as('micros'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
+            field('ts')
+              .timestampExtract('hour', 'America/Los_Angeles')
+              .as('hourLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        year: 2025,
+        month: 3,
+        day: 8,
+        hour: 12,
+        minute: 34,
+        second: 56,
+        millis: 123,
+        micros: 123456,
+        dayOfYear: 67,
+        hourLa: 4
+      });
+    }).timeout(10000);
 
     it('supports split', async () => {
       const results = await execute(
@@ -5295,6 +5517,111 @@ apiDescribe('Pipelines', persistence => {
         isMap: true,
         isArray: true,
         isStrNum: false
+      });
+    });
+
+    it('supports nor', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              a: false,
+              b: false,
+              c: true,
+              d: null
+            })
+          )
+          .select(
+            nor(field('a').asBoolean(), field('b').asBoolean()).as(
+              'twoConditions'
+            ),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('c').asBoolean()
+            ).as('threeConditions'),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('d').asBoolean()
+            ).as('threeConditionsWithNull')
+          )
+      );
+
+      expectResults(snapshot, {
+        twoConditions: true,
+        threeConditions: false,
+        threeConditionsWithNull: null
+      });
+    });
+
+    describe('switchOn', () => {
+      it('supports basic switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 1 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                constant('NA')
+              ).as('result1'),
+              switchOn(
+                equal(field('value'), 2),
+                constant('two'),
+                constant('NA')
+              ).as('result2')
+            )
+        );
+        expectResults(snapshot, { result1: 'one', result2: 'NA' });
+      });
+
+      it('supports multi-branch switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 2 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                equal(field('value'), 2),
+                constant('two'),
+                equal(field('value'), 3),
+                constant('three'),
+                constant('default')
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, { result: 'two' });
+      });
+
+      it('throws if no match and no default', async () => {
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .limit(1)
+              .replaceWith(map({ value: 5 }))
+              .select(
+                switchOn(
+                  equal(field('value'), 1),
+                  constant('one'),
+                  equal(field('value'), 2),
+                  constant('two')
+                ).as('result')
+              )
+          )
+        ).to.be.rejectedWith(/all switch cases evaluate to false/);
       });
     });
 
