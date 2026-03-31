@@ -94,6 +94,12 @@ toc:
     path: /docs/reference/js/ai.generativemodel.md
   - title: GoogleAIBackend
     path: /docs/reference/js/ai.googleaibackend.md
+  - title: GoogleMaps
+    path: /docs/reference/js/ai.googlemaps.md
+  - title: GoogleMapsGroundingChunk
+    path: /docs/reference/js/ai.googlemapsgroundingchunk.md
+  - title: GoogleMapsTool
+    path: /docs/reference/js/ai.googlemapstool.md
   - title: GoogleSearch
     path: /docs/reference/js/ai.googlesearch.md
   - title: GoogleSearchTool
@@ -138,6 +144,8 @@ toc:
     path: /docs/reference/js/ai.languagemodelmessagecontent.md
   - title: LanguageModelPromptOptions
     path: /docs/reference/js/ai.languagemodelpromptoptions.md
+  - title: LatLng
+    path: /docs/reference/js/ai.latlng.md
   - title: LiveGenerationConfig
     path: /docs/reference/js/ai.livegenerationconfig.md
   - title: LiveGenerativeModel
@@ -172,6 +180,8 @@ toc:
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions
     path: /docs/reference/js/ai.requestoptions.md
+  - title: RetrievalConfig
+    path: /docs/reference/js/ai.retrievalconfig.md
   - title: RetrievedContextAttribution
     path: /docs/reference/js/ai.retrievedcontextattribution.md
   - title: SafetyRating
