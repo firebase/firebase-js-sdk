@@ -19,7 +19,7 @@ import '../testing/setup';
 
 import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
 
-import { dbGet, dbRemove, dbSet } from '../internals/idb-manager';
+import { dbGet, dbRemove, dbSet, DATABASE_NAME } from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
@@ -28,6 +28,7 @@ import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { stub } from 'sinon';
+import * as idb from 'idb';
 
 describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -120,5 +121,36 @@ describe('idb manager', () => {
       await dbRemove(firebaseDependencies);
       expect(await dbGet(firebaseDependencies)).to.be.undefined;
     });
+  });
+
+  it('falls back to previous DB version when upgrade fails, preserving existing token reads', async () => {
+    const key = firebaseDependencies.appConfig.appId;
+
+    // Pre-create a v1 DB with the token object store and a record.
+    const dbV1 = await idb.openDB(DATABASE_NAME, 1, {
+      upgrade: upgradeDb => {
+        upgradeDb.createObjectStore('firebase-messaging-store');
+      }
+    });
+    const tx = dbV1.transaction('firebase-messaging-store', 'readwrite');
+    await tx.objectStore('firebase-messaging-store').put(tokenDetailsA, key);
+    await tx.done;
+    dbV1.close();
+
+    // Simulate upgrade/open v2 failing (e.g. blocked/aborted) at the lowest level so the
+    // behavior is independent of module import semantics.
+    const realIndexedDbOpen = indexedDB.open.bind(indexedDB);
+    const indexedDbOpenStub = stub(indexedDB, 'open').callsFake(
+      ((name: string, version?: number) => {
+        if (name === DATABASE_NAME && version === 2) {
+          throw new Error('upgrade failed');
+        }
+        return realIndexedDbOpen(name, version);
+      }) as any
+    );
+
+    const value = await dbGet(firebaseDependencies);
+    expect(value).to.deep.equal(tokenDetailsA);
+    expect(indexedDbOpenStub).to.have.been.called;
   });
 });

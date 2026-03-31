@@ -21,6 +21,12 @@ import { updateSwReg } from '../helpers/updateSwReg';
 import { updateVapidKey } from '../helpers/updateVapidKey';
 import { RegisterOptions } from '../interfaces/public-types';
 import { registerFcmRegistrationWithFid } from '../internals/register-fid';
+import {
+  dbGetFidRegistration,
+  dbSetFidRegistration
+} from '../internals/idb-manager';
+
+const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
  * Registers the app instance with FCM using its Firebase Installation ID (FID) from
@@ -57,8 +63,7 @@ export async function register(
   if (!messaging.onRegisteredHandler) {
     throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
   }
-  
-  // TODO: refresh weekly
+
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(messaging, options?.serviceWorkerRegistration);
 
@@ -66,23 +71,36 @@ export async function register(
   messaging._registerNotifyChain = prev.then(async () => {
     const fid = await messaging.firebaseDependencies.installations.getId();
 
-    // Only invoke onRegistered when FID has changed (or first time), so the app is notified for new/changed identity.
-    if (fid === messaging.lastNotifiedFid) {
+    const stored = await dbGetFidRegistration(messaging.firebaseDependencies);
+    const shouldRefresh =
+      !stored ||
+      stored.fid !== fid ||
+      Date.now() >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
+
+    if (!shouldRefresh) {
+      // Nothing to do: same FID and within refresh window.
       return;
     }
 
-    // TODO: refresh weekly
     await registerFcmRegistrationWithFid(messaging);
-    messaging.lastNotifiedFid = fid;
+    await dbSetFidRegistration(messaging.firebaseDependencies, {
+      fid,
+      lastRegisterTime: Date.now()
+    });
 
     const handler = messaging.onRegisteredHandler;
     if (!handler) {
       return;
     }
-    if (typeof handler === 'function') {
-      handler(fid);
-    } else {
-      handler.next(fid);
+
+    // Notify app only when identity changes (or first call), but still refresh weekly in background.
+    if (fid !== messaging.lastNotifiedFid) {
+      messaging.lastNotifiedFid = fid;
+      if (typeof handler === 'function') {
+        handler(fid);
+      } else {
+        handler.next(fid);
+      }
     }
   });
   return messaging._registerNotifyChain;

@@ -25,7 +25,7 @@ import {
   getFakeInstallations
 } from '../testing/fakes/firebase-dependencies';
 import { FakeServiceWorkerRegistration } from '../testing/fakes/service-worker';
-import { stub } from 'sinon';
+import { stub, useFakeTimers } from 'sinon';
 import { expect } from 'chai';
 import * as updateVapidKeyModule from '../helpers/updateVapidKey';
 import * as updateSwRegModule from '../helpers/updateSwReg';
@@ -39,8 +39,13 @@ describe('register', () => {
   let requestCreateRegistrationStub: Stub<
     typeof requestsModule.requestCreateRegistration
   >;
+  let clock: ReturnType<typeof useFakeTimers>;
 
   beforeEach(() => {
+    clock = useFakeTimers({
+      now: 1_700_000_000_000,
+      toFake: ['Date', 'setTimeout', 'clearTimeout']
+    });
     stub(Notification, 'permission').value('granted');
     messaging = new MessagingService(
       getFakeApp(),
@@ -62,6 +67,10 @@ describe('register', () => {
       requestsModule,
       'requestCreateRegistration'
     ).resolves();
+  });
+
+  afterEach(() => {
+    clock.restore();
   });
 
   it('calls updateVapidKey and updateSwReg then delivers FID via onRegisteredHandler', async () => {
@@ -148,6 +157,22 @@ describe('register', () => {
 
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+  });
+
+  it('refreshes registration weekly even when FID unchanged, without re-notifying onRegisteredHandler', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+
+    // 8 days later: refresh should run but onRegistered should not fire again.
+    clock.tick(8 * 24 * 60 * 60 * 1000);
+    await register(messaging);
+
+    expect(onRegisteredSpy).to.have.been.calledOnce;
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
   it('calls onRegisteredHandler when FID changed', async () => {
