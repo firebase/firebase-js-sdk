@@ -2336,6 +2336,10 @@ describe.skipClassic('Firestore Pipelines', () => {
         // Backend returns the code as `failed-precondition` when using the REST transport
         expect(err['code']).to.equal('failed-precondition');
         expect(typeof err['message']).to.equal('string');
+
+        expect(err['message']).to.match(
+          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+        );
       }
     });
   });
@@ -2349,7 +2353,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2357,9 +2361,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2371,7 +2375,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2379,9 +2383,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2396,7 +2400,7 @@ describe.skipClassic('Firestore Pipelines', () => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2407,13 +2411,13 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2923,9 +2927,11 @@ describe.skipClassic('Firestore Pipelines', () => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2938,7 +2944,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .replaceWith(
             map({
               title: 'foo',
-              nested: {
+              nestedField: {
                 level: {
                   '1': 'bar'
                 },
@@ -2950,13 +2956,17 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
       expectResults(snapshot, {
         title: 'foo',
-        'nested.level.`1`': 'bar',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
+        },
         nested: 'baz'
       });
     });
@@ -4337,17 +4347,17 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
       });
     });
 
@@ -4391,17 +4401,17 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').trunc(0).as('0'),
-            trunc('foo', 1).as('1'),
-            trunc('foo', constant(2)).as('2'),
-            trunc(field('foo'), 4).as('4')
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1234
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -5137,15 +5147,15 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
