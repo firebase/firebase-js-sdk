@@ -3455,82 +3455,84 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new FunctionExpression('timestamp_trunc', args);
   }
 
-  /**
-   * Evaluates if the result of this `expression` is between
-   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-   *
-   * @example
-   * ```
-   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-   * field('tireWidth').between(constant(2.2), constant(2.4))
-   *
-   * // This is functionally equivalent to
-   * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
-   * ```
-   *
-   * @param lowerBound - Lower bound (inclusive) of the range.
-   * @param upperBound - Upper bound (inclusive) of the range.
-   */
-  between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+  // TODO(search) enable with backend support
+  // /**
+  //  * Evaluates if the result of this `expression` is between
+  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+  //  *
+  //  * @example
+  //  * ```
+  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+  //  * field('tireWidth').between(constant(2.2), constant(2.4))
+  //  *
+  //  * // This is functionally equivalent to
+  //  * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
+  //  * ```
+  //  *
+  //  * @param lowerBound - Lower bound (inclusive) of the range.
+  //  * @param upperBound - Upper bound (inclusive) of the range.
+  //  */
+  // between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+  //
+  // /**
+  //  * Evaluates if the result of this `expression` is between
+  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+  //  *
+  //  * @example
+  //  * ```
+  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+  //  * field('tireWidth').between(2.2, 2.4)
+  //  *
+  //  * // This is functionally equivalent to
+  //  * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
+  //  * ```
+  //  *
+  //  * @param lowerBound - Lower bound (inclusive) of the range.
+  //  * @param upperBound - Upper bound (inclusive) of the range.
+  //  */
+  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+  //
+  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
+  //   return new FunctionExpression('between', [
+  //     this,
+  //     valueToDefaultExpr(lowerBound),
+  //     valueToDefaultExpr(upperBound)
+  //   ]).asBoolean();
+  // }
 
-  /**
-   * Evaluates if the result of this `expression` is between
-   * the `lowerBound` (inclusive) and `upperBound` (inclusive).
-   *
-   * @example
-   * ```
-   * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
-   * field('tireWidth').between(2.2, 2.4)
-   *
-   * // This is functionally equivalent to
-   * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
-   * ```
-   *
-   * @param lowerBound - Lower bound (inclusive) of the range.
-   * @param upperBound - Upper bound (inclusive) of the range.
-   */
-  between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
-
-  between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
-    return new FunctionExpression('between', [
-      this,
-      valueToDefaultExpr(lowerBound),
-      valueToDefaultExpr(upperBound)
-    ]).asBoolean();
-  }
-
-  /**
-   * Evaluates to an HTML-formatted text snippet that renders terms matching
-   * the search query in `<b>bold</b>`.
-   *
-   * @remarks This Expression can only be used within a `Search` stage.
-   *
-   * @param rquery Define the search query using the search DTS (TODO(search) link).
-   */
-  snippet(rquery: string): Expression;
-
-  /**
-   * Evaluates to an HTML-formatted text snippet that renders terms matching
-   * the search query in `<b>bold</b>`.
-   *
-   * @remarks This Expression can only be used within a `Search` stage.
-   *
-   * @param options Define how snippeting behaves.
-   */
-  snippet(options: SnippetOptions): Expression;
-
-  snippet(queryOrOptions: string | SnippetOptions): Expression {
-    const options: SnippetOptions = isString(queryOrOptions)
-      ? { rquery: queryOrOptions }
-      : queryOrOptions;
-    const rquery = options.rquery;
-    const internalOptions = {
-      maxSnippetWidth: options.maxSnippetWidth,
-      maxSnippets: options.maxSnippets,
-      separator: options.separator
-    };
-    return new SnippetExpression([this, constant(rquery)], internalOptions);
-  }
+  // TODO(search) enable with backend support
+  // /**
+  //  * Evaluates to an HTML-formatted text snippet that renders terms matching
+  //  * the search query in `<b>bold</b>`.
+  //  *
+  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  *
+  //  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+  //  */
+  // snippet(rquery: string): Expression;
+  //
+  // /**
+  //  * Evaluates to an HTML-formatted text snippet that renders terms matching
+  //  * the search query in `<b>bold</b>`.
+  //  *
+  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  *
+  //  * @param options Define how snippeting behaves.
+  //  */
+  // snippet(options: SnippetOptions): Expression;
+  //
+  // snippet(queryOrOptions: string | SnippetOptions): Expression {
+  //   const options: SnippetOptions = isString(queryOrOptions)
+  //     ? { rquery: queryOrOptions }
+  //     : queryOrOptions;
+  //   const rquery = options.rquery;
+  //   const internalOptions = {
+  //     maxSnippetWidth: options.maxSnippetWidth,
+  //     maxSnippets: options.maxSnippets,
+  //     separator: options.separator
+  //   };
+  //   return new SnippetExpression([this, constant(rquery)], internalOptions);
+  // }
 
   // TODO(new-expression): Add new expression method definitions above this line
 
@@ -3852,20 +3854,21 @@ export class Field extends Expression implements Selectable {
     return this;
   }
 
-  /**
-   * Perform a full-text search on this field.
-   *
-   * @remarks This Expression can only be used within a `Search` stage.
-   *
-   * @param rquery Define the search query using the rquery DTS.
-   */
-  matches(rquery: string | Expression): BooleanExpression {
-    return new FunctionExpression(
-      'matches',
-      [this, valueToDefaultExpr(rquery)],
-      'matches'
-    ).asBoolean();
-  }
+  // TODO(search) enable with backend support
+  // /**
+  //  * Perform a full-text search on this field.
+  //  *
+  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  *
+  //  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+  //  */
+  // matches(rquery: string | Expression): BooleanExpression {
+  //   return new FunctionExpression(
+  //     'matches',
+  //     [this, valueToDefaultExpr(rquery)],
+  //     'matches'
+  //   ).asBoolean();
+  // }
 
   /**
    * Evaluates to the distance in meters between the location specified
@@ -3880,7 +3883,7 @@ export class Field extends Expression implements Selectable {
       'geo_distance',
       [this, valueToDefaultExpr(location)],
       'geoDistance'
-    ).asBoolean();
+    );
   }
 
   /**
@@ -4195,6 +4198,9 @@ export class FunctionExpression extends Expression {
     options?: {}
   );
 
+  /**
+   * @hideconstructor
+   */
   constructor(
     private name: string,
     private params: Expression[],
@@ -11623,27 +11629,28 @@ export function timestampExtract(
   );
 }
 
-/**
- * Perform a full-text search on the specified field.
- *
- * @remarks This Expression can only be used within a `Search` stage.
- *
- * @example
- * ```typescript
- * db.pipeline().collection('restaurants').search({
- *   query: matches('menu', 'waffles')
- * })
- * ```
- *
- * @param searchField Search the specified field.
- * @param rquery Define the search query using the search DSL.
- */
-export function matches(
-  searchField: string | Field,
-  rquery: string | Expression
-): BooleanExpression {
-  return toField(searchField).matches(rquery);
-}
+// TODO(search) enable with backend support
+// /**
+//  * Perform a full-text search on the specified field.
+//  *
+//  * @remarks This Expression can only be used within a `Search` stage.
+//  *
+//  * @example
+//  * ```typescript
+//  * db.pipeline().collection('restaurants').search({
+//  *   query: matches('menu', 'waffles')
+//  * })
+//  * ```
+//  *
+//  * @param searchField Search the specified field.
+//  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+//  */
+// export function matches(
+//   searchField: string | Field,
+//   rquery: string | Expression
+// ): BooleanExpression {
+//   return toField(searchField).matches(rquery);
+// }
 
 /**
  * Perform a full-text search on all indexed search fields in the document.
@@ -11657,7 +11664,7 @@ export function matches(
  * })
  * ```
  *
- * @param rquery Define the search query using the search DSL.
+ * @param rquery Define the search query using the search Domain-Specific Language (DSL).
  */
 export function documentMatches(
   rquery: string | Expression
@@ -11686,79 +11693,80 @@ export function documentMatches(
  * @remarks This Expression can only be used within a `Search` stage.
  */
 export function score(): Expression {
-  return new FunctionExpression('score', [], 'score').asBoolean();
+  return new FunctionExpression('score', [], 'score');
 }
 
-/**
- * Options defining how a snippet expression is evaluated.
- */
-export interface SnippetOptions {
-  /**
-   * Define the search query using the search DSL.
-   */
-  rquery: string;
-
-  /**
-   * The maximum width of the string estimated for a variable width font. The
-   * unit is tenths of ems. The default is `160`.
-   */
-  maxSnippetWidth?: number;
-
-  /**
-   * The maximum number of non-contiguous pieces of text in the returned snippet.
-   * The default is `1`.
-   */
-  maxSnippets?: number;
-
-  /**
-   * The string to join the pieces. The default value is '\n'
-   */
-  separator?: string;
-}
-
-/**
- * Evaluates to an HTML-formatted text snippet that highlights terms matching
- * the search query in `<b>bold</b>`.
- *
- * @remarks This Expression can only be used within a `Search` stage.
- *
- * @example
- * ```typescript
- * db.pipeline().collection('restaurants').search({
- *   query: 'waffles',
- *   addFields: { snippet: snippet('menu', 'waffles') }
- * })
- * ```
- *
- * @param searchField Search the specified field for matching terms.
- * @param rquery Define the search query using the search DSL.
- */
-export function snippet(
-  searchField: string | Field,
-  rquery: string
-): Expression;
-
-/**
- * Evaluates to an HTML-formatted text snippet that highlights terms matching
- * the search query in `<b>bold</b>`.
- *
- * @remarks This Expression can only be used within a `Search` stage.
- *
- * @param searchField Search the specified field for matching terms.
- * @param options Define the search query using the search DSL.
- */
-export function snippet(
-  searchField: string | Field,
-  options: SnippetOptions
-): Expression;
-export function snippet(
-  field: string | Field,
-  queryOrOptions: string | SnippetOptions
-): Expression {
-  return toField(field).snippet(
-    isString(queryOrOptions) ? { rquery: queryOrOptions } : queryOrOptions
-  );
-}
+// TODO(search) enable with backend support
+// /**
+//  * Options defining how a snippet expression is evaluated.
+//  */
+// export interface SnippetOptions {
+//   /**
+//    * Define the search query using the search Domain-Specific Language (DSL).
+//    */
+//   rquery: string;
+//
+//   /**
+//    * The maximum width of the string estimated for a variable width font. The
+//    * unit is tenths of ems. The default is `160`.
+//    */
+//   maxSnippetWidth?: number;
+//
+//   /**
+//    * The maximum number of non-contiguous pieces of text in the returned snippet.
+//    * The default is `1`.
+//    */
+//   maxSnippets?: number;
+//
+//   /**
+//    * The string to join the pieces. The default value is '\n'
+//    */
+//   separator?: string;
+// }
+//
+// /**
+//  * Evaluates to an HTML-formatted text snippet that highlights terms matching
+//  * the search query in `<b>bold</b>`.
+//  *
+//  * @remarks This Expression can only be used within a `Search` stage.
+//  *
+//  * @example
+//  * ```typescript
+//  * db.pipeline().collection('restaurants').search({
+//  *   query: 'waffles',
+//  *   addFields: { snippet: snippet('menu', 'waffles') }
+//  * })
+//  * ```
+//  *
+//  * @param searchField Search the specified field for matching terms.
+//  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+//  */
+// export function snippet(
+//   searchField: string | Field,
+//   rquery: string
+// ): Expression;
+//
+// /**
+//  * Evaluates to an HTML-formatted text snippet that highlights terms matching
+//  * the search query in `<b>bold</b>`.
+//  *
+//  * @remarks This Expression can only be used within a `Search` stage.
+//  *
+//  * @param searchField Search the specified field for matching terms.
+//  * @param options Define the search query using the search Domain-Specific Language (DSL).
+//  */
+// export function snippet(
+//   searchField: string | Field,
+//   options: SnippetOptions
+// ): Expression;
+// export function snippet(
+//   field: string | Field,
+//   queryOrOptions: string | SnippetOptions
+// ): Expression {
+//   return toField(field).snippet(
+//     isString(queryOrOptions) ? { rquery: queryOrOptions } : queryOrOptions
+//   );
+// }
 
 /**
  * Evaluates to the distance in meters between the location in the specified
@@ -11785,105 +11793,106 @@ export function geoDistance(
   return toField(fieldName).geoDistance(location);
 }
 
-/**
- * Evaluates if the value in the field specified by `fieldName` is between
- * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
- *
- * @example
- * ```
- * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
- * between('tireWidth', constant(2.2), constant(2.4))
- *
- * // This is functionally equivalent to
- * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
- * ```
- *
- * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
- * @param lowerBound - Lower bound (inclusive) of the range.
- * @param upperBound - Upper bound (inclusive) of the range.
- */
-export function between(
-  fieldName: string,
-  lowerBound: Expression,
-  upperBound: Expression
-): BooleanExpression;
-
-/**
- * Evaluates if the value in the field specified by `fieldName` is between
- * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
- *
- * @example
- * ```
- * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
- * between('tireWidth', 2.2, 2.4)
- *
- * // This is functionally equivalent to
- * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
- * ```
- *
- * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
- * @param lowerBound - Lower bound (inclusive) of the range.
- * @param upperBound - Upper bound (inclusive) of the range.
- */
-export function between(
-  fieldName: string,
-  lowerBound: unknown,
-  upperBound: unknown
-): BooleanExpression;
-
-/**
- * Evaluates if the result of the specified `expression` is between
- * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
- *
- * @example
- * ```
- * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
- * between(field('tireWidth'), constant(2.2), constant(2.4))
- *
- * // This is functionally equivalent to
- * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
- * ```
- *
- * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
- * @param lowerBound - Lower bound (inclusive) of the range.
- * @param upperBound - Upper bound (inclusive) of the range.
- */
-export function between(
-  expression: Expression,
-  lowerBound: Expression,
-  upperBound: Expression
-): BooleanExpression;
-
-/**
- * Evaluates if the result of the specified `expression` is between
- * the `lowerBound` (inclusive) and `upperBound` (inclusive).
- *
- * @example
- * ```
- * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
- * between(field('tireWidth'), 2.2, 2.4)
- *
- * // This is functionally equivalent to
- * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
- * ```
- *
- * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
- * @param lowerBound - Lower bound (inclusive) of the range.
- * @param upperBound - Upper bound (inclusive) of the range.
- */
-export function between(
-  expression: Expression,
-  lowerBound: unknown,
-  upperBound: unknown
-): BooleanExpression;
-
-export function between(
-  expression: Expression | string,
-  lowerBound: unknown,
-  upperBound: unknown
-): BooleanExpression {
-  return fieldOrExpression(expression).between(lowerBound, upperBound);
-}
+// TODO(search) enable with backend support
+// /**
+//  * Evaluates if the value in the field specified by `fieldName` is between
+//  * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between('tireWidth', constant(2.2), constant(2.4))
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
+//  * ```
+//  *
+//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   fieldName: string,
+//   lowerBound: Expression,
+//   upperBound: Expression
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the value in the field specified by `fieldName` is between
+//  * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between('tireWidth', 2.2, 2.4)
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
+//  * ```
+//  *
+//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   fieldName: string,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the result of the specified `expression` is between
+//  * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between(field('tireWidth'), constant(2.2), constant(2.4))
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
+//  * ```
+//  *
+//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   expression: Expression,
+//   lowerBound: Expression,
+//   upperBound: Expression
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the result of the specified `expression` is between
+//  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between(field('tireWidth'), 2.2, 2.4)
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
+//  * ```
+//  *
+//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   expression: Expression,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression;
+//
+// export function between(
+//   expression: Expression | string,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression {
+//   return fieldOrExpression(expression).between(lowerBound, upperBound);
+// }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
 

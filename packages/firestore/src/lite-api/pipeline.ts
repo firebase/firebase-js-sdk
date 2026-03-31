@@ -862,21 +862,48 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     return this._addStage(stage);
   }
 
+  // TODO(search) link to external documentation citing list of supported
+  // expressions, when that documentation is created. List is not maintained
+  // in the SDK because the list will change as the backend enables support.
   /**
-   * Add a search stage to the Pipeline.
+   * Add a search stage to the Pipeline. The search stage supports
+   * full-text search and geo search expressions.
    *
    * @remarks This must be the first stage of the pipeline.
    * @remarks A limited set of expressions are supported in the search stage.
    *
-   * @param options - An object that specifies required and optional parameters
-   *                  for the stage.
+   * @example
+   * ```typescript
+   * // Full-text search example
+   * firestore.pipeline().collection("restaurants")
+   * .search({
+   *   query: documentMatches("waffles OR pancakes"),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   *   addFields: [
+   *     score().as("searchScore"),
+   *   ]
+   * })
+   * ```
+   *
+   * @example
+   * ```
+   * // Geo distance search example
+   * const queryLocation = new GeoPoint(0, 0);
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   * })
+   * ```
+   *
+   * @param options - An object that specifies parameters for the stage.
    * @return A new `Pipeline` object with this stage appended to the stage list.
    */
   search(options: SearchStageOptions): Pipeline {
     // Convert user land convenience types to internal types
-    const select: Record<string, Expression> | undefined = options.select
-      ? selectablesToObject(options.select)
-      : undefined;
     const addFields: Record<string, Expression> | undefined = options.addFields
       ? selectablesToObject(options.addFields)
       : undefined;
@@ -887,10 +914,16 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       ? [options.sort]
       : options.sort;
 
+    const select: Record<string, Expression> | undefined = undefined;
+    // TODO(search) enable with backend support
+    // select = options.select
+    //   ? selectablesToObject(options.select)
+    //   : undefined;
+
     const internalOptions = {
       ...options,
-      select,
       addFields,
+      select,
       query,
       sort
     };

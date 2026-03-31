@@ -19,7 +19,7 @@
 
 import {
   USE_EMULATOR,
-  RUN_ENTERPRISE_TESTS
+  getRunEnterpriseTests
 } from '../integration/util/settings';
 
 // Helper to make a type itselt (T) and optionally union that with (T['skip'])
@@ -67,7 +67,7 @@ export function mixinSkipImplementations(obj: unknown): void {
       if (this === describe.skip) {
         return this;
       }
-      if (RUN_ENTERPRISE_TESTS) {
+      if (getRunEnterpriseTests()) {
         return this.skip;
       }
       return this;
@@ -82,7 +82,7 @@ export function mixinSkipImplementations(obj: unknown): void {
       if (this === describe.skip) {
         return this;
       }
-      if (!RUN_ENTERPRISE_TESTS) {
+      if (!getRunEnterpriseTests()) {
         return this.skip;
       }
       return this;

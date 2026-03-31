@@ -215,14 +215,14 @@ describe('stage serialization', () => {
           .collection('foo')
           .search({
             query: 'foo',
-            limit: 1,
-            retrievalDepth: 2,
-            offset: 3,
-            queryEnhancement: 'required',
-            languageCode: 'en-US',
+            // limit: 1,
+            // retrievalDepth: 2,
+            // offset: 3,
+            // queryEnhancement: 'required',
+            // languageCode: 'en-US',
             sort: [field('foo').ascending()],
             addFields: [constant(true).as('bar')],
-            select: [field('id')]
+            // select: [field('id')]
           })
       });
 
@@ -256,20 +256,20 @@ describe('stage serialization', () => {
                       'options': {}
                     }
                   },
-                  'limit': { integerValue: '1' },
-                  'retrieval_depth': { integerValue: '2' },
-                  'offset': { integerValue: '3' },
-                  'query_enhancement': { stringValue: 'required' },
-                  'language_code': { stringValue: 'en-US' },
-                  'select': {
-                    'mapValue': {
-                      'fields': {
-                        'id': {
-                          'fieldReferenceValue': 'id'
-                        }
-                      }
-                    }
-                  },
+                  // 'limit': { integerValue: '1' },
+                  // 'retrieval_depth': { integerValue: '2' },
+                  // 'offset': { integerValue: '3' },
+                  // 'query_enhancement': { stringValue: 'required' },
+                  // 'language_code': { stringValue: 'en-US' },
+                  // 'select': {
+                  //   'mapValue': {
+                  //     'fields': {
+                  //       'id': {
+                  //         'fieldReferenceValue': 'id'
+                  //       }
+                  //     }
+                  //   }
+                  // },
                   'sort': {
                     'arrayValue': {
                       'values': [

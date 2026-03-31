@@ -41,7 +41,10 @@ import {
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { QueryEnhancement, StageOptions } from './stage_options';
+import {
+  QueryEnhancement,
+  StageOptions
+} from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
 /**
@@ -702,23 +705,28 @@ export class Replace extends Stage {
   }
 }
 
+// eslint-disable-next-line -- eslint should not convert this type to an interface
+type InternalSearchOptions = {
+  // These are constrained from the public type
+  query: BooleanExpression,
+  sort?: Ordering[],
+  select?: Record<string, Expression>,
+  addFields?: Record<string, Expression>,
+
+  // These are the same as the public type
+  languageCode?: string,
+  retrievalDepth?: number,
+  offset?: number,
+  limit?: number,
+  queryEnhancement?: QueryEnhancement
+};
+
 /**
  * @beta
  */
 export class Search extends Stage {
   constructor(
-    private _searchOptions: {
-      query: BooleanExpression;
-      languageCode?: string;
-      // TODO(search) add indexPartition after languageCode
-      retrievalDepth?: number;
-      sort?: Ordering[];
-      offset?: number;
-      limit?: number;
-      select?: Record<string, Expression>;
-      addFields?: Record<string, Expression>;
-      queryEnhancement?: QueryEnhancement;
-    }
+    private _searchOptions: InternalSearchOptions
   ) {
     super(_searchOptions);
   }

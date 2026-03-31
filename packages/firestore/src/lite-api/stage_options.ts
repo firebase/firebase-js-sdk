@@ -298,7 +298,7 @@ export type SearchStageOptions = StageOptions & {
    * })
    * ```
    *
-   * The query can also be expressed as a string in the Search DSL:
+   * The query can also be expressed as a string in the Search Domain-Specific Language (DSL):
    *
    * @example
    * ```
@@ -306,21 +306,32 @@ export type SearchStageOptions = StageOptions & {
    *   query: 'menu:(waffle and coffee) OR breakfast'
    * })
    * ```
+   *
+   * The query can also represent a geoDistance query:
+   *
+   * @example
+   * ```
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(new GeoPoint(0, 0)).lessThanOrEqual(1000)
+   * })
+   * ```
    */
   query: BooleanExpression | string;
 
-  /**
-   * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
-   */
-  languageCode?: string;
+  // TODO(search) enable with backend support
+  // /**
+  //  * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
+  //  */
+  // languageCode?: string;
 
   // TODO(search) add indexPartition after languageCode
 
-  /**
-   * The maximum number of documents to retrieve. Documents will be retrieved in the
-   * pre-sort order specified by the search index.
-   */
-  retrievalDepth?: number;
+  // TODO(search) enable with backend support
+  // /**
+  //  * The maximum number of documents to retrieve. Documents will be retrieved in the
+  //  * pre-sort order specified by the search index.
+  //  */
+  // retrievalDepth?: number;
 
   /**
    * Orderings specify how the returned documents are sorted.
@@ -328,32 +339,36 @@ export type SearchStageOptions = StageOptions & {
    */
   sort?: Ordering | Ordering[];
 
-  /**
-   * The number of documents to skip.
-   */
-  offset?: number;
+  // TODO(search) enable with backend support
+  // /**
+  //  * The number of documents to skip from the beginning of the search result set.
+  //  */
+  // offset?: number;
 
-  /**
-   * The maximum number of documents to return from the Search stage.
-   */
-  limit?: number;
+  // TODO(search) enable with backend support
+  // /**
+  //  * The maximum number of documents to return from the Search stage.
+  //  */
+  // limit?: number;
 
-  /**
-   * The fields to keep or add to each document,
-   * specified as an array of {@link @firebase/firestore/pipelines#Selectable}.
-   */
-  select?: Array<Selectable | string>;
+  // TODO(search) enable with backend support
+  // /**
+  //  * The fields to keep or add to each document,
+  //  * specified as an array of {@link @firebase/firestore/pipelines#Selectable}.
+  //  */
+  // select?: Array<Selectable | string>;
 
   /**
    * The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
    */
   addFields?: Selectable[];
 
-  /**
-   * Define the query expansion behavior used by full-text search expressions
-   * in this search stage.
-   */
-  queryEnhancement?: QueryEnhancement;
+  // TODO(search) enable with backend support
+  // /**
+  //  * Define the query expansion behavior used by full-text search expressions
+  //  * in this search stage.
+  //  */
+  // queryEnhancement?: QueryEnhancement;
 };
 /**
  * @beta

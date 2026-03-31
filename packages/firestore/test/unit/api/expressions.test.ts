@@ -21,7 +21,6 @@ import { ParseContext } from '../../../src/api/parse_context';
 import { UserDataSource } from '../../../src/lite-api/user_data_reader';
 import {
   constant,
-  field,
   FunctionExpression
 } from '../../lite/pipeline_export';
 import { testUserDataReader } from '../../util/helpers';
@@ -36,64 +35,66 @@ describe('expressions', () => {
       );
     });
 
-    it('serializes snippet expression without options', async () => {
-      const snippetExpression = field('foo').snippet('bar');
-      snippetExpression._readUserData(context!);
+    // TODO(search) enable with backend support
+    // it('serializes snippet expression without options', async () => {
+    //   const snippetExpression = field('foo').snippet('bar');
+    //   snippetExpression._readUserData(context!);
+    //
+    //   const proto = snippetExpression._toProto(context!.serializer);
+    //
+    //   expect(proto).to.deep.equal({
+    //     functionValue: {
+    //       name: 'snippet',
+    //       args: [
+    //         {
+    //           'fieldReferenceValue': 'foo'
+    //         },
+    //         {
+    //           stringValue: 'bar'
+    //         }
+    //       ],
+    //       options: {}
+    //     }
+    //   });
+    // });
 
-      const proto = snippetExpression._toProto(context!.serializer);
-
-      expect(proto).to.deep.equal({
-        functionValue: {
-          name: 'snippet',
-          args: [
-            {
-              'fieldReferenceValue': 'foo'
-            },
-            {
-              stringValue: 'bar'
-            }
-          ],
-          options: {}
-        }
-      });
-    });
-
-    it('serializes snippet expression with options', async () => {
-      const snippetExpression = field('foo').snippet({
-        rquery: 'bar',
-        maxSnippetWidth: 123,
-        maxSnippets: 321,
-        separator: '...'
-      });
-      snippetExpression._readUserData(context!);
-
-      const proto = snippetExpression._toProto(context!.serializer);
-
-      expect(proto).to.deep.equal({
-        functionValue: {
-          name: 'snippet',
-          args: [
-            {
-              'fieldReferenceValue': 'foo'
-            },
-            {
-              stringValue: 'bar'
-            }
-          ],
-          options: {
-            'max_snippet_width': {
-              integerValue: '123'
-            },
-            'max_snippets': {
-              integerValue: '321'
-            },
-            separator: {
-              stringValue: '...'
-            }
-          }
-        }
-      });
-    });
+    // TODO(search) enable with backend support
+    // it('serializes snippet expression with options', async () => {
+    //   const snippetExpression = field('foo').snippet({
+    //     rquery: 'bar',
+    //     maxSnippetWidth: 123,
+    //     maxSnippets: 321,
+    //     separator: '...'
+    //   });
+    //   snippetExpression._readUserData(context!);
+    //
+    //   const proto = snippetExpression._toProto(context!.serializer);
+    //
+    //   expect(proto).to.deep.equal({
+    //     functionValue: {
+    //       name: 'snippet',
+    //       args: [
+    //         {
+    //           'fieldReferenceValue': 'foo'
+    //         },
+    //         {
+    //           stringValue: 'bar'
+    //         }
+    //       ],
+    //       options: {
+    //         'max_snippet_width': {
+    //           integerValue: '123'
+    //         },
+    //         'max_snippets': {
+    //           integerValue: '321'
+    //         },
+    //         separator: {
+    //           stringValue: '...'
+    //         }
+    //       }
+    //     }
+    //   });
+    // });
 
     it('serializes generic FunctionExpression without options', async () => {
       const snippetExpression = new FunctionExpression('name', [constant(1)]);
