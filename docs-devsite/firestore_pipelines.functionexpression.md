@@ -29,7 +29,6 @@ export declare class FunctionExpression extends Expression
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
 |  [(constructor)(name, params)](./firestore_pipelines.functionexpression.md#functionexpressionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>FunctionExpression</code> class |
-|  [(constructor)(name, params, \_methodName)](./firestore_pipelines.functionexpression.md#functionexpressionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>FunctionExpression</code> class |
 
 ## Properties
 
@@ -56,27 +55,6 @@ constructor(name: string, params: Expression[]);
 |  --- | --- | --- |
 |  name | string |  |
 |  params | [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->\[\] |  |
-
-## FunctionExpression.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Constructs a new instance of the `FunctionExpression` class
-
-<b>Signature:</b>
-
-```typescript
-constructor(name: string, params: Expression[], _methodName: string | undefined);
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  name | string |  |
-|  params | [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->\[\] |  |
-|  \_methodName | string \| undefined |  |
 
 ## FunctionExpression.expressionType
 

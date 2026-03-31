@@ -43,6 +43,7 @@ export declare class Pipeline
 |  [replaceWith(options)](./firestore_pipelines.pipeline.md#pipelinereplacewith) |  | <b><i>(Public Preview)</i></b> |
 |  [sample(documents)](./firestore_pipelines.pipeline.md#pipelinesample) |  | <b><i>(Public Preview)</i></b> |
 |  [sample(options)](./firestore_pipelines.pipeline.md#pipelinesample) |  | <b><i>(Public Preview)</i></b> |
+|  [search(options)](./firestore_pipelines.pipeline.md#pipelinesearch) |  | <b><i>(Public Preview)</i></b> |
 |  [select(selection, additionalSelections)](./firestore_pipelines.pipeline.md#pipelineselect) |  | <b><i>(Public Preview)</i></b> |
 |  [select(options)](./firestore_pipelines.pipeline.md#pipelineselect) |  | <b><i>(Public Preview)</i></b> |
 |  [sort(ordering, additionalOrderings)](./firestore_pipelines.pipeline.md#pipelinesort) |  | <b><i>(Public Preview)</i></b> |
@@ -454,6 +455,27 @@ sample(options: SampleStageOptions): Pipeline;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  options | [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) |  |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
+
+## Pipeline.search()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+<b>Signature:</b>
+
+```typescript
+search(options: SearchStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [SearchStageOptions](./firestore_pipelines.md#searchstageoptions) |  |
 
 <b>Returns:</b>
 
