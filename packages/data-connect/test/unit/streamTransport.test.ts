@@ -57,6 +57,9 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   protected closeConnection(): Promise<void> {
     return Promise.resolve();
   }
+  protected ensureConnection(): Promise<void> {
+    return Promise.resolve();
+  }
   protected sendMessage<Variables>(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     requestBody: DataConnectStreamRequest<Variables>

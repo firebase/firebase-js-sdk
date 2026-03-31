@@ -20,7 +20,8 @@ import { Code, DataConnectError } from '../core/error';
 import { logError } from '../logger';
 
 export const PROD_HOST = 'firebasedataconnect.googleapis.com';
-export const WEBSOCKET_PATH = 'ws/google.firebase.dataconnect.v1.ConnectorStreamService';
+export const WEBSOCKET_PATH =
+  'ws/google.firebase.dataconnect.v1.ConnectorStreamService';
 
 export function restUrlBuilder(
   projectConfig: DataConnectOptions,

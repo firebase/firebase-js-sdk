@@ -125,12 +125,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     );
   }
 
-  /**
-   * Ensures that that there is an open connection. If there is none, it initiates a new one.
-   * If a connection attempt is already in progress, it returns the existing {@link connectionAttempt | promise}.
-   * @returns A promise that resolves when the stream is open and ready.
-   */
-  private ensureConnection(): Promise<void> {
+  protected ensureConnection(): Promise<void> {
     if (this.streamIsReady) {
       return Promise.resolve();
     }
@@ -221,17 +216,17 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   protected sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void> {
-    return this.ensureConnection()
-      .then(() => {
+    return this.ensureConnection().then(() => {
+      try {
         this.connection!.send(JSON.stringify(requestBody));
-      })
-      .catch(err => {
-        // TODO(stephenarosaj): based on whether the error has a closeCode or not, we should perhaps close the connection, alert the manager, re-connect, etc.
+        return Promise.resolve();
+      } catch (err) {
         throw new DataConnectError(
           Code.OTHER,
           `Failed to send message: ${String(err)}`
         );
-      });
+      }
+    });
   }
 
   /**
