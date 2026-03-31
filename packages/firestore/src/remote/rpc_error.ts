@@ -83,11 +83,7 @@ export function isPermanentError(code: Code): boolean {
     case Code.DATA_LOSS:
       return true;
     default:
-      // If we encounter an unknown error code, we treat it as a permanent error.
-      // This can happen if a non-Firestore error (like an Auth or Storage error)
-      // is passed into this function.
-      logError(`isPermanentError: Unknown status code: ${code}`);
-      return true;
+      return fail(0x3c6b, 'Unknown status code', { code });
   }
 }
 

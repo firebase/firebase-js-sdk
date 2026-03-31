@@ -139,7 +139,7 @@ order to run the tests, you will need to update your bucket's CORS rules.
 1. Install `gsutil` from https://cloud.google.com/storage/docs/gsutil_install
 1. You will need to login if this is your first time using `gsutil`. Run `gcloud auth login`
 and follow the instructions to login.
-1. Run `gsutil cors set cors.json gs://<your-cloud-storage-bucket>`
+1. Run `gcloud storage buckets update gs://<your-cloud-storage-bucket> --cors-file=cors.json`
 
 For more information, visit https://firebase.google.com/docs/storage/web/download-files#cors_configuration
 

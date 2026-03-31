@@ -117,7 +117,7 @@ export class GenerativeModel extends AIModel {
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     const formattedParams = formatGenerateContentInput(request);
-    return generateContentStream(
+    const { stream, response } = await generateContentStream(
       this._apiSettings,
       this.model,
       {
@@ -135,6 +135,7 @@ export class GenerativeModel extends AIModel {
         ...singleRequestOptions
       }
     );
+    return { stream, response };
   }
 
   /**
@@ -189,7 +190,9 @@ export class GenerativeModel extends AIModel {
  * Client-side validation of some common `GenerationConfig` pitfalls, in order
  * to save the developer a wasted request.
  */
-function validateGenerationConfig(generationConfig: GenerationConfig): void {
+export function validateGenerationConfig(
+  generationConfig: GenerationConfig
+): void {
   if (
     // != allows for null and undefined. 0 is considered "set" by the model
     generationConfig.thinkingConfig?.thinkingBudget != null &&
@@ -198,6 +201,27 @@ function validateGenerationConfig(generationConfig: GenerationConfig): void {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
       `Cannot set both thinkingBudget and thinkingLevel in a config.`
+    );
+  }
+  if (
+    // != allows for null and undefined.
+    generationConfig.responseSchema != null &&
+    generationConfig.responseJsonSchema != null
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `Cannot set both responseSchema and responseJsonSchema in a config.`
+    );
+  }
+  if (
+    (generationConfig.responseSchema != null ||
+      generationConfig.responseJsonSchema != null) &&
+    generationConfig.responseMimeType !== 'application/json'
+  ) {
+    throw new AIError(
+      AIErrorCode.UNSUPPORTED,
+      `responseMimeType must be set to "application/json" if` +
+        ` responseSchema or responseJsonSchema are set.`
     );
   }
 }

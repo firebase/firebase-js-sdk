@@ -127,7 +127,7 @@
     "lcov-result-merger": "3.3.0",
     "lerna": "4.0.0",
     "listr": "0.14.3",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "long": "3.2.0",
     "merge2": "1.4.1",
     "mkdirp": "1.0.4",

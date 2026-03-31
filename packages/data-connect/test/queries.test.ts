@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
@@ -85,13 +86,18 @@ interface PostVariables {
 }
 describe('DataConnect Tests', async () => {
   let dc: DataConnect;
+  let app: FirebaseApp;
   const TEST_ID = crypto.randomUUID();
   beforeEach(async () => {
+    app = initializeApp({
+      projectId: PROJECT_ID
+    });
     dc = initDatabase();
     await seedDatabase(dc, TEST_ID);
   });
   afterEach(async () => {
     await deleteDatabase(dc);
+    await deleteApp(app);
     await terminate(dc);
   });
   function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
@@ -132,7 +138,7 @@ describe('DataConnect Tests', async () => {
     const taskListQuery = getPostsRef();
     const queryResult = await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
-    expect(result.data).to.eq(queryResult.data);
+    expect(result.data).to.deep.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {

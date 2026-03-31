@@ -17,31 +17,19 @@
 
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { Stage } from '../lite-api/stage';
-import { UserDataReader } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 
 import { Firestore } from './database';
 
-/**
- * @beta
- */
 export class Pipeline extends LitePipeline {
   /**
    * @internal
    * @private
    * @param db
-   * @param userDataReader
    * @param userDataWriter
    * @param stages
-   * @param converter
    * @protected
    */
-  protected newPipeline(
-    db: Firestore,
-    userDataReader: UserDataReader,
-    userDataWriter: AbstractUserDataWriter,
-    stages: Stage[]
-  ): Pipeline {
-    return new Pipeline(db, userDataReader, userDataWriter, stages);
+  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+    return new Pipeline(db, stages);
   }
 }

@@ -121,6 +121,14 @@ export interface GenerationConfig {
    */
   responseSchema?: TypedSchema | SchemaRequest;
   /**
+   * Output schema of the generated response. This is an alternative to
+   * `responseSchema` that accepts [JSON Schema](https://json-schema.org/).
+   *
+   * If set, `responseSchema` must be omitted, but `responseMimeType`
+   * is required and must be set to `application/json`.
+   */
+  responseJsonSchema?: { [key: string]: unknown };
+  /**
    * Generation modalities to be returned in generation responses.
    *
    * @remarks
@@ -252,6 +260,15 @@ export interface RequestOptions {
    * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
+  /**
+   * Limits amount of sequential function calls the SDK can make during automatic
+   * function calling, in order to prevent infinite loops. If not specified,
+   * this value defaults to 10.
+   *
+   * When it reaches this limit, it will return the last response received
+   * from the model, whether it is a text response or further function calls.
+   */
+  maxSequentalFunctionCalls?: number;
 }
 
 /**
@@ -332,6 +349,12 @@ export interface FunctionDeclaration {
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
   parameters?: ObjectSchema | ObjectSchemaRequest;
+  /**
+   * Reference to an actual function to call. Specifying this will cause the
+   * function to be called automatically when requested by the model.
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  functionReference?: Function;
 }
 
 /**

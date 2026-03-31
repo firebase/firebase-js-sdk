@@ -19,13 +19,13 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 
 import { Timestamp } from '../../../src';
-import { constant, field } from '../../../src/lite-api/expressions';
 import { Firestore } from '../../../src/api/database';
 import { execute } from '../../../src/api/pipeline_impl';
 import {
   MemoryOfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
+import { constant, field } from '../../../src/lite-api/expressions';
 import {
   ExecutePipelineRequest as ProtoExecutePipelineRequest,
   ExecutePipelineResponse as ProtoExecutePipelineResponse

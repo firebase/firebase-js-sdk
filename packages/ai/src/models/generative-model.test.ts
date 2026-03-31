@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { GenerativeModel } from './generative-model';
+import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,
   AI,
@@ -667,7 +667,7 @@ describe('GenerativeModel dispatch logic', () => {
       makeRequestStub = stub(request, 'makeRequest').resolves(
         getMockResponseStreaming(
           'vertexAI',
-          'unary-success-basic-reply-short.json'
+          'streaming-success-basic-reply-short.txt'
         ) as Response
       );
     } else {
@@ -686,7 +686,10 @@ describe('GenerativeModel dispatch logic', () => {
       isAvailable: stub(),
       generateContent: stub().resolves(new Response(JSON.stringify({}))),
       generateContentStream: stub().resolves(
-        new Response(new ReadableStream())
+        getMockResponseStreaming(
+          'vertexAI',
+          'streaming-success-basic-reply-short.txt'
+        ) as Response
       ),
       countTokens: stub().resolves(new Response(JSON.stringify({}))),
       mode: InferenceMode.PREFER_ON_DEVICE
@@ -952,4 +955,74 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.have.been.calledOnce;
     });
   });
+});
+
+describe('validateGenerationConfig', () => {
+  it('does not allow setting both thinkingBudget and thinkingLevel', () => {
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingBudget: 200
+        }
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.LOW
+        }
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingBudget: 200,
+          thinkingLevel: ThinkingLevel.LOW
+        }
+      });
+    }).to.throw();
+  });
+  it('does not allow setting both responseSchema and responseJsonSchema', () => {
+    expect(() => {
+      validateGenerationConfig({
+        responseSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        responseJsonSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        responseSchema: {},
+        responseJsonSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.throw();
+  });
+  it(
+    'throws if responseSchema or responseJsonSchema are set' +
+      ' and responseMimeType is not "application/json"',
+    () => {
+      expect(() => {
+        validateGenerationConfig({
+          responseSchema: {}
+        });
+      }).to.throw();
+      expect(() => {
+        validateGenerationConfig({
+          responseJsonSchema: {}
+        });
+      }).to.throw();
+      expect(() => {
+        validateGenerationConfig({
+          responseJsonSchema: {},
+          responseMimeType: 'text/plain'
+        });
+      }).to.throw();
+    }
+  );
 });

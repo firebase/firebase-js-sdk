@@ -1,5 +1,23 @@
 # @firebase/remote-config
 
+## 0.8.2
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/installations@0.6.21
+  - @firebase/component@0.7.2
+
+## 0.8.1
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/installations@0.6.20
+  - @firebase/component@0.7.1
+
 ## 0.8.0
 
 ### Minor Changes
