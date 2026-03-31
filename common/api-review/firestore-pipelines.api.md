@@ -186,7 +186,7 @@ export function collectionId(expression: Expression): FunctionExpression;
 
 // @beta
 export type CollectionStageOptions = StageOptions & {
-    collection: string | Query;
+    collection?: string | Query;
     forceIndex?: string;
 };
 
@@ -946,6 +946,8 @@ export class Pipeline {
     // (undocumented)
     aggregate(options: AggregateStageOptions): Pipeline;
     // (undocumented)
+    delete(): Pipeline;
+    // (undocumented)
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     // (undocumented)
     distinct(options: DistinctStageOptions): Pipeline;
@@ -991,6 +993,8 @@ export class Pipeline {
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     unnest(options: UnnestStageOptions): Pipeline;
+    // (undocumented)
+    update(...transformedFields: Selectable[]): Pipeline;
     // (undocumented)
     where(condition: BooleanExpression): Pipeline;
     // (undocumented)

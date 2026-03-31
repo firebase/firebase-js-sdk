@@ -103,7 +103,7 @@ export class PipelineSource<PipelineType> {
     // Convert user land convenience types to internal types
     const normalizedCollection = isString(collectionRefOrString)
       ? (collectionRefOrString as string)
-      : collectionRefOrString.path;
+      : collectionRefOrString!.path;
 
     // Create stage object
     const stage = new CollectionSource(normalizedCollection, options);

@@ -67,8 +67,6 @@ import {
   Union,
   Delete,
   Update,
-  Upsert,
-  Insert,
   Unnest,
   Where
 } from './stage';
@@ -86,10 +84,6 @@ import {
   SortStageOptions,
   StageOptions,
   UnionStageOptions,
-  DeleteStageOptions,
-  UpdateStageOptions,
-  UpsertStageOptions,
-  InsertStageOptions,
   UnnestStageOptions,
   WhereStageOptions
 } from './stage_options';
@@ -1518,13 +1512,10 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
    * firestore.pipeline().collection('books').where(field('rating').lt(2)).delete();
    * ```
    *
-   * @param options - Optional parameters for the stage.
    * @returns A new Pipeline object with this stage appended to the stage list.
    */
-  delete(): Pipeline;
-  delete(options: DeleteStageOptions): Pipeline;
-  delete(options?: DeleteStageOptions): Pipeline {
-    const stage = new Delete(options || {});
+  delete(): Pipeline {
+    const stage = new Delete();
 
     // User data must be read in the context of the API method to
     // provide contextual errors
@@ -1539,125 +1530,22 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline> {
 
   /**
    * @beta
-   * Upserts the documents resulting from the pipeline.
-   *
-   * @example
-   * ```typescript
-   * firestore.pipeline().collection('new_books').upsert('books');
-   * ```
-   *
-   * @param collectionOrOptions - The target collection or options for the stage.
-   * @returns A new Pipeline object with this stage appended to the stage list.
-   */
-  upsert(): Pipeline;
-  upsert(collection: string | CollectionReference): Pipeline;
-  upsert(options: UpsertStageOptions): Pipeline;
-  upsert(
-    collectionOrOptions?: string | CollectionReference | UpsertStageOptions
-  ): Pipeline {
-    let options: UpsertStageOptions;
-    if (
-      typeof collectionOrOptions === 'string' ||
-      (typeof collectionOrOptions === 'object' &&
-        'type' in collectionOrOptions &&
-        collectionOrOptions.type === 'collection')
-    ) {
-      options = { collection: collectionOrOptions as string | CollectionReference };
-    } else {
-      options = (collectionOrOptions as UpsertStageOptions) || {};
-    }
-
-    const stage = new Upsert(options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'upsert'
-    );
-    stage._readUserData(parseContext);
-
-    return this._addStage(stage);
-  }
-
-  /**
-   * @beta
    * Updates the documents resulting from the pipeline.
    *
    * @example
    * ```typescript
-   * firestore.pipeline().collection('new_books').update('books');
+   * firestore.pipeline().collection('books').update(field('rating').as('bookRating'));
    * ```
    *
-   * @param collectionOrOptions - The target collection or options for the stage.
+   * @param transformedFields - Expressions to apply during the update.
    * @returns A new Pipeline object with this stage appended to the stage list.
    */
-  update(): Pipeline;
-  update(collection: string | CollectionReference): Pipeline;
-  update(options: UpdateStageOptions): Pipeline;
-  update(
-    collectionOrOptions?: string | CollectionReference | UpdateStageOptions
-  ): Pipeline {
-    let options: UpdateStageOptions;
-    if (
-      typeof collectionOrOptions === 'string' ||
-      (typeof collectionOrOptions === 'object' &&
-        'type' in collectionOrOptions &&
-        collectionOrOptions.type === 'collection')
-    ) {
-      options = { collection: collectionOrOptions as string | CollectionReference };
-    } else {
-      options = (collectionOrOptions as UpdateStageOptions) || {};
-    }
-
-    const stage = new Update(options);
+  update(...transformedFields: Selectable[]): Pipeline {
+    const stage = new Update(transformedFields);
 
     const parseContext = this.userDataReader.createContext(
       UserDataSource.Argument,
       'update'
-    );
-    stage._readUserData(parseContext);
-
-    return this._addStage(stage);
-  }
-
-  /**
-   * @beta
-   * Inserts the documents resulting from the pipeline.
-   *
-   * @example
-   * ```typescript
-   * firestore.pipeline().collection('new_books').insert('books');
-   * ```
-   *
-   * @param collectionOrOptions - The target collection or options for the stage.
-   * @returns A new Pipeline object with this stage appended to the stage list.
-   */
-  insert(): Pipeline;
-  insert(collection: string | CollectionReference): Pipeline;
-  insert(options: InsertStageOptions): Pipeline;
-  insert(
-    collectionOrOptions?: string | CollectionReference | InsertStageOptions
-  ): Pipeline {
-    let options: InsertStageOptions;
-    if (
-      typeof collectionOrOptions === 'string' ||
-      (typeof collectionOrOptions === 'object' &&
-        'type' in collectionOrOptions &&
-        collectionOrOptions.type === 'collection')
-    ) {
-      options = { collection: collectionOrOptions as string | CollectionReference };
-    } else {
-      options = (collectionOrOptions as InsertStageOptions) || {};
-    }
-
-    const stage = new Insert(options);
-
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    const parseContext = this.userDataReader.createContext(
-      UserDataSource.Argument,
-      'insert'
     );
     stage._readUserData(parseContext);
 

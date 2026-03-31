@@ -774,14 +774,11 @@ export class Delete extends Stage {
   }
 
   get _optionsUtil(): OptionsUtil {
-    return new OptionsUtil({
-      transactional: { serverName: 'transactional' },
-      returns: { serverName: 'returns' }
-    });
+    return new OptionsUtil({});
   }
 
-  constructor(options: StageOptions) {
-    super(options);
+  constructor() {
+    super({});
   }
 
   /**
@@ -799,7 +796,6 @@ export class Delete extends Stage {
     super._readUserData(context);
   }
 }
-
 /**
  * @beta
  */
@@ -809,20 +805,11 @@ export class Update extends Stage {
   }
 
   get _optionsUtil(): OptionsUtil {
-    return new OptionsUtil({
-      transactional: { serverName: 'transactional' },
-      returns: { serverName: 'returns' },
-      conflictResolution: { serverName: 'conflict_resolution' }
-    });
+    return new OptionsUtil({});
   }
 
-  constructor(options: StageOptions) {
-    super(options);
-
-    if ('collection' in this.knownOptions && typeof this.knownOptions.collection === 'string') {
-      const collection = this.knownOptions.collection;
-      this.knownOptions.collection = collection.startsWith('/') ? collection : '/' + collection;
-    }
+  constructor(private transformedFields?: Selectable[]) {
+    super({});
   }
 
   /**
@@ -830,10 +817,15 @@ export class Update extends Stage {
    * @private
    */
   _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    let args: any[] = [];
-    if (this.knownOptions.collection) {
-      args.push({ referenceValue: this.knownOptions.collection });
+    const args: any[] = [];
+
+    if (this.transformedFields && this.transformedFields.length > 0) {
+      const mapped = selectablesToMap(this.transformedFields);
+      args.push(toMapValue(serializer, mapped));
+    } else {
+      args.push(toMapValue(serializer, new Map()));
     }
+
     return {
       ...super._toProto(serializer),
       args
@@ -842,94 +834,11 @@ export class Update extends Stage {
 
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
-  }
-}
-
-/**
- * @beta
- */
-export class Upsert extends Stage {
-  get _name(): string {
-    return 'upsert';
-  }
-
-  get _optionsUtil(): OptionsUtil {
-    return new OptionsUtil({
-      transactional: { serverName: 'transactional' },
-      returns: { serverName: 'returns' },
-      conflictResolution: { serverName: 'conflict_resolution' }
-    });
-  }
-
-  constructor(options: StageOptions) {
-    super(options);
-
-    if ('collection' in this.knownOptions && typeof this.knownOptions.collection === 'string') {
-      const collection = this.knownOptions.collection;
-      this.knownOptions.collection = collection.startsWith('/') ? collection : '/' + collection;
+    if (this.transformedFields) {
+      readUserDataHelper(
+        this.transformedFields as unknown as UserData[],
+        context
+      );
     }
-  }
-
-  /**
-   * @internal
-   * @private
-   */
-  _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    let args: any[] = [];
-    if (this.knownOptions.collection) {
-      args.push({ referenceValue: this.knownOptions.collection });
-    }
-    return {
-      ...super._toProto(serializer),
-      args
-    };
-  }
-
-  _readUserData(context: ParseContext): void {
-    super._readUserData(context);
-  }
-}
-
-/**
- * @beta
- */
-export class Insert extends Stage {
-  get _name(): string {
-    return 'insert';
-  }
-
-  get _optionsUtil(): OptionsUtil {
-    return new OptionsUtil({
-      transactional: { serverName: 'transactional' },
-      returns: { serverName: 'returns' }
-    });
-  }
-
-  constructor(options: StageOptions) {
-    super(options);
-
-    if ('collection' in this.knownOptions && typeof this.knownOptions.collection === 'string') {
-      const collection = this.knownOptions.collection;
-      this.knownOptions.collection = collection.startsWith('/') ? collection : '/' + collection;
-    }
-  }
-
-  /**
-   * @internal
-   * @private
-   */
-  _toProto(serializer: JsonProtoSerializer): ProtoStage {
-    let args: any[] = [];
-    if (this.knownOptions.collection) {
-      args.push({ referenceValue: this.knownOptions.collection });
-    }
-    return {
-      ...super._toProto(serializer),
-      args
-    };
-  }
-
-  _readUserData(context: ParseContext): void {
-    super._readUserData(context);
   }
 }

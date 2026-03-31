@@ -42,7 +42,7 @@ const argv = yargs
     grep: {
       type: 'string',
       description: 'Filter tests by name (regex)'
-    },
+    }
   })
   .parseSync();
 

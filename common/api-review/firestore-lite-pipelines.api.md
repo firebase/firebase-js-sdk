@@ -186,7 +186,7 @@ export function collectionId(expression: Expression): FunctionExpression;
 
 // @beta
 export type CollectionStageOptions = StageOptions & {
-    collection: string | Query;
+    collection?: string | Query;
     forceIndex?: string;
 };
 
@@ -943,6 +943,7 @@ export class Pipeline {
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
+    delete(): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
     findNearest(options: FindNearestStageOptions): Pipeline;
@@ -968,6 +969,7 @@ export class Pipeline {
     union(options: UnionStageOptions): Pipeline;
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     unnest(options: UnnestStageOptions): Pipeline;
+    update(...transformedFields: Selectable[]): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
 }
