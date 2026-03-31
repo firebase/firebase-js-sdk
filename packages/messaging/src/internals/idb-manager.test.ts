@@ -19,7 +19,13 @@ import '../testing/setup';
 
 import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
 
-import { dbGet, dbRemove, dbSet, DATABASE_NAME } from '../internals/idb-manager';
+import {
+  dbDelete,
+  dbGet,
+  dbRemove,
+  dbSet,
+  DATABASE_NAME
+} from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
@@ -41,6 +47,10 @@ describe('idb manager', () => {
     tokenDetailsB = getFakeTokenDetails();
     tokenDetailsA.token = 'TOKEN_A';
     tokenDetailsB.token = 'TOKEN_B';
+  });
+
+  afterEach(async () => {
+    await dbDelete();
   });
 
   describe('get / set', () => {
@@ -137,20 +147,65 @@ describe('idb manager', () => {
     await tx.done;
     dbV1.close();
 
-    // Simulate upgrade/open v2 failing (e.g. blocked/aborted) at the lowest level so the
-    // behavior is independent of module import semantics.
-    const realIndexedDbOpen = indexedDB.open.bind(indexedDB);
-    const indexedDbOpenStub = stub(indexedDB, 'open').callsFake(
-      ((name: string, version?: number) => {
-        if (name === DATABASE_NAME && version === 2) {
-          throw new Error('upgrade failed');
-        }
-        return realIndexedDbOpen(name, version);
-      }) as any
-    );
+    const realOpenDB = idb.openDB.bind(idb);
+    const openDbStub = stub(idb, 'openDB').callsFake(((
+      name: string,
+      version?: number,
+      options?: unknown
+    ) => {
+      if (name === DATABASE_NAME && version === 2) {
+        return Promise.reject(new Error('upgrade failed'));
+      }
+      return realOpenDB(name, version as any, options as any);
+    }) as any);
 
     const value = await dbGet(firebaseDependencies);
     expect(value).to.deep.equal(tokenDetailsA);
-    expect(indexedDbOpenStub).to.have.been.called;
+    expect(openDbStub).to.have.been.called;
+  });
+
+  it('only initiates one openDB call under concurrent access', async () => {
+    const realOpenDB = idb.openDB.bind(idb);
+    let releaseOpen!: () => void;
+    const barrier = new Promise<void>(resolve => {
+      releaseOpen = resolve;
+    });
+
+    const openDbStub = stub(idb, 'openDB').callsFake(((
+      name: string,
+      version?: number,
+      options?: unknown
+    ) => {
+      if (name === DATABASE_NAME && version === 2) {
+        return barrier.then(() =>
+          realOpenDB(name, version as any, options as any)
+        );
+      }
+      return realOpenDB(name, version as any, options as any);
+    }) as any);
+
+    const p1 = dbGet(firebaseDependencies);
+    const p2 = dbSet(firebaseDependencies, tokenDetailsA);
+
+    // Both calls should share the same in-flight openDB promise.
+    expect(openDbStub.callCount).to.equal(1);
+
+    releaseOpen();
+    await Promise.all([p1, p2]);
+  });
+
+  it('dbDelete calls deleteDB even if dbPromise is rejected', async () => {
+    // Force both "open latest" and fallback open to fail, leaving dbPromise rejected.
+    const openDbStub = stub(idb, 'openDB').rejects(new Error('open failed'));
+
+    // Trigger dbPromise creation (it will end up rejected).
+    await expect(dbGet(firebaseDependencies)).to.be.rejected;
+    expect(openDbStub).to.have.been.called;
+
+    const deleteDbStub = stub(idb, 'deleteDB').resolves();
+
+    // Should still attempt deletion and not throw.
+    await dbDelete();
+    expect(deleteDbStub).to.have.been.calledOnceWith(DATABASE_NAME);
   });
 });

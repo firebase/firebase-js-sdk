@@ -55,29 +55,38 @@ export interface FidRegistrationDetails {
 let dbPromise: Promise<IDBPDatabase<unknown>> | null = null;
 function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   if (!dbPromise) {
-    let openLatest: Promise<IDBPDatabase<MessagingDB>>;
-    try {
-      openLatest = idb.openDB(DATABASE_NAME, DATABASE_VERSION, {
-        upgrade: (upgradeDb, oldVersion) => {
-          // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
-          // because if there are multiple versions between the old version and the current version, we
-          // want ALL the migrations that correspond to those versions to run, not only the last one.
-          // eslint-disable-next-line default-case
-          switch (oldVersion) {
-            case 0:
-              upgradeDb.createObjectStore(TOKEN_OBJECT_STORE_NAME);
-            // fall through
-            case 1:
-              upgradeDb.createObjectStore(FID_REGISTRATION_OBJECT_STORE_NAME);
-          }
+    const openLatest = idb.openDB(DATABASE_NAME, DATABASE_VERSION, {
+      upgrade: (upgradeDb, oldVersion) => {
+        // We don't use 'break' in this switch statement, the fall-through behavior is what we want,
+        // because if there are multiple versions between the old version and the current version, we
+        // want ALL the migrations that correspond to those versions to run, not only the last one.
+        // eslint-disable-next-line default-case
+        switch (oldVersion) {
+          case 0:
+            upgradeDb.createObjectStore(TOKEN_OBJECT_STORE_NAME);
+          // fall through
+          case 1:
+            upgradeDb.createObjectStore(FID_REGISTRATION_OBJECT_STORE_NAME);
         }
-      });
-    } catch (e) {
-      openLatest = Promise.reject(e);
-    }
+      },
+      // Multi-tab robustness:
+      // - `blocked`: another tab holds a connection open and prevents this tab from upgrading.
+      // - `blocking`: this tab holds a connection open and prevents another tab from upgrading.
+      blocked: () => {
+        /* no-op */
+      },
+      blocking: (db: any) => {
+        // Close our connection so other tabs can upgrade the DB. Resetting the cached promise
+        // ensures the next call will reopen a fresh connection after the upgrade completes.
+        dbPromise = null;
+        db.close();
+      }
+    });
 
     // If the upgrade fails (e.g. blocked/aborted), fall back to opening the previous DB
     // version so token reads/writes can continue to work.
+    // IMPORTANT: assign `dbPromise` synchronously to avoid concurrent callers initiating
+    // multiple `openDB()` calls before the cache is populated.
     dbPromise = (openLatest as unknown as Promise<IDBPDatabase<unknown>>).catch(
       () =>
         idb.openDB(DATABASE_NAME, DATABASE_VERSION - 1, {
@@ -87,6 +96,13 @@ function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
               case 0:
                 upgradeDb.createObjectStore(TOKEN_OBJECT_STORE_NAME);
             }
+          },
+          blocked: () => {
+            /* no-op */
+          },
+          blocking: (db: any) => {
+            dbPromise = null;
+            db.close();
           }
         }) as unknown as Promise<IDBPDatabase<unknown>>
     );
@@ -177,10 +193,17 @@ export async function dbSetFidRegistration(
 
 /** Deletes the DB. Useful for tests. */
 export async function dbDelete(): Promise<void> {
-  if (dbPromise) {
-    (await dbPromise).close();
+  const promise = dbPromise;
+  dbPromise = null;
+
+  try {
+    if (promise) {
+      (await promise).close();
+    }
+  } catch {
+    // Ignore open failures; deleting the DB is the recovery mechanism.
+  } finally {
     await idb.deleteDB(DATABASE_NAME);
-    dbPromise = null;
   }
 }
 
