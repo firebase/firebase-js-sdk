@@ -26,7 +26,7 @@ export function urlBuilder(
   transportOptions: TransportOptions
 ): string {
   // eslint-disable-next-line no-console
-  console.log("THIS IS A CHANGE!");
+  console.log('THIS IS A CHANGE!');
   const { connector, location, projectId: project, service } = projectConfig;
   const { host, sslEnabled, port } = transportOptions;
   const protocol = sslEnabled ? 'https' : 'http';
