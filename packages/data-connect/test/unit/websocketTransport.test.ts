@@ -31,7 +31,7 @@ import {
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 import { DataConnectResponse } from '../../src/network/transport';
 
-import { expectIsNotSettled } from './testUtils';
+import { expectIsNotSettled, MockWebSocket } from './testUtils';
 
 chai.use(sinonChai);
 chai.use(chaiAsPromised);
@@ -47,53 +47,6 @@ interface TransportWithInternals {
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void>;
-}
-
-class MockWebSocket {
-  static readonly CONNECTING = WebSocket.CONNECTING;
-  static readonly OPEN = WebSocket.OPEN;
-  static readonly CLOSING = WebSocket.CLOSING;
-  static readonly CLOSED = WebSocket.CLOSED;
-
-  readyState: number = MockWebSocket.CONNECTING;
-  send: sinon.SinonSpy = sinon.spy();
-  close: sinon.SinonSpy = sinon.spy();
-
-  onopen: (() => void | Promise<void>) | null = null;
-  onerror: ((err: Error) => void | Promise<void>) | null = null;
-  onmessage: ((ev: MessageEvent) => void | Promise<void>) | null = null;
-  onclose: ((ev: CloseEvent) => void | Promise<void>) | null = null;
-
-  url: string;
-  constructor(url: string) {
-    this.url = url;
-  }
-
-  simulateOpen(): void | Promise<void> {
-    this.readyState = MockWebSocket.OPEN;
-    if (this.onopen) {
-      return this.onopen();
-    }
-  }
-
-  simulateError(err: Error): void | Promise<void> {
-    if (this.onerror) {
-      return this.onerror(err);
-    }
-  }
-
-  simulateMessage(data: string): void | Promise<void> {
-    if (this.onmessage) {
-      return this.onmessage({ data } as MessageEvent);
-    }
-  }
-
-  simulateClose(code = 1000, reason = 'Normal Closure'): void | Promise<void> {
-    this.readyState = MockWebSocket.CLOSED;
-    if (this.onclose) {
-      return this.onclose({ code, reason } as CloseEvent);
-    }
-  }
 }
 
 describe('WebSocketTransport', () => {
@@ -330,7 +283,7 @@ describe('WebSocketTransport', () => {
       );
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -349,7 +302,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message did not include result'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -368,7 +321,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message result is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -387,7 +340,7 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateMessage(JSON.stringify(invalidData));
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+        WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message did not include requestId'
       );
       expect(logErrorStub).to.have.been.calledOnce;

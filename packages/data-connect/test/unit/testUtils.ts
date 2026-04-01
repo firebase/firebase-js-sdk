@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 
 chai.use(chaiAsPromised);
 
@@ -59,4 +60,55 @@ export function sleep(ms: number): Promise<void> {
   return new Promise<void>(resolve => {
     setTimeout(resolve, ms);
   });
+}
+
+/**
+ * Mock WebSocket class for testing purposes.
+ * @internal
+ */
+export class MockWebSocket {
+  static readonly CONNECTING = WebSocket.CONNECTING;
+  static readonly OPEN = WebSocket.OPEN;
+  static readonly CLOSING = WebSocket.CLOSING;
+  static readonly CLOSED = WebSocket.CLOSED;
+
+  readyState: number = MockWebSocket.CONNECTING;
+  send: sinon.SinonSpy = sinon.spy();
+  close: sinon.SinonSpy = sinon.spy();
+
+  onopen: (() => void | Promise<void>) | null = null;
+  onerror: ((err: Error) => void | Promise<void>) | null = null;
+  onmessage: ((ev: MessageEvent) => void | Promise<void>) | null = null;
+  onclose: ((ev: CloseEvent) => void | Promise<void>) | null = null;
+
+  url: string;
+  constructor(url: string) {
+    this.url = url;
+  }
+
+  simulateOpen(): void | Promise<void> {
+    this.readyState = MockWebSocket.OPEN;
+    if (this.onopen) {
+      return this.onopen();
+    }
+  }
+
+  simulateError(err: Error): void | Promise<void> {
+    if (this.onerror) {
+      return this.onerror(err);
+    }
+  }
+
+  simulateMessage(data: string): void | Promise<void> {
+    if (this.onmessage) {
+      return this.onmessage({ data } as MessageEvent);
+    }
+  }
+
+  simulateClose(code = 1000, reason = 'Normal Closure'): void | Promise<void> {
+    this.readyState = MockWebSocket.CLOSED;
+    if (this.onclose) {
+      return this.onclose({ code, reason } as CloseEvent);
+    }
+  }
 }

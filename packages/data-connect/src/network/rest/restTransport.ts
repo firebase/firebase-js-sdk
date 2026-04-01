@@ -27,7 +27,7 @@ import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
-import { addToken } from '../../util/url';
+import { addToken, restUrlBuilder } from '../../util/url';
 
 import { dcFetch } from './fetch';
 
@@ -55,6 +55,22 @@ export class RESTTransport extends AbstractDataConnectTransport {
       transportOptions,
       _isUsingGen,
       _callerSdkType
+    );
+  }
+
+  get endpointUrl(): string {
+    return restUrlBuilder(
+      {
+        connector: this._connectorName,
+        location: this._location,
+        projectId: this._project,
+        service: this._serviceName
+      },
+      {
+        host: this._host,
+        sslEnabled: this._secure,
+        port: this._port
+      }
     );
   }
 

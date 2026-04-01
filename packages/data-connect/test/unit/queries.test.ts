@@ -31,6 +31,7 @@ import {
   AuthTokenListener,
   AuthTokenProvider
 } from '../../src/core/FirebaseAuthProvider';
+import { DataConnectTransportManager } from '../../src/network/manager';
 import { initializeFetch, RESTTransport } from '../../src/network/rest';
 import { initDatabase } from '../util';
 chai.use(chaiAsPromised);
@@ -92,9 +93,16 @@ describe('Queries', () => {
     initializeApp({
       projectId: 'p'
     });
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
+      .returns();
   });
   afterEach(() => {
     fakeFetchImpl.resetHistory();
+    sinon.restore();
   });
   it('should call onComplete callback after subscribe is called', async () => {
     const taskListQuery = getPostsRef();

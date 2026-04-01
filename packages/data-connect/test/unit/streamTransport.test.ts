@@ -47,10 +47,17 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
     return true;
   }
 
+  get endpointUrl(): string {
+    return 'https://endpoint.url';
+  }
+
   protected openConnection(): Promise<void> {
     return Promise.resolve();
   }
   protected closeConnection(): Promise<void> {
+    return Promise.resolve();
+  }
+  protected ensureConnection(): Promise<void> {
     return Promise.resolve();
   }
   protected sendMessage<Variables>(

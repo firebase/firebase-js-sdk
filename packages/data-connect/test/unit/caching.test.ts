@@ -30,6 +30,7 @@ import {
   DataConnectExtension,
   OpResult
 } from '../../src';
+import { DataConnectTransportManager } from '../../src/network/manager';
 import { initializeFetch } from '../../src/network/rest';
 
 describe('caching', () => {
@@ -39,9 +40,18 @@ describe('caching', () => {
     const { firebaseApp, dc: newDC } = setup();
     dc = newDC;
     app = firebaseApp;
+
+    // Stub transport to prevent real network calls for subscribe.
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
+      .returns();
   });
   afterEach(async () => {
     await deleteApp(app);
+    sinon.restore();
   });
   it('should resolve from cache with an interdependent query', async () => {
     interface Q1Data {

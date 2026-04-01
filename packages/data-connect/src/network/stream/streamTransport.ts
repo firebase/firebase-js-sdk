@@ -70,7 +70,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
   private _pendingClose = false;
 
-  /** TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries */
+  // TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries
   get isUnableToConnect(): boolean {
     return false;
   }
@@ -110,6 +110,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   protected abstract sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void>;
+
+  /**
+   * Ensures that that there is an open connection. If there is none, it initiates a new one.
+   * If a connection attempt is already in progress, it returns the existing connection promise.
+   * @returns A promise that resolves when the stream is open and ready.
+   */
+  protected abstract ensureConnection(): Promise<void>;
 
   /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
   private requestNumber = FIRST_REQUEST_ID;
@@ -321,12 +328,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Prepares a stream request by adding necessary headers and metadata.
+   * Prepares a stream request message by adding necessary headers and metadata.
    * If this is the first message on the stream, it includes the resource name, auth token, and App Check token.
-   * If the auth token has changed since the last message, it includes the new auth token.
+   * If the auth token has refreshed since the last message, it includes the new auth token.
+   *
+   * This method is called by the concrete transport implementation before sending a message.
+   *
    * @returns the requestBody, with attached headers and initial request fields
    */
-  private prepareMessage<
+  protected prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
   >(requestBody: StreamBody): StreamBody {
@@ -355,43 +365,21 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Internal helper to queue a message to execute a one-off query or mutation.
+   * Sends a request message to the server via the concrete implementation.
+   * Ensures the connection is ready and prepares the message before sending.
+   * @returns A promise that resolves when the request message has been sent.
    */
-  private sendExecuteMessage<Variables>(
-    executeRequestBody: ExecuteStreamRequest<Variables>
+  private sendRequestMessage<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void> {
-    const preparedRequestBody = this.prepareMessage(executeRequestBody);
-    return this.sendMessage(preparedRequestBody);
-  }
-
-  /**
-   * Internal helper to queue a message to subscribe to a query.
-   */
-  private sendSubscribeMessage<Variables>(
-    subscribeRequestBody: SubscribeStreamRequest<Variables>
-  ): Promise<void> {
-    const preparedRequestBody = this.prepareMessage(subscribeRequestBody);
-    return this.sendMessage(preparedRequestBody);
-  }
-
-  /**
-   * Internal helper to queue a message to unsubscribe to a query.
-   */
-  private sendCancelMessage(
-    cancelRequestBody: CancelStreamRequest
-  ): Promise<void> {
-    const preparedRequestBody = this.prepareMessage(cancelRequestBody);
-    return this.sendMessage(preparedRequestBody);
-  }
-
-  /**
-   * Internal helper to queue a message to resume a query.
-   */
-  private sendResumeMessage(
-    resumeRequestBody: ResumeStreamRequest
-  ): Promise<void> {
-    const preparedRequestBody = this.prepareMessage(resumeRequestBody);
-    return this.sendMessage(preparedRequestBody);
+    if (this.streamIsReady) {
+      const prepared = this.prepareMessage(requestBody);
+      return this.sendMessage(prepared);
+    }
+    return this.ensureConnection().then(() => {
+      const prepared = this.prepareMessage(requestBody);
+      return this.sendMessage(prepared);
+    });
   }
 
   /**
@@ -449,7 +437,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     );
 
     // asynchronous, fire and forget
-    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
+    this.sendRequestMessage<Variables>(executeBody).catch(err => {
       rejectFn(err);
     });
     return responsePromise;
@@ -481,7 +469,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     );
 
     // asynchronous, fire and forget
-    this.sendExecuteMessage<Variables>(executeBody).catch(err => {
+    this.sendRequestMessage<Variables>(executeBody).catch(err => {
       rejectFn(err);
     });
     return responsePromise;
@@ -515,7 +503,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     );
 
     // asynchronous, fire and forget
-    this.sendSubscribeMessage<Variables>(subscribeBody).catch(err => {
+    this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
       notifyQueryManager({
         data: undefined as unknown as Data,
         extensions: {},
@@ -547,7 +535,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.cleanupSubscribeRequest(requestId, mapKey);
 
     // asynchronous, fire and forget
-    this.sendCancelMessage(cancelBody).catch(err => {
+    this.sendRequestMessage(cancelBody).catch(err => {
       logError(`Stream Transport failed to send unsubscribe message: ${err}`);
     });
   }

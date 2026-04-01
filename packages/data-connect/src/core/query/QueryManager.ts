@@ -32,7 +32,8 @@ import {
   DataConnectTransportInterface,
   Extensions,
   DataConnectExtensionWithMaxAge,
-  ExtensionsWithMaxAge
+  ExtensionsWithMaxAge,
+  SubscribeNotificationHook
 } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
 import { Code, DataConnectError } from '../error';
@@ -86,6 +87,10 @@ export class QueryManager {
     string,
     Array<DataConnectSubscription<unknown, unknown>>
   >();
+  /**
+   * Map of serialized query keys to most recent Query Result. Used as a simple fallback cache
+   * for subsciptions if caching is not enabled.
+   */
   private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
   constructor(
     private transport: DataConnectTransportInterface,
@@ -155,10 +160,15 @@ export class QueryManager {
     const unsubscribe = (): void => {
       if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
-        this.callbacks.set(
-          key,
-          callbackList.filter(callback => callback !== subscription)
+        const newList = callbackList.filter(
+          callback => callback !== subscription
         );
+        this.callbacks.set(key, newList);
+
+        if (newList.length === 0) {
+          this.callbacks.delete(key);
+          this.transport.invokeUnsubscribe(queryRef.name, queryRef.variables);
+        }
         onCompleteCallback?.();
       }
     };
@@ -176,12 +186,22 @@ export class QueryManager {
     // We want to ignore the error and let subscriptions handle it
     promise.then(undefined, err => {});
 
-    if (!this.callbacks.has(key)) {
-      this.callbacks.set(key, []);
+    if (this.callbacks.has(key)) {
+      this.callbacks
+        .get(key)!
+        .push(subscription as DataConnectSubscription<unknown, unknown>);
+    } else {
+      this.callbacks.set(key, [
+        subscription as DataConnectSubscription<unknown, unknown>
+      ]);
+
+      // only invoke subscription if we don't already have an active subscription
+      this.transport.invokeSubscribe<Data, Variables>(
+        this.makeSubscribeNotificationHook(queryRef),
+        queryRef.name,
+        queryRef.variables
+      );
     }
-    this.callbacks
-      .get(key)!
-      .push(subscription as DataConnectSubscription<unknown, unknown>);
 
     return unsubscribe;
   }
@@ -343,6 +363,7 @@ export class QueryManager {
     return result as QueryResult<Data, Variables>;
   }
 
+  /** Call the registered onNext callbacks for the given key */
   publishDataToSubscribers(
     key: string,
     queryResult: QueryResult<unknown, unknown>
@@ -391,6 +412,56 @@ export class QueryManager {
   }
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
+  }
+
+  /**
+   * Create a new {@link SubscribeNotificationHook} for the given QueryRef. This will be passed to
+   * {@link DataConnectTransportInterface.invokeSubscribe | invokeSubscribe()} to notify the query
+   * layer of data updates.
+   */
+  private makeSubscribeNotificationHook<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
+  ): SubscribeNotificationHook<Data> {
+    const key = encoderImpl({
+      name: queryRef.name,
+      variables: queryRef.variables,
+      refType: QUERY_STR
+    });
+    return async response => {
+      if (response.errors && response.errors.length > 0) {
+        const stringified = JSON.stringify(response.errors);
+        const error = new DataConnectError(
+          Code.OTHER,
+          'DataConnect error received from subscribe notification: ' +
+            stringified
+        );
+        this.publishErrorToSubscribers(key, error);
+        return;
+      }
+      const fetchTime = Date.now().toString();
+      const queryResult: QueryResult<Data, Variables> = {
+        ref: queryRef,
+        source: SOURCE_SERVER,
+        fetchTime,
+        data: response.data,
+        extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
+        toJSON: getRefSerializer(
+          queryRef,
+          response.data,
+          SOURCE_SERVER,
+          fetchTime
+        )
+      };
+      let updatedKeys: string[] = [];
+      updatedKeys = await this.updateCache(
+        queryResult,
+        response.extensions?.dataConnect
+      );
+      this.publishDataToSubscribers(key, queryResult);
+      if (this.cache) {
+        await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
+      }
+    };
   }
 }
 
