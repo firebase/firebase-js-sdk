@@ -889,7 +889,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * ```
    *
    * @example
-   * ```
+   * ```typescript
    * // Geo distance search example
    * const queryLocation = new GeoPoint(0, 0);
    * db.pipeline().collection('restaurants').search({

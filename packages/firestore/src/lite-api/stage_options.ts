@@ -302,7 +302,7 @@ export type SearchStageOptions = StageOptions & {
    * The query can also be expressed as a string in the Search Domain-Specific Language (DSL):
    *
    * @example
-   * ```
+   * ```typescript
    * db.pipeline().collection('restaurants').search({
    *   query: 'menu:(waffle and coffee) OR breakfast'
    * })
@@ -311,7 +311,7 @@ export type SearchStageOptions = StageOptions & {
    * The query can also represent a geoDistance query:
    *
    * @example
-   * ```
+   * ```typescript
    * db.pipeline().collection('restaurants').search({
    *   query: field('location').geoDistance(new GeoPoint(0, 0)).lessThanOrEqual(1000)
    * })
