@@ -2,4 +2,4 @@
 "@firebase/firestore": feat
 ---
 
-Add public preview support for full-text search and geo search.
+Added public preview support for full-text and geo search in Pipelines.
