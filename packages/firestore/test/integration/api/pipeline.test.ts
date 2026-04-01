@@ -6392,7 +6392,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       } catch (e: unknown) {
         expect(e).to.be.an.instanceOf(FirebaseError);
         const err = e as FirestoreError;
-        expect(err.code).to.equal('failed-precondition');
+        expect(err.code).to.equal('invalid-argument');
         expect(err.message).to.match(/unknown variable/i);
       }
     });

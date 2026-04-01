@@ -6264,7 +6264,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       } catch (e: unknown) {
         expect(e).to.be.an.instanceOf(FirebaseError);
         const err = e as FirestoreError;
-        expect(err.code).to.equal(Code.FAILED_PRECONDITION);
+        expect(err.code).to.equal(Code.INVALID_ARGUMENT);
         expect(err.message).to.match(/unknown variable/i);
       }
     });
