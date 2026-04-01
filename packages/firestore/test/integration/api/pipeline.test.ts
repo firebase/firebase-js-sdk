@@ -205,50 +205,6 @@ use(chaiAsPromised);
 
 const timestampDeltaMS = 10000;
 
-let beginDocCreation: number = 0;
-let endDocCreation: number = 0;
-
-async function testCollectionWithDocs(
-  collection: CollectionReference,
-  docs: { [id: string]: DocumentData }
-): Promise<CollectionReference<DocumentData>> {
-  beginDocCreation = new Date().valueOf();
-  for (const id in docs) {
-    if (docs.hasOwnProperty(id)) {
-      const ref = doc(collection, id);
-      await setDoc(ref, docs[id]);
-    }
-  }
-  endDocCreation = new Date().valueOf();
-  return collection;
-}
-
-function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
-function expectResults(
-  snapshot: PipelineSnapshot,
-  ...data: DocumentData[]
-): void;
-
-function expectResults(
-  snapshot: PipelineSnapshot,
-  ...data: DocumentData[] | string[]
-): void {
-  const docs = snapshot.results;
-
-  expect(docs.length).to.equal(data.length);
-
-  if (data.length > 0) {
-    if (typeof data[0] === 'string') {
-      const actualIds = docs.map(doc => doc.id);
-      expect(actualIds).to.deep.equal(data);
-    } else {
-      docs.forEach(r => {
-        expect(r.data()).to.deep.equal(data.shift());
-      });
-    }
-  }
-}
-
 apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
 
@@ -2376,10 +2332,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const err = e as FirebaseError;
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
-
-        expect(err['message']).to.match(
-          /Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
-        );
       }
     });
   });

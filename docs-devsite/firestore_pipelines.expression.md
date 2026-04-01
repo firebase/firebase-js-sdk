@@ -4718,7 +4718,7 @@ Creates an expression that calculates the difference between this timestamp and 
 <b>Signature:</b>
 
 ```typescript
-timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day'): FunctionExpression;
+timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
 ```
 
 #### Parameters
@@ -4726,7 +4726,7 @@ timestampDiff(start: string | Expression, unit: 'microsecond' | 'millisecond' | 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  start | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The field name of the starting timestamp. |
-|  unit | 'microsecond' \| 'millisecond' \| 'second' \| 'minute' \| 'hour' \| 'day' | The unit of time for the difference (e.g., "day", "hour"). |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) | The unit of time for the difference (e.g., "day", "hour"). |
 
 <b>Returns:</b>
 

@@ -216,6 +216,7 @@ export {
   Selectable,
   TimeGranularity,
   TimePart,
+  TimeUnit,
   Type
 } from './lite-api/expressions';
 
