@@ -575,7 +575,7 @@ export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
-// @public
+// @public @deprecated
 export function getImagenModel(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions): ImagenModel;
 
 // @beta
@@ -584,7 +584,7 @@ export function getLiveGenerativeModel(ai: AI, modelParams: LiveModelParams): Li
 // @beta
 export function getTemplateGenerativeModel(ai: AI, requestOptions?: RequestOptions): TemplateGenerativeModel;
 
-// @beta
+// @public @deprecated
 export function getTemplateImagenModel(ai: AI, requestOptions?: RequestOptions): TemplateImagenModel;
 
 // @public
@@ -744,7 +744,7 @@ export interface HybridParams {
     onDeviceParams?: OnDeviceParams;
 }
 
-// @public
+// @public @deprecated
 export const ImagenAspectRatio: {
     readonly SQUARE: "1:1";
     readonly LANDSCAPE_3x4: "3:4";
@@ -753,16 +753,16 @@ export const ImagenAspectRatio: {
     readonly PORTRAIT_9x16: "9:16";
 };
 
-// @public
+// @public @deprecated
 export type ImagenAspectRatio = (typeof ImagenAspectRatio)[keyof typeof ImagenAspectRatio];
 
-// @public
+// @public @deprecated
 export interface ImagenGCSImage {
     gcsURI: string;
     mimeType: string;
 }
 
-// @public
+// @public @deprecated
 export interface ImagenGenerationConfig {
     addWatermark?: boolean;
     aspectRatio?: ImagenAspectRatio;
@@ -771,13 +771,13 @@ export interface ImagenGenerationConfig {
     numberOfImages?: number;
 }
 
-// @public
+// @public @deprecated
 export interface ImagenGenerationResponse<T extends ImagenInlineImage | ImagenGCSImage> {
     filteredReason?: string;
     images: T[];
 }
 
-// @public
+// @public @deprecated
 export class ImagenImageFormat {
     compressionQuality?: number;
     static jpeg(compressionQuality?: number): ImagenImageFormat;
@@ -785,13 +785,13 @@ export class ImagenImageFormat {
     static png(): ImagenImageFormat;
 }
 
-// @public
+// @public @deprecated
 export interface ImagenInlineImage {
     bytesBase64Encoded: string;
     mimeType: string;
 }
 
-// @public
+// @public @deprecated
 export class ImagenModel extends AIModel {
     constructor(ai: AI, modelParams: ImagenModelParams, requestOptions?: RequestOptions | undefined);
     generateImages(prompt: string, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
@@ -803,24 +803,24 @@ export class ImagenModel extends AIModel {
     safetySettings?: ImagenSafetySettings;
 }
 
-// @public
+// @public @deprecated
 export interface ImagenModelParams {
     generationConfig?: ImagenGenerationConfig;
     model: string;
     safetySettings?: ImagenSafetySettings;
 }
 
-// @public
+// @public @deprecated
 export const ImagenPersonFilterLevel: {
     readonly BLOCK_ALL: "dont_allow";
     readonly ALLOW_ADULT: "allow_adult";
     readonly ALLOW_ALL: "allow_all";
 };
 
-// @public
+// @public @deprecated
 export type ImagenPersonFilterLevel = (typeof ImagenPersonFilterLevel)[keyof typeof ImagenPersonFilterLevel];
 
-// @public
+// @public @deprecated
 export const ImagenSafetyFilterLevel: {
     readonly BLOCK_LOW_AND_ABOVE: "block_low_and_above";
     readonly BLOCK_MEDIUM_AND_ABOVE: "block_medium_and_above";
@@ -828,10 +828,10 @@ export const ImagenSafetyFilterLevel: {
     readonly BLOCK_NONE: "block_none";
 };
 
-// @public
+// @public @deprecated
 export type ImagenSafetyFilterLevel = (typeof ImagenSafetyFilterLevel)[keyof typeof ImagenSafetyFilterLevel];
 
-// @public
+// @public @deprecated
 export interface ImagenSafetySettings {
     personFilterLevel?: ImagenPersonFilterLevel;
     safetyFilterLevel?: ImagenSafetyFilterLevel;
@@ -1359,11 +1359,12 @@ export class TemplateGenerativeModel {
     requestOptions?: RequestOptions;
 }
 
-// @beta
+// @public @deprecated
 export class TemplateImagenModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
+    // @beta
     generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
 }

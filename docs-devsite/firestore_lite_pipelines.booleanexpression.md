@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # BooleanExpression class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 An interface that represents a filter condition.
 
 <b>Signature:</b>
@@ -26,18 +23,15 @@ export declare abstract class BooleanExpression extends Expression
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [conditional(thenExpr, elseExpr)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressionconditional) |  | <b><i>(Public Preview)</i></b> Creates a conditional expression that evaluates to the 'then' expression if <code>this</code> expression evaluates to <code>true</code>, or evaluates to the 'else' expression if <code>this</code> expressions evaluates <code>false</code>. |
-|  [countIf()](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioncountif) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the count of input documents satisfying this boolean expression. |
-|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [not()](./firestore_lite_pipelines.booleanexpression.md#booleanexpressionnot) |  | <b><i>(Public Preview)</i></b> Creates an expression that negates this boolean expression. |
+|  [conditional(thenExpr, elseExpr)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressionconditional) |  | Creates a conditional expression that evaluates to the 'then' expression if <code>this</code> expression evaluates to <code>true</code>, or evaluates to the 'else' expression if <code>this</code> expressions evaluates <code>false</code>. |
+|  [countIf()](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioncountif) |  | Creates an aggregation that finds the count of input documents satisfying this boolean expression. |
+|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [ifError(catchValue)](./firestore_lite_pipelines.booleanexpression.md#booleanexpressioniferror) |  | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [not()](./firestore_lite_pipelines.booleanexpression.md#booleanexpressionnot) |  | Creates an expression that negates this boolean expression. |
 
 ## BooleanExpression.conditional()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates a conditional expression that evaluates to the 'then' expression if `this` expression evaluates to `true`<!-- -->, or evaluates to the 'else' expression if `this` expressions evaluates `false`<!-- -->.
 
@@ -71,9 +65,6 @@ field("age").greaterThanOrEqual(18).conditional(constant("Adult"), constant("Min
 
 ## BooleanExpression.countIf()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that finds the count of input documents satisfying this boolean expression.
 
 <b>Signature:</b>
@@ -97,9 +88,6 @@ field("score").greaterThan(90).countIf().as("highestScore");
 ```
 
 ## BooleanExpression.ifError()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the `catch` argument if there is an error, else return the result of this expression.
 
@@ -133,9 +121,6 @@ constant(50).divide(field('length')).greaterThan(1).ifError(constant(false));
 
 ## BooleanExpression.ifError()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the `catch` argument if there is an error, else return the result of this expression.
 
 <b>Signature:</b>
@@ -168,9 +153,6 @@ constant(50).divide(field('length')).greaterThan(1).ifError(false);
 
 ## BooleanExpression.ifError()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the `catch` argument if there is an error, else return the result of this expression.
 
 <b>Signature:</b>
@@ -202,9 +184,6 @@ constant(50).divide(field('length')).greaterThan(1).ifError(constant(0));
 
 ## BooleanExpression.ifError()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the `catch` argument if there is an error, else return the result of this expression.
 
 <b>Signature:</b>
@@ -235,9 +214,6 @@ constant(50).divide(field('length')).greaterThan(1).ifError(0);
 ```
 
 ## BooleanExpression.not()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that negates this boolean expression.
 

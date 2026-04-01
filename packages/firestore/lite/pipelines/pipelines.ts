@@ -208,6 +208,8 @@ export {
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   length,
   arraySum,

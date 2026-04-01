@@ -35,7 +35,6 @@ import { newUserDataReader, UserDataSource } from './user_data_reader';
 declare module './database' {
   interface Firestore {
     /**
-     * @beta
      * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
      *
      * @example
@@ -48,7 +47,6 @@ declare module './database' {
 }
 
 /**
- * @beta
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -131,7 +129,6 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
 }
 
 /**
- * @beta
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example

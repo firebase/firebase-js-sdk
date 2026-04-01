@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PipelineExecuteOptions interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Options defining Pipeline execution.
 
 <b>Signature:</b>
@@ -25,14 +22,11 @@ export declare interface PipelineExecuteOptions
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [indexMode](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsindexmode) | 'recommended' | <b><i>(Public Preview)</i></b> Specify the index mode. |
-|  [pipeline](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionspipeline) | [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | <b><i>(Public Preview)</i></b> Pipeline to be evaluated. |
-|  [rawOptions](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsrawoptions) | { \[name: string\]: unknown; } | <b><i>(Public Preview)</i></b> An escape hatch to set options not known at SDK build time. These values will be passed directly to the Firestore backend and not used by the SDK.<!-- -->The option name will be used as provided. And must match the name format used by the backend (hint: use a snake\_case\_name).<!-- -->Custom option values can be any type supported by Firestore (for example: string, boolean, number, map, …). Value types not known to the SDK will be rejected.<!-- -->Values specified in rawOptions will take precedence over any options with the same name set by the SDK. |
+|  [indexMode](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsindexmode) | 'recommended' | Specify the index mode. |
+|  [pipeline](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionspipeline) | [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) | Pipeline to be evaluated. |
+|  [rawOptions](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptionsrawoptions) | { \[name: string\]: unknown; } | An escape hatch to set options not known at SDK build time. These values will be passed directly to the Firestore backend and not used by the SDK.<!-- -->The option name will be used as provided. And must match the name format used by the backend (hint: use a snake\_case\_name).<!-- -->Custom option values can be any type supported by Firestore (for example: string, boolean, number, map, …). Value types not known to the SDK will be rejected.<!-- -->Values specified in rawOptions will take precedence over any options with the same name set by the SDK. |
 
 ## PipelineExecuteOptions.indexMode
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Specify the index mode.
 
@@ -44,9 +38,6 @@ indexMode?: 'recommended';
 
 ## PipelineExecuteOptions.pipeline
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Pipeline to be evaluated.
 
 <b>Signature:</b>
@@ -56,9 +47,6 @@ pipeline: Pipeline;
 ```
 
 ## PipelineExecuteOptions.rawOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 An escape hatch to set options not known at SDK build time. These values will be passed directly to the Firestore backend and not used by the SDK.
 
