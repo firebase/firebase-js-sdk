@@ -145,6 +145,7 @@ export declare abstract class Expression
 |  [notEqual(value)](./firestore_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to a constant value. |
 |  [notEqualAny(values)](./firestore_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
 |  [notEqualAny(arrayExpression)](./firestore_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
+|  [parent()](./firestore_pipelines.expression.md#expressionparent) |  | Creates an expression that returns the parent document reference of a document reference. |
 |  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of another expression. |
 |  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of a constant value. |
 |  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
@@ -3444,9 +3445,6 @@ field("status").notEqualAny(field('rejectedStatuses'));
 ```
 
 ## Expression.parent()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the parent document reference of a document reference.
 

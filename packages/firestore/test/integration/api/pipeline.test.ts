@@ -4684,7 +4684,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         parentIdStatic: 'book4',
         parentIdInstance: 'book4'
       });
-    }).timeout(10000);
+    });
 
     it('supports substring', async () => {
       let snapshot = await execute(

@@ -66,8 +66,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [switchOn(condition, result, others)](./firestore_pipelines.md#switchon_02b8caf) | Creates an expression that evaluates to the result corresponding to the first true condition. |
 |  <b>function(documentPath, ...)</b> |
 |  [documentId(documentPath)](./firestore_pipelines.md#documentid_cef293c) | Creates an expression that returns the document ID from a path. |
+|  [parent\_2(documentPath)](./firestore_pipelines.md#parent_2_cef293c) | Creates an expression that returns the parent document reference of a document reference. |
 |  <b>function(documentPathExpr, ...)</b> |
 |  [documentId(documentPathExpr)](./firestore_pipelines.md#documentid_9a69021) | Creates an expression that returns the document ID from a path. |
+|  [parent\_2(documentPathExpr)](./firestore_pipelines.md#parent_2_9a69021) | Creates an expression that returns the parent document reference of a document reference. |
 |  <b>function(element, ...)</b> |
 |  [notEqualAny(element, values)](./firestore_pipelines.md#notequalany_c2c5bcb) | Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
 |  [notEqualAny(element, arrayExpression)](./firestore_pipelines.md#notequalany_16b2851) | Creates an expression that checks if an expression is not equal to any of the provided values or expressions. |
@@ -1829,9 +1831,6 @@ documentId(myDocumentReference);
 
 ### parent\_2(documentPath) {:#parent_2_cef293c}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the parent document reference of a document reference.
 
 <b>Signature:</b>
@@ -1895,9 +1894,6 @@ documentId(field("__path__"));
 ```
 
 ### parent\_2(documentPathExpr) {:#parent_2_9a69021}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the parent document reference of a document reference.
 

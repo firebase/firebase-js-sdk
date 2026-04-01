@@ -2600,7 +2600,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    *
    * Creates an expression that returns a substring of the results of this expression.
    *
@@ -4545,7 +4544,6 @@ export function parent(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns the parent document reference of a document reference.
  *
@@ -4568,7 +4566,6 @@ export function parent(
 }
 
 /**
- * @beta
  *
  * Creates an expression that returns a substring of a string or byte array.
  *

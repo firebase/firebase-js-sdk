@@ -1192,6 +1192,14 @@ export class Ordering {
 }
 
 // @public
+function parent_2(documentPath: string | DocumentReference): FunctionExpression;
+
+// @public
+function parent_2(documentPathExpr: Expression): FunctionExpression;
+
+export { parent_2 as parent }
+
+// @public
 export class Pipeline {
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
     addFields(options: AddFieldsStageOptions): Pipeline;
