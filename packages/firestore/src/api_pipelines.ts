@@ -52,7 +52,8 @@ export {
   UnnestStageOptions,
   SortStageOptions,
   SearchStageOptions,
-  QueryEnhancement
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from './lite-api/stage_options';
 
 export {
