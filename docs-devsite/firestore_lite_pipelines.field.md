@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Field class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.
 
 <p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.
@@ -32,16 +29,13 @@ export declare class Field extends Expression implements Selectable
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [alias](./firestore_lite_pipelines.field.md#fieldalias) |  | string | <b><i>(Public Preview)</i></b> |
-|  [expr](./firestore_lite_pipelines.field.md#fieldexpr) |  | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> |
-|  [expressionType](./firestore_lite_pipelines.field.md#fieldexpressiontype) |  | [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> |
-|  [fieldName](./firestore_lite_pipelines.field.md#fieldfieldname) |  | string | <b><i>(Public Preview)</i></b> |
-|  [selectable](./firestore_lite_pipelines.field.md#fieldselectable) |  | true | <b><i>(Public Preview)</i></b> |
+|  [alias](./firestore_lite_pipelines.field.md#fieldalias) |  | string |  |
+|  [expr](./firestore_lite_pipelines.field.md#fieldexpr) |  | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
+|  [expressionType](./firestore_lite_pipelines.field.md#fieldexpressiontype) |  | [ExpressionType](./firestore_lite_pipelines.md#expressiontype) |  |
+|  [fieldName](./firestore_lite_pipelines.field.md#fieldfieldname) |  | string |  |
+|  [selectable](./firestore_lite_pipelines.field.md#fieldselectable) |  | true |  |
 
 ## Field.alias
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -51,9 +45,6 @@ get alias(): string;
 
 ## Field.expr
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -61,9 +52,6 @@ get expr(): Expression;
 ```
 
 ## Field.expressionType
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -73,9 +61,6 @@ readonly expressionType: ExpressionType;
 
 ## Field.fieldName
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -83,9 +68,6 @@ get fieldName(): string;
 ```
 
 ## Field.selectable
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

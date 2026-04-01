@@ -28,7 +28,6 @@ import { fieldPathFromArgument } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
- * @beta
  * Represents the results of a Firestore pipeline execution.
  *
  * A `PipelineSnapshot` contains zero or more {@link @firebase/firestore/pipelines#PipelineResult} objects
@@ -63,14 +62,13 @@ export class PipelineSnapshot {
   }
 
   /**
-   * @beta An array of all the results in the `PipelineSnapshot`.
+   * An array of all the results in the `PipelineSnapshot`.
    */
   get results(): PipelineResult[] {
     return this._results;
   }
 
   /**
-   * @beta
    * The time at which the pipeline producing this result is executed.
    *
    * @readonly
@@ -87,7 +85,6 @@ export class PipelineSnapshot {
 }
 
 /**
- * @beta
  *
  * A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the
  * {@link @firebase/firestore/pipelines#PipelineResult.data} or {@link @firebase/firestore/pipelines#PipelineResult.(get:1)} methods.
@@ -139,7 +136,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * @beta
    * The reference of the document, if it is a document; otherwise `undefined`.
    */
   get ref(): DocumentReference | undefined {
@@ -147,7 +143,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * @beta
    * The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`.
    *
    * @readonly
@@ -158,7 +153,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * @beta
    * The time the document was created. Undefined if this result is not a document.
    *
    * @readonly
@@ -168,7 +162,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * @beta
    * The time the document was last updated (at the time the snapshot was
    * generated). Undefined if this result is not a document.
    *
@@ -179,7 +172,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * @beta
    * Retrieves all fields in the result as an object.
    *
    * @returns An object containing all fields in the document or
@@ -215,7 +207,6 @@ export class PipelineResult<AppModelType = DocumentData> {
   }
 
   /**
-   * @beta
    * Retrieves the field specified by `field`.
    *
    * @param field - The field path
@@ -254,7 +245,6 @@ export class PipelineResult<AppModelType = DocumentData> {
 }
 
 /**
- * @beta
  * Test equality of two PipelineResults.
  * @param left - First PipelineResult to compare.
  * @param right - Second PipelineResult to compare.
