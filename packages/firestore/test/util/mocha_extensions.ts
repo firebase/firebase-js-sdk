@@ -17,7 +17,10 @@
 
 /* eslint-disable no-restricted-properties */
 
-import { USE_EMULATOR } from '../integration/util/settings';
+import {
+  USE_EMULATOR,
+  RUN_ENTERPRISE_TESTS
+} from '../integration/util/settings';
 
 // Helper to make a type itselt (T) and optionally union that with (T['skip'])
 type tOrSkipT<T> = T | (T extends { skip: unknown } ? T['skip'] : T);
@@ -64,7 +67,7 @@ export function mixinSkipImplementations(obj: unknown): void {
       if (this === describe.skip) {
         return this;
       }
-      if (process.env.RUN_ENTERPRISE_TESTS) {
+      if (RUN_ENTERPRISE_TESTS) {
         return this.skip;
       }
       return this;
@@ -79,7 +82,7 @@ export function mixinSkipImplementations(obj: unknown): void {
       if (this === describe.skip) {
         return this;
       }
-      if (!process.env.RUN_ENTERPRISE_TESTS) {
+      if (!RUN_ENTERPRISE_TESTS) {
         return this.skip;
       }
       return this;
