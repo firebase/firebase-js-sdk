@@ -44,6 +44,10 @@ declare module 'mocha' {
 
 // Define helpers
 export function mixinSkipImplementations(obj: unknown): void {
+  if (Object.getOwnPropertyDescriptor(obj, 'skipEmulator')) {
+    return;
+  }
+
   Object.defineProperty(obj, 'skipEmulator', {
     get(): unknown {
       if (this === it.skip) {
