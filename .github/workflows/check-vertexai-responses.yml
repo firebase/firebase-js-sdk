@@ -47,7 +47,7 @@ jobs:
       - name: Comment on PR if newer version is available
         if: ${{env.cloned_tag != env.latest_tag && !steps.fc.outputs.comment-id}}
         # This commit represents v4.0.0
-        uses: peter-evans/create-or-update-comment@e2426b4b1346fd5e8c731c0bbe368063ea0286ac
+        uses: peter-evans/create-or-update-comment@57232238742e38b2ccc27136ce596ccae7ca28b4
         with:
           issue-number: ${{github.event.number}}
           body: >
