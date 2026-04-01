@@ -65,6 +65,7 @@ firestore.pipeline().collection("books")
 |  [replaceWith(options)](./firestore_lite_pipelines.pipeline.md#pipelinereplacewith) |  | Fully overwrites all fields in a document with those coming from a map.<p>This stage allows you to emit a map value as a document. Each key of the map becomes a field on the document that contains the corresponding value.<p>Example: |
 |  [sample(documents)](./firestore_lite_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The parameter specifies how number of documents to be returned.<p>Examples: |
 |  [sample(options)](./firestore_lite_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how sampling will be performed. See [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) for more information. |
+|  [search(options)](./firestore_lite_pipelines.pipeline.md#pipelinesearch) |  | <b><i>(Public Preview)</i></b> Add a search stage to the Pipeline. The search stage supports full-text search and geo search expressions. |
 |  [select(selection, additionalSelections)](./firestore_lite_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code> : Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.<p>Example: |
 |  [select(options)](./firestore_lite_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.<p>Example: |
 |  [sort(ordering, additionalOrderings)](./firestore_lite_pipelines.pipeline.md#pipelinesort) |  | Sorts the documents from previous stages based on one or more [Ordering](./firestore_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.<p>Example: |
@@ -866,6 +867,64 @@ firestore.pipeline().collection("books")
 // Sample 50% of books.
 firestore.pipeline().collection("books")
     .sample({ percentage: 0.5 });
+
+```
+
+## Pipeline.search()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Add a search stage to the Pipeline. The search stage supports full-text search and geo search expressions.
+
+A limited set of expressions are supported in the search stage.
+
+<b>Signature:</b>
+
+```typescript
+search(options: SearchStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | An object that specifies parameters for the stage.  A new <code>Pipeline</code> object with this stage appended to the stage list. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+
+### Example 1
+
+
+```typescript
+// Full-text search example
+firestore.pipeline().collection("restaurants")
+.search({
+  query: documentMatches("waffles OR pancakes"),
+  sort: [
+    score().descending(),
+  ],
+  addFields: [
+    score().as("searchScore"),
+  ]
+})
+
+```
+
+### Example 2
+
+
+```typescript
+// Geo distance search example
+const queryLocation = new GeoPoint(0, 0);
+db.pipeline().collection('restaurants').search({
+  query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
+  sort: [
+    score().descending(),
+  ],
+})
 
 ```
 
