@@ -866,6 +866,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   // expressions, when that documentation is created. List is not maintained
   // in the SDK because the list will change as the backend enables support.
   /**
+   * @beta
    * Add a search stage to the Pipeline. The search stage supports
    * full-text search and geo search expressions.
    *

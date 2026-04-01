@@ -277,6 +277,7 @@ export type FindNearestStageOptions = StageOptions & {
 export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
 
 /**
+ * @beta
  * Options defining how a SearchStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
  */
 export type SearchStageOptions = StageOptions & {
