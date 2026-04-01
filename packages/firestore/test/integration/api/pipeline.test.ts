@@ -6363,7 +6363,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           } catch (err: unknown) {
             const error: Error = err as Error;
             expect(error.message).to.equals(
-              "Request failed with error: The function 'get_field' does not exist, did you mean 'field'?"
+              "The function 'get_field' does not exist, did you mean 'field'?"
             );
           }
         } else if (isNightly) {
@@ -6477,7 +6477,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           } catch (err: unknown) {
             const error: Error = err as Error;
             expect(error.message).to.equals(
-              "Request failed with error: The function 'get_field' does not exist, did you mean 'field'?"
+              "The function 'get_field' does not exist, did you mean 'field'?"
             );
           }
         } else if (isNightly) {
