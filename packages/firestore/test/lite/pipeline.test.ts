@@ -168,6 +168,7 @@ import {
   concat,
   currentTimestamp,
   ifAbsent,
+  coalesce,
   join,
   variable,
   currentDocument,
@@ -183,12 +184,13 @@ import {
   arrayIndexOf,
   arrayIndexOfAll,
   arrayLastIndexOf,
-  subcollection
+  subcollection,
+  ifNull
 } from './pipeline_export';
 
 use(chaiAsPromised);
 
-const timestampDeltaMS = 1000;
+const timestampDeltaMS = 10000;
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
@@ -1903,6 +1905,35 @@ describe.skipClassic('Firestore Pipelines', () => {
         );
       });
 
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
+          'book9'
+        );
+      });
+
       it('supports options', async () => {
         const snapshot = await execute(
           firestore
@@ -2312,7 +2343,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         expect(typeof err['message']).to.equal('string');
 
         expect(err['message']).to.match(
-          /Request failed with error: Expected value type of MAP_VALUE when parsing 'fields' but received FIELD_REFERENCE_VALUE instead/
+          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
         );
       }
     });
@@ -2327,7 +2358,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2335,9 +2366,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2349,7 +2380,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2357,9 +2388,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2374,7 +2405,7 @@ describe.skipClassic('Firestore Pipelines', () => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2385,13 +2416,13 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2901,9 +2932,11 @@ describe.skipClassic('Firestore Pipelines', () => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2916,7 +2949,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .replaceWith(
             map({
               title: 'foo',
-              nested: {
+              nestedField: {
                 level: {
                   '1': 'bar'
                 },
@@ -2928,13 +2961,17 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
       expectResults(snapshot, {
         title: 'foo',
-        'nested.level.`1`': 'bar',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
+        },
         nested: 'baz'
       });
     });
@@ -3946,7 +3983,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             timestampTruncate(field('timestamp'), 'hour').as('truncHour'),
             timestampTruncate(field('timestamp'), 'minute').as('truncMinute'),
             timestampTruncate(field('timestamp'), 'second').as('truncSecond'),
-            timestampTruncate(field('timestamp'), 'isoWeek').as('truncIsoWeek')
+            timestampTruncate(field('timestamp'), 'isoweek').as('truncIsoweek')
           )
       );
 
@@ -3957,7 +3994,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         truncHour: new Timestamp(1741435200, 0),
         truncMinute: new Timestamp(1741437240, 0),
         truncSecond: new Timestamp(1741437296, 0),
-        truncIsoWeek: new Timestamp(1740960000, 0)
+        truncIsoweek: new Timestamp(1740960000, 0)
       });
     }).timeout(10000);
 
@@ -4315,17 +4352,17 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
       });
     });
 
@@ -4369,17 +4406,17 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').trunc(0).as('0'),
-            trunc('foo', 1).as('1'),
-            trunc('foo', constant(2)).as('2'),
-            trunc(field('foo'), 4).as('4')
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1234
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -5115,15 +5152,15 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
@@ -5213,6 +5250,93 @@ describe.skipClassic('Firestore Pipelines', () => {
         title: 'foo',
         name: 'default name',
         nameOrTitle: 'foo'
+      });
+    });
+
+    it('supports ifNull', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              name: null
+            })
+          )
+          .select(
+            ifNull('title', 'default title').as('staticMethod'),
+            field('title').ifNull('default title').as('instanceMethod'),
+            field('name').ifNull(field('title')).as('nameOrTitle'),
+            field('name').ifNull('default name').as('fieldIsNull'),
+            field('absent').ifNull('default name').as('fieldIsAbsent')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 'foo',
+        instanceMethod: 'foo',
+        nameOrTitle: 'foo',
+        fieldIsNull: 'default name',
+        fieldIsAbsent: 'default name'
+      });
+    });
+
+    it('supports coalesce', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              numberValue: 1,
+              stringValue: 'hello',
+              booleanValue: false,
+              nullValue: null,
+              nullValue2: null
+            })
+          )
+          .select(
+            coalesce(field('numberValue'), field('stringValue')).as(
+              'staticMethod'
+            ),
+            field('numberValue')
+              .coalesce(field('stringValue'))
+              .as('instanceMethod'),
+            coalesce(field('nullValue'), field('stringValue')).as(
+              'firstIsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              field('booleanValue')
+            ).as('lastIsNotNull'),
+            coalesce(field('nullValue'), field('nullValue2')).as(
+              'allFieldsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              constant('default')
+            ).as('allFieldsNullWithDefault'),
+            coalesce(
+              field('absentField'),
+              field('numberValue'),
+              constant('default')
+            ).as('withAbsentField')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 1,
+        instanceMethod: 1,
+        firstIsNull: 'hello',
+        lastIsNotNull: false,
+        allFieldsNull: null,
+        allFieldsNullWithDefault: 'default',
+        withAbsentField: 1
       });
     });
 

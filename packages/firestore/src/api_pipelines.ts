@@ -179,6 +179,8 @@ export {
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   log10,
   arraySum,
@@ -199,6 +201,7 @@ export {
   Selectable,
   TimeGranularity,
   TimePart,
+  TimeUnit,
   Type
 } from './lite-api/expressions';
 

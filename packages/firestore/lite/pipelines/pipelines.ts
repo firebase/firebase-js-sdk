@@ -213,6 +213,8 @@ export {
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   length,
   arraySum,
@@ -233,5 +235,6 @@ export {
   AggregateFunction,
   TimeGranularity,
   TimePart,
+  TimeUnit,
   Type
 } from '../../src/lite-api/expressions';

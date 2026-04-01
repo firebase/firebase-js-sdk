@@ -44,9 +44,6 @@ import { Pipeline } from './pipeline';
 import { StageOptions } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
-/**
- * @beta
- */
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
    * Store optionsProto parsed by _readUserData.
@@ -83,9 +80,6 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   abstract get _name(): string;
 }
 
-/**
- * @beta
- */
 export class AddFields extends Stage {
   get _name(): string {
     return 'add_fields';
@@ -111,9 +105,6 @@ export class AddFields extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class RemoveFields extends Stage {
   get _name(): string {
     return 'remove_fields';
@@ -180,9 +171,6 @@ export class Define extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Aggregate extends Stage {
   get _name(): string {
     return 'aggregate';
@@ -221,9 +209,6 @@ export class Aggregate extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Distinct extends Stage {
   get _name(): string {
     return 'distinct';
@@ -254,9 +239,6 @@ export class Distinct extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class CollectionSource extends Stage {
   get _name(): string {
     return 'collection';
@@ -297,9 +279,6 @@ export class CollectionSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class CollectionGroupSource extends Stage {
   get _name(): string {
     return 'collection_group';
@@ -333,9 +312,6 @@ export class CollectionGroupSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class SubcollectionSource extends Stage {
   get _name(): string {
     return 'subcollection';
@@ -365,9 +341,6 @@ export class SubcollectionSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class DatabaseSource extends Stage {
   get _name(): string {
     return 'database';
@@ -391,9 +364,6 @@ export class DatabaseSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class DocumentsSource extends Stage {
   get _name(): string {
     return 'documents';
@@ -430,9 +400,6 @@ export class DocumentsSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Where extends Stage {
   get _name(): string {
     return 'where';
@@ -462,9 +429,6 @@ export class Where extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class FindNearest extends Stage {
   get _name(): string {
     return 'find_nearest';
@@ -512,9 +476,6 @@ export class FindNearest extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Limit extends Stage {
   get _name(): string {
     return 'limit';
@@ -544,9 +505,6 @@ export class Limit extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Offset extends Stage {
   get _name(): string {
     return 'offset';
@@ -571,9 +529,6 @@ export class Offset extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Select extends Stage {
   get _name(): string {
     return 'select';
@@ -606,9 +561,6 @@ export class Select extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Sort extends Stage {
   get _name(): string {
     return 'sort';
@@ -639,9 +591,6 @@ export class Sort extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Sample extends Stage {
   get _name(): string {
     return 'sample';
@@ -670,9 +619,6 @@ export class Sample extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Union extends Stage {
   get _name(): string {
     return 'union';
@@ -694,13 +640,11 @@ export class Union extends Stage {
   }
 
   _readUserData(context: ParseContext): void {
+    this.other._readUserData(context);
     super._readUserData(context);
   }
 }
 
-/**
- * @beta
- */
 export class Unnest extends Stage {
   get _name(): string {
     return 'unnest';
@@ -738,9 +682,6 @@ export class Unnest extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Replace extends Stage {
   static readonly MODE = 'full_replace';
 
@@ -769,9 +710,6 @@ export class Replace extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class RawStage extends Stage {
   /**
    * @private
