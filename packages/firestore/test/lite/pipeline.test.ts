@@ -5696,10 +5696,10 @@ describe.skipClassic('Firestore Pipelines', () => {
   });
 });
 
-/* eslint-disable-next-line -- okay to skip tests */
 (getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY
   ? describe
-  : describe.skip)('Pipeline search', () => {
+  : /* eslint-disable-next-line -- okay to skip tests */
+    describe.skip)('Pipeline search', () => {
   addEqualityMatcher();
   let firestore: Firestore;
   let restaurantsCollection: CollectionReference;
