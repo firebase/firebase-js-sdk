@@ -20,9 +20,6 @@ import { Stage } from '../lite-api/stage';
 
 import { Firestore } from './database';
 
-/**
- * @beta
- */
 export class Pipeline extends LitePipeline {
   /**
    * @internal

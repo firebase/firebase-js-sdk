@@ -93,7 +93,6 @@ import {
 import { UserData } from './user_data_reader';
 
 /**
- * @beta
  *
  * The Pipeline class provides a flexible and expressive framework for building complex data
  * transformation and query pipelines for Firestore.
@@ -162,7 +161,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Adds new fields to outputs from previous stages.
    *
    * This stage allows you to compute values on-the-fly based on existing data from previous
@@ -192,7 +190,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
   /**
-   * @beta
    * Adds new fields to outputs from previous stages.
    *
    * This stage allows you to compute values on-the-fly based on existing data from previous
@@ -245,7 +242,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Remove fields from outputs of previous stages.
    *
    * Example:
@@ -269,7 +265,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalFields: Array<Field | string>
   ): Pipeline;
   /**
-   * @beta
    * Remove fields from outputs of previous stages.
    *
    * Example:
@@ -315,7 +310,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
    * <p>The selected fields are defined using {@link @firebase/firestore/pipelines#Selectable} expressions, which can be:
@@ -354,7 +348,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalSelections: Array<Selectable | string>
   ): Pipeline;
   /**
-   * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
    * <p>The selected fields are defined using {@link @firebase/firestore/pipelines#Selectable} expressions, which can be:
@@ -413,7 +406,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
    * @firebase/firestore/pipelines#BooleanExpression}.
    *
@@ -447,7 +439,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   where(condition: BooleanExpression): Pipeline;
   /**
-   * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
    * @firebase/firestore/pipelines#BooleanExpression}.
    *
@@ -495,7 +486,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
@@ -518,7 +508,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   offset(offset: number): Pipeline;
   /**
-   * @beta
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
@@ -560,7 +549,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Limits the maximum number of documents returned by previous stages to `limit`.
    *
    * <p>This stage is particularly useful when you want to retrieve a controlled subset of data from
@@ -588,7 +576,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   limit(limit: number): Pipeline;
   /**
-   * @beta
    * Limits the maximum number of documents returned by previous stages to `limit`.
    *
    * <p>This stage is particularly useful when you want to retrieve a controlled subset of data from
@@ -630,7 +617,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -664,7 +650,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalGroups: Array<string | Selectable>
   ): Pipeline;
   /**
-   * @beta
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -716,7 +701,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
@@ -746,7 +730,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalAccumulators: AliasedAggregate[]
   ): Pipeline;
   /**
-   * @beta
    * Performs optionally grouped aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents, optionally
@@ -812,7 +795,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs a vector proximity search on the documents from the previous stage, returning the
    * K-nearest documents based on the specified query `vectorValue` and `distanceMeasure`. The
    * returned documents will be sorted in order from nearest to furthest from the query `vectorValue`.
@@ -937,7 +919,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
@@ -965,7 +946,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   /**
-   * @beta
    * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
@@ -1009,7 +989,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Fully overwrites all fields in a document with those coming from a nested map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1043,7 +1022,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   replaceWith(fieldName: string): Pipeline;
   /**
-   * @beta
    * Fully overwrites all fields in a document with those coming from a map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1082,7 +1060,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   replaceWith(expr: Expression): Pipeline;
   /**
-   * @beta
    * Fully overwrites all fields in a document with those coming from a map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1142,7 +1119,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The parameter specifies how number of
@@ -1163,7 +1139,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   sample(documents: number): Pipeline;
 
   /**
-   * @beta
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how
@@ -1208,7 +1183,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
@@ -1229,7 +1203,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   union(other: Pipeline): Pipeline;
   /**
-   * @beta
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
@@ -1268,7 +1241,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
@@ -1303,7 +1275,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline;
   /**
-   * @beta
    * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
@@ -1371,7 +1342,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Adds a raw stage to the pipeline.
    *
    * <p>This method provides a flexible way to extend the pipeline's functionality by adding custom
