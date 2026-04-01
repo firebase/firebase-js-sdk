@@ -62,7 +62,7 @@ jobs:
         STEPS_CHECK_CHANGESET_OUTPUTS_BLOCKING_FAILURE: ${{steps.check-changeset.outputs.BLOCKING_FAILURE}}
     - name: Find Comment
       # This commit represents v3.1.0
-      uses: peter-evans/find-comment@a4ef349b8c29f841860ce94ed82b20f0a39b6961
+      uses: peter-evans/find-comment@1a5d78cf05602d9070d859ad658461737f7b45c1
       id: fc
       with:
         issue-number: ${{github.event.number}}
