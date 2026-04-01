@@ -19,7 +19,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [countAll()](./firestore_pipelines.md#countall) | Creates an aggregation that counts the total number of stage inputs. |
 |  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
-|  [score()](./firestore_pipelines.md#score) | Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
+|  [score()](./firestore_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_7328608) | Creates an expression that checks if an array expression contains a specific element. |
@@ -557,6 +557,9 @@ rand();
 ```
 
 ### score() {:#score}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
 
@@ -9987,7 +9990,7 @@ export declare function documentMatches(rquery: string | Expression): BooleanExp
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  rquery | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | Define the search query using the search Domain-Specific Language (DSL). |
+|  rquery | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | Define the search query using the search domain-specific language (DSL). |
 
 <b>Returns:</b>
 
