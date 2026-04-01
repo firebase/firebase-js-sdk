@@ -41,10 +41,7 @@ import {
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import {
-  QueryEnhancement,
-  StageOptions
-} from './stage_options';
+import { QueryEnhancement, StageOptions } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
@@ -651,26 +648,24 @@ export class Replace extends Stage {
 // eslint-disable-next-line -- eslint should not convert this type to an interface
 type InternalSearchOptions = {
   // These are constrained from the public type
-  query: BooleanExpression,
-  sort?: Ordering[],
-  select?: Record<string, Expression>,
-  addFields?: Record<string, Expression>,
+  query: BooleanExpression;
+  sort?: Ordering[];
+  select?: Record<string, Expression>;
+  addFields?: Record<string, Expression>;
 
   // These are the same as the public type
-  languageCode?: string,
-  retrievalDepth?: number,
-  offset?: number,
-  limit?: number,
-  queryEnhancement?: QueryEnhancement
+  languageCode?: string;
+  retrievalDepth?: number;
+  offset?: number;
+  limit?: number;
+  queryEnhancement?: QueryEnhancement;
 };
 
 /**
  * @beta
  */
 export class Search extends Stage {
-  constructor(
-    private _searchOptions: InternalSearchOptions
-  ) {
+  constructor(private _searchOptions: InternalSearchOptions) {
     super(_searchOptions);
   }
 

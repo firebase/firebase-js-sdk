@@ -19,10 +19,7 @@ import { expect } from 'chai';
 
 import { ParseContext } from '../../../src/api/parse_context';
 import { UserDataSource } from '../../../src/lite-api/user_data_reader';
-import {
-  constant,
-  FunctionExpression
-} from '../../lite/pipeline_export';
+import { constant, FunctionExpression } from '../../lite/pipeline_export';
 import { testUserDataReader } from '../../util/helpers';
 
 describe('expressions', () => {

@@ -43,14 +43,20 @@ import {
   doc,
   DocumentReference
 } from '../../src/lite-api/reference';
-import { addDoc, setDoc, deleteDoc, getDocs } from '../../src/lite-api/reference_impl';
+import {
+  addDoc,
+  setDoc,
+  deleteDoc,
+  getDocs
+} from '../../src/lite-api/reference_impl';
 import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import {
   getRunEnterpriseTests,
-  getTargetBackend, TargetBackend
-} from "../integration/util/settings";
+  getTargetBackend,
+  TargetBackend
+} from '../integration/util/settings';
 import { addEqualityMatcher } from '../util/equality_matcher';
 import { describe } from '../util/mocha_extensions';
 import { Deferred } from '../util/promise';
@@ -186,7 +192,9 @@ import {
   arrayIndexOf,
   arrayIndexOfAll,
   arrayLastIndexOf,
-  ifNull, documentMatches, score
+  ifNull,
+  documentMatches,
+  score
 } from './pipeline_export';
 
 use(chaiAsPromised);
@@ -236,7 +244,6 @@ function expectResults(
     }
   }
 }
-
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
@@ -5690,12 +5697,14 @@ describe.skipClassic('Firestore Pipelines', () => {
 });
 
 /* eslint-disable-next-line -- okay to skip tests */
-(getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY ? describe : describe.skip)('Pipeline search', () => {
+(getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY
+  ? describe
+  : describe.skip)('Pipeline search', () => {
   addEqualityMatcher();
   let firestore: Firestore;
   let restaurantsCollection: CollectionReference;
 
-  const COLLECTION_NAME = "TextSearchIntegrationTests";
+  const COLLECTION_NAME = 'TextSearchIntegrationTests';
 
   async function setupRestaurantDocs(
     collection: CollectionReference
@@ -5802,16 +5811,14 @@ describe.skipClassic('Firestore Pipelines', () => {
 
     const setupDeferred = new Deferred<void>();
     testSuiteDeferred = new Deferred<void>();
-    withTestDbsPromise = withTestDb(
-      async firestoreInstance => {
-        firestore = firestoreInstance;
-        restaurantsCollection = collection(firestore, 'SearchIntegrationTests');
-        await setupRestaurantDocs(restaurantsCollection);
-        setupDeferred.resolve();
+    withTestDbsPromise = withTestDb(async firestoreInstance => {
+      firestore = firestoreInstance;
+      restaurantsCollection = collection(firestore, 'SearchIntegrationTests');
+      await setupRestaurantDocs(restaurantsCollection);
+      setupDeferred.resolve();
 
-        return testSuiteDeferred?.promise;
-      }
-    );
+      return testSuiteDeferred?.promise;
+    });
 
     await setupDeferred.promise;
   });
@@ -5860,7 +5867,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             .pipeline()
             .collection(COLLECTION_NAME)
             .search({
-              query: documentMatches('waffles'),
+              query: documentMatches('waffles')
               // queryEnhancement: 'disabled'
             });
 
@@ -5889,7 +5896,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             .search({
               query: field('location')
                 .geoDistance(new GeoPoint(39.6985, -105.024))
-                .lessThanOrEqual(1000 /* m */),
+                .lessThanOrEqual(1000 /* m */)
               // queryEnhancement: 'disabled'
             });
 
@@ -5938,15 +5945,12 @@ describe.skipClassic('Firestore Pipelines', () => {
             .pipeline()
             .collection(COLLECTION_NAME)
             .search({
-              query: documentMatches('coffee -waffles'),
+              query: documentMatches('coffee -waffles')
               // queryEnhancement: 'disabled'
             });
 
           const snapshot = await execute(ppl);
-          expectResults(
-            snapshot,
-            'sunnySideUp'
-          );
+          expectResults(snapshot, 'sunnySideUp');
         });
 
         // TODO(search) enable with backend support
@@ -5965,7 +5969,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
         it('rquery as query param', async () => {
           const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
-            query: 'chicken wings',
+            query: 'chicken wings'
             // queryEnhancement: 'disabled'
           });
 
@@ -6010,9 +6014,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             .collection(COLLECTION_NAME)
             .search({
               query: documentMatches('waffles'),
-              addFields: [
-                score().as('searchScore')
-              ],
+              addFields: [score().as('searchScore')]
               // queryEnhancement: 'disabled'
             })
             .select('name', 'searchScore');
@@ -6091,7 +6093,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             .collection(COLLECTION_NAME)
             .search({
               query: documentMatches('tacos'),
-              sort: score().descending(),
+              sort: score().descending()
               // queryEnhancement: 'disabled'
             });
 
@@ -6108,14 +6110,17 @@ describe.skipClassic('Firestore Pipelines', () => {
               query: field('location')
                 .geoDistance(queryLocation)
                 .lessThanOrEqual(5600),
-              sort: field('location')
-                .geoDistance(queryLocation)
-                .ascending(),
+              sort: field('location').geoDistance(queryLocation).ascending()
               // queryEnhancement: 'disabled'
             });
 
           const snapshot = await execute(ppl);
-          expectResults(snapshot, "solTacos", "lotusBlossomThai", "mileHighCatch");
+          expectResults(
+            snapshot,
+            'solTacos',
+            'lotusBlossomThai',
+            'mileHighCatch'
+          );
         });
 
         // TODO(search) enable with backend support

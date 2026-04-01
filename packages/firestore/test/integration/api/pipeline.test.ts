@@ -184,8 +184,10 @@ import {
   documentMatches
 } from '../util/pipeline_export';
 import {
-  getRunEnterpriseTests, getTargetBackend, TargetBackend
-} from "../util/settings";
+  getRunEnterpriseTests,
+  getTargetBackend,
+  TargetBackend
+} from '../util/settings';
 
 use(chaiAsPromised);
 
@@ -5819,12 +5821,14 @@ apiDescribe('Pipelines', persistence => {
   });
 });
 
-(getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY ? apiDescribe : apiDescribe.skip)('Pipeline search', persistence => {
+(getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY
+  ? apiDescribe
+  : apiDescribe.skip)('Pipeline search', persistence => {
   addEqualityMatcher();
   let firestore: Firestore;
   let restaurantsCollection: CollectionReference;
 
-  const COLLECTION_NAME = "TextSearchIntegrationTests";
+  const COLLECTION_NAME = 'TextSearchIntegrationTests';
 
   async function setupRestaurantDocs(
     collection: CollectionReference
@@ -5991,7 +5995,7 @@ apiDescribe('Pipelines', persistence => {
             .pipeline()
             .collection(COLLECTION_NAME)
             .search({
-              query: documentMatches('waffles'),
+              query: documentMatches('waffles')
               // queryEnhancement: 'disabled'
             });
 
@@ -6020,7 +6024,7 @@ apiDescribe('Pipelines', persistence => {
             .search({
               query: field('location')
                 .geoDistance(new GeoPoint(39.6985, -105.024))
-                .lessThanOrEqual(1000 /* m */),
+                .lessThanOrEqual(1000 /* m */)
               // queryEnhancement: 'disabled'
             });
 
@@ -6069,15 +6073,12 @@ apiDescribe('Pipelines', persistence => {
             .pipeline()
             .collection(COLLECTION_NAME)
             .search({
-              query: documentMatches('coffee -waffles'),
+              query: documentMatches('coffee -waffles')
               // queryEnhancement: 'disabled'
             });
 
           const snapshot = await execute(ppl);
-          expectResults(
-            snapshot,
-            'sunnySideUp'
-          );
+          expectResults(snapshot, 'sunnySideUp');
         });
 
         // TODO(search) enable with backend support
@@ -6096,7 +6097,7 @@ apiDescribe('Pipelines', persistence => {
 
         it('rquery as query param', async () => {
           const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
-            query: 'chicken wings',
+            query: 'chicken wings'
             // queryEnhancement: 'disabled'
           });
 
@@ -6141,9 +6142,7 @@ apiDescribe('Pipelines', persistence => {
             .collection(COLLECTION_NAME)
             .search({
               query: documentMatches('waffles'),
-              addFields: [
-                score().as('searchScore')
-              ],
+              addFields: [score().as('searchScore')]
               // queryEnhancement: 'disabled'
             })
             .select('name', 'searchScore');
@@ -6222,7 +6221,7 @@ apiDescribe('Pipelines', persistence => {
             .collection(COLLECTION_NAME)
             .search({
               query: documentMatches('tacos'),
-              sort: score().descending(),
+              sort: score().descending()
               // queryEnhancement: 'disabled'
             });
 
@@ -6239,14 +6238,17 @@ apiDescribe('Pipelines', persistence => {
               query: field('location')
                 .geoDistance(queryLocation)
                 .lessThanOrEqual(5600),
-              sort: field('location')
-                .geoDistance(queryLocation)
-                .ascending(),
+              sort: field('location').geoDistance(queryLocation).ascending()
               // queryEnhancement: 'disabled'
             });
 
           const snapshot = await execute(ppl);
-          expectResults(snapshot, "solTacos", "lotusBlossomThai", "mileHighCatch");
+          expectResults(
+            snapshot,
+            'solTacos',
+            'lotusBlossomThai',
+            'mileHighCatch'
+          );
         });
 
         // TODO(search) enable with backend support

@@ -221,7 +221,7 @@ describe('stage serialization', () => {
             // queryEnhancement: 'required',
             // languageCode: 'en-US',
             sort: [field('foo').ascending()],
-            addFields: [constant(true).as('bar')],
+            addFields: [constant(true).as('bar')]
             // select: [field('id')]
           })
       });
