@@ -3342,7 +3342,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   //  *
   //  * @remarks This Expression can only be used within a `Search` stage.
   //  *
-  //  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+  //  * @param rquery Define the search query using the search domain-specific language (DSL).
   //  */
   // snippet(rquery: string): Expression;
   //
@@ -3681,7 +3681,7 @@ export class Field extends Expression implements Selectable {
   //  *
   //  * @remarks This Expression can only be used within a `Search` stage.
   //  *
-  //  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+  //  * @param rquery Define the search query using the search domain-specific language (DSL).
   //  */
   // matches(rquery: string | Expression): BooleanExpression {
   //   return new FunctionExpression(
@@ -11114,7 +11114,7 @@ export function timestampExtract(
 //  * ```
 //  *
 //  * @param searchField Search the specified field.
-//  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+//  * @param rquery Define the search query using the search domain-specific language (DSL).
 //  */
 // export function matches(
 //   searchField: string | Field,
@@ -11136,7 +11136,7 @@ export function timestampExtract(
  * })
  * ```
  *
- * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+ * @param rquery Define the search query using the search domain-specific language (DSL).
  */
 export function documentMatches(
   rquery: string | Expression
@@ -11174,7 +11174,7 @@ export function score(): Expression {
 //  */
 // export interface SnippetOptions {
 //   /**
-//    * Define the search query using the search Domain-Specific Language (DSL).
+//    * Define the search query using the search domain-specific language (DSL).
 //    */
 //   rquery: string;
 //
@@ -11211,7 +11211,7 @@ export function score(): Expression {
 //  * ```
 //  *
 //  * @param searchField Search the specified field for matching terms.
-//  * @param rquery Define the search query using the search Domain-Specific Language (DSL).
+//  * @param rquery Define the search query using the search domain-specific language (DSL).
 //  */
 // export function snippet(
 //   searchField: string | Field,
@@ -11225,7 +11225,7 @@ export function score(): Expression {
 //  * @remarks This Expression can only be used within a `Search` stage.
 //  *
 //  * @param searchField Search the specified field for matching terms.
-//  * @param options Define the search query using the search Domain-Specific Language (DSL).
+//  * @param options Define the search query using the search domain-specific language (DSL).
 //  */
 // export function snippet(
 //   searchField: string | Field,

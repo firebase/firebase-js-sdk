@@ -264,7 +264,7 @@ export type SearchStageOptions = StageOptions & {
    * })
    * ```
    *
-   * The query can also be expressed as a string in the Search Domain-Specific Language (DSL):
+   * The query can also be expressed as a string in the Search domain-specific language (DSL):
    *
    * @example
    * ```typescript
