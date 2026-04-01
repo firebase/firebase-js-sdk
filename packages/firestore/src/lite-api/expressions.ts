@@ -11149,6 +11149,8 @@ export function documentMatches(
 }
 
 /**
+ * @beta
+ *
  * Evaluates to the search score that reflects the topicality of the document
  * to all of the text predicates (for example: `documentMatches`)
  * in the search query. If `SearchOptions.query` is not set or does not contain

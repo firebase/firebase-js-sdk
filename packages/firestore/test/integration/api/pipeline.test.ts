@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+// TODO(search) remove this eslint directive when we migrate the search tests
+// to the IndexTestHelper. For now, we want to keep the test data identical between
+// search tests.
 /* eslint-disable camelcase -- use consistent field names for the search tests */
 
 import { FirebaseError } from '@firebase/util';

@@ -229,6 +229,8 @@ export type FindNearestStageOptions = StageOptions & {
 };
 
 /**
+ * @beta
+ *
  * Specifies if the `matches` and `snippet` expressions will enhance the user
  * provided query to perform matching of synonyms, misspellings, lemmatization,
  * stemming.
