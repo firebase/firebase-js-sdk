@@ -106,8 +106,7 @@ describe('expressions', () => {
             {
               integerValue: '1'
             }
-          ],
-          options: undefined
+          ]
         }
       });
     });

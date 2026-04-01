@@ -4013,18 +4013,16 @@ export class FunctionExpression extends Expression {
   constructor(
     private name: string,
     private params: Expression[],
-    methodNameOrOptions?: string | {},
+    methodName?: string,
     options?: {}
   ) {
     super();
 
-    if (isString(methodNameOrOptions)) {
-      this._methodName = methodNameOrOptions;
+    if (methodName !== undefined) {
+      this._methodName = methodName;
     }
     if (options !== undefined) {
       this._options = options;
-    } else {
-      this._options = methodNameOrOptions;
     }
   }
 
@@ -4061,13 +4059,18 @@ export class FunctionExpression extends Expression {
    * @internal
    */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
-    return {
+    const returnValue: ProtoValue = {
       functionValue: {
         name: this.name,
-        args: this.params.map(p => p._toProto(serializer)),
-        options: this._optionsProto
+        args: this.params.map(p => p._toProto(serializer))
       }
     };
+
+    if (this._optionsProto) {
+      returnValue.functionValue!.options = this._optionsProto;
+    }
+
+    return returnValue;
   }
 
   /**
@@ -11491,6 +11494,7 @@ export function isOrdering(val: unknown): val is Ordering {
   const candidate = val as Ordering | undefined;
   return (
     candidate !== undefined &&
+    candidate !== null &&
     isExpr(candidate.expr) &&
     (candidate.direction === 'ascending' ||
       candidate.direction === 'descending')

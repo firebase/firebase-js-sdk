@@ -252,8 +252,7 @@ describe('stage serialization', () => {
                           'stringValue': 'foo'
                         }
                       ],
-                      'name': 'document_matches',
-                      'options': {}
+                      'name': 'document_matches'
                     }
                   },
                   // 'limit': { integerValue: '1' },

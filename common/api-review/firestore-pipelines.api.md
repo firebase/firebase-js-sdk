@@ -1409,7 +1409,7 @@ export type SampleStageOptions = StageOptions & OneOf<{
     documents: number;
 }>;
 
-// @public
+// @beta
 export function score(): Expression;
 
 // @beta
