@@ -240,7 +240,7 @@ function expectResults(
   }
 }
 
-apiDescribe('Pipelines', persistence => {
+apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
