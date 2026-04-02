@@ -184,8 +184,6 @@ import {
   join,
   variable,
   currentDocument,
-  variable,
-  currentDocument,
   arraySum,
   arrayFirst,
   arrayFirstN,

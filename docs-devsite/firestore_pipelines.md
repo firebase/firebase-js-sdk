@@ -16,11 +16,8 @@ https://github.com/firebase/firebase-js-sdk
 |  Function | Description |
 |  --- | --- |
 |  <b>function()</b> |
-|  [countAll()](./firestore_pipelines.md#countall) | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the total number of stage inputs. |
-|  [currentDocument()](./firestore_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
-|  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to the current server timestamp. |
-|  [rand()](./firestore_pipelines.md#rand) | <b><i>(Public Preview)</i></b> Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  [countAll()](./firestore_pipelines.md#countall) | Creates an aggregation that counts the total number of stage inputs. |
+|  [currentDocument()](./firestore_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  [score()](./firestore_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
@@ -33,29 +30,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAny(array, values)](./firestore_pipelines.md#arraycontainsany_c381a96) | Creates an expression that checks if an array expression contains any of the specified elements. |
 |  [arrayLength(array)](./firestore_pipelines.md#arraylength_195e339) | Creates an expression that calculates the length of an array expression. |
 |  <b>function(arrayExpression, ...)</b> |
-|  [arrayFilter(arrayExpression, alias, filter)](./firestore_pipelines.md#arrayfilter_892d3c4) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array using a provided alias and predicate expression. |
-|  [arrayFirst(arrayExpression)](./firestore_pipelines.md#arrayfirst_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
-|  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayGet(arrayExpression, offset)](./firestore_pipelines.md#arrayget_f2e27cc) | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayGet(arrayExpression, offsetExpr)](./firestore_pipelines.md#arrayget_484550d) | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayIndexOf(arrayExpression, search)](./firestore_pipelines.md#arrayindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayIndexOfAll(arrayExpression, search)](./firestore_pipelines.md#arrayindexofall_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns all indices of the search value in an array. |
-|  [arrayLast(arrayExpression)](./firestore_pipelines.md#arraylast_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last element of an array. |
-|  [arrayLastIndexOf(arrayExpression, search)](./firestore_pipelines.md#arraylastindexof_694a0b4) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayLastN(arrayExpression, n)](./firestore_pipelines.md#arraylastn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayLastN(arrayExpression, n)](./firestore_pipelines.md#arraylastn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayMaximum(arrayExpression)](./firestore_pipelines.md#arraymaximum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
-|  [arrayMaximumN(arrayExpression, n)](./firestore_pipelines.md#arraymaximumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(arrayExpression, n)](./firestore_pipelines.md#arraymaximumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimum(arrayExpression)](./firestore_pipelines.md#arrayminimum_f574e12) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
-|  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_bff7f91) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_19b4ef8) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arraySlice(arrayExpression, offset, length)](./firestore_pipelines.md#arrayslice_a349bee) | <b><i>(Public Preview)</i></b> Creates an expression that returns a subset of an array. |
-|  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_pipelines.md#arraytransform_28967fa) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array. |
-|  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_2f3b17f) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
-|  [join(arrayExpression, delimiterExpression)](./firestore_pipelines.md#join_313e6aa) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
-|  [join(arrayExpression, delimiter)](./firestore_pipelines.md#join_d088d29) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
+|  [arrayFilter(arrayExpression, alias, filter)](./firestore_pipelines.md#arrayfilter_892d3c4) | Creates an expression that filters an array using a provided alias and predicate expression. |
 |  [arrayFirst(arrayExpression)](./firestore_pipelines.md#arrayfirst_f574e12) | Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_bff7f91) | Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_19b4ef8) | Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -73,16 +48,15 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(arrayExpression)](./firestore_pipelines.md#arrayminimum_f574e12) | Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_bff7f91) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_19b4ef8) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arraySlice(arrayExpression, offset, length)](./firestore_pipelines.md#arrayslice_a349bee) | Creates an expression that returns a subset of an array. |
+|  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_pipelines.md#arraytransform_28967fa) | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_2f3b17f) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_pipelines.md#join_313e6aa) | Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayExpression, delimiter)](./firestore_pipelines.md#join_d088d29) | Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
 |  [arrayGet(arrayField, offset)](./firestore_pipelines.md#arrayget_3f58471) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  [arrayGet(arrayField, offsetExpr)](./firestore_pipelines.md#arrayget_1904c9a) | Creates an expression that indexes into an array from the beginning or end and return the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
 |  <b>function(arrayFieldName, ...)</b> |
-|  [join(arrayFieldName, delimiter)](./firestore_pipelines.md#join_478ef36) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
-|  [join(arrayFieldName, delimiterExpression)](./firestore_pipelines.md#join_829294c) | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
-|  <b>function(arrayName, ...)</b> |
-|  [arraySlice(arrayName, offset, length)](./firestore_pipelines.md#arrayslice_9dbe857) | <b><i>(Public Preview)</i></b> Creates an expression that returns a subset of an array. |
 |  [join(arrayFieldName, delimiter)](./firestore_pipelines.md#join_478ef36) | Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayFieldName, delimiterExpression)](./firestore_pipelines.md#join_829294c) | Creates an expression that joins the elements of an array into a string. |
 |  <b>function(base, ...)</b> |
@@ -110,7 +84,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [timestampDiff(endExpression, startFieldName, unit)](./firestore_pipelines.md#timestampdiff_4370feb) | Creates an expression that calculates the difference between two timestamps. |
 |  [timestampDiff(endExpression, startExpression, unit)](./firestore_pipelines.md#timestampdiff_bc0830f) | Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(endFieldName, ...)</b> |
-|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_pipelines.md#timestampdiff_f60102c) | Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_pipelines.md#timestampdiff_f60102c) |  |
 |  [timestampDiff(endFieldName, startExpression, unit)](./firestore_pipelines.md#timestampdiff_6e54d92) | Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(expr, ...)</b> |
 |  [abs(expr)](./firestore_pipelines.md#abs_005f3d4) | Creates an expression that computes the absolute value of a numeric value. |
@@ -178,138 +152,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [substring(field, position, length)](./firestore_pipelines.md#substring_0d9573a) | Creates an expression that returns a substring of a string or byte array. |
 |  [substring(field, position, length)](./firestore_pipelines.md#substring_05cb14e) | Creates an expression that returns a substring of a string or byte array. |
 |  <b>function(fieldName, ...)</b> |
-|  [abs(fieldName)](./firestore_pipelines.md#abs_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
-|  [add(fieldName, second)](./firestore_pipelines.md#add_b75bb8b) | <b><i>(Public Preview)</i></b> Creates an expression that adds a field's value to an expression. |
-|  [arrayAgg(fieldName)](./firestore_pipelines.md#arrayagg_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of a field across multiple stage inputs into an array. |
-|  [arrayAggDistinct(fieldName)](./firestore_pipelines.md#arrayaggdistinct_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of a field across multiple stage inputs into an array. |
-|  [arrayContains(fieldName, element)](./firestore_pipelines.md#arraycontains_aaace4a) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains a specific element. |
-|  [arrayContains(fieldName, element)](./firestore_pipelines.md#arraycontains_999590f) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains a specific value. |
-|  [arrayContainsAll(fieldName, values)](./firestore_pipelines.md#arraycontainsall_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions. |
-|  [arrayContainsAll(fieldName, arrayExpression)](./firestore_pipelines.md#arraycontainsall_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains all the specified values or expressions. |
-|  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
-|  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_1b4f7cd) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's array value contains any of the specified elements. |
-|  [arrayFilter(fieldName, alias, filter)](./firestore_pipelines.md#arrayfilter_ab67868) | <b><i>(Public Preview)</i></b> Creates an expression that filters an array using a provided alias and predicate expression. |
-|  [arrayFirst(fieldName)](./firestore_pipelines.md#arrayfirst_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first element of an array. |
-|  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first <code>n</code> elements of an array. |
-|  [arrayIndexOf(fieldName, search)](./firestore_pipelines.md#arrayindexof_5e4c2c3) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayIndexOfAll(fieldName, search)](./firestore_pipelines.md#arrayindexofall_5e4c2c3) | <b><i>(Public Preview)</i></b> Creates an expression that returns all indices of the search value in an array. |
-|  [arrayLast(fieldName)](./firestore_pipelines.md#arraylast_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last element of an array. |
-|  [arrayLastIndexOf(fieldName, search)](./firestore_pipelines.md#arraylastindexof_5e4c2c3) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last index of the search value in an array. Returns -1 if the value is not found. |
-|  [arrayLastN(fieldName, n)](./firestore_pipelines.md#arraylastn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayLastN(fieldName, n)](./firestore_pipelines.md#arraylastn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the last <code>n</code> elements of an array. |
-|  [arrayLength(fieldName)](./firestore_pipelines.md#arraylength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array in a specified field. |
-|  [arrayMaximum(fieldName)](./firestore_pipelines.md#arraymaximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the maximum value in an array. |
-|  [arrayMaximumN(fieldName, n)](./firestore_pipelines.md#arraymaximumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(fieldName, n)](./firestore_pipelines.md#arraymaximumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest <code>n</code> elements of an array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimum(fieldName)](./firestore_pipelines.md#arrayminimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the minimum value in an array. |
-|  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_597a4d9) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_1a86a2c) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arraySum(fieldName)](./firestore_pipelines.md#arraysum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
-|  [arrayTransform(fieldName, elementAlias, transform)](./firestore_pipelines.md#arraytransform_328a090) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array. |
-|  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_e6629b2) | <b><i>(Public Preview)</i></b> Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
-|  [ascending(fieldName)](./firestore_pipelines.md#ascending_e5b0480) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
-|  [average(fieldName)](./firestore_pipelines.md#average_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
-|  [byteLength(fieldName)](./firestore_pipelines.md#bytelength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob. |
-|  [ceil(fieldName)](./firestore_pipelines.md#ceil_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
-|  [charLength(fieldName)](./firestore_pipelines.md#charlength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the character length of a string field in UTF8. |
-|  [collectionId(fieldName)](./firestore_pipelines.md#collectionid_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path. |
-|  [concat(fieldName, second, others)](./firestore_pipelines.md#concat_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed. |
-|  [cosineDistance(fieldName, vector)](./firestore_pipelines.md#cosinedistance_463a23e) | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between a field's vector value and a literal vector value. |
-|  [cosineDistance(fieldName, vectorExpression)](./firestore_pipelines.md#cosinedistance_ed766a1) | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between a field's vector value and a vector expression. |
-|  [count(fieldName)](./firestore_pipelines.md#count_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs where the input field exists. |
-|  [descending(fieldName)](./firestore_pipelines.md#descending_e5b0480) | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on a field. |
-|  [divide(fieldName, expressions)](./firestore_pipelines.md#divide_cf36e43) | <b><i>(Public Preview)</i></b> Creates an expression that divides a field's value by an expression. |
-|  [divide(fieldName, value)](./firestore_pipelines.md#divide_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that divides a field's value by a constant value. |
-|  [dotProduct(fieldName, vector)](./firestore_pipelines.md#dotproduct_463a23e) | <b><i>(Public Preview)</i></b> Calculates the dot product between a field's vector value and a double array. |
-|  [dotProduct(fieldName, vectorExpression)](./firestore_pipelines.md#dotproduct_ed766a1) | <b><i>(Public Preview)</i></b> Calculates the dot product between a field's vector value and a vector expression. |
-|  [endsWith(fieldName, suffix)](./firestore_pipelines.md#endswith_05ca3b0) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value ends with a given postfix. |
-|  [endsWith(fieldName, suffix)](./firestore_pipelines.md#endswith_8fc0ebc) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value ends with a given postfix. |
-|  [equal(fieldName, expression)](./firestore_pipelines.md#equal_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is equal to an expression. |
-|  [equal(fieldName, value)](./firestore_pipelines.md#equal_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is equal to a constant value. |
-|  [equalAny(fieldName, values)](./firestore_pipelines.md#equalany_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is equal to any of the provided values or expressions. |
-|  [equalAny(fieldName, arrayExpression)](./firestore_pipelines.md#equalany_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is equal to any of the provided values or expressions. |
-|  [euclideanDistance(fieldName, vector)](./firestore_pipelines.md#euclideandistance_463a23e) | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between a field's vector value and a double array. |
-|  [euclideanDistance(fieldName, vectorExpression)](./firestore_pipelines.md#euclideandistance_ed766a1) | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between a field's vector value and a vector expression. |
-|  [exists(fieldName)](./firestore_pipelines.md#exists_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists. |
-|  [exp(fieldName)](./firestore_pipelines.md#exp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of the expression's result. |
-|  [first(fieldName)](./firestore_pipelines.md#first_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of a field across multiple stage inputs. |
-|  [floor(fieldName)](./firestore_pipelines.md#floor_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
-|  [greaterThan(fieldName, expression)](./firestore_pipelines.md#greaterthan_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than an expression. |
-|  [greaterThan(fieldName, value)](./firestore_pipelines.md#greaterthan_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than a constant value. |
-|  [greaterThanOrEqual(fieldName, value)](./firestore_pipelines.md#greaterthanorequal_2e16acb) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than or equal to an expression. |
-|  [greaterThanOrEqual(fieldName, value)](./firestore_pipelines.md#greaterthanorequal_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is greater than or equal to a constant value. |
-|  [isType(fieldName, type)](./firestore_pipelines.md#istype_5da287e) | <b><i>(Public Preview)</i></b> Creates an expression that checks if the value in the specified field is of the given type. |
-|  [last(fieldName)](./firestore_pipelines.md#last_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of a field across multiple stage inputs. |
-|  [length\_2(fieldName)](./firestore_pipelines.md#length_2_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
-|  [lessThan(fieldName, expression)](./firestore_pipelines.md#lessthan_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than an expression. |
-|  [lessThan(fieldName, value)](./firestore_pipelines.md#lessthan_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than a constant value. |
-|  [lessThanOrEqual(fieldName, expression)](./firestore_pipelines.md#lessthanorequal_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than or equal to an expression. |
-|  [lessThanOrEqual(fieldName, value)](./firestore_pipelines.md#lessthanorequal_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is less than or equal to a constant value. |
-|  [like(fieldName, pattern)](./firestore_pipelines.md#like_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison against a field. |
-|  [like(fieldName, pattern)](./firestore_pipelines.md#like_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive wildcard string comparison against a field. |
-|  [ln(fieldName)](./firestore_pipelines.md#ln_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the natural logarithm of a numeric value. |
-|  [log(fieldName, base)](./firestore_pipelines.md#log_a89e21b) | <b><i>(Public Preview)</i></b> Creates an expression that computes the logarithm of a field to a given base. |
-|  [log(fieldName, base)](./firestore_pipelines.md#log_805b11f) | <b><i>(Public Preview)</i></b> Creates an expression that computes the logarithm of a field to a given base. |
-|  [log10(fieldName)](./firestore_pipelines.md#log10_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
-|  [logicalMaximum(fieldName, second, others)](./firestore_pipelines.md#logicalmaximum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the largest value between multiple input expressions or literal values. Based on Firestore's value type ordering. |
-|  [logicalMinimum(fieldName, second, others)](./firestore_pipelines.md#logicalminimum_828272e) | <b><i>(Public Preview)</i></b> Creates an expression that returns the smallest value between a field's value and other input expressions or literal values. Based on Firestore's value type ordering. |
-|  [ltrim(fieldName, valueToTrim)](./firestore_pipelines.md#ltrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
-|  [mapGet(fieldName, subField)](./firestore_pipelines.md#mapget_06663cf) | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
-|  [maximum(fieldName)](./firestore_pipelines.md#maximum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
-|  [minimum(fieldName)](./firestore_pipelines.md#minimum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
-|  [mod(fieldName, expression)](./firestore_pipelines.md#mod_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression. |
-|  [mod(fieldName, value)](./firestore_pipelines.md#mod_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant. |
-|  [multiply(fieldName, second)](./firestore_pipelines.md#multiply_b75bb8b) | <b><i>(Public Preview)</i></b> Creates an expression that multiplies a field's value by an expression. |
-|  [notEqual(fieldName, expression)](./firestore_pipelines.md#notequal_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is not equal to an expression. |
-|  [notEqual(fieldName, value)](./firestore_pipelines.md#notequal_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is not equal to a constant value. |
-|  [notEqualAny(fieldName, values)](./firestore_pipelines.md#notequalany_8060b23) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is not equal to any of the provided values or expressions. |
-|  [notEqualAny(fieldName, arrayExpression)](./firestore_pipelines.md#notequalany_48da8d9) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression. |
-|  [regexContains(fieldName, pattern)](./firestore_pipelines.md#regexcontains_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified regular expression as a substring. |
-|  [regexContains(fieldName, pattern)](./firestore_pipelines.md#regexcontains_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified regular expression as a substring. |
-|  [regexFind(fieldName, pattern)](./firestore_pipelines.md#regexfind_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFind(fieldName, pattern)](./firestore_pipelines.md#regexfind_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string field that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(fieldName, pattern)](./firestore_pipelines.md#regexfindall_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(fieldName, pattern)](./firestore_pipelines.md#regexfindall_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in a string field that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexMatch(fieldName, pattern)](./firestore_pipelines.md#regexmatch_67f7432) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field matches a specified regular expression. |
-|  [regexMatch(fieldName, pattern)](./firestore_pipelines.md#regexmatch_cb1318d) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field matches a specified regular expression. |
-|  [round(fieldName)](./firestore_pipelines.md#round_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
-|  [round(fieldName, decimalPlaces)](./firestore_pipelines.md#round_07d0cf0) | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [rtrim(fieldName, valueToTrim)](./firestore_pipelines.md#rtrim_c0e3211) | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
-|  [split(fieldName, delimiter)](./firestore_pipelines.md#split_2cfdd37) | <b><i>(Public Preview)</i></b> Creates an expression that splits the value of a field on the provided delimiter. |
-|  [split(fieldName, delimiter)](./firestore_pipelines.md#split_f4fe06a) | <b><i>(Public Preview)</i></b> Creates an expression that splits the value of a field on the provided delimiter. |
-|  [sqrt(fieldName)](./firestore_pipelines.md#sqrt_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
-|  [startsWith(fieldName, prefix)](./firestore_pipelines.md#startswith_89325cc) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value starts with a given prefix. |
-|  [startsWith(fieldName, prefix)](./firestore_pipelines.md#startswith_266c338) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field's value starts with a given prefix. |
-|  [stringConcat(fieldName, secondString, otherStrings)](./firestore_pipelines.md#stringconcat_d80077e) | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string functions, fields or constants together. |
-|  [stringContains(fieldName, substring)](./firestore_pipelines.md#stringcontains_5b94cfe) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a specified substring. |
-|  [stringContains(fieldName, substring)](./firestore_pipelines.md#stringcontains_ac3ba47) | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string field contains a substring specified by an expression. |
-|  [stringIndexOf(fieldName, search)](./firestore_pipelines.md#stringindexof_6c4650e) | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
-|  [stringRepeat(fieldName, repetitions)](./firestore_pipelines.md#stringrepeat_e144a59) | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
-|  [stringReplaceAll(fieldName, find, replacement)](./firestore_pipelines.md#stringreplaceall_b0db15f) | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
-|  [stringReplaceOne(fieldName, find, replacement)](./firestore_pipelines.md#stringreplaceone_b0db15f) | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
-|  [subtract(fieldName, expression)](./firestore_pipelines.md#subtract_1e91657) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts an expression from a field's value. |
-|  [subtract(fieldName, value)](./firestore_pipelines.md#subtract_65e2f32) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from a field's value. |
-|  [sum(fieldName)](./firestore_pipelines.md#sum_e5b0480) | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a field's values across multiple stage inputs. |
-|  [timestampAdd(fieldName, unit, amount)](./firestore_pipelines.md#timestampadd_3b0a297) | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to a timestamp represented by a field. |
-|  [timestampExtract(fieldName, part, timezone)](./firestore_pipelines.md#timestampextract_a51c205) | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from a timestamp. |
-|  [timestampExtract(fieldName, part, timezone)](./firestore_pipelines.md#timestampextract_2d51eac) | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from a timestamp. |
-|  [timestampSubtract(fieldName, unit, amount)](./firestore_pipelines.md#timestampsubtract_3b0a297) | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from a timestamp represented by a field. |
-|  [timestampToUnixMicros(fieldName)](./firestore_pipelines.md#timestamptounixmicros_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixMillis(fieldName)](./firestore_pipelines.md#timestamptounixmillis_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixSeconds(fieldName)](./firestore_pipelines.md#timestamptounixseconds_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampTruncate(fieldName, granularity, timezone)](./firestore_pipelines.md#timestamptruncate_b6c7512) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
-|  [timestampTruncate(fieldName, granularity, timezone)](./firestore_pipelines.md#timestamptruncate_ed83d46) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
-|  [toLower(fieldName)](./firestore_pipelines.md#tolower_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a string field to lowercase. |
-|  [toUpper(fieldName)](./firestore_pipelines.md#toupper_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that converts a string field to uppercase. |
-|  [trim(fieldName, valueToTrim)](./firestore_pipelines.md#trim_c9f90ee) | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing whitespace from a string or byte array. |
-|  [trunc(fieldName)](./firestore_pipelines.md#trunc_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value of a field to an integer. |
-|  [trunc(fieldName, decimalPlaces)](./firestore_pipelines.md#trunc_07d0cf0) | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric expression to the specified number of decimal places. |
-|  [type(fieldName)](./firestore_pipelines.md#type_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of the data in the specified field. |
-|  [unixMicrosToTimestamp(fieldName)](./firestore_pipelines.md#unixmicrostotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixMillisToTimestamp(fieldName)](./firestore_pipelines.md#unixmillistotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixSecondsToTimestamp(fieldName)](./firestore_pipelines.md#unixsecondstotimestamp_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [vectorLength(fieldName)](./firestore_pipelines.md#vectorlength_e5b0480) | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a Firestore Vector represented by a field. |
 |  [abs(fieldName)](./firestore_pipelines.md#abs_e5b0480) | Creates an expression that computes the absolute value of a numeric value. |
 |  [add(fieldName, second)](./firestore_pipelines.md#add_b75bb8b) | Creates an expression that adds a field's value to an expression. |
 |  [arrayAgg(fieldName)](./firestore_pipelines.md#arrayagg_e5b0480) | Creates an aggregation that collects all values of a field across multiple stage inputs into an array. |
@@ -320,6 +162,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAll(fieldName, arrayExpression)](./firestore_pipelines.md#arraycontainsall_48da8d9) | Creates an expression that checks if a field's array value contains all the specified values or expressions. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_8060b23) | Creates an expression that checks if a field's array value contains any of the specified elements. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_1b4f7cd) | Creates an expression that checks if a field's array value contains any of the specified elements. |
+|  [arrayFilter(fieldName, alias, filter)](./firestore_pipelines.md#arrayfilter_ab67868) | Creates an expression that filters an array using a provided alias and predicate expression. |
 |  [arrayFirst(fieldName)](./firestore_pipelines.md#arrayfirst_e5b0480) | Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_597a4d9) | Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_1a86a2c) | Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -336,7 +179,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(fieldName)](./firestore_pipelines.md#arrayminimum_e5b0480) | Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_597a4d9) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_1a86a2c) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arraySlice(fieldName, offset, length)](./firestore_pipelines.md#arrayslice_821aa43) | Creates an expression that returns a subset of an array. |
 |  [arraySum(fieldName)](./firestore_pipelines.md#arraysum_e5b0480) | Creates an expression that computes the sum of the elements in an array. |
+|  [arrayTransform(fieldName, elementAlias, transform)](./firestore_pipelines.md#arraytransform_328a090) | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_e6629b2) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [ascending(fieldName)](./firestore_pipelines.md#ascending_e5b0480) | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_pipelines.md#average_e5b0480) | Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
 |  [byteLength(fieldName)](./firestore_pipelines.md#bytelength_e5b0480) | Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob. |
@@ -501,19 +347,14 @@ https://github.com/firebase/firebase-js-sdk
 |  [mapSet(mapField, key, value, moreKeyValues)](./firestore_pipelines.md#mapset_baadc2a) | Creates an expression that returns a new map with the specified entries added or updated. |
 |  [mapValues(mapField)](./firestore_pipelines.md#mapvalues_83ad836) | Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
-|  [field(name)](./firestore_pipelines.md#field_1eaaff4) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
+|  [field(name)](./firestore_pipelines.md#field_1eaaff4) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
 |  [variable(name)](./firestore_pipelines.md#variable_1eaaff4) | Creates an expression that retrieves the value of a variable bound via <code>define()</code>. |
 |  <b>function(options, ...)</b> |
-|  [execute(options)](./firestore_pipelines.md#execute_9e87e31) | <b><i>(Public Preview)</i></b> Executes a pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
+|  [execute(options)](./firestore_pipelines.md#execute_9e87e31) | Executes a pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  [subcollection(options)](./firestore_pipelines.md#subcollection_104dbc5) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(path, ...)</b> |
-|  [field(path)](./firestore_pipelines.md#field_34ee07d) | <b><i>(Public Preview)</i></b> Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
-|  [subcollection(path)](./firestore_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
-|  [field(name)](./firestore_pipelines.md#field_1eaaff4) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
-|  <b>function(options, ...)</b> |
-|  [execute(options)](./firestore_pipelines.md#execute_9e87e31) | Executes a pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
-|  <b>function(path, ...)</b> |
 |  [field(path)](./firestore_pipelines.md#field_34ee07d) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
+|  [subcollection(path)](./firestore_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(pipeline, ...)</b> |
 |  [execute(pipeline)](./firestore_pipelines.md#execute_01df620) | Executes a pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  <b>function(rquery, ...)</b> |
@@ -622,24 +463,12 @@ https://github.com/firebase/firebase-js-sdk
 
 |  Type Alias | Description |
 |  --- | --- |
-|  [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)<!-- -->. |
-|  [AggregateStageOptions](./firestore_pipelines.md#aggregatestageoptions) | <b><i>(Public Preview)</i></b> Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->. |
-|  [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | <b><i>(Public Preview)</i></b> Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
-|  [CollectionStageOptions](./firestore_pipelines.md#collectionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
-|  [DatabaseStageOptions](./firestore_pipelines.md#databasestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
-|  [DefineStageOptions](./firestore_pipelines.md#definestageoptions) | Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
-|  [DistinctStageOptions](./firestore_pipelines.md#distinctstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
-|  [DocumentsStageOptions](./firestore_pipelines.md#documentsstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
-|  [ExpressionType](./firestore_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> An enumeration of the different types of expressions. |
-|  [FindNearestStageOptions](./firestore_pipelines.md#findneareststageoptions) | <b><i>(Public Preview)</i></b> Options defining how a FindNearestStage is evaluated. See [Pipeline.findNearest()](./firestore_pipelines.pipeline.md#pipelinefindnearest)<!-- -->. |
-|  [LimitStageOptions](./firestore_pipelines.md#limitstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a LimitStage is evaluated. See [Pipeline.limit()](./firestore_pipelines.pipeline.md#pipelinelimit)<!-- -->. |
-|  [OffsetStageOptions](./firestore_pipelines.md#offsetstageoptions) | <b><i>(Public Preview)</i></b> Options defining how an OffsetStage is evaluated. See [Pipeline.offset()](./firestore_pipelines.pipeline.md#pipelineoffset)<!-- -->. |
-|  [OneOf](./firestore_pipelines.md#oneof) | <b><i>(Public Preview)</i></b> Utility type to create an type that only allows one property of the Type param T to be set. |
 |  [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)<!-- -->. |
 |  [AggregateStageOptions](./firestore_pipelines.md#aggregatestageoptions) | Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->. |
 |  [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.md#stageoptions) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
 |  [CollectionStageOptions](./firestore_pipelines.md#collectionstageoptions) | Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
 |  [DatabaseStageOptions](./firestore_pipelines.md#databasestageoptions) | Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
+|  [DefineStageOptions](./firestore_pipelines.md#definestageoptions) | Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
 |  [DistinctStageOptions](./firestore_pipelines.md#distinctstageoptions) | Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
 |  [DocumentsStageOptions](./firestore_pipelines.md#documentsstageoptions) | Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_pipelines.md#expressiontype) | An enumeration of the different types of expressions. |
@@ -655,17 +484,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [SearchStageOptions](./firestore_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SearchStage is evaluated. See . |
 |  [SelectStageOptions](./firestore_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
 |  [SetOptions](./firestore_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
-|  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
-|  [SubcollectionStageOptions](./firestore_pipelines.md#subcollectionstageoptions) | Options defining how a <code>SubcollectionStage</code> is evaluated. |
-|  [TimeGranularity](./firestore_pipelines.md#timegranularity) | <b><i>(Public Preview)</i></b> Specify time granularity for expressions. |
-|  [TimePart](./firestore_pipelines.md#timepart) | <b><i>(Public Preview)</i></b> Specify time parts for <code>timestampExtract</code> expressions. |
-|  [TimeUnit](./firestore_pipelines.md#timeunit) | <b><i>(Public Preview)</i></b> Specify time units for expressions. |
-|  [Type](./firestore_pipelines.md#type) | <b><i>(Public Preview)</i></b> An enumeration of the different types generated by the Firestore backend.<ul> <li>Numerics evaluate directly to backend representation (<code>int64</code> or <code>float64</code>), not JS <code>number</code>.</li> <li>JavaScript <code>Date</code> and firestore <code>Timestamp</code> objects strictly evaluate to <code>'timestamp'</code>.</li> <li>Advanced configurations parsing backend types (such as <code>decimal128</code>, <code>max_key</code> or <code>min_key</code> from BSON) are also incorporated in this union string type. Note that <code>decimal128</code> is a backend-only numeric type that the JavaScript SDK cannot create natively, but can be evaluated in pipelines.</li> </ul> |
-|  [UnionStageOptions](./firestore_pipelines.md#unionstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a UnionStage is evaluated. See [Pipeline.union()](./firestore_pipelines.pipeline.md#pipelineunion)<!-- -->. |
-|  [UnnestStageOptions](./firestore_pipelines.md#unneststageoptions) | <b><i>(Public Preview)</i></b> Represents the specific options available for configuring an <code>UnnestStage</code> within a pipeline. |
-|  [WhereStageOptions](./firestore_pipelines.md#wherestageoptions) | <b><i>(Public Preview)</i></b> Options defining how a WhereStage is evaluated. See [Pipeline.where()](./firestore_pipelines.pipeline.md#pipelinewhere)<!-- -->. |
 |  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [StageOptions](./firestore_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
+|  [SubcollectionStageOptions](./firestore_pipelines.md#subcollectionstageoptions) | Options defining how a <code>SubcollectionStage</code> is evaluated. |
 |  [TimeGranularity](./firestore_pipelines.md#timegranularity) | Specify time granularity for expressions. |
 |  [TimePart](./firestore_pipelines.md#timepart) | Specify time parts for <code>timestampExtract</code> expressions. |
 |  [TimeUnit](./firestore_pipelines.md#timeunit) | Specify time units for expressions. |
@@ -1033,9 +854,6 @@ arrayLength(field("cart"));
 ## function(arrayExpression, ...)
 
 ### arrayFilter(arrayExpression, alias, filter) {:#arrayfilter_892d3c4}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that filters an array using a provided alias and predicate expression.
 
@@ -1619,9 +1437,6 @@ arrayMinimumN(field("scores"), field("count"));
 
 ### arraySlice(arrayExpression, offset, length) {:#arrayslice_a349bee}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns a subset of an array.
 
 <b>Signature:</b>
@@ -1658,9 +1473,6 @@ arraySlice(field("items"), 2, field("length"));
 
 ### arrayTransform(arrayExpression, elementAlias, transform) {:#arraytransform_28967fa}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that applies a provided transformation to each element in an array.
 
 <b>Signature:</b>
@@ -1693,9 +1505,6 @@ arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
 ```
 
 ### arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform) {:#arraytransformwithindex_2f3b17f}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
 
@@ -1923,47 +1732,6 @@ A new Expression representing the join operation.
 ```typescript
 // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
 join('tags', field("separator"))
-
-```
-
-## function(arrayName, ...)
-
-### arraySlice(arrayName, offset, length) {:#arrayslice_9dbe857}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Creates an expression that returns a subset of an array.
-
-<b>Signature:</b>
-
-```typescript
-export declare function arraySlice(arrayName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  arrayName | string | The name of the field containing the array. |
-|  offset | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The starting offset. |
-|  length | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The optional length of the slice. |
-
-<b>Returns:</b>
-
-[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the sliced array.
-
-### Example
-
-
-```typescript
-// Get 5 elements from the 'items' array field starting from index 2
-arraySlice("items", 2, 5);
-
-// Get n elements from the 'items' array field starting from index 2
-arraySlice("items", 2, field("length"));
 
 ```
 
@@ -2505,8 +2273,6 @@ timestampDiff(field('endTime'), field('startTime'), 'day')
 
 ### timestampDiff(endFieldName, startFieldName, unit) {:#timestampdiff_f60102c}
 
-Creates an expression that calculates the difference between two timestamps.
-
 <b>Signature:</b>
 
 ```typescript
@@ -2517,24 +2283,13 @@ export declare function timestampDiff(endFieldName: string, startFieldName: stri
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  endFieldName | string | The name of the field representing the ending timestamp. |
-|  startFieldName | string | The name of the field representing the starting timestamp. |
-|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) \| [Expression](./firestore_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
+|  endFieldName | string |  |
+|  startFieldName | string |  |
+|  unit | [TimeUnit](./firestore_pipelines.md#timeunit) \| [Expression](./firestore_pipelines.expression.md#expression_class) |  |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the difference as an integer.
-
-### Example
-
-
-```typescript
-// Calculate the difference in days between 'endTime' and 'startTime' fields.
-timestampDiff('endTime', 'startTime', 'day')
-
-```
 
 ### timestampDiff(endFieldName, startExpression, unit) {:#timestampdiff_6e54d92}
 
@@ -4816,9 +4571,6 @@ arrayContainsAny("categories", array([field("cate1"), "Science"]));
 
 ### arrayFilter(fieldName, alias, filter) {:#arrayfilter_ab67868}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that filters an array using a provided alias and predicate expression.
 
 <b>Signature:</b>
@@ -5365,6 +5117,42 @@ arrayMinimumN(field("scores"), field("count"));
 
 ```
 
+### arraySlice(fieldName, offset, length) {:#arrayslice_821aa43}
+
+Creates an expression that returns a subset of an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  offset | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The starting offset. |
+|  length | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The optional length of the slice. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the sliced array.
+
+### Example
+
+
+```typescript
+// Get 5 elements from the 'items' array field starting from index 2
+arraySlice("items", 2, 5);
+
+// Get n elements from the 'items' array field starting from index 2
+arraySlice("items", 2, field("length"));
+
+```
+
 ### arraySum(fieldName) {:#arraysum_e5b0480}
 
 Creates an expression that computes the sum of the elements in an array.
@@ -5398,9 +5186,6 @@ arraySum("scores");
 
 ### arrayTransform(fieldName, elementAlias, transform) {:#arraytransform_328a090}
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that applies a provided transformation to each element in an array.
 
 <b>Signature:</b>
@@ -5433,9 +5218,6 @@ arrayTransform("scores", "score", multiply(variable("score"), 10));
 ```
 
 ### arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform) {:#arraytransformwithindex_e6629b2}
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
 
@@ -12514,19 +12296,6 @@ export declare type SortStageOptions = StageOptions & {
 };
 ```
 
-## SubcollectionStageOptions
-
-Options defining how a `SubcollectionStage` is evaluated.
-
-<b>Signature:</b>
-
-```typescript
-export declare type SubcollectionStageOptions = StageOptions & {
-    path: string;
-};
-```
-
-## TimeGranularity
 ## StageOptions
 
 Options defining how a Stage is evaluated.
@@ -12538,6 +12307,18 @@ export declare type StageOptions = {
     rawOptions?: {
         [name: string]: unknown;
     };
+};
+```
+
+## SubcollectionStageOptions
+
+Options defining how a `SubcollectionStage` is evaluated.
+
+<b>Signature:</b>
+
+```typescript
+export declare type SubcollectionStageOptions = StageOptions & {
+    path: string;
 };
 ```
 

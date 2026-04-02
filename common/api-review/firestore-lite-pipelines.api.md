@@ -234,7 +234,7 @@ export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionE
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @public
-export function arraySlice(arrayName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+export function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
 
 // @public
 export function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
@@ -397,14 +397,11 @@ export function currentTimestamp(): FunctionExpression;
 // @public
 export type DatabaseStageOptions = StageOptions & {};
 
-// Warning: (ae-incompatible-release-tags) The symbol "DefineStageOptions" is marked as @public, but its signature references "StageOptions" which is marked as @beta
-//
 // @public
 export type DefineStageOptions = StageOptions & {
     variables: AliasedExpression[];
 };
 
-// @beta
 // @public
 export function descending(expr: Expression): Ordering;
 
@@ -662,7 +659,6 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     floor(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
-    // @public
     getField(key: string | Expression): Expression;
     /* Excluded from this release type: _readUserData */
     greaterThan(expression: Expression): BooleanExpression;
@@ -870,10 +866,8 @@ export abstract class Expression {
     vectorLength(): FunctionExpression;
 }
 
-// @beta
-export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 // @public
-export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression';
+export type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 
 // @public
 export class Field extends Expression implements Selectable {
@@ -1250,11 +1244,7 @@ export class Pipeline {
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "define" is marked as @public, but its signature references "AliasedExpression" which is marked as @beta
-    //
-    // @public
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
-    // @public
     define(options: DefineStageOptions): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     distinct(options: DistinctStageOptions): Pipeline;
@@ -1279,13 +1269,7 @@ export class Pipeline {
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
     sort(options: SortStageOptions): Pipeline;
-    // Warning: (ae-incompatible-release-tags) The symbol "toArrayExpression" is marked as @public, but its signature references "Expression" which is marked as @beta
-    //
-    // @public
     toArrayExpression(): Expression;
-    // Warning: (ae-incompatible-release-tags) The symbol "toScalarExpression" is marked as @public, but its signature references "Expression" which is marked as @beta
-    //
-    // @public
     toScalarExpression(): Expression;
     union(other: Pipeline): Pipeline;
     union(options: UnionStageOptions): Pipeline;
@@ -1558,24 +1542,17 @@ export function stringReverse(stringExpression: Expression): FunctionExpression;
 // @public
 export function stringReverse(field: string): FunctionExpression;
 
-// Warning: (ae-incompatible-release-tags) The symbol "subcollection" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-//
 // @public
 export function subcollection(path: string): Pipeline;
 
-// Warning: (ae-incompatible-release-tags) The symbol "subcollection" is marked as @public, but its signature references "Pipeline" which is marked as @beta
-//
 // @public
 export function subcollection(options: SubcollectionStageOptions): Pipeline;
 
-// Warning: (ae-incompatible-release-tags) The symbol "SubcollectionStageOptions" is marked as @public, but its signature references "StageOptions" which is marked as @beta
-//
 // @public
 export type SubcollectionStageOptions = StageOptions & {
     path: string;
 };
 
-// @beta
 // @public
 export function substring(field: string, position: number, length?: number): FunctionExpression;
 
@@ -1624,7 +1601,7 @@ export function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: numb
 // @public
 export function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
-// @public
+// @public (undocumented)
 export function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
 
 // @public
@@ -1758,12 +1735,9 @@ export type UnnestStageOptions = StageOptions & {
     indexField?: string;
 };
 
-// Warning: (ae-incompatible-release-tags) The symbol "variable" is marked as @public, but its signature references "Expression" which is marked as @beta
-//
 // @public
 export function variable(name: string): Expression;
 
-// @beta
 // @public
 export function vectorLength(vectorExpression: Expression): FunctionExpression;
 
@@ -1778,10 +1752,6 @@ export type WhereStageOptions = StageOptions & {
 // @public
 export function xor(first: BooleanExpression, second: BooleanExpression, ...additionalConditions: BooleanExpression[]): BooleanExpression;
 
-
-// Warnings were encountered during analysis:
-//
-// /Users/milamamat/firebase/firebase-js-sdk/packages/firestore/dist/lite/pipelines.d.ts:1917:5 - (ae-incompatible-release-tags) The symbol "variables" is marked as @public, but its signature references "AliasedExpression" which is marked as @beta
 
 // (No @packageDocumentation comment for this package)
 

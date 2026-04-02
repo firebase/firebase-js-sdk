@@ -1445,7 +1445,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Filters the array using a provided alias and predicate expression.
    *
    * @example
@@ -1467,7 +1466,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that applies a provided transformation to each element in an array.
    *
    * @example
@@ -1492,7 +1490,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
    *
    * @example
@@ -1524,7 +1521,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Returns a subset of the array.
    *
    * @example
@@ -1552,7 +1548,6 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Returns the first element of the array.
    *
    * @example
@@ -6976,8 +6971,6 @@ export function arrayFilter(
 ): FunctionExpression;
 
 /**
- * @beta
- *
  * Creates an expression that filters an array using a provided alias and predicate expression.
  *
  * @example
@@ -7006,7 +6999,6 @@ export function arrayFilter(
 }
 
 /**
- * @beta
  * Creates an expression that applies a provided transformation to each element in an array.
  *
  * @example
@@ -7027,7 +7019,6 @@ export function arrayTransform(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that applies a provided transformation to each element in an array.
  *
  * @example
@@ -7055,7 +7046,6 @@ export function arrayTransform(
 }
 
 /**
- * @beta
  * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
  *
  * @example
@@ -7078,7 +7068,6 @@ export function arrayTransformWithIndex(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
  *
  * @example
@@ -7113,7 +7102,6 @@ export function arrayTransformWithIndex(
 }
 
 /**
- * @beta
  * Creates an expression that returns a subset of an array.
  *
  * @example
@@ -7125,19 +7113,18 @@ export function arrayTransformWithIndex(
  * arraySlice("items", 2, field("length"));
  * ```
  *
- * @param arrayName - The name of the field containing the array.
+ * @param fieldName - The name of the field containing the array.
  * @param offset - The starting offset.
  * @param length - The optional length of the slice.
  * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
  */
 export function arraySlice(
-  arrayName: string,
+  fieldName: string,
   offset: number | Expression,
   length?: number | Expression
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that returns a subset of an array.
  *
  * @example
@@ -7168,8 +7155,6 @@ export function arraySlice(
 }
 
 /**
- * @beta
- *
  * Creates an expression that returns the first element of an array.
  *
  * @example
