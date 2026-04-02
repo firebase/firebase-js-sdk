@@ -57,6 +57,7 @@ distanceField: 'computedDistance' // optional
 |  [replaceWith(options)](./firestore_pipelines.pipeline.md#pipelinereplacewith) |  |  |
 |  [sample(documents)](./firestore_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The parameter specifies how number of documents to be returned.<p>Examples: |
 |  [sample(options)](./firestore_pipelines.pipeline.md#pipelinesample) |  | Performs a pseudo-random sampling of the documents from the previous stage.<p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how sampling will be performed. See [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) for more information. |
+|  [search(options)](./firestore_pipelines.pipeline.md#pipelinesearch) |  |  |
 |  [select(selection, additionalSelections)](./firestore_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code> : Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.<p>Example: |
 |  [select(options)](./firestore_pipelines.pipeline.md#pipelineselect) |  | Selects or creates a set of fields from the outputs of previous stages.<p>The selected fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface) expressions, which can be:<ul> <li><code>string</code>: Name of an existing field</li> <li>[Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing field.</li> <li>[AliasedExpression](./firestore_pipelines.aliasedexpression.md#aliasedexpression_class)<!-- -->: Represents the result of a function with an assigned alias name using [Expression.as()](./firestore_pipelines.expression.md#expressionas)</li> </ul><p>If no selections are provided, the output of this stage is empty. Use [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields) instead if only additions are desired.<p>Example: |
 |  [sort(ordering, additionalOrderings)](./firestore_pipelines.pipeline.md#pipelinesort) |  | Sorts the documents from previous stages based on one or more [Ordering](./firestore_pipelines.ordering.md#ordering_class) criteria.<p>This stage allows you to order the results of your pipeline. You can specify multiple [Ordering](./firestore_pipelines.ordering.md#ordering_class) instances to sort by multiple fields in ascending or descending order. If documents have the same value for a field used for sorting, the next specified ordering will be used. If all orderings result in equal comparison, the documents are considered equal and the order is unspecified.<p>Example: |
@@ -748,6 +749,24 @@ firestore.pipeline().collection("books")
 .sample({ percentage: 0.5 });
 
 ```
+
+## Pipeline.search()
+
+<b>Signature:</b>
+
+```typescript
+search(options: SearchStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [SearchStageOptions](./firestore_pipelines.md#searchstageoptions) |  |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
 
 ## Pipeline.select()
 

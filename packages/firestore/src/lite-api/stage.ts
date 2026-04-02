@@ -41,12 +41,12 @@ import {
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { StageOptions } from './stage_options';
+import { QueryEnhancement, StageOptions } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
-   * Store optionsProto parsed by _readUserData.
+   * Store _optionsProto parsed by _readUserData.
    * @private
    * @internal
    * @protected
@@ -57,7 +57,7 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   protected knownOptions: Record<string, unknown>;
   protected rawOptions?: Record<string, unknown>;
 
-  constructor(options: StageOptions) {
+  constructor(options: Record<string, unknown> & StageOptions) {
     ({ rawOptions: this.rawOptions, ...this.knownOptions } = options);
   }
 
@@ -710,6 +710,96 @@ export class Replace extends Stage {
   }
 }
 
+// eslint-disable-next-line -- eslint should not convert this type to an interface
+type InternalSearchOptions = {
+  // These are constrained from the public type
+  query: BooleanExpression;
+  sort?: Ordering[];
+  select?: Record<string, Expression>;
+  addFields?: Record<string, Expression>;
+
+  // These are the same as the public type
+  languageCode?: string;
+  retrievalDepth?: number;
+  offset?: number;
+  limit?: number;
+  queryEnhancement?: QueryEnhancement;
+};
+
+/**
+ * @beta
+ */
+export class Search extends Stage {
+  constructor(private _searchOptions: InternalSearchOptions) {
+    super(_searchOptions);
+  }
+
+  get _name(): string {
+    return 'search';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      query: {
+        serverName: 'query'
+      },
+      limit: {
+        serverName: 'limit'
+      },
+      retrievalDepth: {
+        serverName: 'retrieval_depth'
+      },
+      sort: {
+        serverName: 'sort'
+      },
+      addFields: {
+        serverName: 'add_fields'
+      },
+      select: {
+        serverName: 'select'
+      },
+      offset: {
+        serverName: 'offset'
+      },
+      queryEnhancement: {
+        serverName: 'query_enhancement'
+      },
+      languageCode: {
+        serverName: 'language_code'
+      }
+    });
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    readUserDataHelper(this._searchOptions.query, context);
+    if (this._searchOptions.addFields) {
+      readUserDataHelper(this._searchOptions.addFields, context);
+    }
+    if (this._searchOptions.select) {
+      readUserDataHelper(this._searchOptions.select, context);
+    }
+    if (this._searchOptions.sort) {
+      readUserDataHelper(this._searchOptions.sort, context);
+    }
+
+    super._readUserData(context);
+  }
+}
+
+/**
+ * @beta
+ */
 export class RawStage extends Stage {
   /**
    * @private
@@ -757,14 +847,22 @@ export class RawStage extends Stage {
  * @private
  */
 function readUserDataHelper<
-  T extends Map<string, UserData> | UserData[] | UserData
+  T extends
+    | Map<string, UserData>
+    | Record<string, UserData>
+    | UserData[]
+    | UserData
 >(expressionMap: T, context: ParseContext): T {
   if (isUserData(expressionMap)) {
     expressionMap._readUserData(context);
   } else if (Array.isArray(expressionMap)) {
     expressionMap.forEach(readableData => readableData._readUserData(context));
-  } else {
+  } else if (expressionMap instanceof Map) {
     expressionMap.forEach(expr => expr._readUserData(context));
+  } else {
+    Object.values(expressionMap).forEach(expression =>
+      expression._readUserData(context)
+    );
   }
   return expressionMap;
 }

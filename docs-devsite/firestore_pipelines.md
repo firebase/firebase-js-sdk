@@ -20,6 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [currentDocument()](./firestore_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
+|  [score()](./firestore_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
 |  <b>function(array, ...)</b> |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_a00ea48) | Creates an expression that checks if an array expression contains a specific element. |
 |  [arrayContains(array, element)](./firestore_pipelines.md#arraycontains_7328608) | Creates an expression that checks if an array expression contains a specific element. |
@@ -202,6 +203,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [exp(fieldName)](./firestore_pipelines.md#exp_e5b0480) | Creates an expression that computes e to the power of the expression's result. |
 |  [first(fieldName)](./firestore_pipelines.md#first_e5b0480) | Creates an aggregation that finds the first value of a field across multiple stage inputs. |
 |  [floor(fieldName)](./firestore_pipelines.md#floor_e5b0480) | Creates an expression that computes the floor of a numeric value. |
+|  [geoDistance(fieldName, location)](./firestore_pipelines.md#geodistance_ea237a8) | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location in the specified field and the query location. |
 |  [greaterThan(fieldName, expression)](./firestore_pipelines.md#greaterthan_1e91657) | Creates an expression that checks if a field's value is greater than an expression. |
 |  [greaterThan(fieldName, value)](./firestore_pipelines.md#greaterthan_65e2f32) | Creates an expression that checks if a field's value is greater than a constant value. |
 |  [greaterThanOrEqual(fieldName, value)](./firestore_pipelines.md#greaterthanorequal_2e16acb) | Creates an expression that checks if a field's value is greater than or equal to an expression. |
@@ -347,6 +349,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [subcollection(path)](./firestore_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(pipeline, ...)</b> |
 |  [execute(pipeline)](./firestore_pipelines.md#execute_01df620) | Executes a pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
+|  <b>function(rquery, ...)</b> |
+|  [documentMatches(rquery)](./firestore_pipelines.md#documentmatches_d7a12c2) | <b><i>(Public Preview)</i></b> Perform a full-text search on all indexed search fields in the document. |
 |  <b>function(stringExpression, ...)</b> |
 |  [charLength(stringExpression)](./firestore_pipelines.md#charlength_c25a54a) | Creates an expression that calculates the character length of a string expression in UTF-8. |
 |  [endsWith(stringExpression, suffix)](./firestore_pipelines.md#endswith_0a0b889) | Creates an expression that checks if a string expression ends with a given postfix. |
@@ -446,7 +450,6 @@ https://github.com/firebase/firebase-js-sdk
 |  [PipelineExecuteOptions](./firestore_pipelines.pipelineexecuteoptions.md#pipelineexecuteoptions_interface) | Options defining Pipeline execution. |
 |  [Selectable](./firestore_pipelines.selectable.md#selectable_interface) | An interface that represents a selectable expression. |
 |  [SnapshotOptions](./firestore_pipelines.snapshotoptions.md#snapshotoptions_interface) | Options that configure how data is retrieved from a <code>DocumentSnapshot</code> (for example the desired behavior for server timestamps that have not yet been set to their final value). |
-|  [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) | Options defining how a Stage is evaluated. |
 
 ## Type Aliases
 
@@ -454,7 +457,7 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | Options defining how an AddFieldsStage is evaluated. See [Pipeline.addFields()](./firestore_pipelines.pipeline.md#pipelineaddfields)<!-- -->. |
 |  [AggregateStageOptions](./firestore_pipelines.md#aggregatestageoptions) | Options defining how an AggregateStage is evaluated. See [Pipeline.aggregate()](./firestore_pipelines.pipeline.md#pipelineaggregate)<!-- -->. |
-|  [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
+|  [CollectionGroupStageOptions](./firestore_pipelines.md#collectiongroupstageoptions) | Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.md#stageoptions) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
 |  [CollectionStageOptions](./firestore_pipelines.md#collectionstageoptions) | Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
 |  [DatabaseStageOptions](./firestore_pipelines.md#databasestageoptions) | Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
 |  [DefineStageOptions](./firestore_pipelines.md#definestageoptions) | Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
@@ -469,10 +472,12 @@ https://github.com/firebase/firebase-js-sdk
 |  [Primitive](./firestore_pipelines.md#primitive) | Primitive types. |
 |  [RemoveFieldsStageOptions](./firestore_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
 |  [ReplaceWithStageOptions](./firestore_pipelines.md#replacewithstageoptions) | Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
-|  [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
+|  [SampleStageOptions](./firestore_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
+|  [SearchStageOptions](./firestore_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SearchStage is evaluated. See . |
 |  [SelectStageOptions](./firestore_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
 |  [SetOptions](./firestore_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
+|  [StageOptions](./firestore_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
 |  [SubcollectionStageOptions](./firestore_pipelines.md#subcollectionstageoptions) | Options defining how a <code>SubcollectionStage</code> is evaluated. |
 |  [TimeGranularity](./firestore_pipelines.md#timegranularity) | Specify time granularity for expressions. |
 |  [TimePart](./firestore_pipelines.md#timepart) | Specify time parts for <code>timestampExtract</code> expressions. |
@@ -581,6 +586,35 @@ A new `Expression` representing the rand operation.
 ```typescript
 // Generate a random number between 0.0 and 1.0.
 rand();
+
+```
+
+### score() {:#score}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
+
+This Expression can only be used within a `Search` stage.
+
+<b>Signature:</b>
+
+```typescript
+export declare function score(): Expression;
+```
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
+
+### Example
+
+
+```typescript
+db.pipeline().collection('restaurants').search({
+  query: 'waffles',
+  sort: score().descending()
+})
 
 ```
 
@@ -5817,6 +5851,43 @@ export declare function floor(fieldName: string): FunctionExpression;
 
 A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the floor of the numeric value.
 
+### geoDistance(fieldName, location) {:#geodistance_ea237a8}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Evaluates to the distance in meters between the location in the specified field and the query location.
+
+This Expression can only be used within a `Search` stage.
+
+<b>Signature:</b>
+
+```typescript
+export declare function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string \| [Field](./firestore_pipelines.field.md#field_class) | Specifies the field in the document which contains the first GeoPoint for distance computation. |
+|  location | [GeoPoint](./firestore_.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
+
+### Example
+
+
+```typescript
+db.pipeline().collection('restaurants').search({
+  query: 'waffles',
+  sort: geoDistance('location', new GeoPoint(37.0, -122.0)).ascending()
+})
+
+```
+
 ### greaterThan(fieldName, expression) {:#greaterthan_1e91657}
 
 Creates an expression that checks if a field's value is greater than an expression.
@@ -9994,6 +10065,43 @@ const results: PipelineResult[] = snapshot.results;
 
 ```
 
+## function(rquery, ...)
+
+### documentMatches(rquery) {:#documentmatches_d7a12c2}
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Perform a full-text search on all indexed search fields in the document.
+
+This Expression can only be used within a `Search` stage.
+
+<b>Signature:</b>
+
+```typescript
+export declare function documentMatches(rquery: string | Expression): BooleanExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  rquery | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | Define the search query using the search domain-specific language (DSL). |
+
+<b>Returns:</b>
+
+[BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class)
+
+### Example
+
+
+```typescript
+db.pipeline().collection('restaurants').search({
+  query: documentMatches('waffles OR pancakes')
+})
+
+```
+
 ## function(stringExpression, ...)
 
 ### charLength(stringExpression) {:#charlength_c25a54a}
@@ -11645,7 +11753,7 @@ export declare type AggregateStageOptions = StageOptions & {
 
 ## CollectionGroupStageOptions
 
-Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) and provides specific settings for how a collection group is identified and processed during pipeline execution.
+Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.md#stageoptions) and provides specific settings for how a collection group is identified and processed during pipeline execution.
 
 See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage.
 
@@ -11840,7 +11948,7 @@ export declare type ReplaceWithStageOptions = StageOptions & {
 
 ## SampleStageOptions
 
-Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.stageoptions.md#stageoptions_interface) with a specific configuration where only one of the defined sampling methods can be applied.
+Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.
 
 See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage..
 
@@ -11851,6 +11959,23 @@ export declare type SampleStageOptions = StageOptions & OneOf<{
     percentage: number;
     documents: number;
 }>;
+```
+
+## SearchStageOptions
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Options defining how a SearchStage is evaluated. See .
+
+<b>Signature:</b>
+
+```typescript
+export declare type SearchStageOptions = StageOptions & {
+    query: BooleanExpression | string;
+    sort?: Ordering | Ordering[];
+    addFields?: Selectable[];
+};
 ```
 
 ## SelectStageOptions
@@ -11888,6 +12013,20 @@ Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore
 ```typescript
 export declare type SortStageOptions = StageOptions & {
     orderings: Ordering[];
+};
+```
+
+## StageOptions
+
+Options defining how a Stage is evaluated.
+
+<b>Signature:</b>
+
+```typescript
+export declare type StageOptions = {
+    rawOptions?: {
+        [name: string]: unknown;
+    };
 };
 ```
 

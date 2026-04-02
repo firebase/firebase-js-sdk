@@ -35,6 +35,12 @@ export declare class Field extends Expression implements Selectable
 |  [fieldName](./firestore_lite_pipelines.field.md#fieldfieldname) |  | string |  |
 |  [selectable](./firestore_lite_pipelines.field.md#fieldselectable) |  | true |  |
 
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [geoDistance(location)](./firestore_lite_pipelines.field.md#fieldgeodistance) |  | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location specified by this field and the query location. |
+
 ## Field.alias
 
 <b>Signature:</b>
@@ -74,6 +80,31 @@ get fieldName(): string;
 ```typescript
 selectable: true;
 ```
+
+## Field.geoDistance()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Evaluates to the distance in meters between the location specified by this field and the query location.
+
+This Expression can only be used within a `Search` stage.
+
+<b>Signature:</b>
+
+```typescript
+geoDistance(location: GeoPoint | Expression): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  location | [GeoPoint](./firestore_lite.geopoint.md#geopoint_class) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_lite_pipelines.expression.md#expression_class)
 
 ### Example
 

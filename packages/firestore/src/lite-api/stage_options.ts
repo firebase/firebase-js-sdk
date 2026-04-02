@@ -33,7 +33,8 @@ import { VectorValue } from './vector_value';
 /**
  * Options defining how a Stage is evaluated.
  */
-export interface StageOptions {
+// eslint-disable-next-line -- eslint should not convert this type to an interface
+export type StageOptions = {
   /**
    * An escape hatch to set options not known at SDK build time. These values
    * will be passed directly to the Firestore backend and not used by the SDK.
@@ -54,7 +55,7 @@ export interface StageOptions {
   rawOptions?: {
     [name: string]: unknown;
   };
-}
+};
 /**
  * Options defining how a CollectionStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(collection:1)}.
  */
@@ -250,6 +251,117 @@ export type FindNearestStageOptions = StageOptions & {
    * vector distance will not be returned.
    */
   distanceField?: string;
+};
+
+/**
+ * @beta
+ *
+ * Specifies if the `matches` and `snippet` expressions will enhance the user
+ * provided query to perform matching of synonyms, misspellings, lemmatization,
+ * stemming.
+ *
+ * required - search will fail if the query enhancement times out or if the query
+ *                    enhancement is not supported by the project's DRZ compliance
+ *                    requirements.
+ * preferred - search will fall back to the un-enhanced, user provided query, if
+ *                    the query enhancement fails.
+ */
+export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
+
+/**
+ * @beta
+ * Options defining how a SearchStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
+ */
+export type SearchStageOptions = StageOptions & {
+  /**
+   * Specifies the search query that will be used to query and score documents
+   * by the search stage.
+   *
+   * The query can be expressed as an `Expression`, which will be used to score
+   * and filter the results. Not all expressions supported by Pipelines
+   * are supported in the Search query.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection('restaurants').search({
+   *   query: or(
+   *     documentMatches("breakfast"),
+   *     field('menu').matches('waffle AND coffee')
+   *   )
+   * })
+   * ```
+   *
+   * The query can also be expressed as a string in the Search domain-specific language (DSL):
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection('restaurants').search({
+   *   query: 'menu:(waffle and coffee) OR breakfast'
+   * })
+   * ```
+   *
+   * The query can also represent a geoDistance query:
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(new GeoPoint(0, 0)).lessThanOrEqual(1000)
+   * })
+   * ```
+   */
+  query: BooleanExpression | string;
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
+  //  */
+  // languageCode?: string;
+
+  // TODO(search) add indexPartition after languageCode
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The maximum number of documents to retrieve. Documents will be retrieved in the
+  //  * pre-sort order specified by the search index.
+  //  */
+  // retrievalDepth?: number;
+
+  /**
+   * Orderings specify how the returned documents are sorted.
+   * One or more ordering are required.
+   */
+  sort?: Ordering | Ordering[];
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The number of documents to skip from the beginning of the search result set.
+  //  */
+  // offset?: number;
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The maximum number of documents to return from the Search stage.
+  //  */
+  // limit?: number;
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The fields to keep or add to each document,
+  //  * specified as an array of {@link @firebase/firestore/pipelines#Selectable}.
+  //  */
+  // select?: Array<Selectable | string>;
+
+  /**
+   * The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
+   */
+  addFields?: Selectable[];
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * Define the query expansion behavior used by full-text search expressions
+  //  * in this search stage.
+  //  */
+  // queryEnhancement?: QueryEnhancement;
 };
 /**
  * Options defining how a ReplaceWithStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(replaceWith:1)}.
