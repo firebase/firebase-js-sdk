@@ -51,6 +51,9 @@ import {
   toField,
   isOrdering,
   isExpr,
+  AliasedExpression,
+  FunctionExpression,
+  isAliasedExpr,
   documentMatches
 } from './expressions';
 import {
@@ -70,6 +73,7 @@ import {
   Union,
   Unnest,
   Where,
+  Define,
   Search
 } from './stage';
 import {
@@ -308,6 +312,219 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
 
     // Add stage to the pipeline
     return this._addStage(stage);
+  }
+
+  /**
+   * @public
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param aliasedExpression - The first expression to bind to a variable.
+   * @param additionalExpressions - Optional additional expression to bind to a variable.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(
+    aliasedExpression: AliasedExpression,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline;
+  /**
+   * @public
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param options - An object that specifies required and optional parameters for the stage.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(options: DefineStageOptions): Pipeline;
+  define(
+    aliasedExpressionOrOptions: AliasedExpression | DefineStageOptions,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline {
+    // Process argument union(s) from method overloads
+    const options = isAliasedExpr(aliasedExpressionOrOptions)
+      ? {}
+      : aliasedExpressionOrOptions;
+    const aliasedExpressions: AliasedExpression[] = isAliasedExpr(
+      aliasedExpressionOrOptions
+    )
+      ? [aliasedExpressionOrOptions, ...additionalExpressions]
+      : aliasedExpressionOrOptions.variables;
+
+    const convertedExpressions: Map<string, Expression> =
+      selectablesToMap(aliasedExpressions);
+
+    const stage = new Define(convertedExpressions, options);
+
+    return this._addStage(stage);
+  }
+
+  /**
+   * @public
+   * Converts this Pipeline into an expression that evaluates to an array of results.
+   *
+   * <p>Result Unwrapping:</p>
+   * <ul>
+   *  <li>If the items have a single field, their values are unwrapped and returned directly in the array.</li>
+   *  <li>If the items have multiple fields, they are returned as objects in the array</li>
+   * </ul>
+   *
+   * @example
+   * ```typescript
+   * // Get a list of reviewers for each book
+   * db.pipeline().collection("books")
+   *     .define(field("id").as("book_id"))
+   *     .addFields(
+   *         db.pipeline().collection("reviews")
+   *             .where(field("book_id").equal(variable("book_id")))
+   *             .select(field("reviewer"))
+   *             .toArrayExpression()
+   *             .as("reviewers")
+   *     )
+   * ```
+   *
+   * Output:
+   * ```json
+   * [
+   *   {
+   *     "id": "1",
+   *     "title": "1984",
+   *     "reviewers": ["Alice", "Bob"]
+   *   }
+   * ]
+   * ```
+   *
+   * Multiple Fields:
+   * ```typescript
+   * // Get a list of reviews (reviewer and rating) for each book
+   * db.pipeline().collection("books")
+   *     .define(field("id").as("book_id"))
+   *     .addFields(
+   *         db.pipeline().collection("reviews")
+   *             .where(field("book_id").equal(variable("book_id")))
+   *             .select(field("reviewer"), field("rating"))
+   *             .toArrayExpression()
+   *             .as("reviews"))
+   * ```
+   *
+   * Output:
+   * ```json
+   * [
+   *   {
+   *     "id": "1",
+   *     "title": "1984",
+   *     "reviews": [
+   *       { "reviewer": "Alice", "rating": 5 },
+   *       { "reviewer": "Bob", "rating": 4 }
+   *     ]
+   *   }
+   * ]
+   * ```
+   *
+   * @returns An `Expression` representing the execution of this pipeline.
+   */
+  toArrayExpression(): Expression {
+    return new FunctionExpression('array', [fieldOrExpression(this)]);
+  }
+
+  /**
+   * @public
+   * Converts this Pipeline into an expression that evaluates to a single scalar result.
+   *
+   * <p><b>Runtime Validation:</b> The runtime validates that the result set contains zero or one item. If
+   * zero items, it evaluates to `null`.</p>
+   *
+   * <p>Result Unwrapping:</p>
+   * <ul>
+   *  <li>If the item has a single field, its value is unwrapped and returned directly.</li>
+   *  <li>f the item has multiple fields, they are returned as an object.</li>
+   * </ul>
+   *
+   * @example
+   * ```typescript
+   * // Calculate average rating for a restaurant
+   * db.pipeline().collection("restaurants").addFields(
+   *   db.pipeline().collection("reviews")
+   *     .where(field("restaurant_id").equal(variable("rid")))
+   *     .aggregate(average("rating").as("avg"))
+   *     // Unwraps the single "avg" field to a scalar double
+   *     .toScalarExpression().as("average_rating")
+   * )
+   * ```
+   *
+   * Output:
+   * ```json
+   * {
+   *   "name": "The Burger Joint",
+   *   "average_rating": 4.5
+   * }
+   * ```
+   *
+   * Multiple Fields:
+   * ```typescript
+   * // Calculate average rating AND count for a restaurant
+   * db.pipeline().collection("restaurants").addFields(
+   *   db.pipeline().collection("reviews")
+   *     .where(field("restaurant_id").equal(variable("rid")))
+   *     .aggregate(
+   *       average("rating").as("avg"),
+   *       count().as("count")
+   *     )
+   *     // Returns an object with "avg" and "count" fields
+   *     .toScalarExpression().as("stats")
+   * )
+   * ```
+   *
+   * Output:
+   * ```json
+   * {
+   *   "name": "The Burger Joint",
+   *   "stats": {
+   *     "avg": 4.5,
+   *     "count": 100
+   *   }
+   * }
+   * ```
+   *
+   * @returns An `Expression` representing the execution of this pipeline.
+   */
+  toScalarExpression(): Expression {
+    return new FunctionExpression('scalar', [fieldOrExpression(this)]);
   }
 
   /**

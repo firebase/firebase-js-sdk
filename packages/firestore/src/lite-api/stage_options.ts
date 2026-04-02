@@ -145,6 +145,17 @@ export type RemoveFieldsStageOptions = StageOptions & {
   fields: Array<Field | string>;
 };
 /**
+ * @public
+ * Options defining how a DefineStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(define:1)}.
+ */
+export type DefineStageOptions = StageOptions & {
+  /**
+   * @public
+   * The variables to define.
+   */
+  variables: AliasedExpression[];
+};
+/**
  * Options defining how a SelectStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(select:1)}.
  */
 export type SelectStageOptions = StageOptions & {
