@@ -141,6 +141,10 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       }
       const ws = new connectWebSocket(this.endpointUrl);
       this.connection = ws;
+      if (!this._isUsingEmulator) {
+        // emulator sends messages as JSON strings, prod sends as binary
+        this.connection!.binaryType = 'arraybuffer';
+      }
       ws.onopen = () => {
         this.onConnectionReady();
         resolve();
@@ -258,9 +262,17 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
   ): DataConnectStreamResponse<Data> {
+    const dataIsString = typeof data === 'string';
+    /** raw websocket message */
     let webSocketMessage;
+    /** object containing data, errors, and extensions */
+    let result;
     try {
-      webSocketMessage = JSON.parse(data);
+      if (dataIsString) {
+        webSocketMessage = JSON.parse(data);
+      } else {
+        webSocketMessage = JSON.parse(this.decodeBinaryResponse(data));
+      }
     } catch (err) {
       throw new WebSocketDataConnectError(
         WebSocketCloseCode.PROTOCOL_ERROR,
@@ -273,27 +285,42 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         'WebSocket message is not an object'
       );
     }
-    if (!('result' in webSocketMessage)) {
-      throw new WebSocketDataConnectError(
-        WebSocketCloseCode.PROTOCOL_ERROR,
-        'WebSocket message did not include result'
-      );
+    if (dataIsString) {
+      if (!('result' in webSocketMessage)) {
+        throw new WebSocketDataConnectError(
+          WebSocketCloseCode.PROTOCOL_ERROR,
+          'WebSocket message from emulator did not include result'
+        );
+      }
+      if (
+        typeof webSocketMessage.result !== 'object' ||
+        webSocketMessage.result === null
+      ) {
+        throw new WebSocketDataConnectError(
+          WebSocketCloseCode.PROTOCOL_ERROR,
+          'WebSocket message result is not an object'
+        );
+      }
+      result = webSocketMessage.result;
+    } else {
+      result = webSocketMessage;
     }
-    if (
-      typeof webSocketMessage.result !== 'object' ||
-      webSocketMessage.result === null
-    ) {
-      throw new WebSocketDataConnectError(
-        WebSocketCloseCode.PROTOCOL_ERROR,
-        'WebSocket message result is not an object'
-      );
-    }
-    if (!('requestId' in webSocketMessage.result)) {
+    if (!('requestId' in result)) {
       throw new WebSocketDataConnectError(
         WebSocketCloseCode.PROTOCOL_ERROR,
         'WebSocket message did not include requestId'
       );
     }
-    return webSocketMessage.result as DataConnectStreamResponse<Data>;
+    return result as DataConnectStreamResponse<Data>;
+  }
+
+  /** 
+   * Decodes a WebSocket response from a Uint8Array to a JSON object. Emulator does not 
+   * send messages as Uint8Arrays, but prod does.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private decodeBinaryResponse(data: Uint8Array): any {
+    const decoder = new TextDecoder("utf-8");
+    return decoder.decode(data);
   }
 }
