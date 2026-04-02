@@ -1336,7 +1336,7 @@ arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Exp
 
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
-A new `Expression` representing the arrayTransform operation.
+A new `Expression` representing the arrayTransformWithIndex operation.
 
 ### Example
 

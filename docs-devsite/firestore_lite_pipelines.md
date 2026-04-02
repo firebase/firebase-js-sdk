@@ -877,7 +877,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 ```typescript
 // Filter "scores" to include only values greater than 50
-arrayFilter(field("scores"), "score", variable("score").greaterThan(50));
+arrayFilter(field("scores"), "score", greaterThan(variable("score"), 50));
 
 ```
 
