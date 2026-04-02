@@ -15,6 +15,11 @@
  * limitations under the License.
  */
 
+// TODO(search) remove this eslint directive when we migrate the search tests
+// to the IndexTestHelper. For now, we want to keep the test data identical between
+// search tests.
+/* eslint-disable camelcase -- use consistent field names for the search tests */
+
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -39,9 +44,9 @@ import {
   addDoc,
   DocumentReference,
   deleteDoc,
-  FirestoreError
+  getDocs
 } from '../util/firebase_export';
-import { apiDescribe, withTestCollection } from '../util/helpers';
+import { apiDescribe, withTestCollection, withTestDbs } from '../util/helpers';
 import {
   array,
   mod,
@@ -180,174 +185,183 @@ import {
   split,
   type,
   isType,
-  currentDocument,
-  variable,
-  subcollection
+  coalesce,
+  ifNull,
+  score,
+  documentMatches
 } from '../util/pipeline_export';
+import {
+  getRunEnterpriseTests,
+  getTargetBackend,
+  TargetBackend
+} from '../util/settings';
 
 use(chaiAsPromised);
 
 const timestampDeltaMS = 10000;
+
+let beginDocCreation: number = 0;
+let endDocCreation: number = 0;
+
+async function testCollectionWithDocs(
+  collection: CollectionReference,
+  docs: { [id: string]: DocumentData }
+): Promise<CollectionReference<DocumentData>> {
+  beginDocCreation = new Date().valueOf();
+  for (const id in docs) {
+    if (docs.hasOwnProperty(id)) {
+      const ref = doc(collection, id);
+      await setDoc(ref, docs[id]);
+    }
+  }
+  endDocCreation = new Date().valueOf();
+  return collection;
+}
+
+function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
+function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[]
+): void;
+
+function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[] | string[]
+): void {
+  const docs = snapshot.results;
+
+  expect(docs.length).to.equal(data.length);
+
+  if (data.length > 0) {
+    if (typeof data[0] === 'string') {
+      const actualIds = docs.map(doc => doc.id);
+      expect(actualIds).to.deep.equal(data);
+    } else {
+      docs.forEach(r => {
+        expect(r.data()).to.deep.equal(data.shift());
+      });
+    }
+  }
+}
 
 apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
 
   let firestore: Firestore;
   let randomCol: CollectionReference;
-  let beginDocCreation: number = 0;
-  let endDocCreation: number = 0;
 
-  async function testCollectionWithDocs(docs: {
-    [id: string]: DocumentData;
-  }): Promise<CollectionReference<DocumentData>> {
-    beginDocCreation = new Date().valueOf();
-    for (const id in docs) {
-      if (docs.hasOwnProperty(id)) {
-        const ref = doc(randomCol, id);
-        await setDoc(ref, docs[id]);
-      }
+  const bookDocs: { [id: string]: DocumentData } = {
+    book1: {
+      title: "The Hitchhiker's Guide to the Galaxy",
+      author: 'Douglas Adams',
+      genre: 'Science Fiction',
+      published: 1979,
+      rating: 4.2,
+      tags: ['comedy', 'space', 'adventure'],
+      awards: {
+        hugo: true,
+        nebula: false,
+        others: { unknown: { year: 1980 } }
+      },
+      nestedField: { 'level.1': { 'level.2': true } },
+      embedding: vector([10, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    },
+    book2: {
+      title: 'Pride and Prejudice',
+      author: 'Jane Austen',
+      genre: 'Romance',
+      published: 1813,
+      rating: 4.5,
+      tags: ['classic', 'social commentary', 'love'],
+      awards: { none: true },
+      embedding: vector([1, 10, 1, 1, 1, 1, 1, 1, 1, 1])
+    },
+    book3: {
+      title: 'One Hundred Years of Solitude',
+      author: 'Gabriel García Márquez',
+      genre: 'Magical Realism',
+      published: 1967,
+      rating: 4.3,
+      tags: ['family', 'history', 'fantasy'],
+      awards: { nobel: true, nebula: false },
+      embedding: vector([1, 1, 10, 1, 1, 1, 1, 1, 1, 1])
+    },
+    book4: {
+      title: 'The Lord of the Rings',
+      author: 'J.R.R. Tolkien',
+      genre: 'Fantasy',
+      published: 1954,
+      rating: 4.7,
+      tags: ['adventure', 'magic', 'epic'],
+      awards: { hugo: false, nebula: false },
+      remarks: null,
+      cost: NaN,
+      embedding: vector([1, 1, 1, 10, 1, 1, 1, 1, 1, 1])
+    },
+    book5: {
+      title: "The Handmaid's Tale",
+      author: 'Margaret Atwood',
+      genre: 'Dystopian',
+      published: 1985,
+      rating: 4.1,
+      tags: ['feminism', 'totalitarianism', 'resistance'],
+      awards: { 'arthur c. clarke': true, 'booker prize': false },
+      embedding: vector([1, 1, 1, 1, 10, 1, 1, 1, 1, 1])
+    },
+    book6: {
+      title: 'Crime and Punishment',
+      author: 'Fyodor Dostoevsky',
+      genre: 'Psychological Thriller',
+      published: 1866,
+      rating: 4.3,
+      tags: ['philosophy', 'crime', 'redemption'],
+      awards: { none: true },
+      embedding: vector([1, 1, 1, 1, 1, 10, 1, 1, 1, 1])
+    },
+    book7: {
+      title: 'To Kill a Mockingbird',
+      author: 'Harper Lee',
+      genre: 'Southern Gothic',
+      published: 1960,
+      rating: 4.2,
+      tags: ['racism', 'injustice', 'coming-of-age'],
+      awards: { pulitzer: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 10, 1, 1, 1])
+    },
+    book8: {
+      title: '1984',
+      author: 'George Orwell',
+      genre: 'Dystopian',
+      published: 1949,
+      rating: 4.2,
+      tags: ['surveillance', 'totalitarianism', 'propaganda'],
+      awards: { prometheus: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
+    },
+    book9: {
+      title: 'The Great Gatsby',
+      author: 'F. Scott Fitzgerald',
+      genre: 'Modernist',
+      published: 1925,
+      rating: 4.0,
+      tags: ['wealth', 'american dream', 'love'],
+      awards: { none: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 10, 1])
+    },
+    book10: {
+      title: 'Dune',
+      author: 'Frank Herbert',
+      genre: 'Science Fiction',
+      published: 1965,
+      rating: 4.6,
+      tags: ['politics', 'desert', 'ecology'],
+      awards: { hugo: true, nebula: true },
+      embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
     }
-    endDocCreation = new Date().valueOf();
-    return randomCol;
-  }
+  };
 
-  function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
-  function expectResults(
-    snapshot: PipelineSnapshot,
-    ...data: DocumentData[]
-  ): void;
-
-  function expectResults(
-    snapshot: PipelineSnapshot,
-    ...data: DocumentData[] | string[]
-  ): void {
-    const docs = snapshot.results;
-
-    expect(docs.length).to.equal(data.length);
-
-    if (data.length > 0) {
-      if (typeof data[0] === 'string') {
-        const actualIds = docs.map(doc => doc.id);
-        expect(actualIds).to.deep.equal(data);
-      } else {
-        docs.forEach(r => {
-          expect(r.data()).to.deep.equal(data.shift());
-        });
-      }
-    }
-  }
-
-  async function setupBookDocs(): Promise<CollectionReference<DocumentData>> {
-    const bookDocs: { [id: string]: DocumentData } = {
-      book1: {
-        title: "The Hitchhiker's Guide to the Galaxy",
-        author: 'Douglas Adams',
-        genre: 'Science Fiction',
-        published: 1979,
-        rating: 4.2,
-        tags: ['comedy', 'space', 'adventure'],
-        awards: {
-          hugo: true,
-          nebula: false,
-          others: { unknown: { year: 1980 } }
-        },
-        nestedField: { 'level.1': { 'level.2': true } },
-        embedding: vector([10, 1, 1, 1, 1, 1, 1, 1, 1, 1])
-      },
-      book2: {
-        title: 'Pride and Prejudice',
-        author: 'Jane Austen',
-        genre: 'Romance',
-        published: 1813,
-        rating: 4.5,
-        tags: ['classic', 'social commentary', 'love'],
-        awards: { none: true },
-        embedding: vector([1, 10, 1, 1, 1, 1, 1, 1, 1, 1])
-      },
-      book3: {
-        title: 'One Hundred Years of Solitude',
-        author: 'Gabriel García Márquez',
-        genre: 'Magical Realism',
-        published: 1967,
-        rating: 4.3,
-        tags: ['family', 'history', 'fantasy'],
-        awards: { nobel: true, nebula: false },
-        embedding: vector([1, 1, 10, 1, 1, 1, 1, 1, 1, 1])
-      },
-      book4: {
-        title: 'The Lord of the Rings',
-        author: 'J.R.R. Tolkien',
-        genre: 'Fantasy',
-        published: 1954,
-        rating: 4.7,
-        tags: ['adventure', 'magic', 'epic'],
-        awards: { hugo: false, nebula: false },
-        remarks: null,
-        cost: NaN,
-        embedding: vector([1, 1, 1, 10, 1, 1, 1, 1, 1, 1])
-      },
-      book5: {
-        title: "The Handmaid's Tale",
-        author: 'Margaret Atwood',
-        genre: 'Dystopian',
-        published: 1985,
-        rating: 4.1,
-        tags: ['feminism', 'totalitarianism', 'resistance'],
-        awards: { 'arthur c. clarke': true, 'booker prize': false },
-        embedding: vector([1, 1, 1, 1, 10, 1, 1, 1, 1, 1])
-      },
-      book6: {
-        title: 'Crime and Punishment',
-        author: 'Fyodor Dostoevsky',
-        genre: 'Psychological Thriller',
-        published: 1866,
-        rating: 4.3,
-        tags: ['philosophy', 'crime', 'redemption'],
-        awards: { none: true },
-        embedding: vector([1, 1, 1, 1, 1, 10, 1, 1, 1, 1])
-      },
-      book7: {
-        title: 'To Kill a Mockingbird',
-        author: 'Harper Lee',
-        genre: 'Southern Gothic',
-        published: 1960,
-        rating: 4.2,
-        tags: ['racism', 'injustice', 'coming-of-age'],
-        awards: { pulitzer: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 10, 1, 1, 1])
-      },
-      book8: {
-        title: '1984',
-        author: 'George Orwell',
-        genre: 'Dystopian',
-        published: 1949,
-        rating: 4.2,
-        tags: ['surveillance', 'totalitarianism', 'propaganda'],
-        awards: { prometheus: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 1, 10, 1, 1])
-      },
-      book9: {
-        title: 'The Great Gatsby',
-        author: 'F. Scott Fitzgerald',
-        genre: 'Modernist',
-        published: 1925,
-        rating: 4.0,
-        tags: ['wealth', 'american dream', 'love'],
-        awards: { none: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 10, 1])
-      },
-      book10: {
-        title: 'Dune',
-        author: 'Frank Herbert',
-        genre: 'Science Fiction',
-        published: 1965,
-        rating: 4.6,
-        tags: ['politics', 'desert', 'ecology'],
-        awards: { hugo: true, nebula: true },
-        embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
-      }
-    };
-    return testCollectionWithDocs(bookDocs);
+  async function setupTestDocs(): Promise<unknown> {
+    return testCollectionWithDocs(randomCol, bookDocs);
   }
 
   let testDeferred: Deferred<void> | undefined;
@@ -362,7 +376,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       async (collectionRef, firestoreInstance) => {
         randomCol = collectionRef;
         firestore = firestoreInstance;
-        await setupBookDocs();
+        await setupTestDocs();
         setupDeferred.resolve();
 
         return testDeferred?.promise;
@@ -2357,10 +2371,13 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const err = e as FirebaseError;
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
+
+        expect(err['message']).to.match(
+          /Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+        );
       }
     });
   });
-
   describe('function expressions', () => {
     it('logical max works', async () => {
       const snapshot = await execute(
@@ -2370,7 +2387,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2378,9 +2395,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2392,7 +2409,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2400,9 +2417,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2417,7 +2434,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2428,13 +2445,13 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2943,9 +2960,11 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2958,7 +2977,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .replaceWith(
             map({
               title: 'foo',
-              nested: {
+              nestedField: {
                 level: {
                   '1': 'bar'
                 },
@@ -2970,13 +2989,17 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           )
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
       expectResults(snapshot, {
         title: 'foo',
-        'nested.level.`1`': 'bar',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
+        },
         nested: 'baz'
       });
     });
@@ -4465,17 +4488,17 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
       });
     });
 
@@ -4519,17 +4542,17 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             })
           )
           .select(
-            field('foo').trunc(0).as('0'),
-            trunc('foo', 1).as('1'),
-            trunc('foo', constant(2)).as('2'),
-            trunc(field('foo'), 4).as('4')
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1234
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -5153,15 +5176,15 @@ apiDescribe.skipClassic('Pipelines', persistence => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
@@ -5251,6 +5274,93 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         title: 'foo',
         name: 'default name',
         nameOrTitle: 'foo'
+      });
+    });
+
+    it('supports ifNull', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              name: null
+            })
+          )
+          .select(
+            ifNull('title', 'default title').as('staticMethod'),
+            field('title').ifNull('default title').as('instanceMethod'),
+            field('name').ifNull(field('title')).as('nameOrTitle'),
+            field('name').ifNull('default name').as('fieldIsNull'),
+            field('absent').ifNull('default name').as('fieldIsAbsent')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 'foo',
+        instanceMethod: 'foo',
+        nameOrTitle: 'foo',
+        fieldIsNull: 'default name',
+        fieldIsAbsent: 'default name'
+      });
+    });
+
+    it('supports coalesce', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              numberValue: 1,
+              stringValue: 'hello',
+              booleanValue: false,
+              nullValue: null,
+              nullValue2: null
+            })
+          )
+          .select(
+            coalesce(field('numberValue'), field('stringValue')).as(
+              'staticMethod'
+            ),
+            field('numberValue')
+              .coalesce(field('stringValue'))
+              .as('instanceMethod'),
+            coalesce(field('nullValue'), field('stringValue')).as(
+              'firstIsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              field('booleanValue')
+            ).as('lastIsNotNull'),
+            coalesce(field('nullValue'), field('nullValue2')).as(
+              'allFieldsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              constant('default')
+            ).as('allFieldsNullWithDefault'),
+            coalesce(
+              field('absentField'),
+              field('numberValue'),
+              constant('default')
+            ).as('withAbsentField')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 1,
+        instanceMethod: 1,
+        firstIsNull: 'hello',
+        lastIsNotNull: false,
+        allFieldsNull: null,
+        allFieldsNullWithDefault: 'default',
+        withAbsentField: 1
       });
     });
 
@@ -6697,4 +6807,659 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       );
     });
   });
+});
+
+(getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY
+  ? apiDescribe
+  : apiDescribe.skip)('Pipeline search', persistence => {
+  addEqualityMatcher();
+  let firestore: Firestore;
+  let restaurantsCollection: CollectionReference;
+
+  const COLLECTION_NAME = 'TextSearchIntegrationTests';
+
+  async function setupRestaurantDocs(
+    collection: CollectionReference
+  ): Promise<CollectionReference<DocumentData>> {
+    const restaurantDocs: { [id: string]: DocumentData } = {
+      sunnySideUp: {
+        name: 'The Sunny Side Up',
+        description:
+          'A cozy neighborhood diner serving classic breakfast favorites all day long, from fluffy pancakes to savory omelets.',
+        location: new GeoPoint(39.7541, -105.0002),
+        menu: '<h3>Breakfast Classics</h3><ul><li>Denver Omelet - $12</li><li>Buttermilk Pancakes - $10</li><li>Steak and Eggs - $16</li></ul><h3>Sides</h3><ul><li>Hash Browns - $4</li><li>Thick-cut Bacon - $5</li><li>Drip Coffee - $2</li></ul>',
+        average_price_per_person: 15
+      },
+      goldenWaffle: {
+        name: 'The Golden Waffle',
+        description:
+          'Specializing exclusively in Belgian-style waffles. Open daily from 6:00 AM to 11:00 AM.',
+        location: new GeoPoint(39.7183, -104.9621),
+        menu: '<h3>Signature Waffles</h3><ul><li>Strawberry Delight - $11</li><li>Chicken and Waffles - $14</li><li>Chocolate Chip Crunch - $10</li></ul><h3>Drinks</h3><ul><li>Fresh OJ - $4</li><li>Artisan Coffee - $3</li></ul>',
+        average_price_per_person: 13
+      },
+      lotusBlossomThai: {
+        name: 'Lotus Blossom Thai',
+        description:
+          'Authentic Thai cuisine featuring hand-crushed spices and traditional family recipes from the Chiang Mai region.',
+        location: new GeoPoint(39.7315, -104.9847),
+        menu: '<h3>Appetizers</h3><ul><li>Spring Rolls - $7</li><li>Chicken Satay - $9</li></ul><h3>Main Course</h3><ul><li>Pad Thai - $15</li><li>Green Curry - $16</li><li>Drunken Noodles - $15</li></ul>',
+        average_price_per_person: 22
+      },
+      mileHighCatch: {
+        name: 'Mile High Catch',
+        description:
+          'Freshly sourced seafood offering a wide variety of Pacific fish and Atlantic shellfish in an upscale atmosphere.',
+        location: new GeoPoint(39.7401, -104.9903),
+        menu: '<h3>From the Raw Bar</h3><ul><li>Oysters (Half Dozen) - $18</li><li>Lobster Cocktail - $22</li></ul><h3>Entrees</h3><ul><li>Pan-Seared Salmon - $28</li><li>King Crab Legs - $45</li><li>Fish and Chips - $19</li></ul>',
+        average_price_per_person: 45
+      },
+      peakBurgers: {
+        name: 'Peak Burgers',
+        description:
+          'Casual burger joint focused on locally sourced Colorado beef and hand-cut fries.',
+        location: new GeoPoint(39.7622, -105.0125),
+        menu: '<h3>Burgers</h3><ul><li>The Peak Double - $12</li><li>Bison Burger - $15</li><li>Veggie Stack - $11</li></ul><h3>Sides</h3><ul><li>Truffle Fries - $6</li><li>Onion Rings - $5</li></ul>',
+        average_price_per_person: 18
+      },
+      solTacos: {
+        name: 'El Sol Tacos',
+        description:
+          'A vibrant street-side taco stand serving up quick, delicious, and traditional Mexican street food.',
+        location: new GeoPoint(39.6952, -105.0274),
+        menu: '<h3>Tacos ($3.50 each)</h3><ul><li>Al Pastor</li><li>Carne Asada</li><li>Pollo Asado</li><li>Nopales (Cactus)</li></ul><h3>Beverages</h3><ul><li>Horchata - $4</li><li>Mexican Coke - $3</li></ul>',
+        average_price_per_person: 12
+      },
+      eastsideTacos: {
+        name: 'Eastside Cantina',
+        description:
+          'Authentic street tacos and hand-shaken margaritas on the vibrant east side of the city.',
+        location: new GeoPoint(39.735, -104.885),
+        menu: '<h3>Tacos</h3><ul><li>Carnitas Tacos - $4</li><li>Barbacoa Tacos - $4.50</li><li>Shrimp Tacos - $5</li></ul><h3>Drinks</h3><ul><li>House Margarita - $9</li><li>Jarritos - $3</li></ul>',
+        average_price_per_person: 18
+      },
+      eastsideChicken: {
+        name: 'Eastside Chicken',
+        description: 'Fried chicken to go - next to Eastside Cantina.',
+        location: new GeoPoint(39.735, -104.885),
+        menu: '<h3>Fried Chicken</h3><ul><li>Drumstick - $4</li><li>Wings - $1</li><li>Sandwich - $9</li></ul><h3>Drinks</h3><ul><li>House Margarita - $9</li><li>Jarritos - $3</li></ul>',
+        average_price_per_person: 12
+      }
+    };
+
+    // TODO(search) - Migrate this over to IndexTestHelper when search supports the equal filter.
+    // Remove any restaurant docs not in the expected set - perhaps these were
+    // set by another dev or test suite. This has potential to cause flakes in another concurrent
+    // run of these tests, if they have added new test docs.
+    const collectionSnapshot = await getDocs(collection);
+    const expectedDocIds = Object.keys(restaurantDocs);
+    const deletes = collectionSnapshot.docs
+      .filter(ds => expectedDocIds.indexOf(ds.id) < 0)
+      .map(ds => deleteDoc(ds.ref));
+    await Promise.all(deletes);
+
+    // Add/overwrite all restaurant docs
+    return testCollectionWithDocs(collection, restaurantDocs);
+  }
+
+  // Resolves in `after` indicating the test suite has finished.
+  // The function passed to withTestDbsPromise will await this promise,
+  // meaning the firestore instance created by withTestDbsSettings will
+  // not be disposed until this is resolved (after the test suite finished).
+  let testSuiteDeferred: Deferred<void> | undefined;
+
+  // Resolves when withTestDbsPromise resolves, indicating that the
+  // resources this method created have been disposed and the next test suite
+  // can begin.
+  let withTestDbsPromise: Promise<unknown> | undefined;
+
+  // Search tests will use restaurant docs
+  before(async () => {
+    // TODO(search) - Migrate this over to IndexTestHelper when search supports the equal filter.
+    // Note: using a static collection of documents for every search test has an inherent risk
+    // of flakiness. Search requires an index on the collection, which is the reason we use a pre-defined
+    // collection. We cannot use the IndexTestHelper because that relies on an equality match to the testID
+    // field. Search currently does not support the equal expression.
+
+    const setupDeferred = new Deferred<void>();
+    testSuiteDeferred = new Deferred<void>();
+    withTestDbsPromise = withTestDbs(
+      persistence,
+      1,
+      async firestoreInstance => {
+        firestore = firestoreInstance[0];
+        restaurantsCollection = collection(firestore, 'SearchIntegrationTests');
+        await setupRestaurantDocs(restaurantsCollection);
+        setupDeferred.resolve();
+
+        return testSuiteDeferred?.promise;
+      }
+    );
+
+    await setupDeferred.promise;
+  });
+
+  after(async () => {
+    testSuiteDeferred?.resolve();
+    await withTestDbsPromise;
+  });
+
+  describe('search stage', () => {
+    describe('DISABLE query expansion', () => {
+      describe('query', () => {
+        // TODO(search) enable with backend support
+        // it('all search features', async () => {
+        //   const queryLocation = new GeoPoint(0, 0);
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         documentMatches('waffles'),
+        //         field('description').matches('breakfast'),
+        //         field('location').geoDistance(queryLocation).lessThan(1000),
+        //         field('avgPrice').between(10, 20)
+        //       ),
+        //       select: [
+        //         field('title'),
+        //         field('menu'),
+        //         field('description'),
+        //         field('location').geoDistance(queryLocation).as('distance')
+        //       ],
+        //       addFields: [score().as('searchScore')],
+        //       offset: 0,
+        //       retrievalDepth: 1000,
+        //       limit: 50,
+        //       sort: [field('location').geoDistance(queryLocation).ascending()],
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle');
+        // });
+
+        it('search full document', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('waffles')
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'goldenWaffle');
+        });
+
+        // TODO(search) enable with backend support
+        // it('search a specific field', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: field('menu').matches('waffles'),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle');
+        // });
+
+        it('geo near query', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: field('location')
+                .geoDistance(new GeoPoint(39.6985, -105.024))
+                .lessThanOrEqual(1000 /* m */)
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'solTacos');
+        });
+
+        // TODO(search) enable with backend support
+        // it('conjunction of text search predicates', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         field('menu').matches('waffles'),
+        //         field('description').matches('diner')
+        //       ),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+        // });
+
+        // TODO(search) enable with backend support
+        // it('conjunction of text search and geo near', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         field('menu').matches('tacos'),
+        //         field('location')
+        //           .geoDistance(new GeoPoint(39.6985, -105.024))
+        //           .lessThan(10_000 /* meters */)
+        //       ),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'solTacos');
+        // });
+
+        it('negate match', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('coffee -waffles')
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'sunnySideUp');
+        });
+
+        // TODO(search) enable with backend support
+        // it('rquery search the document with conjunction and disjunction', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: documentMatches('(waffles OR pancakes) AND coffee'),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+        // });
+
+        it('rquery as query param', async () => {
+          const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
+            query: 'chicken wings'
+            // queryEnhancement: 'disabled'
+          });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'eastsideChicken');
+        });
+
+        // TODO(search) enable with backend support
+        // it('rquery supports field paths', async () => {
+        //   const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
+        //     query:
+        //       'menu:(waffles OR pancakes) AND description:"breakfast all day"',
+        //     queryEnhancement: 'disabled'
+        //   });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'sunnySideUp');
+        // });
+
+        // TODO(search) enable with backend support
+        // it('conjunction of rquery and expression', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         documentMatches('tacos'),
+        //         field('average_price_per_person').between(8, 15)
+        //       ),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'solTacos');
+        // });
+      });
+
+      describe('addFields', () => {
+        it('supports score', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('waffles'),
+              addFields: [score().as('searchScore')]
+              // queryEnhancement: 'disabled'
+            })
+            .select('name', 'searchScore');
+
+          const snapshot = await execute(ppl);
+          expect(snapshot.results.length).to.equal(1);
+          expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
+          expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+        });
+
+        // TODO(search) enable with backend support
+        // it('supports multiple fields', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: documentMatches('waffles'),
+        //       addFields: [
+        //         score().as('searchScore'),
+        //         field('menu').snippet('waffles').as('snippet')
+        //       ],
+        //       queryEnhancement: 'disabled'
+        //     })
+        //     .select('name', 'searchScore', 'snippet');
+        //
+        //   const snapshot = await execute(ppl);
+        //   expect(snapshot.results.length).to.equal(1);
+        //   expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
+        //   expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+        //   expect(snapshot.results[0].get('snippet')?.length).to.be.greaterThan(
+        //     0
+        //   );
+        // });
+      });
+
+      // TODO(search) enable with backend support
+      // describe('select', () => {
+      //   it('topicality score and snippet', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: field('menu').matches('waffles'),
+      //         select: [
+      //           field('name'),
+      //           'location',
+      //           score().as('searchScore'),
+      //           field('menu').snippet('waffles').as('snippet')
+      //         ],
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expect(snapshot.results.length).to.equal(1);
+      //     expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
+      //     expect(snapshot.results[0].get('location')).to.equal(
+      //       new GeoPoint(39.7183, -104.9621)
+      //     );
+      //     expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+      //     expect(snapshot.results[0].get('snippet')?.length).to.be.greaterThan(
+      //       0
+      //     );
+      //     expect(Object.keys(snapshot.results[0].data()).sort()).to.deep.equal([
+      //       'location',
+      //       'name',
+      //       'searchScore',
+      //       'snippet'
+      //     ]);
+      //   });
+      // });
+
+      describe('sort', () => {
+        it('by score', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('tacos'),
+              sort: score().descending()
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'eastsideTacos', 'solTacos');
+        });
+
+        it('by distance', async () => {
+          const queryLocation = new GeoPoint(39.6985, -105.024);
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: field('location')
+                .geoDistance(queryLocation)
+                .lessThanOrEqual(5600),
+              sort: field('location').geoDistance(queryLocation).ascending()
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(
+            snapshot,
+            'solTacos',
+            'lotusBlossomThai',
+            'mileHighCatch'
+          );
+        });
+
+        // TODO(search) enable with backend support
+        // it('by multiple orderings', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: field('menu').matches('tacos OR chicken'),
+        //       sort: [
+        //         field('location')
+        //           .geoDistance(new GeoPoint(39.6985, -105.024))
+        //           .ascending(),
+        //         score().descending()
+        //       ],
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(
+        //     snapshot,
+        //     'solTacos',
+        //     'eastsideTacos',
+        //     'eastsideChicken'
+        //   );
+        // });
+      });
+
+      // TODO(search) enable with backend support
+      // describe('limit', () => {
+      //   it('limits the number of documents returned', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: constant(true),
+      //         sort: field('location')
+      //           .geoDistance(new GeoPoint(39.6985, -105.024))
+      //           .ascending(),
+      //         limit: 5,
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expectResults(
+      //       snapshot,
+      //       'solTacos',
+      //       'lotusBlossomThai',
+      //       'goldenWaffle'
+      //     );
+      //   });
+      //
+      //   it('limits the number of documents scored', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: field('menu').matches(
+      //           'chicken OR tacos OR fish OR waffles'
+      //         ),
+      //         retrievalDepth: 6,
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expectResults(
+      //       snapshot,
+      //       'eastsideChicken',
+      //       'eastsideTacos',
+      //       'solTacos',
+      //       'mileHighCatch'
+      //     );
+      //   });
+      // });
+
+      // TODO(search) enable with backend support
+      // describe('offset', () => {
+      //   it('skips N documents', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: constant(true),
+      //         limit: 2,
+      //         offset: 2,
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expectResults(snapshot, 'eastsideChicken', 'eastsideTacos');
+      //   });
+      // });
+    });
+
+    // TODO(search) enable with backend support
+    // describe('REQUIRE query expansion', () => {
+    //   it('search full document', async () => {
+    //     const ppl = firestore
+    //       .pipeline()
+    //       .collection(COLLECTION_NAME)
+    //       .search({
+    //         query: documentMatches('waffles'),
+    //         queryEnhancement: 'required'
+    //       });
+    //
+    //     const snapshot = await execute(ppl);
+    //     expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+    //   });
+    //
+    //   it('search a specific field', async () => {
+    //     const ppl = firestore
+    //       .pipeline()
+    //       .collection(COLLECTION_NAME)
+    //       .search({
+    //         query: field('menu').matches('waffles'),
+    //         queryEnhancement: 'required'
+    //       });
+    //
+    //     const snapshot = await execute(ppl);
+    //     expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+    //   });
+    // });
+  });
+
+  // TODO(search) enable with backend support
+  // describe('snippet', () => {
+  //   it('snippet options', async () => {
+  //     const ppl1 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: field('menu').matches('waffles'),
+  //         addFields: [
+  //           field('menu')
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 10
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot1 = await execute(ppl1);
+  //     expect(snapshot1.results.length).to.equal(1);
+  //     expect(snapshot1.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot1.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     const ppl2 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: field('menu').matches('waffles'),
+  //         addFields: [
+  //           field('menu')
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 1000
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot2 = await execute(ppl2);
+  //     expect(snapshot2.results.length).to.equal(1);
+  //     expect(snapshot2.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+  //       snapshot2.results[0].get('snippet')?.length
+  //     );
+  //   });
+  //
+  //   it('snippet on multiple fields', async () => {
+  //     // Get snippet from 1 field
+  //     const ppl1 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: documentMatches('waffle'),
+  //         addFields: [
+  //           field('menu')
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 2000
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot1 = await execute(ppl1);
+  //     expect(snapshot1.results.length).to.equal(1);
+  //     expect(snapshot1.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot1.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     // Get snippet from 2 fields
+  //     const ppl2 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: documentMatches('waffle'),
+  //         addFields: [
+  //           concat(field('menu'), field('description'))
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 2000
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot2 = await execute(ppl2);
+  //     expect(snapshot2.results.length).to.equal(1);
+  //     expect(snapshot2.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     // Expect snippet from 2 fields to be longer than snippet from one field
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+  //       snapshot2.results[0].get('snippet')?.length
+  //     );
+  //   });
+  // });
 });

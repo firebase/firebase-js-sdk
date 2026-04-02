@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AliasedAggregate class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 An AggregateFunction with alias.
 
 <b>Signature:</b>
@@ -25,19 +22,16 @@ export declare class AliasedAggregate
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(aggregate, alias, \_methodName)](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregateconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>AliasedAggregate</code> class |
+|  [(constructor)(aggregate, alias, \_methodName)](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregateconstructor) |  | Constructs a new instance of the <code>AliasedAggregate</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [aggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregateaggregate) |  | [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) | <b><i>(Public Preview)</i></b> |
-|  [alias](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregatealias) |  | string | <b><i>(Public Preview)</i></b> |
+|  [aggregate](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregateaggregate) |  | [AggregateFunction](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunction_class) |  |
+|  [alias](./firestore_lite_pipelines.aliasedaggregate.md#aliasedaggregatealias) |  | string |  |
 
 ## AliasedAggregate.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Constructs a new instance of the `AliasedAggregate` class
 
@@ -57,9 +51,6 @@ constructor(aggregate: AggregateFunction, alias: string, _methodName: string | u
 
 ## AliasedAggregate.aggregate
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -67,9 +58,6 @@ readonly aggregate: AggregateFunction;
 ```
 
 ## AliasedAggregate.alias
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

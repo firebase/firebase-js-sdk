@@ -39,7 +39,6 @@ import { ExpUserDataWriter } from './user_data_writer';
 
 declare module './database' {
   /**
-   * @beta
    * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
    *
    * @example
@@ -53,7 +52,6 @@ declare module './database' {
 }
 
 /**
- * @beta
  * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -88,7 +86,6 @@ declare module './database' {
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
 /**
- * @beta
  * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -200,7 +197,6 @@ export function execute(
 }
 
 /**
- * @beta
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example

@@ -85,7 +85,10 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from '../../src/lite-api/stage_options';
 
 export {
@@ -217,6 +220,8 @@ export {
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   length,
   arraySum,
@@ -225,6 +230,12 @@ export {
   variable,
   currentDocument,
   timestampExtract,
+  // snippet,
+  // SnippetOptions,
+  score,
+  // matches,
+  documentMatches,
+  geoDistance,
   AliasedExpression,
   Field,
   Constant,

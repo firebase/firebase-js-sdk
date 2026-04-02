@@ -1,5 +1,4 @@
 /**
- * @beta
  * @license
  * Copyright 2025 Google LLC
  *
@@ -32,12 +31,11 @@ import { CollectionReference, DocumentReference } from './reference';
 import { VectorValue } from './vector_value';
 
 /**
- * @beta
  * Options defining how a Stage is evaluated.
  */
-export interface StageOptions {
+// eslint-disable-next-line -- eslint should not convert this type to an interface
+export type StageOptions = {
   /**
-   * @beta
    * An escape hatch to set options not known at SDK build time. These values
    * will be passed directly to the Firestore backend and not used by the SDK.
    *
@@ -57,20 +55,17 @@ export interface StageOptions {
   rawOptions?: {
     [name: string]: unknown;
   };
-}
+};
 /**
- * @beta
  * Options defining how a CollectionStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(collection:1)}.
  */
 export type CollectionStageOptions = StageOptions & {
   /**
-   * @beta
    * Name or reference to the collection that will be used as the Pipeline source.
    */
   collection: string | CollectionReference;
 
   /**
-   * @beta
    * Specifies the name of an index to be used for a query, overriding the query optimizer's default choice.
    * This can be useful for performance tuning in specific scenarios where the default index selection
    * does not yield optimal performance.
@@ -81,7 +76,6 @@ export type CollectionStageOptions = StageOptions & {
 };
 
 /**
- * @beta
  * Defines the configuration options for a CollectionGroupStage within a pipeline.
  * This type extends {@link @firebase/firestore/pipelines#StageOptions} and provides specific settings for how a collection group
  * is identified and processed during pipeline execution.
@@ -90,13 +84,11 @@ export type CollectionStageOptions = StageOptions & {
  */
 export type CollectionGroupStageOptions = StageOptions & {
   /**
-   * @beta
    * ID of the collection group to use as the Pipeline source.
    */
   collectionId: string;
 
   /**
-   * @beta
    * Specifies the name of an index to be used for a query, overriding the query optimizer's default choice.
    * This can be useful for performance tuning in specific scenarios where the default index selection
    * does not yield optimal performance.
@@ -119,17 +111,14 @@ export type SubcollectionStageOptions = StageOptions & {
 };
 
 /**
- * @beta
  * Options defining how a DatabaseStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(database:1)}.
  */
 export type DatabaseStageOptions = StageOptions & {};
 /**
- * @beta
  * Options defining how a DocumentsStage is evaluated. See {@link @firebase/firestore/pipelines#PipelineSource.(documents:1)}.
  */
 export type DocumentsStageOptions = StageOptions & {
   /**
-   * @beta
    * An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline.
    * The converters for these DocumentReferences will be ignored and not have an effect on this pipeline.
    * There must be at least one document specified in the array.
@@ -137,91 +126,66 @@ export type DocumentsStageOptions = StageOptions & {
   docs: Array<string | DocumentReference>;
 };
 /**
- * @beta
  * Options defining how an AddFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(addFields:1)}.
  */
 export type AddFieldsStageOptions = StageOptions & {
   /**
-   * @beta
    *  The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
    *  At least one field is required.
    */
   fields: Selectable[];
 };
 /**
- * @beta
  * Options defining how a RemoveFieldsStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(removeFields:1)}.
  */
 export type RemoveFieldsStageOptions = StageOptions & {
   /**
-   * @beta
    * The fields to remove from each document.
    */
   fields: Array<Field | string>;
 };
 /**
- * @public
- * Options defining how a DefineStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(define:1)}.
- */
-export type DefineStageOptions = StageOptions & {
-  /**
-   * @public
-   * The variables to define.
-   */
-  variables: AliasedExpression[];
-};
-/**
- * @beta
  * Options defining how a SelectStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(select:1)}.
  */
 export type SelectStageOptions = StageOptions & {
   /**
-   * @beta
    * The fields to include in the output documents, specified as {@link @firebase/firestore/pipelines#Selectable} expression
    * or as a string value indicating the field name.
    */
   selections: Array<Selectable | string>;
 };
 /**
- * @beta
  * Options defining how a WhereStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(where:1)}.
  */
 export type WhereStageOptions = StageOptions & {
   /**
-   * @beta
    * The {@link @firebase/firestore/pipelines#BooleanExpression} to apply as a filter for each input document to this stage.
    */
   condition: BooleanExpression;
 };
 /**
- * @beta
  * Options defining how an OffsetStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(offset:1)}.
  */
 export type OffsetStageOptions = StageOptions & {
   /**
-   * @beta
    * The number of documents to skip.
    */
   offset: number;
 };
 /**
- * @beta
  * Options defining how a LimitStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(limit:1)}.
  */
 export type LimitStageOptions = StageOptions & {
   /**
-   * @beta
    * The maximum number of documents to return.
    */
   limit: number;
 };
 /**
- * @beta
  * Options defining how a DistinctStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(distinct:1)}.
  */
 export type DistinctStageOptions = StageOptions & {
   /**
-   * @beta
    * The {@link @firebase/firestore/pipelines#Selectable} expressions or field names to consider when determining
    * distinct value combinations (groups).
    */
@@ -229,42 +193,35 @@ export type DistinctStageOptions = StageOptions & {
 };
 
 /**
- * @beta
  * Options defining how an AggregateStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(aggregate:1)}.
  */
 export type AggregateStageOptions = StageOptions & {
   /**
-   * @beta
    * The {@link @firebase/firestore/pipelines#AliasedAggregate} values specifying aggregate operations to
    * perform on the input documents.
    */
   accumulators: AliasedAggregate[];
   /**
-   * @beta
    * The {@link @firebase/firestore/pipelines#Selectable} expressions or field names to consider when determining
    * distinct value combinations (groups), which will be aggregated over.
    */
   groups?: Array<string | Selectable>;
 };
 /**
- * @beta
  * Options defining how a FindNearestStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(findNearest:1)}.
  */
 export type FindNearestStageOptions = StageOptions & {
   /**
-   * @beta
    * Specifies the field to be used. This can be a string representing the field path
    * (e.g., 'fieldName', 'nested.fieldName') or an object of type {@link @firebase/firestore/pipelines#Field}
    * representing a more complex field expression.
    */
   field: Field | string;
   /**
-   * @beta
    * Specifies the query vector value, to which the vector distance will be computed.
    */
   vectorValue: VectorValue | number[];
   /**
-   * @beta
    * Specifies the method used to compute the distance between vectors.
    *
    * Possible values are:
@@ -274,32 +231,138 @@ export type FindNearestStageOptions = StageOptions & {
    */
   distanceMeasure: 'euclidean' | 'cosine' | 'dot_product';
   /**
-   * @beta
    * The maximum number of documents to return from the FindNearest stage.
    */
   limit?: number;
   /**
-   * @beta
    * If set, specifies the field on the output documents that will contain
    * the computed vector distance for the document. If not set, the computed
    * vector distance will not be returned.
    */
   distanceField?: string;
 };
+
 /**
  * @beta
+ *
+ * Specifies if the `matches` and `snippet` expressions will enhance the user
+ * provided query to perform matching of synonyms, misspellings, lemmatization,
+ * stemming.
+ *
+ * required - search will fail if the query enhancement times out or if the query
+ *                    enhancement is not supported by the project's DRZ compliance
+ *                    requirements.
+ * preferred - search will fall back to the un-enhanced, user provided query, if
+ *                    the query enhancement fails.
+ */
+export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
+
+/**
+ * @beta
+ * Options defining how a SearchStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
+ */
+export type SearchStageOptions = StageOptions & {
+  /**
+   * Specifies the search query that will be used to query and score documents
+   * by the search stage.
+   *
+   * The query can be expressed as an `Expression`, which will be used to score
+   * and filter the results. Not all expressions supported by Pipelines
+   * are supported in the Search query.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection('restaurants').search({
+   *   query: or(
+   *     documentMatches("breakfast"),
+   *     field('menu').matches('waffle AND coffee')
+   *   )
+   * })
+   * ```
+   *
+   * The query can also be expressed as a string in the Search domain-specific language (DSL):
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection('restaurants').search({
+   *   query: 'menu:(waffle and coffee) OR breakfast'
+   * })
+   * ```
+   *
+   * The query can also represent a geoDistance query:
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(new GeoPoint(0, 0)).lessThanOrEqual(1000)
+   * })
+   * ```
+   */
+  query: BooleanExpression | string;
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
+  //  */
+  // languageCode?: string;
+
+  // TODO(search) add indexPartition after languageCode
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The maximum number of documents to retrieve. Documents will be retrieved in the
+  //  * pre-sort order specified by the search index.
+  //  */
+  // retrievalDepth?: number;
+
+  /**
+   * Orderings specify how the returned documents are sorted.
+   * One or more ordering are required.
+   */
+  sort?: Ordering | Ordering[];
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The number of documents to skip from the beginning of the search result set.
+  //  */
+  // offset?: number;
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The maximum number of documents to return from the Search stage.
+  //  */
+  // limit?: number;
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * The fields to keep or add to each document,
+  //  * specified as an array of {@link @firebase/firestore/pipelines#Selectable}.
+  //  */
+  // select?: Array<Selectable | string>;
+
+  /**
+   * The fields to add to each document, specified as a {@link @firebase/firestore/pipelines#Selectable}.
+   */
+  addFields?: Selectable[];
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * Define the query expansion behavior used by full-text search expressions
+  //  * in this search stage.
+  //  */
+  // queryEnhancement?: QueryEnhancement;
+};
+/**
  * Options defining how a ReplaceWithStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(replaceWith:1)}.
  */
 export type ReplaceWithStageOptions = StageOptions & {
   /**
-   * @beta
    * The name of a field that contains a map or an {@link @firebase/firestore/pipelines#Expression} that
    * evaluates to a map.
    */
   map: Expression | string;
 };
 /**
- * @beta
  * Defines the options for evaluating a sample stage within a pipeline.
  * This type combines common {@link @firebase/firestore/pipelines#StageOptions} with a specific configuration
  * where only one of the defined sampling methods can be applied.
@@ -309,7 +372,6 @@ export type ReplaceWithStageOptions = StageOptions & {
 export type SampleStageOptions = StageOptions &
   OneOf<{
     /**
-     * @beta
      * If set, specifies the sample rate as a percentage of the
      * input documents.
      *
@@ -317,7 +379,6 @@ export type SampleStageOptions = StageOptions &
      */
     percentage: number;
     /**
-     * @beta
      * If set, specifies the sample rate as a total number of
      * documents to sample from the input documents.
      *
@@ -326,43 +387,35 @@ export type SampleStageOptions = StageOptions &
     documents: number;
   }>;
 /**
- * @beta
  * Options defining how a UnionStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(union:1)}.
  */
 export type UnionStageOptions = StageOptions & {
   /**
-   * @beta
    * Specifies the other Pipeline to union with.
    */
   other: Pipeline;
 };
 
 /**
- * @beta
  * Represents the specific options available for configuring an `UnnestStage` within a pipeline.
  */
 export type UnnestStageOptions = StageOptions & {
   /**
-   * @beta
    * A `Selectable` object that defines an array expression to be un-nested
    * and the alias for the un-nested field.
    */
   selectable: Selectable;
   /**
-   * @beta
    * If set, specifies the field on the output documents that will contain the
    * offset (starting at zero) that the element is from the original array.
    */
   indexField?: string;
 };
 /**
- * @beta
- * @beta
  * Options defining how a SortStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(sort:1)}.
  */
 export type SortStageOptions = StageOptions & {
   /**
-   * @beta
    * Orderings specify how the input documents are sorted.
    * One or more ordering are required.
    */

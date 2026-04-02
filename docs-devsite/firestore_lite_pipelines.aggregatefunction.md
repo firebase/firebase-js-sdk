@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # AggregateFunction class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 A class that represents an aggregate function.
 
 <b>Signature:</b>
@@ -25,24 +22,21 @@ export declare class AggregateFunction
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(name, params)](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>AggregateFunction</code> class |
+|  [(constructor)(name, params)](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionconstructor) |  | Constructs a new instance of the <code>AggregateFunction</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [exprType](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionexprtype) |  | [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> |
+|  [exprType](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionexprtype) |  | [ExpressionType](./firestore_lite_pipelines.md#expressiontype) |  |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [as(name)](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document. |
+|  [as(name)](./firestore_lite_pipelines.aggregatefunction.md#aggregatefunctionas) |  | Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document. |
 
 ## AggregateFunction.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Constructs a new instance of the `AggregateFunction` class
 
@@ -61,9 +55,6 @@ constructor(name: string, params: Expression[]);
 
 ## AggregateFunction.exprType
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -71,9 +62,6 @@ exprType: ExpressionType;
 ```
 
 ## AggregateFunction.as()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Assigns an alias to this AggregateFunction. The alias specifies the name that the aggregated value will have in the output document.
 
