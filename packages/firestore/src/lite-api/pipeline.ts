@@ -26,6 +26,7 @@ import {
   aliasedAggregateToMap,
   fieldOrExpression,
   selectablesToMap,
+  selectablesToObject,
   vectorToExpr
 } from '../util/pipeline_util';
 import { isNumber, isString } from '../util/types';
@@ -49,7 +50,8 @@ import {
   isAliasedAggregate,
   toField,
   isOrdering,
-  isExpr
+  isExpr,
+  documentMatches
 } from './expressions';
 import {
   AddFields,
@@ -69,7 +71,8 @@ import {
   Delete,
   Update,
   Unnest,
-  Where
+  Where,
+  Search
 } from './stage';
 import {
   AddFieldsStageOptions,
@@ -81,6 +84,7 @@ import {
   RemoveFieldsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
+  SearchStageOptions,
   SelectStageOptions,
   SortStageOptions,
   StageOptions,
@@ -837,6 +841,80 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       options.distanceMeasure,
       internalOptions
     );
+
+    // Add stage to the pipeline
+    return this._addStage(stage);
+  }
+
+  // TODO(search) link to external documentation citing list of supported
+  // expressions, when that documentation is created. List is not maintained
+  // in the SDK because the list will change as the backend enables support.
+  /**
+   * @beta
+   * Add a search stage to the Pipeline. The search stage supports
+   * full-text search and geo search expressions.
+   *
+   * @remarks This must be the first stage of the pipeline.
+   * @remarks A limited set of expressions are supported in the search stage.
+   *
+   * @example
+   * ```typescript
+   * // Full-text search example
+   * firestore.pipeline().collection("restaurants")
+   * .search({
+   *   query: documentMatches("waffles OR pancakes"),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   *   addFields: [
+   *     score().as("searchScore"),
+   *   ]
+   * })
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Geo distance search example
+   * const queryLocation = new GeoPoint(0, 0);
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   * })
+   * ```
+   *
+   * @param options - An object that specifies parameters for the stage.
+   * @return A new `Pipeline` object with this stage appended to the stage list.
+   */
+  search(options: SearchStageOptions): Pipeline {
+    // Convert user land convenience types to internal types
+    const addFields: Record<string, Expression> | undefined = options.addFields
+      ? selectablesToObject(options.addFields)
+      : undefined;
+    const query: BooleanExpression = isExpr(options.query)
+      ? options.query
+      : documentMatches(options.query);
+    const sort: Ordering[] | undefined = isOrdering(options.sort)
+      ? [options.sort]
+      : options.sort;
+
+    const select: Record<string, Expression> | undefined = undefined;
+    // TODO(search) enable with backend support
+    // select = options.select
+    //   ? selectablesToObject(options.select)
+    //   : undefined;
+
+    const internalOptions = {
+      ...options,
+      addFields,
+      select,
+      query,
+      sort
+    };
+
+    // Create stage object
+    const stage = new Search(internalOptions);
 
     // Add stage to the pipeline
     return this._addStage(stage);

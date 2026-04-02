@@ -30,7 +30,9 @@ import {
   ExecutePipelineRequest as ProtoExecutePipelineRequest,
   ExecutePipelineResponse as ProtoExecutePipelineResponse
 } from '../../../src/protos/firestore_proto_api';
+import { constant, field } from '../../lite/pipeline_export';
 import { newTestFirestore } from '../../util/api_helpers';
+import { describe } from '../../util/mocha_extensions';
 
 const FIRST_CALL = 0;
 const EXECUTE_PIPELINE_REQUEST = 3;
@@ -296,5 +298,111 @@ describe('execute(Pipeline|PipelineOptions)', () => {
     expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
       executePipelineRequest
     );
+  });
+});
+
+describe('stage serialization', () => {
+  describe('search stage', () => {
+    it('serializes the pipeline', async () => {
+      const firestore = newTestFirestore();
+      const spy = fakePipelineResponse(firestore);
+
+      await execute({
+        pipeline: firestore
+          .pipeline()
+          .collection('foo')
+          .search({
+            query: 'foo',
+            // limit: 1,
+            // retrievalDepth: 2,
+            // offset: 3,
+            // queryEnhancement: 'required',
+            // languageCode: 'en-US',
+            sort: [field('foo').ascending()],
+            addFields: [constant(true).as('bar')]
+            // select: [field('id')]
+          })
+      });
+
+      const executePipelineRequest: ProtoExecutePipelineRequest = {
+        database: 'projects/new-project/databases/(default)',
+        structuredPipeline: {
+          'options': {},
+          'pipeline': {
+            'stages': [
+              {
+                'args': [
+                  {
+                    'referenceValue': '/foo'
+                  }
+                ],
+                'name': 'collection',
+                'options': {}
+              },
+              {
+                'args': [],
+                'name': 'search',
+                'options': {
+                  'query': {
+                    'functionValue': {
+                      'args': [
+                        {
+                          'stringValue': 'foo'
+                        }
+                      ],
+                      'name': 'document_matches'
+                    }
+                  },
+                  // 'limit': { integerValue: '1' },
+                  // 'retrieval_depth': { integerValue: '2' },
+                  // 'offset': { integerValue: '3' },
+                  // 'query_enhancement': { stringValue: 'required' },
+                  // 'language_code': { stringValue: 'en-US' },
+                  // 'select': {
+                  //   'mapValue': {
+                  //     'fields': {
+                  //       'id': {
+                  //         'fieldReferenceValue': 'id'
+                  //       }
+                  //     }
+                  //   }
+                  // },
+                  'sort': {
+                    'arrayValue': {
+                      'values': [
+                        {
+                          'mapValue': {
+                            'fields': {
+                              'direction': {
+                                'stringValue': 'ascending'
+                              },
+                              'expression': {
+                                'fieldReferenceValue': 'foo'
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  'add_fields': {
+                    'mapValue': {
+                      'fields': {
+                        'bar': {
+                          'booleanValue': true
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      };
+      expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+        executePipelineRequest
+      );
+    });
   });
 });

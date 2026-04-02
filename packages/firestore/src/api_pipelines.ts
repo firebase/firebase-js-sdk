@@ -50,7 +50,10 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from './lite-api/stage_options';
 
 export {
@@ -185,6 +188,13 @@ export {
   timestampTruncate,
   timestampExtract,
   split,
+  score,
+  documentMatches,
+  geoDistance,
+  // TODO(search) add with backend support
+  // snippet,
+  // SnippetOptions,
+  // matches,
   Expression,
   AliasedExpression,
   Field,
