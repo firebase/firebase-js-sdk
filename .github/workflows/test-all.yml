@@ -269,7 +269,7 @@ jobs:
 
   coveralls-finish:
     name: Finalize Coveralls
-    needs: [test-the-rest-coverage, test-auth-coverage, test-firestore-coverage]
+    needs: [test-the-rest, test-auth, test-firestore]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished
