@@ -90,6 +90,20 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     );
   }
 
+  /** Decodes binary WebSocket responses to strings */
+  private decoder: TextDecoder | undefined = undefined;
+
+  /**
+   * Decodes a WebSocket response from a Uint8Array to a JSON object.
+   * Emulator does not send messages as Uint8Arrays, but prod does.
+   */
+  private decodeBinaryResponse(data: ArrayBuffer): string {
+    if (!this.decoder) {
+      this.decoder = new TextDecoder('utf-8');
+    }
+    return this.decoder.decode(data);
+  }
+
   /** The current connection to the server. Undefined if disconnected. */
   private connection: WebSocket | undefined = undefined;
 
@@ -141,10 +155,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       }
       const ws = new connectWebSocket(this.endpointUrl);
       this.connection = ws;
-      if (!this._isUsingEmulator) {
-        // emulator sends messages as JSON strings, prod sends as binary
-        this.connection!.binaryType = 'arraybuffer';
-      }
+      this.connection!.binaryType = 'arraybuffer';
       ws.onopen = () => {
         this.onConnectionReady();
         resolve();
@@ -312,15 +323,5 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       );
     }
     return result as DataConnectStreamResponse<Data>;
-  }
-
-  /**
-   * Decodes a WebSocket response from a Uint8Array to a JSON object. Emulator does not
-   * send messages as Uint8Arrays, but prod does.
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private decodeBinaryResponse(data: Uint8Array): any {
-    const decoder = new TextDecoder('utf-8');
-    return decoder.decode(data);
   }
 }
