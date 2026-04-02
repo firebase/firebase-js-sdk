@@ -314,13 +314,13 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     return result as DataConnectStreamResponse<Data>;
   }
 
-  /** 
-   * Decodes a WebSocket response from a Uint8Array to a JSON object. Emulator does not 
+  /**
+   * Decodes a WebSocket response from a Uint8Array to a JSON object. Emulator does not
    * send messages as Uint8Arrays, but prod does.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private decodeBinaryResponse(data: Uint8Array): any {
-    const decoder = new TextDecoder("utf-8");
+    const decoder = new TextDecoder('utf-8');
     return decoder.decode(data);
   }
 }
