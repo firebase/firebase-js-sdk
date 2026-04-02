@@ -84,7 +84,11 @@ export async function callCloudOrDevice<Response>(
           inferenceSource: InferenceSource.IN_CLOUD
         };
       } catch (e) {
-        if (e instanceof AIError && errorsCausingFallback.includes(e.code)) {
+        if (
+          e instanceof AIError &&
+          errorsCausingFallback.includes(e.code) &&
+          (await chromeAdapter.isAvailable(request))
+        ) {
           return {
             response: await onDeviceCall(),
             inferenceSource: InferenceSource.ON_DEVICE

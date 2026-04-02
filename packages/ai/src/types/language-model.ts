@@ -57,12 +57,18 @@ export interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
   expectedInputs?: LanguageModelExpected[];
-  monitor?: (monitor: {
-    addEventListener: (
-      eventType: 'downloadprogress',
-      eventListener: (e: { loaded: number }) => void
-    ) => void;
-  }) => void;
+  monitor?: (monitor: LanguageModelDownloadMonitor) => void;
+}
+
+export interface LanguageModelDownloadMonitor {
+  addEventListener: (
+    eventType: 'downloadprogress',
+    eventListener: (e: { loaded: number }) => void
+  ) => void;
+  removeEventListener: (
+    eventType: 'downloadprogress',
+    eventListener: (e: { loaded: number }) => void
+  ) => void;
 }
 
 /**

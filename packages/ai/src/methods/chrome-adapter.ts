@@ -48,8 +48,10 @@ const defaultExpectedInputs: LanguageModelExpected[] = [{ type: 'image' }];
 export class ChromeAdapterImpl implements ChromeAdapter {
   // Visible for testing
   static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
-  private isDownloading = false;
-  downloadPromise: Promise<LanguageModel | void> | undefined;
+  // Promise for on-device model download completion
+  downloadPromise: Promise<LanguageModel | void> | null = null;
+  // Monitor for download progress
+  private monitor: Event | null = null;
   private oldSession: LanguageModel | undefined;
   onDeviceParams: OnDeviceParams = {
     createOptions: {
@@ -117,7 +119,6 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         availability === Availability.DOWNLOADABLE ||
         availability === Availability.DOWNLOADING
       ) {
-        // TODO(chholland): Better user experience during download - progress?
         logger.debug(`Waiting for download of LanguageModel to complete.`);
         await this.downloadPromise;
         return true;
@@ -238,7 +239,15 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       this.onDeviceParams.createOptions
     );
 
-    if (availability === Availability.DOWNLOADABLE) {
+    /**
+     * Download may have been automatically started by Chrome or other
+     * code, in which case we should still call create() to get a promise
+     * for when the download completes.
+     */
+    if (
+      availability === Availability.DOWNLOADABLE ||
+      availability === Availability.DOWNLOADING
+    ) {
       this.download(onDownloadProgress);
     }
 
@@ -248,18 +257,17 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Triggers out-of-band download of an on-device model.
    *
-   * Chrome only downloads models as needed. Chrome knows a model is needed when code calls
-   * LanguageModel.create.
+   * Chrome may automatically begin a download on startup or
+   * it may trigger a download when code calls LanguageModel.create.
    *
    * Since Chrome manages the download, the SDK can only avoid redundant download requests by
    * tracking if a download has previously been requested.
    */
   private download(onDownloadProgress?: (progressValue: number) => void): void {
-    if (this.isDownloading) {
+    if (this.downloadPromise) {
       return;
     }
-    this.isDownloading = true;
-    const options = this.onDeviceParams.createOptions;
+    const options = { ...this.onDeviceParams.createOptions };
     if (options && !options.monitor && onDownloadProgress) {
       options.monitor = m => {
         m.addEventListener('downloadprogress', e => {
@@ -268,9 +276,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       };
     }
     this.downloadPromise = this.languageModelProvider
-      ?.create(this.onDeviceParams.createOptions)
+      ?.create(options)
       .finally(() => {
-        this.isDownloading = false;
+        this.downloadPromise = null;
       });
   }
 

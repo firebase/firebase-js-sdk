@@ -397,6 +397,36 @@ describe('ChromeAdapter', () => {
       ).to.be.false;
     });
   });
+  describe('downloadIfAvailable', () => {
+    it('calls create() with listener if downloadable', async () => {
+      const progressCallback = stub();
+      const mockCreate = stub().resolves();
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: stub().resolves(Availability.DOWNLOADABLE),
+          create: mockCreate
+        } as unknown as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable(progressCallback);
+      await adapter.downloadPromise;
+      expect(mockCreate.getCall(0).args[0].monitor).to.exist;
+    });
+    it('calls create() with listener if downloading', async () => {
+      const progressCallback = stub();
+      const mockCreate = stub().resolves();
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: stub().resolves(Availability.DOWNLOADING),
+          create: mockCreate
+        } as unknown as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable(progressCallback);
+      await adapter.downloadPromise;
+      expect(mockCreate.getCall(0).args[0].monitor).to.exist;
+    });
+  });
   describe('generateContent', () => {
     it('throws if Chrome API is undefined', async () => {
       const adapter = new ChromeAdapterImpl(

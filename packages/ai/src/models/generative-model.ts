@@ -97,7 +97,9 @@ export class GenerativeModel extends AIModel {
    *
    * @public
    */
-  async initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void> {
+  async initializeDeviceModel(
+    onDownloadProgress?: (progressValue: number) => void
+  ): Promise<void> {
     if (
       !this.chromeAdapter ||
       this.chromeAdapter.mode === InferenceMode.ONLY_IN_CLOUD
@@ -112,8 +114,12 @@ export class GenerativeModel extends AIModel {
         AIErrorCode.API_NOT_ENABLED,
         'Local LanguageModel API not available in this environment.'
       );
-      // No reason to throw if not in ONLY_ON_DEVICE mode.
-      logger.debug(notEnabledError.message);
+      if (this.chromeAdapter.mode === InferenceMode.ONLY_ON_DEVICE) {
+        throw notEnabledError;
+      } else {
+        // No reason to throw if not in ONLY_ON_DEVICE mode.
+        logger.debug(notEnabledError.message);
+      }
     }
     await (this.chromeAdapter as ChromeAdapterImpl).downloadPromise;
   }

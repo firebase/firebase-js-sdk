@@ -897,12 +897,10 @@ export type Language = (typeof Language)[keyof typeof Language];
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
+    // Warning: (ae-forgotten-export) The symbol "LanguageModelDownloadMonitor" needs to be exported by the entry point index.d.ts
+    //
     // (undocumented)
-    monitor?: (monitor: {
-        addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
-            loaded: number;
-        }) => void) => void;
-    }) => void;
+    monitor?: (monitor: LanguageModelDownloadMonitor) => void;
     // (undocumented)
     temperature?: number;
     // (undocumented)
