@@ -32,13 +32,15 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
-  Stage
+  Stage,
+  SubcollectionSource
 } from './stage';
 import {
   CollectionGroupStageOptions,
   CollectionStageOptions,
   DatabaseStageOptions,
-  DocumentsStageOptions
+  DocumentsStageOptions,
+  SubcollectionStageOptions
 } from './stage_options';
 
 /**
@@ -230,4 +232,41 @@ export class PipelineSource<PipelineType> {
       );
     }
   }
+}
+
+/**
+ * @public
+ * Creates a new Pipeline targeted at a subcollection relative to the current document context.
+ * This creates a pipeline without a database instance, suitable for embedding as a subquery.
+ * If executed directly, this pipeline will fail.
+ *
+ * @param path - The relative path to the subcollection.
+ */
+export function subcollection(path: string): Pipeline;
+/**
+ * @public
+ * Creates a new Pipeline targeted at a subcollection relative to the current document context.
+ * This creates a pipeline without a database instance, suitable for embedding as a subquery.
+ * If executed directly, this pipeline will fail.
+ *
+ * @param options - Options defining how this SubcollectionStage is evaluated.
+ */
+export function subcollection(options: SubcollectionStageOptions): Pipeline;
+export function subcollection(
+  pathOrOptions: string | SubcollectionStageOptions
+): Pipeline {
+  // Process argument union(s) from method overloads
+  let path: string;
+  let options: {};
+  if (isString(pathOrOptions)) {
+    path = pathOrOptions;
+    options = {};
+  } else {
+    ({ path, ...options } = pathOrOptions);
+  }
+
+  // Create stage object
+  const stage = new SubcollectionSource(path, options);
+
+  return new Pipeline(undefined, [stage]);
 }

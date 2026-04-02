@@ -17,6 +17,7 @@ https://github.com/firebase/firebase-js-sdk
 |  --- | --- |
 |  <b>function()</b> |
 |  [countAll()](./firestore_lite_pipelines.md#countall) | Creates an aggregation that counts the total number of stage inputs. |
+|  [currentDocument()](./firestore_lite_pipelines.md#currentdocument) | Creates an expression that represents the current document being processed. |
 |  [currentTimestamp()](./firestore_lite_pipelines.md#currenttimestamp) | Creates an expression that evaluates to the current server timestamp. |
 |  [rand()](./firestore_lite_pipelines.md#rand) | Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0. |
 |  [score()](./firestore_lite_pipelines.md#score) | <b><i>(Public Preview)</i></b> Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: <code>documentMatches</code>) in the search query. If <code>SearchOptions.query</code> is not set or does not contain any text predicates, then this topicality score will always be <code>0</code>. |
@@ -79,7 +80,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [timestampDiff(endExpression, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_4370feb) | Creates an expression that calculates the difference between two timestamps. |
 |  [timestampDiff(endExpression, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_bc0830f) | Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(endFieldName, ...)</b> |
-|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_f60102c) | Creates an expression that calculates the difference between two timestamps. |
+|  [timestampDiff(endFieldName, startFieldName, unit)](./firestore_lite_pipelines.md#timestampdiff_f60102c) |  |
 |  [timestampDiff(endFieldName, startExpression, unit)](./firestore_lite_pipelines.md#timestampdiff_6e54d92) | Creates an expression that calculates the difference between two timestamps. |
 |  <b>function(expr, ...)</b> |
 |  [abs(expr)](./firestore_lite_pipelines.md#abs_005f3d4) | Creates an expression that computes the absolute value of a numeric value. |
@@ -338,8 +339,12 @@ https://github.com/firebase/firebase-js-sdk
 |  [mapValues(mapField)](./firestore_lite_pipelines.md#mapvalues_83ad836) | Creates an expression that returns the values of a map. |
 |  <b>function(name, ...)</b> |
 |  [field(name)](./firestore_lite_pipelines.md#field_1eaaff4) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path.<!-- -->The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field (e.g., "address.city"). |
+|  [variable(name)](./firestore_lite_pipelines.md#variable_1eaaff4) | Creates an expression that retrieves the value of a variable bound via <code>define()</code>. |
+|  <b>function(options, ...)</b> |
+|  [subcollection(options)](./firestore_lite_pipelines.md#subcollection_104dbc5) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(path, ...)</b> |
 |  [field(path)](./firestore_lite_pipelines.md#field_34ee07d) | Creates a [Field](./firestore_pipelines.field.md#field_class) instance representing the field at the given path. |
+|  [subcollection(path)](./firestore_lite_pipelines.md#subcollection_fe1f8e4) | Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail. |
 |  <b>function(pipeline, ...)</b> |
 |  [execute(pipeline)](./firestore_lite_pipelines.md#execute_01df620) | Executes this pipeline and returns a Promise to represent the asynchronous operation.<!-- -->The returned Promise can be used to track the progress of the pipeline execution and retrieve the results (or handle any errors) asynchronously.<!-- -->The pipeline results are returned as a [PipelineSnapshot](./firestore_pipelines.pipelinesnapshot.md#pipelinesnapshot_class) that contains a list of [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects. Each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) typically represents a single key/value map that has passed through all the stages of the pipeline, however this might differ depending on the stages involved in the pipeline. For example:<ul> <li>If there are no stages or only transformation stages, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a single document.</li> <li>If there is an aggregation, only a single [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) is returned, representing the aggregated results over the entire dataset .</li> <li>If there is an aggregation stage with grouping, each [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) represents a distinct group and its associated aggregated values.</li> </ul> |
 |  <b>function(rquery, ...)</b> |
@@ -450,6 +455,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [CollectionGroupStageOptions](./firestore_lite_pipelines.md#collectiongroupstageoptions) | Defines the configuration options for a CollectionGroupStage within a pipeline. This type extends [StageOptions](./firestore_pipelines.md#stageoptions) and provides specific settings for how a collection group is identified and processed during pipeline execution.<!-- -->See [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) to create a collection group stage. |
 |  [CollectionStageOptions](./firestore_lite_pipelines.md#collectionstageoptions) | Options defining how a CollectionStage is evaluated. See [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->. |
 |  [DatabaseStageOptions](./firestore_lite_pipelines.md#databasestageoptions) | Options defining how a DatabaseStage is evaluated. See [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->. |
+|  [DefineStageOptions](./firestore_lite_pipelines.md#definestageoptions) | Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->. |
 |  [DistinctStageOptions](./firestore_lite_pipelines.md#distinctstageoptions) | Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->. |
 |  [DocumentsStageOptions](./firestore_lite_pipelines.md#documentsstageoptions) | Options defining how a DocumentsStage is evaluated. See [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->. |
 |  [ExpressionType](./firestore_lite_pipelines.md#expressiontype) | An enumeration of the different types of expressions. |
@@ -467,6 +473,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [SetOptions](./firestore_lite_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
 |  [StageOptions](./firestore_lite_pipelines.md#stageoptions) | Options defining how a Stage is evaluated. |
+|  [SubcollectionStageOptions](./firestore_lite_pipelines.md#subcollectionstageoptions) | Options defining how a <code>SubcollectionStage</code> is evaluated. |
 |  [TimeGranularity](./firestore_lite_pipelines.md#timegranularity) | Specify time granularity for expressions. |
 |  [TimePart](./firestore_lite_pipelines.md#timepart) | Specify time parts for <code>timestampExtract</code> expressions. |
 |  [TimeUnit](./firestore_lite_pipelines.md#timeunit) | Specify time units for expressions. |
@@ -499,6 +506,33 @@ A new [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefu
 ```typescript
 // Count the total number of input documents
 countAll().as("totalDocument");
+
+```
+
+### currentDocument() {:#currentdocument}
+
+Creates an expression that represents the current document being processed.
+
+<b>Signature:</b>
+
+```typescript
+export declare function currentDocument(): Expression;
+```
+<b>Returns:</b>
+
+[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+An [Expression](./firestore_pipelines.expression.md#expression_class) representing the current document.
+
+### Example
+
+
+```typescript
+// Define the current document as a variable "doc"
+firestore.pipeline().collection("books")
+    .define(currentDocument().as("doc"))
+    // Access a field from the defined document variable
+    .select(variable("doc").mapGet("title"));
 
 ```
 
@@ -2090,8 +2124,6 @@ timestampDiff(field('endTime'), field('startTime'), 'day')
 
 ### timestampDiff(endFieldName, startFieldName, unit) {:#timestampdiff_f60102c}
 
-Creates an expression that calculates the difference between two timestamps.
-
 <b>Signature:</b>
 
 ```typescript
@@ -2102,24 +2134,13 @@ export declare function timestampDiff(endFieldName: string, startFieldName: stri
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  endFieldName | string | The name of the field representing the ending timestamp. |
-|  startFieldName | string | The name of the field representing the starting timestamp. |
-|  unit | [TimeUnit](./firestore_lite_pipelines.md#timeunit) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The unit of time for the difference (e.g., "day", "hour"). |
+|  endFieldName | string |  |
+|  startFieldName | string |  |
+|  unit | [TimeUnit](./firestore_lite_pipelines.md#timeunit) \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
 
 <b>Returns:</b>
 
 [FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
-
-A new `Expression` representing the difference as an integer.
-
-### Example
-
-
-```typescript
-// Calculate the difference in days between 'endTime' and 'startTime' fields.
-timestampDiff('endTime', 'startTime', 'day')
-
-```
 
 ### timestampDiff(endFieldName, startExpression, unit) {:#timestampdiff_6e54d92}
 
@@ -9834,6 +9855,64 @@ const authorFirstNameField = field("author.firstName");
 
 ```
 
+### variable(name) {:#variable_1eaaff4}
+
+Creates an expression that retrieves the value of a variable bound via `define()`<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare function variable(name: string): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  name | string | The name of the variable to retrieve. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_lite_pipelines.expression.md#expression_class)
+
+An [Expression](./firestore_pipelines.expression.md#expression_class) representing the variable's value.
+
+### Example
+
+
+```typescript
+db.pipeline().collection("products")
+  .define(
+    field("price").multiply(0.9).as("discountedPrice"),
+    field("stock").add(10).as("newStock")
+  )
+  .where(variable("discountedPrice").lessThan(100))
+  .select(field("name"), variable("newStock"));
+
+```
+
+## function(options, ...)
+
+### subcollection(options) {:#subcollection_104dbc5}
+
+Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail.
+
+<b>Signature:</b>
+
+```typescript
+export declare function subcollection(options: SubcollectionStageOptions): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  options | [SubcollectionStageOptions](./firestore_lite_pipelines.md#subcollectionstageoptions) | Options defining how this SubcollectionStage is evaluated. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
+
 ## function(path, ...)
 
 ### field(path) {:#field_34ee07d}
@@ -9857,6 +9936,26 @@ export declare function field(path: FieldPath): Field;
 [Field](./firestore_lite_pipelines.field.md#field_class)
 
 A new [Field](./firestore_pipelines.field.md#field_class) instance representing the specified field.
+
+### subcollection(path) {:#subcollection_fe1f8e4}
+
+Creates a new Pipeline targeted at a subcollection relative to the current document context. This creates a pipeline without a database instance, suitable for embedding as a subquery. If executed directly, this pipeline will fail.
+
+<b>Signature:</b>
+
+```typescript
+export declare function subcollection(path: string): Pipeline;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  path | string | The relative path to the subcollection. |
+
+<b>Returns:</b>
+
+[Pipeline](./firestore_lite_pipelines.pipeline.md#pipeline_class)
 
 ## function(pipeline, ...)
 
@@ -11624,6 +11723,18 @@ Options defining how a DatabaseStage is evaluated. See [PipelineSource.database(
 export declare type DatabaseStageOptions = StageOptions & {};
 ```
 
+## DefineStageOptions
+
+Options defining how a DefineStage is evaluated. See [Pipeline.define()](./firestore_pipelines.pipeline.md#pipelinedefine)<!-- -->.
+
+<b>Signature:</b>
+
+```typescript
+export declare type DefineStageOptions = StageOptions & {
+    variables: AliasedExpression[];
+};
+```
+
 ## DistinctStageOptions
 
 Options defining how a DistinctStage is evaluated. See [Pipeline.distinct()](./firestore_pipelines.pipeline.md#pipelinedistinct)<!-- -->.
@@ -11655,7 +11766,7 @@ An enumeration of the different types of expressions.
 <b>Signature:</b>
 
 ```typescript
-export declare type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression';
+export declare type ExpressionType = 'Field' | 'Constant' | 'Function' | 'AggregateFunction' | 'ListOfExpressions' | 'AliasedExpression' | 'Variable' | 'PipelineValue';
 ```
 
 ## FindNearestStageOptions
@@ -11850,6 +11961,18 @@ export declare type StageOptions = {
     rawOptions?: {
         [name: string]: unknown;
     };
+};
+```
+
+## SubcollectionStageOptions
+
+Options defining how a `SubcollectionStage` is evaluated.
+
+<b>Signature:</b>
+
+```typescript
+export declare type SubcollectionStageOptions = StageOptions & {
+    path: string;
 };
 ```
 

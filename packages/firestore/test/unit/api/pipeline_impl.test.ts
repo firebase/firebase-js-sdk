@@ -25,7 +25,6 @@ import {
   MemoryOfflineComponentProvider,
   OnlineComponentProvider
 } from '../../../src/core/component_provider';
-import { constant, field } from '../../../src/lite-api/expressions';
 import {
   ExecutePipelineRequest as ProtoExecutePipelineRequest,
   ExecutePipelineResponse as ProtoExecutePipelineResponse
