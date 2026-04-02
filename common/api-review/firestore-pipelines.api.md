@@ -399,6 +399,9 @@ export function documentId(documentPath: string | DocumentReference): FunctionEx
 // @public
 export function documentId(documentPathExpr: Expression): FunctionExpression;
 
+// @beta
+export function documentMatches(rquery: string | Expression): BooleanExpression;
+
 // @public
 export type DocumentsStageOptions = StageOptions & {
     docs: Array<string | DocumentReference>;
@@ -837,6 +840,8 @@ export class Field extends Expression implements Selectable {
     readonly expressionType: ExpressionType;
     // (undocumented)
     get fieldName(): string;
+    // @beta
+    geoDistance(location: GeoPoint | Expression): Expression;
     // (undocumented)
     selectable: true;
 }
@@ -871,10 +876,12 @@ export function floor(fieldName: string): FunctionExpression;
 // @public
 export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[]);
-    constructor(name: string, params: Expression[], _methodName: string | undefined);
     // (undocumented)
     readonly expressionType: ExpressionType;
     }
+
+// @beta
+export function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
 
 // @public
 export function greaterThan(left: Expression, right: Expression): BooleanExpression;
@@ -1219,6 +1226,10 @@ export class Pipeline {
     replaceWith(options: ReplaceWithStageOptions): Pipeline;
     sample(documents: number): Pipeline;
     sample(options: SampleStageOptions): Pipeline;
+    // Warning: (ae-incompatible-release-tags) The symbol "search" is marked as @public, but its signature references "SearchStageOptions" which is marked as @beta
+    //
+    // (undocumented)
+    search(options: SearchStageOptions): Pipeline;
     select(selection: Selectable | string, ...additionalSelections: Array<Selectable | string>): Pipeline;
     select(options: SelectStageOptions): Pipeline;
     sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
@@ -1398,6 +1409,16 @@ export type SampleStageOptions = StageOptions & OneOf<{
     documents: number;
 }>;
 
+// @beta
+export function score(): Expression;
+
+// @beta
+export type SearchStageOptions = StageOptions & {
+    query: BooleanExpression | string;
+    sort?: Ordering | Ordering[];
+    addFields?: Selectable[];
+};
+
 // @public
 export interface Selectable {
     // (undocumented)
@@ -1433,11 +1454,11 @@ export function sqrt(expression: Expression): FunctionExpression;
 export function sqrt(fieldName: string): FunctionExpression;
 
 // @public
-export interface StageOptions {
+export type StageOptions = {
     rawOptions?: {
         [name: string]: unknown;
     };
-}
+};
 
 // @public
 export function startsWith(fieldName: string, prefix: string): BooleanExpression;
