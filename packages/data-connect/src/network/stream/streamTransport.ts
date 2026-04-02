@@ -66,9 +66,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /** Is the stream currently waiting to close connection? */
   get isPendingClose(): boolean {
-    return this._pendingClose;
+    return this.pendingClose;
   }
-  private _pendingClose = false;
+  private pendingClose = false;
 
   // TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries
   get isUnableToConnect(): boolean {
@@ -166,6 +166,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     string,
     SubscribeNotificationHook<unknown>
   >();
+
+  /** current close timeout from setTimeout(), if any */
+  private closeTimeout: NodeJS.Timeout | null = null;
+  /** has the close timeout finished? */
+  private closeTimeoutFinished = false;
+  /** current auth uid. used to detect if a different user logs in */
+  private authUid: string | null | undefined;
 
   /**
    * Tracks a query execution request, storing the request body and creating and storing a promise that
@@ -328,6 +335,77 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
+   * Begin closing the connection. Waits for and cleans up all active requests, and waits for 1 minute.
+   * Will be called when there are no more active subscriptions.
+   */
+  private prepareToClose(): void {
+    if (this.pendingClose) {
+      return;
+    }
+    this.pendingClose = true;
+
+    this.activeSubscribeRequests.forEach(requestBody => {
+      this.invokeUnsubscribe(
+        requestBody.subscribe.operationName,
+        requestBody.subscribe.variables
+      );
+    });
+
+    const waitTime = 1000 * 60; // 1 minute
+    this.closeTimeout = setTimeout(async () => {
+      this.closeTimeoutFinished = true;
+      await this.attemptClose();
+    }, waitTime);
+  }
+
+  /**
+   * Attempt to close the connection. Will only close if there are no active requests preventing it
+   * from doing so.
+   */
+  private async attemptClose(): Promise<void> {
+    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+      return;
+    }
+    await this.closeConnection();
+    this.onGracefulStreamClose?.();
+  }
+
+  /**
+   * Cancel closing the connection.
+   */
+  private cancelClose(): void {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
+    this.pendingClose = false;
+    this.closeTimeoutFinished = false;
+  }
+
+  /**
+   * Reject all pending execute promises and subscribe hooks with the given error. Clear active request
+   * tracking maps without cancelling or re-invoking any requests.
+   */
+  private rejectAllPendingRequests(error: DataConnectError): void {
+    this.activeQueryExecuteRequests.clear();
+    this.activeMutationExecuteRequests.clear();
+    this.activeSubscribeRequests.clear();
+
+    for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
+      this.executeRequestPromises.delete(requestId);
+      rejectFn(error);
+    }
+
+    for (const [requestId, notifyHook] of this.subscribeNotificationHooks) {
+      this.subscribeNotificationHooks.delete(requestId);
+      notifyHook({
+        data: undefined,
+        errors: [error],
+        extensions: {}
+      });
+    }
+  }
+
+  /**
    * Prepares a stream request message by adding necessary headers and metadata.
    * If this is the first message on the stream, it includes the resource name, auth token, and App Check token.
    * If the auth token has refreshed since the last message, it includes the new auth token.
@@ -478,15 +556,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures before sending any message.
-   * If any asynchronous functionality is added to this function, it MUST be done in a way that
-   * preserves the synchronous update of the tracking data structures before the method returns.
+   * This method synchronously updates the request tracking data structures before sending any message
+   * or cancelling the closing of the stream. If any asynchronous functionality is added to this function,
+   * it MUST be done in a way that preserves the synchronous update of the tracking data structures
+   * before the method returns.
    */
   invokeSubscribe<Data, Variables>(
     notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
     variables: Variables
   ): void {
+    // if we are waiting to close the stream, cancel closing!
+    this.cancelClose();
+
     const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
     const mapKey = this.getMapKey(queryName, variables);
@@ -510,6 +592,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         errors: [err instanceof Error ? err : new Error(String(err))]
       });
       this.cleanupSubscribeRequest(requestId, mapKey);
+      if (!this.hasActiveSubscriptions) {
+        this.prepareToClose();
+      }
     });
   }
 
@@ -537,12 +622,40 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     // asynchronous, fire and forget
     this.sendRequestMessage(cancelBody).catch(err => {
       logError(`Stream Transport failed to send unsubscribe message: ${err}`);
+    }).finally(() => {
+      if (!this.hasActiveSubscriptions) {
+        this.prepareToClose();
+      }
     });
   }
 
+
   onAuthTokenChanged(newToken: string | null): void {
+    const oldAuthToken = this._authToken;
     this._authToken = newToken;
+
+    const oldAuthUid = this.authUid;
+    const newAuthUid = this.authProvider?.getAuth().getUid();
+    this.authUid = newAuthUid;
+
+    if (
+      (oldAuthToken && newToken === null) ||
+      (oldAuthUid && newAuthUid !== oldAuthUid) ||
+      (!oldAuthUid && newAuthUid)
+    ) {
+      // (user logged out) || (new user is logged in) || (user logged in)
+      if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+        this.rejectAllPendingRequests(
+          new DataConnectError(
+            Code.UNAUTHORIZED,
+            'Stream disconnected due to auth change.'
+          )
+        );
+        void this.attemptClose();
+      }
+    }
   }
+
 
   /**
    * Handle a response message from the server. Called by the connection-specific implementation after

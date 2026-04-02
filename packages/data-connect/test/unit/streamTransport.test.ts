@@ -22,6 +22,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import { AuthTokenProvider } from '../../src/core/FirebaseAuthProvider';
 import * as logger from '../../src/logger';
 import {
   CallerSdkType,
@@ -67,30 +68,29 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
     return Promise.resolve();
   }
 
-  /**
-   * Manually trigger onConnectionReady for testing purposes.
-   */
+  /** Manually trigger onConnectionReady for testing purposes. */
   triggerOnConnectionReady(): void {
     this.onConnectionReady();
   }
 
-  /**
-   * Manually set auth token for testing purposes.
-   */
-  setAuthToken(token: string | null): void {
+  /** Manually invoke token change for testing purposes. */
+  invokeOnAuthTokenChanged(token: string | null): void {
     this.onAuthTokenChanged(token);
   }
 
-  /**
-   * Manually set app check token for testing purposes.
-   */
+  /** Manually set auth token for testing purposes. */
+  setAuthToken(token: string | null): void {
+    this._authToken = token;
+  }
+
+  authProvider = { getAuth: () => ({ getUid: () => this._authToken }) } as AuthTokenProvider;
+
+  /** Manually set app check token for testing purposes. */
   setAppCheckToken(token: string | null): void {
     this._appCheckToken = token;
   }
 
-  /**
-   * Manually resolve a request for testing purposes.
-   */
+  /** Manually resolve a request for testing purposes. */
   invokeHandleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
@@ -101,14 +101,19 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
 
 /** Interface that exposes some private fields and methods of TestStreamTransport for testing purposes. */
 interface TransportWithInternals {
-  nextRequestId(): string;
   _connectorResourcePath: string;
   _isUsingGen: boolean;
   appId: string | undefined;
   _callerSdkType: CallerSdkType;
   _setCallerSdkType(type: CallerSdkType): void;
+  invokeOnAuthTokenChanged(token: string | null): void;
   setAuthToken(token: string | null): void;
+  authProvider: { getAuth: () => { getUid: () => string } };
   setAppCheckToken(token: string | null): void;
+  nextRequestId(): string;
+  triggerOnConnectionReady(): void;
+  closeConnection(): Promise<void>;
+  cancelClose(): void;
   prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
@@ -180,6 +185,13 @@ describe('AbstractDataConnectStreamTransport', () => {
   const newAppCheckToken = 'new-app-check-token';
   const initialAppId = 'initial-app-id';
   const newAppId = 'new-app-id';
+  const queryName1 = 'testQuery1';
+  const queryName2 = 'testQuery2';
+  const variables1 = { foo: 'bar', num: 1 };
+  const variables2 = { abc: 'xyz', num: 2 };
+  const mutationName1 = 'testMutation1';
+  const mutationName2 = 'testMutation2';
+  const expectedError = new Error('test error');
 
   beforeEach(() => {
     transport = new TestStreamTransport(
@@ -364,7 +376,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(secondMessage.headers?.authToken).to.be.undefined;
 
       // Trigger the physical connection reset
-      (transport as unknown as TestStreamTransport).triggerOnConnectionReady();
+      transport.triggerOnConnectionReady();
 
       // The next message should be treated as a "first" message again
       const thirdMessage = transport.prepareMessage(
@@ -379,14 +391,6 @@ describe('AbstractDataConnectStreamTransport', () => {
   });
 
   describe('Request Tracking', () => {
-    const queryName1 = 'testQuery1';
-    const queryName2 = 'testQuery2';
-    const variables1 = { foo: 'bar', num: 1 };
-    const variables2 = { abc: 'xyz', num: 2 };
-    const mutationName1 = 'testMutation1';
-    const mutationName2 = 'testMutation2';
-    const expectedError = new Error('test error');
-
     it('getMapKey should sort keys consistently for map lookups', () => {
       const queryName = 'sortQuery';
       const variables1 = { a: 1, b: 2, c: 3, d: 4 };
@@ -863,8 +867,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should clean map correctly when handleResponse rejects', async () => {
-          transport.invokeMutation(mutationName1, variables1).catch(() => {});
-          transport.invokeMutation(mutationName2, variables2).catch(() => {});
+          transport.invokeMutation(mutationName1, variables1).catch(() => { });
+          transport.invokeMutation(mutationName2, variables2).catch(() => { });
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests1 =
@@ -965,6 +969,110 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(transport.subscribeNotificationHooks.has(requestId2)).to.be
             .true;
         });
+      });
+    });
+  });
+
+  describe('Disconnects', () => {
+    let clock: sinon.SinonFakeTimers;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('should close connection after 60 seconds of idle (no active subscriptions)', async () => {
+      const closeSpy = sinon.spy(transport, 'closeConnection');
+      sinon.stub(transport, 'sendMessage').resolves();
+      const hook = sinon.spy();
+
+      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeUnsubscribe(queryName1, variables1);
+
+      clock.tick(1000 * 59);
+      expect(closeSpy).to.not.have.been.called;
+
+      clock.tick(1000 * 2);
+      expect(closeSpy).to.have.been.calledOnce;
+    });
+
+    it('should cancel close if a new subscription arrives during timeout', async () => {
+      const closeSpy = sinon.spy(transport, 'closeConnection');
+      sinon.stub(transport, 'sendMessage').resolves();
+      const hook = sinon.spy();
+
+      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeUnsubscribe(queryName1, variables1);
+
+      clock.tick(1000 * 30);
+      expect(closeSpy).to.not.have.been.called;
+
+      await transport.invokeSubscribe(hook, queryName2, variables2);
+
+      clock.tick(1000 * 65);
+      expect(closeSpy).to.not.have.been.called;
+    });
+
+    it('should restart close timeout if subscribe fails and leaves no active subscriptions', async () => {
+      const closeSpy = sinon.spy(transport, 'closeConnection');
+      const sendMessageStub = sinon.stub(transport, 'sendMessage');
+      sendMessageStub.resolves();
+      const hook = sinon.spy();
+
+      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeUnsubscribe(queryName1, variables1);
+
+      clock.tick(1000 * 30);
+      expect(closeSpy).to.not.have.been.called;
+
+      sendMessageStub.rejects();
+      await transport.invokeSubscribe(hook, queryName2, variables2);
+
+      clock.tick(1000 * 30);
+      expect(closeSpy).to.not.have.been.called;
+
+      clock.tick(1000 * 35);
+      expect(closeSpy).to.have.been.calledOnce;
+    });
+
+    describe('Auth Disconnects', () => {
+      it('should close stream immediately on illegal auth change (login)', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const hook = sinon.spy();
+        transport.setAuthToken(null);
+
+        transport.invokeSubscribe(hook, queryName1, variables1);
+
+        transport.invokeOnAuthTokenChanged('new-token');
+
+        expect(closeSpy).to.have.been.calledOnce;
+      });
+
+      it('should close stream immediately on illegal auth change (logout)', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const hook = sinon.spy();
+
+        transport.invokeSubscribe(hook, queryName1, variables1);
+
+        transport.invokeOnAuthTokenChanged(null);
+
+        expect(closeSpy).to.have.been.calledOnce;
+      });
+
+      it('should close stream immediately on illegal auth change (user change)', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const hook = sinon.spy();
+
+        transport.invokeSubscribe(hook, queryName1, variables1);
+
+        sinon.stub(transport.authProvider, 'getAuth').returns({ getUid: () => 'new-uid' });
+
+        transport.invokeOnAuthTokenChanged('new-token');
+
+        expect(closeSpy).to.have.been.calledOnce;
       });
     });
   });
