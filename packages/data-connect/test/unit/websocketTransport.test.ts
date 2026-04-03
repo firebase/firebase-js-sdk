@@ -303,7 +303,7 @@ describe('WebSocketTransport', () => {
 
       expect(transport.connection!.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.GRACEFUL_CLOSE,
-        'WebSocket message did not include result'
+        'WebSocket message from emulator did not include result'
       );
       expect(logErrorStub).to.have.been.calledOnce;
       expect(logErrorStub).to.have.been.calledWithMatch(
