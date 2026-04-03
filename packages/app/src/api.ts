@@ -53,7 +53,8 @@ import {
   deepEqual,
   getDefaultAppConfig,
   isBrowser,
-  isWebWorker
+  isWebWorker,
+  setDetailedErrors
 } from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
@@ -157,9 +158,7 @@ export function initializeApp(
   const name = config.name;
 
   if (typeof name !== 'string' || !name) {
-    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
-      appName: String(name)
-    });
+    throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, { appName: String(name) });
   }
 
   options ||= getDefaultAppConfig();
@@ -515,4 +514,14 @@ export function onLog(
  */
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
+}
+
+export function enableDetailedErrors(enabled: boolean): void;
+export function enableDetailedErrors(firebaseApp: FirebaseApp, enabled: boolean): void;
+export function enableDetailedErrors(firebaseAppOrEnabled: FirebaseApp | boolean, enabled?: boolean): void {
+  let app = getApp();
+  if (typeof firebaseAppOrEnabled !== 'boolean') {
+    app = firebaseAppOrEnabled;
+  }
+  setDetailedErrors(app, enabled);
 }

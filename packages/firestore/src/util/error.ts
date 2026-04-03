@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, ErrorAuthInfo } from '@firebase/util';
 
 /**
  * The set of Firestore status codes. The codes are the same at the ones
@@ -73,6 +73,7 @@ export type FirestoreErrorCode =
   | 'unavailable'
   | 'data-loss'
   | 'unauthenticated';
+
 
 /**
  * Error Codes describing the different ways Firestore can fail. These come
@@ -209,8 +210,17 @@ export const Code = {
   DATA_LOSS: 'data-loss' as FirestoreErrorCode
 };
 
+export type OperationType = 'read' | 'write' | 'listen';
+
+export interface WithPath {
+  path: string;
+  operationType: OperationType;
+}
+
+export type CustomErrorInfo = WithPath;
+
 /** An error returned by a Firestore operation. */
-export class FirestoreError extends FirebaseError {
+export class FirestoreError extends FirebaseError<CustomErrorInfo> {
   /** The stack of the error. */
   readonly stack?: string;
 
@@ -223,9 +233,11 @@ export class FirestoreError extends FirebaseError {
     /**
      * A custom error description.
      */
-    readonly message: string
+    message: string, // if we set this to readonly, message will clobber whatever is set in `super` below.
+    idTokenOrAuthInfo: string | ErrorAuthInfo | null = null,
+    customData?: CustomErrorInfo,
   ) {
-    super(code, message);
+    super(code, message, idTokenOrAuthInfo, customData);
 
     // HACK: We write a toString property directly because Error is not a real
     // class and so inheritance does not work correctly. We could alternatively

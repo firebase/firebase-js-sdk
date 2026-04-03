@@ -107,9 +107,11 @@ class DatastoreImpl extends Datastore {
     request: Req
   ): Promise<Resp> {
     this.verifyInitialized();
+    const authTokenPromise = this.authCredentials.getToken();
+    const appCheckTokenPromise = this.appCheckCredentials.getToken();
     return Promise.all([
-      this.authCredentials.getToken(),
-      this.appCheckCredentials.getToken()
+      authTokenPromise,
+      appCheckTokenPromise
     ])
       .then(([authToken, appCheckToken]) => {
         return this.connection.invokeRPC<Req, Resp>(
@@ -120,15 +122,18 @@ class DatastoreImpl extends Datastore {
           appCheckToken
         );
       })
-      .catch((error: FirestoreError) => {
+      .catch(async (error: FirestoreError) => {
+        const token = await authTokenPromise;
+        console.log('token in datastore', token);
+        const idToken = token?.headers.get('Authorization')?.split(' ')[1];
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
             this.authCredentials.invalidateToken();
             this.appCheckCredentials.invalidateToken();
           }
-          throw error;
+          throw new FirestoreError(error.code, error.toString(), idToken);
         } else {
-          throw new FirestoreError(Code.UNKNOWN, error.toString());
+          throw new FirestoreError(Code.UNKNOWN, error.toString(), idToken);
         }
       });
   }
@@ -142,9 +147,11 @@ class DatastoreImpl extends Datastore {
     expectedResponseCount?: number
   ): Promise<Resp[]> {
     this.verifyInitialized();
+    const authTokenPromise = this.authCredentials.getToken();
+    const appCheckTokenPromise = this.appCheckCredentials.getToken();
     return Promise.all([
-      this.authCredentials.getToken(),
-      this.appCheckCredentials.getToken()
+      authTokenPromise,
+      appCheckTokenPromise
     ])
       .then(([authToken, appCheckToken]) => {
         return this.connection.invokeStreamingRPC<Req, Resp>(
@@ -156,15 +163,18 @@ class DatastoreImpl extends Datastore {
           expectedResponseCount
         );
       })
-      .catch((error: FirestoreError) => {
+      .catch(async (error: FirestoreError) => {
+        const token = await authTokenPromise;
+        const idToken = token?.headers.get('Authorization')?.split(' ')[1];
+        console.log('token in datastore', token);
         if (error.name === 'FirebaseError') {
           if (error.code === Code.UNAUTHENTICATED) {
             this.authCredentials.invalidateToken();
             this.appCheckCredentials.invalidateToken();
           }
-          throw error;
+          throw new FirestoreError(error.code, error.toString(), idToken);
         } else {
-          throw new FirestoreError(Code.UNKNOWN, error.toString());
+          throw new FirestoreError(Code.UNKNOWN, error.toString(), idToken);
         }
       });
   }

@@ -61,7 +61,7 @@ import {
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, OperationType } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -72,6 +72,24 @@ import {
   SnapshotMetadata
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
+
+async function errorContextWrapper<T>(path: string, operationType: OperationType, promise: Promise<T>) {
+  try {
+    return await promise;
+  } catch (error: unknown) {
+    if ('code' in (error as FirestoreError)) {
+      const clonedError = new FirestoreError((error as FirestoreError).code, (error as FirestoreError)['originalMessage'], (error as FirestoreError)['authInfo'], { path, operationType });
+      throw clonedError;
+    }
+    
+    throw error
+  }
+}
+
+async function wrapListenerError(error: Error | FirestoreError, path: string, operationType: OperationType, errorFn: ErrorFn) {
+  const clonedError = (error as Error).name === 'FirebaseError' ? new FirestoreError((error as FirestoreError).code, (error as FirestoreError)['originalMessage'], (error as FirestoreError).authInfo, { path, operationType }) : error;
+  errorFn(clonedError as FirestoreError);
+}
 
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
@@ -122,10 +140,10 @@ export function getDoc<AppModelType, DbModelType extends DocumentData>(
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
-  return firestoreClientGetDocumentViaSnapshotListener(
+  return errorContextWrapper(reference._path.canonicalString(), 'read', firestoreClientGetDocumentViaSnapshotListener(
     client,
     reference._key
-  ).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
+  ).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot)));
 }
 
 /**
@@ -146,7 +164,7 @@ export function getDocFromCache<AppModelType, DbModelType extends DocumentData>(
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
-  return firestoreClientGetDocumentFromLocalCache(client, reference._key).then(
+  return errorContextWrapper(reference._path.canonicalString(), 'read', firestoreClientGetDocumentFromLocalCache(client, reference._key)).then(
     doc =>
       new DocumentSnapshot<AppModelType, DbModelType>(
         firestore,
@@ -182,9 +200,9 @@ export function getDocFromServer<
   const firestore = cast(reference.firestore, Firestore);
   const client = ensureFirestoreConfigured(firestore);
 
-  return firestoreClientGetDocumentViaSnapshotListener(client, reference._key, {
+  return errorContextWrapper(reference._path.canonicalString(), 'read', firestoreClientGetDocumentViaSnapshotListener(client, reference._key, {
     source: 'server'
-  }).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot));
+  }).then(snapshot => convertToDocSnapshot(firestore, reference, snapshot)));
 }
 
 /**
@@ -206,10 +224,10 @@ export function getDocs<AppModelType, DbModelType extends DocumentData>(
   const userDataWriter = new ExpUserDataWriter(firestore);
 
   validateHasExplicitOrderByForLimitToLast(query._query);
-  return firestoreClientGetDocumentsViaSnapshotListener(
+  return errorContextWrapper(query._query.path.toString(), 'read', firestoreClientGetDocumentsViaSnapshotListener(
     client,
     query._query
-  ).then(
+  )).then(
     snapshot =>
       new QuerySnapshot<AppModelType, DbModelType>(
         firestore,
@@ -238,7 +256,7 @@ export function getDocsFromCache<
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
-  return firestoreClientGetDocumentsFromLocalCache(client, query._query).then(
+  return errorContextWrapper(query._query.path.toString(), 'read', firestoreClientGetDocumentsFromLocalCache(client, query._query).then(
     snapshot =>
       new QuerySnapshot<AppModelType, DbModelType>(
         firestore,
@@ -246,7 +264,7 @@ export function getDocsFromCache<
         query,
         snapshot
       )
-  );
+  ));
 }
 
 /**
@@ -266,11 +284,11 @@ export function getDocsFromServer<
   const client = ensureFirestoreConfigured(firestore);
   const userDataWriter = new ExpUserDataWriter(firestore);
 
-  return firestoreClientGetDocumentsViaSnapshotListener(client, query._query, {
+  return errorContextWrapper(query._query.path.canonicalString(), 'read', firestoreClientGetDocumentsViaSnapshotListener(client, query._query, {
     source: 'server'
   }).then(
     snapshot => new QuerySnapshot(firestore, userDataWriter, query, snapshot)
-  );
+  ));
 }
 
 /**
@@ -361,7 +379,7 @@ export function setDoc<AppModelType, DbModelType extends DocumentData>(
   );
 
   const mutation = parsed.toMutation(reference._key, Precondition.none());
-  return executeWrite(firestore, [mutation]);
+  return errorContextWrapper(reference._path.canonicalString(), 'write', executeWrite(firestore, [mutation]));
 }
 
 /**
@@ -474,7 +492,7 @@ export function updateDoc<AppModelType, DbModelType extends DocumentData>(
   }
 
   const mutation = parsed.toMutation(reference._key, Precondition.exists(true));
-  return executeWrite(firestore, [mutation]);
+  return errorContextWrapper(reference._path.canonicalString(), 'write', executeWrite(firestore, [mutation]));
 }
 
 /**
@@ -505,7 +523,7 @@ export function deleteDoc<AppModelType, DbModelType extends DocumentData>(
 ): Promise<void> {
   const firestore = cast(reference.firestore, Firestore);
   const mutations = [new DeleteMutation(reference._key, Precondition.none())];
-  return executeWrite(firestore, mutations);
+  return errorContextWrapper(reference._path.canonicalString(), 'write', executeWrite(firestore, mutations));
 }
 
 /**
@@ -553,7 +571,7 @@ export function addDoc<AppModelType, DbModelType extends DocumentData>(
   );
 
   const mutation = parsed.toMutation(docRef._key, Precondition.exists(false));
-  return executeWrite(firestore, [mutation]).then(() => docRef);
+  return errorContextWrapper(reference._path.canonicalString(), 'write', executeWrite(firestore, [mutation]).then(() => docRef));
 }
 
 /**
@@ -806,7 +824,10 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
           );
         }
       },
-      error: args[currArg + 1] as ErrorFn,
+      error:  (error) => {
+        // TODO: Check whether this binds correctly
+        wrapListenerError(error, query._query.path.canonicalString(), 'listen', args[currArg + 1] as ErrorFn);
+      },
       complete: args[currArg + 2] as CompleteFn
     };
 
@@ -1359,7 +1380,7 @@ function onSnapshotDocumentSnapshotBundle<
     })
     .catch(e => {
       if (observer.error) {
-        observer.error(e);
+        wrapListenerError(e, json.bundleName, 'read', observer.error);
       }
       return () => {};
     });
@@ -1423,7 +1444,7 @@ function onSnapshotQuerySnapshotBundle<
     })
     .catch(e => {
       if (observer.error) {
-        observer.error(e);
+        wrapListenerError(e, json.bundleName, 'read', observer.error);
       }
       return () => {};
     });

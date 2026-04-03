@@ -140,6 +140,25 @@ export type EmulatorMockTokenOptions = ({
     sub: string;
 }) & Partial<FirebaseIdToken>;
 
+// Warning: (ae-missing-release-tag) "enableDetailedErrors" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function enableDetailedErrors(enabled: boolean): void;
+
+// Warning: (ae-missing-release-tag) "ErrorAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface ErrorAuthInfo {
+    // (undocumented)
+    email: string | null;
+    // (undocumented)
+    emailVerified: boolean;
+    // (undocumented)
+    isAnonymous: boolean;
+    // (undocumented)
+    userId: string;
+}
+
 // Warning: (ae-missing-release-tag) "ErrorData" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -156,7 +175,9 @@ export class ErrorFactory<ErrorCode extends string, ErrorParams extends {
 } = {}> {
     constructor(service: string, serviceName: string, errors: ErrorMap<ErrorCode>);
     // (undocumented)
-    create<K extends ErrorCode>(code: K, ...data: K extends keyof ErrorParams ? [ErrorParams[K]] : []): FirebaseError;
+    create<K extends ErrorCode>(code: K, ...data: (K extends keyof ErrorParams ? [ErrorParams[K]] : []) & {
+        idToken?: string | null;
+    }): FirebaseError;
     }
 
 // Warning: (ae-missing-release-tag) "ErrorFn" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -207,13 +228,17 @@ export interface FirebaseDefaults {
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export class FirebaseError extends Error {
+export class FirebaseError<T = Record<string, unknown>> extends Error {
     constructor(
-    code: string, message: string,
-    customData?: Record<string, unknown> | undefined);
+    code: string, message: string, idTokenOrAuthInfo?: string | ErrorAuthInfo | null,
+    customData?: T | undefined);
+    // (undocumented)
+    readonly authInfo: ErrorAuthInfo | null;
     readonly code: string;
-    customData?: Record<string, unknown> | undefined;
+    readonly customData?: T | undefined;
     readonly name: string;
+    // (undocumented)
+    readonly originalMessage: string;
 }
 
 // Warning: (ae-missing-release-tag) "FirebaseSignInProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)

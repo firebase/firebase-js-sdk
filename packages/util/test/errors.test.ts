@@ -53,7 +53,7 @@ describe('FirebaseError', () => {
   });
 
   it('replaces template values with data', () => {
-    const e = ERROR_FACTORY.create('file-not-found', { file: 'foo.txt' });
+    const e = ERROR_FACTORY.create('file-not-found', null, { file: 'foo.txt' });
     assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
     assert.equal(
       e.message,
@@ -70,7 +70,7 @@ describe('FirebaseError', () => {
   });
 
   it('uses the key in the template if the replacement is missing', () => {
-    const e = ERROR_FACTORY.create('file-not-found', {
+    const e = ERROR_FACTORY.create('file-not-found', null, {
       fileX: 'foo.txt'
     } as any);
     assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');

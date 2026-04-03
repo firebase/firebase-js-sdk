@@ -114,6 +114,7 @@ export interface CredentialsProvider<T> {
     changeListener: CredentialChangeListener<T>
   ): void;
 
+
   /** Requests a token for the current user. */
   getToken(): Promise<Token | null>;
 
@@ -197,7 +198,6 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
       this.auth = auth;
     });
   }
-
   getToken(): Promise<Token | null> {
     if (!this.auth) {
       return Promise.resolve(null);
@@ -238,7 +238,7 @@ export class FirebaseAuthCredentialsProvider
    * The auth token listener registered with FirebaseApp, retained here so we
    * can unregister it.
    */
-  private tokenListener: (() => void) | undefined;
+  private tokenListener: ((token: string | null) => void) | undefined;
 
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
@@ -252,6 +252,12 @@ export class FirebaseAuthCredentialsProvider
   private forceRefresh = false;
 
   private auth: FirebaseAuthInternal | null = null;
+
+  private _currentToken: string | null = null;
+
+  getCurrentToken() {
+    return this._currentToken;
+  }
 
   constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
 
@@ -280,8 +286,9 @@ export class FirebaseAuthCredentialsProvider
     // This promise is re-created after each change.
     let nextToken = new Deferred<void>();
 
-    this.tokenListener = () => {
+    this.tokenListener = (token: string | null) => {
       this.tokenCounter++;
+      this._currentToken = token;
       this.currentUser = this.getUser();
       nextToken.resolve();
       nextToken = new Deferred<void>();

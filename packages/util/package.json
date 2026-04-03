@@ -44,7 +44,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "tslib": "^2.1.0"
+    "tslib": "^2.1.0",
+    "@firebase/auth": "1.12.2"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "6.0.2",
@@ -60,7 +61,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "typings": "dist/index.d.ts",
+  "typings": "./dist/util-public.d.ts",
   "nyc": {
     "extension": [
       ".ts"

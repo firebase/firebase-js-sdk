@@ -116,6 +116,9 @@ export function connectFirestoreEmulator(firestore: Firestore, host: string, por
 // @public
 export function count(): AggregateField<number>;
 
+// @public (undocumented)
+export type CustomErrorInfo = WithPath;
+
 // @public
 export function deleteAllPersistentCacheIndexes(indexManager: PersistentCacheIndexManager): void;
 
@@ -249,9 +252,8 @@ export interface FirestoreDataConverter<AppModelType, DbModelType extends Docume
 }
 
 // @public
-export class FirestoreError extends FirebaseError {
+export class FirestoreError extends FirebaseError<CustomErrorInfo> {
     readonly code: FirestoreErrorCode;
-    readonly message: string;
     readonly stack?: string;
 }
 
@@ -522,6 +524,9 @@ export function onSnapshotsInSync(firestore: Firestore, observer: {
 
 // @public
 export function onSnapshotsInSync(firestore: Firestore, onSync: () => void): Unsubscribe;
+
+// @public (undocumented)
+export type OperationType = 'read' | 'write' | 'listen';
 
 // @public
 export function or(...queryConstraints: QueryFilterConstraint[]): QueryCompositeFilterConstraint;
@@ -833,6 +838,14 @@ export type WhereFilterOp = '<' | '<=' | '==' | '!=' | '>=' | '>' | 'array-conta
 export type WithFieldValue<T> = T | (T extends Primitive ? T : T extends {} ? {
     [K in keyof T]: WithFieldValue<T[K]> | FieldValue;
 } : never);
+
+// @public (undocumented)
+export interface WithPath {
+    // (undocumented)
+    operationType: OperationType;
+    // (undocumented)
+    path: string;
+}
 
 // @public
 export class WriteBatch {

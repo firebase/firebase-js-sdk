@@ -55,11 +55,14 @@
  *   }
  */
 
+import { decode } from './jwt';
 export type ErrorMap<ErrorCode extends string> = {
   readonly [K in ErrorCode]: string;
 };
 
 const ERROR_NAME = 'FirebaseError';
+
+let detailedErrors = false;
 
 export interface StringLike {
   toString(): string;
@@ -69,20 +72,48 @@ export interface ErrorData {
   [key: string]: unknown;
 }
 
+export function enableDetailedErrors(enabled: boolean): void {
+  detailedErrors = enabled;
+}
+
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-export class FirebaseError extends Error {
+export class FirebaseError<T = Record<string, unknown>> extends Error {
   /** The custom name for all FirebaseErrors. */
   readonly name: string = ERROR_NAME;
+  readonly authInfo: ErrorAuthInfo | null = null;
+  readonly originalMessage: string = '';
 
   constructor(
     /** The error code for this error. */
     readonly code: string,
     message: string,
+    idTokenOrAuthInfo: string | ErrorAuthInfo | null = null,
     /** Custom data for this error. */
-    public customData?: Record<string, unknown>
+    readonly customData?: T,
   ) {
-    super(message);
+    let updatedAuthInfo: ErrorAuthInfo | null = null;
+    if (idTokenOrAuthInfo) {
+      if (typeof idTokenOrAuthInfo === 'string') {
+        const tokenInfo = decode(idTokenOrAuthInfo);
+        updatedAuthInfo = {
+          userId: tokenInfo.claims['user_id'] as string,
+          email: tokenInfo.claims['email'] as string,
+          emailVerified: tokenInfo.claims['email_verified'] as boolean,
+          isAnonymous: tokenInfo.claims['provider_id'] === 'anonymous'
+        }
+      } else {
+        updatedAuthInfo = idTokenOrAuthInfo;
+      }
+    }
+    
+    let newMsg = customData ? `${message} ${JSON.stringify(customData)}` : message;
+    if(updatedAuthInfo) {
+      newMsg += `\n${JSON.stringify(updatedAuthInfo)}`;
+    }
+    super(detailedErrors ? newMsg : message);
+    this.authInfo = updatedAuthInfo;
+    this.originalMessage = message;
 
     // Fix For ES5
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -106,13 +137,14 @@ export class ErrorFactory<
     private readonly service: string,
     private readonly serviceName: string,
     private readonly errors: ErrorMap<ErrorCode>
-  ) {}
+  ) { }
 
   create<K extends ErrorCode>(
     code: K,
-    ...data: K extends keyof ErrorParams ? [ErrorParams[K]] : []
+    ...data: (K extends keyof ErrorParams ? [ErrorParams[K]] : []) & { idToken?: string | null }
   ): FirebaseError {
     const customData = (data[0] as ErrorData) || {};
+    const idToken = data.idToken;
     const fullCode = `${this.service}/${code}`;
     const template = this.errors[code];
 
@@ -120,7 +152,7 @@ export class ErrorFactory<
     // Service Name: Error message (service/code).
     const fullMessage = `${this.serviceName}: ${message} (${fullCode}).`;
 
-    const error = new FirebaseError(fullCode, fullMessage, customData);
+    const error = new FirebaseError(fullCode, fullMessage, idToken, customData);
 
     return error;
   }
@@ -134,3 +166,10 @@ function replaceTemplate(template: string, data: ErrorData): string {
 }
 
 const PATTERN = /\{\$([^}]+)}/g;
+export interface ErrorAuthInfo {
+  userId: string;
+  email: string | null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+}
+
