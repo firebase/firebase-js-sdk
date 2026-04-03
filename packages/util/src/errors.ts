@@ -56,6 +56,7 @@
  */
 
 import { decode } from './jwt';
+import { type FirebaseApp } from '@firebase/app';
 export type ErrorMap<ErrorCode extends string> = {
   readonly [K in ErrorCode]: string;
 };
@@ -72,8 +73,18 @@ export interface ErrorData {
   [key: string]: unknown;
 }
 
-export function enableDetailedErrors(enabled: boolean): void {
-  detailedErrors = enabled;
+const DETAILED_ERRORS = new Map<string, boolean>();
+
+export function throwDetailedError<T = Record<string, unknown>>(firebaseApp: FirebaseApp, error: FirebaseError<T>, customData: T): FirebaseError<T> {
+  const detailedErrors = DETAILED_ERRORS.get(firebaseApp.name);
+  if (detailedErrors) {
+    return new FirebaseError(error.code, error.originalMessage, error.authInfo, customData);
+  }
+  return error;
+}
+
+export function setDetailedErrors(firebaseApp: FirebaseApp, enabled: boolean): void {
+  DETAILED_ERRORS.set(firebaseApp.name, enabled);
 }
 
 // Based on code from:

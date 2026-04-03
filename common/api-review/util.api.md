@@ -4,6 +4,8 @@
 
 ```ts
 
+import { FirebaseApp } from '@firebase/app';
+
 // Warning: (ae-missing-release-tag) "areCookiesEnabled" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -140,11 +142,6 @@ export type EmulatorMockTokenOptions = ({
     sub: string;
 }) & Partial<FirebaseIdToken>;
 
-// Warning: (ae-missing-release-tag) "enableDetailedErrors" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export function enableDetailedErrors(enabled: boolean): void;
-
 // Warning: (ae-missing-release-tag) "ErrorAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -187,7 +184,7 @@ export type ErrorFn = (error: Error) => void;
 
 // Warning: (ae-missing-release-tag) "ErrorMap" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public
+// @public (undocumented)
 export type ErrorMap<ErrorCode extends string> = {
     readonly [K in ErrorCode]: string;
 };
@@ -461,6 +458,11 @@ export const RANDOM_FACTOR = 0.5;
 // @public (undocumented)
 export function safeGet<T extends object, K extends keyof T>(obj: T, key: K): T[K] | undefined;
 
+// Warning: (ae-missing-release-tag) "setDetailedErrors" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function setDetailedErrors(firebaseApp: FirebaseApp, enabled: boolean): void;
+
 // Warning: (ae-missing-release-tag) "Sha1" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -509,6 +511,11 @@ export interface Subscribe<T> {
     // (undocumented)
     (observer: PartialObserver<T>): Unsubscribe;
 }
+
+// Warning: (ae-missing-release-tag) "throwDetailedError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function throwDetailedError<T = Record<string, unknown>>(firebaseApp: FirebaseApp, error: FirebaseError<T>, customData: T): FirebaseError<T>;
 
 // Warning: (ae-missing-release-tag) "Unsubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

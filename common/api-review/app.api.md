@@ -34,6 +34,12 @@ export const _DEFAULT_ENTRY_NAME = "[DEFAULT]";
 // @public
 export function deleteApp(app: FirebaseApp): Promise<void>;
 
+// @public (undocumented)
+export function enableDetailedErrors(enabled: boolean): void;
+
+// @public (undocumented)
+export function enableDetailedErrors(firebaseApp: FirebaseApp, enabled: boolean): void;
+
 // @public
 export interface FirebaseApp {
     automaticDataCollectionEnabled: boolean;
