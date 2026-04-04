@@ -41,6 +41,9 @@ import {
 /** The request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
+/** Time to wait before closing an idle connection (no active subscriptions) */
+const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
+
 /**
  * A promise that is settled for a request is received, and the functions that resolve or reject it.
  */
@@ -335,8 +338,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Begin closing the connection. Waits for and cleans up all active requests, and waits for 1 minute.
-   * Will be called when there are no more active subscriptions.
+   * Begin closing the connection. Waits for and cleans up all active requests, and waits for
+   * {@link IDLE_CONNECTION_TIMEOUT_MS}. Will be called when there are no more active
+   * subscriptions.
    */
   private prepareToClose(): void {
     if (this.pendingClose) {
@@ -351,11 +355,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       );
     });
 
-    const waitTime = 1000 * 60; // 1 minute
     this.closeTimeout = setTimeout(async () => {
       this.closeTimeoutFinished = true;
       await this.attemptClose();
-    }, waitTime);
+    }, IDLE_CONNECTION_TIMEOUT_MS);
   }
 
   /**
@@ -634,15 +637,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this._authToken = newToken;
 
     const oldAuthUid = this.authUid;
-    const newAuthUid = this.authProvider?.getAuth().getUid();
+    const newAuthUid = this.authProvider?.getAuth()?.getUid();
     this.authUid = newAuthUid;
 
     if (
-      (oldAuthToken && newToken === null) ||
-      (oldAuthUid && newAuthUid !== oldAuthUid) ||
-      (!oldAuthUid && newAuthUid)
+      (oldAuthToken && newToken === null) || // user logged out
+      (!oldAuthUid && newAuthUid) || // user logged in
+      (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
-      // (user logged out) || (new user is logged in) || (user logged in)
       this.rejectAllActiveRequests(
         new DataConnectError(
           Code.UNAUTHORIZED,
