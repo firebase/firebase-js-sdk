@@ -622,11 +622,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     // asynchronous, fire and forget
     this.sendRequestMessage(cancelBody).catch(err => {
       logError(`Stream Transport failed to send unsubscribe message: ${err}`);
-    }).finally(() => {
-      if (!this.hasActiveSubscriptions) {
-        this.prepareToClose();
-      }
     });
+
+    if (!this.hasActiveSubscriptions) {
+      this.prepareToClose();
+    }
   }
 
 
