@@ -382,10 +382,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Reject all pending execute promises and subscribe hooks with the given error. Clear active request
-   * tracking maps without cancelling or re-invoking any requests.
+   * Reject all active execute promises and notify all subscribe hooks with the given error. 
+   * Clear active request tracking maps without cancelling or re-invoking any requests.
    */
-  private rejectAllPendingRequests(error: DataConnectError): void {
+  protected rejectAllActiveRequests(error: DataConnectError): void {
     this.activeQueryExecuteRequests.clear();
     this.activeMutationExecuteRequests.clear();
     this.activeSubscribeRequests.clear();
@@ -645,7 +645,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     ) {
       // (user logged out) || (new user is logged in) || (user logged in)
       if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
-        this.rejectAllPendingRequests(
+        this.rejectAllActiveRequests(
           new DataConnectError(
             Code.UNAUTHORIZED,
             'Stream disconnected due to auth change.'
