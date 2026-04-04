@@ -643,15 +643,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (!oldAuthUid && newAuthUid)
     ) {
       // (user logged out) || (new user is logged in) || (user logged in)
-      if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
-        this.rejectAllActiveRequests(
-          new DataConnectError(
-            Code.UNAUTHORIZED,
-            'Stream disconnected due to auth change.'
-          )
-        );
-        void this.attemptClose();
-      }
+      this.rejectAllActiveRequests(
+        new DataConnectError(
+          Code.UNAUTHORIZED,
+          'Stream disconnected due to auth change.'
+        )
+      );
+      void this.attemptClose();
     }
   }
 
