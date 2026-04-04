@@ -184,13 +184,15 @@ describe('WebSocketTransport', () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
-      
+
       const rejectSpy = sinon.spy(transport, 'rejectAllActiveRequests');
-      
+
       await transport.connection!.simulateClose();
-      
+
       expect(rejectSpy).to.have.been.calledOnce;
-      expect(rejectSpy.firstCall.args[0].message).to.equal('WebSocket disconnected externally');
+      expect(rejectSpy.firstCall.args[0].message).to.equal(
+        'WebSocket disconnected externally'
+      );
     });
   });
 

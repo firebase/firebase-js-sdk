@@ -382,7 +382,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Reject all active execute promises and notify all subscribe hooks with the given error. 
+   * Reject all active execute promises and notify all subscribe hooks with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
    */
   protected rejectAllActiveRequests(error: DataConnectError): void {
@@ -629,7 +629,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     }
   }
 
-
   onAuthTokenChanged(newToken: string | null): void {
     const oldAuthToken = this._authToken;
     this._authToken = newToken;
@@ -655,7 +654,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       }
     }
   }
-
 
   /**
    * Handle a response message from the server. Called by the connection-specific implementation after

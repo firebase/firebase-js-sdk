@@ -23,7 +23,9 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import {
+  Code,
   DataConnect,
+  DataConnectError,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   executeMutation,
@@ -359,6 +361,62 @@ describe('Streaming & Query Layer Integration', () => {
       expect(result3.message).to.include(
         'DataConnect error received from subscribe notification'
       );
+    });
+
+    it('should clean up subscriptions in query layer when hook receives a disconnect error', async () => {
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+      const onNextSpy = sinon.spy();
+      const onErrSpy = sinon.spy();
+
+      subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
+
+      const notificationHook =
+        stubStreamTransport.invokeSubscribe.firstCall.args[0];
+
+      const expectedError = new DataConnectError(
+        Code.OTHER,
+        'WebSocket disconnected externally'
+      );
+      await notificationHook({
+        data: {},
+        errors: [expectedError],
+        extensions: {}
+      });
+
+      expect(onErrSpy).to.have.been.calledOnce;
+      expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledOnce;
+
+      // Call hook again with data, should not reach subscriber because it was cleaned up
+      await notificationHook({
+        data: { abc: 'new data' },
+        errors: [],
+        extensions: {}
+      });
+      expect(onNextSpy).to.not.have.been.called;
+    });
+
+    it('should NOT clean up subscriptions in query layer when hook receives a non-disconnect error', async () => {
+      const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+      const onNextSpy = sinon.spy();
+      const onErrSpy = sinon.spy();
+
+      subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
+
+      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+
+      const expectedError = new Error('test error');
+      await hook({ data: {}, errors: [expectedError], extensions: {} });
+
+      expect(onErrSpy).to.have.been.calledOnce;
+
+      // Call hook again with data, should STILL reach subscriber because it was NOT cleaned up
+      const testData: TestData = { abc: 'new data' };
+      await hook({ data: testData, errors: [], extensions: {} });
+      expect(onNextSpy).to.have.been.calledOnce;
+      expect(onNextSpy.firstCall.args[0].data).to.deep.equal(testData);
+
+      // Verify that invokeUnsubscribe was NOT called
+      expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
     });
   });
 });

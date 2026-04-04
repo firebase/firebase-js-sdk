@@ -226,10 +226,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     this.connection = undefined;
     this.connectionAttempt = null;
     this.rejectAllActiveRequests(
-      new DataConnectError(
-        Code.OTHER,
-        'WebSocket disconnected externally'
-      )
+      new DataConnectError(Code.OTHER, 'WebSocket disconnected externally')
     );
   }
 

@@ -436,6 +436,22 @@ export class QueryManager {
             stringified
         );
         this.publishErrorToSubscribers(key, error);
+
+        // cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
+        const isDisconnect = response.errors.some(
+          e =>
+            e &&
+            typeof e === 'object' &&
+            'message' in e &&
+            e.message === 'WebSocket disconnected externally'
+        );
+
+        if (isDisconnect) {
+          const callbacks = this.callbacks.get(key);
+          if (callbacks) {
+            [...callbacks].forEach(cb => cb.unsubscribe());
+          }
+        }
         return;
       }
       const fetchTime = Date.now().toString();
