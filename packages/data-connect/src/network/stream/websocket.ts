@@ -140,54 +140,50 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   }
 
   protected ensureConnection(): Promise<void> {
-    if (this.streamIsReady) {
-      return Promise.resolve();
-    }
-    if (this.connectionAttempt) {
-      return this.connectionAttempt;
-    }
-    this.connectionAttempt = new Promise<void>((resolve, reject) => {
-      if (!connectWebSocket) {
-        throw new DataConnectError(
-          Code.OTHER,
-          'No WebSocket Implementation detected!'
-        );
+    try {
+      if (this.streamIsReady) {
+        return Promise.resolve();
       }
-      const ws = new connectWebSocket(this.endpointUrl);
-      this.connection = ws;
-      this.connection!.binaryType = 'arraybuffer';
-      ws.onopen = () => {
-        this.onConnectionReady();
-        resolve();
-      };
-      ws.onerror = event => {
-        this.connectionAttempt = null;
-        reject(`Could not open websocket connection`);
-      };
-      ws.onmessage = ev =>
-        this.handleWebSocketMessage(ev).catch(async reason => {
-          logError(
-            `DataConnect WebSocket protocol error, closing stream: ${reason}`
+      if (this.connectionAttempt) {
+        return this.connectionAttempt;
+      }
+      this.connectionAttempt = new Promise<void>((resolve, reject) => {
+        if (!connectWebSocket) {
+          throw new DataConnectError(
+            Code.OTHER,
+            'No WebSocket Implementation detected!'
           );
-          if (this.connection) {
-            // TODO(stephenarosaj): Node environments only support close codes 1000 or 3000-4999 - update to use 3000-4999 range to specify why we're closing
-            if (reason instanceof WebSocketDataConnectError) {
-              this.connection.close(
-                WebSocketCloseCode.GRACEFUL_CLOSE,
-                reason.message
-              );
-            } else {
-              this.connection.close(
-                WebSocketCloseCode.GRACEFUL_CLOSE,
-                'Protocol Error'
-              );
-            }
-          }
-        });
-      ws.onclose = ev => this.handleWebsocketDisconnect(ev);
-    });
+        }
+        const ws = new connectWebSocket(this.endpointUrl);
+        this.connection = ws;
+        this.connection!.binaryType = 'arraybuffer';
 
-    return this.connectionAttempt;
+        ws.onopen = () => {
+          this.onConnectionReady();
+          resolve();
+        };
+
+        ws.onerror = event => {
+          this.connectionAttempt = null;
+          this.handleError(
+            `Error using WebSocket connection, closing WebSocket`
+          );
+          reject(`Error using WebSocket connection, closing WebSocket`);
+        };
+
+        ws.onmessage = ev =>
+          this.handleWebSocketMessage(ev).catch(async reason => {
+            this.handleError(reason);
+          });
+
+        ws.onclose = ev => this.handleWebsocketDisconnect(ev);
+      });
+
+      return this.connectionAttempt;
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
   }
 
   protected openConnection(): Promise<void> {
@@ -199,13 +195,14 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     });
   }
 
-  protected closeConnection(): Promise<void> {
+  protected closeConnection(code?: number, reason?: string): Promise<void> {
     if (!this.connection) {
+      this.connectionAttempt = null;
       return Promise.resolve();
     }
     let error;
     try {
-      this.connection.close();
+      this.connection.close(code, reason);
     } catch (e) {
       error = e;
     } finally {
@@ -230,6 +227,19 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     );
   }
 
+  /**
+   * Handle an error that occurred on the WebSocket. Close the connection and reject all active requests.
+   */
+  private handleError(error?: unknown): void {
+    logError(`DataConnect WebSocket error, closing stream: ${error}`);
+    const code = WebSocketCloseCode.GRACEFUL_CLOSE;
+    let reason = 'Protocol Error';
+    if (error instanceof WebSocketDataConnectError) {
+      reason = error.message;
+    }
+    void this.closeConnection(code, reason);
+  }
+
   protected sendMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void> {
@@ -238,6 +248,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         this.connection!.send(JSON.stringify(requestBody));
         return Promise.resolve();
       } catch (err) {
+        this.handleError(err);
         throw new DataConnectError(
           Code.OTHER,
           `Failed to send message: ${String(err)}`

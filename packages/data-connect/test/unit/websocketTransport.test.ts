@@ -289,79 +289,83 @@ describe('WebSocketTransport', () => {
       expect(calledResponse.extensions).to.deep.equal({ dataConnect: [] });
     });
 
-    it('should close connection with protocol error if message is not an object', async () => {
+    it('should close connection with error if message is not an object', async () => {
       const openPromise = transport.openConnection();
-      await transport.connection!.simulateOpen();
+      const mockWs = transport.connection!;
+      await mockWs.simulateOpen();
       await openPromise;
 
-      await transport.connection!.simulateMessage(
+      await mockWs.simulateMessage(
         JSON.stringify('this is a string, not an object')
       );
 
-      expect(transport.connection!.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
       expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket protocol error, closing stream'
+        'DataConnect WebSocket error, closing stream'
       );
     });
 
-    it('should close connection with protocol error if result is missing', async () => {
+    it('should close connection with error if result is missing', async () => {
       const openPromise = transport.openConnection();
-      await transport.connection!.simulateOpen();
+      const mockWs = transport.connection!;
+      await mockWs.simulateOpen();
       await openPromise;
 
       const invalidData = { foo: 'bar' }; // no result object
 
-      await transport.connection!.simulateMessage(JSON.stringify(invalidData));
+      await mockWs.simulateMessage(JSON.stringify(invalidData));
 
-      expect(transport.connection!.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message from emulator did not include result'
       );
       expect(logErrorStub).to.have.been.calledOnce;
       expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket protocol error, closing stream'
+        'DataConnect WebSocket error, closing stream'
       );
     });
 
-    it('should close connection with protocol error if result is not an object', async () => {
+    it('should close connection with error if result is not an object', async () => {
       const openPromise = transport.openConnection();
-      await transport.connection!.simulateOpen();
+      const mockWs = transport.connection!;
+      await mockWs.simulateOpen();
       await openPromise;
 
       const invalidData = { result: 'string result' };
 
-      await transport.connection!.simulateMessage(JSON.stringify(invalidData));
+      await mockWs.simulateMessage(JSON.stringify(invalidData));
 
-      expect(transport.connection!.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message result is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
       expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket protocol error, closing stream'
+        'DataConnect WebSocket error, closing stream'
       );
     });
 
-    it('should close connection with protocol error if requestId is missing', async () => {
+    it('should close connection with error if requestId is missing', async () => {
       const openPromise = transport.openConnection();
-      await transport.connection!.simulateOpen();
+      const mockWs = transport.connection!;
+      await mockWs.simulateOpen();
       await openPromise;
 
       const invalidData = { result: { foo: 'bar' } }; // no requestId
 
-      await transport.connection!.simulateMessage(JSON.stringify(invalidData));
+      await mockWs.simulateMessage(JSON.stringify(invalidData));
 
-      expect(transport.connection!.close).to.have.been.calledOnceWith(
+      expect(mockWs.close).to.have.been.calledOnceWith(
         WebSocketCloseCode.GRACEFUL_CLOSE,
         'WebSocket message did not include requestId'
       );
       expect(logErrorStub).to.have.been.calledOnce;
       expect(logErrorStub).to.have.been.calledWithMatch(
-        'DataConnect WebSocket protocol error, closing stream'
+        'DataConnect WebSocket error, closing stream'
       );
     });
   });

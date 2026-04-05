@@ -106,16 +106,24 @@ export async function dcFetch<Data, Variables>(
   try {
     response = await connectFetch(url, fetchOptions);
   } catch (err) {
-    throw new DataConnectError(
-      Code.OTHER,
-      'Failed to fetch: ' + JSON.stringify(err)
-    );
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? (err as unknown as Record<string, unknown>)['message']
+        : String(err);
+    throw new DataConnectError(Code.OTHER, 'Failed to fetch: ' + message);
   }
   let jsonResponse: JsonResponse<Data>;
   try {
     jsonResponse = await response.json();
   } catch (e) {
-    throw new DataConnectError(Code.OTHER, JSON.stringify(e));
+    const message =
+      e && typeof e === 'object' && 'message' in e
+        ? (e as unknown as Record<string, unknown>)['message']
+        : String(e);
+    throw new DataConnectError(
+      Code.OTHER,
+      'Failed to parse JSON response: ' + message
+    );
   }
   const message = getErrorMessage(jsonResponse);
   if (response.status >= 400) {

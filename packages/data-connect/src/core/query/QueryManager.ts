@@ -429,7 +429,21 @@ export class QueryManager {
     });
     return async response => {
       if (response.errors && response.errors.length > 0) {
-        const stringified = JSON.stringify(response.errors);
+        const stringified = JSON.stringify(
+          response.errors.map(e => {
+            if (e && typeof e === 'object' && 'message' in e) {
+              const code =
+                'code' in e
+                  ? (e as unknown as Record<string, unknown>)['code']
+                  : undefined;
+              const message = (e as unknown as Record<string, unknown>)[
+                'message'
+              ];
+              return { message, code };
+            }
+            return e;
+          })
+        );
         const error = new DataConnectError(
           Code.OTHER,
           'DataConnect error received from subscribe notification: ' +

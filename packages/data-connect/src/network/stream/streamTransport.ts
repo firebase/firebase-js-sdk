@@ -387,6 +387,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Reject all active execute promises and notify all subscribe hooks with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
+   * Called by concrete implementations when the connection fails to open, or when the connection is closed.
    */
   protected rejectAllActiveRequests(error: DataConnectError): void {
     this.activeQueryExecuteRequests.clear();
@@ -508,12 +509,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
+    let { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
       requestId,
       mapKey,
       executeBody
     );
-    void responsePromise.finally(() =>
+    responsePromise = responsePromise.finally(() =>
       this.cleanupQueryExecuteRequest(requestId, mapKey)
     );
 
@@ -543,9 +544,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const { responsePromise, rejectFn } =
-      this.trackMutationExecuteRequest<Data>(requestId, mapKey, executeBody);
-    void responsePromise.finally(() =>
+    let { responsePromise, rejectFn } = this.trackMutationExecuteRequest<Data>(
+      requestId,
+      mapKey,
+      executeBody
+    );
+    responsePromise = responsePromise.finally(() =>
       this.cleanupMutationExecuteRequest(requestId, mapKey)
     );
 
