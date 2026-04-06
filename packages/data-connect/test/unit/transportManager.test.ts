@@ -472,5 +472,31 @@ describe('DataConnectTransportManager', () => {
       await manager.invokeQuery(queryName1, variables1);
       expect(restInvokeQuerySpy).to.have.been.calledOnce;
     });
+
+    it('should route back to stream after reconnect', async () => {
+      const hook: SubscribeNotificationHook<TestData> = () => {};
+
+      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeUnsubscribe(queryName1, variables1);
+
+      await clock.tickAsync(60000);
+      expect(manager.streamTransport).to.be.undefined;
+
+      manager.invokeSubscribe(hook, queryName1, variables1);
+      const newStreamTransport = manager.streamTransport!;
+      const newStreamTransportPublic = newStreamTransport as unknown as {
+        openConnection(): Promise<void>;
+        sendMessage(payload: unknown): Promise<void>;
+      };
+      sinon.stub(newStreamTransportPublic, 'openConnection').resolves();
+      sinon.stub(newStreamTransportPublic, 'sendMessage').resolves();
+      sinon.stub(newStreamTransport, 'streamIsReady').get(() => true);
+      const streamExecuteQueryStub = sinon
+        .stub(newStreamTransport, 'invokeQuery')
+        .resolves(testResponse);
+      await manager.invokeQuery(queryName1, variables1);
+      expect(streamExecuteQueryStub).to.have.been.calledOnce;
+      expect(restInvokeQuerySpy).to.have.not.been.called;
+    });
   });
 });
