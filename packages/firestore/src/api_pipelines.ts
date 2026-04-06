@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+export { PipelineSource, subcollection } from './lite-api/pipeline-source';
 
 export { OneOf } from './util/types';
 
@@ -35,10 +35,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -50,7 +52,10 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from './lite-api/stage_options';
 
 export {
@@ -177,12 +182,23 @@ export {
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   log10,
   arraySum,
   timestampTruncate,
   timestampExtract,
   split,
+  variable,
+  currentDocument,
+  score,
+  documentMatches,
+  geoDistance,
+  // TODO(search) add with backend support
+  // snippet,
+  // SnippetOptions,
+  // matches,
   Expression,
   AliasedExpression,
   Field,

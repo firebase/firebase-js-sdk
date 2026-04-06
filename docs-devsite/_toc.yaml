@@ -684,8 +684,6 @@ toc:
     path: /docs/reference/js/firestore_lite_pipelines.querydocumentsnapshot.md
   - title: Selectable
     path: /docs/reference/js/firestore_lite_pipelines.selectable.md
-  - title: StageOptions
-    path: /docs/reference/js/firestore_lite_pipelines.stageoptions.md
   - title: Timestamp
     path: /docs/reference/js/firestore_lite_pipelines.timestamp.md
   - title: VectorValue
@@ -749,8 +747,6 @@ toc:
     path: /docs/reference/js/firestore_pipelines.snapshotmetadata.md
   - title: SnapshotOptions
     path: /docs/reference/js/firestore_pipelines.snapshotoptions.md
-  - title: StageOptions
-    path: /docs/reference/js/firestore_pipelines.stageoptions.md
   - title: Timestamp
     path: /docs/reference/js/firestore_pipelines.timestamp.md
   - title: VectorValue

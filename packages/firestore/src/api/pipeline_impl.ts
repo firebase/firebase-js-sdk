@@ -30,6 +30,7 @@ import {
   newUserDataReader,
   UserDataSource
 } from '../lite-api/user_data_reader';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -38,7 +39,6 @@ import { ExpUserDataWriter } from './user_data_writer';
 
 declare module './database' {
   /**
-   * @beta
    * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
    *
    * @example
@@ -52,7 +52,6 @@ declare module './database' {
 }
 
 /**
- * @beta
  * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -87,7 +86,6 @@ declare module './database' {
  */
 export function execute(pipeline: LitePipeline): Promise<PipelineSnapshot>;
 /**
- * @beta
  * Executes a pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -135,6 +133,15 @@ export function execute(
       };
 
   const { pipeline, rawOptions, ...rest } = options;
+
+  if (!pipeline._db) {
+    return Promise.reject(
+      new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+      )
+    );
+  }
 
   const firestore = cast(pipeline._db, Firestore);
   const client = ensureFirestoreConfigured(firestore);
@@ -190,7 +197,6 @@ export function execute(
 }
 
 /**
- * @beta
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example

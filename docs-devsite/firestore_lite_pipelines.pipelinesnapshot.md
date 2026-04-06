@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PipelineSnapshot class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents the results of a Firestore pipeline execution.
 
 A `PipelineSnapshot` contains zero or more [PipelineResult](./firestore_pipelines.pipelineresult.md#pipelineresult_class) objects representing the documents returned by a pipeline query. It provides methods to iterate over the documents and access metadata about the query results.
@@ -27,19 +24,16 @@ export declare class PipelineSnapshot
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(pipeline, results, executionTime)](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>PipelineSnapshot</code> class |
+|  [(constructor)(pipeline, results, executionTime)](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotconstructor) |  | Constructs a new instance of the <code>PipelineSnapshot</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [executionTime](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotexecutiontime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | <b><i>(Public Preview)</i></b> The time at which the pipeline producing this result is executed. |
-|  [results](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotresults) |  | [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class)<!-- -->\[\] | <b><i>(Public Preview)</i></b> An array of all the results in the <code>PipelineSnapshot</code>. |
+|  [executionTime](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotexecutiontime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) | The time at which the pipeline producing this result is executed. |
+|  [results](./firestore_lite_pipelines.pipelinesnapshot.md#pipelinesnapshotresults) |  | [PipelineResult](./firestore_lite_pipelines.pipelineresult.md#pipelineresult_class)<!-- -->\[\] | An array of all the results in the <code>PipelineSnapshot</code>. |
 
 ## PipelineSnapshot.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Constructs a new instance of the `PipelineSnapshot` class
 
@@ -59,9 +53,6 @@ constructor(pipeline: Pipeline, results: PipelineResult[], executionTime?: Times
 
 ## PipelineSnapshot.executionTime
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The time at which the pipeline producing this result is executed.
 
 <b>Signature:</b>
@@ -71,9 +62,6 @@ get executionTime(): Timestamp;
 ```
 
 ## PipelineSnapshot.results
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 An array of all the results in the `PipelineSnapshot`<!-- -->.
 

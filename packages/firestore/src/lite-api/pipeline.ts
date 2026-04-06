@@ -26,6 +26,7 @@ import {
   aliasedAggregateToMap,
   fieldOrExpression,
   selectablesToMap,
+  selectablesToObject,
   vectorToExpr
 } from '../util/pipeline_util';
 import { isNumber, isString } from '../util/types';
@@ -49,7 +50,11 @@ import {
   isAliasedAggregate,
   toField,
   isOrdering,
-  isExpr
+  isExpr,
+  AliasedExpression,
+  FunctionExpression,
+  isAliasedExpr,
+  documentMatches
 } from './expressions';
 import {
   AddFields,
@@ -67,11 +72,14 @@ import {
   Stage,
   Union,
   Unnest,
-  Where
+  Where,
+  Define,
+  Search
 } from './stage';
 import {
   AddFieldsStageOptions,
   AggregateStageOptions,
+  DefineStageOptions,
   DistinctStageOptions,
   FindNearestStageOptions,
   LimitStageOptions,
@@ -79,6 +87,7 @@ import {
   RemoveFieldsStageOptions,
   ReplaceWithStageOptions,
   SampleStageOptions,
+  SearchStageOptions,
   SelectStageOptions,
   SortStageOptions,
   StageOptions,
@@ -89,7 +98,6 @@ import {
 import { UserData } from './user_data_reader';
 
 /**
- * @beta
  *
  * The Pipeline class provides a flexible and expressive framework for building complex data
  * transformation and query pipelines for Firestore.
@@ -140,7 +148,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
      * @internal
      * @private
      */
-    public _db: Firestore,
+    public _db: Firestore | undefined,
     /**
      * @internal
      * @private
@@ -158,7 +166,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Adds new fields to outputs from previous stages.
    *
    * This stage allows you to compute values on-the-fly based on existing data from previous
@@ -188,7 +195,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
   /**
-   * @beta
    * Adds new fields to outputs from previous stages.
    *
    * This stage allows you to compute values on-the-fly based on existing data from previous
@@ -241,7 +247,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Remove fields from outputs of previous stages.
    *
    * Example:
@@ -265,7 +270,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalFields: Array<Field | string>
   ): Pipeline;
   /**
-   * @beta
    * Remove fields from outputs of previous stages.
    *
    * Example:
@@ -311,7 +315,219 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
+   * @public
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param aliasedExpression - The first expression to bind to a variable.
+   * @param additionalExpressions - Optional additional expression to bind to a variable.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(
+    aliasedExpression: AliasedExpression,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline;
+  /**
+   * @public
+   * Defines one or more variables in the pipeline's scope. `define` is used to bind a value to a
+   * variable for internal reuse within the pipeline body (accessed via the `variable()` function).
+   *
+   * This stage is useful for declaring reusable values or intermediate calculations that can be
+   * referenced multiple times in later parts of the pipeline, improving readability and
+   * maintainability.
+   *
+   * Each variable is defined using an {@link @firebase/firestore/pipelines#AliasedExpression}, which pairs an expression with a name
+   * (alias). The expression can be a simple constant, a field reference, or a complex computation.
+   *
+   * @example
+   * ```typescript
+   * db.pipeline().collection("products")
+   *   .define(
+   *     field("price").multiply(0.9).as("discountedPrice"),
+   *     field("stock").add(10).as("newStock")
+   *   )
+   *   .where(variable("discountedPrice").lessThan(100))
+   *   .select(field("name"), variable("newStock"));
+   * ```
+   *
+   * @param options - An object that specifies required and optional parameters for the stage.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  define(options: DefineStageOptions): Pipeline;
+  define(
+    aliasedExpressionOrOptions: AliasedExpression | DefineStageOptions,
+    ...additionalExpressions: AliasedExpression[]
+  ): Pipeline {
+    // Process argument union(s) from method overloads
+    const options = isAliasedExpr(aliasedExpressionOrOptions)
+      ? {}
+      : aliasedExpressionOrOptions;
+    const aliasedExpressions: AliasedExpression[] = isAliasedExpr(
+      aliasedExpressionOrOptions
+    )
+      ? [aliasedExpressionOrOptions, ...additionalExpressions]
+      : aliasedExpressionOrOptions.variables;
+
+    const convertedExpressions: Map<string, Expression> =
+      selectablesToMap(aliasedExpressions);
+
+    const stage = new Define(convertedExpressions, options);
+
+    return this._addStage(stage);
+  }
+
+  /**
+   * @public
+   * Converts this Pipeline into an expression that evaluates to an array of results.
+   *
+   * <p>Result Unwrapping:</p>
+   * <ul>
+   *  <li>If the items have a single field, their values are unwrapped and returned directly in the array.</li>
+   *  <li>If the items have multiple fields, they are returned as objects in the array</li>
+   * </ul>
+   *
+   * @example
+   * ```typescript
+   * // Get a list of reviewers for each book
+   * db.pipeline().collection("books")
+   *     .define(field("id").as("book_id"))
+   *     .addFields(
+   *         db.pipeline().collection("reviews")
+   *             .where(field("book_id").equal(variable("book_id")))
+   *             .select(field("reviewer"))
+   *             .toArrayExpression()
+   *             .as("reviewers")
+   *     )
+   * ```
+   *
+   * Output:
+   * ```json
+   * [
+   *   {
+   *     "id": "1",
+   *     "title": "1984",
+   *     "reviewers": ["Alice", "Bob"]
+   *   }
+   * ]
+   * ```
+   *
+   * Multiple Fields:
+   * ```typescript
+   * // Get a list of reviews (reviewer and rating) for each book
+   * db.pipeline().collection("books")
+   *     .define(field("id").as("book_id"))
+   *     .addFields(
+   *         db.pipeline().collection("reviews")
+   *             .where(field("book_id").equal(variable("book_id")))
+   *             .select(field("reviewer"), field("rating"))
+   *             .toArrayExpression()
+   *             .as("reviews"))
+   * ```
+   *
+   * Output:
+   * ```json
+   * [
+   *   {
+   *     "id": "1",
+   *     "title": "1984",
+   *     "reviews": [
+   *       { "reviewer": "Alice", "rating": 5 },
+   *       { "reviewer": "Bob", "rating": 4 }
+   *     ]
+   *   }
+   * ]
+   * ```
+   *
+   * @returns An `Expression` representing the execution of this pipeline.
+   */
+  toArrayExpression(): Expression {
+    return new FunctionExpression('array', [fieldOrExpression(this)]);
+  }
+
+  /**
+   * @public
+   * Converts this Pipeline into an expression that evaluates to a single scalar result.
+   *
+   * <p><b>Runtime Validation:</b> The runtime validates that the result set contains zero or one item. If
+   * zero items, it evaluates to `null`.</p>
+   *
+   * <p>Result Unwrapping:</p>
+   * <ul>
+   *  <li>If the item has a single field, its value is unwrapped and returned directly.</li>
+   *  <li>f the item has multiple fields, they are returned as an object.</li>
+   * </ul>
+   *
+   * @example
+   * ```typescript
+   * // Calculate average rating for a restaurant
+   * db.pipeline().collection("restaurants").addFields(
+   *   db.pipeline().collection("reviews")
+   *     .where(field("restaurant_id").equal(variable("rid")))
+   *     .aggregate(average("rating").as("avg"))
+   *     // Unwraps the single "avg" field to a scalar double
+   *     .toScalarExpression().as("average_rating")
+   * )
+   * ```
+   *
+   * Output:
+   * ```json
+   * {
+   *   "name": "The Burger Joint",
+   *   "average_rating": 4.5
+   * }
+   * ```
+   *
+   * Multiple Fields:
+   * ```typescript
+   * // Calculate average rating AND count for a restaurant
+   * db.pipeline().collection("restaurants").addFields(
+   *   db.pipeline().collection("reviews")
+   *     .where(field("restaurant_id").equal(variable("rid")))
+   *     .aggregate(
+   *       average("rating").as("avg"),
+   *       count().as("count")
+   *     )
+   *     // Returns an object with "avg" and "count" fields
+   *     .toScalarExpression().as("stats")
+   * )
+   * ```
+   *
+   * Output:
+   * ```json
+   * {
+   *   "name": "The Burger Joint",
+   *   "stats": {
+   *     "avg": 4.5,
+   *     "count": 100
+   *   }
+   * }
+   * ```
+   *
+   * @returns An `Expression` representing the execution of this pipeline.
+   */
+  toScalarExpression(): Expression {
+    return new FunctionExpression('scalar', [fieldOrExpression(this)]);
+  }
+
+  /**
    * Selects or creates a set of fields from the outputs of previous stages.
    *
    * <p>The selected fields are defined using {@link @firebase/firestore/pipelines#Selectable} expressions, which can be:
@@ -350,7 +566,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalSelections: Array<Selectable | string>
   ): Pipeline;
   /**
-   * @beta
    * Selects or creates a set of fields from the outputs of previous stages.
    *
    * <p>The selected fields are defined using {@link @firebase/firestore/pipelines#Selectable} expressions, which can be:
@@ -409,7 +624,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
    * @firebase/firestore/pipelines#BooleanExpression}.
    *
@@ -443,7 +657,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   where(condition: BooleanExpression): Pipeline;
   /**
-   * @beta
    * Filters the documents from previous stages to only include those matching the specified {@link
    * @firebase/firestore/pipelines#BooleanExpression}.
    *
@@ -491,7 +704,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
@@ -514,7 +726,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   offset(offset: number): Pipeline;
   /**
-   * @beta
    * Skips the first `offset` number of documents from the results of previous stages.
    *
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
@@ -556,7 +767,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Limits the maximum number of documents returned by previous stages to `limit`.
    *
    * <p>This stage is particularly useful when you want to retrieve a controlled subset of data from
@@ -584,7 +794,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   limit(limit: number): Pipeline;
   /**
-   * @beta
    * Limits the maximum number of documents returned by previous stages to `limit`.
    *
    * <p>This stage is particularly useful when you want to retrieve a controlled subset of data from
@@ -626,7 +835,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -660,7 +868,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalGroups: Array<string | Selectable>
   ): Pipeline;
   /**
-   * @beta
    * Returns a set of distinct values from the inputs to this stage.
    *
    * This stage runs through the results from previous stages to include only results with
@@ -712,7 +919,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents. You define the
@@ -742,7 +948,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     ...additionalAccumulators: AliasedAggregate[]
   ): Pipeline;
   /**
-   * @beta
    * Performs optionally grouped aggregation operations on the documents from previous stages.
    *
    * <p>This stage allows you to calculate aggregate values over a set of documents, optionally
@@ -808,7 +1013,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs a vector proximity search on the documents from the previous stage, returning the
    * K-nearest documents based on the specified query `vectorValue` and `distanceMeasure`. The
    * returned documents will be sorted in order from nearest to furthest from the query `vectorValue`.
@@ -858,8 +1062,81 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     return this._addStage(stage);
   }
 
+  // TODO(search) link to external documentation citing list of supported
+  // expressions, when that documentation is created. List is not maintained
+  // in the SDK because the list will change as the backend enables support.
   /**
    * @beta
+   * Add a search stage to the Pipeline. The search stage supports
+   * full-text search and geo search expressions.
+   *
+   * @remarks This must be the first stage of the pipeline.
+   * @remarks A limited set of expressions are supported in the search stage.
+   *
+   * @example
+   * ```typescript
+   * // Full-text search example
+   * firestore.pipeline().collection("restaurants")
+   * .search({
+   *   query: documentMatches("waffles OR pancakes"),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   *   addFields: [
+   *     score().as("searchScore"),
+   *   ]
+   * })
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Geo distance search example
+   * const queryLocation = new GeoPoint(0, 0);
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   * })
+   * ```
+   *
+   * @param options - An object that specifies parameters for the stage.
+   * @return A new `Pipeline` object with this stage appended to the stage list.
+   */
+  search(options: SearchStageOptions): Pipeline {
+    // Convert user land convenience types to internal types
+    const addFields: Record<string, Expression> | undefined = options.addFields
+      ? selectablesToObject(options.addFields)
+      : undefined;
+    const query: BooleanExpression = isExpr(options.query)
+      ? options.query
+      : documentMatches(options.query);
+    const sort: Ordering[] | undefined = isOrdering(options.sort)
+      ? [options.sort]
+      : options.sort;
+
+    const select: Record<string, Expression> | undefined = undefined;
+    // TODO(search) enable with backend support
+    // select = options.select
+    //   ? selectablesToObject(options.select)
+    //   : undefined;
+
+    const internalOptions = {
+      ...options,
+      addFields,
+      select,
+      query,
+      sort
+    };
+
+    // Create stage object
+    const stage = new Search(internalOptions);
+
+    // Add stage to the pipeline
+    return this._addStage(stage);
+  }
+
+  /**
    * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
@@ -887,7 +1164,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   sort(ordering: Ordering, ...additionalOrderings: Ordering[]): Pipeline;
   /**
-   * @beta
    * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
    * <p>This stage allows you to order the results of your pipeline. You can specify multiple {@link
@@ -931,7 +1207,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Fully overwrites all fields in a document with those coming from a nested map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -965,7 +1240,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   replaceWith(fieldName: string): Pipeline;
   /**
-   * @beta
    * Fully overwrites all fields in a document with those coming from a map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1004,7 +1278,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   replaceWith(expr: Expression): Pipeline;
   /**
-   * @beta
    * Fully overwrites all fields in a document with those coming from a map.
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
@@ -1064,7 +1337,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The parameter specifies how number of
@@ -1085,7 +1357,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   sample(documents: number): Pipeline;
 
   /**
-   * @beta
    * Performs a pseudo-random sampling of the documents from the previous stage.
    *
    * <p>This stage will filter documents pseudo-randomly. The 'options' parameter specifies how
@@ -1130,7 +1401,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
@@ -1151,7 +1421,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   union(other: Pipeline): Pipeline;
   /**
-   * @beta
    * Performs union of all documents from two pipelines, including duplicates.
    *
    * <p>This stage will pass through documents from previous stage, and also pass through documents
@@ -1190,7 +1459,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
@@ -1225,7 +1493,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    */
   unnest(selectable: Selectable, indexField?: string): Pipeline;
   /**
-   * @beta
    * Produces a document for each element in an input array.
    *
    * For each previous stage document, this stage will emit zero or more augmented documents. The
@@ -1293,7 +1560,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   }
 
   /**
-   * @beta
    * Adds a raw stage to the pipeline.
    *
    * <p>This method provides a flexible way to extend the pipeline's functionality by adding custom
@@ -1366,7 +1632,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @param stages
    * @protected
    */
-  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+  protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
     return new Pipeline(db, stages);
   }
 }

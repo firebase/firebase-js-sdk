@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Field class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents a reference to a field in a Firestore document, or outputs of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class) stage.
 
 <p>Field references are used to access document field values in expressions and to specify fields for sorting, filtering, and projecting data in Firestore pipelines.
@@ -32,16 +29,19 @@ export declare class Field extends Expression implements Selectable
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [alias](./firestore_pipelines.field.md#fieldalias) |  | string | <b><i>(Public Preview)</i></b> |
-|  [expr](./firestore_pipelines.field.md#fieldexpr) |  | [Expression](./firestore_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> |
-|  [expressionType](./firestore_pipelines.field.md#fieldexpressiontype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> |
-|  [fieldName](./firestore_pipelines.field.md#fieldfieldname) |  | string | <b><i>(Public Preview)</i></b> |
-|  [selectable](./firestore_pipelines.field.md#fieldselectable) |  | true | <b><i>(Public Preview)</i></b> |
+|  [alias](./firestore_pipelines.field.md#fieldalias) |  | string |  |
+|  [expr](./firestore_pipelines.field.md#fieldexpr) |  | [Expression](./firestore_pipelines.expression.md#expression_class) |  |
+|  [expressionType](./firestore_pipelines.field.md#fieldexpressiontype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) |  |
+|  [fieldName](./firestore_pipelines.field.md#fieldfieldname) |  | string |  |
+|  [selectable](./firestore_pipelines.field.md#fieldselectable) |  | true |  |
+
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [geoDistance(location)](./firestore_pipelines.field.md#fieldgeodistance) |  | <b><i>(Public Preview)</i></b> Evaluates to the distance in meters between the location specified by this field and the query location. |
 
 ## Field.alias
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -51,9 +51,6 @@ get alias(): string;
 
 ## Field.expr
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -61,9 +58,6 @@ get expr(): Expression;
 ```
 
 ## Field.expressionType
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -73,9 +67,6 @@ readonly expressionType: ExpressionType;
 
 ## Field.fieldName
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -84,14 +75,36 @@ get fieldName(): string;
 
 ## Field.selectable
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
 selectable: true;
 ```
+
+## Field.geoDistance()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Evaluates to the distance in meters between the location specified by this field and the query location.
+
+This Expression can only be used within a `Search` stage.
+
+<b>Signature:</b>
+
+```typescript
+geoDistance(location: GeoPoint | Expression): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  location | [GeoPoint](./firestore_.geopoint.md#geopoint_class) \| [Expression](./firestore_pipelines.expression.md#expression_class) | Compute distance to this GeoPoint. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
 
 ### Example
 
