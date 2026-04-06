@@ -1040,15 +1040,60 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(closeSpy).to.have.been.calledOnce;
     });
 
+    it('should not close connection if there are active execute requests', async () => {
+      const closeSpy = sinon.spy(transport, 'closeConnection');
+      sinon.stub(transport, 'sendMessage').resolves();
+      const hook = sinon.spy();
+
+      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeUnsubscribe(queryName1, variables1);
+
+      void transport.invokeQuery(queryName2, variables2);
+
+      clock.tick(1000 * 65);
+      expect(closeSpy).to.not.have.been.called;
+    });
+
+    it('should close connection when last execute request finishes after idle timeout', async () => {
+      const closeSpy = sinon.spy(transport, 'closeConnection');
+      sinon.stub(transport, 'sendMessage').resolves();
+      const hook = sinon.spy();
+
+      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeUnsubscribe(queryName1, variables1);
+
+      const queryPromise = transport.invokeQuery(queryName2, variables2);
+
+      clock.tick(1000 * 65);
+      expect(closeSpy).to.not.have.been.called;
+
+      const expectedKey = transport.getMapKey(queryName2, variables2);
+      const request = transport.activeQueryExecuteRequests.get(expectedKey);
+      const requestId = (request as ExecuteStreamRequest<unknown>).requestId;
+
+      const dummyResponse = {
+        data: { result: 'result' },
+        errors: [],
+        extensions: {}
+      };
+      await transport.invokeHandleResponse(requestId, dummyResponse);
+      await queryPromise;
+
+      expect(closeSpy).to.have.been.calledOnce;
+    });
+
     describe('Auth Disconnects', () => {
       it('should close stream immediately on illegal auth change (login)', async () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
         const hook = sinon.spy();
+
         transport.setAuthToken(null);
+        transport.invokeOnAuthTokenChanged(null); // Establish baseline (unauth)
 
         transport.invokeSubscribe(hook, queryName1, variables1);
 
-        transport.invokeOnAuthTokenChanged('new-token');
+        transport.setAuthToken('new-token');
+        transport.invokeOnAuthTokenChanged('new-token'); // Change (login)
 
         expect(closeSpy).to.have.been.calledOnce;
       });
@@ -1057,9 +1102,13 @@ describe('AbstractDataConnectStreamTransport', () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
         const hook = sinon.spy();
 
+        transport.setAuthToken('initial-token');
+        transport.invokeOnAuthTokenChanged('initial-token'); // Establish baseline (auth)
+
         transport.invokeSubscribe(hook, queryName1, variables1);
 
-        transport.invokeOnAuthTokenChanged(null);
+        transport.setAuthToken(null);
+        transport.invokeOnAuthTokenChanged(null); // Change (logout)
 
         expect(closeSpy).to.have.been.calledOnce;
       });
@@ -1068,13 +1117,16 @@ describe('AbstractDataConnectStreamTransport', () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
         const hook = sinon.spy();
 
+        transport.setAuthToken('token-a');
+        transport.invokeOnAuthTokenChanged('token-a'); // Establish baseline (user A)
+
         transport.invokeSubscribe(hook, queryName1, variables1);
 
         sinon
           .stub(transport.authProvider, 'getAuth')
           .returns({ getUid: () => 'new-uid' });
 
-        transport.invokeOnAuthTokenChanged('new-token');
+        transport.invokeOnAuthTokenChanged('new-token'); // Change (user B)
 
         expect(closeSpy).to.have.been.calledOnce;
       });

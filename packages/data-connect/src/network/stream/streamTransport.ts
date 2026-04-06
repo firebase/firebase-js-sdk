@@ -339,25 +339,17 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Begin closing the connection. Waits for and cleans up all active requests, and waits for
-   * {@link IDLE_CONNECTION_TIMEOUT_MS}. Will be called when there are no more active
-   * subscriptions.
+   * {@link IDLE_CONNECTION_TIMEOUT_MS}. This is a graceful close - it will be called when there are
+   * no more active subscriptions, so there's no need to cleanup.
    */
-  private prepareToClose(): void {
+  private prepareToCloseGracefully(): void {
     if (this.pendingClose) {
       return;
     }
     this.pendingClose = true;
-
-    this.activeSubscribeRequests.forEach(requestBody => {
-      this.invokeUnsubscribe(
-        requestBody.subscribe.operationName,
-        requestBody.subscribe.variables
-      );
-    });
-
-    this.closeTimeout = setTimeout(async () => {
+    this.closeTimeout = setTimeout(() => {
       this.closeTimeoutFinished = true;
-      await this.attemptClose();
+      void this.attemptClose();
     }, IDLE_CONNECTION_TIMEOUT_MS);
   }
 
@@ -514,9 +506,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       mapKey,
       executeBody
     );
-    responsePromise = responsePromise.finally(() =>
-      this.cleanupQueryExecuteRequest(requestId, mapKey)
-    );
+    responsePromise = responsePromise.finally(async () => {
+      this.cleanupQueryExecuteRequest(requestId, mapKey);
+      if (
+        !this.hasActiveSubscriptions &&
+        !this.hasActiveExecuteRequests &&
+        this.closeTimeoutFinished
+      ) {
+        await this.attemptClose();
+      }
+    });
 
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(executeBody).catch(err => {
@@ -549,9 +548,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       mapKey,
       executeBody
     );
-    responsePromise = responsePromise.finally(() =>
-      this.cleanupMutationExecuteRequest(requestId, mapKey)
-    );
+    responsePromise = responsePromise.finally(() => {
+      this.cleanupMutationExecuteRequest(requestId, mapKey);
+      if (
+        !this.hasActiveSubscriptions &&
+        !this.hasActiveExecuteRequests &&
+        this.closeTimeoutFinished
+      ) {
+        void this.attemptClose();
+      }
+    });
 
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(executeBody).catch(err => {
@@ -600,7 +606,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       });
       this.cleanupSubscribeRequest(requestId, mapKey);
       if (!this.hasActiveSubscriptions) {
-        this.prepareToClose();
+        this.prepareToCloseGracefully();
       }
     });
   }
@@ -632,7 +638,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     });
 
     if (!this.hasActiveSubscriptions) {
-      this.prepareToClose();
+      this.prepareToCloseGracefully();
     }
   }
 
@@ -643,6 +649,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     const oldAuthUid = this.authUid;
     const newAuthUid = this.authProvider?.getAuth()?.getUid();
     this.authUid = newAuthUid;
+
+    // onAuthTokenChanged gets called by the auth provider once it initializes, so we must make sure
+    // we don't prematurely disconnect the stream if this is the initial call.
+    const isInitialAuth = oldAuthUid === undefined;
+    if (isInitialAuth) {
+      return;
+    }
 
     if (
       (oldAuthToken && newToken === null) || // user logged out
