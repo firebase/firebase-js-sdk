@@ -1,5 +1,4 @@
 /**
- * @beta
  * @license
  * Copyright 2025 Google LLC
  *
@@ -19,24 +18,20 @@
 import type { Pipeline } from './pipeline';
 
 /**
- * @beta
  * Options defining Pipeline execution.
  */
 export interface PipelineExecuteOptions {
   /**
-   * @beta
    * Pipeline to be evaluated.
    */
   pipeline: Pipeline;
 
   /**
-   * @beta
    * Specify the index mode.
    */
   indexMode?: 'recommended';
 
   /**
-   * @beta
    * An escape hatch to set options not known at SDK build time. These values
    * will be passed directly to the Firestore backend and not used by the SDK.
    *

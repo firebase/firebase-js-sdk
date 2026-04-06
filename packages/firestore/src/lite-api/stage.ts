@@ -41,15 +41,12 @@ import {
   Ordering
 } from './expressions';
 import { Pipeline } from './pipeline';
-import { StageOptions } from './stage_options';
+import { QueryEnhancement, StageOptions } from './stage_options';
 import { isUserData, UserData } from './user_data_reader';
 
-/**
- * @beta
- */
 export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   /**
-   * Store optionsProto parsed by _readUserData.
+   * Store _optionsProto parsed by _readUserData.
    * @private
    * @internal
    * @protected
@@ -60,7 +57,7 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   protected knownOptions: Record<string, unknown>;
   protected rawOptions?: Record<string, unknown>;
 
-  constructor(options: StageOptions) {
+  constructor(options: Record<string, unknown> & StageOptions) {
     ({ rawOptions: this.rawOptions, ...this.knownOptions } = options);
   }
 
@@ -83,9 +80,6 @@ export abstract class Stage implements ProtoSerializable<ProtoStage>, UserData {
   abstract get _name(): string;
 }
 
-/**
- * @beta
- */
 export class AddFields extends Stage {
   get _name(): string {
     return 'add_fields';
@@ -111,9 +105,6 @@ export class AddFields extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class RemoveFields extends Stage {
   get _name(): string {
     return 'remove_fields';
@@ -145,8 +136,41 @@ export class RemoveFields extends Stage {
 }
 
 /**
- * @beta
+ * @public
  */
+export class Define extends Stage {
+  get _name(): string {
+    return 'let';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(
+    private aliasedExpressions: Map<string, Expression>,
+    options: StageOptions
+  ) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [toMapValue(serializer, this.aliasedExpressions)]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    readUserDataHelper(this.aliasedExpressions, context);
+  }
+}
+
 export class Aggregate extends Stage {
   get _name(): string {
     return 'aggregate';
@@ -185,9 +209,6 @@ export class Aggregate extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Distinct extends Stage {
   get _name(): string {
     return 'distinct';
@@ -218,9 +239,6 @@ export class Distinct extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class CollectionSource extends Stage {
   get _name(): string {
     return 'collection';
@@ -261,9 +279,6 @@ export class CollectionSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class CollectionGroupSource extends Stage {
   get _name(): string {
     return 'collection_group';
@@ -297,9 +312,35 @@ export class CollectionGroupSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
+export class SubcollectionSource extends Stage {
+  get _name(): string {
+    return 'subcollection';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(private path: string, options: StageOptions) {
+    super(options);
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: [{ stringValue: this.path }]
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
+}
+
 export class DatabaseSource extends Stage {
   get _name(): string {
     return 'database';
@@ -323,9 +364,6 @@ export class DatabaseSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class DocumentsSource extends Stage {
   get _name(): string {
     return 'documents';
@@ -362,9 +400,6 @@ export class DocumentsSource extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Where extends Stage {
   get _name(): string {
     return 'where';
@@ -394,9 +429,6 @@ export class Where extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class FindNearest extends Stage {
   get _name(): string {
     return 'find_nearest';
@@ -444,9 +476,6 @@ export class FindNearest extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Limit extends Stage {
   get _name(): string {
     return 'limit';
@@ -476,9 +505,6 @@ export class Limit extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Offset extends Stage {
   get _name(): string {
     return 'offset';
@@ -503,9 +529,6 @@ export class Offset extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Select extends Stage {
   get _name(): string {
     return 'select';
@@ -538,9 +561,6 @@ export class Select extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Sort extends Stage {
   get _name(): string {
     return 'sort';
@@ -571,9 +591,6 @@ export class Sort extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Sample extends Stage {
   get _name(): string {
     return 'sample';
@@ -602,9 +619,6 @@ export class Sample extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Union extends Stage {
   get _name(): string {
     return 'union';
@@ -631,9 +645,6 @@ export class Union extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Unnest extends Stage {
   get _name(): string {
     return 'unnest';
@@ -671,9 +682,6 @@ export class Unnest extends Stage {
   }
 }
 
-/**
- * @beta
- */
 export class Replace extends Stage {
   static readonly MODE = 'full_replace';
 
@@ -699,6 +707,93 @@ export class Replace extends Stage {
   _readUserData(context: ParseContext): void {
     super._readUserData(context);
     readUserDataHelper(this.map, context);
+  }
+}
+
+// eslint-disable-next-line -- eslint should not convert this type to an interface
+type InternalSearchOptions = {
+  // These are constrained from the public type
+  query: BooleanExpression;
+  sort?: Ordering[];
+  select?: Record<string, Expression>;
+  addFields?: Record<string, Expression>;
+
+  // These are the same as the public type
+  languageCode?: string;
+  retrievalDepth?: number;
+  offset?: number;
+  limit?: number;
+  queryEnhancement?: QueryEnhancement;
+};
+
+/**
+ * @beta
+ */
+export class Search extends Stage {
+  constructor(private _searchOptions: InternalSearchOptions) {
+    super(_searchOptions);
+  }
+
+  get _name(): string {
+    return 'search';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      query: {
+        serverName: 'query'
+      },
+      limit: {
+        serverName: 'limit'
+      },
+      retrievalDepth: {
+        serverName: 'retrieval_depth'
+      },
+      sort: {
+        serverName: 'sort'
+      },
+      addFields: {
+        serverName: 'add_fields'
+      },
+      select: {
+        serverName: 'select'
+      },
+      offset: {
+        serverName: 'offset'
+      },
+      queryEnhancement: {
+        serverName: 'query_enhancement'
+      },
+      languageCode: {
+        serverName: 'language_code'
+      }
+    });
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    readUserDataHelper(this._searchOptions.query, context);
+    if (this._searchOptions.addFields) {
+      readUserDataHelper(this._searchOptions.addFields, context);
+    }
+    if (this._searchOptions.select) {
+      readUserDataHelper(this._searchOptions.select, context);
+    }
+    if (this._searchOptions.sort) {
+      readUserDataHelper(this._searchOptions.sort, context);
+    }
+
+    super._readUserData(context);
   }
 }
 
@@ -752,14 +847,22 @@ export class RawStage extends Stage {
  * @private
  */
 function readUserDataHelper<
-  T extends Map<string, UserData> | UserData[] | UserData
+  T extends
+    | Map<string, UserData>
+    | Record<string, UserData>
+    | UserData[]
+    | UserData
 >(expressionMap: T, context: ParseContext): T {
   if (isUserData(expressionMap)) {
     expressionMap._readUserData(context);
   } else if (Array.isArray(expressionMap)) {
     expressionMap.forEach(readableData => readableData._readUserData(context));
-  } else {
+  } else if (expressionMap instanceof Map) {
     expressionMap.forEach(expr => expr._readUserData(context));
+  } else {
+    Object.values(expressionMap).forEach(expression =>
+      expression._readUserData(context)
+    );
   }
   return expressionMap;
 }
