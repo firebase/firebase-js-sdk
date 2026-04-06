@@ -41,6 +41,9 @@ import {
 /** The request id of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
+/** Time to wait before closing an idle connection (no active subscriptions) */
+const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
+
 /**
  * A promise that is settled for a request is received, and the functions that resolve or reject it.
  */
@@ -66,9 +69,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /** Is the stream currently waiting to close connection? */
   get isPendingClose(): boolean {
-    return this._pendingClose;
+    return this.pendingClose;
   }
-  private _pendingClose = false;
+  private pendingClose = false;
 
   // TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries
   get isUnableToConnect(): boolean {
@@ -166,6 +169,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     string,
     SubscribeNotificationHook<unknown>
   >();
+
+  /** current close timeout from setTimeout(), if any */
+  private closeTimeout: NodeJS.Timeout | null = null;
+  /** has the close timeout finished? */
+  private closeTimeoutFinished = false;
+  /** current auth uid. used to detect if a different user logs in */
+  private authUid: string | null | undefined;
 
   /**
    * Tracks a query execution request, storing the request body and creating and storing a promise that
@@ -328,6 +338,72 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
+   * Begin closing the connection. Waits for and cleans up all active requests, and waits for
+   * {@link IDLE_CONNECTION_TIMEOUT_MS}. This is a graceful close - it will be called when there are
+   * no more active subscriptions, so there's no need to cleanup.
+   */
+  private prepareToCloseGracefully(): void {
+    if (this.pendingClose) {
+      return;
+    }
+    this.pendingClose = true;
+    this.closeTimeoutFinished = false;
+    this.closeTimeout = setTimeout(() => {
+      this.closeTimeoutFinished = true;
+      void this.attemptClose();
+    }, IDLE_CONNECTION_TIMEOUT_MS);
+  }
+
+  /**
+   * Attempt to close the connection. Will only close if there are no active requests preventing it
+   * from doing so.
+   */
+  private async attemptClose(): Promise<void> {
+    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+      return;
+    }
+    this.cancelClose();
+    await this.closeConnection();
+    this.onGracefulStreamClose?.();
+  }
+
+  /**
+   * Cancel closing the connection.
+   */
+  private cancelClose(): void {
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+    }
+    this.pendingClose = false;
+    this.closeTimeoutFinished = false;
+  }
+
+  /**
+   * Reject all active execute promises and notify all subscribe hooks with the given error.
+   * Clear active request tracking maps without cancelling or re-invoking any requests.
+   * Called by concrete implementations when the connection fails to open, or when the connection is closed.
+   */
+  protected rejectAllActiveRequests(error: DataConnectError): void {
+    this.activeQueryExecuteRequests.clear();
+    this.activeMutationExecuteRequests.clear();
+    this.activeSubscribeRequests.clear();
+
+    for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
+      this.executeRequestPromises.delete(requestId);
+      rejectFn(error);
+    }
+
+    for (const [requestId, notifyHook] of this.subscribeNotificationHooks) {
+      this.subscribeNotificationHooks.delete(requestId);
+      notifyHook({
+        data: undefined,
+        errors: [error],
+        extensions: {}
+      });
+    }
+  }
+
+  /**
    * Prepares a stream request message by adding necessary headers and metadata.
    * If this is the first message on the stream, it includes the resource name, auth token, and App Check token.
    * If the auth token has refreshed since the last message, it includes the new auth token.
@@ -427,14 +503,21 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
+    let { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
       requestId,
       mapKey,
       executeBody
     );
-    void responsePromise.finally(() =>
-      this.cleanupQueryExecuteRequest(requestId, mapKey)
-    );
+    responsePromise = responsePromise.finally(() => {
+      this.cleanupQueryExecuteRequest(requestId, mapKey);
+      if (
+        !this.hasActiveSubscriptions &&
+        !this.hasActiveExecuteRequests &&
+        this.closeTimeoutFinished
+      ) {
+        void this.attemptClose();
+      }
+    });
 
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(executeBody).catch(err => {
@@ -462,11 +545,21 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    const { responsePromise, rejectFn } =
-      this.trackMutationExecuteRequest<Data>(requestId, mapKey, executeBody);
-    void responsePromise.finally(() =>
-      this.cleanupMutationExecuteRequest(requestId, mapKey)
+    let { responsePromise, rejectFn } = this.trackMutationExecuteRequest<Data>(
+      requestId,
+      mapKey,
+      executeBody
     );
+    responsePromise = responsePromise.finally(() => {
+      this.cleanupMutationExecuteRequest(requestId, mapKey);
+      if (
+        !this.hasActiveSubscriptions &&
+        !this.hasActiveExecuteRequests &&
+        this.closeTimeoutFinished
+      ) {
+        void this.attemptClose();
+      }
+    });
 
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(executeBody).catch(err => {
@@ -478,15 +571,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * @inheritdoc
    * @remarks
-   * This method synchronously updates the request tracking data structures before sending any message.
-   * If any asynchronous functionality is added to this function, it MUST be done in a way that
-   * preserves the synchronous update of the tracking data structures before the method returns.
+   * This method synchronously updates the request tracking data structures before sending any message
+   * or cancelling the closing of the stream. If any asynchronous functionality is added to this function,
+   * it MUST be done in a way that preserves the synchronous update of the tracking data structures
+   * before the method returns.
    */
   invokeSubscribe<Data, Variables>(
     notifyQueryManager: SubscribeNotificationHook<Data>,
     queryName: string,
     variables: Variables
   ): void {
+    // if we are waiting to close the stream, cancel closing!
+    this.cancelClose();
+
     const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
     const mapKey = this.getMapKey(queryName, variables);
@@ -510,6 +607,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         errors: [err instanceof Error ? err : new Error(String(err))]
       });
       this.cleanupSubscribeRequest(requestId, mapKey);
+      if (!this.hasActiveSubscriptions) {
+        this.prepareToCloseGracefully();
+      }
     });
   }
 
@@ -538,10 +638,40 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.sendRequestMessage(cancelBody).catch(err => {
       logError(`Stream Transport failed to send unsubscribe message: ${err}`);
     });
+
+    if (!this.hasActiveSubscriptions) {
+      this.prepareToCloseGracefully();
+    }
   }
 
   onAuthTokenChanged(newToken: string | null): void {
+    const oldAuthToken = this._authToken;
     this._authToken = newToken;
+
+    const oldAuthUid = this.authUid;
+    const newAuthUid = this.authProvider?.getAuth()?.getUid();
+    this.authUid = newAuthUid;
+
+    // onAuthTokenChanged gets called by the auth provider once it initializes, so we must make sure
+    // we don't prematurely disconnect the stream if this is the initial call.
+    const isInitialAuth = oldAuthUid === undefined;
+    if (isInitialAuth) {
+      return;
+    }
+
+    if (
+      (oldAuthToken && newToken === null) || // user logged out
+      (!oldAuthUid && newAuthUid) || // user logged in
+      (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
+    ) {
+      this.rejectAllActiveRequests(
+        new DataConnectError(
+          Code.UNAUTHORIZED,
+          'Stream disconnected due to auth change.'
+        )
+      );
+      void this.attemptClose();
+    }
   }
 
   /**

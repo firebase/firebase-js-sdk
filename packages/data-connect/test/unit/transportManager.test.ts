@@ -410,4 +410,93 @@ describe('DataConnectTransportManager', () => {
       });
     });
   });
+
+  describe('idle timeout routing', () => {
+    let clock: sinon.SinonFakeTimers;
+    let streamTransport: WebSocketTransport;
+    let restInvokeQuerySpy: sinon.SinonStub;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+      streamTransport = manager.initStreamTransport() as WebSocketTransport;
+      const streamTransportPublic = streamTransport as unknown as {
+        openConnection(): Promise<void>;
+        sendMessage(payload: unknown): Promise<void>;
+      };
+      sinon.stub(streamTransportPublic, 'openConnection').resolves();
+      sinon.stub(streamTransportPublic, 'sendMessage').resolves();
+      sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+      restInvokeQuerySpy = sinon
+        .stub(manager.restTransport, 'invokeQuery')
+        .resolves(testResponse);
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    it('should route to REST during idle timeout and disconnect after 60s', async () => {
+      const hook: SubscribeNotificationHook<TestData> = () => {};
+
+      manager.invokeSubscribe(hook, queryName1, variables1);
+      expect(manager.executeShouldUseStream()).to.be.true;
+
+      manager.invokeUnsubscribe(queryName1, variables1);
+      expect(manager.executeShouldUseStream()).to.be.false;
+
+      // without active streams, should route to REST
+      restInvokeQuerySpy.resetHistory();
+      await manager.invokeQuery(queryName1, variables1);
+      expect(restInvokeQuerySpy).to.have.been.calledOnce;
+
+      await clock.tickAsync(59000);
+      expect(manager.streamTransport).to.exist;
+
+      await manager.invokeQuery(queryName1, variables1);
+      expect(restInvokeQuerySpy).to.have.been.calledTwice;
+
+      await clock.tickAsync(1000);
+      expect(manager.streamTransport).to.be.undefined;
+    });
+
+    it('should route to REST after stream automatically closes', async () => {
+      const hook: SubscribeNotificationHook<TestData> = () => {};
+
+      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeUnsubscribe(queryName1, variables1);
+
+      await clock.tickAsync(60000);
+      expect(manager.streamTransport).to.be.undefined;
+
+      restInvokeQuerySpy.resetHistory();
+      await manager.invokeQuery(queryName1, variables1);
+      expect(restInvokeQuerySpy).to.have.been.calledOnce;
+    });
+
+    it('should route back to stream after reconnect', async () => {
+      const hook: SubscribeNotificationHook<TestData> = () => {};
+
+      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeUnsubscribe(queryName1, variables1);
+
+      await clock.tickAsync(60000);
+      expect(manager.streamTransport).to.be.undefined;
+
+      manager.invokeSubscribe(hook, queryName1, variables1);
+      const newStreamTransport = manager.streamTransport!;
+      const newStreamTransportPublic = newStreamTransport as unknown as {
+        openConnection(): Promise<void>;
+        sendMessage(payload: unknown): Promise<void>;
+      };
+      sinon.stub(newStreamTransportPublic, 'openConnection').resolves();
+      sinon.stub(newStreamTransportPublic, 'sendMessage').resolves();
+      sinon.stub(newStreamTransport, 'streamIsReady').get(() => true);
+      const streamExecuteQueryStub = sinon
+        .stub(newStreamTransport, 'invokeQuery')
+        .resolves(testResponse);
+      await manager.invokeQuery(queryName1, variables1);
+      expect(streamExecuteQueryStub).to.have.been.calledOnce;
+      expect(restInvokeQuerySpy).to.have.not.been.called;
+    });
+  });
 });

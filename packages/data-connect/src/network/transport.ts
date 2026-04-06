@@ -152,7 +152,9 @@ export interface DataConnectTransportInterface {
   useEmulator(host: string, port?: number, sslEnabled?: boolean): void;
 
   /**
-   * Callback invoked when the Firebase Auth token is refreshed or changed.
+   * Callback invoked when the Firebase Auth token is refreshed or changed. Note that this callback
+   * is called immediately asynchronously when the Auth Provider is initialized to provide
+   * the initial auth state.
    * @param token The new access token or null if signed out.
    */
   onAuthTokenChanged: (token: string | null) => void;

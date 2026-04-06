@@ -429,13 +429,44 @@ export class QueryManager {
     });
     return async response => {
       if (response.errors && response.errors.length > 0) {
-        const stringified = JSON.stringify(response.errors);
+        const stringified = JSON.stringify(
+          response.errors.map(e => {
+            if (e && typeof e === 'object' && 'message' in e) {
+              const code =
+                'code' in e
+                  ? (e as unknown as Record<string, unknown>)['code']
+                  : undefined;
+              const message = (e as unknown as Record<string, unknown>)[
+                'message'
+              ];
+              return { message, code };
+            }
+            return e;
+          })
+        );
         const error = new DataConnectError(
           Code.OTHER,
           'DataConnect error received from subscribe notification: ' +
             stringified
         );
         this.publishErrorToSubscribers(key, error);
+
+        // TODO(stephenarosaj) use more robust error checking to see if this is a disconnect. categorize your errors!!!
+        // cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
+        const isDisconnect = response.errors.some(
+          e =>
+            e &&
+            typeof e === 'object' &&
+            'message' in e &&
+            e.message === 'WebSocket disconnected externally'
+        );
+
+        if (isDisconnect) {
+          const callbacks = this.callbacks.get(key);
+          if (callbacks) {
+            [...callbacks].forEach(cb => cb.unsubscribe());
+          }
+        }
         return;
       }
       const fetchTime = Date.now().toString();
