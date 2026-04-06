@@ -96,7 +96,7 @@ export class QueryManager {
     private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) {}
+  ) { }
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -184,7 +184,7 @@ export class QueryManager {
 
     const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => {});
+    promise.then(undefined, err => { });
 
     if (this.callbacks.has(key)) {
       this.callbacks
@@ -447,7 +447,7 @@ export class QueryManager {
         const error = new DataConnectError(
           Code.OTHER,
           'DataConnect error received from subscribe notification: ' +
-            stringified
+          stringified
         );
         this.publishErrorToSubscribers(key, error);
 
@@ -483,8 +483,7 @@ export class QueryManager {
           fetchTime
         )
       };
-      let updatedKeys: string[] = [];
-      updatedKeys = await this.updateCache(
+      const updatedKeys = await this.updateCache(
         queryResult,
         response.extensions?.dataConnect
       );

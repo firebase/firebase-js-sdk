@@ -165,10 +165,12 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
 
         ws.onerror = event => {
           this.connectionAttempt = null;
-          this.handleError(
+          const error = new DataConnectError(
+            Code.OTHER,
             `Error using WebSocket connection, closing WebSocket`
           );
-          reject(`Error using WebSocket connection, closing WebSocket`);
+          this.handleError(error);
+          reject(error);
         };
 
         ws.onmessage = ev =>
