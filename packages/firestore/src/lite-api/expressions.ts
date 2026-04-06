@@ -17,15 +17,21 @@
 
 import { FirestoreError } from '../api';
 import { ParseContext } from '../api/parse_context';
+import { OptionsUtil } from '../core/options_util';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
 } from '../model/path';
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import {
+  ApiClientObjectMap,
+  firestoreV1ApiClientInterfaces,
+  Value as ProtoValue
+} from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoValueSerializable,
   toMapValue,
+  toPipelineValue,
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
@@ -37,6 +43,7 @@ import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
+import type { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
@@ -52,7 +59,9 @@ export type ExpressionType =
   | 'Function'
   | 'AggregateFunction'
   | 'ListOfExpressions'
-  | 'AliasedExpression';
+  | 'AliasedExpression'
+  | 'Variable'
+  | 'PipelineValue';
 
 /**
  *
@@ -147,7 +156,6 @@ function fieldOrExpression(value: unknown): Expression {
     return valueToDefaultExpr(value);
   }
 }
-
 /**
  *
  * Represents an expression that can be evaluated to a value within the execution of a {@link
@@ -1940,6 +1948,27 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * @public
+   * Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
+   *
+   * @example
+   * ```typescript
+   * // Get the value of the "city" field in the "address" document.
+   * field("address").getField("city")
+   * ```
+   *
+   * @param key The field to access in the document.
+   * @returns A new `Expression` representing the value of the field in the document.
+   */
+  getField(key: string | Expression): Expression {
+    return new FunctionExpression(
+      'get_field',
+      [this, valueToDefaultExpr(key)],
+      'get_field'
+    );
+  }
+
+  /**
    * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
    * expression or field.
    *
@@ -3286,6 +3315,85 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     return new FunctionExpression('timestamp_trunc', args);
   }
 
+  // TODO(search) enable with backend support
+  // /**
+  //  * Evaluates if the result of this `expression` is between
+  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+  //  *
+  //  * @example
+  //  * ```
+  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+  //  * field('tireWidth').between(constant(2.2), constant(2.4))
+  //  *
+  //  * // This is functionally equivalent to
+  //  * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
+  //  * ```
+  //  *
+  //  * @param lowerBound - Lower bound (inclusive) of the range.
+  //  * @param upperBound - Upper bound (inclusive) of the range.
+  //  */
+  // between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+  //
+  // /**
+  //  * Evaluates if the result of this `expression` is between
+  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+  //  *
+  //  * @example
+  //  * ```
+  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+  //  * field('tireWidth').between(2.2, 2.4)
+  //  *
+  //  * // This is functionally equivalent to
+  //  * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
+  //  * ```
+  //  *
+  //  * @param lowerBound - Lower bound (inclusive) of the range.
+  //  * @param upperBound - Upper bound (inclusive) of the range.
+  //  */
+  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+  //
+  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
+  //   return new FunctionExpression('between', [
+  //     this,
+  //     valueToDefaultExpr(lowerBound),
+  //     valueToDefaultExpr(upperBound)
+  //   ]).asBoolean();
+  // }
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * Evaluates to an HTML-formatted text snippet that renders terms matching
+  //  * the search query in `<b>bold</b>`.
+  //  *
+  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  *
+  //  * @param rquery Define the search query using the search domain-specific language (DSL).
+  //  */
+  // snippet(rquery: string): Expression;
+  //
+  // /**
+  //  * Evaluates to an HTML-formatted text snippet that renders terms matching
+  //  * the search query in `<b>bold</b>`.
+  //  *
+  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  *
+  //  * @param options Define how snippeting behaves.
+  //  */
+  // snippet(options: SnippetOptions): Expression;
+  //
+  // snippet(queryOrOptions: string | SnippetOptions): Expression {
+  //   const options: SnippetOptions = isString(queryOrOptions)
+  //     ? { rquery: queryOrOptions }
+  //     : queryOrOptions;
+  //   const rquery = options.rquery;
+  //   const internalOptions = {
+  //     maxSnippetWidth: options.maxSnippetWidth,
+  //     maxSnippets: options.maxSnippets,
+  //     separator: options.separator
+  //   };
+  //   return new SnippetExpression([this, constant(rquery)], internalOptions);
+  // }
+
   // TODO(new-expression): Add new expression method definitions above this line
 
   /**
@@ -3592,6 +3700,39 @@ export class Field extends Expression implements Selectable {
     return this;
   }
 
+  // TODO(search) enable with backend support
+  // /**
+  //  * Perform a full-text search on this field.
+  //  *
+  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  *
+  //  * @param rquery Define the search query using the search domain-specific language (DSL).
+  //  */
+  // matches(rquery: string | Expression): BooleanExpression {
+  //   return new FunctionExpression(
+  //     'matches',
+  //     [this, valueToDefaultExpr(rquery)],
+  //     'matches'
+  //   ).asBoolean();
+  // }
+
+  /**
+   * @beta
+   * Evaluates to the distance in meters between the location specified
+   * by this field and the query location.
+   *
+   * @remarks This Expression can only be used within a `Search` stage.
+   *
+   * @param location - Compute distance to this GeoPoint.
+   */
+  geoDistance(location: GeoPoint | Expression): Expression {
+    return new FunctionExpression(
+      'geo_distance',
+      [this, valueToDefaultExpr(location)],
+      'geoDistance'
+    );
+  }
+
   /**
    * @private
    * @internal
@@ -3880,30 +4021,81 @@ export class FunctionExpression extends Expression {
   readonly expressionType: ExpressionType = 'Function';
 
   constructor(name: string, params: Expression[]);
+
+  /**
+   * @hideconstructor
+   */
   constructor(
     name: string,
     params: Expression[],
-    _methodName: string | undefined
+    _methodName?: string,
+    options?: {}
   );
+
+  /**
+   * @hideconstructor
+   */
   constructor(
     private name: string,
     private params: Expression[],
-    readonly _methodName?: string
+    methodName?: string,
+    options?: {}
   ) {
     super();
+
+    if (methodName !== undefined) {
+      this._methodName = methodName;
+    }
+    if (options !== undefined) {
+      this._options = options;
+    }
   }
 
   /**
    * @private
    * @internal
    */
+  _methodName: string | undefined;
+
+  /**
+   * @private
+   * @internal
+   */
+  private _options: {} | undefined;
+
+  /**
+   * @private
+   * @internal
+   */
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _optionsProto:
+    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
+    | undefined = undefined;
+
+  /**
+   * @private
+   * @internal
+   */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
-    return {
+    const returnValue: ProtoValue = {
       functionValue: {
         name: this.name,
         args: this.params.map(p => p._toProto(serializer))
       }
     };
+
+    if (this._optionsProto) {
+      returnValue.functionValue!.options = this._optionsProto;
+    }
+
+    return returnValue;
   }
 
   /**
@@ -3917,6 +4109,12 @@ export class FunctionExpression extends Expression {
     this.params.forEach(expr => {
       return expr._readUserData(context);
     });
+    if (this._options) {
+      this._optionsProto = this._optionsUtil.getOptionsProto(
+        context,
+        this._options
+      );
+    }
   }
 }
 
@@ -4102,6 +4300,37 @@ export class BooleanField extends BooleanExpression {
   readonly expressionType: ExpressionType = 'Field';
   constructor(readonly _expr: Field) {
     super();
+  }
+}
+
+/**
+ * SnippetExpression extends from FunctionExpression because it
+ * supports options and requires the options util.
+ */
+export class SnippetExpression extends FunctionExpression {
+  /**
+   * @private
+   * @internal
+   */
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      maxSnippetWidth: {
+        serverName: 'max_snippet_width'
+      },
+      maxSnippets: {
+        serverName: 'max_snippets'
+      },
+      separator: {
+        serverName: 'separator'
+      }
+    });
+  }
+
+  /**
+   * @hideconstructor
+   */
+  constructor(params: Expression[], options?: {}) {
+    super('snippet', params, 'snippet', options);
   }
 }
 
@@ -8504,7 +8733,72 @@ export function mapEntries(
 }
 
 /**
+ * @public
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
  *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField(field("address"), "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(expression: Expression, key: string): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the key resulting from the "addressField" variable in the "address" document.
+ * getField(field("address", variable("addressField")),
+ * ```
+ *
+ * @param key The expression representing the key to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(
+  expression: Expression,
+  keyExpr: Expression
+): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, key: string): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", variable("addressField"))
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, keyExpr: Expression): Expression;
+export function getField(
+  fieldOrExpr: string | Expression,
+  keyOrExpr: string | Expression
+): Expression {
+  return fieldOrExpression(fieldOrExpr).getField(keyOrExpr);
+}
+
+/**
  * Creates an aggregation that counts the total number of stage inputs.
  *
  * @example
@@ -10716,6 +11010,116 @@ export function timestampTruncate(
 }
 
 /**
+ * @public
+ * Creates an expression that retrieves the value of a variable bound via `define()`.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection("products")
+ *   .define(
+ *     field("price").multiply(0.9).as("discountedPrice"),
+ *     field("stock").add(10).as("newStock")
+ *   )
+ *   .where(variable("discountedPrice").lessThan(100))
+ *   .select(field("name"), variable("newStock"));
+ * ```
+ *
+ * @param name - The name of the variable to retrieve.
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the variable's value.
+ */
+export function variable(name: string): Expression {
+  return new VariableExpression(name);
+}
+
+/**
+ * @internal
+ *
+ * Expression representing a variable reference. This evaluates to the value of a variable
+ * defined in a pipeline.
+ */
+export class VariableExpression extends Expression {
+  readonly _methodName?: string | undefined;
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly name: string) {
+    super();
+  }
+
+  expressionType: ExpressionType = 'Variable';
+
+  /**
+   * @internal
+   */
+  _toProto(_: JsonProtoSerializer): ProtoValue {
+    return {
+      variableReferenceValue: this.name
+    };
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(_: ParseContext): void {}
+}
+
+/**
+ * @public
+ * Creates an expression that represents the current document being processed.
+ *
+ * @example
+ * ```typescript
+ * // Define the current document as a variable "doc"
+ * firestore.pipeline().collection("books")
+ *     .define(currentDocument().as("doc"))
+ *     // Access a field from the defined document variable
+ *     .select(variable("doc").mapGet("title"));
+ * ```
+ *
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the current document.
+ */
+export function currentDocument(): Expression {
+  return new FunctionExpression('current_document', []);
+}
+
+/**
+ * @internal
+ */
+export function pipelineValue(pipeline: Pipeline): PipelineValueExpression {
+  return new PipelineValueExpression(pipeline);
+}
+
+/**
+ * @internal
+ */
+class PipelineValueExpression extends Expression {
+  readonly _methodName?: string | undefined;
+  expressionType: ExpressionType = 'PipelineValue';
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly pipeline: Pipeline) {
+    super();
+  }
+
+  /**
+   * @internal
+   */
+  _toProto(jsonProtoSerializer: JsonProtoSerializer): ProtoValue {
+    return toPipelineValue(this.pipeline._toProto(jsonProtoSerializer));
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(context: ParseContext): void {
+    this.pipeline._readUserData(context);
+  }
+}
+
+/*
  * Creates an expression that calculates the difference between two timestamps.
  *
  * @example
@@ -10899,6 +11303,275 @@ export function timestampExtract(
   );
 }
 
+// TODO(search) enable with backend support
+// /**
+//  * Perform a full-text search on the specified field.
+//  *
+//  * @remarks This Expression can only be used within a `Search` stage.
+//  *
+//  * @example
+//  * ```typescript
+//  * db.pipeline().collection('restaurants').search({
+//  *   query: matches('menu', 'waffles')
+//  * })
+//  * ```
+//  *
+//  * @param searchField Search the specified field.
+//  * @param rquery Define the search query using the search domain-specific language (DSL).
+//  */
+// export function matches(
+//   searchField: string | Field,
+//   rquery: string | Expression
+// ): BooleanExpression {
+//   return toField(searchField).matches(rquery);
+// }
+
+/**
+ * @beta
+ * Perform a full-text search on all indexed search fields in the document.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: documentMatches('waffles OR pancakes')
+ * })
+ * ```
+ *
+ * @param rquery Define the search query using the search domain-specific language (DSL).
+ */
+export function documentMatches(
+  rquery: string | Expression
+): BooleanExpression {
+  return new FunctionExpression(
+    'document_matches',
+    [valueToDefaultExpr(rquery)],
+    'documentMatches'
+  ).asBoolean();
+}
+
+/**
+ * @beta
+ *
+ * Evaluates to the search score that reflects the topicality of the document
+ * to all of the text predicates (for example: `documentMatches`)
+ * in the search query. If `SearchOptions.query` is not set or does not contain
+ * any text predicates, then this topicality score will always be `0`.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   sort: score().descending()
+ * })
+ * ```
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ */
+export function score(): Expression {
+  return new FunctionExpression('score', [], 'score');
+}
+
+// TODO(search) enable with backend support
+// /**
+//  * Options defining how a snippet expression is evaluated.
+//  */
+// export interface SnippetOptions {
+//   /**
+//    * Define the search query using the search domain-specific language (DSL).
+//    */
+//   rquery: string;
+//
+//   /**
+//    * The maximum width of the string estimated for a variable width font. The
+//    * unit is tenths of ems. The default is `160`.
+//    */
+//   maxSnippetWidth?: number;
+//
+//   /**
+//    * The maximum number of non-contiguous pieces of text in the returned snippet.
+//    * The default is `1`.
+//    */
+//   maxSnippets?: number;
+//
+//   /**
+//    * The string to join the pieces. The default value is '\n'
+//    */
+//   separator?: string;
+// }
+//
+// /**
+//  * Evaluates to an HTML-formatted text snippet that highlights terms matching
+//  * the search query in `<b>bold</b>`.
+//  *
+//  * @remarks This Expression can only be used within a `Search` stage.
+//  *
+//  * @example
+//  * ```typescript
+//  * db.pipeline().collection('restaurants').search({
+//  *   query: 'waffles',
+//  *   addFields: { snippet: snippet('menu', 'waffles') }
+//  * })
+//  * ```
+//  *
+//  * @param searchField Search the specified field for matching terms.
+//  * @param rquery Define the search query using the search domain-specific language (DSL).
+//  */
+// export function snippet(
+//   searchField: string | Field,
+//   rquery: string
+// ): Expression;
+//
+// /**
+//  * Evaluates to an HTML-formatted text snippet that highlights terms matching
+//  * the search query in `<b>bold</b>`.
+//  *
+//  * @remarks This Expression can only be used within a `Search` stage.
+//  *
+//  * @param searchField Search the specified field for matching terms.
+//  * @param options Define the search query using the search domain-specific language (DSL).
+//  */
+// export function snippet(
+//   searchField: string | Field,
+//   options: SnippetOptions
+// ): Expression;
+// export function snippet(
+//   field: string | Field,
+//   queryOrOptions: string | SnippetOptions
+// ): Expression {
+//   return toField(field).snippet(
+//     isString(queryOrOptions) ? { rquery: queryOrOptions } : queryOrOptions
+//   );
+// }
+
+/**
+ * @beta
+ * Evaluates to the distance in meters between the location in the specified
+ * field and the query location.
+ *
+ * @remarks This Expression can only be used within a `Search` stage.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   sort: geoDistance('location', new GeoPoint(37.0, -122.0)).ascending()
+ * })
+ * ```
+ *
+ * @param fieldName - Specifies the field in the document which contains
+ * the first GeoPoint for distance computation.
+ * @param location - Compute distance to this GeoPoint.
+ */
+export function geoDistance(
+  fieldName: string | Field,
+  location: GeoPoint | Expression
+): Expression {
+  return toField(fieldName).geoDistance(location);
+}
+
+// TODO(search) enable with backend support
+// /**
+//  * Evaluates if the value in the field specified by `fieldName` is between
+//  * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between('tireWidth', constant(2.2), constant(2.4))
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
+//  * ```
+//  *
+//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   fieldName: string,
+//   lowerBound: Expression,
+//   upperBound: Expression
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the value in the field specified by `fieldName` is between
+//  * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between('tireWidth', 2.2, 2.4)
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
+//  * ```
+//  *
+//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   fieldName: string,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the result of the specified `expression` is between
+//  * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between(field('tireWidth'), constant(2.2), constant(2.4))
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
+//  * ```
+//  *
+//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   expression: Expression,
+//   lowerBound: Expression,
+//   upperBound: Expression
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the result of the specified `expression` is between
+//  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between(field('tireWidth'), 2.2, 2.4)
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
+//  * ```
+//  *
+//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   expression: Expression,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression;
+//
+// export function between(
+//   expression: Expression | string,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression {
+//   return fieldOrExpression(expression).between(lowerBound, upperBound);
+// }
+
 // TODO(new-expression): Add new top-level expression function definitions above this line
 
 /**
@@ -11018,8 +11691,10 @@ export function isSelectable(val: unknown): val is Selectable {
 }
 
 export function isOrdering(val: unknown): val is Ordering {
-  const candidate = val as Ordering;
+  const candidate = val as Ordering | undefined;
   return (
+    candidate !== undefined &&
+    candidate !== null &&
     isExpr(candidate.expr) &&
     (candidate.direction === 'ascending' ||
       candidate.direction === 'descending')
@@ -11040,6 +11715,10 @@ export function isExpr(val: unknown): val is Expression {
 
 export function isBooleanExpr(val: unknown): val is BooleanExpression {
   return val instanceof BooleanExpression;
+}
+
+export function isAliasedExpr(val: unknown): val is AliasedExpression {
+  return val instanceof AliasedExpression;
 }
 
 export function isField(val: unknown): val is Field {

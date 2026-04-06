@@ -48,7 +48,10 @@ export type {
   Bytes
 } from '../index';
 
-export { PipelineSource } from '../../src/lite-api/pipeline-source';
+export {
+  PipelineSource,
+  subcollection
+} from '../../src/lite-api/pipeline-source';
 
 export { OneOf } from '../../src/util/types';
 
@@ -65,10 +68,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -80,7 +85,10 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from '../../src/lite-api/stage_options';
 
 export {
@@ -215,7 +223,15 @@ export {
   arraySum,
   split,
   timestampTruncate,
+  variable,
+  currentDocument,
   timestampExtract,
+  // snippet,
+  // SnippetOptions,
+  score,
+  // matches,
+  documentMatches,
+  geoDistance,
   AliasedExpression,
   Field,
   Constant,
