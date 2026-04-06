@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
-  "dependency": {
+  "dependencies": {
     "@firebase/logger": "0.2.6"
   },
   "devDependencies": {
