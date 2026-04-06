@@ -120,12 +120,6 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @public
-export function arrayFilter(fieldName: string, alias: string, filter: BooleanExpression): FunctionExpression;
-
-// @public
-export function arrayFilter(arrayExpression: Expression, alias: string, filter: BooleanExpression): FunctionExpression;
-
-// @public
 export function arrayFirst(fieldName: string): FunctionExpression;
 
 // @public
@@ -234,28 +228,10 @@ export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionE
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @public
-export function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
-
-// @public
-export function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
-
-// @public
 export function arraySum(fieldName: string): FunctionExpression;
 
 // @public
 export function arraySum(expression: Expression): FunctionExpression;
-
-// @public
-export function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
-
-// @public
-export function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
-
-// @public
-export function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
-
-// @public
-export function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
 
 // @public
 export function ascending(expr: Expression): Ordering;
@@ -994,10 +970,10 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @public
-export function isType(fieldName: string, type: string): BooleanExpression;
+export function isType(fieldName: string, type: Type): BooleanExpression;
 
 // @public
-export function isType(expression: Expression, type: string): BooleanExpression;
+export function isType(expression: Expression, type: Type): BooleanExpression;
 
 // @public
 export function join(arrayFieldName: string, delimiter: string): Expression;
@@ -1189,10 +1165,10 @@ export function multiply(first: Expression, second: Expression | unknown): Funct
 // @public
 export function multiply(fieldName: string, second: Expression | unknown): FunctionExpression;
 
-// @beta
+// @public
 export function nor(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
 
-// @beta
+// @public
 export function not(booleanExpr: BooleanExpression): BooleanExpression;
 
 // @public
@@ -1242,14 +1218,6 @@ export class Ordering {
     // (undocumented)
     readonly expr: Expression;
 }
-
-// @public
-function parent_2(documentPath: string | DocumentReference): FunctionExpression;
-
-// @public
-function parent_2(documentPathExpr: Expression): FunctionExpression;
-
-export { parent_2 as parent }
 
 // @public (undocumented)
 export class Pipeline {
@@ -1621,55 +1589,55 @@ export function sum(expression: Expression): AggregateFunction;
 // @public
 export function sum(fieldName: string): AggregateFunction;
 
-// @beta
+// @public
 export function switchOn(condition: BooleanExpression, result: Expression, ...others: Array<BooleanExpression | Expression>): FunctionExpression;
 
-// @beta
+// @public
 export type TimeGranularity = TimeUnit | 'week' | 'week(monday)' | 'week(tuesday)' | 'week(wednesday)' | 'week(thursday)' | 'week(friday)' | 'week(saturday)' | 'week(sunday)' | 'isoweek' | 'month' | 'quarter' | 'year' | 'isoyear';
 
-// @beta
+// @public
 export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
 
-// @beta
+// @public
 export function timestampAdd(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampAdd(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
-// @beta
+// @public
 export function timestampAdd(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
-// @beta
+// @public (undocumented)
 export function timestampDiff(endFieldName: string, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampDiff(endFieldName: string, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampDiff(endExpression: Expression, startFieldName: string, unit: TimeUnit | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampDiff(endExpression: Expression, startExpression: Expression, unit: TimeUnit | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampExtract(fieldName: string, part: TimePart, timezone?: string | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampExtract(fieldName: string, part: Expression, timezone?: string | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampExtract(timestampExpression: Expression, part: TimePart, timezone?: string | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampExtract(timestampExpression: Expression, part: Expression, timezone?: string | Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampSubtract(timestamp: Expression, unit: Expression, amount: Expression): FunctionExpression;
 
-// @beta
+// @public
 export function timestampSubtract(timestamp: Expression, unit: TimeUnit, amount: number): FunctionExpression;
 
-// @beta
+// @public
 export function timestampSubtract(fieldName: string, unit: TimeUnit, amount: number): FunctionExpression;
 
 // @public
@@ -1702,10 +1670,10 @@ export function timestampTruncate(timestampExpression: Expression, granularity: 
 // @public
 export function timestampTruncate(timestampExpression: Expression, granularity: Expression, timezone?: string | Expression): FunctionExpression;
 
-// @beta
+// @public
 export type TimeUnit = 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day';
 
-// @beta
+// @public
 export function toLower(fieldName: string): FunctionExpression;
 
 // @public
@@ -1734,6 +1702,9 @@ export function trunc(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @public
 export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
+
+// @public
+export type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 
 // @public
 export function type(fieldName: string): FunctionExpression;

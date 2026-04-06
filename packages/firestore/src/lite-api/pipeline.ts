@@ -148,7 +148,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
      * @internal
      * @private
      */
-    public _db: Firestore,
+    public _db: Firestore | undefined,
     /**
      * @internal
      * @private
@@ -1062,6 +1062,80 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     return this._addStage(stage);
   }
 
+  // TODO(search) link to external documentation citing list of supported
+  // expressions, when that documentation is created. List is not maintained
+  // in the SDK because the list will change as the backend enables support.
+  /**
+   * @beta
+   * Add a search stage to the Pipeline. The search stage supports
+   * full-text search and geo search expressions.
+   *
+   * @remarks This must be the first stage of the pipeline.
+   * @remarks A limited set of expressions are supported in the search stage.
+   *
+   * @example
+   * ```typescript
+   * // Full-text search example
+   * firestore.pipeline().collection("restaurants")
+   * .search({
+   *   query: documentMatches("waffles OR pancakes"),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   *   addFields: [
+   *     score().as("searchScore"),
+   *   ]
+   * })
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // Geo distance search example
+   * const queryLocation = new GeoPoint(0, 0);
+   * db.pipeline().collection('restaurants').search({
+   *   query: field('location').geoDistance(queryLocation).lessThanOrEqual(1000),
+   *   sort: [
+   *     score().descending(),
+   *   ],
+   * })
+   * ```
+   *
+   * @param options - An object that specifies parameters for the stage.
+   * @return A new `Pipeline` object with this stage appended to the stage list.
+   */
+  search(options: SearchStageOptions): Pipeline {
+    // Convert user land convenience types to internal types
+    const addFields: Record<string, Expression> | undefined = options.addFields
+      ? selectablesToObject(options.addFields)
+      : undefined;
+    const query: BooleanExpression = isExpr(options.query)
+      ? options.query
+      : documentMatches(options.query);
+    const sort: Ordering[] | undefined = isOrdering(options.sort)
+      ? [options.sort]
+      : options.sort;
+
+    const select: Record<string, Expression> | undefined = undefined;
+    // TODO(search) enable with backend support
+    // select = options.select
+    //   ? selectablesToObject(options.select)
+    //   : undefined;
+
+    const internalOptions = {
+      ...options,
+      addFields,
+      select,
+      query,
+      sort
+    };
+
+    // Create stage object
+    const stage = new Search(internalOptions);
+
+    // Add stage to the pipeline
+    return this._addStage(stage);
+  }
+
   /**
    * Sorts the documents from previous stages based on one or more {@link @firebase/firestore/pipelines#Ordering} criteria.
    *
@@ -1558,7 +1632,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @param stages
    * @protected
    */
-  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+  protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
     return new Pipeline(db, stages);
   }
 }

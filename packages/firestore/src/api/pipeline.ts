@@ -29,7 +29,7 @@ export class Pipeline extends LitePipeline {
    * @param stages
    * @protected
    */
-  protected newPipeline(db: Firestore, stages: Stage[]): Pipeline {
+  protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
     return new Pipeline(db, stages);
   }
 }

@@ -37,8 +37,6 @@ const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
 
-export const RUN_ENTERPRISE_TESTS: boolean = getRunEnterpriseTests();
-
 const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
 export const USE_EMULATOR: boolean = TARGET_BACKEND === TargetBackend.EMULATOR;
@@ -64,7 +62,7 @@ function getTargetDbId(): string | '(default)' {
   return '(default)';
 }
 
-function getRunEnterpriseTests(): boolean {
+export function getRunEnterpriseTests(): boolean {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreEdition === 'enterprise') {
     return true;

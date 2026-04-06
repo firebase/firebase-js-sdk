@@ -24,6 +24,7 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
+import { logWarn } from '../../../src/util/log';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -204,6 +205,50 @@ import {
 use(chaiAsPromised);
 
 const timestampDeltaMS = 10000;
+
+let beginDocCreation: number = 0;
+let endDocCreation: number = 0;
+
+async function testCollectionWithDocs(
+  collection: CollectionReference,
+  docs: { [id: string]: DocumentData }
+): Promise<CollectionReference<DocumentData>> {
+  beginDocCreation = new Date().valueOf();
+  for (const id in docs) {
+    if (docs.hasOwnProperty(id)) {
+      const ref = doc(collection, id);
+      await setDoc(ref, docs[id]);
+    }
+  }
+  endDocCreation = new Date().valueOf();
+  return collection;
+}
+
+function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
+function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[]
+): void;
+
+function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[] | string[]
+): void {
+  const docs = snapshot.results;
+
+  expect(docs.length).to.equal(data.length);
+
+  if (data.length > 0) {
+    if (typeof data[0] === 'string') {
+      const actualIds = docs.map(doc => doc.id);
+      expect(actualIds).to.deep.equal(data);
+    } else {
+      docs.forEach(r => {
+        expect(r.data()).to.deep.equal(data.shift());
+      });
+    }
+  }
+}
 
 apiDescribe.skipClassic('Pipelines', persistence => {
   addEqualityMatcher();
@@ -2332,6 +2377,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         const err = e as FirebaseError;
         expect(err['code']).to.equal('invalid-argument');
         expect(typeof err['message']).to.equal('string');
+
+        expect(err['message']).to.match(
+          /Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
+        );
       }
     });
   });
@@ -6524,8 +6573,39 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .addFields(reviewsSub.toArrayExpression().as('reviews'))
           .select('title', 'reviews');
 
-        const results = await execute(ppl);
-        expectResults(results, { title: '1984', reviews: ['Alice'] });
+        // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
+        const host = firestore._getSettings().host;
+        const isProd = host === 'firestore.googleapis.com';
+        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
+
+        if (isProd) {
+          // The execution of this pipeline is expected to result in a network error
+          // from the backend until the breaking change to rename the 'field' expression to
+          // 'get_field' has rolled out to prod.
+          try {
+            const results = await execute(ppl);
+
+            // If this is reached, the execution of the pipeline didn't throw an error, so the
+            // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
+            logWarn(
+              "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
+            );
+            expectResults(results, { title: '1984', reviews: ['Alice'] });
+          } catch (err: unknown) {
+            const error: Error = err as Error;
+            expect(error.message).to.equals(
+              "The function 'get_field' does not exist, did you mean 'field'?"
+            );
+          }
+        } else if (isNightly) {
+          const results = await execute(ppl);
+          expectResults(results, { title: '1984', reviews: ['Alice'] });
+        } else {
+          expect(false).to.equal(
+            true,
+            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
+          );
+        }
       });
     });
 
@@ -6607,8 +6687,39 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .addFields(reviewsSub.toArrayExpression().as('reviews'))
           .select('title', 'reviews');
 
-        const results = await execute(ppl);
-        expectResults(results, { title: '1984', reviews: [] });
+        // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
+        const host = firestore._getSettings().host;
+        const isProd = host === 'firestore.googleapis.com';
+        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
+
+        if (isProd) {
+          // The execution of this pipeline is expected to result in a network error
+          // from the backend until the breaking change to rename the 'field' expression to
+          // 'get_field' has rolled out to prod.
+          try {
+            const results = await execute(ppl);
+
+            // If this is reached, the execution of the pipeline didn't throw an error, so the
+            // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
+            logWarn(
+              "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
+            );
+            expectResults(results, { title: '1984', reviews: [] });
+          } catch (err: unknown) {
+            const error: Error = err as Error;
+            expect(error.message).to.equals(
+              "The function 'get_field' does not exist, did you mean 'field'?"
+            );
+          }
+        } else if (isNightly) {
+          const results = await execute(ppl);
+          expectResults(results, { title: '1984', reviews: [] });
+        } else {
+          expect(false).to.equal(
+            true,
+            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
+          );
+        }
       });
     });
 
