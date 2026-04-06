@@ -21,7 +21,10 @@ import { registerDataConnect } from './register';
 
 export * from './api';
 export * from './api.node';
+
 initializeFetch(fetch);
-initializeWebSocket(WebSocket);
+if (typeof WebSocket !== 'undefined') {
+  initializeWebSocket(WebSocket);
+}
 
 registerDataConnect('node');
