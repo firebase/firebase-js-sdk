@@ -451,6 +451,7 @@ export class QueryManager {
         );
         this.publishErrorToSubscribers(key, error);
 
+        // TODO(stephenarosaj) use more robust error checking to see if this is a disconnect. categorize your errors!!!
         // cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
         const isDisconnect = response.errors.some(
           e =>
