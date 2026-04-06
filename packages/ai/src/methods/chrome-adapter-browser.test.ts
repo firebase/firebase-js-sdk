@@ -19,7 +19,12 @@ import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { chromeAdapterFactory, ChromeAdapterImpl } from './chrome-adapter';
+import {
+  chromeAdapterFactory,
+  ChromeAdapterImpl,
+  defaultExpectedInputs,
+  defaultExpectedOutputs
+} from './chrome-adapter';
 import {
   Availability,
   LanguageModel,
@@ -54,7 +59,7 @@ async function toStringArray(
 
 describe('ChromeAdapter', () => {
   describe('constructor', () => {
-    it('sets image as expected input type by default', async () => {
+    it('sets default expectedInputs/Outputs if createOptions not provided', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -75,10 +80,11 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).to.have.been.calledWith({
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: defaultExpectedInputs,
+        expectedOutputs: defaultExpectedOutputs
       });
     });
-    it('sets image as expected input type by default even if other onDeviceParams params are set', async () => {
+    it('sets default expectedInputs/Outputs even if other onDeviceParams params are set', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -102,10 +108,11 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).to.have.been.calledWith({
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: defaultExpectedInputs,
+        expectedOutputs: defaultExpectedOutputs
       });
     });
-    it('sets image as expected input type by default even if other createOptions params are set', async () => {
+    it('sets default expectedInputs/Outputs even if other createOptions params are set', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -132,10 +139,11 @@ describe('ChromeAdapter', () => {
       });
       expect(availabilityStub).to.have.been.calledWith({
         topK: 22,
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: defaultExpectedInputs,
+        expectedOutputs: defaultExpectedOutputs
       });
     });
-    it('honors explicitly set expected inputs', async () => {
+    it('honors explicitly set expected inputs and outputs', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -145,7 +153,8 @@ describe('ChromeAdapter', () => {
       ).resolves(Availability.AVAILABLE);
       const createOptions = {
         // Explicitly sets expected inputs.
-        expectedInputs: [{ type: 'text' }]
+        expectedInputs: [{ type: 'text', languages: ['en'] }],
+        expectedOutputs: [{ type: 'text', languages: ['de'] }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
