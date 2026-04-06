@@ -347,6 +347,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       return;
     }
     this.pendingClose = true;
+    this.closeTimeoutFinished = false;
     this.closeTimeout = setTimeout(() => {
       this.closeTimeoutFinished = true;
       void this.attemptClose();
@@ -361,6 +362,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
       return;
     }
+    this.cancelClose();
     await this.closeConnection();
     this.onGracefulStreamClose?.();
   }
@@ -506,14 +508,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       mapKey,
       executeBody
     );
-    responsePromise = responsePromise.finally(async () => {
+    responsePromise = responsePromise.finally(() => {
       this.cleanupQueryExecuteRequest(requestId, mapKey);
       if (
         !this.hasActiveSubscriptions &&
         !this.hasActiveExecuteRequests &&
         this.closeTimeoutFinished
       ) {
-        await this.attemptClose();
+        void this.attemptClose();
       }
     });
 

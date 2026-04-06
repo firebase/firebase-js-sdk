@@ -110,7 +110,7 @@ interface TransportWithInternals {
   _setCallerSdkType(type: CallerSdkType): void;
   invokeOnAuthTokenChanged(token: string | null): void;
   setAuthToken(token: string | null): void;
-  authProvider: { getAuth: () => { getUid: () => string } };
+  authProvider: { getAuth: () => { getUid(): string | null } };
   setAppCheckToken(token: string | null): void;
   nextRequestId(): string;
   triggerOnConnectionReady(): void;
@@ -1088,11 +1088,14 @@ describe('AbstractDataConnectStreamTransport', () => {
         const hook = sinon.spy();
 
         transport.setAuthToken(null);
+        const getAuthStub = sinon.stub(transport.authProvider, 'getAuth');
+        getAuthStub.returns({ getUid: () => null });
         transport.invokeOnAuthTokenChanged(null); // Establish baseline (unauth)
 
         transport.invokeSubscribe(hook, queryName1, variables1);
 
         transport.setAuthToken('new-token');
+        getAuthStub.returns({ getUid: () => 'some-uid' });
         transport.invokeOnAuthTokenChanged('new-token'); // Change (login)
 
         expect(closeSpy).to.have.been.calledOnce;
@@ -1103,11 +1106,14 @@ describe('AbstractDataConnectStreamTransport', () => {
         const hook = sinon.spy();
 
         transport.setAuthToken('initial-token');
+        const getAuthStub = sinon.stub(transport.authProvider, 'getAuth');
+        getAuthStub.returns({ getUid: () => 'some-uid' });
         transport.invokeOnAuthTokenChanged('initial-token'); // Establish baseline (auth)
 
         transport.invokeSubscribe(hook, queryName1, variables1);
 
         transport.setAuthToken(null);
+        getAuthStub.returns({ getUid: () => null });
         transport.invokeOnAuthTokenChanged(null); // Change (logout)
 
         expect(closeSpy).to.have.been.calledOnce;
@@ -1118,17 +1124,38 @@ describe('AbstractDataConnectStreamTransport', () => {
         const hook = sinon.spy();
 
         transport.setAuthToken('token-a');
+        const getAuthStub = sinon.stub(transport.authProvider, 'getAuth');
+        getAuthStub.returns({ getUid: () => 'user-a' });
         transport.invokeOnAuthTokenChanged('token-a'); // Establish baseline (user A)
 
         transport.invokeSubscribe(hook, queryName1, variables1);
 
-        sinon
-          .stub(transport.authProvider, 'getAuth')
-          .returns({ getUid: () => 'new-uid' });
-
-        transport.invokeOnAuthTokenChanged('new-token'); // Change (user B)
+        transport.setAuthToken('token-b');
+        getAuthStub.returns({ getUid: () => 'user-b' });
+        transport.invokeOnAuthTokenChanged('token-b'); // Change (user B)
 
         expect(closeSpy).to.have.been.calledOnce;
+      });
+
+      it('should NOT close stream on valid auth token refresh (same user)', async () => {
+        const closeSpy = sinon.spy(transport, 'closeConnection');
+        const hook = sinon.spy();
+
+        transport.setAuthToken('initial-token');
+
+        // Stub getUid to return the same user ID regardless of token
+        sinon
+          .stub(transport.authProvider, 'getAuth')
+          .returns({ getUid: () => 'same-user' });
+
+        transport.invokeOnAuthTokenChanged('initial-token'); // Establish baseline
+
+        transport.invokeSubscribe(hook, queryName1, variables1);
+
+        transport.setAuthToken('refreshed-token');
+        transport.invokeOnAuthTokenChanged('refreshed-token'); // Refresh
+
+        expect(closeSpy).to.not.have.been.called;
       });
     });
   });
