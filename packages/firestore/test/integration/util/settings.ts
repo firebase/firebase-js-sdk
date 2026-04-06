@@ -37,6 +37,8 @@ const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
 
+export const RUN_ENTERPRISE_TESTS: boolean = getRunEnterpriseTests();
+
 const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
 export const USE_EMULATOR: boolean = TARGET_BACKEND === TargetBackend.EMULATOR;
