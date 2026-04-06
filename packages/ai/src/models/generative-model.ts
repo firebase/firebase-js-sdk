@@ -190,7 +190,9 @@ export class GenerativeModel extends AIModel {
  * Client-side validation of some common `GenerationConfig` pitfalls, in order
  * to save the developer a wasted request.
  */
-function validateGenerationConfig(generationConfig: GenerationConfig): void {
+export function validateGenerationConfig(
+  generationConfig: GenerationConfig
+): void {
   if (
     // != allows for null and undefined. 0 is considered "set" by the model
     generationConfig.thinkingConfig?.thinkingBudget != null &&
@@ -214,11 +216,12 @@ function validateGenerationConfig(generationConfig: GenerationConfig): void {
   if (
     (generationConfig.responseSchema != null ||
       generationConfig.responseJsonSchema != null) &&
-    generationConfig.responseMimeType
+    generationConfig.responseMimeType !== 'application/json'
   ) {
     throw new AIError(
       AIErrorCode.UNSUPPORTED,
-      `responseMimeType must be set if responseSchema or responseJsonSchema are set.`
+      `responseMimeType must be set to "application/json" if` +
+        ` responseSchema or responseJsonSchema are set.`
     );
   }
 }

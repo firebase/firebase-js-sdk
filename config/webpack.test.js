@@ -112,3 +112,29 @@ module.exports = {
     })
   ]
 };
+
+// If we are in a CI environment or a developer has explicity asked for coverage (e.g.
+// "COVERAGE=true yarn test:browser:unit"), add the babel-loader to instrument the code with
+// istanbul
+if (
+  (process.env.CI && process.env.CI !== 'false') ||
+  process.env.COVERAGE === 'true'
+) {
+  module.exports.module.rules.push({
+    test: /\.tsx?$/,
+    // 'post' ensures this runs AFTER ts-loader converts TS to ES2020 JS
+    enforce: 'post',
+    use: {
+      loader: 'babel-loader',
+      options: {
+        plugins: ['istanbul'] // Uses babel-plugin-istanbul to add coverage counters
+      }
+    },
+    include: path.resolve(__dirname, '../packages'),
+    exclude: [
+      /node_modules/,
+      /\.test\.tsx?$/, // Don't instrument the tests themselves
+      /test\//
+    ]
+  });
+}
