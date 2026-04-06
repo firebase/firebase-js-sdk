@@ -37,8 +37,12 @@ import {
   LanguageModelMessageRole
 } from '../types/language-model';
 
-// Defaults to support image inputs for convenience.
-const defaultExpectedInputs: LanguageModelExpected[] = [{ type: 'image' }];
+// Defaults to English text. This can be overriden by user config.
+const defaultExpectedInputs: LanguageModelExpected[] = [
+  { type: 'text', languages: ['en'] }
+];
+// Defaults to English text. This can be overriden by user config.
+const defaultExpectedOutputs: LanguageModelExpected[] = defaultExpectedInputs;
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -50,12 +54,11 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
   // Promise for on-device model download completion
   downloadPromise: Promise<LanguageModel | void> | null = null;
-  // Monitor for download progress
-  private monitor: Event | null = null;
   private oldSession: LanguageModel | undefined;
   onDeviceParams: OnDeviceParams = {
     createOptions: {
-      expectedInputs: defaultExpectedInputs
+      expectedInputs: defaultExpectedInputs,
+      expectedOutputs: defaultExpectedOutputs
     }
   };
   constructor(
@@ -67,11 +70,18 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       this.onDeviceParams = onDeviceParams;
       if (!this.onDeviceParams.createOptions) {
         this.onDeviceParams.createOptions = {
-          expectedInputs: defaultExpectedInputs
+          expectedInputs: defaultExpectedInputs,
+          expectedOutputs: defaultExpectedOutputs
         };
-      } else if (!this.onDeviceParams.createOptions.expectedInputs) {
-        this.onDeviceParams.createOptions.expectedInputs =
-          defaultExpectedInputs;
+      } else {
+        if (!this.onDeviceParams.createOptions.expectedInputs) {
+          this.onDeviceParams.createOptions.expectedInputs =
+            defaultExpectedInputs;
+        }
+        if (!this.onDeviceParams.createOptions.expectedOutputs) {
+          this.onDeviceParams.createOptions.expectedOutputs =
+            defaultExpectedOutputs;
+        }
       }
     }
   }
@@ -120,7 +130,11 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         availability === Availability.DOWNLOADING
       ) {
         logger.debug(`Waiting for download of LanguageModel to complete.`);
-        await this.downloadPromise;
+        try {
+          await this.downloadPromise;
+        } catch (e) {
+          throw new AIError(AIErrorCode.ERROR, (e as Error).message);
+        }
         return true;
       }
       return true;

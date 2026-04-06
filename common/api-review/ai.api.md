@@ -897,6 +897,8 @@ export type Language = (typeof Language)[keyof typeof Language];
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
+    // (undocumented)
+    expectedOutputs?: LanguageModelExpected[];
     // Warning: (ae-forgotten-export) The symbol "LanguageModelDownloadMonitor" needs to be exported by the entry point index.d.ts
     //
     // (undocumented)

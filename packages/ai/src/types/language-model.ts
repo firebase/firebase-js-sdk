@@ -57,6 +57,7 @@ export interface LanguageModelCreateCoreOptions {
   topK?: number;
   temperature?: number;
   expectedInputs?: LanguageModelExpected[];
+  expectedOutputs?: LanguageModelExpected[];
   monitor?: (monitor: LanguageModelDownloadMonitor) => void;
 }
 
