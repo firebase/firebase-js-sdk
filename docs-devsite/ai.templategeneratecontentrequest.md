@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateGenerateContentRequest interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Request sent through 
 
 <b>Signature:</b>
@@ -22,12 +25,15 @@ export interface TemplateGenerateContentRequest
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [history](./ai.templategeneratecontentrequest.md#templategeneratecontentrequesthistory) | [Content](./ai.content.md#content_interface)<!-- -->\[\] |  |
-|  [inputs](./ai.templategeneratecontentrequest.md#templategeneratecontentrequestinputs) | Record&lt;string, unknown&gt; |  |
-|  [toolConfig](./ai.templategeneratecontentrequest.md#templategeneratecontentrequesttoolconfig) | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) |  |
-|  [tools](./ai.templategeneratecontentrequest.md#templategeneratecontentrequesttools) | [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface)<!-- -->\[\] |  |
+|  [history](./ai.templategeneratecontentrequest.md#templategeneratecontentrequesthistory) | [Content](./ai.content.md#content_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
+|  [inputs](./ai.templategeneratecontentrequest.md#templategeneratecontentrequestinputs) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> |
+|  [toolConfig](./ai.templategeneratecontentrequest.md#templategeneratecontentrequesttoolconfig) | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | <b><i>(Public Preview)</i></b> |
+|  [tools](./ai.templategeneratecontentrequest.md#templategeneratecontentrequesttools) | [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
 
 ## TemplateGenerateContentRequest.history
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -37,6 +43,9 @@ history?: Content[];
 
 ## TemplateGenerateContentRequest.inputs
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -45,6 +54,9 @@ inputs?: Record<string, unknown>;
 
 ## TemplateGenerateContentRequest.toolConfig
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -52,6 +64,9 @@ toolConfig?: ToolConfig;
 ```
 
 ## TemplateGenerateContentRequest.tools
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 

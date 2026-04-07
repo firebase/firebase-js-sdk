@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateFunctionDeclaration interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Structured representation of a template function declaration. Included in this declaration are the function name and parameters. This `TemplateFunctionDeclaration` is a representation of a block of code that can be used as a Tool by the model and executed by the client. Note: Template function declarations do not support description fields.
 
 <b>Signature:</b>
@@ -22,12 +25,15 @@ export interface TemplateFunctionDeclaration
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [description](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationdescription) | never | Description is intentionally unsupported for template function declarations. |
-|  [functionReference](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationfunctionreference) | Function | Reference to an actual function to call. Specifying this will cause the function to be called automatically when requested by the model. |
-|  [name](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationname) | string | The name of the function to call. Must start with a letter or an underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a max length of 64. |
-|  [parameters](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationparameters) | [ObjectSchema](./ai.objectschema.md#objectschema_class) \| [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset. |
+|  [description](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationdescription) | never | <b><i>(Public Preview)</i></b> Description is intentionally unsupported for template function declarations. |
+|  [functionReference](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationfunctionreference) | Function | <b><i>(Public Preview)</i></b> Reference to an actual function to call. Specifying this will cause the function to be called automatically when requested by the model. |
+|  [name](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationname) | string | <b><i>(Public Preview)</i></b> The name of the function to call. Must start with a letter or an underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a max length of 64. |
+|  [parameters](./ai.templatefunctiondeclaration.md#templatefunctiondeclarationparameters) | [ObjectSchema](./ai.objectschema.md#objectschema_class) \| [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | <b><i>(Public Preview)</i></b> Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset. |
 
 ## TemplateFunctionDeclaration.description
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Description is intentionally unsupported for template function declarations.
 
@@ -39,6 +45,9 @@ description?: never;
 
 ## TemplateFunctionDeclaration.functionReference
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Reference to an actual function to call. Specifying this will cause the function to be called automatically when requested by the model.
 
 <b>Signature:</b>
@@ -49,6 +58,9 @@ functionReference?: Function;
 
 ## TemplateFunctionDeclaration.name
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 The name of the function to call. Must start with a letter or an underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a max length of 64.
 
 <b>Signature:</b>
@@ -58,6 +70,9 @@ name: string;
 ```
 
 ## TemplateFunctionDeclaration.parameters
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Optional. Describes the parameters to this function in JSON Schema Object format. Reflects the Open API 3.03 Parameter Object. Parameter names are case-sensitive. For a function with no parameters, this can be left unset.
 

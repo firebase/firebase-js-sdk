@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateChatSession class
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 ChatSession class that enables sending chat messages and stores history of sent and received messages so far for a server template.
 
 <b>Signature:</b>
@@ -23,23 +26,26 @@ export declare class TemplateChatSession extends ChatSessionBase<StartTemplateCh
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(apiSettings, params, requestOptions)](./ai.templatechatsession.md#templatechatsessionconstructor) |  | Constructs a new instance of the <code>TemplateChatSession</code> class |
+|  [(constructor)(apiSettings, params, requestOptions)](./ai.templatechatsession.md#templatechatsessionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>TemplateChatSession</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [params](./ai.templatechatsession.md#templatechatsessionparams) |  | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) |  |
-|  [requestOptions](./ai.templatechatsession.md#templatechatsessionrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  [params](./ai.templatechatsession.md#templatechatsessionparams) |  | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | <b><i>(Public Preview)</i></b> |
+|  [requestOptions](./ai.templatechatsession.md#templatechatsessionrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined | <b><i>(Public Preview)</i></b> |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [sendMessage(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
+|  [sendMessage(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessage) |  | <b><i>(Public Preview)</i></b> Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessagestream) |  | <b><i>(Public Preview)</i></b> Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
 ## TemplateChatSession.(constructor)
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Constructs a new instance of the `TemplateChatSession` class
 
@@ -59,6 +65,9 @@ constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOp
 
 ## TemplateChatSession.params
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -67,6 +76,9 @@ params: StartTemplateChatParams;
 
 ## TemplateChatSession.requestOptions
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -74,6 +86,9 @@ requestOptions?: RequestOptions | undefined;
 ```
 
 ## TemplateChatSession.sendMessage()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)
 
@@ -95,6 +110,9 @@ sendMessage(request: string | Array<string | Part>, singleRequestOptions?: Singl
 Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)<!-- -->&gt;
 
 ## TemplateChatSession.sendMessageStream()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise.
 

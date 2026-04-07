@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateFunctionDeclarationsTool interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 A piece of code that enables the system to interact with external systems.
 
 <b>Signature:</b>
@@ -22,9 +25,12 @@ export interface TemplateFunctionDeclarationsTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [functionDeclarations](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstoolfunctiondeclarations) | [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface)<!-- -->\[\] | Optional. One or more function declarations to be passed to the server-side template execution. |
+|  [functionDeclarations](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstoolfunctiondeclarations) | [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> Optional. One or more function declarations to be passed to the server-side template execution. |
 
 ## TemplateFunctionDeclarationsTool.functionDeclarations
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Optional. One or more function declarations to be passed to the server-side template execution.
 

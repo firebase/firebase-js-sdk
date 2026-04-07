@@ -159,6 +159,9 @@ export class ChatSession extends ChatSessionBase<StartChatParams, GenerateConten
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
+//
 // @public
 export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
     constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
@@ -1364,7 +1367,7 @@ export interface StartChatParams extends BaseParams {
     tools?: Tool[];
 }
 
-// @public
+// @beta
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
     // (undocumented)
     history?: Content[];
@@ -1389,9 +1392,9 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @public, but its signature references "TemplateRequestInternal" which is marked as @internal
+// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @beta, but its signature references "TemplateRequestInternal" which is marked as @internal
 //
-// @public
+// @beta
 export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> {
     constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
     // @internal
@@ -1408,7 +1411,7 @@ export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 }
 
-// @public
+// @beta
 export interface TemplateFunctionDeclaration {
     description?: never;
     functionReference?: Function;
@@ -1424,7 +1427,7 @@ export interface TemplateFunctionDeclarationInternal extends Omit<TemplateFuncti
     inputSchema?: ObjectSchema | ObjectSchemaRequest;
 }
 
-// @public
+// @beta
 export interface TemplateFunctionDeclarationsTool {
     functionDeclarations?: TemplateFunctionDeclaration[];
 }
@@ -1436,7 +1439,7 @@ export interface TemplateFunctionDeclarationsToolInternal {
     templateFunctions?: TemplateFunctionDeclarationInternal[];
 }
 
-// @public
+// @beta
 export interface TemplateGenerateContentRequest {
     // (undocumented)
     [key: string]: unknown;
@@ -1478,7 +1481,7 @@ export interface TemplateRequestInternal extends Omit<TemplateGenerateContentReq
     tools?: TemplateFunctionDeclarationsToolInternal[];
 }
 
-// @public
+// @beta
 export type TemplateTool = TemplateFunctionDeclarationsTool;
 
 // @public

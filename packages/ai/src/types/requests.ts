@@ -76,7 +76,7 @@ export interface GenerateContentRequest extends BaseParams {
 
 /**
  * Request sent through {@link GenerativeModel.templateGenerateContent}
- * @public
+ * @beta
  */
 export interface TemplateGenerateContentRequest {
   inputs?: Record<string, unknown>;
@@ -247,7 +247,7 @@ export interface StartChatParams extends BaseParams {
 
 /**
  * Params for {@link TemplateGenerativeModel.startChat}.
- * @public
+ * @beta
  */
 export interface StartTemplateChatParams
   extends Omit<StartChatParams, 'tools'> {
@@ -485,7 +485,7 @@ export interface FunctionDeclarationsTool {
  * `TemplateFunctionDeclaration` is a representation of a block of code that can be used
  * as a Tool by the model and executed by the client.
  * Note: Template function declarations do not support description fields.
- * @public
+ * @beta
  */
 export interface TemplateFunctionDeclaration {
   /**
@@ -522,7 +522,7 @@ export interface TemplateFunctionDeclarationInternal
 
 /**
  * A piece of code that enables the system to interact with external systems.
- * @public
+ * @beta
  */
 export interface TemplateFunctionDeclarationsTool {
   /**
@@ -547,7 +547,7 @@ export interface TemplateFunctionDeclarationsToolInternal {
 /**
  * Defines a tool that a template model can call to access external knowledge.
  * Only function declarations are currently supported for templates.
- * @public
+ * @beta
  */
 export type TemplateTool = TemplateFunctionDeclarationsTool;
 

@@ -10,6 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # StartTemplateChatParams interface
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 Params for [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->.
 
 <b>Signature:</b>
@@ -23,14 +26,17 @@ export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [history](./ai.starttemplatechatparams.md#starttemplatechatparamshistory) | [Content](./ai.content.md#content_interface)<!-- -->\[\] |  |
-|  [systemInstruction](./ai.starttemplatechatparams.md#starttemplatechatparamssysteminstruction) | string \| [Part](./ai.md#part) \| [Content](./ai.content.md#content_interface) |  |
-|  [templateId](./ai.starttemplatechatparams.md#starttemplatechatparamstemplateid) | string |  |
-|  [templateVariables](./ai.starttemplatechatparams.md#starttemplatechatparamstemplatevariables) | Record&lt;string, unknown&gt; |  |
-|  [toolConfig](./ai.starttemplatechatparams.md#starttemplatechatparamstoolconfig) | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) |  |
-|  [tools](./ai.starttemplatechatparams.md#starttemplatechatparamstools) | [TemplateTool](./ai.md#templatetool)<!-- -->\[\] |  |
+|  [history](./ai.starttemplatechatparams.md#starttemplatechatparamshistory) | [Content](./ai.content.md#content_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
+|  [systemInstruction](./ai.starttemplatechatparams.md#starttemplatechatparamssysteminstruction) | string \| [Part](./ai.md#part) \| [Content](./ai.content.md#content_interface) | <b><i>(Public Preview)</i></b> |
+|  [templateId](./ai.starttemplatechatparams.md#starttemplatechatparamstemplateid) | string | <b><i>(Public Preview)</i></b> |
+|  [templateVariables](./ai.starttemplatechatparams.md#starttemplatechatparamstemplatevariables) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> |
+|  [toolConfig](./ai.starttemplatechatparams.md#starttemplatechatparamstoolconfig) | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | <b><i>(Public Preview)</i></b> |
+|  [tools](./ai.starttemplatechatparams.md#starttemplatechatparamstools) | [TemplateTool](./ai.md#templatetool)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
 
 ## StartTemplateChatParams.history
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -40,6 +46,9 @@ history?: Content[];
 
 ## StartTemplateChatParams.systemInstruction
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -47,6 +56,9 @@ systemInstruction?: string | Part | Content;
 ```
 
 ## StartTemplateChatParams.templateId
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
@@ -56,6 +68,9 @@ templateId: string;
 
 ## StartTemplateChatParams.templateVariables
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -64,6 +79,9 @@ templateVariables?: Record<string, unknown>;
 
 ## StartTemplateChatParams.toolConfig
 
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
 <b>Signature:</b>
 
 ```typescript
@@ -71,6 +89,9 @@ toolConfig?: ToolConfig;
 ```
 
 ## StartTemplateChatParams.tools
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 <b>Signature:</b>
 
