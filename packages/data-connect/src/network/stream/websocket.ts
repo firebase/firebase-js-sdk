@@ -232,7 +232,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    */
   private handleError(error?: unknown): void {
     logError(`DataConnect WebSocket error, closing stream: ${error}`);
-    let reason = String(error);
+    let reason = error ? String(error) : 'Unknown Error';
     if (error instanceof DataConnectError) {
       reason = error.message;
     }
@@ -299,7 +299,9 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     } catch (err) {
       throw new DataConnectError(
         Code.OTHER,
-        'Could not parse WebSocket message'
+        `Could not parse WebSocket message: ${
+          err instanceof Error ? err.message : String(err)
+        }`
       );
     }
     if (typeof webSocketMessage !== 'object' || webSocketMessage === null) {

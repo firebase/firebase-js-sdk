@@ -37,7 +37,12 @@ import {
   DataConnectResponse
 } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
-import { Code, DataConnectError } from '../error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationFailureResponse
+} from '../error';
 
 import {
   OnCompleteSubscription,
@@ -450,24 +455,30 @@ export class QueryManager {
     queryRef: QueryRef<Data, Variables>
   ): Promise<void> {
     if (response.errors && response.errors.length > 0) {
-      const error = new DataConnectError(
-        Code.OTHER,
+      const stringified = JSON.stringify(
+        response.errors.map(e => {
+          if (e && typeof e === 'object') {
+            return {
+              message: (e as unknown as { message: string }).message,
+              code: (e as unknown as { code?: unknown }).code
+            };
+          }
+          return e;
+        })
+      );
+      const failureResponse: DataConnectOperationFailureResponse = {
+        errors: response.errors as [],
+        data: response.data as Record<string, unknown>
+      };
+      const error = new DataConnectOperationError(
         'DataConnect error received from subscribe notification: ' +
-          JSON.stringify(
-            response.errors.map(e => {
-              if (e && typeof e === 'object') {
-                return {
-                  message: (e as unknown as { message: string }).message,
-                  code: (e as unknown as { code?: unknown }).code
-                };
-              }
-              return e;
-            })
-          )
+          stringified,
+        failureResponse
       );
       this.publishErrorToSubscribers(key, error);
       return;
     }
+
     const fetchTime = Date.now().toString();
     const queryResult: QueryResult<Data, Variables> = {
       ref: queryRef,
