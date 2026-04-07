@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { TargetIdGenerator } from '../core/target_id_generator';
 import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import {
@@ -24,10 +25,10 @@ import {
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { TargetData } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
-import { debugAssert, debugCast } from '../util/assert';
+import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
@@ -102,10 +103,47 @@ export interface RemoteStore {
    * immediately after construction.
    */
   remoteSyncer: RemoteSyncer;
+
+  /**
+   * Returns the remote target ID for the given local target ID, or undefined
+   * if no such mapping exists.
+   */
+  remoteTargetId(localTargetId: TargetId): TargetId | undefined;
+
+  /**
+   * Returns the local target ID for the given remote target ID, or undefined
+   * if no such mapping exists.
+   */
+  localTargetId(remoteTargetId: TargetId): TargetId | undefined;
+
+  /**
+   * A callback that is called whenever a new mapping between a local and a
+   * remote target ID is created.
+   * Only for testing.
+   */
+  forTestingOnMappingCreated?: (localId: TargetId, remoteId: TargetId) => void;
 }
 
 class RemoteStoreImpl implements RemoteStore {
   remoteSyncer: RemoteSyncer = {};
+
+  forTestingOnMappingCreated?: (localId: TargetId, remoteId: TargetId) => void;
+
+  /**
+   * Returns the remote target ID for the given local target ID, or undefined
+   * if no such mapping exists.
+   */
+  remoteTargetId(localTargetId: TargetId): TargetId | undefined {
+    return this.localToRemoteTargetIds.get(localTargetId);
+  }
+
+  /**
+   * Returns the local target ID for the given remote target ID, or undefined
+   * if no such mapping exists.
+   */
+  localTargetId(remoteTargetId: TargetId): TargetId | undefined {
+    return this.remoteToLocalTargetIds.get(remoteTargetId);
+  }
 
   /**
    * A list of up to MAX_PENDING_WRITES writes that we have fetched from the
@@ -136,6 +174,22 @@ class RemoteStoreImpl implements RemoteStore {
    * without waiting for confirmation from the listen stream.
    */
   listenTargets = new Map<TargetId, TargetData>();
+
+  /**
+   * A mapping of remote target IDs to local target IDs.
+   */
+  remoteToLocalTargetIds = new Map<TargetId, TargetId>();
+
+  /**
+   * A mapping of local target IDs to remote target IDs.
+   */
+  localToRemoteTargetIds = new Map<TargetId, TargetId>();
+
+  /**
+   * A generator for target IDs used to identify targets on the remote watch
+   * stream.
+   */
+  targetIdGenerator: TargetIdGenerator;
 
   connectivityMonitor: ConnectivityMonitor;
   watchStream?: PersistentListenStream;
@@ -168,8 +222,11 @@ class RemoteStoreImpl implements RemoteStore {
     readonly datastore: Datastore,
     readonly asyncQueue: AsyncQueue,
     onlineStateHandler: (onlineState: OnlineState) => void,
-    connectivityMonitor: ConnectivityMonitor
+    connectivityMonitor: ConnectivityMonitor,
+    targetIdGenerator?: TargetIdGenerator
   ) {
+    this.targetIdGenerator =
+      targetIdGenerator || TargetIdGenerator.forTargetCache();
     this.connectivityMonitor = connectivityMonitor;
     this.connectivityMonitor.addCallback((_: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
@@ -198,14 +255,16 @@ export function newRemoteStore(
   datastore: Datastore,
   asyncQueue: AsyncQueue,
   onlineStateHandler: (onlineState: OnlineState) => void,
-  connectivityMonitor: ConnectivityMonitor
+  connectivityMonitor: ConnectivityMonitor,
+  targetIdGenerator?: TargetIdGenerator
 ): RemoteStore {
   return new RemoteStoreImpl(
     localStore,
     datastore,
     asyncQueue,
     onlineStateHandler,
-    connectivityMonitor
+    connectivityMonitor,
+    targetIdGenerator
   );
 }
 
@@ -282,11 +341,19 @@ export function remoteStoreListen(
   // Mark this as something the client is currently listening for.
   remoteStoreImpl.listenTargets.set(targetData.targetId, targetData);
 
+  const remoteId = remoteStoreImpl.targetIdGenerator.next();
+  remoteStoreImpl.localToRemoteTargetIds.set(targetData.targetId, remoteId);
+  remoteStoreImpl.remoteToLocalTargetIds.set(remoteId, targetData.targetId);
+
+  if (remoteStoreImpl.forTestingOnMappingCreated) {
+    remoteStoreImpl.forTestingOnMappingCreated(targetData.targetId, remoteId);
+  }
+
   if (shouldStartWatchStream(remoteStoreImpl)) {
     // The listen will be sent in onWatchStreamOpen
     startWatchStream(remoteStoreImpl);
   } else if (ensureWatchStream(remoteStoreImpl).isOpen()) {
-    sendWatchRequest(remoteStoreImpl, targetData);
+    sendWatchRequest(remoteStoreImpl, targetData, remoteId);
   }
 }
 
@@ -306,9 +373,18 @@ export function remoteStoreUnlisten(
     `unlisten called on target no currently watched: ${targetId}`
   );
 
+  const remoteId = remoteStoreImpl.localToRemoteTargetIds.get(targetId);
+  hardAssert(
+    remoteId !== undefined,
+    0xea01,
+    `no remote id found for target: ${targetId}`
+  );
+
   remoteStoreImpl.listenTargets.delete(targetId);
+  remoteStoreImpl.localToRemoteTargetIds.delete(targetId);
+
   if (watchStream.isOpen()) {
-    sendUnwatchRequest(remoteStoreImpl, targetId);
+    sendUnwatchRequest(remoteStoreImpl, targetId, remoteId);
   }
 
   if (remoteStoreImpl.listenTargets.size === 0) {
@@ -329,7 +405,8 @@ export function remoteStoreUnlisten(
  */
 function sendWatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
-  targetData: TargetData
+  targetData: TargetData,
+  remoteTargetId: TargetId
 ): void {
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     targetData.targetId
@@ -345,7 +422,7 @@ function sendWatchRequest(
     targetData = targetData.withExpectedCount(expectedCount);
   }
 
-  ensureWatchStream(remoteStoreImpl).watch(targetData);
+  ensureWatchStream(remoteStoreImpl).watch(targetData, remoteTargetId);
 }
 
 /**
@@ -355,10 +432,13 @@ function sendWatchRequest(
  */
 function sendUnwatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
-  targetId: TargetId
+  localTargetId: TargetId,
+  remoteTargetId: TargetId
 ): void {
-  remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(targetId);
-  ensureWatchStream(remoteStoreImpl).unwatch(targetId);
+  remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
+    localTargetId
+  );
+  ensureWatchStream(remoteStoreImpl).unwatch(remoteTargetId);
 }
 
 function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
@@ -414,7 +494,13 @@ async function onWatchStreamOpen(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
   remoteStoreImpl.listenTargets.forEach((targetData, targetId) => {
-    sendWatchRequest(remoteStoreImpl, targetData);
+    const remoteId = remoteStoreImpl.localToRemoteTargetIds.get(targetId);
+    hardAssert(
+      remoteId !== undefined,
+      0xea02,
+      `no remote id found for target: ${targetId}`
+    );
+    sendWatchRequest(remoteStoreImpl, targetData, remoteId);
   });
 }
 
@@ -454,20 +540,51 @@ async function onWatchStreamChange(
   // Mark the client as online since we got a message from the server
   remoteStoreImpl.onlineStateTracker.set(OnlineState.Online);
 
+  const translatedWatchChange = translateWatchChange(
+    remoteStoreImpl,
+    watchChange
+  );
+
+  if (!translatedWatchChange) {
+    // If we can't translate the change, it might still be a removal ack for
+    // a target we no longer care about. We should still clean up the mapping.
+    if (
+      watchChange instanceof WatchTargetChange &&
+      watchChange.state === WatchTargetChangeState.Removed
+    ) {
+      for (const remoteId of watchChange.targetIds) {
+        remoteStoreImpl.remoteToLocalTargetIds.delete(remoteId);
+      }
+    }
+    return;
+  }
+
   if (
-    watchChange instanceof WatchTargetChange &&
-    watchChange.state === WatchTargetChangeState.Removed &&
-    watchChange.cause
+    translatedWatchChange instanceof WatchTargetChange &&
+    translatedWatchChange.state === WatchTargetChangeState.Removed &&
+    translatedWatchChange.cause
   ) {
-    // There was an error on a target, don't wait for a consistent snapshot
-    // to raise events
+    // For errors, handleTargetError is responsible for cleaning up SDK state.
+    // It will only do so if it successfully notifies the sync engine.
     try {
-      await handleTargetError(remoteStoreImpl, watchChange);
+      debugAssert(
+        watchChange instanceof WatchTargetChange,
+        'Expected watchChange to be WatchTargetChange'
+      );
+      await handleTargetError(
+        remoteStoreImpl,
+        translatedWatchChange,
+        watchChange
+      );
+      // Clean up mappings only after success.
+      for (const remoteId of watchChange.targetIds) {
+        remoteStoreImpl.remoteToLocalTargetIds.delete(remoteId);
+      }
     } catch (e) {
       logDebug(
         LOG_TAG,
         'Failed to remove targets %s: %s ',
-        watchChange.targetIds.join(','),
+        translatedWatchChange.targetIds.join(','),
         e
       );
       await disableNetworkUntilRecovery(remoteStoreImpl, e as FirestoreError);
@@ -475,16 +592,32 @@ async function onWatchStreamChange(
     return;
   }
 
-  if (watchChange instanceof DocumentWatchChange) {
-    remoteStoreImpl.watchChangeAggregator!.handleDocumentChange(watchChange);
-  } else if (watchChange instanceof ExistenceFilterChange) {
-    remoteStoreImpl.watchChangeAggregator!.handleExistenceFilter(watchChange);
+  if (translatedWatchChange instanceof DocumentWatchChange) {
+    remoteStoreImpl.watchChangeAggregator!.handleDocumentChange(
+      translatedWatchChange
+    );
+  } else if (translatedWatchChange instanceof ExistenceFilterChange) {
+    remoteStoreImpl.watchChangeAggregator!.handleExistenceFilter(
+      translatedWatchChange
+    );
   } else {
     debugAssert(
-      watchChange instanceof WatchTargetChange,
+      translatedWatchChange instanceof WatchTargetChange,
       'Expected watchChange to be an instance of WatchTargetChange'
     );
-    remoteStoreImpl.watchChangeAggregator!.handleTargetChange(watchChange);
+    remoteStoreImpl.watchChangeAggregator!.handleTargetChange(
+      translatedWatchChange
+    );
+  }
+
+  // Clean up mappings for successfully removed targets.
+  if (
+    watchChange instanceof WatchTargetChange &&
+    watchChange.state === WatchTargetChangeState.Removed
+  ) {
+    for (const remoteId of watchChange.targetIds) {
+      remoteStoreImpl.remoteToLocalTargetIds.delete(remoteId);
+    }
   }
 
   if (!snapshotVersion.isEqual(SnapshotVersion.min())) {
@@ -613,7 +746,22 @@ function raiseWatchSnapshot(
 
     // Cause a hard reset by unwatching and rewatching immediately, but
     // deliberately don't send a resume token so that we get a full update.
-    sendUnwatchRequest(remoteStoreImpl, targetId);
+    const oldRemoteId = remoteStoreImpl.localToRemoteTargetIds.get(targetId);
+    hardAssert(
+      oldRemoteId !== undefined,
+      0xea03,
+      `no remote id found for target: ${targetId}`
+    );
+    sendUnwatchRequest(remoteStoreImpl, targetId, oldRemoteId);
+
+    // Re-generate the remote ID for the re-watch.
+    const newRemoteId = remoteStoreImpl.targetIdGenerator.next();
+    remoteStoreImpl.localToRemoteTargetIds.set(targetId, newRemoteId);
+    remoteStoreImpl.remoteToLocalTargetIds.set(newRemoteId, targetId);
+
+    if (remoteStoreImpl.forTestingOnMappingCreated) {
+      remoteStoreImpl.forTestingOnMappingCreated(targetId, newRemoteId);
+    }
 
     // Mark the target we send as being on behalf of an existence filter
     // mismatch, but don't actually retain that in listenTargets. This ensures
@@ -625,7 +773,7 @@ function raiseWatchSnapshot(
       targetPurpose,
       targetData.sequenceNumber
     );
-    sendWatchRequest(remoteStoreImpl, requestTargetData);
+    sendWatchRequest(remoteStoreImpl, requestTargetData, newRemoteId);
   });
 
   // Finally raise remote event
@@ -639,7 +787,8 @@ function raiseWatchSnapshot(
 /** Handles an error on a target */
 async function handleTargetError(
   remoteStoreImpl: RemoteStoreImpl,
-  watchChange: WatchTargetChange
+  watchChange: WatchTargetChange,
+  originalWatchChange: WatchTargetChange
 ): Promise<void> {
   debugAssert(
     !!remoteStoreImpl.remoteSyncer.rejectListen,
@@ -647,12 +796,23 @@ async function handleTargetError(
   );
   debugAssert(!!watchChange.cause, 'Handling target error without a cause');
   const error = watchChange.cause!;
-  for (const targetId of watchChange.targetIds) {
+  for (let i = 0; i < watchChange.targetIds.length; ++i) {
+    const targetId = watchChange.targetIds[i];
+    const remoteId = originalWatchChange.targetIds[i];
+
     // A watched target might have been removed already.
     if (remoteStoreImpl.listenTargets.has(targetId)) {
-      await remoteStoreImpl.remoteSyncer.rejectListen(targetId, error);
-      remoteStoreImpl.listenTargets.delete(targetId);
-      remoteStoreImpl.watchChangeAggregator!.removeTarget(targetId);
+      // Check if this removal applies to the CURRENT remote ID for this target.
+      // If we re-listened and got a new remote ID, we should ignore removals
+      // for the old remote ID.
+      const currentRemoteIdForTarget =
+        remoteStoreImpl.localToRemoteTargetIds.get(targetId);
+      if (currentRemoteIdForTarget === remoteId) {
+        await remoteStoreImpl.remoteSyncer.rejectListen(targetId, error);
+        remoteStoreImpl.listenTargets.delete(targetId);
+        remoteStoreImpl.localToRemoteTargetIds.delete(targetId);
+        remoteStoreImpl.watchChangeAggregator!.removeTarget(targetId);
+      }
     }
   }
 }
@@ -910,6 +1070,75 @@ export async function remoteStoreApplyPrimaryState(
     remoteStoreImpl.offlineCauses.add(OfflineCause.IsSecondary);
     await disableNetworkInternal(remoteStoreImpl);
     remoteStoreImpl.onlineStateTracker.set(OnlineState.Unknown);
+  }
+}
+
+/**
+ * Translates the target IDs in a watch change from remote IDs to local IDs.
+ *
+ * @param remoteStoreImpl - The remote store instance.
+ * @param watchChange - The watch change to translate.
+ * @returns The translated watch change, or null if the change should be
+ * ignored.
+ */
+function translateWatchChange(
+  remoteStoreImpl: RemoteStoreImpl,
+  watchChange: WatchChange
+): WatchChange | null {
+  if (watchChange instanceof WatchTargetChange) {
+    if (watchChange.targetIds.length > 0) {
+      const localIds: TargetId[] = [];
+      for (const remoteId of watchChange.targetIds) {
+        const localId = remoteStoreImpl.remoteToLocalTargetIds.get(remoteId);
+        if (localId !== undefined) {
+          localIds.push(localId);
+        }
+      }
+      if (localIds.length === 0) {
+        return null;
+      }
+      return new WatchTargetChange(
+        watchChange.state,
+        localIds,
+        watchChange.resumeToken,
+        watchChange.cause
+      );
+    }
+    return watchChange;
+  } else if (watchChange instanceof DocumentWatchChange) {
+    const updatedLocalIds: TargetId[] = [];
+    for (const remoteId of watchChange.updatedTargetIds) {
+      const localId = remoteStoreImpl.remoteToLocalTargetIds.get(remoteId);
+      if (localId !== undefined) {
+        updatedLocalIds.push(localId);
+      }
+    }
+    const removedLocalIds: TargetId[] = [];
+    for (const remoteId of watchChange.removedTargetIds) {
+      const localId = remoteStoreImpl.remoteToLocalTargetIds.get(remoteId);
+      if (localId !== undefined) {
+        removedLocalIds.push(localId);
+      }
+    }
+    if (updatedLocalIds.length === 0 && removedLocalIds.length === 0) {
+      return null;
+    }
+    return new DocumentWatchChange(
+      updatedLocalIds,
+      removedLocalIds,
+      watchChange.key,
+      watchChange.newDoc
+    );
+  } else if (watchChange instanceof ExistenceFilterChange) {
+    const localId = remoteStoreImpl.remoteToLocalTargetIds.get(
+      watchChange.targetId
+    );
+    if (localId !== undefined) {
+      return new ExistenceFilterChange(localId, watchChange.existenceFilter);
+    }
+    return null;
+  } else {
+    return fail(0xb003, 'Unknown watch change type', { watchChange });
   }
 }
 

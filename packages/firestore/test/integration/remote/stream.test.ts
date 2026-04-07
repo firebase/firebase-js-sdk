@@ -160,7 +160,8 @@ describe('Watch Stream', () => {
   it('gets connected event before first message', () => {
     return withTestWatchStream(async (watchStream, streamListener) => {
       await streamListener.awaitCallback('open');
-      watchStream.watch(sampleTargetData());
+      const targetData = sampleTargetData();
+      watchStream.watch(targetData, targetData.targetId);
       await streamListener.awaitCallback('connected');
     });
   });

@@ -249,7 +249,6 @@ class TargetState {
   }
 
   markCurrent(): void {
-    this._hasPendingChanges = true;
     this._current = true;
   }
 }

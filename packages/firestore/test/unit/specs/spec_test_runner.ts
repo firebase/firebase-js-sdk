@@ -65,6 +65,7 @@ import {
   triggerRemoteStoreListen,
   triggerRemoteStoreUnlisten
 } from '../../../src/core/sync_engine_impl';
+import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
   ChangeType,
@@ -246,6 +247,9 @@ abstract class TestRunner {
   private expectedActiveLimboDocs: DocumentKey[];
   private expectedEnqueuedLimboDocs: DocumentKey[];
   private expectedActiveTargets: Map<TargetId, ActiveTargetSpec>;
+  private localToRemoteMap = new Map<TargetId, TargetId>();
+  private localToRemoteHistory = new Map<TargetId, TargetId[]>();
+  private remoteIdGenerator = TargetIdGenerator.forTargetCache();
 
   private networkEnabled = true;
 
@@ -324,7 +328,8 @@ abstract class TestRunner {
     this.connection = new MockConnection(this.queue);
 
     const onlineComponentProvider = new MockOnlineComponentProvider(
-      this.connection
+      this.connection,
+      this.remoteIdGenerator
     );
     const offlineComponentProvider =
       await this.initializeOfflineComponentProvider(
@@ -350,6 +355,17 @@ abstract class TestRunner {
 
     this.localStore = offlineComponentProvider.localStore;
     this.remoteStore = onlineComponentProvider.remoteStore;
+    this.remoteStore.forTestingOnMappingCreated = (localId, remoteId) => {
+      let history = this.localToRemoteHistory.get(localId);
+      if (!history) {
+        history = [];
+        this.localToRemoteHistory.set(localId, history);
+      }
+      if (history.indexOf(remoteId) === -1) {
+        history.push(remoteId);
+      }
+      this.localToRemoteMap.set(localId, remoteId);
+    };
     this.syncEngine = onlineComponentProvider.syncEngine;
     this.eventManager = onlineComponentProvider.eventManager;
 
@@ -533,6 +549,19 @@ abstract class TestRunner {
         // Unless listened to cache, open always have happened after a listen.
         await this.connection.waitForWatchOpen();
       }
+
+      const remoteId = this.remoteStore.remoteTargetId(listenSpec.targetId);
+      if (remoteId !== undefined) {
+        this.localToRemoteMap.set(listenSpec.targetId, remoteId);
+        let history = this.localToRemoteHistory.get(listenSpec.targetId);
+        if (!history) {
+          history = [];
+          this.localToRemoteHistory.set(listenSpec.targetId, history);
+        }
+        if (history.indexOf(remoteId) === -1) {
+          history.push(remoteId);
+        }
+      }
     }
   }
 
@@ -654,6 +683,7 @@ abstract class TestRunner {
   }
 
   private doWatchRemove(removed: SpecWatchRemove): Promise<void> {
+    const remoteTargetIds = this.localToRemoteIds(removed.targetIds);
     const cause =
       removed.cause &&
       new FirestoreError(
@@ -662,7 +692,7 @@ abstract class TestRunner {
       );
     const change = new WatchTargetChange(
       WatchTargetChangeState.Removed,
-      removed.targetIds,
+      remoteTargetIds,
       ByteString.EMPTY_BYTE_STRING,
       cause || null
     );
@@ -671,15 +701,79 @@ abstract class TestRunner {
       // Technically removing an unknown target is valid (e.g. it could race
       // with a server-side removal), but we want to pay extra careful
       // attention in tests that we only remove targets we listened too.
-      removed.targetIds.forEach(targetId => {
+      remoteTargetIds.forEach(remoteId => {
         expect(
-          this.connection.activeTargets[targetId],
-          'Removing a non-active target'
+          this.connection.activeTargets[remoteId],
+          'Removing a non-active target: (remote: ' + remoteId + ')'
         ).to.exist;
-        delete this.connection.activeTargets[targetId];
+        delete this.connection.activeTargets[remoteId];
+        this.markRemoteIdAsRemoved(remoteId);
+      });
+    } else {
+      remoteTargetIds.forEach(remoteId => {
+        this.markRemoteIdAsRemoved(remoteId);
       });
     }
-    return this.doWatchEvent(change);
+    return this.doWatchEventInternal(change);
+  }
+
+  private async doWatchEvent(watchChange: WatchChange): Promise<void> {
+    const translated = this.translateWatchChange(watchChange);
+    return this.doWatchEventInternal(translated);
+  }
+
+  private translateWatchChange(watchChange: WatchChange): WatchChange {
+    if (watchChange instanceof WatchTargetChange) {
+      return new WatchTargetChange(
+        watchChange.state,
+        this.localToRemoteIds(watchChange.targetIds),
+        watchChange.resumeToken,
+        watchChange.cause
+      );
+    } else if (watchChange instanceof DocumentWatchChange) {
+      return new DocumentWatchChange(
+        this.localToRemoteIds(watchChange.updatedTargetIds),
+        this.localToRemoteIds(watchChange.removedTargetIds),
+        watchChange.key,
+        watchChange.newDoc
+      );
+    } else if (watchChange instanceof ExistenceFilterChange) {
+      const remoteId = this.getRemoteIdForLocalId(watchChange.targetId);
+      return new ExistenceFilterChange(
+        remoteId,
+        watchChange.existenceFilter
+      );
+    }
+    return watchChange;
+  }
+
+  private async doWatchEventInternal(watchChange: WatchChange): Promise<void> {
+    const protoJSON = encodeWatchChange(watchChange);
+    this.connection.watchStream!.callOnMessage(protoJSON);
+
+    // Put a no-op in the queue so that we know when any outstanding RemoteStore
+    // writes on the network are complete.
+    return this.queue.enqueue(async () => {});
+  }
+
+  private getRemoteIdForLocalId(localId: TargetId): TargetId {
+    for (const entry of this.connection.historicalTargets) {
+      if (!entry.removed) {
+        const history = this.localToRemoteHistory.get(localId) || [];
+        if (history.indexOf(entry.targetId) !== -1) {
+          return entry.targetId;
+        }
+      }
+    }
+    return this.localToRemoteMap.get(localId) ?? localId;
+  }
+
+  private markRemoteIdAsRemoved(remoteId: TargetId): void {
+    for (const entry of this.connection.historicalTargets) {
+      if (entry.targetId === remoteId) {
+        entry.removed = true;
+      }
+    }
   }
 
   private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
@@ -750,7 +844,7 @@ abstract class TestRunner {
         readTime: toVersion(this.serializer, version(watchSnapshot.version)),
         // Convert to base64 string so it can later be parsed into ByteString.
         resumeToken: encodeBase64(watchSnapshot.resumeToken || ''),
-        targetIds: watchSnapshot.targetIds
+        targetIds: this.localToRemoteIds(watchSnapshot.targetIds)
       }
     };
     this.connection.watchStream!.callOnMessage(protoJSON);
@@ -760,13 +854,8 @@ abstract class TestRunner {
     return this.queue.enqueue(async () => {});
   }
 
-  private async doWatchEvent(watchChange: WatchChange): Promise<void> {
-    const protoJSON = encodeWatchChange(watchChange);
-    this.connection.watchStream!.callOnMessage(protoJSON);
-
-    // Put a no-op in the queue so that we know when any outstanding RemoteStore
-    // writes on the network are complete.
-    return this.queue.enqueue(async () => {});
+  private localToRemoteIds(localIds: TargetId[]): TargetId[] {
+    return localIds.map(localId => this.getRemoteIdForLocalId(localId));
   }
 
   private async doWatchStreamClose(spec: SpecWatchStreamClose): Promise<void> {
@@ -875,6 +964,7 @@ abstract class TestRunner {
 
   private async doRestart(): Promise<void> {
     // Reinitialize everything.
+    this.localToRemoteMap.clear();
     await this.doShutdown();
 
     // We have to schedule the starts, otherwise we could end up with
@@ -1084,7 +1174,7 @@ abstract class TestRunner {
     if (this.connection.isWatchOpen) {
       // Validate that each active limbo doc has an expected active target
       actualLimboDocs.forEach((key, targetId) => {
-        const targetIds = new Array(this.expectedActiveTargets.keys()).map(
+        const targetIds = Array.from(this.expectedActiveTargets.keys()).map(
           n => '' + n
         );
         expect(this.expectedActiveTargets.has(targetId)).to.equal(
@@ -1142,12 +1232,17 @@ abstract class TestRunner {
 
     const actualTargets = { ...this.connection.activeTargets };
     this.expectedActiveTargets.forEach((expected, targetId) => {
-      expect(actualTargets[targetId]).to.not.equal(
+      const remoteId = this.remoteStore.remoteTargetId(targetId);
+      expect(remoteId).to.not.equal(
+        undefined,
+        'Expected active target ID not mapped: ' + targetId
+      );
+      expect(actualTargets[remoteId!]).to.not.equal(
         undefined,
         'Expected active target not found: ' + JSON.stringify(expected)
       );
       const { target: actualTarget, labels: actualLabels } =
-        actualTargets[targetId];
+        actualTargets[remoteId!];
 
       let targetData = new TargetData(
         queryToTarget(parseQuery(expected.queries[0])),
@@ -1176,7 +1271,7 @@ abstract class TestRunner {
 
       const expectedTarget = toTarget(this.serializer, targetData);
       expect(actualTarget.query).to.deep.equal(expectedTarget.query);
-      expect(actualTarget.targetId).to.equal(expectedTarget.targetId);
+      expect(actualTarget.targetId).to.equal(remoteId);
       expect(actualTarget.readTime).to.equal(expectedTarget.readTime);
       expect(actualTarget.resumeToken).to.equal(
         expectedTarget.resumeToken,
@@ -1190,7 +1285,7 @@ abstract class TestRunner {
           expectedTarget.expectedCount
         );
       }
-      delete actualTargets[targetId];
+      delete actualTargets[remoteId!];
     });
     expect(objectSize(actualTargets)).to.equal(
       0,

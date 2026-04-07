@@ -73,6 +73,7 @@ import {
   syncEngineHandleCredentialChange,
   syncEngineSynchronizeWithChangedDocuments
 } from './sync_engine_impl';
+import { TargetIdGenerator } from './target_id_generator';
 import { OnlineStateSource } from './types';
 
 type Kind = 'memory' | 'persistent';
@@ -423,6 +424,7 @@ export class OnlineComponentProvider {
   eventManager!: EventManager;
   remoteStore!: RemoteStore;
   syncEngine!: SyncEngine;
+  targetIdGenerator?: TargetIdGenerator;
 
   async initialize(
     offlineComponentProvider: OfflineComponentProvider,
@@ -486,7 +488,8 @@ export class OnlineComponentProvider {
           onlineState,
           OnlineStateSource.RemoteStore
         ),
-      newConnectivityMonitor()
+      newConnectivityMonitor(),
+      this.targetIdGenerator
     );
   }
 

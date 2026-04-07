@@ -124,9 +124,16 @@ function failTransactionIfNeeded(
   }
 }
 
+import { TimerId } from '../../../src/util/async_queue';
+import { TargetIdGenerator } from '../../../src/core/target_id_generator';
+
 export class MockOnlineComponentProvider extends OnlineComponentProvider {
-  constructor(private readonly connection: MockConnection) {
+  constructor(
+    private readonly connection: MockConnection,
+    targetIdGenerator: TargetIdGenerator
+  ) {
     super();
+    this.targetIdGenerator = targetIdGenerator;
   }
 
   createDatastore(cfg: ComponentConfiguration): Datastore {
@@ -249,6 +256,17 @@ export class MockConnection implements Connection {
 
   /** The total number of requests sent to the write stream. */
   writeStreamRequestCount = 0;
+
+  /**
+   * All targets that have been watched on the connection, including those
+   * that have been unwatched.
+   */
+  historicalTargets: Array<{
+    targetId: number;
+    target: api.Target;
+    labels: api.ApiClientObjectMap<string> | undefined;
+    removed: boolean;
+  }> = [];
 
   nextWriteStreamToken = 0;
 
@@ -408,10 +426,12 @@ export class MockConnection implements Connection {
           ++this.watchStreamRequestCount;
           if (request.addTarget) {
             const targetId = request.addTarget.targetId!;
-            this.activeTargets[targetId] = {
+            const entry = {
               target: request.addTarget,
               labels: request.labels
             };
+            this.activeTargets[targetId] = entry;
+            this.historicalTargets.push({ targetId, ...entry, removed: false });
           } else if (request.removeTarget) {
             delete this.activeTargets[request.removeTarget];
           } else {

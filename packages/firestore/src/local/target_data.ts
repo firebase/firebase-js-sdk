@@ -82,6 +82,20 @@ export class TargetData {
     readonly expectedCount: number | null = null
   ) {}
 
+  /** Creates a new target data instance with an updated target ID. */
+  withTargetId(targetId: TargetId): TargetData {
+    return new TargetData(
+      this.target,
+      targetId,
+      this.purpose,
+      this.sequenceNumber,
+      this.snapshotVersion,
+      this.lastLimboFreeSnapshotVersion,
+      this.resumeToken,
+      this.expectedCount
+    );
+  }
+
   /** Creates a new target data instance with an updated sequence number. */
   withSequenceNumber(sequenceNumber: number): TargetData {
     return new TargetData(

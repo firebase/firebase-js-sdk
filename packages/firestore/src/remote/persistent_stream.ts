@@ -679,10 +679,11 @@ export class PersistentListenStream extends PersistentStream<
    * affect the target will be streamed back as WatchChange messages that
    * reference the targetId.
    */
-  watch(targetData: TargetData): void {
+  watch(targetData: TargetData, targetId: TargetId): void {
     const request: ListenRequest = {};
     request.database = getEncodedDatabaseId(this.serializer);
     request.addTarget = toTarget(this.serializer, targetData);
+    request.addTarget.targetId = targetId;
 
     const labels = toListenRequestLabels(this.serializer, targetData);
     if (labels) {
