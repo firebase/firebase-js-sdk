@@ -384,7 +384,7 @@ export interface GoogleSearchTool {
 /**
  * A tool that enables the model to use code execution.
  *
- * @beta
+ * @public
  */
 export interface CodeExecutionTool {
   /**
@@ -408,7 +408,7 @@ export interface GoogleSearch {}
  * URLs. By including URLs in your request, the Gemini model will access the content from those
  * pages to inform and enhance its response.
  *
- * @beta
+ * @public
  */
 export interface URLContextTool {
   /**
@@ -420,7 +420,7 @@ export interface URLContextTool {
 /**
  * Specifies the URL Context configuration.
  *
- * @beta
+ * @public
  */
 export interface URLContext {}
 

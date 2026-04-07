@@ -67,7 +67,7 @@ The Firebase AI Web SDK.
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
 |  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | The results of code execution run by the model. |
 |  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
-|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | <b><i>(Public Preview)</i></b> A tool that enables the model to use code execution. |
+|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
@@ -142,9 +142,9 @@ The Firebase AI Web SDK.
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of audio. This can be returned from a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) if transcription is enabled with the <code>inputAudioTranscription</code> or <code>outputAudioTranscription</code> properties on the [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface)<!-- -->. |
-|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
+|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | Specifies the URL Context configuration. |
 |  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
-|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
 |  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |

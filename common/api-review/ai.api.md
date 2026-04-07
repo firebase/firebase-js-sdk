@@ -219,7 +219,7 @@ export interface CodeExecutionResultPart {
     thoughtSignature?: never;
 }
 
-// @beta
+// @public
 export interface CodeExecutionTool {
     codeExecution: {};
 }
@@ -1407,9 +1407,6 @@ export const ThinkingLevel: {
 // @public
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
-//
 // @public
 export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
@@ -1427,7 +1424,7 @@ export interface Transcription {
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
-// @beta
+// @public
 export interface URLContext {
 }
 
@@ -1436,7 +1433,7 @@ export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
 
-// @beta
+// @public
 export interface URLContextTool {
     urlContext: URLContext;
 }
