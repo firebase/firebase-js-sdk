@@ -21,6 +21,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import { Code } from '../../src/core/error';
 import {
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
@@ -33,6 +34,11 @@ import { WebSocketTransport } from '../../src/network/stream/websocket';
 
 use(chaiAsPromised);
 use(sinonChai);
+
+/** Interface that exposes private fields of stream transport for testing purposes. */
+interface StreamTransportWithInternals {
+  onStreamClose(code: number, reason: string): void;
+}
 
 /** Interface that exposes private fields of TransportManager for testing purposes. */
 interface ManagerWithInternals {
@@ -279,7 +285,7 @@ describe('DataConnectTransportManager', () => {
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         sinon.stub(streamTransport, 'isPendingClose').get(() => false);
         sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        streamTransport.isUnableToConnect = false;
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
 
         const restSpy = sinon.stub(manager.restTransport, 'invokeQuery');
         const streamSpy = sinon
@@ -292,12 +298,12 @@ describe('DataConnectTransportManager', () => {
         expect(restSpy).to.have.not.been.called;
       });
 
-      it('invokeQuery should throw an error if stream transport throws an error and executeShouldUseStream is true', async () => {
+      it('invokeQuery should throw an error if stream transport throws an error and executeShouldUseStream remains true', async () => {
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         sinon.stub(streamTransport, 'isPendingClose').get(() => false);
         sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        streamTransport.isUnableToConnect = false;
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeQuery')
@@ -314,17 +320,17 @@ describe('DataConnectTransportManager', () => {
         expect(restStub).to.not.have.been.called;
       });
 
-      it('invokeQuery should fallback to REST if stream transport throws an error and executeShouldUseStream is false', async () => {
+      it('invokeQuery should fallback to REST if stream transport throws an error and then executeShouldUseStream becomes false', async () => {
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         sinon.stub(streamTransport, 'isPendingClose').get(() => false);
         sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        streamTransport.isUnableToConnect = false;
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeQuery')
           .callsFake(async () => {
-            streamTransport.isUnableToConnect = true;
+            sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
             throw expectedError;
           });
         const restStub = sinon
@@ -344,7 +350,7 @@ describe('DataConnectTransportManager', () => {
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         sinon.stub(streamTransport, 'isPendingClose').get(() => false);
         sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        streamTransport.isUnableToConnect = false;
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
 
         const restSpy = sinon.stub(manager.restTransport, 'invokeMutation');
         const streamSpy = sinon
@@ -360,12 +366,12 @@ describe('DataConnectTransportManager', () => {
         expect(restSpy).to.have.not.been.called;
       });
 
-      it('invokeMutation should throw an error if stream transport throws an error and executeShouldUseStream is true', async () => {
+      it('invokeMutation should throw an error if stream transport throws an error and executeShouldUseStream remains true', async () => {
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         sinon.stub(streamTransport, 'isPendingClose').get(() => false);
         sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        streamTransport.isUnableToConnect = false;
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeMutation')
@@ -385,17 +391,17 @@ describe('DataConnectTransportManager', () => {
         expect(restStub).to.not.have.been.called;
       });
 
-      it('invokeMutation should fallback to REST if stream transport throws an error and executeShouldUseStream is false', async () => {
+      it('invokeMutation should fallback to REST if stream transport throws an error and then executeShouldUseStream becomes false', async () => {
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'streamIsReady').get(() => true);
         sinon.stub(streamTransport, 'isPendingClose').get(() => false);
         sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
-        streamTransport.isUnableToConnect = false;
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeMutation')
           .callsFake(async () => {
-            streamTransport.isUnableToConnect = true;
+            sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
             throw expectedError;
           });
         const restStub = sinon
@@ -409,6 +415,46 @@ describe('DataConnectTransportManager', () => {
           variables1
         );
         expect(restStub).to.have.been.calledOnceWith(mutationName1, variables1);
+      });
+
+      it('invokeMutation should fallback to REST for all in-flight mutations if stream fails', async () => {
+        const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+
+        let rejectStream!: (reason: unknown) => void;
+        const streamPromise = new Promise((_, reject) => {
+          rejectStream = reject;
+        });
+
+        const streamStub = sinon
+          .stub(streamTransport, 'invokeMutation')
+          .returns(
+            streamPromise as unknown as Promise<DataConnectResponse<unknown>>
+          );
+
+        const restStub = sinon
+          .stub(manager.restTransport, 'invokeMutation')
+          .resolves(testResponse);
+
+        const p1 = manager.invokeMutation(mutationName1, variables1);
+        const p2 = manager.invokeMutation('mutation2', { key: 'two' });
+
+        // Verify both called stream transport and are pending
+        expect(streamStub).to.have.been.calledTwice;
+        expect(restStub).to.not.have.been.called;
+
+        // Mark stream as failed BEFORE resolving/rejecting to trigger fallback
+        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+
+        // Fail the stream
+        rejectStream(expectedError);
+
+        await Promise.all([p1, p2]);
+
+        expect(restStub).to.have.been.calledTwice;
       });
     });
 
@@ -439,104 +485,134 @@ describe('DataConnectTransportManager', () => {
     });
   });
 
-  describe('idle timeout routing', () => {
-    let clock: sinon.SinonFakeTimers;
-    let streamTransport: WebSocketTransport;
-    let restInvokeQuerySpy: sinon.SinonStub;
-
-    beforeEach(() => {
-      clock = sinon.useFakeTimers();
-      streamTransport = manager.initStreamTransport() as WebSocketTransport;
-      const streamTransportPublic = streamTransport as unknown as {
-        openConnection(): Promise<void>;
-        sendMessage(payload: unknown): Promise<void>;
+  describe('disconnects', () => {
+    it('subscriber onDisconnect should be called when stream fails during active subscription', async () => {
+      const observer: SubscribeObserver<TestData> = {
+        onData: sinon.stub(),
+        onDisconnect: sinon.stub(),
+        onError: sinon.stub()
       };
-      sinon.stub(streamTransportPublic, 'openConnection').resolves();
-      sinon.stub(streamTransportPublic, 'sendMessage').resolves();
+      const streamTransport = manager.initStreamTransport();
       sinon.stub(streamTransport, 'streamIsReady').get(() => true);
-      restInvokeQuerySpy = sinon
-        .stub(manager.restTransport, 'invokeQuery')
-        .resolves(testResponse);
+      sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+      sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+      sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+
+      // Add observer directly to tracking map to verify onDisconnect propagation
+      const transportWithInternals = streamTransport as unknown as {
+        subscribeObservers: Map<string, SubscribeObserver<TestData>>;
+      };
+      transportWithInternals.subscribeObservers = new Map([['1', observer]]);
+
+      (
+        streamTransport as unknown as StreamTransportWithInternals
+      ).onStreamClose(1006, 'Abnormal Closure');
+
+      expect(observer.onDisconnect).to.have.been.calledOnceWith(
+        Code.OTHER,
+        'Stream disconnected with code 1006: Abnormal Closure'
+      );
     });
 
-    afterEach(() => {
-      clock.restore();
-    });
+    describe('idle timeout', () => {
+      let clock: sinon.SinonFakeTimers;
+      let streamTransport: WebSocketTransport;
+      let restInvokeQuerySpy: sinon.SinonStub;
 
-    it('should route to REST during idle timeout and disconnect after 60s', async () => {
-      const observer: SubscribeObserver<TestData> = {
-        onData: () => {},
-        onDisconnect: () => {},
-        onError: () => {}
-      };
+      beforeEach(() => {
+        clock = sinon.useFakeTimers();
+        streamTransport = manager.initStreamTransport() as WebSocketTransport;
+        const streamTransportPublic = streamTransport as unknown as {
+          openConnection(): Promise<void>;
+          sendMessage(payload: unknown): Promise<void>;
+        };
+        sinon.stub(streamTransportPublic, 'openConnection').resolves();
+        sinon.stub(streamTransportPublic, 'sendMessage').resolves();
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        restInvokeQuerySpy = sinon
+          .stub(manager.restTransport, 'invokeQuery')
+          .resolves(testResponse);
+      });
 
-      manager.invokeSubscribe(observer, queryName1, variables1);
-      expect(manager.executeShouldUseStream()).to.be.true;
+      afterEach(() => {
+        clock.restore();
+      });
 
-      manager.invokeUnsubscribe(queryName1, variables1);
-      expect(manager.executeShouldUseStream()).to.be.false;
+      it('should route to REST during idle timeout and disconnect after 60s', async () => {
+        const observer: SubscribeObserver<TestData> = {
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
+        };
 
-      // without active streams, should route to REST
-      restInvokeQuerySpy.resetHistory();
-      await manager.invokeQuery(queryName1, variables1);
-      expect(restInvokeQuerySpy).to.have.been.calledOnce;
+        manager.invokeSubscribe(observer, queryName1, variables1);
+        expect(manager.executeShouldUseStream()).to.be.true;
 
-      await clock.tickAsync(59000);
-      expect(manager.streamTransport).to.exist;
+        manager.invokeUnsubscribe(queryName1, variables1);
+        expect(manager.executeShouldUseStream()).to.be.false;
 
-      await manager.invokeQuery(queryName1, variables1);
-      expect(restInvokeQuerySpy).to.have.been.calledTwice;
+        // without active streams, should route to REST
+        restInvokeQuerySpy.resetHistory();
+        await manager.invokeQuery(queryName1, variables1);
+        expect(restInvokeQuerySpy).to.have.been.calledOnce;
 
-      await clock.tickAsync(1000);
-      expect(manager.streamTransport).to.be.undefined;
-    });
+        await clock.tickAsync(59000);
+        expect(manager.streamTransport).to.exist;
 
-    it('should route to REST after stream automatically closes', async () => {
-      const observer: SubscribeObserver<TestData> = {
-        onData: () => {},
-        onDisconnect: () => {},
-        onError: () => {}
-      };
+        await manager.invokeQuery(queryName1, variables1);
+        expect(restInvokeQuerySpy).to.have.been.calledTwice;
 
-      manager.invokeSubscribe(observer, queryName1, variables1);
-      manager.invokeUnsubscribe(queryName1, variables1);
+        await clock.tickAsync(1000);
+        expect(manager.streamTransport).to.be.undefined;
+      });
 
-      await clock.tickAsync(60000);
-      expect(manager.streamTransport).to.be.undefined;
+      it('should route to REST after stream automatically closes', async () => {
+        const observer: SubscribeObserver<TestData> = {
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
+        };
 
-      restInvokeQuerySpy.resetHistory();
-      await manager.invokeQuery(queryName1, variables1);
-      expect(restInvokeQuerySpy).to.have.been.calledOnce;
-    });
+        manager.invokeSubscribe(observer, queryName1, variables1);
+        manager.invokeUnsubscribe(queryName1, variables1);
 
-    it('should route back to stream after reconnect', async () => {
-      const observer: SubscribeObserver<TestData> = {
-        onData: () => {},
-        onDisconnect: () => {},
-        onError: () => {}
-      };
+        await clock.tickAsync(60000);
+        expect(manager.streamTransport).to.be.undefined;
 
-      manager.invokeSubscribe(observer, queryName1, variables1);
-      manager.invokeUnsubscribe(queryName1, variables1);
+        restInvokeQuerySpy.resetHistory();
+        await manager.invokeQuery(queryName1, variables1);
+        expect(restInvokeQuerySpy).to.have.been.calledOnce;
+      });
 
-      await clock.tickAsync(60000);
-      expect(manager.streamTransport).to.be.undefined;
+      it('should route back to stream after reconnect', async () => {
+        const observer: SubscribeObserver<TestData> = {
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
+        };
 
-      manager.invokeSubscribe(observer, queryName1, variables1);
-      const newStreamTransport = manager.streamTransport!;
-      const newStreamTransportPublic = newStreamTransport as unknown as {
-        openConnection(): Promise<void>;
-        sendMessage(payload: unknown): Promise<void>;
-      };
-      sinon.stub(newStreamTransportPublic, 'openConnection').resolves();
-      sinon.stub(newStreamTransportPublic, 'sendMessage').resolves();
-      sinon.stub(newStreamTransport, 'streamIsReady').get(() => true);
-      const streamExecuteQueryStub = sinon
-        .stub(newStreamTransport, 'invokeQuery')
-        .resolves(testResponse);
-      await manager.invokeQuery(queryName1, variables1);
-      expect(streamExecuteQueryStub).to.have.been.calledOnce;
-      expect(restInvokeQuerySpy).to.have.not.been.called;
+        manager.invokeSubscribe(observer, queryName1, variables1);
+        manager.invokeUnsubscribe(queryName1, variables1);
+
+        await clock.tickAsync(60000);
+        expect(manager.streamTransport).to.be.undefined;
+
+        manager.invokeSubscribe(observer, queryName1, variables1);
+        const newStreamTransport = manager.streamTransport!;
+        const newStreamTransportPublic = newStreamTransport as unknown as {
+          openConnection(): Promise<void>;
+          sendMessage(payload: unknown): Promise<void>;
+        };
+        sinon.stub(newStreamTransportPublic, 'openConnection').resolves();
+        sinon.stub(newStreamTransportPublic, 'sendMessage').resolves();
+        sinon.stub(newStreamTransport, 'streamIsReady').get(() => true);
+        const streamExecuteQueryStub = sinon
+          .stub(newStreamTransport, 'invokeQuery')
+          .resolves(testResponse);
+        await manager.invokeQuery(queryName1, variables1);
+        expect(streamExecuteQueryStub).to.have.been.calledOnce;
+        expect(restInvokeQuerySpy).to.have.not.been.called;
+      });
     });
   });
 });
