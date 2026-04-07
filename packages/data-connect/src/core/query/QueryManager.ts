@@ -237,8 +237,7 @@ export class QueryManager {
           fetchTime
         )
       };
-      let updatedKeys: string[] = [];
-      updatedKeys = await this.updateCache(
+      const updatedKeys = await this.updateCache(
         queryResult,
         originalExtensions?.dataConnect
       );
