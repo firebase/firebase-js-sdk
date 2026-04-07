@@ -2614,6 +2614,22 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
 
   /**
    *
+   * Creates an expression that returns the parent document reference of a document reference.
+   *
+   * @example
+   * ```typescript
+   * // Get the parent document reference of a document reference.
+   * field("__path__").parent();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the parent operation.
+   */
+  parent(): FunctionExpression {
+    return new FunctionExpression('parent', [this], 'parent');
+  }
+
+  /**
+   *
    * Creates an expression that returns a substring of the results of this expression.
    *
    * @param position - Index of the first character of the substring.
@@ -4737,6 +4753,45 @@ export function documentId(
   // @ts-ignore
   const documentPathExpr = valueToDefaultExpr(documentPath);
   return documentPathExpr.documentId();
+}
+
+/**
+ *
+ * Creates an expression that returns the parent document reference of a document reference.
+ *
+ * @example
+ * ```typescript
+ * // Get the parent document reference of a document reference.
+ * parent(myDocumentReference);
+ * ```
+ *
+ * @param documentPath - A string path or DocumentReference to get the parent from.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the parent operation.
+ */
+export function parent(
+  documentPath: string | DocumentReference
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the parent document reference of a document reference.
+ *
+ * @example
+ * ```typescript
+ * // Get the parent document reference of a document reference.
+ * parent(field("__path__"));
+ * ```
+ *
+ * @param documentPathExpr - An Expression evaluating to a document reference.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the parent operation.
+ */
+export function parent(documentPathExpr: Expression): FunctionExpression;
+
+export function parent(
+  documentPath: Expression | string | DocumentReference
+): FunctionExpression {
+  const documentPathExpr = valueToDefaultExpr(documentPath);
+  return documentPathExpr.parent();
 }
 
 /**

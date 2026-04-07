@@ -146,6 +146,7 @@ export declare abstract class Expression
 |  [notEqual(value)](./firestore_lite_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to a constant value. |
 |  [notEqualAny(values)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
 |  [notEqualAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
+|  [parent()](./firestore_lite_pipelines.expression.md#expressionparent) |  | Creates an expression that returns the parent document reference of a document reference. |
 |  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of another expression. |
 |  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of a constant value. |
 |  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
@@ -3472,6 +3473,30 @@ A new `Expression` representing the 'notEqualAny' comparison.
 ```typescript
 // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
 field("status").notEqualAny(field('rejectedStatuses'));
+
+```
+
+## Expression.parent()
+
+Creates an expression that returns the parent document reference of a document reference.
+
+<b>Signature:</b>
+
+```typescript
+parent(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the parent operation.
+
+### Example
+
+
+```typescript
+// Get the parent document reference of a document reference.
+field("__path__").parent();
 
 ```
 
