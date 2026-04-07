@@ -338,6 +338,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
+   * Attempt to close the connection. Will only close if there are no active requests preventing it
+   * from doing so.
+   */
+  private async attemptClose(): Promise<void> {
+    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+      return;
+    }
+    this.cancelClose();
+    await this.closeConnection();
+    this.onGracefulStreamClose?.();
+  }
+
+  /**
    * Begin closing the connection. Waits for and cleans up all active requests, and waits for
    * {@link IDLE_CONNECTION_TIMEOUT_MS}. This is a graceful close - it will be called when there are
    * no more active subscriptions, so there's no need to cleanup.
@@ -355,19 +368,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Attempt to close the connection. Will only close if there are no active requests preventing it
-   * from doing so.
-   */
-  private async attemptClose(): Promise<void> {
-    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
-      return;
-    }
-    this.cancelClose();
-    await this.closeConnection();
-    this.onGracefulStreamClose?.();
-  }
-
-  /**
    * Cancel closing the connection.
    */
   private cancelClose(): void {
@@ -382,11 +382,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Reject all active execute promises and notify all subscribe hooks with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
    */
-  private rejectAllActiveRequests(error: DataConnectError): void {
+  private rejectAllActiveRequests(code: Code, reason: string): void {
     this.activeQueryExecuteRequests.clear();
     this.activeMutationExecuteRequests.clear();
     this.activeSubscribeRequests.clear();
 
+    const error = new DataConnectError(code, reason);
     for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
       this.executeRequestPromises.delete(requestId);
       rejectFn(error);
@@ -407,10 +408,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected onStreamClose(code: number, reason: string): void {
     this.rejectAllActiveRequests(
-      new DataConnectError(
-        Code.OTHER,
-        `Stream disconnected with code ${code}: ${reason}`
-      )
+      Code.OTHER,
+      `Stream disconnected with code ${code}: ${reason}`
     );
   }
 
@@ -676,10 +675,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
       this.rejectAllActiveRequests(
-        new DataConnectError(
-          Code.UNAUTHORIZED,
-          'Stream disconnected due to auth change.'
-        )
+        Code.UNAUTHORIZED,
+        'Stream disconnected due to auth change.'
       );
       void this.attemptClose();
     }
