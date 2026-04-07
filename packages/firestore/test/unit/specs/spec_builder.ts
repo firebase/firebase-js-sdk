@@ -777,12 +777,16 @@ export class SpecBuilder {
   }
 
   watchRemoves(query: Query, cause?: RpcError): this {
+    return this.watchRemovesTarget(this.getTargetId(query), cause);
+  }
+
+  watchRemovesTarget(targetId: TargetId, cause?: RpcError): this {
     this.nextStep();
     this.currentStep = {
-      watchRemove: { targetIds: [this.getTargetId(query)], cause }
+      watchRemove: { targetIds: [targetId], cause }
     };
     if (cause) {
-      delete this.activeTargets[this.getTargetId(query)];
+      delete this.activeTargets[targetId];
       this.currentStep.expectedState = {
         activeTargets: { ...this.activeTargets }
       };

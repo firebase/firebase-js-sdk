@@ -702,9 +702,12 @@ abstract class TestRunner {
       // with a server-side removal), but we want to pay extra careful
       // attention in tests that we only remove targets we listened too.
       remoteTargetIds.forEach(remoteId => {
+        const historicalEntry = this.connection.historicalTargets.find(
+          t => t.targetId === remoteId
+        );
         expect(
-          this.connection.activeTargets[remoteId],
-          'Removing a non-active target: (remote: ' + remoteId + ')'
+          historicalEntry,
+          'Removing a non-historical target: (remote: ' + remoteId + ')'
         ).to.exist;
         delete this.connection.activeTargets[remoteId];
         this.markRemoteIdAsRemoved(remoteId);

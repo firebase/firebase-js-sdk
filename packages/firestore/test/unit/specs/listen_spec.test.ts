@@ -1931,4 +1931,84 @@ describeSpec('Listens:', [], () => {
       );
     }
   );
+
+  specTest(
+    'Can handle target removal with error after re-listen',
+    [],
+    () => {
+      const query1 = query('collection1');
+      const query2 = query('collection2');
+      const doc1 = doc('collection1/a', 1000, { key: 'a' });
+      const doc2 = doc('collection2/a', 1000, { key: 'a' });
+
+      return (
+        spec()
+          .ensureManualLruGC()
+          // 1) SDK adds target for query q
+          .userListens(query1)
+          // 2) server acks that target with addTarget
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, {
+            added: [doc1]
+          })
+          // 3) SDK sends remove target request
+          .userUnlistens(query1)
+          // 4) SDK sends add target request
+          .userListens(query2)
+          .watchAcksFull(query2, 2000, doc2)
+          .expectEvents(query2, {
+            added: [doc2]
+          })
+          // 5) Server sends removeTarget message for first target with cause and error code 7
+          .watchRemovesTarget(
+            2,
+            new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+          )
+          .expectActiveTargets({
+            query: query2,
+            resumeToken: ''
+          })
+        // Note: Since this error is for the FIRST target (which we already unlistened to),
+        // the SDK should simply ignore the error and NOT fail the current active listen.
+      );
+    }
+  );
+
+  specTest(
+    'Can handle target removal with error after re-listen 2',
+    [],
+    () => {
+      const query1 = query('collection1');
+      const query2 = query('collection2');
+      const doc1 = doc('collection1/a', 1000, { key: 'a' });
+      const doc2 = doc('collection2/a', 1000, { key: 'a' });
+
+      return (
+        spec()
+          .ensureManualLruGC()
+          // 1) SDK adds target for query q
+          .userListens(query1)
+          // 2) server acks that target with addTarget
+          .watchAcksFull(query1, 1000, doc1)
+          .expectEvents(query1, {
+            added: [doc1]
+          })
+          // 3) SDK sends remove target request
+          .userUnlistens(query1)
+          // 4) SDK sends add target request
+          .userListens(query1)
+          // 5) Server sends removeTarget message for first target with cause and error code 7
+          .watchRemovesTarget(
+            2,
+            new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+          )
+          .expectActiveTargets({
+            query: query1,
+            resumeToken: ''
+          })
+        // Note: Since this error is for the FIRST target (which we already unlistened to),
+        // the SDK should simply ignore the error and NOT fail the current active listen.
+      );
+    }
+  );
 });
