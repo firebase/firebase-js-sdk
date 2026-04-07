@@ -33,12 +33,9 @@ import {
   queryRef,
   QueryResult,
   subscribe,
-  SubscribeNotificationHook
+  SubscribeNotificationHook,
 } from '../../src';
-import {
-  DataConnectStreamError,
-  DataConnectStreamErrorCode
-} from '../../src/core/error';
+import { StreamCode } from '../../src/core/error';
 import { QueryManager } from '../../src/core/query/QueryManager';
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
@@ -148,7 +145,7 @@ describe('Streaming & Query Layer Integration', () => {
 
     it('subscribe should initialize stream', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-      subscribe(q, () => {});
+      subscribe(q, () => { });
       expect(initStreamTransportStub).to.have.been.calledOnce;
       expect(stubStreamTransport.invokeSubscribe).to.have.been.calledOnce;
     });
@@ -195,7 +192,7 @@ describe('Streaming & Query Layer Integration', () => {
         >);
 
       // open a subscription to activate the stream
-      subscribe(q, { onNext: () => {} });
+      subscribe(q, { onNext: () => { } });
 
       // force hasActiveSubscriptions and streamIsReady to true so TransportManager routes to stream
       (
@@ -226,7 +223,7 @@ describe('Streaming & Query Layer Integration', () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
 
       // open a subscription to activate the stream
-      subscribe(q, { onNext: () => {} });
+      subscribe(q, { onNext: () => { } });
 
       // force hasActiveSubscriptions and streamIsReady to true so TransportManager routes to stream
       (
@@ -277,7 +274,10 @@ describe('Streaming & Query Layer Integration', () => {
       const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
       // call the hook with data
-      await hook({ data: testData, errors: [], extensions: {} });
+      await hook({
+        type: 'NOTIFICATION',
+        response: { data: testData, errors: [], extensions: {} }
+      });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -300,7 +300,10 @@ describe('Streaming & Query Layer Integration', () => {
       const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
       // call the hook with data
-      await hook({ data: testData, errors: [], extensions: {} });
+      await hook({
+        type: 'NOTIFICATION',
+        response: { data: testData, errors: [], extensions: {} }
+      });
 
       // verify CACHE_ONLY executions see the data returned from the notification hook
       const cacheResult1 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
@@ -308,7 +311,10 @@ describe('Streaming & Query Layer Integration', () => {
 
       // simulate second notification
       const newData: TestData = { abc: 'NEW DATA' };
-      await hook({ data: newData, errors: [], extensions: {} });
+      await hook({
+        type: 'NOTIFICATION',
+        response: { data: newData, errors: [], extensions: {} }
+      });
 
       // verify CACHE_ONLY again
       const cacheResult2 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
@@ -332,17 +338,20 @@ describe('Streaming & Query Layer Integration', () => {
       const relevantSpy3 = sinon.spy();
       const irrelevantSpy = sinon.spy();
 
-      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy1 });
-      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy2 });
-      subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy3 });
-      subscribe(irrelevantQuery, { onNext: () => {}, onErr: irrelevantSpy });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy1 });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy2 });
+      subscribe(relevantQuery, { onNext: () => { }, onErr: relevantSpy3 });
+      subscribe(irrelevantQuery, { onNext: () => { }, onErr: irrelevantSpy });
 
       // get the query layer's notification hook which was passed to invokeSubscribe
       const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
       // call the hook with errors
       const expectedError = new Error('test error');
-      hook({ data: {}, errors: [expectedError], extensions: {} });
+      hook({
+        type: 'NOTIFICATION',
+        response: { data: {}, errors: [expectedError], extensions: {} }
+      });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -375,14 +384,10 @@ describe('Streaming & Query Layer Integration', () => {
       const notificationHook =
         stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      const expectedError = new DataConnectStreamError(
-        'WebSocket disconnected externally',
-        DataConnectStreamErrorCode.WEBSOCKET_CONNECTION_ERROR
-      );
       await notificationHook({
-        data: {},
-        errors: [expectedError],
-        extensions: {}
+        type: 'DISCONNECT',
+        code: StreamCode.WEBSOCKET_CONNECTION_ERROR,
+        reason: 'WebSocket disconnected externally'
       });
 
       expect(onErrSpy).to.have.been.calledOnce;
@@ -390,9 +395,12 @@ describe('Streaming & Query Layer Integration', () => {
 
       // Call hook again with data, should not reach subscriber because it was cleaned up
       await notificationHook({
-        data: { abc: 'new data' },
-        errors: [],
-        extensions: {}
+        type: 'NOTIFICATION',
+        response: {
+          data: { abc: 'new data' },
+          errors: [],
+          extensions: {}
+        }
       });
       expect(onNextSpy).to.not.have.been.called;
     });
@@ -407,43 +415,24 @@ describe('Streaming & Query Layer Integration', () => {
       const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
       const expectedError = new Error('test error');
-      await hook({ data: {}, errors: [expectedError], extensions: {} });
+      await hook({
+        type: 'NOTIFICATION',
+        response: { data: {}, errors: [expectedError], extensions: {} }
+      });
 
       expect(onErrSpy).to.have.been.calledOnce;
 
       // Call hook again with data, should STILL reach subscriber because it was NOT cleaned up
       const testData: TestData = { abc: 'new data' };
-      await hook({ data: testData, errors: [], extensions: {} });
+      await hook({
+        type: 'NOTIFICATION',
+        response: { data: testData, errors: [], extensions: {} }
+      });
       expect(onNextSpy).to.have.been.calledOnce;
       expect(onNextSpy.firstCall.args[0].data).to.deep.equal(testData);
 
       // Verify that invokeUnsubscribe was NOT called
       expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
     });
-
-    // it('should notify subscriber of auth errors but stay subscribed', async () => {
-    //   const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
-    //   const onNextSpy = sinon.spy();
-    //   const onErrSpy = sinon.spy();
-
-    //   subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
-
-    //   const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
-
-    //   const authError = { message: 'Unauthorized', code: 'unauthenticated' };
-    //   await hook({ data: {}, errors: [authError], extensions: {} });
-
-    //   expect(onErrSpy).to.have.been.calledOnce;
-    //   expect(onErrSpy.firstCall.args[0].message).to.include('Unauthorized');
-
-    //   // Call hook again with data, should STILL reach subscriber because it was NOT cleaned up
-    //   const testData: TestData = { abc: 'new data' };
-    //   await hook({ data: testData, errors: [], extensions: {} });
-    //   expect(onNextSpy).to.have.been.calledOnce;
-    //   expect(onNextSpy.firstCall.args[0].data).to.deep.equal(testData);
-
-    //   // Verify that invokeUnsubscribe was NOT called
-    //   expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
-    // });
   });
 });

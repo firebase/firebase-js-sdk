@@ -332,6 +332,12 @@ export function subscribe<Data, Variables>(queryRefOrSerializedResult: QueryRef<
 // @public
 export function subscribe<Data, Variables>(queryRefOrSerializedResult: QueryRef<Data, Variables> | SerializedRef<Data, Variables>, onNext: OnResultSubscription<Data, Variables>, onError?: OnErrorSubscription, onComplete?: OnCompleteSubscription): QueryUnsubscribe;
 
+// @public (undocumented)
+export const SubscribeNotificationType: {
+    DISCONNECT: string;
+    NOTIFICATION: string;
+};
+
 // @public
 export interface SubscriptionOptions<Data, Variables> {
     // (undocumented)

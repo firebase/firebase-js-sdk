@@ -16,11 +16,10 @@
  */
 
 import {
-  DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse,
   DataConnectStreamError,
-  DataConnectStreamErrorCode
+  StreamCode
 } from '../../core/error';
 import { logError } from '../../logger';
 import {
@@ -382,13 +381,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Reject all active execute promises and notify all subscribe hooks with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
-   * Called by concrete implementations when the connection fails to open, or when the connection is closed.
    */
-  protected rejectAllActiveRequests(error: DataConnectError): void {
+  private rejectAllActiveRequests(code: StreamCode, reason: string): void {
     this.activeQueryExecuteRequests.clear();
     this.activeMutationExecuteRequests.clear();
     this.activeSubscribeRequests.clear();
 
+    const error = new DataConnectStreamError(reason, code);
     for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
       this.executeRequestPromises.delete(requestId);
       rejectFn(error);
@@ -397,11 +396,21 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     for (const [requestId, notifyHook] of this.subscribeNotificationHooks) {
       this.subscribeNotificationHooks.delete(requestId);
       notifyHook({
-        data: undefined,
-        errors: [error],
-        extensions: {}
+        type: 'DISCONNECT',
+        code,
+        reason
       });
     }
+  }
+
+  /**
+   * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
+   */
+  protected onStreamClose(code: number, reason: string): void {
+    this.rejectAllActiveRequests(
+      code as StreamCode,
+      `Stream disconnected with code ${code}: ${reason}`
+    );
   }
 
   /**
@@ -603,9 +612,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
       notifyQueryManager({
-        data: undefined as unknown as Data,
-        extensions: {},
-        errors: [err instanceof Error ? err : new Error(String(err))]
+        type: 'NOTIFICATION',
+        response: {
+          data: undefined as unknown as Data,
+          extensions: {},
+          errors: [err instanceof Error ? err : new Error(String(err))]
+        }
       });
       this.cleanupSubscribeRequest(requestId, mapKey);
       if (!this.hasActiveSubscriptions) {
@@ -666,10 +678,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
       this.rejectAllActiveRequests(
-        new DataConnectStreamError(
-          'Stream disconnected due to illegal auth change.',
-          DataConnectStreamErrorCode.ILLEGAL_AUTH_CHANGE
-        )
+        StreamCode.ILLEGAL_AUTH_CHANGE,
+        'Stream disconnected due to illegal auth change.'
       );
       void this.attemptClose();
     }
@@ -707,11 +717,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     } else if (this.subscribeNotificationHooks.has(requestId)) {
       const notifyQueryManager =
         this.subscribeNotificationHooks.get(requestId)!;
-      notifyQueryManager(response);
+      notifyQueryManager({ type: 'NOTIFICATION', response });
     } else {
       throw new DataConnectStreamError(
         `Stream response contained unrecognized requestId '${requestId}'`,
-        DataConnectStreamErrorCode.PROTOCOL_ERROR
+        StreamCode.PROTOCOL_ERROR
       );
     }
   }

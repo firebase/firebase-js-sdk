@@ -88,12 +88,37 @@ export interface DataConnectResponseWithMaxAge<T> {
 }
 
 /**
+ * A notification sent by the transport layer to the query layer.
+ * @internal
+ */
+export type SubscribeNotification<Data> =
+  | DataUpdateNotification<Data>
+  | StreamDisconnectNotification;
+
+/**
+ * Notify the query layer of a data update.
+ * @internal
+ */
+export interface DataUpdateNotification<Data> {
+  type: 'NOTIFICATION';
+  response: DataConnectResponse<Data>
+}
+
+/** 
+ * Notify the query layer that the stream has disconnected.
+ * @internal
+ */
+export interface StreamDisconnectNotification {
+  type: 'DISCONNECT'; code: number; reason: string
+}
+
+/**
  * Type signature of the notification hook passed from the query layer to the transport layer. This
  * will be called by the transport layer to forward data updates from the server to the query layer.
  * @internal
  */
 export type SubscribeNotificationHook<Data> = (
-  result: DataConnectResponse<Data>
+  notification: SubscribeNotification<Data>
 ) => void;
 
 /**
@@ -208,8 +233,7 @@ export function getGoogApiClientValue(
  * @internal
  */
 export abstract class AbstractDataConnectTransport
-  implements DataConnectTransportInterface
-{
+  implements DataConnectTransportInterface {
   protected _host = '';
   protected _port: number | undefined;
   protected _location = 'l';

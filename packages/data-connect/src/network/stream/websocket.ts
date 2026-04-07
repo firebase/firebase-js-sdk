@@ -20,7 +20,7 @@ import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import {
   DataConnectError,
   DataConnectStreamError,
-  DataConnectStreamErrorCode
+  StreamCode
 } from '../../core/error';
 import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logError } from '../../logger';
@@ -135,7 +135,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         if (!connectWebSocket) {
           throw new DataConnectStreamError(
             'No WebSocket Implementation detected!',
-            DataConnectStreamErrorCode.MISSING_WEBSOCKET_IMPL
+            StreamCode.MISSING_WEBSOCKET_IMPL
           );
         }
         const ws = new connectWebSocket(this.endpointUrl);
@@ -151,7 +151,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
           this.connectionAttempt = null;
           const error = new DataConnectStreamError(
             `Error using WebSocket connection, closing WebSocket`,
-            DataConnectStreamErrorCode.WEBSOCKET_CONNECTION_ERROR
+            StreamCode.WEBSOCKET_CONNECTION_ERROR
           );
           this.handleError(error);
           reject(error);
@@ -176,7 +176,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     return this.ensureConnection().catch(err => {
       throw new DataConnectStreamError(
         `Failed to open connection: ${err}`,
-        DataConnectStreamErrorCode.WEBSOCKET_CONNECTION_ERROR
+        StreamCode.WEBSOCKET_CONNECTION_ERROR
       );
     });
   }
@@ -201,19 +201,15 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     return Promise.resolve();
   }
 
+  // TODO(stephenarosaj): Add reconnection logic
   /**
-   * Handle a disconnection from the server. Initiates graceful clean up and reconnection attempts.
+   * Handle a disconnection from the server. Initiates graceful clean up.
    * @param ev the {@link CloseEvent} that closed the WebSocket.
    */
   private handleWebsocketDisconnect(ev: CloseEvent): void {
     this.connection = undefined;
     this.connectionAttempt = null;
-    this.rejectAllActiveRequests(
-      new DataConnectStreamError(
-        `WebSocket disconnected with code ${ev.code}: ${ev.reason}`,
-        ev.code as DataConnectStreamErrorCode
-      )
-    );
+    this.onStreamClose(ev.code, ev.reason);
   }
 
   /**
@@ -221,10 +217,10 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    */
   private handleError(error?: unknown): void {
     logError(`DataConnect WebSocket error, closing stream: ${error}`);
-    let code = DataConnectStreamErrorCode.OTHER;
+    let code = StreamCode.OTHER;
     let reason = String(error);
     if (error instanceof DataConnectStreamError) {
-      code = error.closeCode;
+      code = error.streamCode;
       reason = error.message;
     } else if (error instanceof DataConnectError) {
       reason = error.message;
@@ -243,7 +239,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         this.handleError(err);
         throw new DataConnectStreamError(
           `Failed to send message: ${String(err)}`,
-          DataConnectStreamErrorCode.WEBSOCKET_CONNECTION_ERROR
+          StreamCode.WEBSOCKET_CONNECTION_ERROR
         );
       }
     });
@@ -292,20 +288,20 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     } catch (err) {
       throw new DataConnectStreamError(
         'Could not parse WebSocket message',
-        DataConnectStreamErrorCode.PROTOCOL_ERROR
+        StreamCode.PROTOCOL_ERROR
       );
     }
     if (typeof webSocketMessage !== 'object' || webSocketMessage === null) {
       throw new DataConnectStreamError(
         'WebSocket message is not an object',
-        DataConnectStreamErrorCode.PROTOCOL_ERROR
+        StreamCode.PROTOCOL_ERROR
       );
     }
     if (dataIsString) {
       if (!('result' in webSocketMessage)) {
         throw new DataConnectStreamError(
           'WebSocket message from emulator did not include result',
-          DataConnectStreamErrorCode.PROTOCOL_ERROR
+          StreamCode.PROTOCOL_ERROR
         );
       }
       if (
@@ -314,7 +310,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       ) {
         throw new DataConnectStreamError(
           'WebSocket message result is not an object',
-          DataConnectStreamErrorCode.PROTOCOL_ERROR
+          StreamCode.PROTOCOL_ERROR
         );
       }
       result = webSocketMessage.result;
@@ -324,7 +320,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     if (!('requestId' in result)) {
       throw new DataConnectStreamError(
         'WebSocket message did not include requestId',
-        DataConnectStreamErrorCode.PROTOCOL_ERROR
+        StreamCode.PROTOCOL_ERROR
       );
     }
     return result as DataConnectStreamResponse<Data>;

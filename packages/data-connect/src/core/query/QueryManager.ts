@@ -33,10 +33,12 @@ import {
   Extensions,
   DataConnectExtensionWithMaxAge,
   ExtensionsWithMaxAge,
-  SubscribeNotificationHook
+  SubscribeNotificationHook,
+  StreamDisconnectNotification,
+  DataUpdateNotification
 } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
-import { Code, DataConnectError, DataConnectStreamError } from '../error';
+import { Code, DataConnectError } from '../error';
 
 import {
   OnCompleteSubscription,
@@ -96,7 +98,7 @@ export class QueryManager {
     private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) {}
+  ) { }
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -184,7 +186,7 @@ export class QueryManager {
 
     const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => {});
+    promise.then(undefined, err => { });
 
     if (this.callbacks.has(key)) {
       this.callbacks
@@ -417,7 +419,7 @@ export class QueryManager {
   /**
    * Create a new {@link SubscribeNotificationHook} for the given QueryRef. This will be passed to
    * {@link DataConnectTransportInterface.invokeSubscribe | invokeSubscribe()} to notify the query
-   * layer of data updates.
+   * layer of data updates, or unsubscribe if the stream disconnected.
    */
   private makeSubscribeNotificationHook<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
@@ -427,66 +429,83 @@ export class QueryManager {
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    return async response => {
-      if (response.errors && response.errors.length > 0) {
-        const stringified = JSON.stringify(
+    return async notification => {
+      if (notification.type === 'NOTIFICATION') {
+        void this.handleDataUpdateNotification(key, notification, queryRef);
+      } else if (notification.type === 'DISCONNECT') {
+        this.handleDisconnectNotification(key, notification);
+      }
+    };
+  }
+
+  private async handleDataUpdateNotification<Data, Variables>(
+    key: string,
+    notification: DataUpdateNotification<Data>,
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<void> {
+    const response = notification.response;
+    if (response.errors && response.errors.length > 0) {
+      const error = new DataConnectError(
+        Code.OTHER,
+        'DataConnect error received from subscribe notification: ' +
+        JSON.stringify(
           response.errors.map(e => {
-            if (e && typeof e === 'object' && 'message' in e) {
-              const code =
-                'code' in e
-                  ? (e as unknown as Record<string, unknown>)['code']
-                  : undefined;
-              const message = (e as unknown as Record<string, unknown>)[
-                'message'
-              ];
-              return { message, code };
+            if (e && typeof e === 'object') {
+              return {
+                message: (e as unknown as { message: string }).message,
+                code: (e as unknown as { code?: unknown }).code
+              };
             }
             return e;
           })
-        );
-        const error = new DataConnectError(
-          Code.OTHER,
-          'DataConnect error received from subscribe notification: ' +
-            stringified
-        );
-        this.publishErrorToSubscribers(key, error);
-
-        // Cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
-        const isDisconnect = response.errors.some(
-          e => e instanceof DataConnectStreamError
-        );
-
-        if (isDisconnect) {
-          const callbacks = this.callbacks.get(key);
-          if (callbacks) {
-            [...callbacks].forEach(cb => cb.unsubscribe());
-          }
-        }
-        return;
-      }
-      const fetchTime = Date.now().toString();
-      const queryResult: QueryResult<Data, Variables> = {
-        ref: queryRef,
-        source: SOURCE_SERVER,
-        fetchTime,
-        data: response.data,
-        extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
-        toJSON: getRefSerializer(
-          queryRef,
-          response.data,
-          SOURCE_SERVER,
-          fetchTime
         )
-      };
-      const updatedKeys = await this.updateCache(
-        queryResult,
-        response.extensions?.dataConnect
       );
-      this.publishDataToSubscribers(key, queryResult);
-      if (this.cache) {
-        await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
-      }
+      this.publishErrorToSubscribers(key, error);
+      return;
+    }
+    const fetchTime = Date.now().toString();
+    const queryResult: QueryResult<Data, Variables> = {
+      ref: queryRef,
+      source: SOURCE_SERVER,
+      fetchTime,
+      data: response.data,
+      extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
+      toJSON: getRefSerializer(
+        queryRef,
+        response.data,
+        SOURCE_SERVER,
+        fetchTime
+      )
     };
+    const updatedKeys = await this.updateCache(
+      queryResult,
+      response.extensions?.dataConnect
+    );
+    this.publishDataToSubscribers(key, queryResult);
+    if (this.cache) {
+      await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
+    }
+  }
+
+  // TODO(stephenarosaj): this unsubscribes from all callbacks, but what if the user just originally wanted to register some callbacks for regular query executes?
+  /**
+   * Handle a disconnect notification from the stream. Unsubscribe all callbacks for the given key.
+   */
+  private handleDisconnectNotification(
+    key: string,
+    notification: StreamDisconnectNotification
+  ): void {
+    const error = new DataConnectError(
+      Code.OTHER,
+      `Stream disconnected with code ${notification.code}: ${notification.reason}`
+    );
+    this.publishErrorToSubscribers(key, error);
+
+    const callbacks = this.callbacks.get(key);
+    if (callbacks) {
+      [...callbacks].forEach(cb => cb.unsubscribe());
+    }
+    return;
   }
 }
 

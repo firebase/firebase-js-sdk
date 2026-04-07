@@ -536,8 +536,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           await sleep(500);
           expect(hook).to.have.been.calledOnce;
           const result = hook.firstCall.args[0];
-          expect(result.errors).to.have.lengthOf(1);
-          expect(result.errors[0]).to.equal(expectedError);
+          expect(result.type).to.equal('NOTIFICATION');
+          expect(result.response.errors).to.have.lengthOf(1);
+          expect(result.response.errors[0]).to.equal(expectedError);
 
           const mapKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeSubscribeRequests.has(mapKey)).to.be.false;
@@ -914,10 +915,16 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           await transport.invokeHandleResponse(requestId1, response1);
           expect(hook1).to.have.been.calledOnce;
-          expect(hook1).to.have.been.calledWithExactly(response1);
+          expect(hook1).to.have.been.calledWithExactly({
+            type: 'NOTIFICATION',
+            response: response1
+          });
           await transport.invokeHandleResponse(requestId1, response2);
           expect(hook1).to.have.been.calledTwice;
-          expect(hook1).to.have.been.calledWithExactly(response2);
+          expect(hook1).to.have.been.calledWithExactly({
+            type: 'NOTIFICATION',
+            response: response2
+          });
 
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request2 = transport.activeSubscribeRequests.get(expectedKey2);
@@ -925,10 +932,16 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           await transport.invokeHandleResponse(requestId2, response3);
           expect(hook2).to.have.been.calledOnce;
-          expect(hook2).to.have.been.calledWithExactly(response3);
+          expect(hook2).to.have.been.calledWithExactly({
+            type: 'NOTIFICATION',
+            response: response3
+          });
           await transport.invokeHandleResponse(requestId2, response4);
           expect(hook2).to.have.been.calledTwice;
-          expect(hook2).to.have.been.calledWithExactly(response4);
+          expect(hook2).to.have.been.calledWithExactly({
+            type: 'NOTIFICATION',
+            response: response4
+          });
         });
 
         it('should route error response to the correct subscribe hook whenever an error response is received', async () => {
@@ -944,10 +957,16 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
           expect(hook1).to.have.been.calledOnce;
-          expect(hook1).to.have.been.calledWithExactly(errorResponse);
+          expect(hook1).to.have.been.calledWithExactly({
+            type: 'NOTIFICATION',
+            response: errorResponse
+          });
           await transport.invokeHandleResponse(requestId2, errorResponse);
           expect(hook2).to.have.been.calledOnce;
-          expect(hook2).to.have.been.calledWithExactly(errorResponse);
+          expect(hook2).to.have.been.calledWithExactly({
+            type: 'NOTIFICATION',
+            response: errorResponse
+          });
         });
 
         it('should NOT clean map when handleResponse rejects', async () => {

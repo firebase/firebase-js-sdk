@@ -100,27 +100,27 @@ export interface DataConnectOperationFailureResponseErrorInfo {
 }
 
 /**
- * We'll use WebSocket close code values for all stream implementations (where possible).
- * Defined by {@link https://www.rfc-editor.org/rfc/rfc6455#section-7.4 | RFC #6455}
- * Note that Node environments only support close codes 1000 or 3000-4999, and 1000 is a graceful close.
+ * Error/close codes for streaming. Complies with WebSocket close codes, defined by
+ * {@link https://www.rfc-editor.org/rfc/rfc6455#section-7.4 | RFC #6455: "The WebSocket Protocol"}.
+ * Note that WebSockets in Node environments only support close codes 1000 or 3000-4999, where 1000
+ * is a graceful close.
  * @internal
  */
-export type DataConnectStreamErrorCode = 3001 | 3002 | 3003 | 3004 | 3099;
+export type StreamCode = 3001 | 3002 | 3003 | 3004 | 3099;
 
-export const DataConnectStreamErrorCode = {
-  PROTOCOL_ERROR: 3001 as DataConnectStreamErrorCode,
-  ILLEGAL_AUTH_CHANGE: 3002 as DataConnectStreamErrorCode,
-  WEBSOCKET_CONNECTION_ERROR: 3003 as DataConnectStreamErrorCode,
-  MISSING_WEBSOCKET_IMPL: 3004 as DataConnectStreamErrorCode,
-  OTHER: 3099 as DataConnectStreamErrorCode
+export const StreamCode = {
+  PROTOCOL_ERROR: 3001 as StreamCode,
+  ILLEGAL_AUTH_CHANGE: 3002 as StreamCode,
+  WEBSOCKET_CONNECTION_ERROR: 3003 as StreamCode,
+  MISSING_WEBSOCKET_IMPL: 3004 as StreamCode,
+  OTHER: 3099 as StreamCode
 };
 
 /**
- * Base class for stream errors. Based on the {@link DataConnectStreamErrorCode}, these may close
- * the stream or reject an operation.
+ * Base class for stream errors. Based on the {@link StreamCode}.
  */
 export class DataConnectStreamError extends DataConnectError {
-  constructor(message: string, readonly closeCode: DataConnectStreamErrorCode) {
+  constructor(message: string, readonly streamCode: StreamCode) {
     super(Code.OTHER, message);
     // Ensure the instanceof operator works as expected on subclasses of Error.
     // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types

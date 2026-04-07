@@ -22,7 +22,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
-import { DataConnectStreamErrorCode } from '../../src/core/error';
+import { StreamCode } from '../../src/core/error';
 import * as logger from '../../src/logger';
 import {
   WebSocketTransport,
@@ -47,7 +47,7 @@ interface TransportWithInternals {
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void>;
-  rejectAllActiveRequests(error: Error): void;
+  rejectAllActiveRequests(code: StreamCode, reason: string): void;
 }
 
 describe('WebSocketTransport', () => {
@@ -190,8 +190,9 @@ describe('WebSocketTransport', () => {
       await transport.connection!.simulateClose();
 
       expect(rejectSpy).to.have.been.calledOnce;
-      expect(rejectSpy.firstCall.args[0].message).to.equal(
-        'WebSocket disconnected with code 1000: Normal Closure'
+      expect(rejectSpy.firstCall.args[0]).to.equal(1000);
+      expect(rejectSpy.firstCall.args[1]).to.equal(
+        'Stream disconnected with code 1000: Normal Closure'
       );
     });
   });
@@ -300,7 +301,7 @@ describe('WebSocketTransport', () => {
       );
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        DataConnectStreamErrorCode.PROTOCOL_ERROR,
+        StreamCode.PROTOCOL_ERROR,
         'WebSocket message is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -320,7 +321,7 @@ describe('WebSocketTransport', () => {
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        DataConnectStreamErrorCode.PROTOCOL_ERROR,
+        StreamCode.PROTOCOL_ERROR,
         'WebSocket message from emulator did not include result'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -340,7 +341,7 @@ describe('WebSocketTransport', () => {
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        DataConnectStreamErrorCode.PROTOCOL_ERROR,
+        StreamCode.PROTOCOL_ERROR,
         'WebSocket message result is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -360,7 +361,7 @@ describe('WebSocketTransport', () => {
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        DataConnectStreamErrorCode.PROTOCOL_ERROR,
+        StreamCode.PROTOCOL_ERROR,
         'WebSocket message did not include requestId'
       );
       expect(logErrorStub).to.have.been.calledOnce;
