@@ -32,17 +32,18 @@ import {
   CollectionSource,
   DatabaseSource,
   DocumentsSource,
-  Stage
+  Stage,
+  SubcollectionSource
 } from './stage';
 import {
   CollectionGroupStageOptions,
   CollectionStageOptions,
   DatabaseStageOptions,
-  DocumentsStageOptions
+  DocumentsStageOptions,
+  SubcollectionStageOptions
 } from './stage_options';
 
 /**
- * @beta
  * Provides the entry point for defining the data source of a Firestore {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * Use the methods of this class (e.g., {@link @firebase/firestore/pipelines#PipelineSource.(collection:1)}, {@link @firebase/firestore/pipelines#PipelineSource.(collectionGroup:1)},
@@ -66,13 +67,11 @@ export class PipelineSource<PipelineType> {
   ) {}
 
   /**
-   * @beta
    * Returns all documents from the entire collection. The collection can be nested.
    * @param collection - Name or reference to the collection that will be used as the Pipeline source.
    */
   collection(collection: string | CollectionReference): PipelineType;
   /**
-   * @beta
    * Returns all documents from the entire collection. The collection can be nested.
    * @param options - Options defining how this CollectionStage is evaluated.
    */
@@ -110,13 +109,11 @@ export class PipelineSource<PipelineType> {
   }
 
   /**
-   * @beta
    * Returns all documents from a collection ID regardless of the parent.
    * @param collectionId - ID of the collection group to use as the Pipeline source.
    */
   collectionGroup(collectionId: string): PipelineType;
   /**
-   * @beta
    * Returns all documents from a collection ID regardless of the parent.
    * @param options - Options defining how this CollectionGroupStage is evaluated.
    */
@@ -142,12 +139,10 @@ export class PipelineSource<PipelineType> {
   }
 
   /**
-   * @beta
    * Returns all documents from the entire database.
    */
   database(): PipelineType;
   /**
-   * @beta
    * Returns all documents from the entire database.
    * @param options - Options defining how a DatabaseStage is evaluated.
    */
@@ -164,7 +159,6 @@ export class PipelineSource<PipelineType> {
   }
 
   /**
-   * @beta
    * Set the pipeline's source to the documents specified by the given paths and DocumentReferences.
    *
    * @param docs - An array of paths and DocumentReferences specifying the individual documents that will be the source of this pipeline.
@@ -175,7 +169,6 @@ export class PipelineSource<PipelineType> {
   documents(docs: Array<string | DocumentReference>): PipelineType;
 
   /**
-   * @beta
    * Set the pipeline's source to the documents specified by the given paths and DocumentReferences.
    *
    * @param options - Options defining how this DocumentsStage is evaluated.
@@ -214,7 +207,6 @@ export class PipelineSource<PipelineType> {
   }
 
   /**
-   * @beta
    * Convert the given Query into an equivalent Pipeline.
    *
    * @param query - A Query to be converted into a Pipeline.
@@ -240,4 +232,41 @@ export class PipelineSource<PipelineType> {
       );
     }
   }
+}
+
+/**
+ * @public
+ * Creates a new Pipeline targeted at a subcollection relative to the current document context.
+ * This creates a pipeline without a database instance, suitable for embedding as a subquery.
+ * If executed directly, this pipeline will fail.
+ *
+ * @param path - The relative path to the subcollection.
+ */
+export function subcollection(path: string): Pipeline;
+/**
+ * @public
+ * Creates a new Pipeline targeted at a subcollection relative to the current document context.
+ * This creates a pipeline without a database instance, suitable for embedding as a subquery.
+ * If executed directly, this pipeline will fail.
+ *
+ * @param options - Options defining how this SubcollectionStage is evaluated.
+ */
+export function subcollection(options: SubcollectionStageOptions): Pipeline;
+export function subcollection(
+  pathOrOptions: string | SubcollectionStageOptions
+): Pipeline {
+  // Process argument union(s) from method overloads
+  let path: string;
+  let options: {};
+  if (isString(pathOrOptions)) {
+    path = pathOrOptions;
+    options = {};
+  } else {
+    ({ path, ...options } = pathOrOptions);
+  }
+
+  // Create stage object
+  const stage = new SubcollectionSource(path, options);
+
+  return new Pipeline(undefined, [stage]);
 }

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.12.0",
+  "version": "4.13.0",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -24,9 +24,9 @@
     "prettier": "prettier --write '*.js' '@(lite|src|test|scripts)/**/*.ts' 'test/unit/remote/bloom_filter_golden_test_data/*.json'",
     "test:lite": "ts-node ./scripts/run-tests.ts --emulator --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
     "test:lite:prod": "ts-node ./scripts/run-tests.ts --platform node_lite --main=lite/index.ts 'test/lite/**/*.test.ts'",
-    "test:lite:prod:nameddb": "ts-node ./scripts/run-tests.ts --platform node_lite --databaseId=test-db --main=lite/index.ts 'test/lite/**/*.test.ts'",
+    "test:lite:prod:nameddb": "ts-node ./scripts/run-tests.ts --platform node_lite --databaseId=enterprise --main=lite/index.ts  --firestoreEdition=enterprise 'test/lite/**/*.test.ts'",
     "test:lite:browser": "karma start --lite",
-    "test:lite:browser:nameddb": "karma start --lite --databaseId=test-db",
+    "test:lite:browser:nameddb": "karma start --lite --databaseId=enterprise --firestoreEdition=enterprise",
     "test:lite:browser:debug": "karma start --browsers=Chrome --lite --auto-watch",
     "test": "run-s --npm-path npm lint assertion-id:check test:all",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:all:ci",
@@ -39,12 +39,12 @@
     "test:browser:prod": "karma start --targetBackend=prod",
     "test:webkit:prod": "BROWSERS=WebkitHeadless karma start --targetBackend=prod",
     "test:webkit:unit": "BROWSERS=WebkitHeadless karma start --unit --targetBackend=prod",
-    "test:browser:prod:nameddb": "karma start --targetBackend=prod --databaseId=test-db",
+    "test:browser:prod:nameddb": "karma start --targetBackend=prod --databaseId=enterprise --firestoreEdition=enterprise",
     "test:browser:unit": "karma start --unit",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "ts-node ./scripts/run-tests.ts  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:prod": "ts-node ./scripts/run-tests.ts --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts'",
-    "test:node:prod:nameddb": "ts-node ./scripts/run-tests.ts --main=test/register.ts --databaseId=test-db 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node:prod:nameddb": "ts-node ./scripts/run-tests.ts --main=test/register.ts --databaseId=enterprise  --firestoreEdition=enterprise 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:persistence": "ts-node ./scripts/run-tests.ts  --main=test/register.ts --persistence --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:persistence:prod": "ts-node ./scripts/run-tests.ts --main=test/register.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
@@ -133,9 +133,9 @@
     "lite/pipelines/pipelines.d.ts"
   ],
   "dependencies": {
-    "@firebase/component": "0.7.1",
+    "@firebase/component": "0.7.2",
     "@firebase/logger": "0.5.0",
-    "@firebase/util": "1.14.0",
+    "@firebase/util": "1.15.0",
     "@firebase/webchannel-wrapper": "1.0.5",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
@@ -145,9 +145,9 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.9",
-    "@firebase/app-compat": "0.5.9",
-    "@firebase/auth": "1.12.1",
+    "@firebase/app": "0.14.10",
+    "@firebase/app-compat": "0.5.10",
+    "@firebase/auth": "1.12.2",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
