@@ -36,7 +36,7 @@ import {
   SubscribeNotificationHook
 } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
-import { Code, DataConnectError } from '../error';
+import { Code, DataConnectError, DataConnectStreamError } from '../error';
 
 import {
   OnCompleteSubscription,
@@ -96,7 +96,7 @@ export class QueryManager {
     private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) { }
+  ) {}
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -184,7 +184,7 @@ export class QueryManager {
 
     const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => { });
+    promise.then(undefined, err => {});
 
     if (this.callbacks.has(key)) {
       this.callbacks
@@ -447,18 +447,13 @@ export class QueryManager {
         const error = new DataConnectError(
           Code.OTHER,
           'DataConnect error received from subscribe notification: ' +
-          stringified
+            stringified
         );
         this.publishErrorToSubscribers(key, error);
 
-        // TODO(stephenarosaj) use more robust error checking to see if this is a disconnect. categorize your errors!!!
-        // cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
+        // Cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
         const isDisconnect = response.errors.some(
-          e =>
-            e &&
-            typeof e === 'object' &&
-            'message' in e &&
-            e.message === 'WebSocket disconnected externally'
+          e => e instanceof DataConnectStreamError
         );
 
         if (isDisconnect) {

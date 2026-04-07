@@ -23,9 +23,7 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import {
-  Code,
   DataConnect,
-  DataConnectError,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   executeMutation,
@@ -37,6 +35,10 @@ import {
   subscribe,
   SubscribeNotificationHook
 } from '../../src';
+import {
+  DataConnectStreamError,
+  DataConnectStreamErrorCode
+} from '../../src/core/error';
 import { QueryManager } from '../../src/core/query/QueryManager';
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
@@ -373,9 +375,9 @@ describe('Streaming & Query Layer Integration', () => {
       const notificationHook =
         stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      const expectedError = new DataConnectError(
-        Code.OTHER,
-        'WebSocket disconnected externally'
+      const expectedError = new DataConnectStreamError(
+        'WebSocket disconnected externally',
+        DataConnectStreamErrorCode.WEBSOCKET_CONNECTION_ERROR
       );
       await notificationHook({
         data: {},
@@ -418,5 +420,30 @@ describe('Streaming & Query Layer Integration', () => {
       // Verify that invokeUnsubscribe was NOT called
       expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
     });
+
+    // it('should notify subscriber of auth errors but stay subscribed', async () => {
+    //   const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
+    //   const onNextSpy = sinon.spy();
+    //   const onErrSpy = sinon.spy();
+
+    //   subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
+
+    //   const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+
+    //   const authError = { message: 'Unauthorized', code: 'unauthenticated' };
+    //   await hook({ data: {}, errors: [authError], extensions: {} });
+
+    //   expect(onErrSpy).to.have.been.calledOnce;
+    //   expect(onErrSpy.firstCall.args[0].message).to.include('Unauthorized');
+
+    //   // Call hook again with data, should STILL reach subscriber because it was NOT cleaned up
+    //   const testData: TestData = { abc: 'new data' };
+    //   await hook({ data: testData, errors: [], extensions: {} });
+    //   expect(onNextSpy).to.have.been.calledOnce;
+    //   expect(onNextSpy.firstCall.args[0].data).to.deep.equal(testData);
+
+    //   // Verify that invokeUnsubscribe was NOT called
+    //   expect(stubStreamTransport.invokeUnsubscribe).to.not.have.been.called;
+    // });
   });
 });

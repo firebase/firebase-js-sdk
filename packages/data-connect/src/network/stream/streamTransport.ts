@@ -16,10 +16,11 @@
  */
 
 import {
-  Code,
   DataConnectError,
   DataConnectOperationError,
-  DataConnectOperationFailureResponse
+  DataConnectOperationFailureResponse,
+  DataConnectStreamError,
+  DataConnectStreamErrorCode
 } from '../../core/error';
 import { logError } from '../../logger';
 import {
@@ -665,9 +666,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
       this.rejectAllActiveRequests(
-        new DataConnectError(
-          Code.UNAUTHORIZED,
-          'Stream disconnected due to auth change.'
+        new DataConnectStreamError(
+          'Stream disconnected due to illegal auth change.',
+          DataConnectStreamErrorCode.ILLEGAL_AUTH_CHANGE
         )
       );
       void this.attemptClose();
@@ -708,9 +709,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         this.subscribeNotificationHooks.get(requestId)!;
       notifyQueryManager(response);
     } else {
-      throw new DataConnectError(
-        Code.OTHER,
-        `Stream response contained unrecognized requestId '${requestId}'`
+      throw new DataConnectStreamError(
+        `Stream response contained unrecognized requestId '${requestId}'`,
+        DataConnectStreamErrorCode.PROTOCOL_ERROR
       );
     }
   }

@@ -22,9 +22,9 @@ import * as sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 
 import { DataConnectOptions } from '../../src/api/DataConnect';
+import { DataConnectStreamErrorCode } from '../../src/core/error';
 import * as logger from '../../src/logger';
 import {
-  WebSocketCloseCode,
   WebSocketTransport,
   initializeWebSocket
 } from '../../src/network/stream/websocket';
@@ -191,7 +191,7 @@ describe('WebSocketTransport', () => {
 
       expect(rejectSpy).to.have.been.calledOnce;
       expect(rejectSpy.firstCall.args[0].message).to.equal(
-        'WebSocket disconnected externally'
+        'WebSocket disconnected with code 1000: Normal Closure'
       );
     });
   });
@@ -300,7 +300,7 @@ describe('WebSocketTransport', () => {
       );
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.GRACEFUL_CLOSE,
+        DataConnectStreamErrorCode.PROTOCOL_ERROR,
         'WebSocket message is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -320,7 +320,7 @@ describe('WebSocketTransport', () => {
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.GRACEFUL_CLOSE,
+        DataConnectStreamErrorCode.PROTOCOL_ERROR,
         'WebSocket message from emulator did not include result'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -340,7 +340,7 @@ describe('WebSocketTransport', () => {
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.GRACEFUL_CLOSE,
+        DataConnectStreamErrorCode.PROTOCOL_ERROR,
         'WebSocket message result is not an object'
       );
       expect(logErrorStub).to.have.been.calledOnce;
@@ -360,7 +360,7 @@ describe('WebSocketTransport', () => {
       await mockWs.simulateMessage(JSON.stringify(invalidData));
 
       expect(mockWs.close).to.have.been.calledOnceWith(
-        WebSocketCloseCode.GRACEFUL_CLOSE,
+        DataConnectStreamErrorCode.PROTOCOL_ERROR,
         'WebSocket message did not include requestId'
       );
       expect(logErrorStub).to.have.been.calledOnce;
