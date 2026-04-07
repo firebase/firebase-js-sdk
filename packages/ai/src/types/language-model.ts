@@ -54,7 +54,13 @@ export enum Availability {
  * @beta
  */
 export interface LanguageModelCreateCoreOptions {
+  /**
+   * @deprecated
+   */
   topK?: number;
+  /**
+   * @deprecated
+   */
   temperature?: number;
   expectedInputs?: LanguageModelExpected[];
 }
