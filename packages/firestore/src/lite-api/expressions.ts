@@ -7102,7 +7102,7 @@ export function arrayTransformWithIndex(
 }
 
 /**
- * Creates an expression that returns a subset of an array.
+ * Creates an expression that returns a slice of an array from `offset` with `length` elements.
  *
  * @example
  * ```typescript
@@ -7125,7 +7125,7 @@ export function arraySlice(
 ): FunctionExpression;
 
 /**
- * Creates an expression that returns a subset of an array.
+ * Creates an expression that returns a slice of an array from `offset` with `length` elements.
  *
  * @example
  * ```typescript
