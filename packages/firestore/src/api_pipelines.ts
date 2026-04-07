@@ -163,6 +163,7 @@ export {
   mapRemove,
   mapMerge,
   documentId,
+  parent,
   substring,
   countDistinct,
   ceil,
@@ -211,8 +212,7 @@ export {
   Selectable,
   TimeGranularity,
   TimePart,
-  TimeUnit,
-  Type
+  TimeUnit
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

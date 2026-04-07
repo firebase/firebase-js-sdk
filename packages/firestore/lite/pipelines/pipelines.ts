@@ -112,6 +112,7 @@ export {
   map,
   mod,
   documentId,
+  parent,
   equal,
   notEqual,
   lessThan,
@@ -244,6 +245,5 @@ export {
   AggregateFunction,
   TimeGranularity,
   TimePart,
-  TimeUnit,
-  Type
+  TimeUnit
 } from '../../src/lite-api/expressions';
