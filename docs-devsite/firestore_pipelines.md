@@ -48,7 +48,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(arrayExpression)](./firestore_pipelines.md#arrayminimum_f574e12) | Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_bff7f91) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_19b4ef8) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arraySlice(arrayExpression, offset, length)](./firestore_pipelines.md#arrayslice_a349bee) | Creates an expression that returns a subset of an array. |
+|  [arraySlice(arrayExpression, offset, length)](./firestore_pipelines.md#arrayslice_a349bee) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
 |  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_pipelines.md#arraytransform_28967fa) | Creates an expression that applies a provided transformation to each element in an array. |
 |  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_2f3b17f) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_pipelines.md#join_313e6aa) | Creates an expression that joins the elements of an array into a string. |
@@ -179,7 +179,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(fieldName)](./firestore_pipelines.md#arrayminimum_e5b0480) | Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_597a4d9) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_1a86a2c) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arraySlice(fieldName, offset, length)](./firestore_pipelines.md#arrayslice_821aa43) | Creates an expression that returns a subset of an array. |
+|  [arraySlice(fieldName, offset, length)](./firestore_pipelines.md#arrayslice_821aa43) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
 |  [arraySum(fieldName)](./firestore_pipelines.md#arraysum_e5b0480) | Creates an expression that computes the sum of the elements in an array. |
 |  [arrayTransform(fieldName, elementAlias, transform)](./firestore_pipelines.md#arraytransform_328a090) | Creates an expression that applies a provided transformation to each element in an array. |
 |  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_e6629b2) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
@@ -1437,7 +1437,7 @@ arrayMinimumN(field("scores"), field("count"));
 
 ### arraySlice(arrayExpression, offset, length) {:#arrayslice_a349bee}
 
-Creates an expression that returns a subset of an array.
+Creates an expression that returns a slice of an array from `offset` with `length` elements.
 
 <b>Signature:</b>
 
@@ -5119,7 +5119,7 @@ arrayMinimumN(field("scores"), field("count"));
 
 ### arraySlice(fieldName, offset, length) {:#arrayslice_821aa43}
 
-Creates an expression that returns a subset of an array.
+Creates an expression that returns a slice of an array from `offset` with `length` elements.
 
 <b>Signature:</b>
 
