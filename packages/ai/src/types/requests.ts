@@ -26,6 +26,8 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  ImageConfigAspectRatio,
+  ImageConfigImageSize,
   InferenceMode,
   ResponseModality,
   ThinkingLevel
@@ -92,6 +94,21 @@ export interface SafetySetting {
 }
 
 /**
+ * Configuration options for generating images with Gemini models.
+ * @public
+ */
+export interface ImageConfig {
+  /**
+   * The aspect ratio of generated images.
+   */
+  aspectRatio?: ImageConfigAspectRatio;
+  /**
+   * The size of the generated images.
+   */
+  imageSize?: ImageConfigImageSize;
+}
+
+/**
  * Config options for content-related requests
  * @public
  */
@@ -142,6 +159,11 @@ export interface GenerationConfig {
    * Configuration for "thinking" behavior of compatible Gemini models.
    */
   thinkingConfig?: ThinkingConfig;
+  /**
+   * Configuration options for generating images with Gemini models.
+   * @public
+   */
+  imageConfig?: ImageConfig;
 }
 
 /**

@@ -229,7 +229,20 @@ export function getInlineDataParts(
   }
 }
 
-const badFinishReasons = [FinishReason.RECITATION, FinishReason.SAFETY];
+const badFinishReasons = [
+  FinishReason.RECITATION,
+  FinishReason.SAFETY,
+  FinishReason.IMAGE_SAFETY,
+  FinishReason.IMAGE_PROHIBITED_CONTENT,
+  FinishReason.IMAGE_OTHER,
+  FinishReason.NO_IMAGE,
+  FinishReason.IMAGE_RECITATION,
+  FinishReason.LANGUAGE,
+  FinishReason.UNEXPECTED_TOOL_CALL,
+  FinishReason.TOO_MANY_TOOL_CALLS,
+  FinishReason.MISSING_THOUGHT_SIGNATURE,
+  FinishReason.MALFORMED_RESPONSE
+];
 
 function hadBadFinishReason(candidate: GenerateContentCandidate): boolean {
   return (

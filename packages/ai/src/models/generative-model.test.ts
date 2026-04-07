@@ -22,7 +22,9 @@ import {
   InferenceMode,
   AIErrorCode,
   ChromeAdapter,
-  ThinkingLevel
+  ThinkingLevel,
+  ImageConfigAspectRatio,
+  ImageConfigImageSize
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -319,6 +321,23 @@ describe('GenerativeModel', () => {
     const chatSession = genModel.startChat();
     expect(chatSession.params?.generationConfig).to.deep.equal({
       topK: 1
+    });
+    restore();
+  });
+  it('passes imageConfig through to ChatSession', async () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      generationConfig: {
+        imageConfig: {
+          aspectRatio: ImageConfigAspectRatio.SQUARE_1x1,
+          imageSize: ImageConfigImageSize.SIZE_512
+        }
+      }
+    });
+    const chatSession = genModel.startChat();
+    expect(chatSession.params?.generationConfig?.imageConfig).to.deep.equal({
+      aspectRatio: '1:1',
+      imageSize: '512'
     });
     restore();
   });
