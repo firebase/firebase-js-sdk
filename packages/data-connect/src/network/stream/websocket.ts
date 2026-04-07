@@ -187,15 +187,20 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     let error;
     try {
       if (reason) {
-        // reason string cab be max 123 bytes (not characters, bytes)
-        const maxBytes = 123;
+        // reason string can be max 123 bytes (not characters, bytes)
+        const MAX_BYTES = 123;
         const encoder = new TextEncoder();
-        const byteLength = encoder.encode(reason).length;
-        if (byteLength <= maxBytes) {
+        const bytes = encoder.encode(reason);
+        if (bytes.length <= MAX_BYTES) {
           this.connection.close(code, reason);
         } else {
-          this.connection.close(code, reason.substring(0, maxBytes - 10));
+          const buf = new Uint8Array(MAX_BYTES);
+          const { read } = encoder.encodeInto(reason, buf);
+          const truncatedReason = reason.substring(0, read);
+          this.connection.close(code, truncatedReason);
         }
+      } else {
+        this.connection.close(code);
       }
     } catch (e) {
       error = e;

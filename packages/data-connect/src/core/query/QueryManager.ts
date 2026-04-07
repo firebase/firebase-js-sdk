@@ -97,7 +97,7 @@ export class QueryManager {
     private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) { }
+  ) {}
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -185,7 +185,7 @@ export class QueryManager {
 
     const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => { });
+    promise.then(undefined, err => {});
 
     if (this.callbacks.has(key)) {
       this.callbacks
@@ -454,17 +454,17 @@ export class QueryManager {
       const error = new DataConnectError(
         Code.OTHER,
         'DataConnect error received from subscribe notification: ' +
-        JSON.stringify(
-          response.errors.map(e => {
-            if (e && typeof e === 'object') {
-              return {
-                message: (e as unknown as { message: string }).message,
-                code: (e as unknown as { code?: unknown }).code
-              };
-            }
-            return e;
-          })
-        )
+          JSON.stringify(
+            response.errors.map(e => {
+              if (e && typeof e === 'object') {
+                return {
+                  message: (e as unknown as { message: string }).message,
+                  code: (e as unknown as { code?: unknown }).code
+                };
+              }
+              return e;
+            })
+          )
       );
       this.publishErrorToSubscribers(key, error);
       return;
@@ -496,11 +496,12 @@ export class QueryManager {
   /**
    * Handle a disconnect from the stream. Unsubscribe all callbacks for the given key.
    */
-  private handleStreamDisconnect(key: string, code: string, reason: string): void {
-    const error = new DataConnectError(
-      code as Code,
-      reason
-    );
+  private handleStreamDisconnect(
+    key: string,
+    code: string,
+    reason: string
+  ): void {
+    const error = new DataConnectError(code as Code, reason);
     this.publishErrorToSubscribers(key, error);
 
     const callbacks = this.callbacks.get(key);
