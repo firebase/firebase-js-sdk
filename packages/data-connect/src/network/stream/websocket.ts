@@ -43,29 +43,11 @@ export function initializeWebSocket(webSocketImpl: typeof WebSocket): void {
 }
 
 /**
- * Error with associated {@link WebSocketCloseCode} to be passed to {@link WebSocket.close}
- */
-class WebSocketDataConnectError extends DataConnectError {
-  constructor(readonly closeCode: WebSocketCloseCode, message: string) {
-    super(Code.OTHER, message);
-
-    // Ensure the instanceof operator works as expected on subclasses of Error.
-    // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types
-    // and https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
-    Object.setPrototypeOf(this, WebSocketDataConnectError.prototype);
-  }
-}
-
-// TODO(stephenarosaj): Node environments only support close codes 1000 or 3000-4999 - update to use 3000-4999 range to specify why we're closing
-/**
- * Defined by https://www.rfc-editor.org/rfc/rfc6455#section-7.4
+ * The code used to close the WebSocket connection.
+ * This is a protocol-level code, and is not the same as the {@link Code | DataConnect error code}.
  * @internal
  */
-export enum WebSocketCloseCode {
-  GRACEFUL_CLOSE = 1000,
-  GOING_AWAY = 1001,
-  PROTOCOL_ERROR = 1002
-}
+export const WEBSOCKET_CLOSE_CODE = 1000;
 
 /**
  * An {@link AbstractDataConnectStreamTransport | Stream Transport} implementation that uses {@link WebSocket | WebSockets} to stream requests and responses.
@@ -159,16 +141,20 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         this.connection!.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
+          this.isUnableToConnect = false;
           this.onConnectionReady();
           resolve();
         };
 
         ws.onerror = event => {
           this.connectionAttempt = null;
-          this.handleError(
+          this.isUnableToConnect = true;
+          const error = new DataConnectError(
+            Code.OTHER,
             `Error using WebSocket connection, closing WebSocket`
           );
-          reject(`Error using WebSocket connection, closing WebSocket`);
+          this.handleError(error);
+          reject(error);
         };
 
         ws.onmessage = ev =>
@@ -202,7 +188,23 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     }
     let error;
     try {
-      this.connection.close(code, reason);
+      if (reason) {
+        // reason string can be max 123 bytes (not characters, bytes)
+        // https://developer.mozilla.org/en-US/docs/Web/API/WebSocketStream/close#parameters
+        const MAX_BYTES = 123;
+        const encoder = new TextEncoder();
+        const bytes = encoder.encode(reason);
+        if (bytes.length <= MAX_BYTES) {
+          this.connection.close(code, reason);
+        } else {
+          const buf = new Uint8Array(MAX_BYTES);
+          const { read } = encoder.encodeInto(reason, buf);
+          const truncatedReason = reason.substring(0, read);
+          this.connection.close(code, truncatedReason);
+        }
+      } else {
+        this.connection.close(code);
+      }
     } catch (e) {
       error = e;
     } finally {
@@ -222,9 +224,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
   private handleWebsocketDisconnect(ev: CloseEvent): void {
     this.connection = undefined;
     this.connectionAttempt = null;
-    this.rejectAllActiveRequests(
-      new DataConnectError(Code.OTHER, 'WebSocket disconnected externally')
-    );
+    this.onStreamClose(ev.code, ev.reason);
   }
 
   /**
@@ -232,12 +232,11 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    */
   private handleError(error?: unknown): void {
     logError(`DataConnect WebSocket error, closing stream: ${error}`);
-    const code = WebSocketCloseCode.GRACEFUL_CLOSE;
-    let reason = 'Protocol Error';
-    if (error instanceof WebSocketDataConnectError) {
+    let reason = error ? String(error) : 'Unknown Error';
+    if (error instanceof DataConnectError) {
       reason = error.message;
     }
-    void this.closeConnection(code, reason);
+    void this.closeConnection(WEBSOCKET_CLOSE_CODE, reason);
   }
 
   protected sendMessage<Variables>(
@@ -280,7 +279,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * Parse a response from the server. Assert that it has a {@link DataConnectStreamResponse.requestId | requestId}.
    * @param data the message from the server to be parsed
    * @returns the parsed message as a {@link DataConnectStreamResponse}
-   * @throws {WebSocketDataConnectError} if parsing fails or message is malformed.
+   * @throws {DataConnectError} if parsing fails or message is malformed.
    */
   private parseWebSocketData<Data>(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -298,21 +297,23 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         webSocketMessage = JSON.parse(this.decodeBinaryResponse(data));
       }
     } catch (err) {
-      throw new WebSocketDataConnectError(
-        WebSocketCloseCode.PROTOCOL_ERROR,
-        'Could not parse WebSocket message'
+      throw new DataConnectError(
+        Code.OTHER,
+        `Could not parse WebSocket message: ${
+          err instanceof Error ? err.message : String(err)
+        }`
       );
     }
     if (typeof webSocketMessage !== 'object' || webSocketMessage === null) {
-      throw new WebSocketDataConnectError(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+      throw new DataConnectError(
+        Code.OTHER,
         'WebSocket message is not an object'
       );
     }
     if (dataIsString) {
       if (!('result' in webSocketMessage)) {
-        throw new WebSocketDataConnectError(
-          WebSocketCloseCode.PROTOCOL_ERROR,
+        throw new DataConnectError(
+          Code.OTHER,
           'WebSocket message from emulator did not include result'
         );
       }
@@ -320,8 +321,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         typeof webSocketMessage.result !== 'object' ||
         webSocketMessage.result === null
       ) {
-        throw new WebSocketDataConnectError(
-          WebSocketCloseCode.PROTOCOL_ERROR,
+        throw new DataConnectError(
+          Code.OTHER,
           'WebSocket message result is not an object'
         );
       }
@@ -330,8 +331,8 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
       result = webSocketMessage;
     }
     if (!('requestId' in result)) {
-      throw new WebSocketDataConnectError(
-        WebSocketCloseCode.PROTOCOL_ERROR,
+      throw new DataConnectError(
+        Code.OTHER,
         'WebSocket message did not include requestId'
       );
     }

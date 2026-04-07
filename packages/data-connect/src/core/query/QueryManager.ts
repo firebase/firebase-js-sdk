@@ -33,10 +33,16 @@ import {
   Extensions,
   DataConnectExtensionWithMaxAge,
   ExtensionsWithMaxAge,
-  SubscribeNotificationHook
+  SubscribeObserver,
+  DataConnectResponse
 } from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
-import { Code, DataConnectError } from '../error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationFailureResponse
+} from '../error';
 
 import {
   OnCompleteSubscription,
@@ -197,7 +203,7 @@ export class QueryManager {
 
       // only invoke subscription if we don't already have an active subscription
       this.transport.invokeSubscribe<Data, Variables>(
-        this.makeSubscribeNotificationHook(queryRef),
+        this.makeSubscribeObserver(queryRef),
         queryRef.name,
         queryRef.variables
       );
@@ -236,8 +242,7 @@ export class QueryManager {
           fetchTime
         )
       };
-      let updatedKeys: string[] = [];
-      updatedKeys = await this.updateCache(
+      const updatedKeys = await this.updateCache(
         queryResult,
         originalExtensions?.dataConnect
       );
@@ -415,84 +420,105 @@ export class QueryManager {
   }
 
   /**
-   * Create a new {@link SubscribeNotificationHook} for the given QueryRef. This will be passed to
+   * Create a new {@link SubscribeObserver} for the given QueryRef. This will be passed to
    * {@link DataConnectTransportInterface.invokeSubscribe | invokeSubscribe()} to notify the query
-   * layer of data updates.
+   * layer of data update notifications or if the stream disconnected.
    */
-  private makeSubscribeNotificationHook<Data, Variables>(
+  private makeSubscribeObserver<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
-  ): SubscribeNotificationHook<Data> {
+  ): SubscribeObserver<Data> {
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
       refType: QUERY_STR
     });
-    return async response => {
-      if (response.errors && response.errors.length > 0) {
-        const stringified = JSON.stringify(
-          response.errors.map(e => {
-            if (e && typeof e === 'object' && 'message' in e) {
-              const code =
-                'code' in e
-                  ? (e as unknown as Record<string, unknown>)['code']
-                  : undefined;
-              const message = (e as unknown as Record<string, unknown>)[
-                'message'
-              ];
-              return { message, code };
-            }
-            return e;
-          })
-        );
-        const error = new DataConnectError(
-          Code.OTHER,
-          'DataConnect error received from subscribe notification: ' +
-            stringified
-        );
+    return {
+      onData: async response => {
+        await this.handleStreamNotification(key, response, queryRef);
+      },
+      onDisconnect: (code, reason) => {
+        this.handleStreamDisconnect(key, code, reason);
+      },
+      onError: error => {
         this.publishErrorToSubscribers(key, error);
-
-        // TODO(stephenarosaj) use more robust error checking to see if this is a disconnect. categorize your errors!!!
-        // cleanup subscriptions in query layer by unsubscribing all ONLY if it's a disconnect
-        const isDisconnect = response.errors.some(
-          e =>
-            e &&
-            typeof e === 'object' &&
-            'message' in e &&
-            e.message === 'WebSocket disconnected externally'
-        );
-
-        if (isDisconnect) {
-          const callbacks = this.callbacks.get(key);
-          if (callbacks) {
-            [...callbacks].forEach(cb => cb.unsubscribe());
-          }
-        }
-        return;
-      }
-      const fetchTime = Date.now().toString();
-      const queryResult: QueryResult<Data, Variables> = {
-        ref: queryRef,
-        source: SOURCE_SERVER,
-        fetchTime,
-        data: response.data,
-        extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
-        toJSON: getRefSerializer(
-          queryRef,
-          response.data,
-          SOURCE_SERVER,
-          fetchTime
-        )
-      };
-      let updatedKeys: string[] = [];
-      updatedKeys = await this.updateCache(
-        queryResult,
-        response.extensions?.dataConnect
-      );
-      this.publishDataToSubscribers(key, queryResult);
-      if (this.cache) {
-        await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
       }
     };
+  }
+
+  /**
+   * Handle a data update notification from the stream. Notify subscribers of results/errors, and
+   * update the cache.
+   */
+  private async handleStreamNotification<Data, Variables>(
+    key: string,
+    response: DataConnectResponse<Data>,
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<void> {
+    if (response.errors && response.errors.length > 0) {
+      const stringified = JSON.stringify(
+        response.errors.map(e => {
+          if (e && typeof e === 'object') {
+            return {
+              message: (e as unknown as { message: string }).message,
+              code: (e as unknown as { code?: unknown }).code
+            };
+          }
+          return e;
+        })
+      );
+      const failureResponse: DataConnectOperationFailureResponse = {
+        errors: response.errors as [],
+        data: response.data as Record<string, unknown>
+      };
+      const error = new DataConnectOperationError(
+        'DataConnect error received from subscribe notification: ' +
+          stringified,
+        failureResponse
+      );
+      this.publishErrorToSubscribers(key, error);
+      return;
+    }
+
+    const fetchTime = Date.now().toString();
+    const queryResult: QueryResult<Data, Variables> = {
+      ref: queryRef,
+      source: SOURCE_SERVER,
+      fetchTime,
+      data: response.data,
+      extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
+      toJSON: getRefSerializer(
+        queryRef,
+        response.data,
+        SOURCE_SERVER,
+        fetchTime
+      )
+    };
+    const updatedKeys = await this.updateCache(
+      queryResult,
+      response.extensions?.dataConnect
+    );
+    this.publishDataToSubscribers(key, queryResult);
+    if (this.cache) {
+      await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
+    }
+  }
+
+  /**
+   * Handle a disconnect from the stream. Unsubscribe all callbacks for the given key.
+   */
+  private handleStreamDisconnect(
+    key: string,
+    code: string,
+    reason: string
+  ): void {
+    const error = new DataConnectError(code as Code, reason);
+    this.publishErrorToSubscribers(key, error);
+
+    const callbacks = this.callbacks.get(key);
+    if (callbacks) {
+      [...callbacks].forEach(cb => cb.unsubscribe());
+    }
+    return;
   }
 }
 

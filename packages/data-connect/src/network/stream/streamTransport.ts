@@ -25,7 +25,7 @@ import { logError } from '../../logger';
 import {
   AbstractDataConnectTransport,
   DataConnectResponse,
-  SubscribeNotificationHook,
+  SubscribeObserver,
   getGoogApiClientValue
 } from '../transport';
 
@@ -73,10 +73,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
   private pendingClose = false;
 
-  // TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries
-  get isUnableToConnect(): boolean {
-    return false;
-  }
+  /** True if the transport is unable to connect to the server */
+  isUnableToConnect = false;
 
   /** True if there are active subscriptions on the stream */
   get hasActiveSubscriptions(): boolean {
@@ -163,12 +161,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
-   * Map of active subscription RequestIds and their corresponding notification hooks.
+   * Map of active subscription RequestIds and their corresponding observers.
    */
-  private subscribeNotificationHooks = new Map<
-    string,
-    SubscribeNotificationHook<unknown>
-  >();
+  private subscribeObservers = new Map<string, SubscribeObserver<unknown>>();
 
   /** current close timeout from setTimeout(), if any */
   private closeTimeout: NodeJS.Timeout | null = null;
@@ -250,8 +245,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Tracks a subscribe request, storing the request body and the notification hook.
-   *
+   * Tracks a subscribe request, storing the request body and the notification observer.
    * @remarks
    * This method is synchronous.
    */
@@ -259,12 +253,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     requestId: string,
     mapKey: string,
     subscribeBody: SubscribeStreamRequest<unknown>,
-    notifyQueryManager: SubscribeNotificationHook<Data>
+    observer: SubscribeObserver<Data>
   ): void {
     this.activeSubscribeRequests.set(mapKey, subscribeBody);
-    this.subscribeNotificationHooks.set(
+    this.subscribeObservers.set(
       requestId,
-      notifyQueryManager as SubscribeNotificationHook<unknown>
+      observer as SubscribeObserver<unknown>
     );
   }
 
@@ -305,7 +299,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private cleanupSubscribeRequest(requestId: string, mapKey: string): void {
     this.activeSubscribeRequests.delete(mapKey);
-    this.subscribeNotificationHooks.delete(requestId);
+    this.subscribeObservers.delete(requestId);
   }
 
   /**
@@ -338,6 +332,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
+   * Attempt to close the connection. Will only close if there are no active requests preventing it
+   * from doing so.
+   */
+  private async attemptClose(): Promise<void> {
+    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+      return;
+    }
+    this.cancelClose();
+    await this.closeConnection();
+    this.onGracefulStreamClose?.();
+  }
+
+  /**
    * Begin closing the connection. Waits for and cleans up all active requests, and waits for
    * {@link IDLE_CONNECTION_TIMEOUT_MS}. This is a graceful close - it will be called when there are
    * no more active subscriptions, so there's no need to cleanup.
@@ -355,19 +362,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Attempt to close the connection. Will only close if there are no active requests preventing it
-   * from doing so.
-   */
-  private async attemptClose(): Promise<void> {
-    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
-      return;
-    }
-    this.cancelClose();
-    await this.closeConnection();
-    this.onGracefulStreamClose?.();
-  }
-
-  /**
    * Cancel closing the connection.
    */
   private cancelClose(): void {
@@ -379,28 +373,34 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Reject all active execute promises and notify all subscribe hooks with the given error.
+   * Reject all active execute promises and notify all subscribe observers with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
-   * Called by concrete implementations when the connection fails to open, or when the connection is closed.
    */
-  protected rejectAllActiveRequests(error: DataConnectError): void {
+  private rejectAllActiveRequests(code: Code, reason: string): void {
     this.activeQueryExecuteRequests.clear();
     this.activeMutationExecuteRequests.clear();
     this.activeSubscribeRequests.clear();
 
+    const error = new DataConnectError(code, reason);
     for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
       this.executeRequestPromises.delete(requestId);
       rejectFn(error);
     }
 
-    for (const [requestId, notifyHook] of this.subscribeNotificationHooks) {
-      this.subscribeNotificationHooks.delete(requestId);
-      notifyHook({
-        data: undefined,
-        errors: [error],
-        extensions: {}
-      });
+    for (const [requestId, observer] of this.subscribeObservers) {
+      this.subscribeObservers.delete(requestId);
+      observer.onDisconnect(code, reason);
     }
+  }
+
+  /**
+   * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
+   */
+  protected onStreamClose(code: number, reason: string): void {
+    this.rejectAllActiveRequests(
+      Code.OTHER,
+      `Stream disconnected with code ${code}: ${reason}`
+    );
   }
 
   /**
@@ -577,7 +577,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * before the method returns.
    */
   invokeSubscribe<Data, Variables>(
-    notifyQueryManager: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     variables: Variables
   ): void {
@@ -596,16 +596,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       requestId,
       mapKey,
       subscribeBody,
-      notifyQueryManager
+      observer
     );
 
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
-      notifyQueryManager({
-        data: undefined as unknown as Data,
-        extensions: {},
-        errors: [err instanceof Error ? err : new Error(String(err))]
-      });
+      observer.onError(err instanceof Error ? err : new Error(String(err)));
       this.cleanupSubscribeRequest(requestId, mapKey);
       if (!this.hasActiveSubscriptions) {
         this.prepareToCloseGracefully();
@@ -665,10 +661,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
       this.rejectAllActiveRequests(
-        new DataConnectError(
-          Code.UNAUTHORIZED,
-          'Stream disconnected due to auth change.'
-        )
+        Code.UNAUTHORIZED,
+        'Stream disconnected due to auth change.'
       );
       void this.attemptClose();
     }
@@ -703,10 +697,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       } else {
         resolveFn(response);
       }
-    } else if (this.subscribeNotificationHooks.has(requestId)) {
-      const notifyQueryManager =
-        this.subscribeNotificationHooks.get(requestId)!;
-      notifyQueryManager(response);
+    } else if (this.subscribeObservers.has(requestId)) {
+      const observer = this.subscribeObservers.get(requestId)!;
+      await observer.onData(response);
     } else {
       throw new DataConnectError(
         Code.OTHER,

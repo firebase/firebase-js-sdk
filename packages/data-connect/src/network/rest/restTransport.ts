@@ -21,7 +21,7 @@ import {
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   AbstractDataConnectTransport,
-  SubscribeNotificationHook
+  SubscribeObserver
 } from '..';
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
@@ -136,7 +136,7 @@ export class RESTTransport extends AbstractDataConnectTransport {
   };
 
   invokeSubscribe<Data, Variables>(
-    notificationHook: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void {

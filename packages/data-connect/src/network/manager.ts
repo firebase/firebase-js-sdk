@@ -28,7 +28,7 @@ import {
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   DataConnectTransportInterface,
-  SubscribeNotificationHook
+  SubscribeObserver
 } from './transport';
 
 /**
@@ -101,7 +101,8 @@ export class DataConnectTransportManager
       !!this.streamTransport &&
       !this.streamTransport.isPendingClose &&
       this.streamTransport.streamIsReady &&
-      this.streamTransport.hasActiveSubscriptions
+      this.streamTransport.hasActiveSubscriptions &&
+      !this.streamTransport.isUnableToConnect
     );
   }
 
@@ -118,13 +119,10 @@ export class DataConnectTransportManager
         queryName,
         body
       ).catch(err => {
-        if (this.streamTransport?.isUnableToConnect) {
-          return this.restTransport.invokeQuery<Data, Variables>(
-            queryName,
-            body
-          );
+        if (this.executeShouldUseStream()) {
+          throw err;
         }
-        throw err;
+        return this.restTransport.invokeQuery<Data, Variables>(queryName, body);
       });
     }
     return this.restTransport.invokeQuery(queryName, body);
@@ -143,33 +141,31 @@ export class DataConnectTransportManager
         queryName,
         body
       ).catch(err => {
-        if (this.streamTransport?.isUnableToConnect) {
-          return this.restTransport.invokeMutation<Data, Variables>(
-            queryName,
-            body
-          );
+        if (this.executeShouldUseStream()) {
+          throw err;
         }
-        throw err;
+        return this.restTransport.invokeMutation<Data, Variables>(
+          queryName,
+          body
+        );
       });
     }
     return this.restTransport.invokeMutation(queryName, body);
   }
 
   invokeSubscribe<Data, Variables>(
-    notificationHook: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void {
     const streamTransport = this.initStreamTransport();
-
     if (streamTransport.isUnableToConnect) {
       throw new DataConnectError(
         Code.OTHER,
         'Unable to connect streaming connection to server. Subscriptions are unavailable.'
       );
     }
-
-    streamTransport.invokeSubscribe(notificationHook, queryName, body);
+    streamTransport.invokeSubscribe(observer, queryName, body);
   }
 
   invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {
