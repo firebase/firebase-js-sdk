@@ -388,7 +388,6 @@ export interface GoogleSearchTool {
  */
 export interface CodeExecutionTool {
   /**
-   * Specifies the Google Search configuration.
    * Currently, this is an empty object, but it's reserved for future configuration options.
    */
   codeExecution: {};

@@ -22,11 +22,11 @@ export interface CodeExecutionTool
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [codeExecution](./ai.codeexecutiontool.md#codeexecutiontoolcodeexecution) | {} | Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options. |
+|  [codeExecution](./ai.codeexecutiontool.md#codeexecutiontoolcodeexecution) | {} | Currently, this is an empty object, but it's reserved for future configuration options. |
 
 ## CodeExecutionTool.codeExecution
 
-Specifies the Google Search configuration. Currently, this is an empty object, but it's reserved for future configuration options.
+Currently, this is an empty object, but it's reserved for future configuration options.
 
 <b>Signature:</b>
 
