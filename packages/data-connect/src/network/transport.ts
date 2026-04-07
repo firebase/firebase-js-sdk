@@ -92,7 +92,7 @@ export interface DataConnectResponseWithMaxAge<T> {
  * @internal
  */
 export interface SubscribeObserver<Data> {
-  onData(response: DataConnectResponse<Data>): void;
+  onData(response: DataConnectResponse<Data>): Promise<void> | void;
   onDisconnect(code: string, reason: string): void;
   onError(error: Error): void;
 }

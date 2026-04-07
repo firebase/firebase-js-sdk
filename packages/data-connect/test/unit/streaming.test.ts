@@ -339,7 +339,7 @@ describe('Streaming & Query Layer Integration', () => {
 
       // call the observer with errors
       const expectedError = new Error('test error');
-      observer.onData({ data: {}, errors: [expectedError], extensions: {} });
+      await observer.onData({ data: {}, errors: [expectedError], extensions: {} });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;

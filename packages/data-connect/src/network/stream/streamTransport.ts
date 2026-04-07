@@ -701,7 +701,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       }
     } else if (this.subscribeObservers.has(requestId)) {
       const observer = this.subscribeObservers.get(requestId)!;
-      observer.onData(response);
+      await observer.onData(response);
     } else {
       throw new DataConnectError(
         Code.OTHER,

@@ -97,7 +97,7 @@ export class QueryManager {
     private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
-  ) {}
+  ) { }
   private queue: Array<Promise<unknown>> = [];
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
@@ -185,7 +185,7 @@ export class QueryManager {
 
     const promise = this.preferCacheResults(queryRef, /*allowStale=*/ true);
     // We want to ignore the error and let subscriptions handle it
-    promise.then(undefined, err => {});
+    promise.then(undefined, err => { });
 
     if (this.callbacks.has(key)) {
       this.callbacks
@@ -418,7 +418,7 @@ export class QueryManager {
   /**
    * Create a new {@link SubscribeObserver} for the given QueryRef. This will be passed to
    * {@link DataConnectTransportInterface.invokeSubscribe | invokeSubscribe()} to notify the query
-   * layer of data updates, or unsubscribe if the stream disconnected.
+   * layer of data update notifications or if the stream disconnected.
    */
   private makeSubscribeObserver<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
@@ -430,10 +430,10 @@ export class QueryManager {
     });
     return {
       onData: async response => {
-        await this.handleDataUpdate(key, response, queryRef);
+        await this.handleStreamNotification(key, response, queryRef);
       },
       onDisconnect: (code, reason) => {
-        this.handleDisconnect(key, code, reason);
+        this.handleStreamDisconnect(key, code, reason);
       },
       onError: error => {
         this.publishErrorToSubscribers(key, error);
@@ -442,10 +442,10 @@ export class QueryManager {
   }
 
   /**
-   * Handle a data update from the stream. Notify subscribers of results/errors, and
+   * Handle a data update notification from the stream. Notify subscribers of results/errors, and
    * update the cache.
    */
-  private async handleDataUpdate<Data, Variables>(
+  private async handleStreamNotification<Data, Variables>(
     key: string,
     response: DataConnectResponse<Data>,
     queryRef: QueryRef<Data, Variables>
@@ -454,17 +454,17 @@ export class QueryManager {
       const error = new DataConnectError(
         Code.OTHER,
         'DataConnect error received from subscribe notification: ' +
-          JSON.stringify(
-            response.errors.map(e => {
-              if (e && typeof e === 'object') {
-                return {
-                  message: (e as unknown as { message: string }).message,
-                  code: (e as unknown as { code?: unknown }).code
-                };
-              }
-              return e;
-            })
-          )
+        JSON.stringify(
+          response.errors.map(e => {
+            if (e && typeof e === 'object') {
+              return {
+                message: (e as unknown as { message: string }).message,
+                code: (e as unknown as { code?: unknown }).code
+              };
+            }
+            return e;
+          })
+        )
       );
       this.publishErrorToSubscribers(key, error);
       return;
@@ -496,10 +496,10 @@ export class QueryManager {
   /**
    * Handle a disconnect from the stream. Unsubscribe all callbacks for the given key.
    */
-  private handleDisconnect(key: string, code: string, reason: string): void {
+  private handleStreamDisconnect(key: string, code: string, reason: string): void {
     const error = new DataConnectError(
-      Code.OTHER,
-      `Stream disconnected with code ${code}: ${reason}`
+      code as Code,
+      reason
     );
     this.publishErrorToSubscribers(key, error);
 
