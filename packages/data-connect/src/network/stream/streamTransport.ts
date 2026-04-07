@@ -73,10 +73,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
   private pendingClose = false;
 
-  // TODO(stephenarosaj): determine this based on the underlying transport when implementing resilience / fallback / disconnects / retries
-  get isUnableToConnect(): boolean {
-    return false;
-  }
+  /** True if the transport is unable to connect to the server */
+  isUnableToConnect = false;
 
   /** True if there are active subscriptions on the stream */
   get hasActiveSubscriptions(): boolean {

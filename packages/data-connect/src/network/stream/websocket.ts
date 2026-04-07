@@ -141,12 +141,14 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         this.connection!.binaryType = 'arraybuffer';
 
         ws.onopen = () => {
+          this.isUnableToConnect = false;
           this.onConnectionReady();
           resolve();
         };
 
         ws.onerror = event => {
           this.connectionAttempt = null;
+          this.isUnableToConnect = true;
           const error = new DataConnectError(
             Code.OTHER,
             `Error using WebSocket connection, closing WebSocket`
@@ -188,6 +190,7 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
     try {
       if (reason) {
         // reason string can be max 123 bytes (not characters, bytes)
+        // https://developer.mozilla.org/en-US/docs/Web/API/WebSocketStream/close#parameters
         const MAX_BYTES = 123;
         const encoder = new TextEncoder();
         const bytes = encoder.encode(reason);
