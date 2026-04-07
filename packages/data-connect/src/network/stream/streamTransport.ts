@@ -381,9 +381,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Reject all active execute promises and notify all subscribe hooks with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
-   * Called by concrete implementations when the connection fails to open, or when the connection is closed.
    */
-  protected rejectAllActiveRequests(error: DataConnectError): void {
+  private rejectAllActiveRequests(error: DataConnectError): void {
     this.activeQueryExecuteRequests.clear();
     this.activeMutationExecuteRequests.clear();
     this.activeSubscribeRequests.clear();
@@ -401,6 +400,18 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         extensions: {}
       });
     }
+  }
+
+  /**
+   * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
+   */
+  protected onStreamClose(code: number, reason: string): void {
+    this.rejectAllActiveRequests(
+      new DataConnectError(
+        Code.OTHER,
+        `Stream disconnected with code ${code}: ${reason}`
+      )
+    );
   }
 
   /**

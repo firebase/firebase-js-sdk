@@ -21,7 +21,15 @@ import { registerDataConnect } from './register';
 
 export * from './api';
 export * from './api.node';
+
 initializeFetch(fetch);
-initializeWebSocket(WebSocket);
+
+if (typeof WebSocket !== 'undefined') {
+  initializeWebSocket(WebSocket);
+} else {
+  console.warn(
+    'WebSocket is not available in this environment. Use a polyfill or upgrade your Node version to one that supports WebSockets.'
+  );
+}
 
 registerDataConnect('node');

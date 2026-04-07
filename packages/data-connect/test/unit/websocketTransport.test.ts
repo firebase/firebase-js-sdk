@@ -191,7 +191,7 @@ describe('WebSocketTransport', () => {
 
       expect(rejectSpy).to.have.been.calledOnce;
       expect(rejectSpy.firstCall.args[0].message).to.equal(
-        'WebSocket disconnected externally'
+        'Stream disconnected with code 1000: Normal Closure'
       );
     });
   });
