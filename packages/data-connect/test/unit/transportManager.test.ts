@@ -275,8 +275,11 @@ describe('DataConnectTransportManager', () => {
 
     describe('invokeQuery dynamic routing', () => {
       it('invokeQuery should route to stream if executeShouldUseStream returns true', async () => {
-        sinon.stub(manager, 'executeShouldUseStream').returns(true);
         const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        streamTransport.isUnableToConnect = false;
 
         const restSpy = sinon.stub(manager.restTransport, 'invokeQuery');
         const streamSpy = sinon
@@ -289,10 +292,12 @@ describe('DataConnectTransportManager', () => {
         expect(restSpy).to.have.not.been.called;
       });
 
-      it('streaming invokeQuery should throw an error if stream transport throws an error and isUnableToConnect is false', async () => {
-        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+      it('invokeQuery should throw an error if stream transport throws an error and executeShouldUseStream is true', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        streamTransport.isUnableToConnect = false;
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeQuery')
@@ -309,14 +314,19 @@ describe('DataConnectTransportManager', () => {
         expect(restStub).to.not.have.been.called;
       });
 
-      it('streaming invokeQuery should fallback to REST if stream transport throws an error and isUnableToConnect is true', async () => {
-        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+      it('invokeQuery should fallback to REST if stream transport throws an error and executeShouldUseStream is false', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        streamTransport.isUnableToConnect = false;
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeQuery')
-          .rejects(expectedError);
+          .callsFake(async () => {
+            streamTransport.isUnableToConnect = true;
+            throw expectedError;
+          });
         const restStub = sinon
           .stub(manager.restTransport, 'invokeQuery')
           .resolves(testResponse);
@@ -330,8 +340,11 @@ describe('DataConnectTransportManager', () => {
 
     describe('invokeMutation dynamic routing', () => {
       it('invokeMutation should route to stream if executeShouldUseStream() returns true', async () => {
-        sinon.stub(manager, 'executeShouldUseStream').returns(true);
         const streamTransport = manager.initStreamTransport();
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        streamTransport.isUnableToConnect = false;
 
         const restSpy = sinon.stub(manager.restTransport, 'invokeMutation');
         const streamSpy = sinon
@@ -347,10 +360,12 @@ describe('DataConnectTransportManager', () => {
         expect(restSpy).to.have.not.been.called;
       });
 
-      it('streaming invokeMutation should throw an error if stream transport throws an error and isUnableToConnect is false', async () => {
-        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+      it('invokeMutation should throw an error if stream transport throws an error and executeShouldUseStream is true', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => false);
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        streamTransport.isUnableToConnect = false;
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeMutation')
@@ -370,14 +385,19 @@ describe('DataConnectTransportManager', () => {
         expect(restStub).to.not.have.been.called;
       });
 
-      it('streaming invokeMutation should fallback to REST if stream transport throws an error and isUnableToConnect is true', async () => {
-        sinon.stub(manager, 'executeShouldUseStream').returns(true);
+      it('invokeMutation should fallback to REST if stream transport throws an error and executeShouldUseStream is false', async () => {
         const streamTransport = manager.initStreamTransport();
-        sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
+        sinon.stub(streamTransport, 'streamIsReady').get(() => true);
+        sinon.stub(streamTransport, 'isPendingClose').get(() => false);
+        sinon.stub(streamTransport, 'hasActiveSubscriptions').get(() => true);
+        streamTransport.isUnableToConnect = false;
 
         const streamStub = sinon
           .stub(streamTransport, 'invokeMutation')
-          .rejects(expectedError);
+          .callsFake(async () => {
+            streamTransport.isUnableToConnect = true;
+            throw expectedError;
+          });
         const restStub = sinon
           .stub(manager.restTransport, 'invokeMutation')
           .resolves(testResponse);

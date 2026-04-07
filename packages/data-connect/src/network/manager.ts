@@ -101,7 +101,8 @@ export class DataConnectTransportManager
       !!this.streamTransport &&
       !this.streamTransport.isPendingClose &&
       this.streamTransport.streamIsReady &&
-      this.streamTransport.hasActiveSubscriptions
+      this.streamTransport.hasActiveSubscriptions &&
+      !this.streamTransport.isUnableToConnect
     );
   }
 
@@ -118,13 +119,10 @@ export class DataConnectTransportManager
         queryName,
         body
       ).catch(err => {
-        if (this.streamTransport?.isUnableToConnect) {
-          return this.restTransport.invokeQuery<Data, Variables>(
-            queryName,
-            body
-          );
+        if (this.executeShouldUseStream()) {
+          throw err;
         }
-        throw err;
+        return this.restTransport.invokeQuery<Data, Variables>(queryName, body);
       });
     }
     return this.restTransport.invokeQuery(queryName, body);
@@ -143,13 +141,13 @@ export class DataConnectTransportManager
         queryName,
         body
       ).catch(err => {
-        if (this.streamTransport?.isUnableToConnect) {
-          return this.restTransport.invokeMutation<Data, Variables>(
-            queryName,
-            body
-          );
+        if (this.executeShouldUseStream()) {
+          throw err;
         }
-        throw err;
+        return this.restTransport.invokeMutation<Data, Variables>(
+          queryName,
+          body
+        );
       });
     }
     return this.restTransport.invokeMutation(queryName, body);

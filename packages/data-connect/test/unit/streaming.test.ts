@@ -40,10 +40,7 @@ import {
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { RESTTransport } from '../../src/network/rest';
 import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
-import {
-  WebSocketTransport,
-  initializeWebSocket
-} from '../../src/network/stream/websocket';
+import { WebSocketTransport } from '../../src/network/stream/websocket';
 import { DataConnectStreamRequest } from '../../src/network/stream/wire';
 
 import { MockWebSocket } from './testUtils';
@@ -63,6 +60,8 @@ interface QueryManagerWithInternals {
     queryRef: QueryRef<Data, Variables>,
     allowStale: boolean
   ): Promise<QueryResult<Data, Variables>>;
+  updateSSR<Data, Variables>(updatedData: QueryResult<Data, Variables>): void;
+  waitForQueuedWrites(): Promise<void>;
 }
 
 /** Interface that exposes private fields of TransportManager for testing purposes. */
@@ -269,67 +268,6 @@ describe('Streaming & Query Layer Integration', () => {
         testVariables
       );
       expect(result.data).to.deep.equal(testData);
-    });
-
-    it('should fallback to REST when stream fails during query', async () => {
-      before(() => {
-        initializeWebSocket(MockWebSocket as unknown as typeof WebSocket);
-        initStreamTransportStub.restore(); // Use real transport
-      });
-
-      after(() => {
-        initializeWebSocket(globalThis.WebSocket);
-      });
-
-      const query = queryRef(dc, 'testQuery', testVariables);
-      const unsubscribe = subscribe(query, { onNext: () => {} });
-
-      const queryManager = (dc as unknown as DataConnectWithInternals)
-        ._queryManager;
-      const manager = (queryManager as unknown as QueryManagerWithInternals)
-        .transport as unknown as ManagerWithInternals;
-
-      const ws = manager.streamTransport!.connection;
-      expect(ws).to.exist;
-      await ws!.simulateOpen();
-
-      expect(manager.streamTransport).to.not.be.undefined;
-
-      // stub invokeQuery methods
-      let rejectStream!: (reason: unknown) => void;
-      const streamPromise = new Promise((_, reject) => {
-        rejectStream = () => {
-          manager.streamTransport!.isUnableToConnect = true;
-          reject();
-        };
-      });
-      const streamStub = sinon
-        .stub(manager.streamTransport!, 'invokeQuery')
-        .returns(
-          streamPromise as unknown as Promise<
-            DataConnectResponseWithMaxAge<TestData>
-          >
-        );
-      const restStub = sinon
-        .stub(manager.restTransport, 'invokeQuery')
-        .resolves({ data: testData, errors: [], extensions: {} });
-
-      const queryPromise = executeQuery(query, { fetchPolicy: 'SERVER_ONLY' });
-
-      expect(streamStub).to.have.been.calledOnce;
-      expect(restStub).to.not.have.been.called;
-
-      restStub.resetHistory();
-      streamStub.resetHistory();
-
-      rejectStream(new Error('stream error'));
-      const result = await queryPromise;
-
-      expect(result.data).to.deep.equal(testData);
-      expect(restStub).to.have.been.calledOnce;
-      expect(streamStub).to.not.have.been.called;
-
-      unsubscribe();
     });
   });
 
