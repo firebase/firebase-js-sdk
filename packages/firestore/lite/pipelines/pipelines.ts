@@ -245,6 +245,5 @@ export {
   AggregateFunction,
   TimeGranularity,
   TimePart,
-  TimeUnit,
-  Type
+  TimeUnit
 } from '../../src/lite-api/expressions';

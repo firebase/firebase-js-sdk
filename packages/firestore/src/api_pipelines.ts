@@ -212,8 +212,7 @@ export {
   Selectable,
   TimeGranularity,
   TimePart,
-  TimeUnit,
-  Type
+  TimeUnit
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

@@ -2499,19 +2499,19 @@ field("title").arrayContains(1).isError();
 
 Creates an expression that checks if the result of this expression is of the given type.
 
-Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data. Supported values for `type` are: `'null'`<!-- -->, `'array'`<!-- -->, `'boolean'`<!-- -->, `'bytes'`<!-- -->, `'timestamp'`<!-- -->, `'geo_point'`<!-- -->, `'number'`<!-- -->, `'int32'`<!-- -->, `'int64'`<!-- -->, `'float64'`<!-- -->, `'decimal128'`<!-- -->, `'map'`<!-- -->, `'reference'`<!-- -->, `'string'`<!-- -->, `'vector'`<!-- -->, `'max_key'`<!-- -->, `'min_key'`<!-- -->, `'object_id'`<!-- -->, `'regex'`<!-- -->, `'request_timestamp'`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-isType(type: Type): BooleanExpression;
+isType(type: string): BooleanExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  type | [Type](./firestore_pipelines.md#type) | The type to check for. |
+|  type | string | The type to check for. |
 
 <b>Returns:</b>
 
