@@ -28,7 +28,7 @@ import {
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   DataConnectTransportInterface,
-  SubscribeNotificationHook
+  SubscribeObserver
 } from './transport';
 
 /**
@@ -156,20 +156,18 @@ export class DataConnectTransportManager
   }
 
   invokeSubscribe<Data, Variables>(
-    notificationHook: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void {
     const streamTransport = this.initStreamTransport();
-
     if (streamTransport.isUnableToConnect) {
       throw new DataConnectError(
         Code.OTHER,
         'Unable to connect streaming connection to server. Subscriptions are unavailable.'
       );
     }
-
-    streamTransport.invokeSubscribe(notificationHook, queryName, body);
+    streamTransport.invokeSubscribe(observer, queryName, body);
   }
 
   invokeUnsubscribe<Variables>(queryName: string, body?: Variables): void {

@@ -24,7 +24,7 @@ import { DataConnectOptions } from '../../src/api/DataConnect';
 import {
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
-  SubscribeNotificationHook
+  SubscribeObserver
 } from '../../src/network';
 import { DataConnectTransportManager } from '../../src/network/manager';
 import { RESTTransport } from '../../src/network/rest';
@@ -45,7 +45,7 @@ interface ManagerWithInternals {
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
   invokeSubscribe<Data, Variables>(
-    notificationHook: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void;
@@ -172,15 +172,19 @@ describe('DataConnectTransportManager', () => {
     });
 
     it('invokeSubscribe should route to streaming by default and initialize stream transport', () => {
-      const hook: SubscribeNotificationHook<TestData> = () => {};
+      const observer: SubscribeObserver<TestData> = {
+        onData: () => {},
+        onDisconnect: () => {},
+        onError: () => {}
+      };
       manager.invokeSubscribe<TestData, TestVariables>(
-        hook,
+        observer,
         queryName1,
         variables1
       );
       expect(stubRestTransport.invokeSubscribe).to.not.have.been.called;
       expect(stubStreamTransport.invokeSubscribe).to.have.been.calledWith(
-        hook,
+        observer,
         queryName1,
         variables1
       );
@@ -390,7 +394,11 @@ describe('DataConnectTransportManager', () => {
 
     describe('invokeSubscribe dynamic routing', () => {
       it('invokeSubscribe should throw an error if isUnableToConnect is true', () => {
-        const hook: SubscribeNotificationHook<TestData> = () => {};
+        const observer: SubscribeObserver<TestData> = {
+          onData: () => {},
+          onDisconnect: () => {},
+          onError: () => {}
+        };
         const streamTransport = manager.initStreamTransport();
         sinon.stub(streamTransport, 'isUnableToConnect').get(() => true);
 
@@ -402,7 +410,7 @@ describe('DataConnectTransportManager', () => {
           .resolves(testResponse);
 
         expect(() =>
-          manager.invokeSubscribe(hook, queryName1, variables1)
+          manager.invokeSubscribe(observer, queryName1, variables1)
         ).to.throw('Subscriptions are unavailable');
 
         expect(streamStub).to.not.have.been.called;
@@ -436,9 +444,13 @@ describe('DataConnectTransportManager', () => {
     });
 
     it('should route to REST during idle timeout and disconnect after 60s', async () => {
-      const hook: SubscribeNotificationHook<TestData> = () => {};
+      const observer: SubscribeObserver<TestData> = {
+        onData: () => {},
+        onDisconnect: () => {},
+        onError: () => {}
+      };
 
-      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeSubscribe(observer, queryName1, variables1);
       expect(manager.executeShouldUseStream()).to.be.true;
 
       manager.invokeUnsubscribe(queryName1, variables1);
@@ -460,9 +472,13 @@ describe('DataConnectTransportManager', () => {
     });
 
     it('should route to REST after stream automatically closes', async () => {
-      const hook: SubscribeNotificationHook<TestData> = () => {};
+      const observer: SubscribeObserver<TestData> = {
+        onData: () => {},
+        onDisconnect: () => {},
+        onError: () => {}
+      };
 
-      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeSubscribe(observer, queryName1, variables1);
       manager.invokeUnsubscribe(queryName1, variables1);
 
       await clock.tickAsync(60000);
@@ -474,15 +490,19 @@ describe('DataConnectTransportManager', () => {
     });
 
     it('should route back to stream after reconnect', async () => {
-      const hook: SubscribeNotificationHook<TestData> = () => {};
+      const observer: SubscribeObserver<TestData> = {
+        onData: () => {},
+        onDisconnect: () => {},
+        onError: () => {}
+      };
 
-      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeSubscribe(observer, queryName1, variables1);
       manager.invokeUnsubscribe(queryName1, variables1);
 
       await clock.tickAsync(60000);
       expect(manager.streamTransport).to.be.undefined;
 
-      manager.invokeSubscribe(hook, queryName1, variables1);
+      manager.invokeSubscribe(observer, queryName1, variables1);
       const newStreamTransport = manager.streamTransport!;
       const newStreamTransportPublic = newStreamTransport as unknown as {
         openConnection(): Promise<void>;

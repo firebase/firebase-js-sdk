@@ -141,7 +141,7 @@ interface TransportWithInternals {
       promise: Promise<DataConnectResponse<unknown>>;
     }
   >;
-  subscribeNotificationHooks: Map<string, unknown>;
+  subscribeObservers: Map<string, unknown>;
   getMapKey(operationName: string, variables?: unknown): string;
   invokeQuery<_Data, Variables>(
     queryName: string,
@@ -501,9 +501,13 @@ describe('AbstractDataConnectStreamTransport', () => {
       describe('invokeSubscribe', () => {
         it('should populate tracking maps synchronously and then call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
-          const hook = sinon.spy();
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
 
-          transport.invokeSubscribe(hook, queryName1, variables1);
+          transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeSubscribeRequests.has(expectedKey)).to.be.true;
@@ -513,8 +517,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const requestId = (request as SubscribeStreamRequest<unknown>)
             .requestId;
-          expect(transport.subscribeNotificationHooks.has(requestId)).to.be
-            .true;
+          expect(transport.subscribeObservers.has(requestId)).to.be.true;
 
           expect(sendMessageSpy).to.have.been.calledOnce;
           const sentMessage = sendMessageSpy.firstCall.args[0];
@@ -524,35 +527,41 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.subscribe?.variables).to.deep.equal(variables1);
         });
 
-        it('should asynchronously call hook with error and clean up if sendMessage fails', async () => {
+        it('should asynchronously call observer with error and clean up if sendMessage fails', async () => {
           const sendMessageStub = sinon
             .stub(transport, 'sendMessage')
             .rejects(expectedError);
-          const hook = sinon.spy();
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
 
-          transport.invokeSubscribe(hook, queryName1, variables1);
+          transport.invokeSubscribe(observer, queryName1, variables1);
 
           // invokeSubscribe's sendMessage is fire and forget
           await sleep(500);
-          expect(hook).to.have.been.calledOnce;
-          const result = hook.firstCall.args[0];
-          expect(result.errors).to.have.lengthOf(1);
-          expect(result.errors[0]).to.equal(expectedError);
+          expect(observer.onError).to.have.been.calledOnce;
+          const result = observer.onError.firstCall.args[0];
+          expect(result).to.equal(expectedError);
 
           const mapKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeSubscribeRequests.has(mapKey)).to.be.false;
           const requestId = sendMessageStub.firstCall.args[0].requestId;
-          expect(transport.subscribeNotificationHooks.has(requestId)).to.be
-            .false;
+          expect(transport.subscribeObservers.has(requestId)).to.be.false;
         });
       });
 
       describe('invokeUnsubscribe', () => {
         it('should de-populate tracking maps and call sendMessage', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
-          const hook = sinon.spy();
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
 
-          transport.invokeSubscribe(hook, queryName1, variables1);
+          transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeSubscribeRequests.has(expectedKey)).to.be.true;
@@ -561,8 +570,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const subscribeRequestId = (
             subscribeRequest as SubscribeStreamRequest<unknown>
           ).requestId;
-          expect(transport.subscribeNotificationHooks.has(subscribeRequestId))
-            .to.be.true;
+          expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
+            .true;
 
           transport.invokeUnsubscribe(queryName1, variables1);
 
@@ -571,15 +580,19 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           expect(transport.activeSubscribeRequests.has(expectedKey)).to.be
             .false;
-          expect(transport.subscribeNotificationHooks.has(subscribeRequestId))
-            .to.be.false;
+          expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
+            .false;
           expect(unsubscribeMessage.cancel).to.not.be.undefined;
         });
 
         it('should asynchronously clean up and log error if sendMessage fails', async () => {
           const logErrorStub = sinon.stub(logger, 'logError');
-          const hook = sinon.spy();
-          transport.invokeSubscribe(hook, queryName1, variables1);
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+          transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
           const subscribeRequest =
@@ -601,8 +614,8 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           expect(transport.activeSubscribeRequests.has(expectedKey)).to.be
             .false;
-          expect(transport.subscribeNotificationHooks.has(subscribeRequestId))
-            .to.be.false;
+          expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
+            .false;
         });
       });
     });
@@ -896,44 +909,56 @@ describe('AbstractDataConnectStreamTransport', () => {
       });
 
       describe('invokeSubscribe tracking', async () => {
-        const hook1 = sinon.spy();
-        const hook2 = sinon.spy();
+        const observer1 = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
+        const observer2 = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
         afterEach(() => {
-          hook1.resetHistory();
-          hook2.resetHistory();
+          observer1.onData.resetHistory();
+          observer1.onDisconnect.resetHistory();
+          observer1.onError.resetHistory();
+          observer2.onData.resetHistory();
+          observer2.onDisconnect.resetHistory();
+          observer2.onError.resetHistory();
         });
 
-        it('should route data to the correct subscribe hook whenever a response is received', async () => {
-          transport.invokeSubscribe(hook1, queryName1, variables1);
-          transport.invokeSubscribe(hook2, queryName2, variables2);
+        it('should route data to the correct subscribe observer whenever a response is received', async () => {
+          transport.invokeSubscribe(observer1, queryName1, variables1);
+          transport.invokeSubscribe(observer2, queryName2, variables2);
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const request1 = transport.activeSubscribeRequests.get(expectedKey1);
           const requestId1 = request1?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, response1);
-          expect(hook1).to.have.been.calledOnce;
-          expect(hook1).to.have.been.calledWithExactly(response1);
+          expect(observer1.onData).to.have.been.calledOnce;
+          expect(observer1.onData).to.have.been.calledWithExactly(response1);
           await transport.invokeHandleResponse(requestId1, response2);
-          expect(hook1).to.have.been.calledTwice;
-          expect(hook1).to.have.been.calledWithExactly(response2);
+          expect(observer1.onData).to.have.been.calledTwice;
+          expect(observer1.onData).to.have.been.calledWithExactly(response2);
 
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request2 = transport.activeSubscribeRequests.get(expectedKey2);
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId2, response3);
-          expect(hook2).to.have.been.calledOnce;
-          expect(hook2).to.have.been.calledWithExactly(response3);
+          expect(observer2.onData).to.have.been.calledOnce;
+          expect(observer2.onData).to.have.been.calledWithExactly(response3);
           await transport.invokeHandleResponse(requestId2, response4);
-          expect(hook2).to.have.been.calledTwice;
-          expect(hook2).to.have.been.calledWithExactly(response4);
+          expect(observer2.onData).to.have.been.calledTwice;
+          expect(observer2.onData).to.have.been.calledWithExactly(response4);
         });
 
-        it('should route error response to the correct subscribe hook whenever an error response is received', async () => {
-          transport.invokeSubscribe(hook1, queryName1, variables1);
-          transport.invokeSubscribe(hook2, queryName2, variables2);
+        it('should route error response to the correct subscribe observer whenever an error response is received', async () => {
+          transport.invokeSubscribe(observer1, queryName1, variables1);
+          transport.invokeSubscribe(observer2, queryName2, variables2);
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const request1 = transport.activeSubscribeRequests.get(expectedKey1);
@@ -943,16 +968,20 @@ describe('AbstractDataConnectStreamTransport', () => {
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
-          expect(hook1).to.have.been.calledOnce;
-          expect(hook1).to.have.been.calledWithExactly(errorResponse);
+          expect(observer1.onData).to.have.been.calledOnce;
+          expect(observer1.onData).to.have.been.calledWithExactly(
+            errorResponse
+          );
           await transport.invokeHandleResponse(requestId2, errorResponse);
-          expect(hook2).to.have.been.calledOnce;
-          expect(hook2).to.have.been.calledWithExactly(errorResponse);
+          expect(observer2.onData).to.have.been.calledOnce;
+          expect(observer2.onData).to.have.been.calledWithExactly(
+            errorResponse
+          );
         });
 
         it('should NOT clean map when handleResponse rejects', async () => {
-          transport.invokeSubscribe(hook1, queryName1, variables1);
-          transport.invokeSubscribe(hook2, queryName2, variables2);
+          transport.invokeSubscribe(observer1, queryName1, variables1);
+          transport.invokeSubscribe(observer2, queryName2, variables2);
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request1 = transport.activeSubscribeRequests.get(expectedKey1);
@@ -964,12 +993,10 @@ describe('AbstractDataConnectStreamTransport', () => {
           await transport.invokeHandleResponse(requestId2, errorResponse);
           expect(transport.activeSubscribeRequests.has(expectedKey1)).to.be
             .true;
-          expect(transport.subscribeNotificationHooks.has(requestId1)).to.be
-            .true;
+          expect(transport.subscribeObservers.has(requestId1)).to.be.true;
           expect(transport.activeSubscribeRequests.has(expectedKey2)).to.be
             .true;
-          expect(transport.subscribeNotificationHooks.has(requestId2)).to.be
-            .true;
+          expect(transport.subscribeObservers.has(requestId2)).to.be.true;
         });
       });
     });
@@ -989,9 +1016,13 @@ describe('AbstractDataConnectStreamTransport', () => {
     it('should close connection after 60 seconds of idle (no active subscriptions)', async () => {
       const closeSpy = sinon.spy(transport, 'closeConnection');
       sinon.stub(transport, 'sendMessage').resolves();
-      const hook = sinon.spy();
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
 
-      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
       clock.tick(1000 * 59);
@@ -1004,15 +1035,19 @@ describe('AbstractDataConnectStreamTransport', () => {
     it('should cancel close if a new subscription arrives during timeout', async () => {
       const closeSpy = sinon.spy(transport, 'closeConnection');
       sinon.stub(transport, 'sendMessage').resolves();
-      const hook = sinon.spy();
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
 
-      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
       clock.tick(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
-      await transport.invokeSubscribe(hook, queryName2, variables2);
+      await transport.invokeSubscribe(observer, queryName2, variables2);
 
       clock.tick(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
@@ -1022,16 +1057,20 @@ describe('AbstractDataConnectStreamTransport', () => {
       const closeSpy = sinon.spy(transport, 'closeConnection');
       const sendMessageStub = sinon.stub(transport, 'sendMessage');
       sendMessageStub.resolves();
-      const hook = sinon.spy();
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
 
-      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
       clock.tick(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
       sendMessageStub.rejects();
-      await transport.invokeSubscribe(hook, queryName2, variables2);
+      await transport.invokeSubscribe(observer, queryName2, variables2);
 
       clock.tick(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
@@ -1043,9 +1082,13 @@ describe('AbstractDataConnectStreamTransport', () => {
     it('should not close connection if there are active execute requests', async () => {
       const closeSpy = sinon.spy(transport, 'closeConnection');
       sinon.stub(transport, 'sendMessage').resolves();
-      const hook = sinon.spy();
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
 
-      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
       void transport.invokeQuery(queryName2, variables2);
@@ -1057,9 +1100,13 @@ describe('AbstractDataConnectStreamTransport', () => {
     it('should close connection when last execute request finishes after idle timeout', async () => {
       const closeSpy = sinon.spy(transport, 'closeConnection');
       sinon.stub(transport, 'sendMessage').resolves();
-      const hook = sinon.spy();
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
 
-      await transport.invokeSubscribe(hook, queryName1, variables1);
+      await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
       const queryPromise = transport.invokeQuery(queryName2, variables2);
@@ -1085,14 +1132,18 @@ describe('AbstractDataConnectStreamTransport', () => {
     describe('Auth Disconnects', () => {
       it('should close stream immediately on illegal auth change (login)', async () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
-        const hook = sinon.spy();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
         transport.setAuthToken(null);
         const getAuthStub = sinon.stub(transport.authProvider, 'getAuth');
         getAuthStub.returns({ getUid: () => null });
         transport.invokeOnAuthTokenChanged(null); // Establish baseline (unauth)
 
-        transport.invokeSubscribe(hook, queryName1, variables1);
+        transport.invokeSubscribe(observer, queryName1, variables1);
 
         transport.setAuthToken('new-token');
         getAuthStub.returns({ getUid: () => 'some-uid' });
@@ -1103,14 +1154,18 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       it('should close stream immediately on illegal auth change (logout)', async () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
-        const hook = sinon.spy();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
         transport.setAuthToken('initial-token');
         const getAuthStub = sinon.stub(transport.authProvider, 'getAuth');
         getAuthStub.returns({ getUid: () => 'some-uid' });
         transport.invokeOnAuthTokenChanged('initial-token'); // Establish baseline (auth)
 
-        transport.invokeSubscribe(hook, queryName1, variables1);
+        transport.invokeSubscribe(observer, queryName1, variables1);
 
         transport.setAuthToken(null);
         getAuthStub.returns({ getUid: () => null });
@@ -1121,14 +1176,18 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       it('should close stream immediately on illegal auth change (user change)', async () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
-        const hook = sinon.spy();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
         transport.setAuthToken('token-a');
         const getAuthStub = sinon.stub(transport.authProvider, 'getAuth');
         getAuthStub.returns({ getUid: () => 'user-a' });
         transport.invokeOnAuthTokenChanged('token-a'); // Establish baseline (user A)
 
-        transport.invokeSubscribe(hook, queryName1, variables1);
+        transport.invokeSubscribe(observer, queryName1, variables1);
 
         transport.setAuthToken('token-b');
         getAuthStub.returns({ getUid: () => 'user-b' });
@@ -1139,7 +1198,11 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       it('should NOT close stream on valid auth token refresh (same user)', async () => {
         const closeSpy = sinon.spy(transport, 'closeConnection');
-        const hook = sinon.spy();
+        const observer = {
+          onData: sinon.spy(),
+          onDisconnect: sinon.spy(),
+          onError: sinon.spy()
+        };
 
         transport.setAuthToken('initial-token');
 
@@ -1150,7 +1213,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         transport.invokeOnAuthTokenChanged('initial-token'); // Establish baseline
 
-        transport.invokeSubscribe(hook, queryName1, variables1);
+        transport.invokeSubscribe(observer, queryName1, variables1);
 
         transport.setAuthToken('refreshed-token');
         transport.invokeOnAuthTokenChanged('refreshed-token'); // Refresh

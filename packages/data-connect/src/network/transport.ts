@@ -88,13 +88,14 @@ export interface DataConnectResponseWithMaxAge<T> {
 }
 
 /**
- * Type signature of the notification hook passed from the query layer to the transport layer. This
- * will be called by the transport layer to forward data updates from the server to the query layer.
+ * Observer defined by the Query Layer for receiving notifications from the Transport Layer.
  * @internal
  */
-export type SubscribeNotificationHook<Data> = (
-  result: DataConnectResponse<Data>
-) => void;
+export interface SubscribeObserver<Data> {
+  onData(response: DataConnectResponse<Data>): void;
+  onDisconnect(code: string, reason: string): void;
+  onError(error: Error): void;
+}
 
 /**
  * Interface defining the external API of the transport layer.
@@ -125,13 +126,12 @@ export interface DataConnectTransportInterface {
 
   /**
    * Subscribes to a query to receive push notifications of updates.
-   * @param notificationHook the notification hook passed to the transport layer - will be called
-   * when it receives responses related to this subscription to notify query layer of data updates.
+   * @param observer the observer passed to the transport layer to notify the query layer of events.
    * @param queryName The name of the query to subscribe to.
    * @param body The variables associated with the subscription.
    */
   invokeSubscribe<Data, Variables>(
-    notificationHook: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void;
@@ -352,7 +352,7 @@ export abstract class AbstractDataConnectTransport
   ): Promise<DataConnectResponse<Data>>;
 
   abstract invokeSubscribe<Data, Variables>(
-    notifyQueryManager: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void;

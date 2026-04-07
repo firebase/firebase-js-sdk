@@ -25,7 +25,6 @@ import sinonChai from 'sinon-chai';
 import {
   Code,
   DataConnect,
-  DataConnectError,
   DataConnectResponse,
   DataConnectResponseWithMaxAge,
   executeMutation,
@@ -35,7 +34,7 @@ import {
   queryRef,
   QueryResult,
   subscribe,
-  SubscribeNotificationHook
+  SubscribeObserver
 } from '../../src';
 import { QueryManager } from '../../src/core/query/QueryManager';
 import { DataConnectTransportManager } from '../../src/network/manager';
@@ -61,7 +60,7 @@ interface ManagerWithInternals {
     body?: Variables
   ): Promise<DataConnectResponse<Data>>;
   invokeSubscribe<Data, Variables>(
-    notificationHook: SubscribeNotificationHook<Data>,
+    observer: SubscribeObserver<Data>,
     queryName: string,
     body?: Variables
   ): void;
@@ -271,11 +270,11 @@ describe('Streaming & Query Layer Integration', () => {
       subscribe(relevantQuery, relevantSpy3);
       subscribe(irrelevantQuery, irrelevantSpy);
 
-      // get the query layer's notification hook which was passed to invokeSubscribe
-      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      // get the query layer's observer was passed to invokeSubscribe
+      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      // call the hook with data
-      await hook({ data: testData, errors: [], extensions: {} });
+      // call the observer with data
+      await observer.onData({ data: testData, errors: [], extensions: {} });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -294,19 +293,19 @@ describe('Streaming & Query Layer Integration', () => {
       const onNextSpy = sinon.spy();
       subscribe(q, onNextSpy);
 
-      // get the query layer's notification hook which was passed to invokeSubscribe
-      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      // get the query layer's observer which was passed to invokeSubscribe
+      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      // call the hook with data
-      await hook({ data: testData, errors: [], extensions: {} });
+      // call the observer with data
+      await observer.onData({ data: testData, errors: [], extensions: {} });
 
-      // verify CACHE_ONLY executions see the data returned from the notification hook
+      // verify CACHE_ONLY executions see the data returned from the observer
       const cacheResult1 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
       expect(cacheResult1.data).to.deep.equal(testData);
 
       // simulate second notification
       const newData: TestData = { abc: 'NEW DATA' };
-      await hook({ data: newData, errors: [], extensions: {} });
+      await observer.onData({ data: newData, errors: [], extensions: {} });
 
       // verify CACHE_ONLY again
       const cacheResult2 = await executeQuery(q, { fetchPolicy: 'CACHE_ONLY' });
@@ -335,12 +334,12 @@ describe('Streaming & Query Layer Integration', () => {
       subscribe(relevantQuery, { onNext: () => {}, onErr: relevantSpy3 });
       subscribe(irrelevantQuery, { onNext: () => {}, onErr: irrelevantSpy });
 
-      // get the query layer's notification hook which was passed to invokeSubscribe
-      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      // get the query layer's observer which was passed to invokeSubscribe
+      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      // call the hook with errors
+      // call the observer with errors
       const expectedError = new Error('test error');
-      hook({ data: {}, errors: [expectedError], extensions: {} });
+      observer.onData({ data: {}, errors: [expectedError], extensions: {} });
 
       expect(relevantSpy1.calledOnce).to.be.true;
       expect(relevantSpy2.calledOnce).to.be.true;
@@ -363,31 +362,26 @@ describe('Streaming & Query Layer Integration', () => {
       );
     });
 
-    it('should clean up subscriptions in query layer when hook receives a disconnect error', async () => {
+    it('should clean up subscriptions in query layer when observer receives a disconnect error', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
       const onNextSpy = sinon.spy();
       const onErrSpy = sinon.spy();
 
       subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
 
-      const notificationHook =
+      const notificationObserver =
         stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
-      const expectedError = new DataConnectError(
+      await notificationObserver.onDisconnect(
         Code.OTHER,
         'WebSocket disconnected externally'
       );
-      await notificationHook({
-        data: {},
-        errors: [expectedError],
-        extensions: {}
-      });
 
       expect(onErrSpy).to.have.been.calledOnce;
       expect(stubStreamTransport.invokeUnsubscribe).to.have.been.calledOnce;
 
-      // Call hook again with data, should not reach subscriber because it was cleaned up
-      await notificationHook({
+      // Call observer again with data, should not reach subscriber because it was cleaned up
+      await notificationObserver.onData({
         data: { abc: 'new data' },
         errors: [],
         extensions: {}
@@ -395,23 +389,27 @@ describe('Streaming & Query Layer Integration', () => {
       expect(onNextSpy).to.not.have.been.called;
     });
 
-    it('should NOT clean up subscriptions in query layer when hook receives a non-disconnect error', async () => {
+    it('should NOT clean up subscriptions in query layer when observer receives a non-disconnect error', async () => {
       const q = queryRef<TestData, TestVariables>(dc, queryName, testVariables);
       const onNextSpy = sinon.spy();
       const onErrSpy = sinon.spy();
 
       subscribe(q, { onNext: onNextSpy, onErr: onErrSpy });
 
-      const hook = stubStreamTransport.invokeSubscribe.firstCall.args[0];
+      const observer = stubStreamTransport.invokeSubscribe.firstCall.args[0];
 
       const expectedError = new Error('test error');
-      await hook({ data: {}, errors: [expectedError], extensions: {} });
+      await observer.onData({
+        data: {},
+        errors: [expectedError],
+        extensions: {}
+      });
 
       expect(onErrSpy).to.have.been.calledOnce;
 
-      // Call hook again with data, should STILL reach subscriber because it was NOT cleaned up
+      // Call observer again with data, should STILL reach subscriber because it was NOT cleaned up
       const testData: TestData = { abc: 'new data' };
-      await hook({ data: testData, errors: [], extensions: {} });
+      await observer.onData({ data: testData, errors: [], extensions: {} });
       expect(onNextSpy).to.have.been.calledOnce;
       expect(onNextSpy.firstCall.args[0].data).to.deep.equal(testData);
 
