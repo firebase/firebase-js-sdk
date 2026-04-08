@@ -318,7 +318,7 @@ export type ImageConfigAspectRatio =
   (typeof ImageConfigAspectRatio)[keyof typeof ImageConfigAspectRatio];
 
 /**
- * Sizes for generated images.
+ * Sizes for generated images. For example, '1K' is 1024px, '2K' is 2048px, and '4K' is 4096px.
  * @public
  */
 export const ImageConfigImageSize = {

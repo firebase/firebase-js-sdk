@@ -339,7 +339,6 @@ describe('GenerativeModel', () => {
       aspectRatio: '1:1',
       imageSize: '512'
     });
-    restore();
   });
   it('overrides base model params with startChatParams', () => {
     const genModel = new GenerativeModel(fakeAI, {
