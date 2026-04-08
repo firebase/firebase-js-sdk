@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Deprecate topK and temperature properties for hybrid inference mode.
+Deprecate `topK` and `temperature` properties for hybrid inference mode.
