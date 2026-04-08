@@ -329,7 +329,7 @@ describe('GenerativeModel', () => {
       model: 'my-model',
       generationConfig: {
         imageConfig: {
-          aspectRatio: ImageConfigAspectRatio.SQUARE_1x1,
+          aspectRatio: ImageConfigAspectRatio.SQUARE_1X1,
           imageSize: ImageConfigImageSize.SIZE_512
         }
       }

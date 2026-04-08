@@ -292,20 +292,20 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
  * @public
  */
 export const ImageConfigAspectRatio = {
-  SQUARE_1x1: '1:1',
-  PORTRAIT_9x16: '9:16',
-  LANDSCAPE_16x9: '16:9',
-  PORTRAIT_3x4: '3:4',
-  LANDSCAPE_4x3: '4:3',
-  PORTRAIT_2x3: '2:3',
-  LANDSCAPE_3x2: '3:2',
-  PORTRAIT_4x5: '4:5',
-  LANDSCAPE_5x4: '5:4',
-  PORTRAIT_1x4: '1:4',
-  LANDSCAPE_4x1: '4:1',
-  PORTRAIT_1x8: '1:8',
-  LANDSCAPE_8x1: '8:1',
-  ULTRAWIDE_21x9: '21:9'
+  SQUARE_1X1: '1:1',
+  PORTRAIT_9X16: '9:16',
+  LANDSCAPE_16X9: '16:9',
+  PORTRAIT_3X4: '3:4',
+  LANDSCAPE_4X3: '4:3',
+  PORTRAIT_2X3: '2:3',
+  LANDSCAPE_3X2: '3:2',
+  PORTRAIT_4X5: '4:5',
+  LANDSCAPE_5X4: '5:4',
+  PORTRAIT_1X4: '1:4',
+  LANDSCAPE_4X1: '4:1',
+  PORTRAIT_1X8: '1:8',
+  LANDSCAPE_8X1: '8:1',
+  ULTRAWIDE_21X9: '21:9'
 } as const;
 
 /**
