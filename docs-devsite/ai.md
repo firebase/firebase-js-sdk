@@ -168,7 +168,7 @@ The Firebase AI Web SDK.
 |  [HarmProbability](./ai.md#harmprobability) | Probability that a prompt or candidate matches a harm category. |
 |  [HarmSeverity](./ai.md#harmseverity) | Harm severity levels. |
 |  [ImageConfigAspectRatio](./ai.md#imageconfigaspectratio) | Aspect ratios for generated images. |
-|  [ImageConfigImageSize](./ai.md#imageconfigimagesize) | Sizes for generated images. |
+|  [ImageConfigImageSize](./ai.md#imageconfigimagesize) | Sizes for generated images. For example, '1K' is 1024px, '2K' is 2048px, and '4K' is 4096px. |
 |  [ImagenAspectRatio](./ai.md#imagenaspectratio) | Aspect ratios for Imagen images.<!-- -->To specify an aspect ratio for generated images, set the <code>aspectRatio</code> property in your [ImagenGenerationConfig](./ai.imagengenerationconfig.md#imagengenerationconfig_interface)<!-- -->.<!-- -->See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) for more details and examples of the supported aspect ratios. |
 |  [ImagenPersonFilterLevel](./ai.md#imagenpersonfilterlevel) | A filter level controlling whether generation of images containing people or faces is allowed.<!-- -->See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a> documentation for more details. |
 |  [ImagenSafetyFilterLevel](./ai.md#imagensafetyfilterlevel) | A filter level controlling how aggressively to filter sensitive content.<!-- -->Text prompts provided as inputs and images (generated or uploaded) through Imagen on Vertex AI are assessed against a list of safety filters, which include 'harmful categories' (for example, <code>violence</code>, <code>sexual</code>, <code>derogatory</code>, and <code>toxic</code>). This filter level controls how aggressively to filter out potentially harmful content from responses. See the [documentation](http://firebase.google.com/docs/vertex-ai/generate-images) and the [Responsible AI and usage guidelines](https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters) for more details. |
@@ -679,7 +679,7 @@ ImageConfigAspectRatio: {
 
 ## ImageConfigImageSize
 
-Sizes for generated images.
+Sizes for generated images. For example, '1K' is 1024px, '2K' is 2048px, and '4K' is 4096px.
 
 <b>Signature:</b>
 
