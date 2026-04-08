@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,79 +17,102 @@
 
 import {
   Content,
-  FunctionDeclarationsTool,
-  GenerateContentRequest,
   GenerateContentResult,
   GenerateContentStreamResult,
   Part,
   RequestOptions,
   SingleRequestOptions,
-  StartChatParams
+  StartTemplateChatParams,
+  TemplateFunctionDeclarationInternal,
+  TemplateFunctionDeclarationsTool,
+  TemplateFunctionDeclarationsToolInternal,
+  TemplateRequestInternal
 } from '../types';
-import { generateContent, generateContentStream } from './generate-content';
-import { ApiSettings } from '../types/internal';
-import { ChromeAdapter } from '../types/chrome-adapter';
-import { ChatSessionBase } from './chat-session-base';
 import { validateChatHistory } from './chat-session-helpers';
+import {
+  templateGenerateContent,
+  templateGenerateContentStream
+} from './generate-content';
+import { ApiSettings } from '../types/internal';
+import { ChatSessionBase } from './chat-session-base';
 
 /**
- * ChatSession class that enables sending chat messages and stores
- * history of sent and received messages so far.
+ * `ChatSession` class for use with server prompt templates that
+ * enables sending chat messages and stores history of sent and
+ * received messages so far.
  *
- * @public
+ * @beta
  */
-export class ChatSession extends ChatSessionBase<
-  StartChatParams,
-  GenerateContentRequest,
-  FunctionDeclarationsTool
+export class TemplateChatSession extends ChatSessionBase<
+  StartTemplateChatParams,
+  TemplateRequestInternal,
+  TemplateFunctionDeclarationsTool
 > {
   constructor(
     apiSettings: ApiSettings,
-    public model: string,
-    private chromeAdapter?: ChromeAdapter,
-    public params?: StartChatParams,
+    public params: StartTemplateChatParams,
     public requestOptions?: RequestOptions
   ) {
     super(apiSettings, params, requestOptions);
-    if (params?.history) {
+    if (params.history) {
       validateChatHistory(params.history);
       this._history = params.history;
     }
   }
 
   /**
-   * Format Content into a request for generateContent or
-   * generateContentStream.
+   * Format the internal state to the body payload for `templateGenerateContent`.
    * @internal
    */
   _formatRequest(
     incomingContent: Content,
     tempHistory: Content[]
-  ): GenerateContentRequest {
-    return {
-      safetySettings: this.params?.safetySettings,
-      generationConfig: this.params?.generationConfig,
-      tools: this.params?.tools,
-      toolConfig: this.params?.toolConfig,
-      systemInstruction: this.params?.systemInstruction,
-      contents: [...this._history, ...tempHistory, incomingContent]
+  ): TemplateRequestInternal {
+    const request: TemplateRequestInternal = {
+      history: [...this._history, ...tempHistory, incomingContent]
     };
+    if (this.params.templateVariables) {
+      request.inputs = this.params.templateVariables;
+    }
+    if (this.params.tools) {
+      request.tools = this.params.tools?.map(tool => {
+        if (tool.functionDeclarations) {
+          return {
+            templateFunctions: tool.functionDeclarations.map(declaration => {
+              if (declaration.parameters) {
+                const newDeclaration = { ...declaration };
+                delete newDeclaration.parameters;
+                (
+                  newDeclaration as TemplateFunctionDeclarationInternal
+                ).inputSchema = declaration.parameters;
+                return newDeclaration;
+              }
+              return declaration;
+            })
+          };
+        }
+        return tool as TemplateFunctionDeclarationsToolInternal;
+      });
+    }
+    if (this.params.toolConfig) {
+      request.toolConfig = this.params.toolConfig;
+    }
+    return request;
   }
 
   /**
-   * Calls default generateContent() (versus a specialized one like
-   * templateGenerateContent).
+   * Calls the specific templateGenerateContent() function needed for
+   * this specialized TemplateChatSession.
    * @internal
    */
   _callGenerateContent(
-    formattedRequest: GenerateContentRequest,
+    formattedRequest: TemplateRequestInternal,
     singleRequestOptions?: RequestOptions
   ): Promise<GenerateContentResult> {
-    return generateContent(
+    return templateGenerateContent(
       this._apiSettings,
-      this.model,
+      this.params.templateId,
       formattedRequest,
-      this.chromeAdapter,
       {
         ...this.requestOptions,
         ...singleRequestOptions
@@ -98,19 +121,18 @@ export class ChatSession extends ChatSessionBase<
   }
 
   /**
-   * Calls default generateContentStream() (versus a specialized one like
-   * templateGenerateContentStream).
+   * Calls the specific templateGenerateContentStream() function needed for
+   * this specialized TemplateChatSession.
    * @internal
    */
   _callGenerateContentStream(
-    formattedRequest: GenerateContentRequest,
+    formattedRequest: TemplateRequestInternal,
     singleRequestOptions?: RequestOptions
   ): Promise<GenerateContentStreamResult> {
-    return generateContentStream(
+    return templateGenerateContentStream(
       this._apiSettings,
-      this.model,
+      this.params.templateId,
       formattedRequest,
-      this.chromeAdapter,
       {
         ...this.requestOptions,
         ...singleRequestOptions

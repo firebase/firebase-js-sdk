@@ -140,16 +140,15 @@ export class BooleanSchema extends Schema {
 }
 
 // @public
-export class ChatSession {
+export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
     _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
@@ -158,7 +157,40 @@ export class ChatSession {
     requestOptions?: RequestOptions | undefined;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    }
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
+//
+// @public
+export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
+    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
+    // (undocumented)
+    protected _apiSettings: ApiSettings;
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // @internal
+    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
+    getHistory(): Promise<Content[]>;
+    // (undocumented)
+    protected _history: Content[];
+    // (undocumented)
+    params?: ParamsType | undefined;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    // @internal
+    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    protected _sendPromise: Promise<void>;
+}
 
 // @beta
 export interface ChromeAdapter {
@@ -896,9 +928,9 @@ export type Language = (typeof Language)[keyof typeof Language];
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
 }
 
@@ -1157,7 +1189,7 @@ export interface PromptFeedback {
 // @public
 export interface RequestOptions {
     baseUrl?: string;
-    maxSequentalFunctionCalls?: number;
+    maxSequentialFunctionCalls?: number;
     timeout?: number;
 }
 
@@ -1340,6 +1372,14 @@ export interface StartChatParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @beta
+export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
+    templateId: string;
+    templateVariables?: Record<string, unknown>;
+    // (undocumented)
+    tools?: TemplateTool[];
+}
+
 // @public
 export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
@@ -1349,14 +1389,76 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @beta, but its signature references "TemplateRequestInternal" which is marked as @internal
+//
+// @beta
+export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> {
+    constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
+    // @internal
+    _callGenerateContent(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _callGenerateContentStream(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): TemplateRequestInternal;
+    // (undocumented)
+    params: StartTemplateChatParams;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+}
+
+// @beta
+export interface TemplateFunctionDeclaration {
+    description?: never;
+    functionReference?: Function;
+    name: string;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface TemplateFunctionDeclarationInternal extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+    // (undocumented)
+    inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// @beta
+export interface TemplateFunctionDeclarationsTool {
+    functionDeclarations?: TemplateFunctionDeclaration[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationsToolInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateFunctionDeclarationsToolInternal {
+    templateFunctions?: TemplateFunctionDeclarationInternal[];
+}
+
+// @beta
+export interface TemplateGenerateContentRequest {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    history?: Content[];
+    // (undocumented)
+    inputs?: Record<string, unknown>;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsTool[];
+}
+
 // @beta
 export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
+    startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
 
 // @public @deprecated
@@ -1368,6 +1470,17 @@ export class TemplateImagenModel {
     generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
 }
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateRequestInternal extends Omit<TemplateGenerateContentRequest, 'tools'> {
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsToolInternal[];
+}
+
+// @beta
+export type TemplateTool = TemplateFunctionDeclarationsTool;
 
 // @public
 export interface TextPart {

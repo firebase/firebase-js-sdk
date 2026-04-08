@@ -441,6 +441,7 @@ describe('ChatSession', () => {
     });
     const functionCallPartGreeting = {
       functionCall: {
+        id: 123,
         name: 'getGreeting',
         args: { username: 'Bob' }
       }
@@ -509,6 +510,7 @@ describe('ChatSession', () => {
           functionResponseContents[functionResponseContents.length - 1].parts[0]
             .functionResponse
         ).to.deep.equal({
+          id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
@@ -576,6 +578,7 @@ describe('ChatSession', () => {
           functionResponseContents[functionResponseContents.length - 1].parts[0]
             .functionResponse
         ).to.deep.equal({
+          id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
@@ -632,7 +635,7 @@ describe('ChatSession', () => {
             ]
           },
           {
-            maxSequentalFunctionCalls: 0
+            maxSequentialFunctionCalls: 0
           }
         );
         const result = await chatSession.sendMessage('My name is Bob');
@@ -702,6 +705,7 @@ describe('ChatSession', () => {
           functionResponseContents[functionResponseContents.length - 1].parts[0]
             .functionResponse
         ).to.deep.equal({
+          id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
@@ -768,6 +772,7 @@ describe('ChatSession', () => {
           functionResponseContents[functionResponseContents.length - 1].parts[0]
             .functionResponse
         ).to.deep.equal({
+          id: 123,
           name: 'getGreeting',
           response: { greeting: 'Hi, Bob' }
         });
@@ -827,7 +832,7 @@ describe('ChatSession', () => {
             ]
           },
           {
-            maxSequentalFunctionCalls: 0
+            maxSequentialFunctionCalls: 0
           }
         );
         const result = await chatSession.sendMessageStream('My name is Bob');
