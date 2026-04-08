@@ -19,6 +19,7 @@ import { FirebaseApp } from '@firebase/app';
 import { Backend } from './backend';
 
 export * from './types';
+export { TemplateChatSession } from './methods/template-chat-session';
 
 /**
  * An instance of the Firebase AI SDK.
