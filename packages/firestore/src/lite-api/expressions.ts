@@ -1417,6 +1417,109 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
+   * Filters the array using a provided alias and predicate expression.
+   *
+   * @example
+   * ```typescript
+   * // Filter the 'items' array to only include those where the 'price' is greater than 10
+   * field("items").arrayFilter('item', greaterThan(variable('item.price'), 10));
+   * ```
+   *
+   * @param alias - The variable name to use for each element.
+   * @param filter - The predicate boolean expression to filter by.
+   * @returns A new `Expression` representing the filtered array.
+   */
+  arrayFilter(alias: string, filter: BooleanExpression): FunctionExpression {
+    return new FunctionExpression(
+      'array_filter',
+      [this, valueToDefaultExpr(alias), filter],
+      'arrayFilter'
+    );
+  }
+
+  /**
+   * Creates an expression that applies a provided transformation to each element in an array.
+   *
+   * @example
+   * ```typescript
+   * // Transform the 'scores' array by multiplying each score by 10
+   * field("scores").arrayTransform("score", multiply(variable("score"), 10));
+   * ```
+   *
+   * @param elementAlias - The variable name to use for each element.
+   * @param transform - The lambda expression used to transform the elements.
+   * @returns A new `Expression` representing the arrayTransform operation.
+   */
+  arrayTransform(
+    elementAlias: string,
+    transform: Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'array_transform',
+      [this, valueToDefaultExpr(elementAlias), transform],
+      'arrayTransform'
+    );
+  }
+
+  /**
+   * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+   *
+   * @example
+   * ```typescript
+   * // Transform the 'scores' array by adding the index to each score
+   * field("scores").arrayTransformWithIndex("score", "i", add(variable("score"), variable("i")));
+   * ```
+   *
+   * @param elementAlias - The variable name to use for each element.
+   * @param indexAlias - The variable name to use for the current index.
+   * @param transform - The lambda expression used to transform the elements.
+   * @returns A new `Expression` representing the arrayTransformWithIndex operation.
+   */
+  arrayTransformWithIndex(
+    elementAlias: string,
+    indexAlias: string,
+    transform: Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'array_transform',
+      [
+        this,
+        valueToDefaultExpr(elementAlias),
+        valueToDefaultExpr(indexAlias),
+        transform
+      ],
+      'arrayTransformWithIndex'
+    );
+  }
+
+  /**
+   * Returns a subset of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get 5 elements from the 'items' array starting from index 2
+   * field("items").arraySlice(2, 5);
+   *
+   * // Get n number of elements from the 'items' array starting from index 2
+   * field("items").arraySlice(2, field("count"));
+   * ```
+   *
+   * @param offset - The starting offset.
+   * @param length - The optional length of the slice.
+   * @returns A new `Expression` representing the sliced array.
+   */
+  arraySlice(
+    offset: number | Expression,
+    length?: number | Expression
+  ): FunctionExpression {
+    const args: Expression[] = [this, valueToDefaultExpr(offset)];
+    if (length !== undefined) {
+      args.push(valueToDefaultExpr(length));
+    }
+    return new FunctionExpression('array_slice', args, 'arraySlice');
+  }
+
+  /**
    * Returns the first element of the array.
    *
    * @example
@@ -6875,6 +6978,210 @@ export function regexContains(
 
 /**
  *
+ * Creates an expression that filters an array using a provided alias and predicate expression.
+ *
+ * @example
+ * ```typescript
+ * // Get a filtered array of the 'scores' field containing only elements greater than 50.
+ * arrayFilter("scores", "score", greaterThan(variable("score"), 50));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param alias - The variable name to use for each element.
+ * @param filter - The predicate boolean expression to evaluate for each element.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  fieldName: string,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression;
+
+/**
+ * Creates an expression that filters an array using a provided alias and predicate expression.
+ *
+ * @example
+ * ```typescript
+ * // Filter "scores" to include only values greater than 50
+ * arrayFilter(field("scores"), "score", greaterThan(variable("score"), 50));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param alias - The variable name to use for each element.
+ * @param filter - The predicate boolean expression to filter by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  arrayExpression: Expression,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression;
+
+export function arrayFilter(
+  array: Expression | string,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFilter(alias, filter);
+}
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by multiplying each score by 10
+ * arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param transform - The lambda expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransform(
+  arrayExpression: Expression,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by multiplying each score by 10
+ * arrayTransform("scores", "score", multiply(variable("score"), 10));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param transform - The expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransform(
+  fieldName: string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
+export function arrayTransform(
+  array: Expression | string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayTransform(elementAlias, transform);
+}
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by adding the index to each score
+ * arrayTransformWithIndex(field("scores"), "score", "i", add(variable("score"), variable("i")));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param indexAlias - The variable name to use for the current index.
+ * @param transform - The expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransformWithIndex(
+  arrayExpression: Expression,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by adding the index to each score
+ * arrayTransformWithIndex("scores", "score", "i", add(variable("score"), variable("i")));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param indexAlias - The variable name to use for the current index.
+ * @param transform - The lambda expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransformWithIndex(
+  fieldName: string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
+export function arrayTransformWithIndex(
+  array: Expression | string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayTransformWithIndex(
+    elementAlias,
+    indexAlias,
+    transform
+  );
+}
+
+/**
+ * Creates an expression that returns a slice of an array from `offset` with `length` elements.
+ *
+ * @example
+ * ```typescript
+ * // Get 5 elements from the 'items' array field starting from index 2
+ * arraySlice("items", 2, 5);
+ *
+ * // Get n elements from the 'items' array field starting from index 2
+ * arraySlice("items", 2, field("length"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param offset - The starting offset.
+ * @param length - The optional length of the slice.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
+ */
+export function arraySlice(
+  fieldName: string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns a slice of an array from `offset` with `length` elements.
+ *
+ * @example
+ * ```typescript
+ * // Get 5 elements from an array expression starting from index 2
+ * arraySlice(field("items"), 2, 5);
+ *
+ * // Get n elements from an array expression starting from index 2
+ * arraySlice(field("items"), 2, field("length"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param offset - The starting offset.
+ * @param length - The optional length of the slice.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
+ */
+export function arraySlice(
+  arrayExpression: Expression,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
+export function arraySlice(
+  array: Expression | string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arraySlice(offset, length);
+}
+
+/**
  * Creates an expression that returns the first element of an array.
  *
  * @example

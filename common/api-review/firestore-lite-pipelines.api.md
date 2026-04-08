@@ -120,6 +120,12 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @public
+export function arrayFilter(fieldName: string, alias: string, filter: BooleanExpression): FunctionExpression;
+
+// @public
+export function arrayFilter(arrayExpression: Expression, alias: string, filter: BooleanExpression): FunctionExpression;
+
+// @public
 export function arrayFirst(fieldName: string): FunctionExpression;
 
 // @public
@@ -228,10 +234,28 @@ export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionE
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @public
+export function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+
+// @public
+export function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
+
+// @public
 export function arraySum(fieldName: string): FunctionExpression;
 
 // @public
 export function arraySum(expression: Expression): FunctionExpression;
+
+// @public
+export function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
+
+// @public
+export function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
+
+// @public
+export function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+
+// @public
+export function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
 
 // @public
 export function ascending(expr: Expression): Ordering;
@@ -514,6 +538,8 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayContainsAny(arrayExpression: Expression): BooleanExpression;
     /* Excluded from this release type: _readUserData */
+    arrayFilter(alias: string, filter: BooleanExpression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arrayFirst(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     arrayFirstN(n: number): FunctionExpression;
@@ -558,7 +584,13 @@ export abstract class Expression {
     /* Excluded from this release type: _readUserData */
     arrayReverse(): FunctionExpression;
     /* Excluded from this release type: _readUserData */
+    arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
     arraySum(): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayTransform(elementAlias: string, transform: Expression): FunctionExpression;
+    /* Excluded from this release type: _readUserData */
+    arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
     /* Excluded from this release type: _readUserData */
     as(name: string): AliasedExpression;
     /* Excluded from this release type: _readUserData */

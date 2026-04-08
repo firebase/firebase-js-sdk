@@ -30,6 +30,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAny(array, values)](./firestore_pipelines.md#arraycontainsany_c381a96) | Creates an expression that checks if an array expression contains any of the specified elements. |
 |  [arrayLength(array)](./firestore_pipelines.md#arraylength_195e339) | Creates an expression that calculates the length of an array expression. |
 |  <b>function(arrayExpression, ...)</b> |
+|  [arrayFilter(arrayExpression, alias, filter)](./firestore_pipelines.md#arrayfilter_892d3c4) | Creates an expression that filters an array using a provided alias and predicate expression. |
 |  [arrayFirst(arrayExpression)](./firestore_pipelines.md#arrayfirst_f574e12) | Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_bff7f91) | Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(arrayExpression, n)](./firestore_pipelines.md#arrayfirstn_19b4ef8) | Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -47,6 +48,9 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(arrayExpression)](./firestore_pipelines.md#arrayminimum_f574e12) | Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_bff7f91) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(arrayExpression, n)](./firestore_pipelines.md#arrayminimumn_19b4ef8) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arraySlice(arrayExpression, offset, length)](./firestore_pipelines.md#arrayslice_a349bee) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
+|  [arrayTransform(arrayExpression, elementAlias, transform)](./firestore_pipelines.md#arraytransform_28967fa) | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_2f3b17f) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [join(arrayExpression, delimiterExpression)](./firestore_pipelines.md#join_313e6aa) | Creates an expression that joins the elements of an array into a string. |
 |  [join(arrayExpression, delimiter)](./firestore_pipelines.md#join_d088d29) | Creates an expression that joins the elements of an array into a string. |
 |  <b>function(arrayField, ...)</b> |
@@ -160,6 +164,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayContainsAll(fieldName, arrayExpression)](./firestore_pipelines.md#arraycontainsall_48da8d9) | Creates an expression that checks if a field's array value contains all the specified values or expressions. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_8060b23) | Creates an expression that checks if a field's array value contains any of the specified elements. |
 |  [arrayContainsAny(fieldName, values)](./firestore_pipelines.md#arraycontainsany_1b4f7cd) | Creates an expression that checks if a field's array value contains any of the specified elements. |
+|  [arrayFilter(fieldName, alias, filter)](./firestore_pipelines.md#arrayfilter_ab67868) | Creates an expression that filters an array using a provided alias and predicate expression. |
 |  [arrayFirst(fieldName)](./firestore_pipelines.md#arrayfirst_e5b0480) | Creates an expression that returns the first element of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_597a4d9) | Creates an expression that returns the first <code>n</code> elements of an array. |
 |  [arrayFirstN(fieldName, n)](./firestore_pipelines.md#arrayfirstn_1a86a2c) | Creates an expression that returns the first <code>n</code> elements of an array. |
@@ -176,7 +181,10 @@ https://github.com/firebase/firebase-js-sdk
 |  [arrayMinimum(fieldName)](./firestore_pipelines.md#arrayminimum_e5b0480) | Creates an expression that returns the minimum value in an array. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_597a4d9) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(fieldName, n)](./firestore_pipelines.md#arrayminimumn_1a86a2c) | Creates an expression that returns the smallest <code>n</code> elements of an array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arraySlice(fieldName, offset, length)](./firestore_pipelines.md#arrayslice_821aa43) | Creates an expression that returns a slice of an array from <code>offset</code> with <code>length</code> elements. |
 |  [arraySum(fieldName)](./firestore_pipelines.md#arraysum_e5b0480) | Creates an expression that computes the sum of the elements in an array. |
+|  [arrayTransform(fieldName, elementAlias, transform)](./firestore_pipelines.md#arraytransform_328a090) | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform)](./firestore_pipelines.md#arraytransformwithindex_e6629b2) | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [ascending(fieldName)](./firestore_pipelines.md#ascending_e5b0480) | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on a field. |
 |  [average(fieldName)](./firestore_pipelines.md#average_e5b0480) | Creates an aggregation that calculates the average (mean) of a field's values across multiple stage inputs. |
 |  [byteLength(fieldName)](./firestore_pipelines.md#bytelength_e5b0480) | Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob. |
@@ -846,6 +854,39 @@ arrayLength(field("cart"));
 
 ## function(arrayExpression, ...)
 
+### arrayFilter(arrayExpression, alias, filter) {:#arrayfilter_892d3c4}
+
+Creates an expression that filters an array using a provided alias and predicate expression.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFilter(arrayExpression: Expression, alias: string, filter: BooleanExpression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  alias | string | The variable name to use for each element. |
+|  filter | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the filtered array.
+
+### Example
+
+
+```typescript
+// Filter "scores" to include only values greater than 50
+arrayFilter(field("scores"), "score", greaterThan(variable("score"), 50));
+
+```
+
 ### arrayFirst(arrayExpression) {:#arrayfirst_f574e12}
 
 Creates an expression that returns the first element of an array.
@@ -1392,6 +1433,109 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Get the bottom n scores from the 'scores' array field
 arrayMinimumN(field("scores"), field("count"));
+
+```
+
+### arraySlice(arrayExpression, offset, length) {:#arrayslice_a349bee}
+
+Creates an expression that returns a slice of an array from `offset` with `length` elements.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  offset | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The starting offset. |
+|  length | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The optional length of the slice. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the sliced array.
+
+### Example
+
+
+```typescript
+// Get 5 elements from an array expression starting from index 2
+arraySlice(field("items"), 2, 5);
+
+// Get n elements from an array expression starting from index 2
+arraySlice(field("items"), 2, field("length"));
+
+```
+
+### arrayTransform(arrayExpression, elementAlias, transform) {:#arraytransform_28967fa}
+
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by multiplying each score by 10
+arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
+
+```
+
+### arrayTransformWithIndex(arrayExpression, elementAlias, indexAlias, transform) {:#arraytransformwithindex_2f3b17f}
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  arrayExpression | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression representing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by adding the index to each score
+arrayTransformWithIndex(field("scores"), "score", "i", add(variable("score"), variable("i")));
 
 ```
 
@@ -4488,6 +4632,39 @@ arrayContainsAny("categories", array([field("cate1"), "Science"]));
 
 ```
 
+### arrayFilter(fieldName, alias, filter) {:#arrayfilter_ab67868}
+
+Creates an expression that filters an array using a provided alias and predicate expression.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayFilter(fieldName: string, alias: string, filter: BooleanExpression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  alias | string | The variable name to use for each element. |
+|  filter | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to evaluate for each element. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the filtered array.
+
+### Example
+
+
+```typescript
+// Get a filtered array of the 'scores' field containing only elements greater than 50.
+arrayFilter("scores", "score", greaterThan(variable("score"), 50));
+
+```
+
 ### arrayFirst(fieldName) {:#arrayfirst_e5b0480}
 
 Creates an expression that returns the first element of an array.
@@ -5003,6 +5180,42 @@ arrayMinimumN(field("scores"), field("count"));
 
 ```
 
+### arraySlice(fieldName, offset, length) {:#arrayslice_821aa43}
+
+Creates an expression that returns a slice of an array from `offset` with `length` elements.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  offset | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The starting offset. |
+|  length | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The optional length of the slice. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the sliced array.
+
+### Example
+
+
+```typescript
+// Get 5 elements from the 'items' array field starting from index 2
+arraySlice("items", 2, 5);
+
+// Get n elements from the 'items' array field starting from index 2
+arraySlice("items", 2, field("length"));
+
+```
+
 ### arraySum(fieldName) {:#arraysum_e5b0480}
 
 Creates an expression that computes the sum of the elements in an array.
@@ -5031,6 +5244,73 @@ A new `Expression` representing the sum of the elements in the array.
 ```typescript
 // Compute the sum of the elements in the 'scores' field.
 arraySum("scores");
+
+```
+
+### arrayTransform(fieldName, elementAlias, transform) {:#arraytransform_328a090}
+
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by multiplying each score by 10
+arrayTransform("scores", "score", multiply(variable("score"), 10));
+
+```
+
+### arrayTransformWithIndex(fieldName, elementAlias, indexAlias, transform) {:#arraytransformwithindex_e6629b2}
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+export declare function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  fieldName | string | The name of the field containing the array. |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the transformed array.
+
+### Example
+
+
+```typescript
+// Transform "scores" array by adding the index to each score
+arrayTransformWithIndex("scores", "score", "i", add(variable("score"), variable("i")));
 
 ```
 
