@@ -144,6 +144,13 @@ message Value {
     //     allowed to be used on the write path. --)
     string field_reference_value = 19;
 
+    // Pointer to a variable defined elsewhere in a pipeline.
+    //
+    // Unlike `field_reference_value` which references a field within a
+    // document, this refers to a variable, defined in a separate namespace than
+    // the fields of a document.
+    string variable_reference_value = 22;
+
     // A value that represents an unevaluated expression.
     //
     // **Requires:**
