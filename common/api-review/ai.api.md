@@ -169,7 +169,9 @@ export abstract class ChatSessionBase<ParamsType extends StartChatParams | Start
     protected _apiSettings: ApiSettings;
     // @internal
     _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // @internal
     abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
     abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
     abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
@@ -182,8 +184,11 @@ export abstract class ChatSessionBase<ParamsType extends StartChatParams | Start
     params?: ParamsType | undefined;
     // (undocumented)
     requestOptions?: RequestOptions | undefined;
+    // @internal
     _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    // @internal
     _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
     protected _sendPromise: Promise<void>;
 }
 
@@ -1369,16 +1374,8 @@ export interface StartChatParams extends BaseParams {
 
 // @beta
 export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
-    // (undocumented)
-    history?: Content[];
-    // (undocumented)
-    systemInstruction?: string | Part | Content;
-    // (undocumented)
     templateId: string;
-    // (undocumented)
     templateVariables?: Record<string, unknown>;
-    // (undocumented)
-    toolConfig?: ToolConfig;
     // (undocumented)
     tools?: TemplateTool[];
 }

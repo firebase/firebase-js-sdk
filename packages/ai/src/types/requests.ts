@@ -251,12 +251,15 @@ export interface StartChatParams extends BaseParams {
  */
 export interface StartTemplateChatParams
   extends Omit<StartChatParams, 'tools'> {
+  /**
+   * The ID of the server-side template to execute.
+   */
   templateId: string;
+  /**
+   * A key-value map of variables to populate the template with.
+   */
   templateVariables?: Record<string, unknown>;
-  history?: Content[];
   tools?: TemplateTool[];
-  toolConfig?: ToolConfig;
-  systemInstruction?: string | Part | Content;
 }
 
 /**
@@ -545,7 +548,8 @@ export interface TemplateFunctionDeclarationsToolInternal {
 }
 
 /**
- * Defines a tool that a template model can call to access external knowledge.
+ * Defines a tool that a {@link TemplateGenerativeModel} can call
+ * to access external knowledge.
  * Only function declarations are currently supported for templates.
  * @beta
  */

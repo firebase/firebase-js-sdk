@@ -143,7 +143,7 @@ startChat(params: StartTemplateChatParams): TemplateChatSession;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  params | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | Configurations for the chat, including the template ID and variables. |
+|  params | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | Configurations for the chat, including the template ID and input variables. |
 
 <b>Returns:</b>
 

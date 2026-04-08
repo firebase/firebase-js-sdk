@@ -114,7 +114,8 @@ export class TemplateGenerativeModel {
    * Starts a {@link TemplateChatSession} that will use this template to
    * respond to messages.
    *
-   * @param params - Configurations for the chat, including the template ID and variables.
+   * @param params - Configurations for the chat, including the template
+   * ID and input variables.
    *
    * @beta
    */

@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-ChatSession class that enables sending chat messages and stores history of sent and received messages so far for a server template.
+`ChatSession` class for use with server prompt templates that enables sending chat messages and stores history of sent and received messages so far.
 
 <b>Signature:</b>
 

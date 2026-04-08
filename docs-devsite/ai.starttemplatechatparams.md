@@ -26,39 +26,16 @@ export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'>
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [history](./ai.starttemplatechatparams.md#starttemplatechatparamshistory) | [Content](./ai.content.md#content_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
-|  [systemInstruction](./ai.starttemplatechatparams.md#starttemplatechatparamssysteminstruction) | string \| [Part](./ai.md#part) \| [Content](./ai.content.md#content_interface) | <b><i>(Public Preview)</i></b> |
-|  [templateId](./ai.starttemplatechatparams.md#starttemplatechatparamstemplateid) | string | <b><i>(Public Preview)</i></b> |
-|  [templateVariables](./ai.starttemplatechatparams.md#starttemplatechatparamstemplatevariables) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> |
-|  [toolConfig](./ai.starttemplatechatparams.md#starttemplatechatparamstoolconfig) | [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | <b><i>(Public Preview)</i></b> |
+|  [templateId](./ai.starttemplatechatparams.md#starttemplatechatparamstemplateid) | string | <b><i>(Public Preview)</i></b> The ID of the server-side template to execute. |
+|  [templateVariables](./ai.starttemplatechatparams.md#starttemplatechatparamstemplatevariables) | Record&lt;string, unknown&gt; | <b><i>(Public Preview)</i></b> A key-value map of variables to populate the template with. |
 |  [tools](./ai.starttemplatechatparams.md#starttemplatechatparamstools) | [TemplateTool](./ai.md#templatetool)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
-
-## StartTemplateChatParams.history
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-<b>Signature:</b>
-
-```typescript
-history?: Content[];
-```
-
-## StartTemplateChatParams.systemInstruction
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-<b>Signature:</b>
-
-```typescript
-systemInstruction?: string | Part | Content;
-```
 
 ## StartTemplateChatParams.templateId
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
+
+The ID of the server-side template to execute.
 
 <b>Signature:</b>
 
@@ -71,21 +48,12 @@ templateId: string;
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
+A key-value map of variables to populate the template with.
+
 <b>Signature:</b>
 
 ```typescript
 templateVariables?: Record<string, unknown>;
-```
-
-## StartTemplateChatParams.toolConfig
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-<b>Signature:</b>
-
-```typescript
-toolConfig?: ToolConfig;
 ```
 
 ## StartTemplateChatParams.tools

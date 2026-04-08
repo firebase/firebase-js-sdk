@@ -54,8 +54,8 @@ const SILENT_ERROR = 'SILENT_ERROR';
 const DEFAULT_MAX_SEQUENTIAL_FUNCTION_CALLS = 10;
 
 /**
- * Base class for ChatSession that enables sending chat messages and stores
- * history of sent and received messages so far.
+ * Base class for various `ChatSession` classes that enables sending chat
+ * messages and stores history of sent and received messages so far.
  *
  * @public
  */
@@ -72,6 +72,7 @@ export abstract class ChatSessionBase<
   /**
    * Ensures sequential execution of chat messages to maintain history order.
    * Each call waits for the previous one to settle before proceeding.
+   * @internal
    */
   protected _sendPromise: Promise<void> = Promise.resolve();
 
@@ -94,8 +95,8 @@ export abstract class ChatSessionBase<
   }
 
   /**
-   * Format Content into a request for generateContent or
-   * generateContentStream (or their template versions).
+   * Format Content into a request for `generateContent` or
+   * `generateContentStream` (or their template versions).
    * @internal
    */
   abstract _formatRequest(
@@ -105,7 +106,8 @@ export abstract class ChatSessionBase<
 
   /**
    * Type-specific generate content calls (inherited classes may implement this
-   * to call basic generateContent() or the template version)
+   * to call basic `generateContent()` or the template version)
+   * @internal
    */
   abstract _callGenerateContent(
     formattedRequest: RequestType,
@@ -114,7 +116,8 @@ export abstract class ChatSessionBase<
 
   /**
    * Type-specific generate content stream calls (inherited classes may implement this
-   * to call basic generateContentStream() or the template version)
+   * to call basic `generateContentStream()` or the template version)
+   * @internal
    */
   abstract _callGenerateContentStream(
     formattedRequest: RequestType,
@@ -124,6 +127,7 @@ export abstract class ChatSessionBase<
   /**
    * Sends a chat message and receives a non-streaming
    * {@link GenerateContentResult}
+   * @internal
    */
   async _sendMessage(
     request: string | Array<string | Part>,
@@ -216,6 +220,7 @@ export abstract class ChatSessionBase<
    * Sends a chat message and receives the response as a
    * {@link GenerateContentStreamResult} containing an iterable stream
    * and a response promise.
+   * @internal
    */
   async _sendMessageStream(
     request: string | Array<string | Part>,

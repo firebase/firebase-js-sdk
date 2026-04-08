@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # ChatSessionBase class
-Base class for ChatSession that enables sending chat messages and stores history of sent and received messages so far.
+Base class for various `ChatSession` classes that enables sending chat messages and stores history of sent and received messages so far.
 
 <b>Signature:</b>
 
@@ -30,7 +30,6 @@ export declare abstract class ChatSessionBase<ParamsType extends StartChatParams
 |  --- | --- | --- | --- |
 |  [\_apiSettings](./ai.chatsessionbase.md#chatsessionbase_apisettings) |  | ApiSettings |  |
 |  [\_history](./ai.chatsessionbase.md#chatsessionbase_history) |  | [Content](./ai.content.md#content_interface)<!-- -->\[\] |  |
-|  [\_sendPromise](./ai.chatsessionbase.md#chatsessionbase_sendpromise) |  | Promise&lt;void&gt; | Ensures sequential execution of chat messages to maintain history order. Each call waits for the previous one to settle before proceeding. |
 |  [params](./ai.chatsessionbase.md#chatsessionbaseparams) |  | ParamsType \| undefined |  |
 |  [requestOptions](./ai.chatsessionbase.md#chatsessionbaserequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
 
@@ -38,10 +37,6 @@ export declare abstract class ChatSessionBase<ParamsType extends StartChatParams
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [\_callGenerateContent(formattedRequest, singleRequestOptions)](./ai.chatsessionbase.md#chatsessionbase_callgeneratecontent) |  | Type-specific generate content calls (inherited classes may implement this to call basic generateContent() or the template version) |
-|  [\_callGenerateContentStream(formattedRequest, singleRequestOptions)](./ai.chatsessionbase.md#chatsessionbase_callgeneratecontentstream) |  | Type-specific generate content stream calls (inherited classes may implement this to call basic generateContentStream() or the template version) |
-|  [\_sendMessage(request, singleRequestOptions)](./ai.chatsessionbase.md#chatsessionbase_sendmessage) |  | Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [\_sendMessageStream(request, singleRequestOptions)](./ai.chatsessionbase.md#chatsessionbase_sendmessagestream) |  | Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 |  [getHistory()](./ai.chatsessionbase.md#chatsessionbasegethistory) |  | Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
 
 ## ChatSessionBase.(constructor)
@@ -78,16 +73,6 @@ protected _apiSettings: ApiSettings;
 protected _history: Content[];
 ```
 
-## ChatSessionBase.\_sendPromise
-
-Ensures sequential execution of chat messages to maintain history order. Each call waits for the previous one to settle before proceeding.
-
-<b>Signature:</b>
-
-```typescript
-protected _sendPromise: Promise<void>;
-```
-
 ## ChatSessionBase.params
 
 <b>Signature:</b>
@@ -103,90 +88,6 @@ params?: ParamsType | undefined;
 ```typescript
 requestOptions?: RequestOptions | undefined;
 ```
-
-## ChatSessionBase.\_callGenerateContent()
-
-Type-specific generate content calls (inherited classes may implement this to call basic generateContent() or the template version)
-
-<b>Signature:</b>
-
-```typescript
-abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  formattedRequest | RequestType |  |
-|  singleRequestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
-
-<b>Returns:</b>
-
-Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)<!-- -->&gt;
-
-## ChatSessionBase.\_callGenerateContentStream()
-
-Type-specific generate content stream calls (inherited classes may implement this to call basic generateContentStream() or the template version)
-
-<b>Signature:</b>
-
-```typescript
-abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  formattedRequest | RequestType |  |
-|  singleRequestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
-
-<b>Returns:</b>
-
-Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface)<!-- -->&gt;
-
-## ChatSessionBase.\_sendMessage()
-
-Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)
-
-<b>Signature:</b>
-
-```typescript
-_sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
-
-<b>Returns:</b>
-
-Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface)<!-- -->&gt;
-
-## ChatSessionBase.\_sendMessageStream()
-
-Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise.
-
-<b>Signature:</b>
-
-```typescript
-_sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  request | string \| Array&lt;string \| [Part](./ai.md#part)<!-- -->&gt; |  |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
-
-<b>Returns:</b>
-
-Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface)<!-- -->&gt;
 
 ## ChatSessionBase.getHistory()
 

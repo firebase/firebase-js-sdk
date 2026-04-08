@@ -37,8 +37,9 @@ import { ApiSettings } from '../types/internal';
 import { ChatSessionBase } from './chat-session-base';
 
 /**
- * ChatSession class that enables sending chat messages and stores
- * history of sent and received messages so far for a server template.
+ * `ChatSession` class for use with server prompt templates that
+ * enables sending chat messages and stores history of sent and
+ * received messages so far.
  *
  * @beta
  */
