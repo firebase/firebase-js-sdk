@@ -232,6 +232,10 @@ export function getInlineDataParts(
 const badFinishReasons = [
   FinishReason.RECITATION,
   FinishReason.SAFETY,
+  FinishReason.BLOCKLIST,
+  FinishReason.PROHIBITED_CONTENT,
+  FinishReason.SPII,
+  FinishReason.MALFORMED_FUNCTION_CALL,
   FinishReason.IMAGE_SAFETY,
   FinishReason.IMAGE_PROHIBITED_CONTENT,
   FinishReason.IMAGE_OTHER,
