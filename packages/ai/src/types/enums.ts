@@ -291,22 +291,24 @@ export type FinishReason = (typeof FinishReason)[keyof typeof FinishReason];
  * Aspect ratios for generated images.
  * @public
  */
+/* eslint-disable camelcase */
 export const ImageConfigAspectRatio = {
-  'SQUARE_1x1': '1:1',
-  'PORTRAIT_9x16': '9:16',
-  'LANDSCAPE_16x9': '16:9',
-  'PORTRAIT_3x4': '3:4',
-  'LANDSCAPE_4x3': '4:3',
-  'PORTRAIT_2x3': '2:3',
-  'LANDSCAPE_3x2': '3:2',
-  'PORTRAIT_4x5': '4:5',
-  'LANDSCAPE_5x4': '5:4',
-  'PORTRAIT_1x4': '1:4',
-  'LANDSCAPE_4x1': '4:1',
-  'PORTRAIT_1x8': '1:8',
-  'LANDSCAPE_8x1': '8:1',
-  'ULTRAWIDE_21x9': '21:9'
+  SQUARE_1x1: '1:1',
+  PORTRAIT_9x16: '9:16',
+  LANDSCAPE_16x9: '16:9',
+  PORTRAIT_3x4: '3:4',
+  LANDSCAPE_4x3: '4:3',
+  PORTRAIT_2x3: '2:3',
+  LANDSCAPE_3x2: '3:2',
+  PORTRAIT_4x5: '4:5',
+  LANDSCAPE_5x4: '5:4',
+  PORTRAIT_1x4: '1:4',
+  LANDSCAPE_4x1: '4:1',
+  PORTRAIT_1x8: '1:8',
+  LANDSCAPE_8x1: '8:1',
+  ULTRAWIDE_21x9: '21:9'
 } as const;
+/* eslint-enable camelcase */
 
 /**
  * Aspect ratios for generated images.
