@@ -75,7 +75,7 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
- * Request sent through {@link GenerativeModel.templateGenerateContent}
+ * Request sent through {@link TemplateGenerativeModel.generateContent}
  * @beta
  */
 export interface TemplateGenerateContentRequest {
@@ -87,7 +87,7 @@ export interface TemplateGenerateContentRequest {
 }
 
 /**
- * Internal version of teh template generate content request.
+ * Internal version of the template generate content request.
  * @internal
  */
 export interface TemplateRequestInternal

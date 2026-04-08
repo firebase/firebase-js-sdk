@@ -13,7 +13,7 @@ https://github.com/firebase/firebase-js-sdk
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Request sent through 
+Request sent through [TemplateGenerativeModel.generateContent()](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent)
 
 <b>Signature:</b>
 
