@@ -235,7 +235,9 @@ describe('AbstractDataConnectStreamTransport', () => {
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(preparedMessage.headers).to.exist;
-          expect(preparedMessage.headers?.authToken).to.equal(initialAuthToken);
+          expect(preparedMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
+            initialAuthToken
+          );
         });
 
         it('should NOT add the same auth token to subsequent messages', () => {
@@ -243,7 +245,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-Auth-Token']).to.be
+            .undefined;
         });
 
         it('should include auth token when it changes', () => {
@@ -251,14 +254,15 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-Auth-Token']).to.be
+            .undefined;
           transport.setAuthToken(newAuthToken);
           const thirdPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(thirdPreparedMessage.headers?.authToken).to.equal(
-            newAuthToken
-          );
+          expect(
+            thirdPreparedMessage.headers?.['X-Firebase-Auth-Token']
+          ).to.equal(newAuthToken);
         });
       });
 
@@ -268,9 +272,9 @@ describe('AbstractDataConnectStreamTransport', () => {
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(firstPreparedMessage.headers).to.exist;
-          expect(firstPreparedMessage.headers?.appCheckToken).to.equal(
-            initialAppCheckToken
-          );
+          expect(
+            firstPreparedMessage.headers?.['X-Firebase-App-Check']
+          ).to.equal(initialAppCheckToken);
         });
 
         it('should NOT add the same app check token to subsequent messages', () => {
@@ -278,7 +282,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.appCheckToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+            .undefined;
         });
 
         it('should NOT include app check token when it changes', () => {
@@ -286,12 +291,14 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.appCheckToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+            .undefined;
           transport.setAppCheckToken(newAppCheckToken);
           const thirdPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(thirdPreparedMessage.headers?.appCheckToken).to.be.undefined;
+          expect(thirdPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+            .undefined;
         });
       });
 
@@ -374,8 +381,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         unpreparedMessage
       ) as DataConnectStreamRequest<unknown>;
       expect(secondMessage.name).to.be.undefined;
-      expect(secondMessage.headers?.appCheckToken).to.be.undefined;
-      expect(secondMessage.headers?.authToken).to.be.undefined;
+      expect(secondMessage.headers?.['X-Firebase-App-Check']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Firebase-Auth-Token']).to.be.undefined;
 
       // Trigger the physical connection reset
       transport.triggerOnConnectionReady();
@@ -385,10 +392,12 @@ describe('AbstractDataConnectStreamTransport', () => {
         unpreparedMessage
       ) as DataConnectStreamRequest<unknown>;
       expect(thirdMessage.name).to.equal(expectedName);
-      expect(thirdMessage.headers?.appCheckToken).to.equal(
+      expect(thirdMessage.headers?.['X-Firebase-App-Check']).to.equal(
         initialAppCheckToken
       );
-      expect(thirdMessage.headers?.authToken).to.equal(initialAuthToken);
+      expect(thirdMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
+        initialAuthToken
+      );
     });
   });
 

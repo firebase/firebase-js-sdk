@@ -426,12 +426,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this._callerSdkType
     );
     if (this.shouldIncludeAuth && this._authToken) {
-      headers.authToken = this._authToken;
+      headers['X-Firebase-Auth-Token'] = this._authToken;
       this.lastSentAuthToken = this._authToken;
     }
     if (this.isFirstStreamMessage) {
       if (this._appCheckToken) {
-        headers.appCheckToken = this._appCheckToken;
+        headers['X-Firebase-App-Check'] = this._appCheckToken;
       }
       preparedRequestBody.name = this._connectorResourcePath;
     }
