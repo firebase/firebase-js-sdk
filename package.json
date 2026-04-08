@@ -93,6 +93,7 @@
     "api-documenter-me": "0.1.1",
     "api-extractor-me": "0.1.2",
     "babel-loader": "8.4.1",
+    "babel-plugin-istanbul": "7.0.1",
     "chai": "4.5.0",
     "chai-as-promised": "7.1.2",
     "chalk": "4.1.2",

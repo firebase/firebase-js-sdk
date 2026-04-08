@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+export { PipelineSource, subcollection } from './lite-api/pipeline-source';
 
 export { OneOf } from './util/types';
 
@@ -35,10 +35,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -50,16 +52,19 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from './lite-api/stage_options';
 
 export {
-  field,
   constant,
   add,
   subtract,
   multiply,
   divide,
+  field,
   mod,
   equal,
   notEqual,
@@ -72,9 +77,13 @@ export {
   arrayContains,
   arrayContainsAny,
   arrayContainsAll,
+  arrayFilter,
+  arrayTransform,
+  arrayTransformWithIndex,
   arrayFirst,
   arrayFirstN,
   arrayGet,
+  arraySlice,
   arrayIndexOf,
   arrayIndexOfAll,
   arrayLast,
@@ -88,6 +97,8 @@ export {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -145,6 +156,7 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   countIf,
@@ -155,6 +167,7 @@ export {
   mapRemove,
   mapMerge,
   documentId,
+  parent,
   substring,
   countDistinct,
   ceil,
@@ -174,11 +187,23 @@ export {
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   log10,
   arraySum,
   timestampTruncate,
+  timestampExtract,
   split,
+  variable,
+  currentDocument,
+  score,
+  documentMatches,
+  geoDistance,
+  // TODO(search) add with backend support
+  // snippet,
+  // SnippetOptions,
+  // matches,
   Expression,
   AliasedExpression,
   Field,
@@ -190,7 +215,8 @@ export {
   AliasedAggregate,
   Selectable,
   TimeGranularity,
-  Type
+  TimePart,
+  TimeUnit
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';

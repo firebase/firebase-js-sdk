@@ -20,6 +20,11 @@ import { ImagenImageFormat } from '../../requests/imagen-image-format';
 /**
  * Parameters for configuring an {@link ImagenModel}.
  *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
  * @public
  */
 export interface ImagenModelParams {
@@ -48,6 +53,11 @@ export interface ImagenModelParams {
  *
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images-imagen | documentation} for
  * more details.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -108,6 +118,11 @@ export interface ImagenGenerationConfig {
  * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
  * @public
  */
 export const ImagenSafetyFilterLevel = {
@@ -142,6 +157,11 @@ export const ImagenSafetyFilterLevel = {
  * and the {@link https://cloud.google.com/vertex-ai/generative-ai/docs/image/responsible-ai-imagen#safety-filters | Responsible AI and usage guidelines}
  * for more details.
  *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
  * @public
  */
 export type ImagenSafetyFilterLevel =
@@ -152,6 +172,11 @@ export type ImagenSafetyFilterLevel =
  *
  * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
  * documentation for more details.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -184,6 +209,11 @@ export const ImagenPersonFilterLevel = {
  * See the <a href="http://firebase.google.com/docs/vertex-ai/generate-images">personGeneration</a>
  * documentation for more details.
  *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
  * @public
  */
 export type ImagenPersonFilterLevel =
@@ -194,6 +224,11 @@ export type ImagenPersonFilterLevel =
  *
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -217,6 +252,11 @@ export interface ImagenSafetySettings {
  *
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
@@ -251,6 +291,11 @@ export const ImagenAspectRatio = {
  *
  * See the {@link http://firebase.google.com/docs/vertex-ai/generate-images | documentation }
  * for more details and examples of the supported aspect ratios.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @public
  */
