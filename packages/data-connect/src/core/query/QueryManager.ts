@@ -28,13 +28,21 @@ import { DataConnectSubscription } from '../../api.browser';
 import { DataConnectCache, ServerValues } from '../../cache/Cache';
 import { parseEntityIds } from '../../cache/cacheUtils';
 import { EncodingMode } from '../../cache/EntityNode';
-import { DataConnectTransport, Extensions } from '../../network';
 import {
+  DataConnectTransportInterface,
+  Extensions,
   DataConnectExtensionWithMaxAge,
-  ExtensionsWithMaxAge
-} from '../../network/transport';
+  ExtensionsWithMaxAge,
+  SubscribeObserver,
+  DataConnectResponse
+} from '../../network';
 import { decoderImpl, encoderImpl } from '../../util/encoder';
-import { Code, DataConnectError } from '../error';
+import {
+  Code,
+  DataConnectError,
+  DataConnectOperationError,
+  DataConnectOperationFailureResponse
+} from '../error';
 
 import {
   OnCompleteSubscription,
@@ -85,9 +93,13 @@ export class QueryManager {
     string,
     Array<DataConnectSubscription<unknown, unknown>>
   >();
+  /**
+   * Map of serialized query keys to most recent Query Result. Used as a simple fallback cache
+   * for subsciptions if caching is not enabled.
+   */
   private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
   constructor(
-    private transport: DataConnectTransport,
+    private transport: DataConnectTransportInterface,
     private dc: DataConnect,
     private cache?: DataConnectCache
   ) {}
@@ -154,10 +166,15 @@ export class QueryManager {
     const unsubscribe = (): void => {
       if (this.callbacks.has(key)) {
         const callbackList = this.callbacks.get(key)!;
-        this.callbacks.set(
-          key,
-          callbackList.filter(callback => callback !== subscription)
+        const newList = callbackList.filter(
+          callback => callback !== subscription
         );
+        this.callbacks.set(key, newList);
+
+        if (newList.length === 0) {
+          this.callbacks.delete(key);
+          this.transport.invokeUnsubscribe(queryRef.name, queryRef.variables);
+        }
         onCompleteCallback?.();
       }
     };
@@ -175,12 +192,22 @@ export class QueryManager {
     // We want to ignore the error and let subscriptions handle it
     promise.then(undefined, err => {});
 
-    if (!this.callbacks.has(key)) {
-      this.callbacks.set(key, []);
+    if (this.callbacks.has(key)) {
+      this.callbacks
+        .get(key)!
+        .push(subscription as DataConnectSubscription<unknown, unknown>);
+    } else {
+      this.callbacks.set(key, [
+        subscription as DataConnectSubscription<unknown, unknown>
+      ]);
+
+      // only invoke subscription if we don't already have an active subscription
+      this.transport.invokeSubscribe<Data, Variables>(
+        this.makeSubscribeObserver(queryRef),
+        queryRef.name,
+        queryRef.variables
+      );
     }
-    this.callbacks
-      .get(key)!
-      .push(subscription as DataConnectSubscription<unknown, unknown>);
 
     return unsubscribe;
   }
@@ -215,8 +242,7 @@ export class QueryManager {
           fetchTime
         )
       };
-      let updatedKeys: string[] = [];
-      updatedKeys = await this.updateCache(
+      const updatedKeys = await this.updateCache(
         queryResult,
         originalExtensions?.dataConnect
       );
@@ -342,6 +368,7 @@ export class QueryManager {
     return result as QueryResult<Data, Variables>;
   }
 
+  /** Call the registered onNext callbacks for the given key */
   publishDataToSubscribers(
     key: string,
     queryResult: QueryResult<unknown, unknown>
@@ -390,6 +417,108 @@ export class QueryManager {
   }
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
+  }
+
+  /**
+   * Create a new {@link SubscribeObserver} for the given QueryRef. This will be passed to
+   * {@link DataConnectTransportInterface.invokeSubscribe | invokeSubscribe()} to notify the query
+   * layer of data update notifications or if the stream disconnected.
+   */
+  private makeSubscribeObserver<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
+  ): SubscribeObserver<Data> {
+    const key = encoderImpl({
+      name: queryRef.name,
+      variables: queryRef.variables,
+      refType: QUERY_STR
+    });
+    return {
+      onData: async response => {
+        await this.handleStreamNotification(key, response, queryRef);
+      },
+      onDisconnect: (code, reason) => {
+        this.handleStreamDisconnect(key, code, reason);
+      },
+      onError: error => {
+        this.publishErrorToSubscribers(key, error);
+      }
+    };
+  }
+
+  /**
+   * Handle a data update notification from the stream. Notify subscribers of results/errors, and
+   * update the cache.
+   */
+  private async handleStreamNotification<Data, Variables>(
+    key: string,
+    response: DataConnectResponse<Data>,
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<void> {
+    if (response.errors && response.errors.length > 0) {
+      const stringified = JSON.stringify(
+        response.errors.map(e => {
+          if (e && typeof e === 'object') {
+            return {
+              message: (e as unknown as { message: string }).message,
+              code: (e as unknown as { code?: unknown }).code
+            };
+          }
+          return e;
+        })
+      );
+      const failureResponse: DataConnectOperationFailureResponse = {
+        errors: response.errors as [],
+        data: response.data as Record<string, unknown>
+      };
+      const error = new DataConnectOperationError(
+        'DataConnect error received from subscribe notification: ' +
+          stringified,
+        failureResponse
+      );
+      this.publishErrorToSubscribers(key, error);
+      return;
+    }
+
+    const fetchTime = Date.now().toString();
+    const queryResult: QueryResult<Data, Variables> = {
+      ref: queryRef,
+      source: SOURCE_SERVER,
+      fetchTime,
+      data: response.data,
+      extensions: getDataConnectExtensionsWithoutMaxAge(response.extensions),
+      toJSON: getRefSerializer(
+        queryRef,
+        response.data,
+        SOURCE_SERVER,
+        fetchTime
+      )
+    };
+    const updatedKeys = await this.updateCache(
+      queryResult,
+      response.extensions?.dataConnect
+    );
+    this.publishDataToSubscribers(key, queryResult);
+    if (this.cache) {
+      await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
+    }
+  }
+
+  /**
+   * Handle a disconnect from the stream. Unsubscribe all callbacks for the given key.
+   */
+  private handleStreamDisconnect(
+    key: string,
+    code: string,
+    reason: string
+  ): void {
+    const error = new DataConnectError(code as Code, reason);
+    this.publishErrorToSubscribers(key, error);
+
+    const callbacks = this.callbacks.get(key);
+    if (callbacks) {
+      [...callbacks].forEach(cb => cb.unsubscribe());
+    }
+    return;
   }
 }
 
