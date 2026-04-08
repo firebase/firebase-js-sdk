@@ -896,9 +896,9 @@ export type Language = (typeof Language)[keyof typeof Language];
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
 }
 
