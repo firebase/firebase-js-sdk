@@ -75,6 +75,27 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
+ * Request sent through {@link TemplateGenerativeModel.generateContent}
+ * @beta
+ */
+export interface TemplateGenerateContentRequest {
+  inputs?: Record<string, unknown>;
+  history?: Content[];
+  tools?: TemplateFunctionDeclarationsTool[];
+  toolConfig?: ToolConfig;
+  [key: string]: unknown;
+}
+
+/**
+ * Internal version of the template generate content request.
+ * @internal
+ */
+export interface TemplateRequestInternal
+  extends Omit<TemplateGenerateContentRequest, 'tools'> {
+  tools?: TemplateFunctionDeclarationsToolInternal[];
+}
+
+/**
  * Safety setting that can be sent as part of request parameters.
  * @public
  */
@@ -225,6 +246,23 @@ export interface StartChatParams extends BaseParams {
 }
 
 /**
+ * Params for {@link TemplateGenerativeModel.startChat}.
+ * @beta
+ */
+export interface StartTemplateChatParams
+  extends Omit<StartChatParams, 'tools'> {
+  /**
+   * The ID of the server-side template to execute.
+   */
+  templateId: string;
+  /**
+   * A key-value map of variables to populate the template with.
+   */
+  templateVariables?: Record<string, unknown>;
+  tools?: TemplateTool[];
+}
+
+/**
  * Params for calling {@link GenerativeModel.countTokens}
  * @public
  */
@@ -268,7 +306,7 @@ export interface RequestOptions {
    * When it reaches this limit, it will return the last response received
    * from the model, whether it is a text response or further function calls.
    */
-  maxSequentalFunctionCalls?: number;
+  maxSequentialFunctionCalls?: number;
 }
 
 /**
@@ -443,6 +481,79 @@ export interface FunctionDeclarationsTool {
    */
   functionDeclarations?: FunctionDeclaration[];
 }
+
+/**
+ * Structured representation of a template function declaration.
+ * Included in this declaration are the function name and parameters. This
+ * `TemplateFunctionDeclaration` is a representation of a block of code that can be used
+ * as a Tool by the model and executed by the client.
+ * Note: Template function declarations do not support description fields.
+ * @beta
+ */
+export interface TemplateFunctionDeclaration {
+  /**
+   * The name of the function to call. Must start with a letter or an
+   * underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with
+   * a max length of 64.
+   */
+  name: string;
+  /**
+   * Description is intentionally unsupported for template function declarations.
+   */
+  description?: never;
+  /**
+   * Optional. Describes the parameters to this function in JSON Schema Object
+   * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
+   * case-sensitive. For a function with no parameters, this can be left unset.
+   */
+  parameters?: ObjectSchema | ObjectSchemaRequest;
+  /**
+   * Reference to an actual function to call. Specifying this will cause the
+   * function to be called automatically when requested by the model.
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  functionReference?: Function;
+}
+
+/**
+ * @internal
+ */
+export interface TemplateFunctionDeclarationInternal
+  extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+  inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
+/**
+ * A piece of code that enables the system to interact with external systems.
+ * @beta
+ */
+export interface TemplateFunctionDeclarationsTool {
+  /**
+   * Optional. One or more function declarations
+   * to be passed to the server-side template execution.
+   */
+  functionDeclarations?: TemplateFunctionDeclaration[];
+}
+
+/**
+ * The modified interface for the tool that is sent to the backend.
+ * @internal
+ */
+export interface TemplateFunctionDeclarationsToolInternal {
+  /**
+   * Optional. One or more function declarations
+   * to be passed to the server-side template execution.
+   */
+  templateFunctions?: TemplateFunctionDeclarationInternal[];
+}
+
+/**
+ * Defines a tool that a {@link TemplateGenerativeModel} can call
+ * to access external knowledge.
+ * Only function declarations are currently supported for templates.
+ * @beta
+ */
+export type TemplateTool = TemplateFunctionDeclarationsTool;
 
 /**
  * Tool config. This config is shared for all tools provided in the request.
