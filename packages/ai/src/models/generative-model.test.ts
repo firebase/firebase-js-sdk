@@ -324,7 +324,7 @@ describe('GenerativeModel', () => {
     });
     restore();
   });
-  it('passes imageConfig through to ChatSession', async () => {
+  it('passes imageConfig through to ChatSession', () => {
     const genModel = new GenerativeModel(fakeAI, {
       model: 'my-model',
       generationConfig: {
