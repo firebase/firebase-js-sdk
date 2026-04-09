@@ -23,7 +23,9 @@ import { GenerateContentResult, RequestOptions } from '../types';
 import {
   AI,
   GenerateContentStreamResult,
-  SingleRequestOptions
+  SingleRequestOptions,
+  TemplateToolConfig,
+  ToolConfig
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
@@ -67,12 +69,16 @@ export class TemplateGenerativeModel {
   async generateContent(
     templateId: string,
     templateVariables: object,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions: SingleRequestOptions | undefined = undefined,
+    templateToolConfig: TemplateToolConfig | undefined = undefined
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
       templateId,
-      { inputs: templateVariables },
+      {
+        inputs: templateVariables,
+        toolConfig: templateToolConfig ? templateToolConfig : {}
+      },
       {
         ...this.requestOptions,
         ...singleRequestOptions
@@ -95,12 +101,16 @@ export class TemplateGenerativeModel {
   async generateContentStream(
     templateId: string,
     templateVariables: object,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions: SingleRequestOptions | undefined = undefined,
+    templateToolConfig: TemplateToolConfig | undefined = undefined
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
       templateId,
-      { inputs: templateVariables },
+      {
+        inputs: templateVariables,
+        toolConfig: templateToolConfig ? templateToolConfig : {}
+      },
       {
         ...this.requestOptions,
         ...singleRequestOptions
