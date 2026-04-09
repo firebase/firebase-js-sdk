@@ -463,7 +463,7 @@ export interface CodeExecutionTool {
  *
  * @public
  */
-export interface GoogleSearch { }
+export interface GoogleSearch {}
 
 /**
  * Specifies the Google Maps configuration.
@@ -496,7 +496,7 @@ export interface URLContextTool {
  *
  * @beta
  */
-export interface URLContext { }
+export interface URLContext {}
 
 /**
  * A `FunctionDeclarationsTool` is a piece of code that enables the system to
@@ -779,4 +779,4 @@ export interface SpeechConfig {
 /**
  * The audio transcription configuration.
  */
-export interface AudioTranscriptionConfig { }
+export interface AudioTranscriptionConfig {}
