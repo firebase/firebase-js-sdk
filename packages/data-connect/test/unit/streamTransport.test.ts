@@ -84,8 +84,10 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   }
 
   authProvider = {
-    getAuth: () => ({ getUid: () => this._authToken })
-  } as AuthTokenProvider;
+    getAuth: () => ({ getUid: () => this._authToken }),
+    getToken: (forceToken?: boolean) =>
+      Promise.resolve({ accessToken: this._authToken || 'token' })
+  } as unknown as AuthTokenProvider;
 
   /** Manually set app check token for testing purposes. */
   setAppCheckToken(token: string | null): void {
@@ -116,6 +118,11 @@ interface TransportWithInternals {
   triggerOnConnectionReady(): void;
   closeConnection(): Promise<void>;
   cancelClose(): void;
+  sendRequestMessage<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
+  ): Promise<void>;
+  getWithAuth(forceToken?: boolean): Promise<string | null>;
+  hasWaitedForInitialAuth: boolean;
   prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
@@ -209,10 +216,38 @@ describe('AbstractDataConnectStreamTransport', () => {
     transport.setAuthToken(initialAuthToken);
     transport.setAppCheckToken(initialAppCheckToken);
     transport.appId = initialAppId;
+    transport.hasWaitedForInitialAuth = true;
   });
 
   afterEach(() => {
     sinon.restore();
+  });
+
+  describe('sendRequestMessage', () => {
+    it('should wait until auth token and app check token have been initialized before sending the message', async () => {
+      transport.hasWaitedForInitialAuth = false;
+
+      let resolveAuth!: () => void;
+      const authPromise = new Promise<string | null>(resolve => {
+        resolveAuth = () => resolve('token');
+      });
+
+      const getWithAuthStub = sinon
+        .stub(transport, 'getWithAuth')
+        .returns(authPromise);
+      const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+      const promise = transport.sendRequestMessage(unpreparedMessage);
+
+      expect(getWithAuthStub).to.have.been.calledOnce;
+      expect(sendMessageSpy).to.not.have.been.called;
+
+      resolveAuth();
+      await promise;
+
+      expect(sendMessageSpy).to.have.been.calledOnce;
+      expect(sendMessageSpy).to.have.been.calledAfter(getWithAuthStub);
+    });
   });
 
   describe('prepareMessage', () => {
@@ -235,7 +270,9 @@ describe('AbstractDataConnectStreamTransport', () => {
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(preparedMessage.headers).to.exist;
-          expect(preparedMessage.headers?.authToken).to.equal(initialAuthToken);
+          expect(preparedMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
+            initialAuthToken
+          );
         });
 
         it('should NOT add the same auth token to subsequent messages', () => {
@@ -243,7 +280,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-Auth-Token']).to.be
+            .undefined;
         });
 
         it('should include auth token when it changes', () => {
@@ -251,14 +289,15 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.authToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-Auth-Token']).to.be
+            .undefined;
           transport.setAuthToken(newAuthToken);
           const thirdPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(thirdPreparedMessage.headers?.authToken).to.equal(
-            newAuthToken
-          );
+          expect(
+            thirdPreparedMessage.headers?.['X-Firebase-Auth-Token']
+          ).to.equal(newAuthToken);
         });
       });
 
@@ -268,9 +307,9 @@ describe('AbstractDataConnectStreamTransport', () => {
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
           expect(firstPreparedMessage.headers).to.exist;
-          expect(firstPreparedMessage.headers?.appCheckToken).to.equal(
-            initialAppCheckToken
-          );
+          expect(
+            firstPreparedMessage.headers?.['X-Firebase-App-Check']
+          ).to.equal(initialAppCheckToken);
         });
 
         it('should NOT add the same app check token to subsequent messages', () => {
@@ -278,7 +317,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.appCheckToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+            .undefined;
         });
 
         it('should NOT include app check token when it changes', () => {
@@ -286,12 +326,14 @@ describe('AbstractDataConnectStreamTransport', () => {
           const secondPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(secondPreparedMessage.headers?.appCheckToken).to.be.undefined;
+          expect(secondPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+            .undefined;
           transport.setAppCheckToken(newAppCheckToken);
           const thirdPreparedMessage = transport.prepareMessage(
             unpreparedMessage
           ) as DataConnectStreamRequest<unknown>;
-          expect(thirdPreparedMessage.headers?.appCheckToken).to.be.undefined;
+          expect(thirdPreparedMessage.headers?.['X-Firebase-App-Check']).to.be
+            .undefined;
         });
       });
 
@@ -374,8 +416,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         unpreparedMessage
       ) as DataConnectStreamRequest<unknown>;
       expect(secondMessage.name).to.be.undefined;
-      expect(secondMessage.headers?.appCheckToken).to.be.undefined;
-      expect(secondMessage.headers?.authToken).to.be.undefined;
+      expect(secondMessage.headers?.['X-Firebase-App-Check']).to.be.undefined;
+      expect(secondMessage.headers?.['X-Firebase-Auth-Token']).to.be.undefined;
 
       // Trigger the physical connection reset
       transport.triggerOnConnectionReady();
@@ -385,10 +427,12 @@ describe('AbstractDataConnectStreamTransport', () => {
         unpreparedMessage
       ) as DataConnectStreamRequest<unknown>;
       expect(thirdMessage.name).to.equal(expectedName);
-      expect(thirdMessage.headers?.appCheckToken).to.equal(
+      expect(thirdMessage.headers?.['X-Firebase-App-Check']).to.equal(
         initialAppCheckToken
       );
-      expect(thirdMessage.headers?.authToken).to.equal(initialAuthToken);
+      expect(thirdMessage.headers?.['X-Firebase-Auth-Token']).to.equal(
+        initialAuthToken
+      );
     });
   });
 
@@ -592,6 +636,11 @@ describe('AbstractDataConnectStreamTransport', () => {
             onDisconnect: sinon.spy(),
             onError: sinon.spy()
           };
+
+          const sendMessageStub = sinon.stub(transport, 'sendMessage');
+          sendMessageStub.onFirstCall().resolves();
+          sendMessageStub.onSecondCall().rejects(expectedError);
+
           transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
@@ -599,14 +648,11 @@ describe('AbstractDataConnectStreamTransport', () => {
             transport.activeSubscribeRequests.get(expectedKey);
           const subscribeRequestId = subscribeRequest?.requestId!;
 
-          const sendMessageStub = sinon
-            .stub(transport, 'sendMessage')
-            .rejects(expectedError);
           transport.invokeUnsubscribe(queryName1, variables1);
           // invokeUnsubscribe's sendMessage is fire and forget
           await sleep(500);
 
-          expect(sendMessageStub).to.have.been.calledOnce;
+          expect(sendMessageStub).to.have.been.calledTwice;
           expect(logErrorStub).to.have.been.calledOnce;
           expect(logErrorStub).to.have.been.calledWithMatch(
             'Stream Transport failed to send unsubscribe message'
@@ -1025,10 +1071,10 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      clock.tick(1000 * 59);
+      await clock.tickAsync(1000 * 59);
       expect(closeSpy).to.not.have.been.called;
 
-      clock.tick(1000 * 2);
+      await clock.tickAsync(1000 * 2);
       expect(closeSpy).to.have.been.calledOnce;
     });
 
@@ -1044,12 +1090,12 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      clock.tick(1000 * 30);
+      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
       await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      clock.tick(1000 * 65);
+      await clock.tickAsync(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
     });
 
@@ -1066,16 +1112,16 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      clock.tick(1000 * 30);
+      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
       sendMessageStub.rejects();
       await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      clock.tick(1000 * 30);
+      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
-      clock.tick(1000 * 35);
+      await clock.tickAsync(1000 * 35);
       expect(closeSpy).to.have.been.calledOnce;
     });
 
@@ -1093,7 +1139,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       void transport.invokeQuery(queryName2, variables2);
 
-      clock.tick(1000 * 65);
+      await clock.tickAsync(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
     });
 
@@ -1111,7 +1157,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       const queryPromise = transport.invokeQuery(queryName2, variables2);
 
-      clock.tick(1000 * 65);
+      await clock.tickAsync(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
 
       const expectedKey = transport.getMapKey(queryName2, variables2);
