@@ -171,6 +171,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private closeTimeoutFinished = false;
   /** current auth uid. used to detect if a different user logs in */
   private authUid: string | null | undefined;
+  /** Flag to ensure we wait for the initial auth state once per connection attempt. */
+  private hasWaitedForInitialAuth = false;
 
   /**
    * Tracks a query execution request, storing the request body and creating and storing a promise that
@@ -329,6 +331,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   protected onConnectionReady(): void {
     this.isFirstStreamMessage = true;
     this.lastSentAuthToken = null;
+    this.hasWaitedForInitialAuth = false;
   }
 
   /**
@@ -440,6 +443,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return preparedRequestBody;
   }
 
+  // TODO(stephenarosaj): just make this async
   /**
    * Sends a request message to the server via the concrete implementation.
    * Ensures the connection is ready and prepares the message before sending.
@@ -448,6 +452,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private sendRequestMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void> {
+    if (!this.hasWaitedForInitialAuth && this.authProvider) {
+      return this.getWithAuth().then(() => {
+        this.hasWaitedForInitialAuth = true;
+        return this.sendRequestMessage(requestBody);
+      });
+    }
     if (this.streamIsReady) {
       const prepared = this.prepareMessage(requestBody);
       return this.sendMessage(prepared);
