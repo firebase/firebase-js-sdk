@@ -25,8 +25,7 @@ import {
   GenerateContentStreamResult,
   SingleRequestOptions,
   StartTemplateChatParams,
-  TemplateToolConfig,
-  ToolConfig
+  TemplateToolConfig
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
