@@ -449,14 +449,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Ensures the connection is ready and prepares the message before sending.
    * @returns A promise that resolves when the request message has been sent.
    */
-  private sendRequestMessage<Variables>(
+  private async sendRequestMessage<Variables>(
     requestBody: DataConnectStreamRequest<Variables>
   ): Promise<void> {
     if (!this.hasWaitedForInitialAuth && this.authProvider) {
-      return this.getWithAuth().then(() => {
-        this.hasWaitedForInitialAuth = true;
-        return this.sendRequestMessage(requestBody);
-      });
+      await this.getWithAuth();
+      this.hasWaitedForInitialAuth = true;
     }
     if (this.streamIsReady) {
       const prepared = this.prepareMessage(requestBody);

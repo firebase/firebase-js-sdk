@@ -84,8 +84,10 @@ class TestStreamTransport extends AbstractDataConnectStreamTransport {
   }
 
   authProvider = {
-    getAuth: () => ({ getUid: () => this._authToken })
-  } as AuthTokenProvider;
+    getAuth: () => ({ getUid: () => this._authToken }),
+    getToken: (forceToken?: boolean) =>
+      Promise.resolve({ accessToken: this._authToken || 'token' })
+  } as unknown as AuthTokenProvider;
 
   /** Manually set app check token for testing purposes. */
   setAppCheckToken(token: string | null): void {
@@ -116,6 +118,11 @@ interface TransportWithInternals {
   triggerOnConnectionReady(): void;
   closeConnection(): Promise<void>;
   cancelClose(): void;
+  sendRequestMessage<Variables>(
+    requestBody: DataConnectStreamRequest<Variables>
+  ): Promise<void>;
+  getWithAuth(forceToken?: boolean): Promise<string | null>;
+  hasWaitedForInitialAuth: boolean;
   prepareMessage<
     Variables,
     StreamBody extends DataConnectStreamRequest<Variables>
@@ -209,10 +216,38 @@ describe('AbstractDataConnectStreamTransport', () => {
     transport.setAuthToken(initialAuthToken);
     transport.setAppCheckToken(initialAppCheckToken);
     transport.appId = initialAppId;
+    transport.hasWaitedForInitialAuth = true;
   });
 
   afterEach(() => {
     sinon.restore();
+  });
+
+  describe('sendRequestMessage', () => {
+    it('should wait until auth token and app check token have been initialized before sending the message', async () => {
+      transport.hasWaitedForInitialAuth = false;
+
+      let resolveAuth!: () => void;
+      const authPromise = new Promise<string | null>(resolve => {
+        resolveAuth = () => resolve('token');
+      });
+
+      const getWithAuthStub = sinon
+        .stub(transport, 'getWithAuth')
+        .returns(authPromise);
+      const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+      const promise = transport.sendRequestMessage(unpreparedMessage);
+
+      expect(getWithAuthStub).to.have.been.calledOnce;
+      expect(sendMessageSpy).to.not.have.been.called;
+
+      resolveAuth();
+      await promise;
+
+      expect(sendMessageSpy).to.have.been.calledOnce;
+      expect(sendMessageSpy).to.have.been.calledAfter(getWithAuthStub);
+    });
   });
 
   describe('prepareMessage', () => {
@@ -601,6 +636,11 @@ describe('AbstractDataConnectStreamTransport', () => {
             onDisconnect: sinon.spy(),
             onError: sinon.spy()
           };
+
+          const sendMessageStub = sinon.stub(transport, 'sendMessage');
+          sendMessageStub.onFirstCall().resolves();
+          sendMessageStub.onSecondCall().rejects(expectedError);
+
           transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
@@ -608,14 +648,11 @@ describe('AbstractDataConnectStreamTransport', () => {
             transport.activeSubscribeRequests.get(expectedKey);
           const subscribeRequestId = subscribeRequest?.requestId!;
 
-          const sendMessageStub = sinon
-            .stub(transport, 'sendMessage')
-            .rejects(expectedError);
           transport.invokeUnsubscribe(queryName1, variables1);
           // invokeUnsubscribe's sendMessage is fire and forget
           await sleep(500);
 
-          expect(sendMessageStub).to.have.been.calledOnce;
+          expect(sendMessageStub).to.have.been.calledTwice;
           expect(logErrorStub).to.have.been.calledOnce;
           expect(logErrorStub).to.have.been.calledWithMatch(
             'Stream Transport failed to send unsubscribe message'
@@ -1034,10 +1071,10 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      clock.tick(1000 * 59);
+      await clock.tickAsync(1000 * 59);
       expect(closeSpy).to.not.have.been.called;
 
-      clock.tick(1000 * 2);
+      await clock.tickAsync(1000 * 2);
       expect(closeSpy).to.have.been.calledOnce;
     });
 
@@ -1053,12 +1090,12 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      clock.tick(1000 * 30);
+      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
       await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      clock.tick(1000 * 65);
+      await clock.tickAsync(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
     });
 
@@ -1075,16 +1112,16 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      clock.tick(1000 * 30);
+      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
       sendMessageStub.rejects();
       await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      clock.tick(1000 * 30);
+      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
-      clock.tick(1000 * 35);
+      await clock.tickAsync(1000 * 35);
       expect(closeSpy).to.have.been.calledOnce;
     });
 
@@ -1102,7 +1139,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       void transport.invokeQuery(queryName2, variables2);
 
-      clock.tick(1000 * 65);
+      await clock.tickAsync(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
     });
 
@@ -1120,7 +1157,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       const queryPromise = transport.invokeQuery(queryName2, variables2);
 
-      clock.tick(1000 * 65);
+      await clock.tickAsync(1000 * 65);
       expect(closeSpy).to.not.have.been.called;
 
       const expectedKey = transport.getMapKey(queryName2, variables2);
