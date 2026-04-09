@@ -216,6 +216,8 @@ toc:
     path: /docs/reference/js/ai.templategenerativemodel.md
   - title: TemplateImagenModel
     path: /docs/reference/js/ai.templateimagenmodel.md
+  - title: TemplateToolConfig
+    path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
   - title: ThinkingConfig

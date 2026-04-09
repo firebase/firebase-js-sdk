@@ -39,8 +39,8 @@ export declare class TemplateGenerativeModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateContent(templateId, templateVariables, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
-|  [generateContentStream(templateId, templateVariables, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [generateContent(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
 
 ## TemplateGenerativeModel.(constructor)
 
@@ -85,7 +85,7 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions | undefined, templateToolConfig?: TemplateToolConfig | undefined): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
@@ -94,7 +94,8 @@ generateContent(templateId: string, templateVariables: object, singleRequestOpti
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | object | A key-value map of variables to populate the template with. |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) \| undefined |  |
+|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) \| undefined |  |
 
 <b>Returns:</b>
 
@@ -110,7 +111,7 @@ Makes a single streaming call to the model and returns an object containing an i
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions | undefined, templateToolConfig?: TemplateToolConfig | undefined): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
@@ -119,7 +120,8 @@ generateContentStream(templateId: string, templateVariables: object, singleReque
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | object | A key-value map of variables to populate the template with. |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) |  |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) \| undefined |  |
+|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) \| undefined |  |
 
 <b>Returns:</b>
 
