@@ -50,9 +50,9 @@ export interface StreamRequest {
  * @internal
  */
 export interface StreamRequestHeaders {
-  /** used to initially authenticate or re-authenticate */
+  /** used to initially authenticate or re-authenticate user */
   'X-Firebase-Auth-Token'?: string;
-  /** used to initially authenticate or re-authenticate */
+  /** used to initially attest app */
   'X-Firebase-App-Check'?: string;
   /** SDK telemetry header */
   'X-Goog-Api-Client'?: string;
