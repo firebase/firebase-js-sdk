@@ -2787,10 +2787,10 @@
   resolved "https://registry.npmjs.org/@protobufjs/utf8/-/utf8-1.1.0.tgz#a777360b5b39a1a2e5106f8e858f2fd2d060c570"
   integrity sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==
 
-"@rollup/plugin-alias@5.1.1":
-  version "5.1.1"
-  resolved "https://registry.npmjs.org/@rollup/plugin-alias/-/plugin-alias-5.1.1.tgz#53601d88cda8b1577aa130b4a6e452283605bf26"
-  integrity sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ==
+"@rollup/plugin-alias@6.0.0":
+  version "6.0.0"
+  resolved "https://registry.npmjs.org/@rollup/plugin-alias/-/plugin-alias-6.0.0.tgz#f7fa8c806db9c073baa6b00e4b1c396edef9beb2"
+  integrity sha512-tPCzJOtS7uuVZd+xPhoy5W4vThe6KWXNmsFCNktaAh5RTqcLiSfT4huPQIXkgJ6YCOjJHvecOAzQxLFhPxKr+g==
 
 "@rollup/plugin-commonjs@21.1.0":
   version "21.1.0"

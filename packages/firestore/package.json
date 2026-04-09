@@ -148,7 +148,7 @@
     "@firebase/app": "0.14.11",
     "@firebase/app-compat": "0.5.11",
     "@firebase/auth": "1.13.0",
-    "@rollup/plugin-alias": "5.1.1",
+    "@rollup/plugin-alias": "6.0.0",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
     "chai-exclude": "2.1.1",
