@@ -39,8 +39,10 @@ import { makeJWT } from '../../test/helpers/jwt';
 use(chaiAsPromised);
 
 class MockMultiFactorAssertion extends MultiFactorAssertionImpl {
-  constructor(readonly response: FinalizeMfaResponse) {
+  public response: FinalizeMfaResponse;
+  constructor(response: FinalizeMfaResponse) {
     super(FactorId.PHONE);
+    this.response = response;
   }
 
   async _finalizeEnroll(
