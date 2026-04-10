@@ -54,7 +54,7 @@ import {
   getDefaultAppConfig,
   isBrowser,
   isWebWorker,
-  setDetailedErrors
+  enableContextualErrors as enableContextualErrorsImpl
 } from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
@@ -516,16 +516,6 @@ export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
 }
 
-export function enableDetailedErrors(enabled: boolean): void;
-export function enableDetailedErrors(firebaseApp: FirebaseApp, enabled: boolean): void;
-export function enableDetailedErrors(firebaseAppOrEnabled: FirebaseApp | boolean, enabled?: boolean): void {
-  let app = getApp();
-  let isEnabled = false;
-  if (typeof firebaseAppOrEnabled !== 'boolean') {
-    app = firebaseAppOrEnabled;
-    isEnabled = enabled!;
-  } else {
-    isEnabled = firebaseAppOrEnabled;
-  }
-  setDetailedErrors(app, isEnabled);
+export function enableContextualErrors(enabled: boolean): void {
+  enableContextualErrorsImpl(enabled);
 }

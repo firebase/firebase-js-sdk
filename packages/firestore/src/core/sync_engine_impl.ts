@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+
+import { errorWithAuthInfo, ErrorAuthInfo } from '@firebase/util';
 import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
@@ -65,7 +67,7 @@ import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
 import { ByteString } from '../util/byte_string';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, firestoreToContextualError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -115,6 +117,7 @@ import {
   ViewChange
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+
 
 const LOG_TAG = 'SyncEngine';
 
@@ -208,6 +211,7 @@ class SyncEngineImpl implements SyncEngine {
     queryEquals
   );
   queriesByTarget = new Map<TargetId, Query[]>();
+  targetAuthIdTokens = new Map<TargetId, string | null>();
   /**
    * The keys of documents that are in limbo for which we haven't yet started a
    * limbo resolution query. The strings in this set are the result of calling
@@ -348,6 +352,10 @@ async function allocateTargetAndMaybeListen(
   );
 
   const targetId = targetData.targetId;
+  syncEngineImpl.targetAuthIdTokens.set(
+    targetId,
+    syncEngineImpl.currentUser ? syncEngineImpl.currentUser.idToken : null
+  );
 
   // PORTING NOTE: When the query is listening to cache only, we skip sending it over to Watch by
   // not registering it in shared client state, and directly calculate initial snapshots and
@@ -633,7 +641,7 @@ export function syncEngineApplyOnlineStateChange(
       source === OnlineStateSource.SharedClientState)
   ) {
     const newViewSnapshots = [] as ViewSnapshot[];
-    syncEngineImpl.queryViewsByQuery.forEach((query, queryView) => {
+    syncEngineImpl.queryViewsByQuery.forEach((_query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
       debugAssert(
         viewChange.limboChanges.length === 0,
@@ -678,9 +686,16 @@ export async function syncEngineRejectListen(
   err: FirestoreError
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
+  
+  const capturedIdToken = syncEngineImpl.targetAuthIdTokens.get(targetId);
+  const idToken = capturedIdToken !== undefined ? capturedIdToken : (syncEngineImpl.currentUser ? syncEngineImpl.currentUser.idToken : null);
+  
+  const fullErr = idToken
+    ? (firestoreToContextualError(errorWithAuthInfo(err, idToken)) as FirestoreError)
+    : err;
 
   // PORTING NOTE: Multi-tab only.
-  syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', err);
+  syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', fullErr);
 
   const limboResolution =
     syncEngineImpl.activeLimboResolutionsByTarget.get(targetId);
@@ -731,7 +746,7 @@ export async function syncEngineRejectListen(
       targetId,
       /* keepPersistedTargetData */ false
     )
-      .then(() => removeAndCleanupTarget(syncEngineImpl, targetId, err))
+      .then(() => removeAndCleanupTarget(syncEngineImpl, targetId, fullErr))
       .catch(ignoreIfPrimaryLeaseLoss);
   }
 }
@@ -778,12 +793,17 @@ export async function syncEngineRejectFailedWrite(
       syncEngineImpl.localStore,
       batchId
     );
+    
 
     // The local store may or may not be able to apply the write result and
     // raise events immediately (depending on whether the watcher is caught up),
     // so we raise user callbacks first so that they consistently happen before
     // listen events.
+    // TODO: Make sure that the error used here parses FirestoreError.
+    // TODO: Make sure that the stack trace is correct.
     processUserCallback(syncEngineImpl, batchId, error);
+    // Attach the fact that it was a write here.
+    // syncEngineImpl.
     triggerPendingWritesCallbacks(syncEngineImpl, batchId);
 
     syncEngineImpl.sharedClientState.updateMutationState(
@@ -906,7 +926,10 @@ function processUserCallback(
         'Mutation callbacks processed out-of-order?'
       );
       if (error) {
-        callback.reject(error);
+        const fullErr = syncEngineImpl.currentUser
+          ? (firestoreToContextualError(errorWithAuthInfo(error, syncEngineImpl.currentUser.idToken)) as FirestoreError)
+          : error;
+        callback.reject(fullErr);
       } else {
         callback.resolve();
       }
@@ -938,6 +961,7 @@ function removeAndCleanupTarget(
   }
 
   syncEngineImpl.queriesByTarget.delete(targetId);
+  syncEngineImpl.targetAuthIdTokens.delete(targetId);
 
   if (syncEngineImpl.isPrimaryClient) {
     const limboKeys =
@@ -1198,7 +1222,7 @@ export async function syncEngineHandleCredentialChange(
     syncEngineImpl.sharedClientState.handleUserChange(
       user,
       result.removedBatchIds,
-      result.addedBatchIds
+      result.addedBatchIds,
     );
     await syncEngineEmitNewSnapsAndNotifyLocalStore(
       syncEngineImpl,
@@ -1729,3 +1753,5 @@ async function loadBundleImpl(
     return Promise.resolve(new Set<string>());
   }
 }
+
+

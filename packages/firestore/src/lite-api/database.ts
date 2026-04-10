@@ -377,7 +377,7 @@ export function connectFirestoreEmulator(
           "mockUserToken must contain 'sub' or 'user_id' field!"
         );
       }
-      user = new User(uid);
+      user = new User(uid, token);
     }
 
     firestore._authCredentials = new EmulatorAuthCredentialsProvider(

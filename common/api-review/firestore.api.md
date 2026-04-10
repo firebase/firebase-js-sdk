@@ -252,7 +252,7 @@ export interface FirestoreDataConverter<AppModelType, DbModelType extends Docume
 }
 
 // @public
-export class FirestoreError extends FirebaseError<CustomErrorInfo> {
+export class FirestoreError extends FirebaseError {
     readonly code: FirestoreErrorCode;
     readonly stack?: string;
 }

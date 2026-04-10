@@ -29,7 +29,6 @@ class RenameInternals {
     private readonly publicApi: Set<string>,
     private readonly prefix: string
   ) {
-    console.log('===INITIALIZED RENAMEINTERNALS===');
   }
 
   visitNodeAndChildren<T extends ts.Node>(
@@ -46,19 +45,13 @@ class RenameInternals {
   visitNode(node: ts.Node): ts.Node {
     if (ts.isIdentifier(node)) {
       const name = node.escapedText.toString();
-      if(name.includes('throwDetail')) {
-        console.log('==========throwdetail in public api: ', this.publicApi.has(name), '========');
-      }
       if (
         !this.publicApi.has(name) &&
         ignoredIdentifiers.indexOf(node.escapedText.toString()) === -1
       ) {
-        console.log('marking as private: ', name);
         const newIdentifier = ts.factory.createIdentifier(this.prefix + name);
         ts.setSourceMapRange(newIdentifier, ts.getSourceMapRange(node));
         return newIdentifier;
-      } else {
-        console.log('=====MARKING AS PUBLIC=====: ', name);
       }
     }
 
@@ -90,7 +83,6 @@ export function renameInternals(
 
   const renamer = new RenameInternals(config.publicIdentifiers, prefix);
   return (context: ts.TransformationContext) => (file: ts.SourceFile) => {
-    console.log('===Transforming file===: ', file.fileName);
     return renamer.visitNodeAndChildren(file, context);
   };
 }

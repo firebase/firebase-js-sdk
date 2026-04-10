@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
+import { ErrorFactory, ErrorMap, FirebaseError, parseIdTokenToAuthInfo,  FirebaseErrorWithAuthInfo, isContextualErrorsEnabled, enableContextualErrors, throwContextualError, } from '../src/errors';
+import { base64urlEncodeWithoutPadding } from '../src/crypt';
 
 type ErrorCode =
   | 'generic-error'
@@ -53,7 +54,7 @@ describe('FirebaseError', () => {
   });
 
   it('replaces template values with data', () => {
-    const e = ERROR_FACTORY.create('file-not-found', null, { file: 'foo.txt' });
+    const e = ERROR_FACTORY.create('file-not-found', { file: 'foo.txt' });
     assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
     assert.equal(
       e.message,
@@ -70,7 +71,7 @@ describe('FirebaseError', () => {
   });
 
   it('uses the key in the template if the replacement is missing', () => {
-    const e = ERROR_FACTORY.create('file-not-found', null, {
+    const e = ERROR_FACTORY.create('file-not-found', {
       fileX: 'foo.txt'
     } as any);
     assert.equal((e as FirebaseError)?.code, 'fake/file-not-found');
@@ -102,6 +103,69 @@ describe('FirebaseError', () => {
       assert.instanceOf(e, FirebaseError);
       assert.isDefined((e as FirebaseError).stack);
       assert.match((e as FirebaseError).stack!, /dummy2[\s\S]*?dummy1/);
+    }
+  });
+});
+
+describe('parseIdTokenToAuthInfo', () => {
+  it('should parse a valid token and return AuthInfo', () => {
+    /* eslint-disable camelcase */
+    const claimsObj = {
+      user_id: 'test-uid',
+      email: 'test@example.com',
+      email_verified: true,
+      provider_id: 'password'
+    };
+    /* eslint-enable camelcase */
+    const claims = base64urlEncodeWithoutPadding(JSON.stringify(claimsObj));
+    const header = 'e30'; // base64url for "{}"
+    const token = `${header}.${claims}.signature`;
+    const authInfo = parseIdTokenToAuthInfo(token);
+    assert.deepEqual(authInfo, {
+      userId: 'test-uid',
+      email: 'test@example.com',
+      emailVerified: true,
+      isAnonymous: false
+    });
+  });
+});
+
+describe('DetailedErrors', () => {
+  it('should be disabled by default', () => {
+    assert.isFalse(isContextualErrorsEnabled());
+  });
+
+  it('should enable detailed errors globally', () => {
+    enableContextualErrors(true);
+    assert.isTrue(isContextualErrorsEnabled());
+    enableContextualErrors(false); // reset
+  });
+
+  it('should throw detailed error when enabled', () => {
+    enableContextualErrors(true);
+    const baseError = new FirebaseError('fake/msg', 'base message');
+    const authInfo = { userId: 'uid', email: 'test@example.com', emailVerified: true, isAnonymous: false };
+    
+    try {
+      throw throwContextualError(baseError, authInfo);
+    } catch (e) {
+      assert.include((e as Error).message, 'base message');
+      assert.include((e as Error).message, 'uid');
+    }
+    enableContextualErrors(false); // reset
+  });
+
+  it('should throw standard error when disabled', () => {
+    enableContextualErrors(false);
+    const baseError = new FirebaseError('fake/msg', 'base message');
+    const authInfo = { userId: 'uid', email: 'test@example.com', emailVerified: true, isAnonymous: false };
+    
+    try {
+      throw throwContextualError(baseError, authInfo);
+    } catch (e) {
+      assert.instanceOf(e, FirebaseError);
+      assert.equal((e as Error).message, 'base message');
+      assert.deepEqual((e as FirebaseError).customData, authInfo);
     }
   });
 });

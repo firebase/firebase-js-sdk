@@ -21,15 +21,15 @@
  */
 export class User {
   /** A user with a null UID. */
-  static readonly UNAUTHENTICATED = new User(null);
+  static readonly UNAUTHENTICATED = new User(null, null);
 
   // TODO(mikelehen): Look into getting a proper uid-equivalent for
   // non-FirebaseAuth providers.
-  static readonly GOOGLE_CREDENTIALS = new User('google-credentials-uid');
-  static readonly FIRST_PARTY = new User('first-party-uid');
-  static readonly MOCK_USER = new User('mock-user');
+  static readonly GOOGLE_CREDENTIALS = new User('google-credentials-uid', null);
+  static readonly FIRST_PARTY = new User('first-party-uid', null);
+  static readonly MOCK_USER = new User('mock-user', null);
 
-  constructor(readonly uid: string | null) {}
+  constructor(readonly uid: string | null, readonly idToken: string | null = null) {}
 
   isAuthenticated(): boolean {
     return this.uid != null;

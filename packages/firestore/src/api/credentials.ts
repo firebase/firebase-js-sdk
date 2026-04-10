@@ -213,7 +213,7 @@ export class LiteAuthCredentialsProvider implements CredentialsProvider<User> {
         );
         return new OAuthToken(
           tokenData.accessToken,
-          new User(this.auth!.getUid())
+          new User(this.auth!.getUid(), tokenData.accessToken)
         );
       } else {
         return null;
@@ -254,10 +254,6 @@ export class FirebaseAuthCredentialsProvider
   private auth: FirebaseAuthInternal | null = null;
 
   private _currentToken: string | null = null;
-
-  getCurrentToken() {
-    return this._currentToken;
-  }
 
   constructor(private authProvider: Provider<FirebaseAuthInternalName>) {}
 
@@ -402,7 +398,7 @@ export class FirebaseAuthCredentialsProvider
       'Received invalid UID',
       { currentUid }
     );
-    return new User(currentUid);
+    return new User(currentUid, this._currentToken);
   }
 }
 

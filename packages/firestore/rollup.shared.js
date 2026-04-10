@@ -104,7 +104,6 @@ exports.onwarn = function (warning, defaultWarn) {
 const externsPaths = externs.map(p => path.resolve(__dirname, '../../', p));
 
 const publicIdentifiers = extractPublicIdentifiers(externsPaths);
-console.log('includes throwDetail: ', [...publicIdentifiers].filter(x => x.includes('throwDetail')));
 // manually add `_delegate` because we don't have typings for the compat package
 publicIdentifiers.add('_delegate');
 
@@ -123,7 +122,6 @@ exports.removeAssertTransformer = removeAssertTransformer;
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
 const removeAssertAndPrefixInternalTransformer = service => {
-  console.log('===removeAssertAndPrefixInternalTransformer called===');
   return {
     before: [
       removeAsserts(service.getProgram()),

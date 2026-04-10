@@ -429,8 +429,7 @@ export class WebChannelConnection extends RestConnection {
             }
             // Mark closed so no further events are propagated
             closed = true;
-            const idToken = authToken?.headers.get('Authorization')?.split(' ')[1];
-            streamBridge.callOnClose(new FirestoreError(code, message, idToken));
+            streamBridge.callOnClose(new FirestoreError(code, message));
             channel.close();
           } else {
             logDebug(

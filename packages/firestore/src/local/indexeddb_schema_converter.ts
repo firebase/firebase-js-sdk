@@ -537,7 +537,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       return PersistencePromise.forEach(
         userToDocumentSet,
         (allDocumentKeysForUser, userId) => {
-          const user = new User(userId);
+          const user = new User(userId, null);
           const documentOverlayCache = IndexedDbDocumentOverlayCache.forUser(
             this.serializer,
             user

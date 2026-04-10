@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 
-import { CredentialsProvider } from '../api/credentials';
+
+
+import { errorWithAuthInfo } from '@firebase/util';
+import { CredentialsProvider, Token } from '../api/credentials';
 import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
@@ -40,7 +43,7 @@ import {
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
-import { Code, FirestoreError } from '../util/error';
+import { Code, FirestoreError, FirestoreErrorCode } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 
 import { Connection } from './connection';
@@ -123,19 +126,25 @@ class DatastoreImpl extends Datastore {
         );
       })
       .catch(async (error: FirestoreError) => {
-        const token = await authTokenPromise;
-        console.log('token in datastore', token);
-        const idToken = token?.headers.get('Authorization')?.split(' ')[1];
-        if (error.name === 'FirebaseError') {
-          if (error.code === Code.UNAUTHENTICATED) {
-            this.authCredentials.invalidateToken();
-            this.appCheckCredentials.invalidateToken();
-          }
-          throw new FirestoreError(error.code, error.toString(), idToken);
-        } else {
-          throw new FirestoreError(Code.UNKNOWN, error.toString(), idToken);
-        }
+        throw this.withIdTokenWrapper(error, await authTokenPromise);
       });
+  }
+
+  withIdTokenWrapper(error: FirestoreError, idToken: Token | null): FirestoreError {
+    if (error.name === 'FirebaseError') {
+      if (error.code === Code.UNAUTHENTICATED) {
+        this.authCredentials.invalidateToken();
+        this.appCheckCredentials.invalidateToken();
+      }
+      if(idToken !== null) {
+        const { user } = idToken;
+        const firebaseErrorWithAuthInfo = errorWithAuthInfo(error, user?.idToken);
+        return new FirestoreError(firebaseErrorWithAuthInfo.code as FirestoreErrorCode, firebaseErrorWithAuthInfo.message, firebaseErrorWithAuthInfo.customData);
+      }
+      return new FirestoreError(error.code, error.toString());
+    } else {
+      return new FirestoreError(Code.UNKNOWN, error.toString());
+    }
   }
 
   /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
@@ -164,18 +173,7 @@ class DatastoreImpl extends Datastore {
         );
       })
       .catch(async (error: FirestoreError) => {
-        const token = await authTokenPromise;
-        const idToken = token?.headers.get('Authorization')?.split(' ')[1];
-        console.log('token in datastore', token);
-        if (error.name === 'FirebaseError') {
-          if (error.code === Code.UNAUTHENTICATED) {
-            this.authCredentials.invalidateToken();
-            this.appCheckCredentials.invalidateToken();
-          }
-          throw new FirestoreError(error.code, error.toString(), idToken);
-        } else {
-          throw new FirestoreError(Code.UNKNOWN, error.toString(), idToken);
-        }
+        throw this.withIdTokenWrapper(error, await authTokenPromise);
       });
   }
 

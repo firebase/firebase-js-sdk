@@ -4,7 +4,12 @@
 
 ```ts
 
-import { FirebaseApp } from '@firebase/app';
+// Warning: (ae-missing-release-tag) "addContextualMsg" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function addContextualMsg<T extends {
+    authInfo: ErrorAuthInfo | null;
+}, E extends FirebaseError<T>>(originalError: E): E;
 
 // Warning: (ae-missing-release-tag) "areCookiesEnabled" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -25,6 +30,14 @@ export const assertionError: (message: string) => Error;
 //
 // @public
 export function async(fn: Function, onError?: ErrorFn): Function;
+
+// Warning: (ae-missing-release-tag) "AuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface AuthInfo {
+    // (undocumented)
+    authInfo: ErrorAuthInfo | null;
+}
 
 // Warning: (ae-forgotten-export) The symbol "Base64" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "base64" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -142,6 +155,11 @@ export type EmulatorMockTokenOptions = ({
     sub: string;
 }) & Partial<FirebaseIdToken>;
 
+// Warning: (ae-missing-release-tag) "enableContextualErrors" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function enableContextualErrors(enabled: boolean): void;
+
 // Warning: (ae-missing-release-tag) "ErrorAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -172,9 +190,7 @@ export class ErrorFactory<ErrorCode extends string, ErrorParams extends {
 } = {}> {
     constructor(service: string, serviceName: string, errors: ErrorMap<ErrorCode>);
     // (undocumented)
-    create<K extends ErrorCode>(code: K, ...data: (K extends keyof ErrorParams ? [ErrorParams[K]] : []) & {
-        idToken?: string | null;
-    }): FirebaseError;
+    create<K extends ErrorCode>(code: K, ...data: (K extends keyof ErrorParams ? [ErrorParams[K]] : [])): FirebaseError;
     }
 
 // Warning: (ae-missing-release-tag) "ErrorFn" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -184,7 +200,7 @@ export type ErrorFn = (error: Error) => void;
 
 // Warning: (ae-missing-release-tag) "ErrorMap" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
-// @public (undocumented)
+// @public
 export type ErrorMap<ErrorCode extends string> = {
     readonly [K in ErrorCode]: string;
 };
@@ -193,6 +209,13 @@ export type ErrorMap<ErrorCode extends string> = {
 //
 // @public
 export function errorPrefix(fnName: string, argName: string): string;
+
+// Warning: (ae-missing-release-tag) "errorWithAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function errorWithAuthInfo(error: FirebaseError, idToken?: string | null): FirebaseError<Record<string, unknown>> | FirebaseError<{
+    authInfo: ErrorAuthInfo | null | undefined;
+}>;
 
 // Warning: (ae-missing-release-tag) "Executor" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -227,15 +250,22 @@ export interface FirebaseDefaults {
 // @public (undocumented)
 export class FirebaseError<T = Record<string, unknown>> extends Error {
     constructor(
-    code: string, message: string, idTokenOrAuthInfo?: string | ErrorAuthInfo | null,
+    code: string, message: string,
     customData?: T | undefined);
-    // (undocumented)
-    readonly authInfo: ErrorAuthInfo | null;
     readonly code: string;
+    // (undocumented)
+    copyWithAuthInfo(authInfo?: ErrorAuthInfo | null): FirebaseError<{
+        authInfo: ErrorAuthInfo | null | undefined;
+    }>;
     readonly customData?: T | undefined;
     readonly name: string;
-    // (undocumented)
-    readonly originalMessage: string;
+}
+
+// Warning: (ae-missing-release-tag) "FirebaseErrorWithAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export class FirebaseErrorWithAuthInfo extends FirebaseError<AuthInfo> {
+    constructor(error: FirebaseError, authInfo: ErrorAuthInfo | null);
 }
 
 // Warning: (ae-missing-release-tag) "FirebaseSignInProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -296,6 +326,11 @@ export function isCloudflareWorker(): boolean;
 
 // @public
 export function isCloudWorkstation(url: string): boolean;
+
+// Warning: (ae-missing-release-tag) "isContextualErrorsEnabled" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function isContextualErrorsEnabled(): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -423,6 +458,11 @@ export interface Observer<T> {
 // @public
 export function ordinal(i: number): string;
 
+// Warning: (ae-missing-release-tag) "parseIdTokenToAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo;
+
 // Warning: (ae-missing-release-tag) "PartialObserver" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -457,11 +497,6 @@ export const RANDOM_FACTOR = 0.5;
 //
 // @public (undocumented)
 export function safeGet<T extends object, K extends keyof T>(obj: T, key: K): T[K] | undefined;
-
-// Warning: (ae-missing-release-tag) "setDetailedErrors" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export function setDetailedErrors(firebaseApp: FirebaseApp, enabled: boolean): void;
 
 // Warning: (ae-missing-release-tag) "Sha1" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -511,11 +546,6 @@ export interface Subscribe<T> {
     // (undocumented)
     (observer: PartialObserver<T>): Unsubscribe;
 }
-
-// Warning: (ae-missing-release-tag) "throwDetailedError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export function throwDetailedError<T = Record<string, unknown>>(firebaseApp: FirebaseApp, error: FirebaseError<T>, customData: T): FirebaseError<T>;
 
 // Warning: (ae-missing-release-tag) "Unsubscribe" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
