@@ -11,14 +11,14 @@ https://github.com/firebase/firebase-js-sdk
 
 # SlidingWindow interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Sliding window configuration.
 
 <b>Signature:</b>
 
 ```typescript
-export interface SlidingWindow 
+export interface SlidingWindow
 ```
 
 ## Properties
@@ -30,7 +30,7 @@ export interface SlidingWindow
 ## SlidingWindow.targetTokens
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Target number of tokens for the sliding window.
 

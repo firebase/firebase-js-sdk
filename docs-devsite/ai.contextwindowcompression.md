@@ -11,14 +11,14 @@ https://github.com/firebase/firebase-js-sdk
 
 # ContextWindowCompression interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Context window compression configuration.
 
 <b>Signature:</b>
 
 ```typescript
-export interface ContextWindowCompression 
+export interface ContextWindowCompression
 ```
 
 ## Properties
@@ -31,7 +31,7 @@ export interface ContextWindowCompression
 ## ContextWindowCompression.slidingWindow
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Sliding window configuration.
 
@@ -44,7 +44,7 @@ slidingWindow?: SlidingWindow;
 ## ContextWindowCompression.triggerTokens
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+>
 
 Number of tokens that triggers compression.
 
