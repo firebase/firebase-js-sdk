@@ -64,6 +64,8 @@ export class TemplateGenerativeModel {
    * @param templateId - The ID of the server-side template to execute.
    * @param templateVariables - A key-value map of variables to populate the
    * template with.
+   * @param singleRequestOptions - Optional. Options to use for this request.
+   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
    *
    * @beta
    */
@@ -78,7 +80,7 @@ export class TemplateGenerativeModel {
       templateId,
       {
         inputs: templateVariables,
-        toolConfig: templateToolConfig ? templateToolConfig : {}
+        toolConfig: templateToolConfig
       },
       {
         ...this.requestOptions,
@@ -96,6 +98,8 @@ export class TemplateGenerativeModel {
    * @param templateId - The ID of the server-side template to execute.
    * @param templateVariables - A key-value map of variables to populate the
    * template with.
+   * @param singleRequestOptions - Optional.Options to use for this request.
+   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
    *
    * @beta
    */
@@ -110,7 +114,7 @@ export class TemplateGenerativeModel {
       templateId,
       {
         inputs: templateVariables,
-        toolConfig: templateToolConfig ? templateToolConfig : {}
+        toolConfig: templateToolConfig
       },
       {
         ...this.requestOptions,
