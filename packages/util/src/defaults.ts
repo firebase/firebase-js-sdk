@@ -116,7 +116,6 @@ export const getDefaults = (): FirebaseDefaults | undefined => {
      * and add paths for them if needed.
      */
     console.info(`Unable to get __FIREBASE_DEFAULTS__ due to: ${e}`);
-    console.error(`Unable to get __FIREBASE_DEFAULTS__ due to: ${e}`);
     return;
   }
 };
