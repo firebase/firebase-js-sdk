@@ -176,6 +176,14 @@ export interface LiveGenerationConfig {
    */
   speechConfig?: SpeechConfig;
   /**
+   * Configuration for proactivity.
+   */
+  proactivity?: ProactivityConfig;
+  /**
+   * Context window compression configuration.
+   */
+  contextWindowCompression?: ContextWindowCompression;
+  /**
    * Specifies the maximum number of tokens that can be generated in the response. The number of
    * tokens per word varies depending on the language outputted. Is unbounded by default.
    */
@@ -703,3 +711,40 @@ export interface SpeechConfig {
  * The audio transcription configuration.
  */
 export interface AudioTranscriptionConfig {}
+
+/**
+ * Configuration for proactivity.
+ * @beta
+ */
+export interface ProactivityConfig {
+  /**
+   * Whether the model is allowed to pro-actively output audio.
+   */
+  proactiveAudio?: boolean;
+}
+
+/**
+ * Sliding window configuration.
+ * @beta
+ */
+export interface SlidingWindow {
+  /**
+   * Target number of tokens for the sliding window.
+   */
+  targetTokens?: number;
+}
+
+/**
+ * Context window compression configuration.
+ * @beta
+ */
+export interface ContextWindowCompression {
+  /**
+   * Number of tokens that triggers compression.
+   */
+  triggerTokens?: number;
+  /**
+   * Sliding window configuration.
+   */
+  slidingWindow?: SlidingWindow;
+}

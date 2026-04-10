@@ -264,6 +264,12 @@ export interface Content {
     role: Role;
 }
 
+// @beta
+export interface ContextWindowCompression {
+    slidingWindow?: SlidingWindow;
+    triggerTokens?: number;
+}
+
 // @public
 export interface CountTokensRequest {
     // (undocumented)
@@ -983,11 +989,13 @@ export interface LanguageModelPromptOptions {
 
 // @beta
 export interface LiveGenerationConfig {
+    contextWindowCompression?: ContextWindowCompression;
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
     outputAudioTranscription?: AudioTranscriptionConfig;
     presencePenalty?: number;
+    proactivity?: ProactivityConfig;
     responseModalities?: ResponseModality[];
     speechConfig?: SpeechConfig;
     temperature?: number;
@@ -1177,6 +1185,11 @@ export interface PrebuiltVoiceConfig {
     voiceName?: string;
 }
 
+// @beta
+export interface ProactivityConfig {
+    proactiveAudio?: boolean;
+}
+
 // @public
 export interface PromptFeedback {
     // (undocumented)
@@ -1345,6 +1358,11 @@ export interface Segment {
 // @public
 export interface SingleRequestOptions extends RequestOptions {
     signal?: AbortSignal;
+}
+
+// @beta
+export interface SlidingWindow {
+    targetTokens?: number;
 }
 
 // @beta
