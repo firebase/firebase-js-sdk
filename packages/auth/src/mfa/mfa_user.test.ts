@@ -39,7 +39,7 @@ import { makeJWT } from '../../test/helpers/jwt';
 use(chaiAsPromised);
 
 class MockMultiFactorAssertion extends MultiFactorAssertionImpl {
-  public response: FinalizeMfaResponse;
+  response: FinalizeMfaResponse;
   constructor(response: FinalizeMfaResponse) {
     super(FactorId.PHONE);
     this.response = response;

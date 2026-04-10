@@ -497,7 +497,7 @@ describe('Firebase Storage > Upload Task', () => {
     ERROR: 'error',
     COMPLETE: 'complete'
   } as const;
-  type StateType = typeof StateType[keyof typeof StateType];
+  type StateType = (typeof StateType)[keyof typeof StateType];
   interface State {
     type: StateType;
     data?: Error;
