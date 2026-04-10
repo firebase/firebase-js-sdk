@@ -116,8 +116,7 @@ export class LiveGenerativeModel extends AIModel {
         sliding_window: contextWindowCompression.slidingWindow
           ? {
               // eslint-disable-next-line camelcase
-              target_tokens:
-                contextWindowCompression.slidingWindow.targetTokens
+              target_tokens: contextWindowCompression.slidingWindow.targetTokens
             }
           : undefined
       };
