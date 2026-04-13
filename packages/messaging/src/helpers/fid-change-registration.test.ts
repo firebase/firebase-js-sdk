@@ -76,7 +76,7 @@ describe('subscribeFidChangeRegistration', () => {
     requestCreateRegistrationStub = stub(
       requestsModule,
       'requestCreateRegistration'
-    ).resolves() as Stub<typeof requestsModule.requestCreateRegistration>;
+    ).resolves({}) as Stub<typeof requestsModule.requestCreateRegistration>;
   });
 
   afterEach(async () => {

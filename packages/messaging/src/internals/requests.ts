@@ -33,6 +33,8 @@ export const FID_REGISTRATION_FETCH_BASE_BACKOFF_MS = 1000;
 
 export interface ApiResponse {
   token?: string;
+  /** Present when the CreateRegistration response echoes the Firebase Installation ID. */
+  fid?: string;
   error?: { message: string };
 }
 
@@ -91,10 +93,15 @@ export async function requestGetToken(
  *
  * This is used by the FID-based register path, where we don't require the returned FCM token.
  */
+export interface CreateRegistrationResult {
+  /** FID echoed by CreateRegistration when present; omitted if the body is empty or has no `fid`. */
+  responseFid?: string;
+}
+
 export async function requestCreateRegistration(
   firebaseDependencies: FirebaseInternalDependencies,
   subscriptionOptions: SubscriptionOptions
-): Promise<void> {
+): Promise<CreateRegistrationResult> {
   const headers = await getHeaders(firebaseDependencies);
   const body = getBody(subscriptionOptions);
 
@@ -119,7 +126,8 @@ export async function requestCreateRegistration(
   }
 
   if (response.ok) {
-    return;
+    const responseFid = await parseCreateRegistrationSuccessFid(response);
+    return responseFid !== undefined ? { responseFid } : {};
   }
 
   // `fetch()` succeeded, but the backend returned a non-2xx response.
@@ -138,6 +146,25 @@ export async function requestCreateRegistration(
   throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
     errorInfo: message
   });
+}
+
+/**
+ * Best-effort parse of a successful CreateRegistration body. Older backends may return an empty
+ * body; when `fid` is absent we do not treat that as an error.
+ */
+async function parseCreateRegistrationSuccessFid(
+  response: Response
+): Promise<string | undefined> {
+  const text = await response.text();
+  if (!text.trim()) {
+    return undefined;
+  }
+  try {
+    const data = JSON.parse(text) as ApiResponse;
+    return typeof data.fid === 'string' ? data.fid : undefined;
+  } catch {
+    return undefined;
+  }
 }
 
 export async function requestUpdateToken(

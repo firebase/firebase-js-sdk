@@ -22,14 +22,21 @@ import {
   arrayToBase64
 } from '../helpers/array-base64-translator';
 import { requestCreateRegistration } from './requests';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+
+/** Retries when CreateRegistration echoes an FID that does not match Installations.getId(). */
+const FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS = 3;
 
 /**
  * For the new FID-based register path:
  * - Create (or refresh) an FCM Web registration in the backend via CreateRegistration.
  * - Use the FIS auth token produced by the installations instance (implicitly associated with FID).
+ * - When the response includes `fid`, it must match `expectedFid` from Installations.getId(); on
+ *   mismatch we refresh the auth token and retry, then fail with `fid-registration-failed`.
  */
 export async function registerFcmRegistrationWithFid(
-  messaging: MessagingService
+  messaging: MessagingService,
+  expectedFid: string
 ): Promise<void> {
   const pushSubscription = await getPushSubscription(
     messaging.swRegistration!,
@@ -44,11 +51,34 @@ export async function registerFcmRegistrationWithFid(
     p256dh: arrayToBase64(pushSubscription.getKey('p256dh')!)
   };
 
-  // Only rely on HTTP success/failure; do not depend on response token.
-  await requestCreateRegistration(
-    messaging.firebaseDependencies,
-    subscriptionOptions
-  );
+  const installations = messaging.firebaseDependencies.installations;
+
+  for (
+    let attempt = 0;
+    attempt < FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS;
+    attempt++
+  ) {
+    if (attempt > 0) {
+      await installations.getToken(true);
+    }
+
+    const { responseFid } = await requestCreateRegistration(
+      messaging.firebaseDependencies,
+      subscriptionOptions
+    );
+
+    if (responseFid === undefined) {
+      return;
+    }
+    if (responseFid === expectedFid) {
+      return;
+    }
+  }
+
+  throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+    errorInfo:
+      'CreateRegistration response FID does not match Firebase Installation ID'
+  });
 }
 
 async function getPushSubscription(

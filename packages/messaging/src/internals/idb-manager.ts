@@ -44,10 +44,10 @@ export interface FidRegistrationDetails {
   lastRegisterTime: number;
 }
 
-type IdbImpl = {
+interface IdbImpl {
   openDB: typeof openDB;
   deleteDB: typeof deleteDB;
-};
+}
 
 const defaultIdb: IdbImpl = { openDB, deleteDB };
 let idbImpl: IdbImpl = defaultIdb;

@@ -136,6 +136,32 @@ describe('API', () => {
       expect(fetchStub).to.have.callCount(1);
     });
 
+    it('returns responseFid when the success body includes fid', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ fid: 'installation-fid-1' }), {
+          status: 200
+        })
+      );
+
+      const result = await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
+    });
+
+    it('returns no responseFid when the success body is empty', async () => {
+      fetchStub.resolves(new Response(null, { status: 200 }));
+
+      const result = await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(result).to.deep.equal({});
+    });
+
     it('retries fetch on thrown errors with exponential backoff then succeeds', async () => {
       const delays: number[] = [];
       stub(self, 'setTimeout').callsFake(

@@ -83,7 +83,7 @@ export async function register(
       return;
     }
 
-    await registerFcmRegistrationWithFid(messaging);
+    await registerFcmRegistrationWithFid(messaging, fid);
     await dbSetFidRegistration(messaging.firebaseDependencies, {
       fid,
       lastRegisterTime: now

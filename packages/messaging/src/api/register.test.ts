@@ -66,7 +66,7 @@ describe('register', () => {
     requestCreateRegistrationStub = stub(
       requestsModule,
       'requestCreateRegistration'
-    ).resolves();
+    ).resolves({});
   });
 
   afterEach(() => {
@@ -126,6 +126,57 @@ describe('register', () => {
     await register(messaging);
 
     expect(observer.next).to.have.been.calledOnceWith('FID');
+  });
+
+  it('retries CreateRegistration when response FID mismatches Installations then succeeds', async () => {
+    const customInstallations = getFakeInstallations();
+    const getTokenStub = stub(customInstallations, 'getToken').callsFake(
+      async (_force?: boolean) => 'authToken'
+    );
+    messaging = new MessagingService(
+      getFakeApp(),
+      customInstallations,
+      getFakeAnalyticsProvider()
+    );
+    messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
+    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.onRegisteredHandler = stub();
+
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .resolves({ responseFid: 'wrong-fid' })
+      .onSecondCall()
+      .resolves({ responseFid: 'FID' });
+
+    await register(messaging);
+
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(getTokenStub).to.have.been.calledOnceWith(true);
+  });
+
+  it('rejects when CreateRegistration FID never matches Installations after retries', async () => {
+    const customInstallations = getFakeInstallations();
+    const getTokenStub = stub(customInstallations, 'getToken').callsFake(
+      async () => 'authToken'
+    );
+    messaging = new MessagingService(
+      getFakeApp(),
+      customInstallations,
+      getFakeAnalyticsProvider()
+    );
+    messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
+    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.onRegisteredHandler = stub();
+
+    requestCreateRegistrationStub.resolves({ responseFid: 'always-wrong' });
+
+    await expect(register(messaging)).to.be.rejectedWith(
+      'messaging/fid-registration-failed'
+    );
+
+    expect(requestCreateRegistrationStub).to.have.callCount(3);
+    expect(getTokenStub).to.have.been.calledTwice;
+    expect(getTokenStub).to.have.been.calledWith(true);
   });
 
   it('uses FID from installations.getId()', async () => {
