@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-
-
 import { CredentialsProvider, Token } from '../api/credentials';
 import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
@@ -111,10 +109,7 @@ class DatastoreImpl extends Datastore {
     this.verifyInitialized();
     const authTokenPromise = this.authCredentials.getToken();
     const appCheckTokenPromise = this.appCheckCredentials.getToken();
-    return Promise.all([
-      authTokenPromise,
-      appCheckTokenPromise
-    ])
+    return Promise.all([authTokenPromise, appCheckTokenPromise])
       .then(([authToken, appCheckToken]) => {
         return this.connection.invokeRPC<Req, Resp>(
           rpcName,
@@ -129,13 +124,16 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  withIdTokenWrapper(error: FirestoreError, token: Token | null): FirestoreError {
+  withIdTokenWrapper(
+    error: FirestoreError,
+    token: Token | null
+  ): FirestoreError {
     if (error.name === 'FirebaseError') {
       if (error.code === Code.UNAUTHENTICATED) {
         this.authCredentials.invalidateToken();
         this.appCheckCredentials.invalidateToken();
       }
-      if(token !== null && token.user) {
+      if (token !== null && token.user) {
         const { user } = token;
         return error.copyWithAuthInfo(user.idToken);
       }
@@ -156,10 +154,7 @@ class DatastoreImpl extends Datastore {
     this.verifyInitialized();
     const authTokenPromise = this.authCredentials.getToken();
     const appCheckTokenPromise = this.appCheckCredentials.getToken();
-    return Promise.all([
-      authTokenPromise,
-      appCheckTokenPromise
-    ])
+    return Promise.all([authTokenPromise, appCheckTokenPromise])
       .then(([authToken, appCheckToken]) => {
         return this.connection.invokeStreamingRPC<Req, Resp>(
           rpcName,

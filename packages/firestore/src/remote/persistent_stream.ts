@@ -533,7 +533,9 @@ export abstract class PersistentStream<
     });
     this.stream.onClose((error?: FirestoreError) => {
       dispatchIfNotClosed(() => {
-        return this.handleStreamClose(error);
+        return this.handleStreamClose(
+          error?.copyWithAuthInfo(authToken?.user?.idToken || null)
+        );
       });
     });
     this.stream.onMessage((msg: ReceiveType) => {
@@ -671,7 +673,11 @@ export class PersistentListenStream extends PersistentStream<
     // A successful response means the stream is healthy
     this.backoff.reset();
     const credentials = this.authToken?.user;
-    const watchChange = fromWatchChange(this.serializer, watchChangeProto, credentials);
+    const watchChange = fromWatchChange(
+      this.serializer,
+      watchChangeProto,
+      credentials
+    );
     const snapshot = versionFromListenResponse(watchChangeProto);
     return this.listener!.onWatchChange(watchChange, snapshot);
   }

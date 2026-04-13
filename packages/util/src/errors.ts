@@ -80,7 +80,6 @@ export function isContextualErrorsEnabled(): boolean {
   return contextualErrorsEnabled;
 }
 
-
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
 export class FirebaseError<T = Record<string, unknown>> extends Error {
@@ -92,7 +91,7 @@ export class FirebaseError<T = Record<string, unknown>> extends Error {
     readonly code: string,
     message: string,
     /** Custom data for this error. */
-    readonly customData?: T,
+    readonly customData?: T
   ) {
     super(message);
     // Fix For ES5
@@ -107,31 +106,33 @@ export class FirebaseError<T = Record<string, unknown>> extends Error {
       Error.captureStackTrace(this, ErrorFactory.prototype.create);
     }
   }
-
 }
 
-export function getContextualMsg<T extends { authInfo: ErrorAuthInfo | null }, E extends FirebaseError<T>>(originalError: E): string {
+export function getContextualMsg<
+  T extends { authInfo: ErrorAuthInfo | null },
+  E extends FirebaseError<T>
+>(originalError: E): string {
   if (!isContextualErrorsEnabled() || !originalError.customData) {
     return originalError.message;
   }
 
   const { authInfo, ...rest } = originalError.customData;
-  
+
   let restStr: string = '';
   try {
     restStr = JSON.stringify(rest);
-  } catch {
-  }
+  } catch {}
 
   let authInfoStr = '';
   if (authInfo) {
     try {
       authInfoStr = JSON.stringify(authInfo);
-    } catch {
-    }
+    } catch {}
   }
 
-  return `${originalError.message} Extra Context: ${restStr} ${authInfo ? `AuthInfo: ${authInfoStr}` : ''}`;
+  return `${originalError.message} Extra Context: ${restStr} ${
+    authInfo ? `AuthInfo: ${authInfoStr}` : ''
+  }`;
 }
 
 export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo {
@@ -156,11 +157,11 @@ export class ErrorFactory<
     private readonly service: string,
     private readonly serviceName: string,
     private readonly errors: ErrorMap<ErrorCode>
-  ) { }
+  ) {}
 
   create<K extends ErrorCode>(
     code: K,
-    ...data: (K extends keyof ErrorParams ? [ErrorParams[K]] : [])
+    ...data: K extends keyof ErrorParams ? [ErrorParams[K]] : []
   ): FirebaseError {
     const customData = (data[0] as ErrorData) || {};
     const fullCode = `${this.service}/${code}`;
@@ -190,4 +191,3 @@ export interface ErrorAuthInfo {
   emailVerified: boolean;
   isAnonymous: boolean;
 }
-

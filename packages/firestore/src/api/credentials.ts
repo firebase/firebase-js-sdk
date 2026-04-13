@@ -114,7 +114,6 @@ export interface CredentialsProvider<T> {
     changeListener: CredentialChangeListener<T>
   ): void;
 
-
   /** Requests a token for the current user. */
   getToken(): Promise<Token | null>;
 

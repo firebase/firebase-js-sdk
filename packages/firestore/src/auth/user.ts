@@ -29,7 +29,10 @@ export class User {
   static readonly FIRST_PARTY = new User('first-party-uid', null);
   static readonly MOCK_USER = new User('mock-user', null);
 
-  constructor(readonly uid: string | null, readonly idToken: string | null = null) {}
+  constructor(
+    readonly uid: string | null,
+    readonly idToken: string | null = null
+  ) {}
 
   isAuthenticated(): boolean {
     return this.uid != null;

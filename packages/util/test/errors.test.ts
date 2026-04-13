@@ -15,7 +15,15 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { ErrorFactory, ErrorMap, FirebaseError, parseIdTokenToAuthInfo,  FirebaseErrorWithAuthInfo, isContextualErrorsEnabled, enableContextualErrors, } from '../src/errors';
+import {
+  ErrorFactory,
+  ErrorMap,
+  FirebaseError,
+  parseIdTokenToAuthInfo,
+  FirebaseErrorWithAuthInfo,
+  isContextualErrorsEnabled,
+  enableContextualErrors
+} from '../src/errors';
 import { base64urlEncodeWithoutPadding } from '../src/crypt';
 
 type ErrorCode =
@@ -140,7 +148,6 @@ describe('DetailedErrors', () => {
     assert.isTrue(isContextualErrorsEnabled());
     enableContextualErrors(false); // reset
   });
-
 });
 
 function dummy1(): void {

@@ -17,11 +17,13 @@
 
 import { Observer } from '../core/event_manager';
 
-import { FirestoreError, firestoreToContextualError, OperationType } from './error';
+import {
+  FirestoreError,
+  firestoreToContextualError,
+  OperationType
+} from './error';
 import { logError } from './log';
 import { EventHandler } from './misc';
-
-
 
 /*
  * A wrapper implementation of Observer<T> that will dispatch events
@@ -83,12 +85,19 @@ export class ContextualErrorObserver<T> extends AsyncObserver<T> {
     if (this.muted) {
       return;
     }
-    const errorWithPath = firestoreToContextualError(error, {path: this.path, operationType: this.operationType}, true) as FirestoreError;
+    const errorWithPath = firestoreToContextualError(
+      error,
+      { path: this.path, operationType: this.operationType },
+      true
+    ) as FirestoreError;
     if (this.observer.error) {
       // TODO: Copy stack
       this.scheduleEvent(this.observer.error, errorWithPath);
     } else {
-      logError('Uncaught Error in snapshot listener:', errorWithPath.toString());
+      logError(
+        'Uncaught Error in snapshot listener:',
+        errorWithPath.toString()
+      );
     }
   }
 }

@@ -73,8 +73,6 @@ import {
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
 
-
-
 /**
  * An options object that can be passed to {@link (onSnapshot:1)} and {@link
  * QuerySnapshot.docChanges} to control which types of changes to include in the

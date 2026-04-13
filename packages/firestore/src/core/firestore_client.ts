@@ -61,7 +61,12 @@ import { AsyncQueue, wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader, BundleReaderSync } from '../util/bundle_reader';
 import { newBundleReader } from '../util/bundle_reader_impl';
 import { newBundleReaderSync } from '../util/bundle_reader_sync_impl';
-import { Code, FirestoreError, OperationType, firestoreToContextualError } from '../util/error';
+import {
+  Code,
+  FirestoreError,
+  OperationType,
+  firestoreToContextualError
+} from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { AutoId } from '../util/misc';
 import { Deferred } from '../util/promise';
@@ -156,7 +161,7 @@ export class FirestoreClient {
     }
   ) {
     this._uninitializedComponentsProvider = componentProvider;
-    this.authCredentials.start(asyncQueue, async (user) => {
+    this.authCredentials.start(asyncQueue, async user => {
       logDebug(LOG_TAG, 'Received user=', user.uid);
       await this.authCredentialListener(user);
       this.user = user;
@@ -462,7 +467,11 @@ export function firestoreClientListen(
   options: ListenOptions,
   observer: Partial<Observer<ViewSnapshot>>
 ): () => void {
-  const wrappedObserver = new ContextualErrorObserver(observer, query.path.canonicalString(), 'listen');
+  const wrappedObserver = new ContextualErrorObserver(
+    observer,
+    query.path.canonicalString(),
+    'listen'
+  );
   const listener = new QueryListener(query, wrappedObserver, options);
   client.asyncQueue.enqueueAndForget(async () => {
     const eventManager = await getEventManager(client);
@@ -482,7 +491,11 @@ export function firestoreClientGetDocumentFromLocalCache(
   docKey: DocumentKey
 ): Promise<Document | null> {
   const deferred = new Deferred<Document | null>();
-  const wrappedDeferred = getWrappedDeferred(deferred, docKey.path.canonicalString(), 'read');
+  const wrappedDeferred = getWrappedDeferred(
+    deferred,
+    docKey.path.canonicalString(),
+    'read'
+  );
   client.asyncQueue.enqueueAndForget(async () => {
     const localStore = await getLocalStore(client);
     return readDocumentFromCache(localStore, docKey, wrappedDeferred);
@@ -558,7 +571,13 @@ export function firestoreClientRunAggregateQuery(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
     } catch (e) {
-      deferred.reject(firestoreToContextualError(e as Error, { path: query.path.toString(), operationType: 'read' }, true));
+      deferred.reject(
+        firestoreToContextualError(
+          e as Error,
+          { path: query.path.toString(), operationType: 'read' },
+          true
+        )
+      );
     }
   });
   return deferred.promise;
@@ -581,15 +600,18 @@ export function firestoreClientExecutePipeline(
   return deferred.promise;
 }
 
-function getWrappedDeferred<T>(deferred: Deferred<T>, path: string, operationType: OperationType): Deferred<T> {
+function getWrappedDeferred<T>(
+  deferred: Deferred<T>,
+  path: string,
+  operationType: OperationType
+): Deferred<T> {
   const wrappedDeferred = new Deferred<T>();
-  wrappedDeferred.promise.then(
-    deferred.resolve,
-    (err) => {
-      // assume that the err has idToken
-      deferred.reject(firestoreToContextualError(err, { path, operationType }, true));
-    }
-  );
+  wrappedDeferred.promise.then(deferred.resolve, err => {
+    // assume that the err has idToken
+    deferred.reject(
+      firestoreToContextualError(err, { path, operationType }, true)
+    );
+  });
   return wrappedDeferred;
 }
 
@@ -598,12 +620,20 @@ export function firestoreClientWrite(
   mutations: Mutation[]
 ): Promise<void> {
   const deferred = new Deferred<void>();
-  
+
   // What about the case where there's a second mutation that failed?
-  const wrappedDeferred = getWrappedDeferred(deferred, mutations[0].key.path.canonicalString(), 'write');
+  const wrappedDeferred = getWrappedDeferred(
+    deferred,
+    mutations[0].key.path.canonicalString(),
+    'write'
+  );
   client.asyncQueue.enqueueAndForget(async () => {
     const syncEngine = await getSyncEngine(client);
-    return syncEngineWrite(syncEngine, mutations, mutations.length === 1 ? wrappedDeferred : deferred);
+    return syncEngineWrite(
+      syncEngine,
+      mutations,
+      mutations.length === 1 ? wrappedDeferred : deferred
+    );
   });
   return deferred.promise;
 }
@@ -640,8 +670,8 @@ export function firestoreClientAddSnapshotsInSyncListener(
  * accessed with the transaction will not reflect local changes that have not
  * been committed. For this reason, it is required that all reads are
  * performed before any writes. Transactions must be performed while online.
- * 
- * Note: This does not directly support Contextual Errors, as there are multiple 
+ *
+ * Note: This does not directly support Contextual Errors, as there are multiple
  * operations that can fail within the transaction, with various authentication
  * states.
  */
@@ -695,7 +725,13 @@ async function readDocumentFromCache(
       e as Error,
       `Failed to get document '${docKey} from cache`
     );
-    result.reject(firestoreToContextualError(firestoreError, { path: docKey.path.toString(), operationType: 'read' }, true));
+    result.reject(
+      firestoreToContextualError(
+        firestoreError,
+        { path: docKey.path.toString(), operationType: 'read' },
+        true
+      )
+    );
   }
 }
 
@@ -766,7 +802,13 @@ function readDocumentViaSnapshotListener(
       }
     },
     error: e => {
-      result.reject(firestoreToContextualError(e, { path: key.path.toString(), operationType: 'read' }, true));
+      result.reject(
+        firestoreToContextualError(
+          e,
+          { path: key.path.toString(), operationType: 'read' },
+          true
+        )
+      );
     }
   });
 
@@ -804,9 +846,13 @@ async function executeQueryFromCache(
       e as Error,
       `Failed to execute query '${query} against cache`
     );
-    // TODO: At this time, we should attempt to get the path from the query
-    // and add it to the error.
-    result.reject(firestoreError);
+    result.reject(
+      firestoreToContextualError(
+        firestoreError,
+        { path: query.path.canonicalString(), operationType: 'read' },
+        true
+      )
+    );
   }
 }
 
@@ -823,7 +869,13 @@ function executeQueryViaSnapshotListener(
 ): Promise<void> {
   const rejectWithError: (e: Error) => void = (e: Error) => {
     if ('code' in e && typeof e.code === 'string') {
-      result.reject(firestoreToContextualError(e, { path: query.path.toString(), operationType: 'read' }, true));
+      result.reject(
+        firestoreToContextualError(
+          e,
+          { path: query.path.toString(), operationType: 'read' },
+          true
+        )
+      );
     } else {
       result.reject(e);
     }

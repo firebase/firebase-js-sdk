@@ -828,7 +828,7 @@ async function onWriteStreamClose(
 
 async function handleWriteError(
   remoteStoreImpl: RemoteStoreImpl,
-  error: FirestoreError,
+  error: FirestoreError
 ): Promise<void> {
   // Only handle permanent errors here. If it's transient, just let the retry
   // logic kick in.
