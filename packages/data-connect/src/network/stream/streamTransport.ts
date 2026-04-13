@@ -217,7 +217,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       rejectFn: rejectFn!
     };
 
-    this.activeQueryExecuteRequests.set(mapKey, executeBody);
     this.executeRequestPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
@@ -588,20 +587,17 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         queuedRequest.requestId
       );
       if (trackedPromise) {
-        // return the existing queued request's promise
         return trackedPromise.responsePromise as Promise<
           DataConnectResponse<Data>
         >;
       }
     }
 
-    // queue the request
     const requestId = this.nextRequestId();
     const body = this.createInvokeQueryRequestBody(requestId, queryName, variables, mapKey);
 
     this.queuedQueryExecuteRequests.set(mapKey, body);
 
-    // create promise but do not send yet
     const { responsePromise } = this.trackQueryExecuteRequest<Data>(
       requestId,
       mapKey,

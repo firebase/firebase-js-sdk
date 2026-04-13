@@ -835,14 +835,14 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       describe('invokeQuery de-duplication and resume', () => {
         it('should de-duplicate concurrent identical queries', async () => {
-          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+          const sendMessageStub = sinon.stub(transport, 'sendMessage').resolves();
 
           const queryPromise1 = transport.invokeQuery(queryName1, variables1);
           const queryPromise2 = transport.invokeQuery(queryName1, variables1);
           const queryPromise3 = transport.invokeQuery(queryName1, variables1);
 
           // Only one message should be sent immediately
-          expect(sendMessageSpy).to.have.been.calledOnce;
+          expect(sendMessageStub).to.have.been.calledOnce;
           
           const mapKey = transport.getMapKey(queryName1, variables1);
           expect(transport.activeQueryExecuteRequests.has(mapKey)).to.be.true;
@@ -861,8 +861,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(result1).to.deep.equal(response1);
 
           // Resolving first request should trigger sending the queued request
-          expect(sendMessageSpy).to.have.been.calledTwice;
-          const sentMessage2 = sendMessageSpy.secondCall.args[0];
+          expect(sendMessageStub).to.have.been.calledTwice;
+          const sentMessage2 = sendMessageStub.secondCall.args[0];
           expect(sentMessage2.requestId).to.equal(queuedRequest!.requestId);
 
           // Resolve queued request
