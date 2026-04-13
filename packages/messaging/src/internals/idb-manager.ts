@@ -21,6 +21,7 @@ import type { DBSchema, IDBPDatabase, OpenDBCallbacks } from 'idb';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/registration-details';
 import { migrateOldDatabase } from '../helpers/migrate-old-database';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 export const DATABASE_NAME = 'firebase-messaging-database';
 const DATABASE_VERSION = 2;
@@ -134,6 +135,19 @@ function hasObjectStore(db: IDBPDatabase<unknown>, storeName: string): boolean {
   return db.objectStoreNames.contains(storeName);
 }
 
+function assertFidRegistrationObjectStore(db: IDBPDatabase<MessagingDB>): void {
+  if (
+    !hasObjectStore(
+      db as unknown as IDBPDatabase<unknown>,
+      FID_REGISTRATION_OBJECT_STORE_NAME
+    )
+  ) {
+    throw ERROR_FACTORY.create(
+      ErrorCode.FID_REGISTRATION_IDB_SCHEMA_UNAVAILABLE
+    );
+  }
+}
+
 export async function dbGet(
   firebaseDependencies: FirebaseInternalDependencies
 ): Promise<TokenDetails | undefined> {
@@ -184,14 +198,7 @@ export async function dbGetFidRegistration(
 ): Promise<FidRegistrationDetails | undefined> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  if (
-    !hasObjectStore(
-      db as unknown as IDBPDatabase<unknown>,
-      FID_REGISTRATION_OBJECT_STORE_NAME
-    )
-  ) {
-    return undefined;
-  }
+  assertFidRegistrationObjectStore(db);
   return (await db
     .transaction(FID_REGISTRATION_OBJECT_STORE_NAME)
     .objectStore(FID_REGISTRATION_OBJECT_STORE_NAME)
@@ -204,14 +211,7 @@ export async function dbSetFidRegistration(
 ): Promise<FidRegistrationDetails> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  if (
-    !hasObjectStore(
-      db as unknown as IDBPDatabase<unknown>,
-      FID_REGISTRATION_OBJECT_STORE_NAME
-    )
-  ) {
-    return details;
-  }
+  assertFidRegistrationObjectStore(db);
   const tx = db.transaction(FID_REGISTRATION_OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(FID_REGISTRATION_OBJECT_STORE_NAME).put(details, key);
   await tx.done;

@@ -22,8 +22,10 @@ import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
 import {
   dbDelete,
   dbGet,
+  dbGetFidRegistration,
   dbRemove,
   dbSet,
+  dbSetFidRegistration,
   DATABASE_NAME,
   _resetIdbForTests,
   _setIdbForTests
@@ -171,6 +173,44 @@ describe('idb manager', () => {
     const value = await dbGet(firebaseDependencies);
     expect(value).to.deep.equal(tokenDetailsA);
     expect(openDbStub).to.have.been.called;
+  });
+
+  it('dbGetFidRegistration and dbSetFidRegistration reject when v2 open fails and the FID object store is missing', async () => {
+    const key = firebaseDependencies.appConfig.appId;
+
+    const dbV1 = await openDB(DATABASE_NAME, 1, {
+      upgrade: upgradeDb => {
+        upgradeDb.createObjectStore('firebase-messaging-store');
+      }
+    });
+    const tx = dbV1.transaction('firebase-messaging-store', 'readwrite');
+    await tx.objectStore('firebase-messaging-store').put(tokenDetailsA, key);
+    await tx.done;
+    dbV1.close();
+
+    const realOpenDB = openDB;
+    stub(idbForTests, 'openDB').callsFake(((
+      name: string,
+      version?: number,
+      options?: unknown
+    ) => {
+      if (name === DATABASE_NAME && version === 2) {
+        return Promise.reject(new Error('upgrade failed'));
+      }
+      return realOpenDB(name, version as any, options as any);
+    }) as any);
+
+    const schemaError = 'messaging/fid-registration-idb-schema-unavailable';
+
+    await expect(dbGetFidRegistration(firebaseDependencies)).to.be.rejectedWith(
+      schemaError
+    );
+    await expect(
+      dbSetFidRegistration(firebaseDependencies, {
+        fid: 'some-fid',
+        lastRegisterTime: Date.now()
+      })
+    ).to.be.rejectedWith(schemaError);
   });
 
   it('only initiates one openDB call under concurrent access', async () => {

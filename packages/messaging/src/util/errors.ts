@@ -29,6 +29,7 @@ export const enum ErrorCode {
   TOKEN_SUBSCRIBE_FAILED = 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN = 'token-subscribe-no-token',
   FID_REGISTRATION_FAILED = 'fid-registration-failed',
+  FID_REGISTRATION_IDB_SCHEMA_UNAVAILABLE = 'fid-registration-idb-schema-unavailable',
   TOKEN_UNSUBSCRIBE_FAILED = 'token-unsubscribe-failed',
   TOKEN_UPDATE_FAILED = 'token-update-failed',
   TOKEN_UPDATE_NO_TOKEN = 'token-update-no-token',
@@ -63,6 +64,10 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'FCM returned no token when subscribing the user to push.',
   [ErrorCode.FID_REGISTRATION_FAILED]:
     'A problem occurred while creating an FCM registration via FID: {$errorInfo}',
+  [ErrorCode.FID_REGISTRATION_IDB_SCHEMA_UNAVAILABLE]:
+    'Unable to read or persist FID registration metadata because the messaging ' +
+    'IndexedDB schema is unavailable (for example, the database could not be ' +
+    'upgraded to the latest version).',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
     'A problem occurred while unsubscribing the ' +
     'user from FCM: {$errorInfo}',
