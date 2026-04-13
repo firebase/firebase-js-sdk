@@ -1,5 +1,53 @@
 # firebase
 
+## 12.12.0
+
+### Minor Changes
+
+- [`cccb6d0`](https://github.com/firebase/firebase-js-sdk/commit/cccb6d058cc2dac5495b797740697902ddfd4a93) [#9771](https://github.com/firebase/firebase-js-sdk/pull/9771) - [deprecated] All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+- [`44c234c`](https://github.com/firebase/firebase-js-sdk/commit/44c234c2ba5f8ba18a2f2c99fe63df7692010bf3) [#9773](https://github.com/firebase/firebase-js-sdk/pull/9773) - Add support for the parent expression
+
+- [`5cd6509`](https://github.com/firebase/firebase-js-sdk/commit/5cd6509bdb1eedc9a37ed6ce7677450f574a7e9d) [#9728](https://github.com/firebase/firebase-js-sdk/pull/9728) - Add support for timestamp_trunc, timestamp_diff and timestamp_extract expressions
+
+- [`34c63bf`](https://github.com/firebase/firebase-js-sdk/commit/34c63bf1eb353110d61d135a65e083d46e9a6007) [#9822](https://github.com/firebase/firebase-js-sdk/pull/9822) - Fix header names for auth and app check tokens over streaming
+
+- [`715c042`](https://github.com/firebase/firebase-js-sdk/commit/715c0424d656b1be2d423c31f12e9ffbaeea2dd5) [#9740](https://github.com/firebase/firebase-js-sdk/pull/9740) (fixes [#9739](https://github.com/firebase/firebase-js-sdk/issues/9739)) - Updated the peer dependency range for @react-native-async-storage/async-storage to support both v2 and v3
+
+- [`6cbe865`](https://github.com/firebase/firebase-js-sdk/commit/6cbe86569cc49ed12e9e53173bb66e8624bc8d6e) [#9816](https://github.com/firebase/firebase-js-sdk/pull/9816) - Deprecate `topK` and `temperature` properties for hybrid inference mode.
+
+- [`31bddcd`](https://github.com/firebase/firebase-js-sdk/commit/31bddcdd6200642f836c1eca7c9068470ca840bd) [#9734](https://github.com/firebase/firebase-js-sdk/pull/9734) - Added public preview support for full-text and geo search in Pipelines.
+
+- [`44ad4cc`](https://github.com/firebase/firebase-js-sdk/commit/44ad4cc2e54c6720d34fff4c2773f8887473b935) [#9702](https://github.com/firebase/firebase-js-sdk/pull/9702) - Add support for logical expressions `nor` and `switchOn`.
+
+- [`e8f14eb`](https://github.com/firebase/firebase-js-sdk/commit/e8f14eb499f10246b96759f58479905ab8f02e4c) [#9753](https://github.com/firebase/firebase-js-sdk/pull/9753) - Add support for pipeline expressions `ifNull` and `coalesce`.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add `startChat()` for `TemplateGenerativeModel`.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add automatic function calling and chat history for server prompt templates.
+
+- [`cecd028`](https://github.com/firebase/firebase-js-sdk/commit/cecd028de503302319a389a3331c5b94452daf95) [#9720](https://github.com/firebase/firebase-js-sdk/pull/9720) - Add subquery support to Pipelines.
+
+- [`87d5cc1`](https://github.com/firebase/firebase-js-sdk/commit/87d5cc1ba0107cb9a7a07bc6033dcec360f78d28) [#9809](https://github.com/firebase/firebase-js-sdk/pull/9809) - Add streaming support for Firebase Data Connect.
+
+- [`0e343c8`](https://github.com/firebase/firebase-js-sdk/commit/0e343c8706d2c1683fd802cadff8fa87f826698d) [#9725](https://github.com/firebase/firebase-js-sdk/pull/9725) - **Beta API Breaking Change**: Change `Type` string union to be a raw string.
+
+### Patch Changes
+
+- [`dd10ed7`](https://github.com/firebase/firebase-js-sdk/commit/dd10ed777b7bb4790c89225aa0a5be0a9d59e9a6) [#9750](https://github.com/firebase/firebase-js-sdk/pull/9750) - Refactor the parameters for timestamp expressions and change all timegranularity value to lowercase
+
+- Updated dependencies [[`cccb6d0`](https://github.com/firebase/firebase-js-sdk/commit/cccb6d058cc2dac5495b797740697902ddfd4a93), [`44c234c`](https://github.com/firebase/firebase-js-sdk/commit/44c234c2ba5f8ba18a2f2c99fe63df7692010bf3), [`5cd6509`](https://github.com/firebase/firebase-js-sdk/commit/5cd6509bdb1eedc9a37ed6ce7677450f574a7e9d), [`b2c4646`](https://github.com/firebase/firebase-js-sdk/commit/b2c464643548e068f56d9f57a09b105b1b898ff1), [`34c63bf`](https://github.com/firebase/firebase-js-sdk/commit/34c63bf1eb353110d61d135a65e083d46e9a6007), [`715c042`](https://github.com/firebase/firebase-js-sdk/commit/715c0424d656b1be2d423c31f12e9ffbaeea2dd5), [`6cbe865`](https://github.com/firebase/firebase-js-sdk/commit/6cbe86569cc49ed12e9e53173bb66e8624bc8d6e), [`31bddcd`](https://github.com/firebase/firebase-js-sdk/commit/31bddcdd6200642f836c1eca7c9068470ca840bd), [`dd10ed7`](https://github.com/firebase/firebase-js-sdk/commit/dd10ed777b7bb4790c89225aa0a5be0a9d59e9a6), [`44ad4cc`](https://github.com/firebase/firebase-js-sdk/commit/44ad4cc2e54c6720d34fff4c2773f8887473b935), [`e8f14eb`](https://github.com/firebase/firebase-js-sdk/commit/e8f14eb499f10246b96759f58479905ab8f02e4c), [`f87c15e`](https://github.com/firebase/firebase-js-sdk/commit/f87c15e97af9913182ebaa1afb94a3fe802e04f4), [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e), [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e), [`4e99d4b`](https://github.com/firebase/firebase-js-sdk/commit/4e99d4ba66a9a28558cd504826ae04fd07251c1b), [`334b266`](https://github.com/firebase/firebase-js-sdk/commit/334b266fec0fe63466dbb59bebe4d092bc3a924e), [`cecd028`](https://github.com/firebase/firebase-js-sdk/commit/cecd028de503302319a389a3331c5b94452daf95), [`87d5cc1`](https://github.com/firebase/firebase-js-sdk/commit/87d5cc1ba0107cb9a7a07bc6033dcec360f78d28), [`0e343c8`](https://github.com/firebase/firebase-js-sdk/commit/0e343c8706d2c1683fd802cadff8fa87f826698d)]:
+  - @firebase/ai@2.11.0
+  - @firebase/app@0.14.11
+  - @firebase/firestore@4.14.0
+  - @firebase/app-types@0.9.4
+  - @firebase/data-connect@0.6.0
+  - @firebase/auth@1.13.0
+  - @firebase/app-compat@0.5.11
+  - @firebase/firestore-compat@0.4.8
+  - @firebase/auth-compat@0.6.5
+  - @firebase/database-compat@2.1.3
+
 ## 12.11.0
 
 ### Minor Changes

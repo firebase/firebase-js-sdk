@@ -76,7 +76,7 @@ export interface GenerateContentRequest extends BaseParams {
 
 /**
  * Request sent through {@link TemplateGenerativeModel.generateContent}
- * @internal
+ * @beta
  */
 export interface TemplateGenerateContentRequest {
   inputs?: Record<string, unknown>;
@@ -567,22 +567,6 @@ export interface FunctionDeclarationsTool {
    * declarations can be provided.
    */
   functionDeclarations?: FunctionDeclaration[];
-}
-
-/**
- * An object that represents a latitude/longitude pair.
- * @public
- */
-export interface LatLng {
-  /**
-   * The latitude in degrees. It must be in the range `[-90.0, +90.0]`.
-   */
-  latitude?: number;
-
-  /**
-   * The longitude in degrees. It must be in the range `[-180.0, +180.0]`.
-   */
-  longitude?: number;
 }
 
 /**

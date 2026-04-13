@@ -120,6 +120,12 @@ export function arrayContainsAny(array: Expression, values: Expression): Boolean
 export function arrayContainsAny(fieldName: string, values: Expression): BooleanExpression;
 
 // @public
+export function arrayFilter(fieldName: string, alias: string, filter: BooleanExpression): FunctionExpression;
+
+// @public
+export function arrayFilter(arrayExpression: Expression, alias: string, filter: BooleanExpression): FunctionExpression;
+
+// @public
 export function arrayFirst(fieldName: string): FunctionExpression;
 
 // @public
@@ -228,10 +234,28 @@ export function arrayMinimumN(arrayExpression: Expression, n: number): FunctionE
 export function arrayMinimumN(arrayExpression: Expression, n: Expression): FunctionExpression;
 
 // @public
+export function arraySlice(fieldName: string, offset: number | Expression, length?: number | Expression): FunctionExpression;
+
+// @public
+export function arraySlice(arrayExpression: Expression, offset: number | Expression, length?: number | Expression): FunctionExpression;
+
+// @public
 export function arraySum(fieldName: string): FunctionExpression;
 
 // @public
 export function arraySum(expression: Expression): FunctionExpression;
+
+// @public
+export function arrayTransform(arrayExpression: Expression, elementAlias: string, transform: Expression): FunctionExpression;
+
+// @public
+export function arrayTransform(fieldName: string, elementAlias: string, transform: Expression): FunctionExpression;
+
+// @public
+export function arrayTransformWithIndex(arrayExpression: Expression, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+
+// @public
+export function arrayTransformWithIndex(fieldName: string, elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
 
 // @public
 export function ascending(expr: Expression): Ordering;
@@ -967,10 +991,10 @@ export function isAbsent(field: string): BooleanExpression;
 export function isError(value: Expression): BooleanExpression;
 
 // @public
-export function isType(fieldName: string, type: Type): BooleanExpression;
+export function isType(fieldName: string, type: string): BooleanExpression;
 
 // @public
-export function isType(expression: Expression, type: Type): BooleanExpression;
+export function isType(expression: Expression, type: string): BooleanExpression;
 
 // @public
 export function join(arrayFieldName: string, delimiter: string): Expression;
@@ -1215,6 +1239,14 @@ export class Ordering {
     // (undocumented)
     readonly expr: Expression;
 }
+
+// @public
+function parent_2(documentPath: string | DocumentReference): FunctionExpression;
+
+// @public
+function parent_2(documentPathExpr: Expression): FunctionExpression;
+
+export { parent_2 as parent }
 
 // @public
 export class Pipeline {
@@ -1674,9 +1706,6 @@ export function trunc(fieldName: string, decimalPlaces: number | Expression): Fu
 
 // @public
 export function trunc(expression: Expression, decimalPlaces: number | Expression): FunctionExpression;
-
-// @public
-export type Type = 'null' | 'array' | 'boolean' | 'bytes' | 'timestamp' | 'geo_point' | 'number' | 'int32' | 'int64' | 'float64' | 'decimal128' | 'map' | 'reference' | 'string' | 'vector' | 'max_key' | 'min_key' | 'object_id' | 'regex' | 'request_timestamp';
 
 // @public
 export function type(fieldName: string): FunctionExpression;

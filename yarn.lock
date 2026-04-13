@@ -64,10 +64,10 @@
     js-tokens "^4.0.0"
     picocolors "^1.0.0"
 
-"@babel/code-frame@^7.10.4":
-  version "7.28.6"
-  resolved "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.28.6.tgz#72499312ec58b1e2245ba4a4f550c132be4982f7"
-  integrity sha512-JYgintcMjRiCvS8mMECzaEn+m3PfoQiyqukOMCCVQtoJGYJw8j/8LBJEiqkHLkfwCcs74E3pbAUFNg7d9VNJ+Q==
+"@babel/code-frame@^7.10.4", "@babel/code-frame@^7.28.6", "@babel/code-frame@^7.29.0":
+  version "7.29.0"
+  resolved "https://registry.npmjs.org/@babel/code-frame/-/code-frame-7.29.0.tgz#7cd7a59f15b3cc0dcd803038f7792712a7d0b15c"
+  integrity sha512-9NhCeYjq9+3uxgdtp20LSiJXJvN0FeCtNGpJxuMFZ1Kv3cWUNb6DOhJwUvcVCzKGR66cw4njwM6hrJLqgOwbcw==
   dependencies:
     "@babel/helper-validator-identifier" "^7.28.5"
     js-tokens "^4.0.0"
@@ -1103,9 +1103,9 @@
     source-map-support "^0.5.16"
 
 "@babel/runtime@^7.12.5":
-  version "7.28.6"
-  resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.28.6.tgz#d267a43cb1836dc4d182cce93ae75ba954ef6d2b"
-  integrity sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==
+  version "7.29.2"
+  resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.29.2.tgz#9a6e2d05f4b6692e1801cd4fb176ad823930ed5e"
+  integrity sha512-JiDShH45zKHWyGe4ZNVRrCjBz8Nh9TMmZG1kh4QTK8hCBTWBi8Da+i7s1fJw7/lYpM4ccepSNfqzZ/QvABBi5g==
 
 "@babel/runtime@^7.5.5", "@babel/runtime@^7.8.4":
   version "7.26.7"
@@ -1467,9 +1467,9 @@
   integrity sha512-dCSHpoOKuTxecaYhWDRp2yFTN3XWcMPMrBVl5yOR8VZEUprz4+R3iuU7BipmlsqBnBDO/6l9H/C2ZwJdunkWyw==
 
 "@emnapi/runtime@^1.7.0":
-  version "1.8.1"
-  resolved "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.8.1.tgz#550fa7e3c0d49c5fb175a116e8cd70614f9a22a5"
-  integrity sha512-mehfKSMWjjNol8659Z8KxEMrdSJDDot5SXMq00dM8BN4o+CLNXQ0xH2V7EchNHV4RmbZLmmPdEaXZc5H2FXmDg==
+  version "1.9.2"
+  resolved "https://registry.npmjs.org/@emnapi/runtime/-/runtime-1.9.2.tgz#8b469a3db160817cadb1de9050211a9d1ea84fa2"
+  integrity sha512-3U4+MIWHImeyu1wnmVygh5WlgfYDtyf0k8AbLhMFxOipihf6nrWC4syIm/SwEeec0mNSafiiNnMJwbza/Is6Lw==
   dependencies:
     tslib "^2.4.0"
 
@@ -1504,6 +1504,17 @@
   version "8.57.1"
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
+
+"@firebase/app@0.14.10":
+  version "0.14.10"
+  resolved "https://registry.npmjs.org/@firebase/app/-/app-0.14.10.tgz#cc4428c2199d41a22daf20f7154ca9fe2cb42abc"
+  integrity sha512-PlPhdtjgWUra+LImQTnXOUqUa/jcufZhizdR93ZjlQSS3ahCtDTG6pJw7j0OwFal18DQjICXfeVNsUUrcNisfA==
+  dependencies:
+    "@firebase/component" "0.7.2"
+    "@firebase/logger" "0.5.0"
+    "@firebase/util" "1.15.0"
+    idb "7.1.1"
+    tslib "^2.1.0"
 
 "@gar/promisify@^1.0.1":
   version "1.1.3"
@@ -1640,9 +1651,9 @@
   integrity sha512-H9XAx3hc0BQHY6l+IFSWHDySypcXsvsuLhgYLUGywmJ5pswRVQJUHpOsobnLYp2ZUaUlKiKDrgWWhosOwAEM8Q==
 
 "@img/colour@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.npmjs.org/@img/colour/-/colour-1.0.0.tgz#d2fabb223455a793bf3bf9c70de3d28526aa8311"
-  integrity sha512-A5P/LfWGFSl6nsckYtjw9da+19jB8hkJ6ACTGcDfEJ0aE+l2n2El7dsVM7UVHZQ9s2lmYMWlrS21YLy2IR1LUw==
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@img/colour/-/colour-1.1.0.tgz#b0c2c2fa661adf75effd6b4964497cd80010bb9d"
+  integrity sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==
 
 "@img/sharp-darwin-arm64@0.34.5":
   version "0.34.5"
@@ -3111,10 +3122,15 @@
   dependencies:
     "@opentelemetry/api" "^1.3.0"
 
-"@opentelemetry/api@1.9.0", "@opentelemetry/api@^1.3.0", "@opentelemetry/api@~1.9.0":
+"@opentelemetry/api@1.9.0", "@opentelemetry/api@~1.9.0":
   version "1.9.0"
   resolved "https://registry.npmjs.org/@opentelemetry/api/-/api-1.9.0.tgz#d03eba68273dc0f7509e2a3d5cba21eae10379fe"
   integrity sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==
+
+"@opentelemetry/api@^1.3.0":
+  version "1.9.1"
+  resolved "https://registry.npmjs.org/@opentelemetry/api/-/api-1.9.1.tgz#c1b0346de336ba55af2d5a7970882037baedec05"
+  integrity sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q==
 
 "@opentelemetry/core@2.0.1":
   version "2.0.1"
@@ -3272,9 +3288,9 @@
   integrity sha512-TtxJSRD8Ohxp6bKkhrm27JRHAxPczQA7idtcTOMYI+wQRRrfgqxHv1cFbCApcSnNjtXkmzFozn6jQtFrOmbjPQ==
 
 "@opentelemetry/semantic-conventions@^1.29.0":
-  version "1.39.0"
-  resolved "https://registry.npmjs.org/@opentelemetry/semantic-conventions/-/semantic-conventions-1.39.0.tgz#f653b2752171411feb40310b8a8953d7e5c543b7"
-  integrity sha512-R5R9tb2AXs2IRLNKLBJDynhkfmx7mX0vi8NkhZb3gUkPWHn6HXk5J8iQ/dql0U3ApfWym4kXXmBDRGO+oeOfjg==
+  version "1.40.0"
+  resolved "https://registry.npmjs.org/@opentelemetry/semantic-conventions/-/semantic-conventions-1.40.0.tgz#10b2944ca559386590683392022a897eefd011d3"
+  integrity sha512-cifvXDhcqMwwTlTK04GBNeIe7yyo28Mfby85QXFe1Yk8nmi36Ab/5UQwptOx84SsoGNRg+EVSjwzfSZMy6pmlw==
 
 "@opentelemetry/semantic-conventions@~1.28.0":
   version "1.28.0"
@@ -5881,7 +5897,12 @@ camelcase@^6.0.0, camelcase@^6.2.0:
   resolved "https://registry.npmjs.org/camelcase/-/camelcase-6.3.0.tgz#5685b95eb209ac9c0c177467778c9c84df58ba9a"
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
-caniuse-lite@^1.0.30001579, caniuse-lite@^1.0.30001688:
+caniuse-lite@^1.0.30001579:
+  version "1.0.30001787"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001787.tgz#fd25c5e42e2d35df5c75eddda00d15d9c0c68f81"
+  integrity sha512-mNcrMN9KeI68u7muanUpEejSLghOKlVhRqS/Za2IeyGllJ9I9otGpR9g3nsw7n4W378TE/LyIteA0+/FOZm4Kg==
+
+caniuse-lite@^1.0.30001688:
   version "1.0.30001766"
   resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001766.tgz"
   integrity sha512-4C0lfJ0/YPjJQHagaE9x2Elb69CIqEPZeG0anQt9SIvIoOH4a4uaRl73IavyO+0qZh6MDLH//DrXThEYKHkmYA==
@@ -15662,9 +15683,9 @@ semver@^7.1.2:
   integrity sha512-RF0Fw+rO5AMf9MAyaRXI4AV0Ulj5lMHqVxxdSgiVbixSCXoEmmX/jk0CuJw4+3SqroYO9VoUh+HcuJivvtJemA==
 
 semver@^7.7.3:
-  version "7.7.3"
-  resolved "https://registry.npmjs.org/semver/-/semver-7.7.3.tgz#4b5f4143d007633a8dc671cd0a6ef9147b8bb946"
-  integrity sha512-SdsKMrI9TdgjdweUSR9MweHA4EJ8YxHn8DFaDisvhVlUOe4BF1tLD7GAj0lIqWVl+dPb/rExr0Btby5loQm20Q==
+  version "7.7.4"
+  resolved "https://registry.npmjs.org/semver/-/semver-7.7.4.tgz#28464e36060e991fa7a11d0279d2d3f3b57a7e8a"
+  integrity sha512-vFKC2IEtQnVhpT78h1Yp8wzwrf8CM+MzKMHGJZfBtzhZNycRFnXsHk6E5TxIkkMsgNS7mdX3AGB7x2QM2di4lA==
 
 semver@~7.3.0:
   version "7.3.8"

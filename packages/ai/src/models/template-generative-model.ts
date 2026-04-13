@@ -24,13 +24,11 @@ import {
   AI,
   GenerateContentStreamResult,
   SingleRequestOptions,
-  StartTemplateChatParams,
-  TemplateChatSession,
-  TemplateToolConfig
+  StartTemplateChatParams
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
-import { TemplateChatSessionImpl } from '../methods/template-chat-session';
+import { TemplateChatSession } from '../methods/template-chat-session';
 
 /**
  * {@link GenerativeModel} APIs that execute on a server-side template.
@@ -73,8 +71,7 @@ export class TemplateGenerativeModel {
   async generateContent(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions,
-    templateToolConfig?: TemplateToolConfig
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
@@ -107,8 +104,7 @@ export class TemplateGenerativeModel {
   async generateContentStream(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions,
-    templateToolConfig?: TemplateToolConfig
+    singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
@@ -134,7 +130,7 @@ export class TemplateGenerativeModel {
    * @beta
    */
   startChat(params: StartTemplateChatParams): TemplateChatSession {
-    return new TemplateChatSessionImpl(
+    return new TemplateChatSession(
       this._apiSettings,
       params,
       this.requestOptions

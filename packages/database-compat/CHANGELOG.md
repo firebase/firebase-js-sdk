@@ -1,5 +1,12 @@
 # @firebase/database-compat
 
+## 2.1.3
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/database-types@1.0.19
+
 ## 2.1.2
 
 ### Patch Changes

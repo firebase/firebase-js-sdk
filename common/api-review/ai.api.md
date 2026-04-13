@@ -1456,6 +1456,67 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
+// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @beta, but its signature references "TemplateRequestInternal" which is marked as @internal
+//
+// @beta
+export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> {
+    constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
+    // @internal
+    _callGenerateContent(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _callGenerateContentStream(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    _formatRequest(incomingContent: Content, tempHistory: Content[]): TemplateRequestInternal;
+    // (undocumented)
+    params: StartTemplateChatParams;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+}
+
+// @beta
+export interface TemplateFunctionDeclaration {
+    description?: never;
+    functionReference?: Function;
+    name: string;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface TemplateFunctionDeclarationInternal extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+    // (undocumented)
+    inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// @beta
+export interface TemplateFunctionDeclarationsTool {
+    functionDeclarations?: TemplateFunctionDeclaration[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationsToolInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateFunctionDeclarationsToolInternal {
+    templateFunctions?: TemplateFunctionDeclarationInternal[];
+}
+
+// @beta
+export interface TemplateGenerateContentRequest {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    history?: Content[];
+    // (undocumented)
+    inputs?: Record<string, unknown>;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsTool[];
+}
+
 // @beta
 export interface TemplateChatSession {
     getHistory(): Promise<Content[]>;
@@ -1516,8 +1577,8 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
@@ -1542,12 +1603,6 @@ export interface TemplateRequestInternal extends Omit<TemplateGenerateContentReq
 
 // @beta
 export type TemplateTool = TemplateFunctionDeclarationsTool;
-
-// @public
-export interface TemplateToolConfig {
-    // (undocumented)
-    retrievalConfig?: RetrievalConfig;
-}
 
 // @public
 export interface TextPart {
