@@ -83,7 +83,7 @@ export class ContextualErrorObserver<T> extends AsyncObserver<T> {
     if (this.muted) {
       return;
     }
-    const errorWithPath = firestoreToContextualError(error, this.path, this.operationType, true) as FirestoreError;
+    const errorWithPath = firestoreToContextualError(error, {path: this.path, operationType: this.operationType}, true) as FirestoreError;
     if (this.observer.error) {
       // TODO: Copy stack
       this.scheduleEvent(this.observer.error, errorWithPath);

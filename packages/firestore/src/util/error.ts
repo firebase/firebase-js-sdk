@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseError, parseIdTokenToAuthInfo, ErrorAuthInfo, addContextualMsg } from '@firebase/util';
+import { FirebaseError, parseIdTokenToAuthInfo, ErrorAuthInfo, getContextualMsg } from '@firebase/util';
 
 /**
  * The set of Firestore status codes. The codes are the same at the ones
@@ -223,6 +223,7 @@ export type CustomErrorInfo = WithPath;
 export class FirestoreError extends FirebaseError {
   /** The stack of the error. */
   readonly stack?: string;
+  _name = "FirestoreError";
 
   /** @hideconstructor */
   constructor(
@@ -239,35 +240,56 @@ export class FirestoreError extends FirebaseError {
     // When auth info is passed, make sure to parse and then store it in `authInfo`
     super(code, message, customData);
 
+    Object.setPrototypeOf(this, FirestoreError.prototype);
     // HACK: We write a toString property directly because Error is not a real
     // class and so inheritance does not work correctly. We could alternatively
     // do the same "back-door inheritance" trick that FirebaseError does.
   }
+
+  copyWithAuthInfo(idToken: string | null): FirestoreError {
+    if (idToken === null) {
+      return this;
+    }
+    const authInfo = parseIdTokenToAuthInfo(idToken);
+    return new FirestoreError(this.code, this.message, { ...this.customData, authInfo });
+  }
+
 }
 
-export function firestoreToContextualError(err: Error, path?: string, operationType?: OperationType, addContext = false) {
-  if ('customData' in err && err.customData && typeof err.customData === 'object') {
-    const e = err as FirebaseError<{ authInfo: ErrorAuthInfo | null }>;
-    const customData: Record<string, unknown> = { ...e.customData };
-    if (path) customData.path = path;
-    if (operationType) customData.operationType = operationType;
-    
-    let firestoreError = new FirestoreError(e.code as FirestoreErrorCode, e.message, customData);
-    if (addContext) {
-      firestoreError = addContextualMsg(firestoreError) as unknown as FirestoreError;
-    }
-    return firestoreError;
-  } else {
-    if (path && operationType) {
-      const code = ('code' in err && typeof (err as Record<string, unknown>).code === 'string') ? (err as Record<string, unknown>).code as string : 'unknown';
-      const customData = { path, operationType, authInfo: null };
-      let firestoreError = new FirestoreError(code as FirestoreErrorCode, err.message, customData);
-      if (addContext) {
-        firestoreError = addContextualMsg(firestoreError) as unknown as FirestoreError;
-      }
-      return firestoreError;
-    }
+export function addContextualInfo(err: FirestoreError, path?: string, operationType?: OperationType): FirestoreError {
+  const customData: Record<string, unknown> = { ...err.customData };
+  if (path) {customData.path = path;}
+  if (operationType) {customData.operationType = operationType;}
+  
+  if (!('authInfo' in customData)) {
+    customData.authInfo = null;
+  }
+
+  return new FirestoreError(err.code as FirestoreErrorCode, err.message, customData);
+}
+
+export interface ErrorContext {
+  path: string;
+  operationType: OperationType;
+}
+export function firestoreToContextualError(err: Error, context: ErrorContext, addContext = false): Error {
+  if (err.name !== 'FirebaseError') {
     return err;
   }
+
+  const firestoreErr = err as FirestoreError;
+
+  const customData: Record<string, unknown> = { ...firestoreErr.customData,  ...context  };
+  
+  if (!('authInfo' in customData)) {
+    customData.authInfo = null;
+  }
+  const newFirestoreErr = new FirestoreError(firestoreErr.code, firestoreErr.message, customData);
+
+  if (addContext) {
+    newFirestoreErr.message = getContextualMsg(newFirestoreErr as FirebaseError<{ authInfo: ErrorAuthInfo | null }>);
+  }
+  
+  return newFirestoreErr;
 }
 

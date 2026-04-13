@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirestoreErrorCode, GetOptions } from '@firebase/firestore-types';
+import { GetOptions } from '@firebase/firestore-types';
 
 import { LoadBundleTask } from '../api/bundle';
 import {
@@ -103,7 +103,6 @@ import { TransactionOptions } from './transaction_options';
 import { TransactionRunner } from './transaction_runner';
 import { View } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { addContextualMsg, ErrorAuthInfo, FirebaseError } from '@firebase/util';
 
 const LOG_TAG = 'FirestoreClient';
 export const MAX_CONCURRENT_LIMBO_RESOLUTIONS = 100;
@@ -559,9 +558,7 @@ export function firestoreClientRunAggregateQuery(
         invokeRunAggregationQueryRpc(datastore, query, aggregates)
       );
     } catch (e) {
-      // TODO: At this time, we should attempt to get the path from the query
-      // and add it to the error.
-      deferred.reject(e as Error);
+      deferred.reject(firestoreToContextualError(e as Error, { path: query.path.toString(), operationType: 'read' }, true));
     }
   });
   return deferred.promise;
@@ -584,15 +581,13 @@ export function firestoreClientExecutePipeline(
   return deferred.promise;
 }
 
-
-
-function getWrappedDeferred<T>(deferred: Deferred<T>, path: string, operationType: OperationType) {
+function getWrappedDeferred<T>(deferred: Deferred<T>, path: string, operationType: OperationType): Deferred<T> {
   const wrappedDeferred = new Deferred<T>();
   wrappedDeferred.promise.then(
     deferred.resolve,
     (err) => {
       // assume that the err has idToken
-      deferred.reject(firestoreToContextualError(err, path, operationType, true));
+      deferred.reject(firestoreToContextualError(err, { path, operationType }, true));
     }
   );
   return wrappedDeferred;
@@ -682,12 +677,16 @@ async function readDocumentFromCache(
       result.resolve(null);
     } else {
       result.reject(
-        new FirestoreError(
-          Code.UNAVAILABLE,
-          'Failed to get document from cache. (However, this document may ' +
-            "exist on the server. Run again without setting 'source' in " +
-            'the GetOptions to attempt to retrieve the document from the ' +
-            'server.)'
+        firestoreToContextualError(
+          new FirestoreError(
+            Code.UNAVAILABLE,
+            'Failed to get document from cache. (However, this document may ' +
+              "exist on the server. Run again without setting 'source' in " +
+              'the GetOptions to attempt to retrieve the document from the ' +
+              'server.)'
+          ),
+          { path: docKey.path.toString(), operationType: 'read' },
+          true
         )
       );
     }
@@ -696,9 +695,7 @@ async function readDocumentFromCache(
       e as Error,
       `Failed to get document '${docKey} from cache`
     );
-    // TODO: At this time, we should attempt to get the path from the document key
-    // and add it to the error.
-    result.reject(firestoreError);
+    result.reject(firestoreToContextualError(firestoreError, { path: docKey.path.toString(), operationType: 'read' }, true));
   }
 }
 
@@ -732,9 +729,13 @@ function readDocumentViaSnapshotListener(
         // offline 2) Actually reject the Promise in the online case
         // if the document doesn't exist.
         result.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get document because the client is offline.'
+          firestoreToContextualError(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document because the client is offline.'
+            ),
+            { path: key.path.toString(), operationType: 'read' },
+            true
           )
         );
       } else if (
@@ -744,12 +745,16 @@ function readDocumentViaSnapshotListener(
         options.source === 'server'
       ) {
         result.reject(
-          new FirestoreError(
-            Code.UNAVAILABLE,
-            'Failed to get document from server. (However, this ' +
-              'document does exist in the local cache. Run again ' +
-              'without setting source to "server" to ' +
-              'retrieve the cached document.)'
+          firestoreToContextualError(
+            new FirestoreError(
+              Code.UNAVAILABLE,
+              'Failed to get document from server. (However, this ' +
+                'document does exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached document.)'
+            ),
+            { path: key.path.toString(), operationType: 'read' },
+            true
           )
         );
       } else {
@@ -761,7 +766,7 @@ function readDocumentViaSnapshotListener(
       }
     },
     error: e => {
-      result.reject(firestoreToContextualError(e, key.path.toString(), 'read', true));
+      result.reject(firestoreToContextualError(e, { path: key.path.toString(), operationType: 'read' }, true));
     }
   });
 
@@ -816,9 +821,9 @@ function executeQueryViaSnapshotListener(
   options: GetOptions,
   result: Deferred<ViewSnapshot>
 ): Promise<void> {
-  const rejectWithError = (e: any) => {
-    if (e && typeof e.code === 'string') {
-      result.reject(firestoreToContextualError(e, query.path.toString(), 'read', true));
+  const rejectWithError: (e: Error) => void = (e: Error) => {
+    if ('code' in e && typeof e.code === 'string') {
+      result.reject(firestoreToContextualError(e, { path: query.path.toString(), operationType: 'read' }, true));
     } else {
       result.reject(e);
     }

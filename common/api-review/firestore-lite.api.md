@@ -203,6 +203,8 @@ export interface FirestoreDataConverter<AppModelType, DbModelType extends Docume
 // @public
 export class FirestoreError extends FirebaseError {
     readonly code: FirestoreErrorCode;
+    // (undocumented)
+    copyWithAuthInfo(idToken: string | null): FirestoreError;
     readonly stack?: string;
 }
 

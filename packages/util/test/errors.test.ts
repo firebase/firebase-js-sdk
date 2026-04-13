@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { ErrorFactory, ErrorMap, FirebaseError, parseIdTokenToAuthInfo,  FirebaseErrorWithAuthInfo, isContextualErrorsEnabled, enableContextualErrors, throwContextualError, } from '../src/errors';
+import { ErrorFactory, ErrorMap, FirebaseError, parseIdTokenToAuthInfo,  FirebaseErrorWithAuthInfo, isContextualErrorsEnabled, enableContextualErrors, } from '../src/errors';
 import { base64urlEncodeWithoutPadding } from '../src/crypt';
 
 type ErrorCode =
@@ -141,33 +141,6 @@ describe('DetailedErrors', () => {
     enableContextualErrors(false); // reset
   });
 
-  it('should throw detailed error when enabled', () => {
-    enableContextualErrors(true);
-    const baseError = new FirebaseError('fake/msg', 'base message');
-    const authInfo = { userId: 'uid', email: 'test@example.com', emailVerified: true, isAnonymous: false };
-    
-    try {
-      throw throwContextualError(baseError, authInfo);
-    } catch (e) {
-      assert.include((e as Error).message, 'base message');
-      assert.include((e as Error).message, 'uid');
-    }
-    enableContextualErrors(false); // reset
-  });
-
-  it('should throw standard error when disabled', () => {
-    enableContextualErrors(false);
-    const baseError = new FirebaseError('fake/msg', 'base message');
-    const authInfo = { userId: 'uid', email: 'test@example.com', emailVerified: true, isAnonymous: false };
-    
-    try {
-      throw throwContextualError(baseError, authInfo);
-    } catch (e) {
-      assert.instanceOf(e, FirebaseError);
-      assert.equal((e as Error).message, 'base message');
-      assert.deepEqual((e as FirebaseError).customData, authInfo);
-    }
-  });
 });
 
 function dummy1(): void {

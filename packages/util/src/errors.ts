@@ -108,36 +108,30 @@ export class FirebaseError<T = Record<string, unknown>> extends Error {
     }
   }
 
-  // TODO: Check whether this copies at the child level or not.
-  copyWithAuthInfo(authInfo?: ErrorAuthInfo | null) {
-    return new FirebaseError(this.code, this.message, { ...this.customData, authInfo });
-  }
 }
 
-export function addContextualMsg<T extends { authInfo: ErrorAuthInfo | null }, E extends FirebaseError<T>>(originalError: E): E {
-  if (!isContextualErrorsEnabled()) {
-    return originalError;
+export function getContextualMsg<T extends { authInfo: ErrorAuthInfo | null }, E extends FirebaseError<T>>(originalError: E): string {
+  if (!isContextualErrorsEnabled() || !originalError.customData) {
+    return originalError.message;
   }
 
-  if(originalError.customData) {
-    originalError.message = `${originalError.message} ${JSON.stringify(originalError.customData)}`;
-  }
-  return originalError;
-}
-
-export function errorWithAuthInfo(error: FirebaseError, idToken?: string | null) {
-  if (!isContextualErrorsEnabled()) {
-    return error;
+  const { authInfo, ...rest } = originalError.customData;
+  
+  let restStr: string = '';
+  try {
+    restStr = JSON.stringify(rest);
+  } catch {
   }
 
-  const authInfo = getAuthInfo(idToken);
-  return error.copyWithAuthInfo(authInfo);
-}
+  let authInfoStr = '';
+  if (authInfo) {
+    try {
+      authInfoStr = JSON.stringify(authInfo);
+    } catch {
+    }
+  }
 
-function getAuthInfo(idToken?: string | null) {
-  return  (idToken && typeof idToken === 'string')
-    ? parseIdTokenToAuthInfo(idToken)
-    : null;
+  return `${originalError.message} Extra Context: ${restStr} ${authInfo ? `AuthInfo: ${authInfoStr}` : ''}`;
 }
 
 export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo {
@@ -152,12 +146,6 @@ export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo {
 
 export interface AuthInfo {
   authInfo: ErrorAuthInfo | null;
-}
-
-export class FirebaseErrorWithAuthInfo extends FirebaseError<AuthInfo> {
-  constructor(error: FirebaseError, authInfo: ErrorAuthInfo | null) {
-    super(error.code, error.message, { authInfo, ...error.customData });
-  }
 }
 
 export class ErrorFactory<

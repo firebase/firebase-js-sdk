@@ -16,7 +16,6 @@
  */
 
 
-import { errorWithAuthInfo, ErrorAuthInfo } from '@firebase/util';
 import { LoadBundleTask } from '../api/bundle';
 import { User } from '../auth/user';
 import { ignoreIfPrimaryLeaseLoss, LocalStore } from '../local/local_store';
@@ -67,7 +66,7 @@ import { debugAssert, debugCast, fail, hardAssert } from '../util/assert';
 import { wrapInUserErrorIfRecoverable } from '../util/async_queue';
 import { BundleReader } from '../util/bundle_reader';
 import { ByteString } from '../util/byte_string';
-import { Code, FirestoreError, firestoreToContextualError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { logDebug, logWarn } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -686,12 +685,11 @@ export async function syncEngineRejectListen(
   err: FirestoreError
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
-  
   const capturedIdToken = syncEngineImpl.targetAuthIdTokens.get(targetId);
   const idToken = capturedIdToken !== undefined ? capturedIdToken : (syncEngineImpl.currentUser ? syncEngineImpl.currentUser.idToken : null);
-  
+
   const fullErr = idToken
-    ? (firestoreToContextualError(errorWithAuthInfo(err, idToken)) as FirestoreError)
+    ? (err.copyWithAuthInfo(idToken))
     : err;
 
   // PORTING NOTE: Multi-tab only.
@@ -927,7 +925,7 @@ function processUserCallback(
       );
       if (error) {
         const fullErr = syncEngineImpl.currentUser
-          ? (firestoreToContextualError(errorWithAuthInfo(error, syncEngineImpl.currentUser.idToken)) as FirestoreError)
+          ? error.copyWithAuthInfo(syncEngineImpl.currentUser.idToken)
           : error;
         callback.reject(fullErr);
       } else {

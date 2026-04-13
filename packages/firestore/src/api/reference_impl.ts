@@ -61,7 +61,7 @@ import {
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { debugAssert } from '../util/assert';
-import { Code, FirestoreError, OperationType } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
@@ -72,7 +72,6 @@ import {
   SnapshotMetadata
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
-import { type FirebaseApp } from '@firebase/app';
 
 
 

@@ -17,7 +17,6 @@
 
 
 
-import { errorWithAuthInfo } from '@firebase/util';
 import { CredentialsProvider, Token } from '../api/credentials';
 import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
@@ -43,7 +42,7 @@ import {
 } from '../protos/firestore_proto_api';
 import { debugAssert, debugCast, hardAssert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
-import { Code, FirestoreError, FirestoreErrorCode } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 
 import { Connection } from './connection';
@@ -130,16 +129,15 @@ class DatastoreImpl extends Datastore {
       });
   }
 
-  withIdTokenWrapper(error: FirestoreError, idToken: Token | null): FirestoreError {
+  withIdTokenWrapper(error: FirestoreError, token: Token | null): FirestoreError {
     if (error.name === 'FirebaseError') {
       if (error.code === Code.UNAUTHENTICATED) {
         this.authCredentials.invalidateToken();
         this.appCheckCredentials.invalidateToken();
       }
-      if(idToken !== null) {
-        const { user } = idToken;
-        const firebaseErrorWithAuthInfo = errorWithAuthInfo(error, user?.idToken);
-        return new FirestoreError(firebaseErrorWithAuthInfo.code as FirestoreErrorCode, firebaseErrorWithAuthInfo.message, firebaseErrorWithAuthInfo.customData);
+      if(token !== null && token.user) {
+        const { user } = token;
+        return error.copyWithAuthInfo(user.idToken);
       }
       return new FirestoreError(error.code, error.toString());
     } else {

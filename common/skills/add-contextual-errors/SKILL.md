@@ -1,3 +1,12 @@
+---
+name: add-contextual-errors
+description: Enrich errors thrown by Firebase SDK packages with operational context (operation name, variables, resource paths, auth state) to improve debuggability, while respecting the central detailedErrors toggle.
+license: Apache-2.0
+metadata:
+  author: Firebase
+  version: "1.0"
+---
+
 # Skill: Add Contextual Errors to Firebase SDK Packages
 
 ## Goal
@@ -107,4 +116,3 @@ try {
 - Verify that errors thrown when `setDetailedErrors(app, false)` do NOT contain operation variables or decoded id token in the message.
 - Verify that errors thrown when `setDetailedErrors(app, true)` DO contain operation variables and decoded id token in the message.
 - Verify that `error instanceof MyPackageError` remains true in both cases.
-

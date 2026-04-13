@@ -4,13 +4,6 @@
 
 ```ts
 
-// Warning: (ae-missing-release-tag) "addContextualMsg" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export function addContextualMsg<T extends {
-    authInfo: ErrorAuthInfo | null;
-}, E extends FirebaseError<T>>(originalError: E): E;
-
 // Warning: (ae-missing-release-tag) "areCookiesEnabled" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public
@@ -210,13 +203,6 @@ export type ErrorMap<ErrorCode extends string> = {
 // @public
 export function errorPrefix(fnName: string, argName: string): string;
 
-// Warning: (ae-missing-release-tag) "errorWithAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export function errorWithAuthInfo(error: FirebaseError, idToken?: string | null): FirebaseError<Record<string, unknown>> | FirebaseError<{
-    authInfo: ErrorAuthInfo | null | undefined;
-}>;
-
 // Warning: (ae-missing-release-tag) "Executor" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
@@ -253,10 +239,6 @@ export class FirebaseError<T = Record<string, unknown>> extends Error {
     code: string, message: string,
     customData?: T | undefined);
     readonly code: string;
-    // (undocumented)
-    copyWithAuthInfo(authInfo?: ErrorAuthInfo | null): FirebaseError<{
-        authInfo: ErrorAuthInfo | null | undefined;
-    }>;
     readonly customData?: T | undefined;
     readonly name: string;
 }
@@ -275,6 +257,13 @@ export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' |
 
 // @public
 export function generateSHA256Hash(input: string): Promise<string>;
+
+// Warning: (ae-missing-release-tag) "getContextualMsg" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function getContextualMsg<T extends {
+    authInfo: ErrorAuthInfo | null;
+}, E extends FirebaseError<T>>(originalError: E): string;
 
 // @public
 export const getDefaultAppConfig: () => Record<string, string> | undefined;
