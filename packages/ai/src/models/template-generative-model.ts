@@ -23,10 +23,12 @@ import { GenerateContentResult, RequestOptions } from '../types';
 import {
   AI,
   GenerateContentStreamResult,
-  SingleRequestOptions
+  SingleRequestOptions,
+  StartTemplateChatParams
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
+import { TemplateChatSession } from '../methods/template-chat-session';
 
 /**
  * {@link GenerativeModel} APIs that execute on a server-side template.
@@ -66,7 +68,7 @@ export class TemplateGenerativeModel {
    */
   async generateContent(
     templateId: string,
-    templateVariables: object,
+    templateVariables: Record<string, unknown>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
@@ -94,7 +96,7 @@ export class TemplateGenerativeModel {
    */
   async generateContentStream(
     templateId: string,
-    templateVariables: object,
+    templateVariables: Record<string, unknown>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
@@ -105,6 +107,23 @@ export class TemplateGenerativeModel {
         ...this.requestOptions,
         ...singleRequestOptions
       }
+    );
+  }
+
+  /**
+   * Starts a {@link TemplateChatSession} that will use this template to
+   * respond to messages.
+   *
+   * @param params - Configurations for the chat, including the template
+   * ID and input variables.
+   *
+   * @beta
+   */
+  startChat(params: StartTemplateChatParams): TemplateChatSession {
+    return new TemplateChatSession(
+      this._apiSettings,
+      params,
+      this.requestOptions
     );
   }
 }

@@ -1,5 +1,11 @@
 # @firebase/auth
 
+## 1.13.0
+
+### Minor Changes
+
+- [`715c042`](https://github.com/firebase/firebase-js-sdk/commit/715c0424d656b1be2d423c31f12e9ffbaeea2dd5) [#9740](https://github.com/firebase/firebase-js-sdk/pull/9740) (fixes [#9739](https://github.com/firebase/firebase-js-sdk/issues/9739)) - Updated the peer dependency range for @react-native-async-storage/async-storage to support both v2 and v3
+
 ## 1.12.2
 
 ### Patch Changes
