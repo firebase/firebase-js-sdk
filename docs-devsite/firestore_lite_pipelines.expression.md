@@ -45,6 +45,7 @@ export declare abstract class Expression
 |  [arrayContainsAll(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsall) |  | Creates an expression that checks if an array contains all the specified elements. |
 |  [arrayContainsAny(values)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | Creates an expression that checks if an array contains any of the specified elements. |
 |  [arrayContainsAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionarraycontainsany) |  | Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayFilter(alias, filter)](./firestore_lite_pipelines.expression.md#expressionarrayfilter) |  | Filters the array using a provided alias and predicate expression. |
 |  [arrayFirst()](./firestore_lite_pipelines.expression.md#expressionarrayfirst) |  | Returns the first element of the array. |
 |  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | Returns the first <code>n</code> elements of the array. |
 |  [arrayFirstN(n)](./firestore_lite_pipelines.expression.md#expressionarrayfirstn) |  | Returns the first <code>n</code> elements of the array. |
@@ -67,7 +68,10 @@ export declare abstract class Expression
 |  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayMinimumN(n)](./firestore_lite_pipelines.expression.md#expressionarrayminimumn) |  | Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
 |  [arrayReverse()](./firestore_lite_pipelines.expression.md#expressionarrayreverse) |  | Creates an expression that reverses an array. |
+|  [arraySlice(offset, length)](./firestore_lite_pipelines.expression.md#expressionarrayslice) |  | Returns a subset of the array. |
 |  [arraySum()](./firestore_lite_pipelines.expression.md#expressionarraysum) |  | Creates an expression that computes the sum of the elements in an array. |
+|  [arrayTransform(elementAlias, transform)](./firestore_lite_pipelines.expression.md#expressionarraytransform) |  | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(elementAlias, indexAlias, transform)](./firestore_lite_pipelines.expression.md#expressionarraytransformwithindex) |  | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
 |  [as(name)](./firestore_lite_pipelines.expression.md#expressionas) |  | Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
 |  [asBoolean()](./firestore_lite_pipelines.expression.md#expressionasboolean) |  | Wraps the expression in a \[BooleanExpression\]. |
 |  [ascending()](./firestore_lite_pipelines.expression.md#expressionascending) |  | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
@@ -146,6 +150,7 @@ export declare abstract class Expression
 |  [notEqual(value)](./firestore_lite_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to a constant value. |
 |  [notEqualAny(values)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
 |  [notEqualAny(arrayExpression)](./firestore_lite_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
+|  [parent()](./firestore_lite_pipelines.expression.md#expressionparent) |  | Creates an expression that returns the parent document reference of a document reference. |
 |  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of another expression. |
 |  [pow(exponent)](./firestore_lite_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of a constant value. |
 |  [regexContains(pattern)](./firestore_lite_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
@@ -535,6 +540,38 @@ A new `Expression` representing the 'array\_contains\_any' comparison.
 // Check if the 'groups' array contains either the value from the 'userGroup' field
 // or the value "guest"
 field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
+
+```
+
+## Expression.arrayFilter()
+
+Filters the array using a provided alias and predicate expression.
+
+<b>Signature:</b>
+
+```typescript
+arrayFilter(alias: string, filter: BooleanExpression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  alias | string | The variable name to use for each element. |
+|  filter | [BooleanExpression](./firestore_lite_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the filtered array.
+
+### Example
+
+
+```typescript
+// Filter the 'items' array to only include those where the 'price' is greater than 10
+field("items").arrayFilter('item', greaterThan(variable('item.price'), 10));
 
 ```
 
@@ -1187,6 +1224,41 @@ field("myArray").arrayReverse();
 
 ```
 
+## Expression.arraySlice()
+
+Returns a subset of the array.
+
+<b>Signature:</b>
+
+```typescript
+arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  offset | number \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The starting offset. |
+|  length | number \| [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The optional length of the slice. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the sliced array.
+
+### Example
+
+
+```typescript
+// Get 5 elements from the 'items' array starting from index 2
+field("items").arraySlice(2, 5);
+
+// Get n number of elements from the 'items' array starting from index 2
+field("items").arraySlice(2, field("count"));
+
+```
+
 ## Expression.arraySum()
 
 Creates an expression that computes the sum of the elements in an array.
@@ -1208,6 +1280,71 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 ```typescript
 // Compute the sum of the elements in the 'scores' field.
 field("scores").arraySum();
+
+```
+
+## Expression.arrayTransform()
+
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+arrayTransform(elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the arrayTransform operation.
+
+### Example
+
+
+```typescript
+// Transform the 'scores' array by multiplying each score by 10
+field("scores").arrayTransform("score", multiply(variable("score"), 10));
+
+```
+
+## Expression.arrayTransformWithIndex()
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the arrayTransformWithIndex operation.
+
+### Example
+
+
+```typescript
+// Transform the 'scores' array by adding the index to each score
+field("scores").arrayTransformWithIndex("score", "i", add(variable("score"), variable("i")));
 
 ```
 
@@ -2498,19 +2635,19 @@ field("title").arrayContains(1).isError();
 
 Creates an expression that checks if the result of this expression is of the given type.
 
-Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data. Supported values for `type` are: `'null'`<!-- -->, `'array'`<!-- -->, `'boolean'`<!-- -->, `'bytes'`<!-- -->, `'timestamp'`<!-- -->, `'geo_point'`<!-- -->, `'number'`<!-- -->, `'int32'`<!-- -->, `'int64'`<!-- -->, `'float64'`<!-- -->, `'decimal128'`<!-- -->, `'map'`<!-- -->, `'reference'`<!-- -->, `'string'`<!-- -->, `'vector'`<!-- -->, `'max_key'`<!-- -->, `'min_key'`<!-- -->, `'object_id'`<!-- -->, `'regex'`<!-- -->, `'request_timestamp'`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-isType(type: Type): BooleanExpression;
+isType(type: string): BooleanExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  type | [Type](./firestore_lite_pipelines.md#type) | The type to check for. |
+|  type | string | The type to check for. |
 
 <b>Returns:</b>
 
@@ -3472,6 +3609,30 @@ A new `Expression` representing the 'notEqualAny' comparison.
 ```typescript
 // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
 field("status").notEqualAny(field('rejectedStatuses'));
+
+```
+
+## Expression.parent()
+
+Creates an expression that returns the parent document reference of a document reference.
+
+<b>Signature:</b>
+
+```typescript
+parent(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_lite_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the parent operation.
+
+### Example
+
+
+```typescript
+// Get the parent document reference of a document reference.
+field("__path__").parent();
 
 ```
 

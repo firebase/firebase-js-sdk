@@ -44,7 +44,9 @@ import { TemplateImagenModel } from './models/template-imagen-model';
 import { logger } from './logger';
 
 export { ChatSession } from './methods/chat-session';
+export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
+export { TemplateChatSession } from './methods/template-chat-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
 export {
