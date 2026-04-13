@@ -115,7 +115,8 @@ export function createTracingProvider(
 
 class OTLPTraceExporter
   extends OTLPExporterBase<ReadableSpan[]>
-  implements SpanExporter {
+  implements SpanExporter
+{
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
@@ -162,7 +163,3 @@ class OTLPTraceExporter
     super.export(spans, resultCallback);
   }
 }
-
-
-
-
