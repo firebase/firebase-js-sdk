@@ -112,6 +112,7 @@ export {
   map,
   mod,
   documentId,
+  parent,
   equal,
   notEqual,
   lessThan,
@@ -124,9 +125,13 @@ export {
   arrayContains,
   arrayContainsAny,
   arrayContainsAll,
+  arrayFilter,
   arrayFirst,
   arrayFirstN,
+  arrayTransform,
+  arrayTransformWithIndex,
   arrayGet,
+  arraySlice,
   arrayIndexOf,
   arrayIndexOfAll,
   arrayLast,
@@ -244,6 +249,5 @@ export {
   AggregateFunction,
   TimeGranularity,
   TimePart,
-  TimeUnit,
-  Type
+  TimeUnit
 } from '../../src/lite-api/expressions';
