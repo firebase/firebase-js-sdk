@@ -103,9 +103,10 @@ export function createTracingProvider(
     })
   });
 
+  const cleanedRegexUrl = endpointUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation({ ignoreUrls: [new RegExp(endpointUrl)] }),
+      new FetchInstrumentation({ ignoreUrls: [new RegExp(cleanedRegexUrl)] }),
       new XMLHttpRequestInstrumentation()
     ]
   });
