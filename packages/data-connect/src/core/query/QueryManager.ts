@@ -455,17 +455,7 @@ export class QueryManager {
     queryRef: QueryRef<Data, Variables>
   ): Promise<void> {
     if (response.errors && response.errors.length > 0) {
-      const stringified = JSON.stringify(
-        response.errors.map(e => {
-          if (e && typeof e === 'object') {
-            return {
-              message: (e as unknown as { message: string }).message,
-              code: (e as unknown as { code?: unknown }).code
-            };
-          }
-          return e;
-        })
-      );
+      const stringified = JSON.stringify(response.errors);
       const failureResponse: DataConnectOperationFailureResponse = {
         errors: response.errors as [],
         data: response.data as Record<string, unknown>

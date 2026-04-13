@@ -138,6 +138,11 @@ interface TransportWithInternals {
     Array<ExecuteStreamRequest<unknown>>
   >;
   activeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
+  queuedQueryExecuteRequests: Map<
+    string,
+    ExecuteStreamRequest<unknown> | ResumeStreamRequest
+  >;
+  pendingCancellations: Map<string, string>;
   executeRequestPromises: Map<
     string,
     {
@@ -825,6 +830,100 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
             .false;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
+        });
+      });
+
+      describe('invokeQuery de-duplication and resume', () => {
+        it('should de-duplicate concurrent identical queries', async () => {
+          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+          const queryPromise1 = transport.invokeQuery(queryName1, variables1);
+          const queryPromise2 = transport.invokeQuery(queryName1, variables1);
+          const queryPromise3 = transport.invokeQuery(queryName1, variables1);
+
+          // Only one message should be sent immediately
+          expect(sendMessageSpy).to.have.been.calledOnce;
+          
+          const mapKey = transport.getMapKey(queryName1, variables1);
+          expect(transport.activeQueryExecuteRequests.has(mapKey)).to.be.true;
+          expect(transport.queuedQueryExecuteRequests.has(mapKey)).to.be.true;
+
+          // Promises 2 and 3 should be the same
+          expect(queryPromise2).to.equal(queryPromise3);
+          expect(queryPromise1).to.not.equal(queryPromise2);
+
+          const activeRequest = transport.activeQueryExecuteRequests.get(mapKey);
+          const queuedRequest = transport.queuedQueryExecuteRequests.get(mapKey);
+
+          // Resolve first request
+          await transport.invokeHandleResponse(activeRequest!.requestId, response1);
+          const result1 = await queryPromise1;
+          expect(result1).to.deep.equal(response1);
+
+          // Resolving first request should trigger sending the queued request
+          expect(sendMessageSpy).to.have.been.calledTwice;
+          const sentMessage2 = sendMessageSpy.secondCall.args[0];
+          expect(sentMessage2.requestId).to.equal(queuedRequest!.requestId);
+
+          // Resolve queued request
+          await transport.invokeHandleResponse(queuedRequest!.requestId, response2);
+          const result2 = await queryPromise2;
+          const result3 = await queryPromise3;
+          expect(result2).to.deep.equal(response2);
+          expect(result3).to.deep.equal(response2);
+        });
+
+        it('should use resume payload if subscription is active', async () => {
+          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+
+          transport.invokeSubscribe(observer, queryName1, variables1);
+          expect(sendMessageSpy).to.have.been.calledOnce;
+          expect(sendMessageSpy.firstCall.args[0].subscribe).to.not.be.undefined;
+
+          // Now invoke query for the same query/variables
+          const queryPromise = transport.invokeQuery(queryName1, variables1);
+          expect(sendMessageSpy).to.have.been.calledTwice;
+          const sentMessage = sendMessageSpy.secondCall.args[0];
+          expect(sentMessage.resume).to.not.be.undefined;
+          
+          await transport.invokeHandleResponse(sentMessage.requestId, response1);
+          await queryPromise;
+        });
+
+        it('should defer unsubscription if resume is active', async () => {
+          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+
+          transport.invokeSubscribe(observer, queryName1, variables1);
+          expect(sendMessageSpy).to.have.been.calledOnce;
+          const subscribeRequestId = sendMessageSpy.firstCall.args[0].requestId;
+
+          // Trigger a resume (via invokeQuery)
+          void transport.invokeQuery(queryName1, variables1);
+          expect(sendMessageSpy).to.have.been.calledTwice;
+          const resumeRequestId = sendMessageSpy.secondCall.args[0].requestId;
+
+          // Now unsubscribe
+          transport.invokeUnsubscribe(queryName1, variables1);
+          // Should NOT send cancel message yet
+          expect(sendMessageSpy).to.have.been.calledTwice;
+
+          // Resolve resume
+          await transport.invokeHandleResponse(resumeRequestId, response1);
+          
+          // Now cancel message should be sent
+          expect(sendMessageSpy).to.have.been.calledThrice;
+          expect(sendMessageSpy.thirdCall.args[0].cancel).to.not.be.undefined;
+          expect(sendMessageSpy.thirdCall.args[0].requestId).to.equal(subscribeRequestId);
         });
       });
 

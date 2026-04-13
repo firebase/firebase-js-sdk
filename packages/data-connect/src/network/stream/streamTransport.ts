@@ -35,7 +35,8 @@ import {
   ExecuteStreamRequest,
   ResumeStreamRequest,
   StreamRequestHeaders,
-  SubscribeStreamRequest
+  SubscribeStreamRequest,
+  queryRequestIsResume
 } from './wire';
 
 /** The request id of the first request over the stream */
@@ -153,6 +154,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
+   * Map of query/variables to their queued execute/resume request bodies.
+   */
+  private queuedQueryExecuteRequests = new Map<
+    string,
+    ExecuteStreamRequest<unknown> | ResumeStreamRequest
+  >();
+
+  /**
+   * Map of RequestIds for active subscriptions that are pending cancellation to their query/variables map key.
+   */
+  private pendingCancellations = new Map<string, string>();
+
+  /**
    * Map of active execution RequestIds and their corresponding Promises and resolvers.
    */
   private executeRequestPromises = new Map<
@@ -185,7 +199,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private trackQueryExecuteRequest<Data>(
     requestId: string,
     mapKey: string,
-    executeBody: ExecuteStreamRequest<unknown>
+    executeBody: ExecuteStreamRequest<unknown> | ResumeStreamRequest
   ): TrackedExecuteRequestPromise<Data> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let resolveFn: (data: any) => void;
@@ -207,6 +221,29 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.executeRequestPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
+  }
+
+  /**
+   * Processes the next queued request for the given map key, if any.
+   * Moves it to active and sends it.
+   */
+  private processNextQueuedRequest(mapKey: string): void {
+    const queuedRequest = this.queuedQueryExecuteRequests.get(mapKey);
+    if (queuedRequest) {
+      this.queuedQueryExecuteRequests.delete(mapKey);
+      this.activeQueryExecuteRequests.set(mapKey, queuedRequest);
+
+      const trackedPromise = this.executeRequestPromises.get(
+        queuedRequest.requestId
+      );
+
+      // asynchronous, fire and forget
+      this.sendRequestMessage(queuedRequest).catch(err => {
+        if (trackedPromise) {
+          trackedPromise.rejectFn(err);
+        }
+      });
+    }
   }
 
   /**
@@ -494,6 +531,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * @inheritdoc
+   * If there is already an active execution request for the provided QueryRef, this will queue
+   * the new execution request to be sent after the active request resolves. If there is already
+   * a queued request for the same QueryRef, it will be de-duplicated.
    * @remarks
    * This method synchronously updates the request tracking data structures before sending any message.
    * If any asynchronous functionality is added to this function, it MUST be done in a way that
@@ -503,35 +543,128 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this.nextRequestId();
-    const activeRequestKey = { operationName: queryName, variables };
     const mapKey = this.getMapKey(queryName, variables);
-    const executeBody: ExecuteStreamRequest<Variables> = {
+    // check for active request (de-duplication)
+    const activeRequest = this.activeQueryExecuteRequests.get(mapKey);
+    if (activeRequest) {
+      return this.handleDuplicateQueryRequest<Data, Variables>(queryName, variables, mapKey);
+    }
+    return this.executeOrResumeQuery<Data, Variables>(queryName, variables, mapKey);
+  }
+
+  /**
+   * Creates the request body for an execute or resume request.
+   */
+  private createInvokeQueryRequestBody<Variables>(
+    requestId: string,
+    queryName: string,
+    variables: Variables | undefined,
+    mapKey: string
+  ): ExecuteStreamRequest<Variables> | ResumeStreamRequest {
+    const activeRequestKey = { operationName: queryName, variables };
+    if (this.activeSubscribeRequests.has(mapKey)) {
+      return {
+        requestId,
+        resume: {}
+      } as ResumeStreamRequest;
+    }
+    return {
       requestId,
       execute: activeRequestKey
-    };
+    } as ExecuteStreamRequest<Variables>;
+  }
+
+  /**
+   * Handles duplicate query requests by queuing them or returning existing promise.
+   */
+  private handleDuplicateQueryRequest<Data, Variables>(
+    queryName: string,
+    variables: Variables | undefined,
+    mapKey: string
+  ): Promise<DataConnectResponse<Data>> {
+    const queuedRequest = this.queuedQueryExecuteRequests.get(mapKey);
+    if (queuedRequest) {
+      const trackedPromise = this.executeRequestPromises.get(
+        queuedRequest.requestId
+      );
+      if (trackedPromise) {
+        // return the existing queued request's promise
+        return trackedPromise.responsePromise as Promise<
+          DataConnectResponse<Data>
+        >;
+      }
+    }
+
+    // queue the request
+    const requestId = this.nextRequestId();
+    const body = this.createInvokeQueryRequestBody(requestId, queryName, variables, mapKey);
+
+    this.queuedQueryExecuteRequests.set(mapKey, body);
+
+    // create promise but do not send yet
+    const { responsePromise } = this.trackQueryExecuteRequest<Data>(
+      requestId,
+      mapKey,
+      body
+    );
+
+    return responsePromise;
+  }
+
+  /**
+   * Executes or resumes a query immediately.
+   */
+  private executeOrResumeQuery<Data, Variables>(
+    queryName: string,
+    variables: Variables | undefined,
+    mapKey: string
+  ): Promise<DataConnectResponse<Data>> {
+    const requestId = this.nextRequestId();
+    const body = this.createInvokeQueryRequestBody(requestId, queryName, variables, mapKey);
+
+    this.activeQueryExecuteRequests.set(mapKey, body);
 
     let { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
       requestId,
       mapKey,
-      executeBody
+      body
     );
     responsePromise = responsePromise.finally(() => {
-      this.cleanupQueryExecuteRequest(requestId, mapKey);
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
-      }
+      this.handleQueryExecuteSettled(requestId, mapKey);
     });
 
     // asynchronous, fire and forget
-    this.sendRequestMessage<Variables>(executeBody).catch(err => {
+    this.sendRequestMessage<Variables>(body).catch(err => {
       rejectFn(err);
     });
     return responsePromise;
+  }
+
+  /**
+   * Handles cleanup and state transitions after a query execution request settles.
+   */
+  private handleQueryExecuteSettled(requestId: string, mapKey: string): void {
+    this.cleanupQueryExecuteRequest(requestId, mapKey);
+    this.processNextQueuedRequest(mapKey);
+
+    const pendingCancelMapKey = this.pendingCancellations.get(requestId);
+    if (pendingCancelMapKey) {
+      this.pendingCancellations.delete(requestId);
+      try {
+        const { operationName, variables } = JSON.parse(pendingCancelMapKey);
+        this.invokeUnsubscribe(operationName, variables);
+      } catch (e) {
+        logError(`Stream Transport failed to parse mapKey in pendingCancellations: ${pendingCancelMapKey}`);
+      }
+    }
+
+    if (
+      !this.hasActiveSubscriptions &&
+      !this.hasActiveExecuteRequests &&
+      this.closeTimeoutFinished
+    ) {
+      void this.attemptClose();
+    }
   }
 
   /**
@@ -631,6 +764,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       return;
     }
     const requestId = subscribeRequest.requestId;
+
+    // If there is an active resume request, defer cancellation
+    const executeRequest = this.activeQueryExecuteRequests.get(mapKey);
+    if (executeRequest && queryRequestIsResume(executeRequest)) {
+      this.pendingCancellations.set(executeRequest.requestId, mapKey);
+      return;
+    }
+
     const cancelBody: CancelStreamRequest = {
       requestId,
       cancel: {}
