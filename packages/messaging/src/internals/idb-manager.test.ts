@@ -36,7 +36,7 @@ import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { stub } from 'sinon';
-import * as idb from 'idb';
+import { deleteDB, openDB } from 'idb';
 
 describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
@@ -46,7 +46,7 @@ describe('idb manager', () => {
 
   beforeEach(async () => {
     // Wrap the module namespace in a mutable object so sinon can stub methods reliably.
-    idbForTests = Object.assign({}, idb);
+    idbForTests = Object.assign({}, { openDB, deleteDB });
     _setIdbForTests(idbForTests);
     // Ensure no prior suite left an open connection or cached promise.
     await dbDelete();
@@ -146,7 +146,7 @@ describe('idb manager', () => {
     const key = firebaseDependencies.appConfig.appId;
 
     // Pre-create a v1 DB with the token object store and a record.
-    const dbV1 = await idb.openDB(DATABASE_NAME, 1, {
+    const dbV1 = await openDB(DATABASE_NAME, 1, {
       upgrade: upgradeDb => {
         upgradeDb.createObjectStore('firebase-messaging-store');
       }
@@ -156,7 +156,7 @@ describe('idb manager', () => {
     await tx.done;
     dbV1.close();
 
-    const realOpenDB = idb.openDB.bind(idb);
+    const realOpenDB = openDB;
     const openDbStub = stub(idbForTests, 'openDB').callsFake(((
       name: string,
       version?: number,
@@ -174,7 +174,7 @@ describe('idb manager', () => {
   });
 
   it('only initiates one openDB call under concurrent access', async () => {
-    const realOpenDB = idb.openDB.bind(idb);
+    const realOpenDB = openDB;
     let releaseOpen!: () => void;
     const barrier = new Promise<void>(resolve => {
       releaseOpen = resolve;

@@ -72,10 +72,11 @@ export async function register(
     const fid = await messaging.firebaseDependencies.installations.getId();
 
     const stored = await dbGetFidRegistration(messaging.firebaseDependencies);
+    const now = Date.now();
     const shouldRefresh =
       !stored ||
       stored.fid !== fid ||
-      Date.now() >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
+      now >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
 
     if (!shouldRefresh) {
       // Nothing to do: same FID and within refresh window.
@@ -85,7 +86,7 @@ export async function register(
     await registerFcmRegistrationWithFid(messaging);
     await dbSetFidRegistration(messaging.firebaseDependencies, {
       fid,
-      lastRegisterTime: Date.now()
+      lastRegisterTime: now
     });
 
     const handler = messaging.onRegisteredHandler;
@@ -93,8 +94,13 @@ export async function register(
       return;
     }
 
-    // Notify app only when identity changes (or first call), but still refresh weekly in background.
-    if (fid !== messaging.lastNotifiedFid) {
+    // Notify the app after a backend sync when the identity changes, or when a weekly refresh occurs.
+    // (Also notify when no stored registration exists, since we just established one.)
+    const shouldNotify =
+      fid !== messaging.lastNotifiedFid ||
+      !stored ||
+      now >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
+    if (shouldNotify) {
       messaging.lastNotifiedFid = fid;
       if (typeof handler === 'function') {
         handler(fid);

@@ -167,11 +167,12 @@ describe('register', () => {
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
 
-    // 8 days later: refresh should run but onRegistered should not fire again.
+    // 8 days later: refresh should run and onRegistered should fire again even if FID unchanged.
     clock.tick(8 * 24 * 60 * 60 * 1000);
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledOnce;
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 

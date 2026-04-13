@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as idb from 'idb';
-import type { DBSchema, IDBPDatabase } from 'idb';
+import { deleteDB, openDB } from 'idb';
+import type { DBSchema, IDBPDatabase, OpenDBCallbacks } from 'idb';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { TokenDetails } from '../interfaces/registration-details';
@@ -44,11 +44,16 @@ export interface FidRegistrationDetails {
   lastRegisterTime: number;
 }
 
-const defaultIdb = idb;
-let idbImpl = defaultIdb;
+type IdbImpl = {
+  openDB: typeof openDB;
+  deleteDB: typeof deleteDB;
+};
+
+const defaultIdb: IdbImpl = { openDB, deleteDB };
+let idbImpl: IdbImpl = defaultIdb;
 
 // Exported for tests.
-export function _setIdbForTests(impl: typeof idb): void {
+export function _setIdbForTests(impl: IdbImpl): void {
   idbImpl = impl;
 }
 
@@ -58,62 +63,68 @@ export function _resetIdbForTests(): void {
 
 // Open v2, but fall back to v1 if upgrade/open fails. Cache as `unknown` and guard store access.
 let dbPromise: Promise<IDBPDatabase<unknown>> | null = null;
+
+function migrateMessagingDb(
+  upgradeDb: IDBPDatabase<unknown>,
+  oldVersion: number,
+  targetSchemaVersion: 1 | 2
+): void {
+  // Intentional fall-through for v2: run all intermediate migrations.
+  // eslint-disable-next-line default-case
+  switch (oldVersion) {
+    case 0:
+      upgradeDb.createObjectStore(TOKEN_OBJECT_STORE_NAME);
+      if (targetSchemaVersion === 1) {
+        break;
+      }
+    // fall through
+    case 1:
+      if (targetSchemaVersion === 2) {
+        upgradeDb.createObjectStore(FID_REGISTRATION_OBJECT_STORE_NAME);
+      }
+  }
+}
+
+function createOpenDbOptions(
+  targetSchemaVersion: 1 | 2
+): OpenDBCallbacks<unknown> {
+  return {
+    upgrade: (upgradeDb: IDBPDatabase<unknown>, oldVersion: number) => {
+      migrateMessagingDb(upgradeDb, oldVersion, targetSchemaVersion);
+    },
+    blocked: () => {
+      /* no-op */
+    },
+    blocking: (
+      _currentVersion: number,
+      _blockedVersion: number | null,
+      event: IDBVersionChangeEvent
+    ) => {
+      dbPromise = null;
+      (event.target as IDBDatabase | null)?.close();
+    },
+    terminated: () => {
+      dbPromise = null;
+    }
+  };
+}
+
 function getDbPromise(): Promise<IDBPDatabase<MessagingDB>> {
   if (!dbPromise) {
-    const openLatest = idbImpl.openDB(DATABASE_NAME, DATABASE_VERSION, {
-      upgrade: (upgradeDb, oldVersion) => {
-        // Intentional fall-through: run all intermediate migrations.
-        // eslint-disable-next-line default-case
-        switch (oldVersion) {
-          case 0:
-            upgradeDb.createObjectStore(TOKEN_OBJECT_STORE_NAME);
-          // fall through
-          case 1:
-            upgradeDb.createObjectStore(FID_REGISTRATION_OBJECT_STORE_NAME);
-        }
-      },
-      blocked: () => {
-        /* no-op */
-      },
-      blocking: (
-        _currentVersion: number,
-        _blockedVersion: number | null,
-        event: IDBVersionChangeEvent
-      ) => {
-        dbPromise = null;
-        (event.target as IDBDatabase | null)?.close();
-      },
-      terminated: () => {
-        dbPromise = null;
-      }
-    });
+    const openLatest = idbImpl.openDB(
+      DATABASE_NAME,
+      DATABASE_VERSION,
+      createOpenDbOptions(2)
+    );
 
     // Assign synchronously to avoid concurrent openDB() calls.
     dbPromise = (openLatest as unknown as Promise<IDBPDatabase<unknown>>).catch(
       () =>
-        idbImpl.openDB(DATABASE_NAME, DATABASE_VERSION - 1, {
-          upgrade: (upgradeDb, oldVersion) => {
-            // eslint-disable-next-line default-case
-            switch (oldVersion) {
-              case 0:
-                upgradeDb.createObjectStore(TOKEN_OBJECT_STORE_NAME);
-            }
-          },
-          blocked: () => {
-            /* no-op */
-          },
-          blocking: (
-            _currentVersion: number,
-            _blockedVersion: number | null,
-            event: IDBVersionChangeEvent
-          ) => {
-            dbPromise = null;
-            (event.target as IDBDatabase | null)?.close();
-          },
-          terminated: () => {
-            dbPromise = null;
-          }
-        }) as unknown as Promise<IDBPDatabase<unknown>>
+        idbImpl.openDB(
+          DATABASE_NAME,
+          DATABASE_VERSION - 1,
+          createOpenDbOptions(1)
+        ) as unknown as Promise<IDBPDatabase<unknown>>
     );
   }
   return dbPromise as Promise<IDBPDatabase<MessagingDB>>;
