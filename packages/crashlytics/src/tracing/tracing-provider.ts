@@ -19,6 +19,7 @@ import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
+  ExportResult,
   W3CTraceContextPropagator
 } from '@opentelemetry/core';
 import { TracerProvider, trace } from '@opentelemetry/api';
@@ -31,10 +32,18 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import {
+  OTLPExporterBase,
+  OTLPExporterConfigBase,
+  createOtlpNetworkExportDelegate
+} from '@opentelemetry/otlp-exporter-base';
+import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { DynamicHeaderProvider, DynamicLogAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
+import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
+import { FetchTransport } from 'src/logging/fetch-transport';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -43,7 +52,9 @@ import { sessionContextManager } from './session-context-manager';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  tracingUrl: string
+  endpointUrl: string,
+  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+  dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -57,19 +68,23 @@ export function createTracingProvider(
     'cloud.provider': 'gcp'
   });
 
-  if (tracingUrl.endsWith('/')) {
-    tracingUrl = tracingUrl.slice(0, -1);
+  if (endpointUrl.endsWith('/')) {
+    endpointUrl = endpointUrl.slice(0, -1);
   }
 
-  const otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/traces`;
 
-  const traceExporter = new OTLPTraceExporter({
-    url: otlpEndpoint,
-    headers: {
-      'X-Goog-User-Project': projectId || '',
-      ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
-    }
-  });
+  const traceExporter = new OTLPTraceExporter(
+    {
+      url: otlpEndpoint,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
+      }
+    },
+    dynamicHeaderProviders,
+    dynamicLogAttributeProviders
+  );
 
   const provider = new WebTracerProvider({
     resource,
@@ -90,10 +105,64 @@ export function createTracingProvider(
 
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation(),
+      new FetchInstrumentation({ ignoreUrls: [new RegExp(endpointUrl)] }),
       new XMLHttpRequestInstrumentation()
     ]
   });
 
   return provider;
 }
+
+class OTLPTraceExporter
+  extends OTLPExporterBase<ReadableSpan[]>
+  implements SpanExporter {
+  constructor(
+    config: OTLPExporterConfigBase = {},
+    dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+    private dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
+  ) {
+    super(
+      createOtlpNetworkExportDelegate(
+        {
+          timeoutMillis: 10000,
+          concurrencyLimit: 5,
+          compression: 'none'
+        },
+        JsonTraceSerializer,
+        new FetchTransport({
+          url: config.url!,
+          headers: new Headers(
+            typeof config.headers === 'object'
+              ? (config.headers as Record<string, string>)
+              : {}
+          ),
+          dynamicHeaderProviders
+        })
+      )
+    );
+  }
+
+  override async export(
+    spans: ReadableSpan[],
+    resultCallback: (result: ExportResult) => void
+  ): Promise<void> {
+    const attributes = await Promise.all(
+      this.dynamicLogAttributeProviders.map(provider => provider.getAttribute())
+    );
+
+    const attributesToApply = Object.fromEntries(
+      attributes.filter((attr): attr is [string, string] => attr != null)
+    );
+
+    if (Object.keys(attributesToApply).length > 0) {
+      spans.forEach(span => {
+        Object.assign(span.attributes, attributesToApply);
+      });
+    }
+    super.export(spans, resultCallback);
+  }
+}
+
+
+
+
