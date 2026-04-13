@@ -20,7 +20,6 @@ import {
   ErrorMap,
   FirebaseError,
   parseIdTokenToAuthInfo,
-  FirebaseErrorWithAuthInfo,
   isContextualErrorsEnabled,
   enableContextualErrors
 } from '../src/errors';

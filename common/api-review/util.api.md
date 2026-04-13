@@ -183,7 +183,7 @@ export class ErrorFactory<ErrorCode extends string, ErrorParams extends {
 } = {}> {
     constructor(service: string, serviceName: string, errors: ErrorMap<ErrorCode>);
     // (undocumented)
-    create<K extends ErrorCode>(code: K, ...data: (K extends keyof ErrorParams ? [ErrorParams[K]] : [])): FirebaseError;
+    create<K extends ErrorCode>(code: K, ...data: K extends keyof ErrorParams ? [ErrorParams[K]] : []): FirebaseError;
     }
 
 // Warning: (ae-missing-release-tag) "ErrorFn" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
@@ -239,15 +239,8 @@ export class FirebaseError<T = Record<string, unknown>> extends Error {
     code: string, message: string,
     customData?: T | undefined);
     readonly code: string;
-    readonly customData?: T | undefined;
+    customData?: T | undefined;
     readonly name: string;
-}
-
-// Warning: (ae-missing-release-tag) "FirebaseErrorWithAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
-//
-// @public (undocumented)
-export class FirebaseErrorWithAuthInfo extends FirebaseError<AuthInfo> {
-    constructor(error: FirebaseError, authInfo: ErrorAuthInfo | null);
 }
 
 // Warning: (ae-missing-release-tag) "FirebaseSignInProvider" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)

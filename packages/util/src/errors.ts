@@ -91,7 +91,7 @@ export class FirebaseError<T = Record<string, unknown>> extends Error {
     readonly code: string,
     message: string,
     /** Custom data for this error. */
-    readonly customData?: T
+    public customData?: T
   ) {
     super(message);
     // Fix For ES5

@@ -44,8 +44,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "tslib": "^2.1.0",
-    "@firebase/auth": "1.12.2"
+    "tslib": "^2.1.0"
   },
   "devDependencies": {
     "@rollup/plugin-replace": "6.0.2",

@@ -536,6 +536,8 @@ toc:
     path: /docs/reference/js/firestore_.unsubscribe.md
   - title: VectorValue
     path: /docs/reference/js/firestore_.vectorvalue.md
+  - title: WithPath
+    path: /docs/reference/js/firestore_.withpath.md
   - title: WriteBatch
     path: /docs/reference/js/firestore_.writebatch.md
 - title: firestore/lite
@@ -599,6 +601,8 @@ toc:
     path: /docs/reference/js/firestore_lite.transactionoptions.md
   - title: VectorValue
     path: /docs/reference/js/firestore_lite.vectorvalue.md
+  - title: WithPath
+    path: /docs/reference/js/firestore_lite.withpath.md
   - title: WriteBatch
     path: /docs/reference/js/firestore_lite.writebatch.md
 - title: firestore/lite/pipelines

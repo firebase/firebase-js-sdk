@@ -32,7 +32,7 @@ describe('Contextual Errors', () => {
   it('getDoc throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
     
-    sinon.stub(eventManagerModule, 'eventManagerListen').callsFake((eventManager, listener) => {
+    sinon.stub(eventManagerModule, 'eventManagerListen').callsFake(async (eventManager, listener) => {
       listener.onError(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
     });
 
@@ -55,7 +55,7 @@ describe('Contextual Errors', () => {
   it('getDocs throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
     
-    sinon.stub(eventManagerModule, 'eventManagerListen').callsFake((eventManager, listener) => {
+    sinon.stub(eventManagerModule, 'eventManagerListen').callsFake(async (eventManager, listener) => {
       listener.onError(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
     });
 
