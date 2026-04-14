@@ -15,15 +15,13 @@
  * limitations under the License.
  */
 
-interface SelfWithWorkerGlobalScope {
-  WorkerGlobalScope?: unknown;
-}
+// Declare WorkerGlobalScope to avoid TypeScript errors in environments without it.
+declare var WorkerGlobalScope: any;
 
 export function _isWorker(): boolean {
   return (
     typeof self !== 'undefined' &&
-    typeof (self as unknown as SelfWithWorkerGlobalScope)
-      .WorkerGlobalScope !== 'undefined'
+    typeof (self as any).WorkerGlobalScope !== 'undefined'
   );
 }
 
