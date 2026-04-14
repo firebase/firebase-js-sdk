@@ -864,8 +864,8 @@ async function handleTargetError(
         remoteStoreImpl.targetIdMapRemoteToSdk.delete(targetId);
       }
       remoteStoreImpl.listenTargets.delete(targetId);
-      remoteStoreImpl.watchChangeAggregator!.removeTarget(targetId);
     }
+    remoteStoreImpl.watchChangeAggregator!.removeTarget(targetId);
   }
 }
 

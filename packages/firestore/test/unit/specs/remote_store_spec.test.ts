@@ -150,4 +150,22 @@ describeSpec('Remote store:', [], () => {
       .watchAcks(query1)
       .expectActiveTargets({ query: query1, resumeToken: '' });
   });
+
+  specTest(
+    'Handles removal of target with cause after unlisten and ignores future messages',
+    [],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { key: 'a' });
+      return spec()
+        .ensureManualLruGC()
+        .allowUnlistedTargetRemoval()
+        .userListens(query1)
+        .watchAcks(query1)
+        .userUnlistens(query1)
+        .watchRemoves(query1, { code: 8 })
+        .watchSends({ affects: [query1] }, doc1)
+        .expectActiveTargets();
+    }
+  );
 });
