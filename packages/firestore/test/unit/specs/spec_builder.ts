@@ -265,8 +265,13 @@ export class SpecBuilder {
     return this;
   }
 
+  /**
+   * By default the spec test runner does not allow removal of a non-active target,
+   * but this scenario is possible in the real world due to a client / server race,
+   * and therefore must be allowed for some spec tests.
+   */
   allowUnlistedTargetRemoval(): this {
-    (this.config as any).allowUnlistedTargetRemoval = true;
+    this.config.allowUnlistedTargetRemoval = true;
     return this;
   }
 
@@ -787,7 +792,7 @@ export class SpecBuilder {
       watchRemove: { targetIds: [this.getTargetId(query)], cause }
     };
     if (cause) {
-      if (!(this.config as any).allowUnlistedTargetRemoval) {
+      if (!this.config.allowUnlistedTargetRemoval) {
         delete this.activeTargets[this.getTargetId(query)];
       }
       this.currentStep.expectedState = {

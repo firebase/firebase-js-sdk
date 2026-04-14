@@ -683,7 +683,6 @@ abstract class TestRunner {
 
     if (forEvent === 'ack' || forEvent === 'remove') {
       // FIFO assumption: ACK and REMOVE usually apply to the oldest pending/active target.
-      console.log(`[getRemoteTargetId] Resolved SDK ID ${sdkTargetId} to Remote ID ${list[0]} for event ${forEvent}`);
       return list[0];
     }
 
