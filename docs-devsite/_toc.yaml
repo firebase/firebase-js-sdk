@@ -212,8 +212,6 @@ toc:
     path: /docs/reference/js/ai.templatefunctiondeclaration.md
   - title: TemplateFunctionDeclarationsTool
     path: /docs/reference/js/ai.templatefunctiondeclarationstool.md
-  - title: TemplateGenerateContentRequest
-    path: /docs/reference/js/ai.templategeneratecontentrequest.md
   - title: TemplateGenerativeModel
     path: /docs/reference/js/ai.templategenerativemodel.md
   - title: TemplateImagenModel

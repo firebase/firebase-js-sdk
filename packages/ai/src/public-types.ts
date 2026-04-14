@@ -17,6 +17,15 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { Backend } from './backend';
+import {
+  Content,
+  GenerateContentResult,
+  GenerateContentStreamResult,
+  Part,
+  RequestOptions,
+  SingleRequestOptions,
+  StartTemplateChatParams
+} from './types';
 
 export * from './types';
 
@@ -101,4 +110,25 @@ export interface AIOptions {
    * Whether to use App Check limited use tokens. Defaults to false.
    */
   useLimitedUseAppCheckTokens?: boolean;
+}
+
+/**
+ * `ChatSession` class for use with server prompt templates that
+ * enables sending chat messages and stores history of sent and
+ * received messages so far.
+ *
+ * @beta
+ */
+export interface TemplateChatSession {
+  params: StartTemplateChatParams;
+  requestOptions?: RequestOptions;
+  sendMessage(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentResult>;
+  sendMessageStream(
+    request: string | Array<string | Part>,
+    singleRequestOptions?: SingleRequestOptions
+  ): Promise<GenerateContentStreamResult>;
+  getHistory(): Promise<Content[]>;
 }

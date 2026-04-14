@@ -1389,22 +1389,17 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @beta, but its signature references "TemplateRequestInternal" which is marked as @internal
-//
 // @beta
-export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callGenerateContent(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _callGenerateContentStream(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): TemplateRequestInternal;
+export interface TemplateChatSession {
+    // (undocumented)
+    getHistory(): Promise<Content[]>;
     // (undocumented)
     params: StartTemplateChatParams;
     // (undocumented)
-    requestOptions?: RequestOptions | undefined;
+    requestOptions?: RequestOptions;
+    // (undocumented)
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    // (undocumented)
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 }
 
@@ -1436,7 +1431,9 @@ export interface TemplateFunctionDeclarationsToolInternal {
     templateFunctions?: TemplateFunctionDeclarationInternal[];
 }
 
-// @beta
+// Warning: (ae-internal-missing-underscore) The name "TemplateGenerateContentRequest" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface TemplateGenerateContentRequest {
     // (undocumented)
     [key: string]: unknown;
