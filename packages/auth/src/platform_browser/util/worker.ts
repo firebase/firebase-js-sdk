@@ -15,12 +15,13 @@
  * limitations under the License.
  */
 
-import { _window } from '../auth_window';
+// Declare WorkerGlobalScope to avoid TypeScript errors in environments without it.
+declare var WorkerGlobalScope: any;
 
 export function _isWorker(): boolean {
   return (
-    typeof _window()['WorkerGlobalScope'] !== 'undefined' &&
-    typeof _window()['importScripts'] === 'function'
+    typeof self !== 'undefined' &&
+    typeof (self as any).WorkerGlobalScope !== 'undefined'
   );
 }
 
