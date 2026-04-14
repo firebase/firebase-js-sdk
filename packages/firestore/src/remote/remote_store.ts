@@ -17,6 +17,7 @@
 
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { TargetIdGenerator } from '../core/target_id_generator';
 import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import {
@@ -24,7 +25,8 @@ import {
   localStoreGetNextMutationBatch
 } from '../local/local_store_impl';
 import { isIndexedDbTransactionError } from '../local/simple_db';
-import { TargetData } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
+import { documentKeySet } from '../model/collections';
 import { MutationResult } from '../model/mutation';
 import { MutationBatch, MutationBatchResult } from '../model/mutation_batch';
 import { debugAssert, debugCast } from '../util/assert';
@@ -32,6 +34,8 @@ import { AsyncQueue } from '../util/async_queue';
 import { ByteString } from '../util/byte_string';
 import { FirestoreError } from '../util/error';
 import { logDebug } from '../util/log';
+import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
 import { BATCHID_UNKNOWN } from '../util/types';
 
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
@@ -45,6 +49,7 @@ import {
   PersistentListenStream,
   PersistentWriteStream
 } from './persistent_stream';
+import { RemoteEvent, TargetChange } from './remote_event';
 import { RemoteSyncer } from './remote_syncer';
 import { isPermanentWriteError } from './rpc_error';
 import {
@@ -136,6 +141,13 @@ class RemoteStoreImpl implements RemoteStore {
    * without waiting for confirmation from the listen stream.
    */
   listenTargets = new Map<TargetId, TargetData>();
+
+  targetIdMapSdkToRemote = new Map<TargetId, TargetId>();
+  targetIdMapRemoteToSdk = new Map<TargetId, TargetId>();
+  // targetCacheTargetIdGenerator = TargetIdGenerator.forTargetCache();
+  targetCacheTargetIdGenerator = new TargetIdGenerator(1000);
+  // syncEngineTargetIdGenerator = TargetIdGenerator.forSyncEngine();
+  syncEngineTargetIdGenerator = new TargetIdGenerator(1001);
 
   connectivityMonitor: ConnectivityMonitor;
   watchStream?: PersistentListenStream;
@@ -266,6 +278,82 @@ export async function remoteStoreShutdown(
 }
 
 /**
+ * Returns the remote target ID currently mapped to this
+ * sdkTargetId. Or returns `0` if the SDK target ID
+ * is not currently mapped.
+ * @param remoteStoreImpl
+ * @param sdkTargetId
+ */
+function getRemoteTargetId(
+  remoteStoreImpl: RemoteStoreImpl,
+  sdkTargetId: TargetId
+): TargetId {
+  return remoteStoreImpl.targetIdMapSdkToRemote.get(sdkTargetId) || 0;
+}
+
+/**
+ * Returns the remote target ID currently mapped to this
+ * sdkTargetId. Exposed for testing.
+ */
+export function remoteStoreGetRemoteTargetId(
+  remoteStore: RemoteStore,
+  sdkTargetId: TargetId
+): TargetId {
+  const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
+  return getRemoteTargetId(remoteStoreImpl, sdkTargetId);
+}
+
+/**
+ * Generates a new remote target ID that is acceptable
+ * to map to the given SDK target ID.
+ * @param remoteStoreImpl
+ * @param sdkTargetId
+ */
+function generateRemoteTargetId(
+  remoteStoreImpl: RemoteStoreImpl,
+  sdkTargetId: TargetId
+): TargetId {
+  // If the given sdkTargetId is odd, map it to an odd (sync engine) target ID
+  if (sdkTargetId % 2 !== 0) {
+    return remoteStoreImpl.syncEngineTargetIdGenerator.next();
+  } else {
+    // If the given sdkTargetId is even, map it to an even (target cache) target ID
+    return remoteStoreImpl.targetCacheTargetIdGenerator.next();
+  }
+}
+
+/**
+ * Generate a new remote target ID for the given SDK target ID.
+ * Re-map the given SDK to the new remote ID.
+ * Delete any mapping of the old remote ID, if given.
+ * @param remoteStoreImpl
+ * @param sdkTargetId
+ * @param currentRemoteTargetId
+ * @return The new remote ID.
+ */
+function allocateRemoteTargetId(
+  remoteStoreImpl: RemoteStoreImpl,
+  sdkTargetId: TargetId,
+  currentRemoteTargetId: TargetId
+): TargetId {
+  if (currentRemoteTargetId !== 0) {
+    // If there was an existing remote target ID mapped to that SDK target ID, forget about the old remote ID.
+    remoteStoreImpl.targetIdMapRemoteToSdk.delete(currentRemoteTargetId);
+    remoteStoreImpl.watchChangeAggregator!.removeTarget(currentRemoteTargetId);
+  }
+
+  // Generate a new unique remote target ID
+  const newRemoteTargetId = generateRemoteTargetId(
+    remoteStoreImpl,
+    sdkTargetId
+  );
+
+  remoteStoreImpl.targetIdMapSdkToRemote.set(sdkTargetId, newRemoteTargetId);
+  remoteStoreImpl.targetIdMapRemoteToSdk.set(newRemoteTargetId, sdkTargetId);
+  return newRemoteTargetId;
+}
+
+/**
  * Starts new listen for the given target. Uses resume token if provided. It
  * is a no-op if the target of given `TargetData` is already being listened to.
  */
@@ -275,18 +363,51 @@ export function remoteStoreListen(
 ): void {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
 
-  if (remoteStoreImpl.listenTargets.has(targetData.targetId)) {
+  // Get any remote target ID currently mapped to the targetData
+  const currentRemoteTargetId = getRemoteTargetId(
+    remoteStoreImpl,
+    targetData.targetId
+  );
+
+  // If remote store is still listening for this remote target ID, this is a no-op.
+  if (remoteStoreImpl.listenTargets.has(currentRemoteTargetId)) {
     return;
   }
 
+  // Generate and map a new remote ID to the SDK target ID
+  const remoteTargetId = allocateRemoteTargetId(
+    remoteStoreImpl,
+    targetData.targetId,
+    currentRemoteTargetId
+  );
+
+  logDebug(
+    LOG_TAG,
+    'remoteStoreListen mapping SDK target ID to remote',
+    targetData.targetId,
+    remoteTargetId
+  );
+
+  // Create a new TargetData for remote use, which uses
+  // the remote TargetID.
+  const remoteTargetData = new TargetData(
+    targetData.target,
+    remoteTargetId,
+    targetData.purpose,
+    targetData.sequenceNumber,
+    targetData.snapshotVersion,
+    targetData.lastLimboFreeSnapshotVersion,
+    targetData.resumeToken
+  );
+
   // Mark this as something the client is currently listening for.
-  remoteStoreImpl.listenTargets.set(targetData.targetId, targetData);
+  remoteStoreImpl.listenTargets.set(remoteTargetId, remoteTargetData);
 
   if (shouldStartWatchStream(remoteStoreImpl)) {
     // The listen will be sent in onWatchStreamOpen
     startWatchStream(remoteStoreImpl);
   } else if (ensureWatchStream(remoteStoreImpl).isOpen()) {
-    sendWatchRequest(remoteStoreImpl, targetData);
+    sendWatchRequest(remoteStoreImpl, remoteTargetData);
   }
 }
 
@@ -301,14 +422,25 @@ export function remoteStoreUnlisten(
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
   const watchStream = ensureWatchStream(remoteStoreImpl);
 
-  debugAssert(
-    remoteStoreImpl.listenTargets.has(targetId),
-    `unlisten called on target no currently watched: ${targetId}`
+  const remoteTargetId = getRemoteTargetId(remoteStoreImpl, targetId);
+  logDebug(
+    LOG_TAG,
+    'remoteStoreUnlisten removing mapping of SDK target ID to remote',
+    targetId,
+    remoteTargetId
   );
 
-  remoteStoreImpl.listenTargets.delete(targetId);
+  debugAssert(
+    remoteStoreImpl.listenTargets.has(remoteTargetId),
+    `unlisten called on target no currently watched: ${remoteTargetId}`
+  );
+
+  remoteStoreImpl.listenTargets.delete(remoteTargetId);
+  remoteStoreImpl.targetIdMapSdkToRemote.delete(targetId);
+  remoteStoreImpl.targetIdMapRemoteToSdk.delete(remoteTargetId);
+
   if (watchStream.isOpen()) {
-    sendUnwatchRequest(remoteStoreImpl, targetId);
+    sendUnwatchRequest(remoteStoreImpl, remoteTargetId);
   }
 
   if (remoteStoreImpl.listenTargets.size === 0) {
@@ -329,23 +461,37 @@ export function remoteStoreUnlisten(
  */
 function sendWatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
-  targetData: TargetData
+  remoteTargetData: TargetData
 ): void {
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
-    targetData.targetId
+    remoteTargetData.targetId
   );
 
   if (
-    targetData.resumeToken.approximateByteSize() > 0 ||
-    targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
+    remoteTargetData.resumeToken.approximateByteSize() > 0 ||
+    remoteTargetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
   ) {
-    const expectedCount = remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(
-      targetData.targetId
-    ).size;
-    targetData = targetData.withExpectedCount(expectedCount);
+    const sdkTargetId = remoteStoreImpl.targetIdMapRemoteToSdk.get(
+      remoteTargetData.targetId
+    );
+
+    if (sdkTargetId === undefined) {
+      logDebug(
+        LOG_TAG,
+        'SDK target ID not found for remote ID: ' + remoteTargetData.targetId
+      );
+
+      // There's already a new remoteStoreListen request for the original
+      // target, so ignore this.
+      return;
+    }
+
+    const expectedCount =
+      remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(sdkTargetId).size;
+    remoteTargetData = remoteTargetData.withExpectedCount(expectedCount);
   }
 
-  ensureWatchStream(remoteStoreImpl).watch(targetData);
+  ensureWatchStream(remoteStoreImpl).watch(remoteTargetData);
 }
 
 /**
@@ -372,10 +518,19 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
   );
 
   remoteStoreImpl.watchChangeAggregator = new WatchChangeAggregator({
-    getRemoteKeysForTarget: targetId =>
-      remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(targetId),
-    getTargetDataForTarget: targetId =>
-      remoteStoreImpl.listenTargets.get(targetId) || null,
+    getRemoteKeysForTarget: remoteTargetId => {
+      // Remote syncer uses SDK target IDs, so we need to map the remote
+      // id to external id
+      const sdkTargetId =
+        remoteStoreImpl.targetIdMapRemoteToSdk.get(remoteTargetId);
+
+      // If no sdkTargetId is mapped, return an empty key set
+      return sdkTargetId !== undefined
+        ? remoteStoreImpl.remoteSyncer.getRemoteKeysForTarget!(sdkTargetId)
+        : documentKeySet();
+    },
+    getTargetDataForTarget: remoteTargetId =>
+      remoteStoreImpl.listenTargets.get(remoteTargetId) || null,
     getDatabaseId: () => remoteStoreImpl.datastore.serializer.databaseId
   });
   ensureWatchStream(remoteStoreImpl).start();
@@ -413,8 +568,8 @@ async function onWatchStreamConnected(
 async function onWatchStreamOpen(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
-  remoteStoreImpl.listenTargets.forEach((targetData, targetId) => {
-    sendWatchRequest(remoteStoreImpl, targetData);
+  remoteStoreImpl.listenTargets.forEach((remoteTargetData, targetId) => {
+    sendWatchRequest(remoteStoreImpl, remoteTargetData);
   });
 }
 
@@ -453,6 +608,9 @@ async function onWatchStreamChange(
 ): Promise<void> {
   // Mark the client as online since we got a message from the server
   remoteStoreImpl.onlineStateTracker.set(OnlineState.Online);
+
+  // Remove untracked target IDs from the WatchChange
+  //filterUntrackedTargetsFromWatchChange(remoteStoreImpl, watchChange);
 
   if (
     watchChange instanceof WatchTargetChange &&
@@ -579,13 +737,13 @@ function raiseWatchSnapshot(
 
   // Update in-memory resume tokens. LocalStore will update the
   // persistent view of these when applying the completed RemoteEvent.
-  remoteEvent.targetChanges.forEach((change, targetId) => {
+  remoteEvent.targetChanges.forEach((change, remoteTargetId) => {
     if (change.resumeToken.approximateByteSize() > 0) {
-      const targetData = remoteStoreImpl.listenTargets.get(targetId);
+      const targetData = remoteStoreImpl.listenTargets.get(remoteTargetId);
       // A watched target might have been removed already.
       if (targetData) {
         remoteStoreImpl.listenTargets.set(
-          targetId,
+          remoteTargetId,
           targetData.withResumeToken(change.resumeToken, snapshotVersion)
         );
       }
@@ -594,8 +752,8 @@ function raiseWatchSnapshot(
 
   // Re-establish listens for the targets that have been invalidated by
   // existence filter mismatches.
-  remoteEvent.targetMismatches.forEach((targetId, targetPurpose) => {
-    const targetData = remoteStoreImpl.listenTargets.get(targetId);
+  remoteEvent.targetMismatches.forEach((remoteTargetId, targetPurpose) => {
+    const targetData = remoteStoreImpl.listenTargets.get(remoteTargetId);
     if (!targetData) {
       // A watched target might have been removed already.
       return;
@@ -604,7 +762,7 @@ function raiseWatchSnapshot(
     // Clear the resume token for the target, since we're in a known mismatch
     // state.
     remoteStoreImpl.listenTargets.set(
-      targetId,
+      remoteTargetId,
       targetData.withResumeToken(
         ByteString.EMPTY_BYTE_STRING,
         targetData.snapshotVersion
@@ -613,7 +771,7 @@ function raiseWatchSnapshot(
 
     // Cause a hard reset by unwatching and rewatching immediately, but
     // deliberately don't send a resume token so that we get a full update.
-    sendUnwatchRequest(remoteStoreImpl, targetId);
+    sendUnwatchRequest(remoteStoreImpl, remoteTargetId);
 
     // Mark the target we send as being on behalf of an existence filter
     // mismatch, but don't actually retain that in listenTargets. This ensures
@@ -621,7 +779,7 @@ function raiseWatchSnapshot(
     // listens of this target (that might happen e.g. on reconnect).
     const requestTargetData = new TargetData(
       targetData.target,
-      targetId,
+      remoteTargetId,
       targetPurpose,
       targetData.sequenceNumber
     );
@@ -633,7 +791,59 @@ function raiseWatchSnapshot(
     !!remoteStoreImpl.remoteSyncer.applyRemoteEvent,
     'applyRemoteEvent() not set'
   );
-  return remoteStoreImpl.remoteSyncer.applyRemoteEvent(remoteEvent);
+
+  const sdkEvent = toSdkRemoteEvent(remoteStoreImpl, remoteEvent);
+
+  return remoteStoreImpl.remoteSyncer.applyRemoteEvent!(sdkEvent);
+}
+
+/**
+ * Convert a RemoteEvent with remote IDs to a RemoteEvent with
+ * SDK IDs and dropped updates
+ * for any targets we no longer track.
+ *
+ * @param remoteStoreImpl
+ * @param remoteEvent
+ * @return a new RemoteEvent with SDK IDs and dropped updates
+ * for any targets we no longer track.
+ */
+function toSdkRemoteEvent(
+  remoteStoreImpl: RemoteStoreImpl,
+  remoteEvent: RemoteEvent
+): RemoteEvent {
+  // Map TargetChanges to TargetChanges with SDK ID
+  const sdkTargetChanges = new Map<TargetId, TargetChange>();
+  remoteEvent.targetChanges.forEach((change, remoteTargetId) => {
+    // If we no longer track the remote ID, then drop the TargetChange
+    // otherwise propagate the TargetChange
+    const sdkTargetId =
+      remoteStoreImpl.targetIdMapRemoteToSdk.get(remoteTargetId);
+    if (sdkTargetId !== undefined) {
+      sdkTargetChanges.set(sdkTargetId, change);
+    }
+  });
+
+  // Map target mismatches to target mismatches with SDK ID
+  let sdkTargetMismatches = new SortedMap<TargetId, TargetPurpose>(
+    primitiveComparator
+  );
+  remoteEvent.targetMismatches.forEach((remoteTargetId, purpose) => {
+    // If we no longer track the remote ID, then drop the target mismatch
+    // otherwise propagate the target mismatch
+    const sdkTargetId =
+      remoteStoreImpl.targetIdMapRemoteToSdk.get(remoteTargetId);
+    if (sdkTargetId !== undefined) {
+      sdkTargetMismatches = sdkTargetMismatches.insert(sdkTargetId, purpose);
+    }
+  });
+
+  return new RemoteEvent(
+    remoteEvent.snapshotVersion,
+    sdkTargetChanges,
+    sdkTargetMismatches,
+    remoteEvent.documentUpdates,
+    remoteEvent.resolvedLimboDocuments
+  );
 }
 
 /** Handles an error on a target */
@@ -650,7 +860,15 @@ async function handleTargetError(
   for (const targetId of watchChange.targetIds) {
     // A watched target might have been removed already.
     if (remoteStoreImpl.listenTargets.has(targetId)) {
-      await remoteStoreImpl.remoteSyncer.rejectListen(targetId, error);
+      const sdkTargetId = remoteStoreImpl.targetIdMapRemoteToSdk.get(targetId);
+
+      // If we still track the remote target ID, then notify the remoteSyncer
+      // of the error and then free up the remote ID.
+      if (sdkTargetId !== undefined) {
+        await remoteStoreImpl.remoteSyncer.rejectListen!(sdkTargetId, error);
+        remoteStoreImpl.targetIdMapSdkToRemote.delete(sdkTargetId);
+        remoteStoreImpl.targetIdMapRemoteToSdk.delete(targetId);
+      }
       remoteStoreImpl.listenTargets.delete(targetId);
       remoteStoreImpl.watchChangeAggregator!.removeTarget(targetId);
     }
