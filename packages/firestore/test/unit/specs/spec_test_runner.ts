@@ -283,7 +283,7 @@ abstract class TestRunner {
   constructor(
     private sharedWrites: SharedWriteTracker,
     clientIndex: number,
-    config: SpecConfig
+    protected config: SpecConfig
   ) {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
@@ -683,6 +683,7 @@ abstract class TestRunner {
 
     if (forEvent === 'ack' || forEvent === 'remove') {
       // FIFO assumption: ACK and REMOVE usually apply to the oldest pending/active target.
+      console.log(`[getRemoteTargetId] Resolved SDK ID ${sdkTargetId} to Remote ID ${list[0]} for event ${forEvent}`);
       return list[0];
     }
 
@@ -748,10 +749,12 @@ abstract class TestRunner {
       // attention in tests that we only remove targets we listened too.
       removed.targetIds.forEach(targetId => {
         const remoteTargetId = mappedIds.get(targetId)!;
-        expect(
-          this.connection.activeTargets[remoteTargetId],
-          'Removing a non-active target'
-        ).to.exist;
+        if (!this.config.allowUnlistedTargetRemoval) {
+          expect(
+            this.connection.activeTargets[remoteTargetId],
+            'Removing a non-active target'
+          ).to.exist;
+        }
         delete this.connection.activeTargets[remoteTargetId];
       });
     }
@@ -1504,6 +1507,9 @@ export interface SpecConfig {
 
   /** The number of active clients for this test run. */
   numClients: number;
+
+  /** A boolean to allow removal of non-active targets by the server. */
+  allowUnlistedTargetRemoval?: boolean;
 
   /**
    * The maximum number of concurrently-active listens for limbo resolutions.

@@ -115,4 +115,19 @@ describeSpec('Remote store:', [], () => {
       );
     }
   );
+
+  specTest('Handles removal of old target after re-listen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .allowUnlistedTargetRemoval()
+      .userListens(query1)
+      .watchAcks(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      // Use numerical code 8 for RESOURCE_EXHAUSTED
+      .watchRemoves(query1, { code: 8 })
+      .watchAcks(query1)
+      .expectActiveTargets({ query: query1, resumeToken: '' });
+  });
 });

@@ -265,6 +265,11 @@ export class SpecBuilder {
     return this;
   }
 
+  allowUnlistedTargetRemoval(): this {
+    (this.config as any).allowUnlistedTargetRemoval = true;
+    return this;
+  }
+
   withMaxConcurrentLimboResolutions(value?: number): this {
     this.config.maxConcurrentLimboResolutions = value;
     return this;
@@ -782,7 +787,9 @@ export class SpecBuilder {
       watchRemove: { targetIds: [this.getTargetId(query)], cause }
     };
     if (cause) {
-      delete this.activeTargets[this.getTargetId(query)];
+      if (!(this.config as any).allowUnlistedTargetRemoval) {
+        delete this.activeTargets[this.getTargetId(query)];
+      }
       this.currentStep.expectedState = {
         activeTargets: { ...this.activeTargets }
       };
