@@ -122,13 +122,27 @@ export interface AIOptions {
 export interface TemplateChatSession {
   params: StartTemplateChatParams;
   requestOptions?: RequestOptions;
+  /**
+   * Sends a chat message and receives a non-streaming
+   * {@link GenerateContentResult}
+   */
   sendMessage(
     request: string | Array<string | Part>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentResult>;
+  /**
+   * Sends a chat message and receives the response as a
+   * {@link GenerateContentStreamResult} containing an iterable stream
+   * and a response promise.
+   */
   sendMessageStream(
     request: string | Array<string | Part>,
     singleRequestOptions?: SingleRequestOptions
   ): Promise<GenerateContentStreamResult>;
+  /**
+   * Gets the chat history so far. Blocked prompts are not added to history.
+   * Neither blocked candidates nor the prompts that generated them are added
+   * to history.
+   */
   getHistory(): Promise<Content[]>;
 }
