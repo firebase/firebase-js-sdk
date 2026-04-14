@@ -18,7 +18,7 @@
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { getSessionId } from '../helpers';
-import { LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
+import { SIGNAL_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
@@ -31,7 +31,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   onStart(span: Span, _parentContext: Context): void {
     const sessionId = getSessionId();
     if (sessionId) {
-      span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(SIGNAL_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
     }
   }
 

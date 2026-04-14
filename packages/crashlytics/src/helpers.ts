@@ -18,7 +18,7 @@
 import { SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
 import {
-  LOG_ENTRY_ATTRIBUTE_KEYS,
+  SIGNAL_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
 } from './constants';
 import { Crashlytics } from './public-types';
@@ -71,9 +71,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
 
       const tracer = tracingProvider.getTracer('session-tracer');
       const span = tracer.startSpan('session-start');
-      span.setAttribute(LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(SIGNAL_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
       span.setAttribute(
-        LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION,
+        SIGNAL_ATTRIBUTE_KEYS.APP_VERSION,
         getAppVersion(crashlytics)
       );
       sessionContextManager.setSessionSpan(span);
@@ -84,10 +84,10 @@ export function startNewSession(crashlytics: Crashlytics): void {
         severityNumber: SeverityNumber.DEBUG,
         body: 'Session created',
         attributes: {
-          [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
-          [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
-          [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
+          [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
+          [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
+          [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
+          [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
         }
       });
     } catch (e) {

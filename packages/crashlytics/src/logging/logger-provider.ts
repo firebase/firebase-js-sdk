@@ -30,7 +30,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from './fetch-transport';
-import { DynamicHeaderProvider, DynamicLogAttributeProvider } from '../types';
+import { DynamicHeaderProvider, DynamicSignalAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 
@@ -43,7 +43,7 @@ export function createLoggerProvider(
   app: FirebaseApp,
   endpointUrl: string,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
+  dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
 ): LoggerProvider {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
@@ -63,7 +63,7 @@ export function createLoggerProvider(
       }
     },
     dynamicHeaderProviders,
-    dynamicLogAttributeProviders
+    dynamicSignalAttributeProviders
   );
 
   return new LoggerProvider({
@@ -80,7 +80,7 @@ class OTLPLogExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
+    private dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -108,12 +108,15 @@ class OTLPLogExporter
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
     const attributes = await Promise.all(
-      this.dynamicLogAttributeProviders.map(provider => provider.getAttribute())
+      this.dynamicSignalAttributeProviders.map(provider => provider.getAttribute())
     );
 
-    const attributesToApply = Object.fromEntries(
-      attributes.filter((attr): attr is [string, string] => attr != null)
-    );
+    const attributesToApply: Record<string, string> = {};
+    for (const attr of attributes) {
+      if (attr) {
+        attributesToApply[attr[0]] = attr[1];
+      }
+    }
 
     if (Object.keys(attributesToApply).length > 0) {
       logs.forEach(log => {

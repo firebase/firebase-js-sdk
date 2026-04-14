@@ -38,7 +38,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { DynamicHeaderProvider, DynamicLogAttributeProvider } from '../types';
+import { DynamicHeaderProvider, DynamicSignalAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
@@ -54,7 +54,7 @@ export function createTracingProvider(
   app: FirebaseApp,
   endpointUrl: string,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
+  dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -83,7 +83,7 @@ export function createTracingProvider(
       }
     },
     dynamicHeaderProviders,
-    dynamicLogAttributeProviders
+    dynamicSignalAttributeProviders
   );
 
   const provider = new WebTracerProvider({
@@ -103,10 +103,15 @@ export function createTracingProvider(
     })
   });
 
-  const cleanedRegexUrl = endpointUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  /* We must clean url before a regex match in the cases of special characters changing matched url.
+     Ex: https://api.example.com/traces?version=1
+     '.' -> matches any character so https://api-example.com/traces?version=1 will be ignored too
+     `?` -> makes the `s` optional so https://api.example.com/trace?version=1 will be ignored too
+  */
+  const cleanedRegexEndpointUrl = endpointUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation({ ignoreUrls: [new RegExp(cleanedRegexUrl)] }),
+      new FetchInstrumentation({ ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)] }),
       new XMLHttpRequestInstrumentation()
     ]
   });
@@ -121,7 +126,7 @@ class OTLPTraceExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicLogAttributeProviders: DynamicLogAttributeProvider[] = []
+    private dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -149,12 +154,15 @@ class OTLPTraceExporter
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
     const attributes = await Promise.all(
-      this.dynamicLogAttributeProviders.map(provider => provider.getAttribute())
+      this.dynamicSignalAttributeProviders.map(provider => provider.getAttribute())
     );
 
-    const attributesToApply = Object.fromEntries(
-      attributes.filter((attr): attr is [string, string] => attr != null)
-    );
+    const attributesToApply: Record<string, string> = {};
+    for (const attr of attributes) {
+      if (attr) {
+        attributesToApply[attr[0]] = attr[1];
+      }
+    }
 
     if (Object.keys(attributesToApply).length > 0) {
       spans.forEach(span => {

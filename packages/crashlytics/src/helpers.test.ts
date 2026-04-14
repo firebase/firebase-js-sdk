@@ -22,7 +22,7 @@ import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
 import {
-  LOG_ENTRY_ATTRIBUTE_KEYS,
+  SIGNAL_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
 } from './constants';
 import { AUTO_CONSTANTS } from './auto-constants';
@@ -143,10 +143,10 @@ describe('helpers', () => {
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
+        [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
 
@@ -155,10 +155,10 @@ describe('helpers', () => {
       startNewSession(fakeCrashlytics);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
+        [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
 
@@ -173,10 +173,10 @@ describe('helpers', () => {
       startNewSession(telemetryWithVersion);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
+        [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
+        [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
   });
