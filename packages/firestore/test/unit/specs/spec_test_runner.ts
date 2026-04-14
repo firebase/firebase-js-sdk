@@ -270,7 +270,7 @@ abstract class TestRunner {
   constructor(
     private sharedWrites: SharedWriteTracker,
     clientIndex: number,
-    config: SpecConfig
+    protected config: SpecConfig
   ) {
     this.clientId = `client${clientIndex}`;
     this.databaseInfo = new DatabaseInfo(
@@ -672,10 +672,12 @@ abstract class TestRunner {
       // with a server-side removal), but we want to pay extra careful
       // attention in tests that we only remove targets we listened too.
       removed.targetIds.forEach(targetId => {
-        expect(
-          this.connection.activeTargets[targetId],
-          'Removing a non-active target'
-        ).to.exist;
+        if (!this.config.allowUnlistedTargetRemoval) {
+          expect(
+            this.connection.activeTargets[targetId],
+            'Removing a non-active target'
+          ).to.exist;
+        }
         delete this.connection.activeTargets[targetId];
       });
     }
@@ -1403,6 +1405,9 @@ export interface SpecConfig {
 
   /** The number of active clients for this test run. */
   numClients: number;
+
+  /** A boolean to allow removal of non-active targets by the server. */
+  allowUnlistedTargetRemoval?: boolean;
 
   /**
    * The maximum number of concurrently-active listens for limbo resolutions.
