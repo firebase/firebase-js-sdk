@@ -144,9 +144,7 @@ class RemoteStoreImpl implements RemoteStore {
 
   targetIdMapSdkToRemote = new Map<TargetId, TargetId>();
   targetIdMapRemoteToSdk = new Map<TargetId, TargetId>();
-  // targetCacheTargetIdGenerator = TargetIdGenerator.forTargetCache();
   targetCacheTargetIdGenerator = new TargetIdGenerator(1000);
-  // syncEngineTargetIdGenerator = TargetIdGenerator.forSyncEngine();
   syncEngineTargetIdGenerator = new TargetIdGenerator(1001);
 
   connectivityMonitor: ConnectivityMonitor;
