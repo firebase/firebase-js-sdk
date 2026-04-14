@@ -607,9 +607,6 @@ async function onWatchStreamChange(
   // Mark the client as online since we got a message from the server
   remoteStoreImpl.onlineStateTracker.set(OnlineState.Online);
 
-  // Remove untracked target IDs from the WatchChange
-  //filterUntrackedTargetsFromWatchChange(remoteStoreImpl, watchChange);
-
   if (
     watchChange instanceof WatchTargetChange &&
     watchChange.state === WatchTargetChangeState.Removed &&
