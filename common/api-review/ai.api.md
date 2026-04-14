@@ -1391,15 +1391,12 @@ export class StringSchema extends Schema {
 
 // @beta
 export interface TemplateChatSession {
-    // (undocumented)
     getHistory(): Promise<Content[]>;
     // (undocumented)
     params: StartTemplateChatParams;
     // (undocumented)
     requestOptions?: RequestOptions;
-    // (undocumented)
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    // (undocumented)
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 }
 

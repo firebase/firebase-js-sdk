@@ -112,7 +112,7 @@ export class TemplateGenerativeModel {
   }
 
   /**
-   * Starts a {@link TemplateChatSessionImpl} that will use this template to
+   * Starts a {@link TemplateChatSession} that will use this template to
    * respond to messages.
    *
    * @param params - Configurations for the chat, including the template
