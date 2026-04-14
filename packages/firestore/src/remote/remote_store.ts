@@ -337,7 +337,6 @@ function allocateRemoteTargetId(
   if (currentRemoteTargetId !== 0) {
     // If there was an existing remote target ID mapped to that SDK target ID, forget about the old remote ID.
     remoteStoreImpl.targetIdMapRemoteToSdk.delete(currentRemoteTargetId);
-    remoteStoreImpl.watchChangeAggregator!.removeTarget(currentRemoteTargetId);
   }
 
   // Generate a new unique remote target ID
