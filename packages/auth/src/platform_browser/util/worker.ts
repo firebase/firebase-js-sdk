@@ -22,8 +22,8 @@ interface SelfWithWorkerGlobalScope {
 export function _isWorker(): boolean {
   return (
     typeof self !== 'undefined' &&
-    typeof (self as unknown as SelfWithWorkerGlobalScope)
-      .WorkerGlobalScope !== 'undefined'
+    typeof (self as unknown as SelfWithWorkerGlobalScope).WorkerGlobalScope !==
+      'undefined'
   );
 }
 
