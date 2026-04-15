@@ -45,7 +45,7 @@ const FIRST_REQUEST_ID = 1;
 const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
 
 /**
- * A promise returned to the user from when invoking an operation, and the functions that resolve/reject it.
+ * A promise returned to the user when invoking an operation, and the functions that resolve/reject it.
  */
 interface InvokeOperationPromise<Data> {
   responsePromise: Promise<DataConnectResponse<Data>>;
