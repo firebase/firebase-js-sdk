@@ -20,6 +20,7 @@ import { doc, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
+import { RpcError } from './spec_rpc_error';
 
 describeSpec('Remote store:', [], () => {
   specTest('Waits for watch to remove targets', [], () => {
@@ -131,7 +132,7 @@ describeSpec('Remote store:', [], () => {
           .userUnlistens(query1)
           .userListens(query1)
           // Use numerical code 8 for RESOURCE_EXHAUSTED
-          .watchRemoves(query1, { code: 8 })
+          .watchRemoves(query1, new RpcError(8, 'Resource exhausted'))
           .watchAcks(query1)
           .expectActiveTargets({ query: query1, resumeToken: '' })
       );
@@ -163,7 +164,7 @@ describeSpec('Remote store:', [], () => {
         .userListens(query1)
         .watchAcks(query1)
         .userUnlistens(query1)
-        .watchRemoves(query1, { code: 8 })
+        .watchRemoves(query1, new RpcError(8, 'Resource exhausted'))
         .watchSends({ affects: [query1] }, doc1)
         .expectActiveTargets();
     }
