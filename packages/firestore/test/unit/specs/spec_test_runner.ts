@@ -1680,10 +1680,10 @@ export type SpecUserPatch = [string, JsonObject<unknown>];
 export type SpecUserDelete = string;
 
 /** [{sdkTargetId: <target-id>, remoteTargetIndex: <num?>}, ...] */
-export type SpecWatchAck = {
+export type SpecWatchAck = Array<{
   sdkTargetId: TargetId;
   remoteTargetIndex?: number;
-}[];
+}>;
 
 /** [[<target-id>, ...], <resume-token>] */
 export type SpecWatchCurrent = [TargetId[], string];
