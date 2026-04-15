@@ -38,16 +38,16 @@ import {
   SubscribeStreamRequest
 } from './wire';
 
-/** The request id of the first request over the stream */
+/** The Request ID of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
-/** Time to wait before closing an idle connection (no active subscriptions) */
+/** Time to wait before closing an idle connection (no active subscriptions). */
 const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
 
 /**
- * A promise that is settled for a request is received, and the functions that resolve or reject it.
+ * A promise returned to the user from when invoking an operation, and the functions that resolve/reject it.
  */
-interface InvokeQueryPromise<Data> {
+interface InvokeOperationPromise<Data> {
   responsePromise: Promise<DataConnectResponse<Data>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolveFn: (data: any) => void;
@@ -56,8 +56,9 @@ interface InvokeQueryPromise<Data> {
 }
 
 /**
- * The base class for all {@link DataConnectStreamTransport | Stream Transport} implementations.
- * Handles management of logical streams (requests), authentication, data routing to query layer, etc.
+ * The base class for all Stream Transport implementations.
+ * Handles management of logical streams (requests), authentication, data routing to query layer,
+ * request optimizations, etc.
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
@@ -97,14 +98,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Close the physical connection with the server. Handles no cleanup - simply closes the
-   * implementation-specific connection.
+   * implementation-specific connection. On failure to close, the connection is still considered closed.
    * @returns a promise which resolves when the connection is closed, or rejects if it fails to close.
-   * On failure to close, the connection is still considered closed.
    */
   protected abstract closeConnection(): Promise<void>;
 
   /**
-   * Queue a message to be sent over the stream.
+   * Queue a {@linkcode DataConnectStreamRequest} to be sent over the stream.
    * @param requestBody The body of the message to be sent.
    * @throws DataConnectError if sending fails.
    */
@@ -119,17 +119,20 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected abstract ensureConnection(): Promise<void>;
 
-  /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
+  /** The Request ID of the next message to be sent. Monotonically increasing sequence number starting at {@linkcode FIRST_REQUEST_ID}. */
   private requestNumber = FIRST_REQUEST_ID;
   /**
-   * Generates and returns the next request ID.
+   * Generates and returns the next Request ID. Starts at {@linkcode FIRST_REQUEST_ID} and increments
+   * for each request sent.
    */
   private nextRequestId(): string {
     return (this.requestNumber++).toString();
   }
 
   /**
-   * Map of query/variables to their active execute/resume request bodies.
+   * Map of query/variables to their active {@linkcode ExecuteStreamRequest} or {@linkcode ResumeStreamRequest}
+   * request bodies. These requests are de-duplicated by query/variables so that there is only one active
+   * request for each query/variables combination.
    */
   private activeInvokeQueryRequests = new Map<
     string,
@@ -137,7 +140,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
-   * Map of mutation/variables to their active execute request bodies.
+   * Map of mutation/variables to their active {@linkcode ExecuteStreamRequest} request bodies. Mutations
+   * can have more than one active request at a time as they are not idempotent, and therefore should
+   * not be de-duplicated.
    */
   private activeInvokeMutationRequests = new Map<
     string,
@@ -145,7 +150,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
-   * Map of query/variables to their active subscribe request bodies.
+   * Map of query/variables to their active {@linkcode SubscribeStreamRequest} request bodies. There
+   * may only be one active request for each query/variables combination.
    */
   private activeInvokeSubscribeRequests = new Map<
     string,
@@ -153,15 +159,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
-   * Map of active execution RequestIds and their corresponding Promises and resolvers.
+   * Map of active {@linkcode invokeQuery} and {@linkcode invokeMutation} RequestIds and their
+   * corresponding {@linkcode InvokeOperationPromise}.
    */
-  private executeRequestPromises = new Map<
+  private invokeOperationPromises = new Map<
     string,
-    InvokeQueryPromise<unknown>
+    InvokeOperationPromise<unknown>
   >();
 
   /**
-   * Map of active subscription RequestIds and their corresponding observers.
+   * Map of active {@linkcode invokeSubscribe} RequestIds and their corresponding {@linkcode SubscribeObserver}.
    */
   private subscribeObservers = new Map<string, SubscribeObserver<unknown>>();
 
@@ -175,9 +182,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private hasWaitedForInitialAuth = false;
 
   /**
-   * Tracks a query execution request, storing the request body and creating and storing a promise that
-   * will be resolved when the response is received.
-   * @returns The reject function and the response promise.
+   * Tracks an {@linkcode invokeQuery} request, storing the request body and creating and storing a
+   * response promise that will be resolved when the response is received.
+   * @returns The tracked {@linkcode InvokeOperationPromise}.
    *
    * @remarks
    * This method returns a promise, but is synchronous.
@@ -186,7 +193,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     requestId: string,
     mapKey: string,
     executeBody: ExecuteStreamRequest<unknown>
-  ): InvokeQueryPromise<Data> {
+  ): InvokeOperationPromise<Data> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let resolveFn: (data: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -197,22 +204,22 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         rejectFn = reject;
       }
     );
-    const executeRequestPromise: InvokeQueryPromise<Data> = {
+    const executeRequestPromise: InvokeOperationPromise<Data> = {
       responsePromise,
       resolveFn: resolveFn!,
       rejectFn: rejectFn!
     };
 
     this.activeInvokeQueryRequests.set(mapKey, executeBody);
-    this.executeRequestPromises.set(requestId, executeRequestPromise);
+    this.invokeOperationPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
   }
 
   /**
-   * Tracks a mutation execution request, storing the request body and creating and storing a promise
-   * that will be resolved when the response is received.
-   * @returns The reject function and the response promise.
+   * Tracks an {@linkcode invokeMutation} request, storing the request body and creating and storing a
+   * response promise that will be resolved when the response is received.
+   * @returns The tracked {@linkcode InvokeOperationPromise}.
    *
    * @remarks
    * This method returns a promise, but is synchronous.
@@ -221,7 +228,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     requestId: string,
     mapKey: string,
     executeBody: ExecuteStreamRequest<unknown>
-  ): InvokeQueryPromise<Data> {
+  ): InvokeOperationPromise<Data> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let resolveFn: (data: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -232,7 +239,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         rejectFn = reject;
       }
     );
-    const executeRequestPromise: InvokeQueryPromise<Data> = {
+    const executeRequestPromise: InvokeOperationPromise<Data> = {
       responsePromise,
       resolveFn: resolveFn!,
       rejectFn: rejectFn!
@@ -241,13 +248,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     const activeRequests = this.activeInvokeMutationRequests.get(mapKey) || [];
     activeRequests.push(executeBody);
     this.activeInvokeMutationRequests.set(mapKey, activeRequests);
-    this.executeRequestPromises.set(requestId, executeRequestPromise);
+    this.invokeOperationPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
   }
 
   /**
-   * Tracks a subscribe request, storing the request body and the notification observer.
+   * Tracks an {@linkcode invokeSubscribe} request, storing the request body and the {@linkcode SubscribeObserver}.
    * @remarks
    * This method is synchronous.
    */
@@ -270,7 +277,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private cleanupInvokeQueryRequest(requestId: string, mapKey: string): void {
     this.activeInvokeQueryRequests.delete(mapKey);
-    this.executeRequestPromises.delete(requestId);
+    this.invokeOperationPromises.delete(requestId);
   }
 
   /**
@@ -292,7 +299,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         this.activeInvokeMutationRequests.delete(mapKey);
       }
     }
-    this.executeRequestPromises.delete(requestId);
+    this.invokeOperationPromises.delete(requestId);
   }
 
   /**
@@ -339,7 +346,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Attempt to close the connection. Will only close if there are no active requests preventing it
-   * from doing so.
+   * from doing so. Does not respect any {@linkcode closeTimeout}.
    */
   private async attemptClose(): Promise<void> {
     if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
@@ -351,8 +358,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Begin closing the connection. Waits for {@link IDLE_CONNECTION_TIMEOUT_MS} without cleaning up
-   * and requests (meaning it will not close after the timeout unless the requests are closed first).
+   * Begin closing the connection. Waits for {@linkcode IDLE_CONNECTION_TIMEOUT_MS} without cleaning up
+   * any requests (meaning it will not close after the timeout unless the requests are closed first).
    * This is a graceful close - it will be called when there are no more active subscriptions, so
    * there's no need to cleanup.
    */
@@ -389,8 +396,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.activeInvokeSubscribeRequests.clear();
 
     const error = new DataConnectError(code, reason);
-    for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
-      this.executeRequestPromises.delete(requestId);
+    for (const [requestId, { rejectFn }] of this.invokeOperationPromises) {
+      this.invokeOperationPromises.delete(requestId);
       rejectFn(error);
     }
 
@@ -447,7 +454,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return preparedRequestBody;
   }
 
-  // TODO(stephenarosaj): just make this async
   /**
    * Sends a request message to the server via the concrete implementation.
    * Ensures the connection is ready and prepares the message before sending.
@@ -471,7 +477,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Helper to generate a consistent string key for the tracking maps.
+   * Helper to generate a consistent string key for the request tracking maps.
    */
   private getMapKey(operationName: string, variables?: unknown): string {
     const sortedVariables = this.sortObjectKeys(variables);
@@ -682,18 +688,18 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Handle a response message from the server. Called by the connection-specific implementation after
-   * it's transformed a message from the server into a {@link DataConnectResponse}.
-   * @param requestId the requestId associated with this response.
+   * it's transformed a message from the server into a {@linkcode DataConnectResponse}.
+   * @param requestId the Request ID associated with this response.
    * @param response the response from the server.
    */
   protected async handleResponse<Data>(
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void> {
-    if (this.executeRequestPromises.has(requestId)) {
+    if (this.invokeOperationPromises.has(requestId)) {
       // don't clean up the tracking maps here, they're handled automatically when the execute promise settles
       const { resolveFn, rejectFn } =
-        this.executeRequestPromises.get(requestId)!;
+        this.invokeOperationPromises.get(requestId)!;
       if (response.errors && response.errors.length) {
         const failureResponse: DataConnectOperationFailureResponse = {
           errors: response.errors as [],

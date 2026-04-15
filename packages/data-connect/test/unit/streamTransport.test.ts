@@ -138,7 +138,7 @@ interface TransportWithInternals {
     Array<ExecuteStreamRequest<unknown>>
   >;
   activeInvokeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
-  executeRequestPromises: Map<
+  invokeOperationPromises: Map<
     string,
     {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -469,7 +469,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const requestId = (request as ExecuteStreamRequest<unknown>)
             .requestId;
-          expect(transport.executeRequestPromises.has(requestId)).to.be.true;
+          expect(transport.invokeOperationPromises.has(requestId)).to.be.true;
 
           expect(sendMessageSpy).to.have.been.calledOnce;
           const sentMessage = sendMessageSpy.firstCall.args[0];
@@ -492,7 +492,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.false;
 
           const requestId = sendMessageStub.firstCall.args[0].requestId;
-          expect(transport.executeRequestPromises.has(requestId)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId)).to.be.false;
         });
       });
 
@@ -511,7 +511,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(requests).to.have.lengthOf(1);
           expect(requests![0].execute?.operationName).to.equal(mutationName1);
           const requestId = requests![0].requestId;
-          expect(transport.executeRequestPromises.has(requestId)).to.be.true;
+          expect(transport.invokeOperationPromises.has(requestId)).to.be.true;
 
           expect(sendMessageSpy).to.have.been.calledOnce;
           const sentMessage = sendMessageSpy.firstCall.args[0];
@@ -538,7 +538,7 @@ describe('AbstractDataConnectStreamTransport', () => {
             .false;
 
           const requestId = sendMessageStub.firstCall.args[0].requestId;
-          expect(transport.executeRequestPromises.has(requestId)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId)).to.be.false;
         });
       });
 
@@ -820,15 +820,15 @@ describe('AbstractDataConnectStreamTransport', () => {
           await transport.invokeHandleResponse(requestId1, errorResponse);
           expect(transport.activeInvokeQueryRequests.has(expectedKey1)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId1)).to.be.false;
           expect(transport.activeInvokeQueryRequests.has(expectedKey2)).to.be
             .true;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
+          expect(transport.invokeOperationPromises.has(requestId2)).to.be.true;
 
           await transport.invokeHandleResponse(requestId2, errorResponse);
           expect(transport.activeInvokeQueryRequests.has(expectedKey2)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId2)).to.be.false;
         });
       });
 
@@ -883,16 +883,16 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           await transport.invokeHandleResponse(requestId1, response1);
           await mutationPromise1;
-          expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId1)).to.be.false;
           expect(transport.activeInvokeMutationRequests.has(expectedKey1)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
+          expect(transport.invokeOperationPromises.has(requestId2)).to.be.true;
           expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
             .true;
 
           await transport.invokeHandleResponse(requestId2, response2);
           await mutationPromise2;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId2)).to.be.false;
           expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
             .false;
         });
@@ -946,15 +946,15 @@ describe('AbstractDataConnectStreamTransport', () => {
           await transport.invokeHandleResponse(requestId1, errorResponse);
           expect(transport.activeInvokeMutationRequests.has(expectedKey1)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId1)).to.be.false;
           expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
             .true;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
+          expect(transport.invokeOperationPromises.has(requestId2)).to.be.true;
 
           await transport.invokeHandleResponse(requestId2, errorResponse);
           expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
             .false;
-          expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
+          expect(transport.invokeOperationPromises.has(requestId2)).to.be.false;
         });
       });
 
