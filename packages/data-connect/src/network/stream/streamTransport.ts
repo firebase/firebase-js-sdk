@@ -49,10 +49,9 @@ const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
  */
 interface InvokeOperationPromise<Data> {
   responsePromise: Promise<DataConnectResponse<Data>>;
+  resolveFn: (response: DataConnectResponse<Data>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resolveFn: (data: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rejectFn: (err: any) => void;
+  rejectFn: (reason: any) => void;
 }
 
 /**
@@ -140,6 +139,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
+   * Map of query/variables to queued execute requests awaiting for active request to resolve.
+   */
+  private queuedInvokeQueryRequests = new Map<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    InvokeOperationPromise<any>
+  >();
+
+  /**
    * Map of mutation/variables to their active {@linkcode ExecuteStreamRequest} request bodies. Mutations
    * can have more than one active request at a time as they are not idempotent, and therefore should
    * not be de-duplicated.
@@ -164,7 +172,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private invokeOperationPromises = new Map<
     string,
-    InvokeOperationPromise<unknown>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    InvokeOperationPromise<any>
   >();
 
   /**
@@ -182,41 +191,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private hasWaitedForInitialAuth = false;
 
   /**
-   * Tracks an {@linkcode invokeQuery} request, storing the request body and creating and storing a
-   * response promise that will be resolved when the response is received.
-   * @returns The tracked {@linkcode InvokeOperationPromise}.
-   *
-   * @remarks
-   * This method returns a promise, but is synchronous.
-   */
-  private trackInvokeQueryRequest<Data>(
-    requestId: string,
-    mapKey: string,
-    executeBody: ExecuteStreamRequest<unknown>
-  ): InvokeOperationPromise<Data> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
-    const responsePromise = new Promise<DataConnectResponse<Data>>(
-      (resolve, reject) => {
-        resolveFn = resolve;
-        rejectFn = reject;
-      }
-    );
-    const executeRequestPromise: InvokeOperationPromise<Data> = {
-      responsePromise,
-      resolveFn: resolveFn!,
-      rejectFn: rejectFn!
-    };
-
-    this.activeInvokeQueryRequests.set(mapKey, executeBody);
-    this.invokeOperationPromises.set(requestId, executeRequestPromise);
-
-    return executeRequestPromise;
-  }
-
-  /**
    * Tracks an {@linkcode invokeMutation} request, storing the request body and creating and storing a
    * response promise that will be resolved when the response is received.
    * @returns The tracked {@linkcode InvokeOperationPromise}.
@@ -229,10 +203,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     mapKey: string,
     executeBody: ExecuteStreamRequest<unknown>
   ): InvokeOperationPromise<Data> {
+    let resolveFn: (response: DataConnectResponse<Data>) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
+    let rejectFn: (reason: any) => void;
     const responsePromise = new Promise<DataConnectResponse<Data>>(
       (resolve, reject) => {
         resolveFn = resolve;
@@ -396,11 +369,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.activeInvokeSubscribeRequests.clear();
 
     const error = new DataConnectError(code, reason);
+    for (const [mapKey, { rejectFn }] of this.queuedInvokeQueryRequests) {
+      this.queuedInvokeQueryRequests.delete(mapKey);
+      rejectFn(error);
+    }
     for (const [requestId, { rejectFn }] of this.invokeOperationPromises) {
       this.invokeOperationPromises.delete(requestId);
       rejectFn(error);
     }
-
     for (const [requestId, observer] of this.subscribeObservers) {
       this.subscribeObservers.delete(requestId);
       observer.onDisconnect(code, reason);
@@ -513,21 +489,120 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this.nextRequestId();
-    const activeRequestKey = { operationName: queryName, variables };
     const mapKey = this.getMapKey(queryName, variables);
-    const executeBody: ExecuteStreamRequest<Variables> = {
-      requestId,
-      execute: activeRequestKey
-    };
 
-    let { responsePromise, rejectFn } = this.trackInvokeQueryRequest<Data>(
-      requestId,
-      mapKey,
-      executeBody
+    if (this.activeInvokeQueryRequests.has(mapKey)) {
+      return this.queueInvokeQueryRequest(mapKey);
+    }
+
+    return this.executeOrResumeQuery(queryName, variables, mapKey);
+  }
+
+  /**
+   * Queue a new query execute request to be executed after the currently active query execute
+   * request resolves, and track + return a promise associated with the queued request. If there is
+   * already a queued request for this mapKey, return the existing queued request's promise instead.
+   */
+  private queueInvokeQueryRequest<Data>(
+    mapKey: string
+  ): Promise<DataConnectResponse<Data>> {
+    const existingQueued = this.queuedInvokeQueryRequests.get(mapKey);
+    if (existingQueued) {
+      // only queue one request per mapKey - return existing queued request promise
+      return existingQueued.responsePromise as Promise<
+        DataConnectResponse<Data>
+      >;
+    }
+
+    let resolveFn: (response: DataConnectResponse<Data>) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (reason: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
+      }
     );
-    responsePromise = responsePromise.finally(() => {
-      this.cleanupInvokeQueryRequest(requestId, mapKey);
+
+    this.queuedInvokeQueryRequests.set(mapKey, {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
+    });
+
+    return responsePromise;
+  }
+
+  /**
+   * Executes a query.
+   */
+  private executeOrResumeQuery<Data, Variables>(
+    queryName: string,
+    variables: Variables | undefined,
+    mapKey: string,
+    queuedInvokeOperationPromise?: InvokeOperationPromise<Data>
+  ): Promise<DataConnectResponse<Data>> {
+    let resolveFn: (response: DataConnectResponse<Data>) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (reason: any) => void;
+    let responsePromise: Promise<DataConnectResponse<Data>>;
+
+    if (queuedInvokeOperationPromise) {
+      resolveFn = queuedInvokeOperationPromise.resolveFn;
+      rejectFn = queuedInvokeOperationPromise.rejectFn;
+      responsePromise = queuedInvokeOperationPromise.responsePromise;
+    } else {
+      responsePromise = new Promise<DataConnectResponse<Data>>(
+        (resolve, reject) => {
+          resolveFn = resolve;
+          rejectFn = reject;
+        }
+      );
+    }
+
+    const requestId = this.nextRequestId();
+    const requestBody = {
+      requestId,
+      execute: { operationName: queryName, variables }
+    } as ExecuteStreamRequest<Variables>;
+
+    this.invokeOperationPromises.set(requestId, {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
+    });
+
+    this.activeInvokeQueryRequests.set(mapKey, requestBody);
+
+    void responsePromise.finally(() => {
+      this.onInvokeQueryRequestFulfilled(
+        queryName,
+        variables,
+        mapKey,
+        requestId
+      );
+    });
+
+    this.sendRequestMessage(requestBody).catch(err => {
+      rejectFn(err);
+    });
+    return responsePromise;
+  }
+
+  /**
+   * When a query invoke request is fulfilled, clean up and trigger the next queued
+   * request if one exists.
+   */
+  private onInvokeQueryRequestFulfilled(
+    queryName: string,
+    variables: unknown,
+    mapKey: string,
+    requestId: string
+  ): void {
+    this.cleanupInvokeQueryRequest(requestId, mapKey);
+
+    const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
+    if (!queuedRequestPromise) {
       if (
         !this.hasActiveSubscriptions &&
         !this.hasActiveExecuteRequests &&
@@ -535,13 +610,17 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       ) {
         void this.attemptClose();
       }
-    });
+      return;
+    }
 
-    // asynchronous, fire and forget
-    this.sendRequestMessage<Variables>(executeBody).catch(err => {
-      rejectFn(err);
-    });
-    return responsePromise;
+    this.queuedInvokeQueryRequests.delete(mapKey);
+
+    void this.executeOrResumeQuery(
+      queryName,
+      variables,
+      mapKey,
+      queuedRequestPromise
+    );
   }
 
   /**
