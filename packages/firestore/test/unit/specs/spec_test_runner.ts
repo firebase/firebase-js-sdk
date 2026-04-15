@@ -524,11 +524,15 @@ abstract class TestRunner {
     );
 
     const sdkTargetId = listenSpec.targetId;
+
+    // The remote store will map the query listener to a new remoteTargetID
     const remoteTargetId = remoteStoreGetRemoteTargetId(
       this.remoteStore,
       sdkTargetId
     );
     if (remoteTargetId !== 0) {
+      // Add this new remoteTargetId to a list mapping the sdk target ID to the
+      // remote target ID
       const list = this.sdkToRemoteTargetIds.get(sdkTargetId) || [];
       list.push(remoteTargetId);
       this.sdkToRemoteTargetIds.set(sdkTargetId, list);
@@ -653,25 +657,26 @@ abstract class TestRunner {
   /**
    * Resolves an SDK target ID to the appropriate remote target ID.
    *
-   * Because multiple remote IDs can be associated with a single SDK ID over time,
-   * this method applies heuristics to pick the correct one:
-   * - For 'ack' and 'remove' events, it uses a FIFO assumption (returns the oldest
-   *   pending ID) as the server typically responds in request order.
-   * - It also continuously syncs with `RemoteStore` to ensure any internally
-   *   allocated targets (like limbo resolution) are tracked.
+   * Because multiple remote target IDs can be associated with a single SDK target ID over time,
+   * this method allows the caller to specify the index of the remote target ID
+   * to lookup for the SDK target ID. If sdkTargetIndex is undefined, then
+   * the latest remote target ID is used.
    */
   private getRemoteTargetId(
     sdkTargetId: TargetId,
-    forEvent?: 'ack' | 'remove'
+    sdkTargetIndex: number | undefined = undefined
   ): TargetId {
-    // Always update the list with the current mapping from RemoteStore if available.
+    // Get and update the list with the current mapping from RemoteStore
+    // if the remote target ID is not already in the sdkToRemoteTargetIds list
     const remoteStoreId = remoteStoreGetRemoteTargetId(
       this.remoteStore,
       sdkTargetId
     );
     const list = this.sdkToRemoteTargetIds.get(sdkTargetId) || [];
-
     if (remoteStoreId !== 0 && !list.includes(remoteStoreId)) {
+      console.warn(
+        `The sdk target ID ${sdkTargetId} was mapped to remote target id ${remoteStoreId} but was not found in the TestRunner sdkToRemoteTargetIds list ${this.sdkToRemoteTargetIds}`
+      );
       list.push(remoteStoreId);
       this.sdkToRemoteTargetIds.set(sdkTargetId, list);
     }
@@ -681,9 +686,8 @@ abstract class TestRunner {
       return sdkTargetId;
     }
 
-    if (forEvent === 'ack' || forEvent === 'remove') {
-      // FIFO assumption: ACK and REMOVE usually apply to the oldest pending/active target.
-      return list[0];
+    if (sdkTargetIndex !== undefined) {
+      return list[sdkTargetIndex];
     }
 
     // Default: return the latest one.
@@ -691,8 +695,11 @@ abstract class TestRunner {
   }
 
   private doWatchAck(ackedTargets: SpecWatchAck): Promise<void> {
-    const remoteTargetIds = ackedTargets.map(id =>
-      this.getRemoteTargetId(id, 'ack')
+    const remoteTargetIds = ackedTargets.map(ackedTarget =>
+      this.getRemoteTargetId(
+        ackedTarget.sdkTargetId,
+        ackedTarget.remoteTargetIndex
+      )
     );
     const change = new WatchTargetChange(
       WatchTargetChangeState.Added,
@@ -731,7 +738,7 @@ abstract class TestRunner {
       );
     const mappedIds = new Map<TargetId, TargetId>();
     const remoteTargetIds = removed.targetIds.map(id => {
-      const remoteId = this.getRemoteTargetId(id, 'remove');
+      const remoteId = this.getRemoteTargetId(id, removed.remoteTargetIndex);
       mappedIds.set(id, remoteId);
       return remoteId;
     });
@@ -757,17 +764,6 @@ abstract class TestRunner {
         delete this.connection.activeTargets[remoteTargetId];
       });
     }
-
-    // Remove from shadow map list!
-    mappedIds.forEach((remoteId, sdkTargetId) => {
-      const list = this.sdkToRemoteTargetIds.get(sdkTargetId);
-      if (list) {
-        const index = list.indexOf(remoteId);
-        if (index !== -1) {
-          list.splice(index, 1);
-        }
-      }
-    });
 
     return this.doWatchEvent(change);
   }
@@ -1683,8 +1679,11 @@ export type SpecUserPatch = [string, JsonObject<unknown>];
 /** key */
 export type SpecUserDelete = string;
 
-/** [<target-id>, ...] */
-export type SpecWatchAck = TargetId[];
+/** [{sdkTargetId: <target-id>, remoteTargetIndex: <num?>}, ...] */
+export type SpecWatchAck = {
+  sdkTargetId: TargetId;
+  remoteTargetIndex?: number;
+}[];
 
 /** [[<target-id>, ...], <resume-token>] */
 export type SpecWatchCurrent = [TargetId[], string];
@@ -1700,6 +1699,7 @@ export interface SpecError {
 export interface SpecWatchRemove {
   targetIds: TargetId[];
   cause?: SpecError;
+  remoteTargetIndex?: number;
 }
 
 export interface SpecWatchSnapshot {
