@@ -129,23 +129,23 @@ interface TransportWithInternals {
   >(
     requestBody: StreamBody
   ): StreamBody;
-  activeQueryExecuteRequests: Map<
+  activeInvokeQueryRequests: Map<
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >;
-  activeMutationExecuteRequests: Map<
+  activeInvokeMutationRequests: Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
   >;
-  activeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
+  activeInvokeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
   executeRequestPromises: Map<
     string,
     {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      resolve: (data: any) => void;
+      resolveFn: (response: DataConnectResponse<any>) => void;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      reject: (err: any) => void;
-      promise: Promise<DataConnectResponse<unknown>>;
+      rejectFn: (reason: any) => void;
+      responsePromise: Promise<DataConnectResponse<unknown>>;
     }
   >;
   subscribeObservers: Map<string, unknown>;
@@ -461,9 +461,9 @@ describe('AbstractDataConnectStreamTransport', () => {
           const queryPromise = transport.invokeQuery(queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
-          expect(transport.activeQueryExecuteRequests.has(expectedKey)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey)).to.be
             .true;
-          const request = transport.activeQueryExecuteRequests.get(expectedKey);
+          const request = transport.activeInvokeQueryRequests.get(expectedKey);
           expect(request?.execute?.operationName).to.equal(queryName1);
           expect(request?.execute?.variables).to.deep.equal(variables1);
 
@@ -489,7 +489,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           await expect(queryPromise).to.be.rejectedWith(expectedError);
 
           const mapKey = transport.getMapKey(queryName1, variables1);
-          expect(transport.activeQueryExecuteRequests.has(mapKey)).to.be.false;
+          expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.false;
 
           const requestId = sendMessageStub.firstCall.args[0].requestId;
           expect(transport.executeRequestPromises.has(requestId)).to.be.false;
@@ -507,7 +507,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey = transport.getMapKey(mutationName1, variables1);
           const requests =
-            transport.activeMutationExecuteRequests.get(expectedKey);
+            transport.activeInvokeMutationRequests.get(expectedKey);
           expect(requests).to.have.lengthOf(1);
           expect(requests![0].execute?.operationName).to.equal(mutationName1);
           const requestId = requests![0].requestId;
@@ -534,7 +534,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           await expect(mutationPromise).to.be.rejectedWith(expectedError);
 
           const mapKey = transport.getMapKey(mutationName1, variables1);
-          expect(transport.activeMutationExecuteRequests.has(mapKey)).to.be
+          expect(transport.activeInvokeMutationRequests.has(mapKey)).to.be
             .false;
 
           const requestId = sendMessageStub.firstCall.args[0].requestId;
@@ -554,8 +554,10 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
-          expect(transport.activeSubscribeRequests.has(expectedKey)).to.be.true;
-          const request = transport.activeSubscribeRequests.get(expectedKey);
+          expect(transport.activeInvokeSubscribeRequests.has(expectedKey)).to.be
+            .true;
+          const request =
+            transport.activeInvokeSubscribeRequests.get(expectedKey);
           expect(request?.subscribe?.operationName).to.equal(queryName1);
           expect(request?.subscribe?.variables).to.deep.equal(variables1);
 
@@ -590,7 +592,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(result).to.equal(expectedError);
 
           const mapKey = transport.getMapKey(queryName1, variables1);
-          expect(transport.activeSubscribeRequests.has(mapKey)).to.be.false;
+          expect(transport.activeInvokeSubscribeRequests.has(mapKey)).to.be
+            .false;
           const requestId = sendMessageStub.firstCall.args[0].requestId;
           expect(transport.subscribeObservers.has(requestId)).to.be.false;
         });
@@ -608,9 +611,10 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(observer, queryName1, variables1);
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
-          expect(transport.activeSubscribeRequests.has(expectedKey)).to.be.true;
+          expect(transport.activeInvokeSubscribeRequests.has(expectedKey)).to.be
+            .true;
           const subscribeRequest =
-            transport.activeSubscribeRequests.get(expectedKey);
+            transport.activeInvokeSubscribeRequests.get(expectedKey);
           const subscribeRequestId = (
             subscribeRequest as SubscribeStreamRequest<unknown>
           ).requestId;
@@ -622,7 +626,7 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sendMessageSpy).to.have.been.calledTwice;
           const unsubscribeMessage = sendMessageSpy.secondCall.args[0];
 
-          expect(transport.activeSubscribeRequests.has(expectedKey)).to.be
+          expect(transport.activeInvokeSubscribeRequests.has(expectedKey)).to.be
             .false;
           expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
             .false;
@@ -645,7 +649,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey = transport.getMapKey(queryName1, variables1);
           const subscribeRequest =
-            transport.activeSubscribeRequests.get(expectedKey);
+            transport.activeInvokeSubscribeRequests.get(expectedKey);
           const subscribeRequestId = subscribeRequest?.requestId!;
 
           transport.invokeUnsubscribe(queryName1, variables1);
@@ -658,7 +662,7 @@ describe('AbstractDataConnectStreamTransport', () => {
             'Stream Transport failed to send unsubscribe message'
           );
 
-          expect(transport.activeSubscribeRequests.has(expectedKey)).to.be
+          expect(transport.activeInvokeSubscribeRequests.has(expectedKey)).to.be
             .false;
           expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
             .false;
@@ -721,12 +725,12 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const request1 =
-            transport.activeQueryExecuteRequests.get(expectedKey1);
+            transport.activeInvokeQueryRequests.get(expectedKey1);
           const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
             .requestId;
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request2 =
-            transport.activeQueryExecuteRequests.get(expectedKey2);
+            transport.activeInvokeQueryRequests.get(expectedKey2);
           const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
             .requestId;
 
@@ -745,28 +749,28 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const request1 =
-            transport.activeQueryExecuteRequests.get(expectedKey1);
+            transport.activeInvokeQueryRequests.get(expectedKey1);
           const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
             .requestId;
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request2 =
-            transport.activeQueryExecuteRequests.get(expectedKey2);
+            transport.activeInvokeQueryRequests.get(expectedKey2);
           const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
             .requestId;
 
           await transport.invokeHandleResponse(requestId1, response1);
           await queryPromise1;
-          expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey1)).to.be
             .false;
-          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey2)).to.be
             .true;
 
           await transport.invokeHandleResponse(requestId2, response2);
           await queryPromise2;
 
-          expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey1)).to.be
             .false;
-          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey2)).to.be
             .false;
         });
 
@@ -776,11 +780,11 @@ describe('AbstractDataConnectStreamTransport', () => {
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request1 =
-            transport.activeQueryExecuteRequests.get(expectedKey1);
+            transport.activeInvokeQueryRequests.get(expectedKey1);
           const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
             .requestId;
           const request2 =
-            transport.activeQueryExecuteRequests.get(expectedKey2);
+            transport.activeInvokeQueryRequests.get(expectedKey2);
           const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
             .requestId;
 
@@ -804,25 +808,25 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const request1 =
-            transport.activeQueryExecuteRequests.get(expectedKey1);
+            transport.activeInvokeQueryRequests.get(expectedKey1);
           const requestId1 = (request1 as ExecuteStreamRequest<unknown>)
             .requestId;
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
           const request2 =
-            transport.activeQueryExecuteRequests.get(expectedKey2);
+            transport.activeInvokeQueryRequests.get(expectedKey2);
           const requestId2 = (request2 as ExecuteStreamRequest<unknown>)
             .requestId;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
-          expect(transport.activeQueryExecuteRequests.has(expectedKey1)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey1)).to.be
             .false;
           expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
-          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey2)).to.be
             .true;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
 
           await transport.invokeHandleResponse(requestId2, errorResponse);
-          expect(transport.activeQueryExecuteRequests.has(expectedKey2)).to.be
+          expect(transport.activeInvokeQueryRequests.has(expectedKey2)).to.be
             .false;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
         });
@@ -841,11 +845,11 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const activeRequests1 =
-            transport.activeMutationExecuteRequests.get(expectedKey1);
+            transport.activeInvokeMutationRequests.get(expectedKey1);
           const requestId1 = activeRequests1![0].requestId;
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests2 =
-            transport.activeMutationExecuteRequests.get(expectedKey2);
+            transport.activeInvokeMutationRequests.get(expectedKey2);
           const requestId2 = activeRequests2![0].requestId;
 
           await transport.invokeHandleResponse(requestId1, response1);
@@ -870,27 +874,27 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const activeRequests1 =
-            transport.activeMutationExecuteRequests.get(expectedKey1);
+            transport.activeInvokeMutationRequests.get(expectedKey1);
           const requestId1 = activeRequests1![0].requestId;
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests2 =
-            transport.activeMutationExecuteRequests.get(expectedKey2);
+            transport.activeInvokeMutationRequests.get(expectedKey2);
           const requestId2 = activeRequests2![0].requestId;
 
           await transport.invokeHandleResponse(requestId1, response1);
           await mutationPromise1;
           expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
-          expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
-            .be.false;
+          expect(transport.activeInvokeMutationRequests.has(expectedKey1)).to.be
+            .false;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
-          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-            .be.true;
+          expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
+            .true;
 
           await transport.invokeHandleResponse(requestId2, response2);
           await mutationPromise2;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
-          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-            .be.false;
+          expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
+            .false;
         });
 
         it('should reject the correct mutation promise with DataConnectOperationError if response has errors', async () => {
@@ -904,11 +908,11 @@ describe('AbstractDataConnectStreamTransport', () => {
           );
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const activeRequests1 =
-            transport.activeMutationExecuteRequests.get(expectedKey1);
+            transport.activeInvokeMutationRequests.get(expectedKey1);
           const requestId1 = activeRequests1![0].requestId;
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests2 =
-            transport.activeMutationExecuteRequests.get(expectedKey2);
+            transport.activeInvokeMutationRequests.get(expectedKey2);
           const requestId2 = activeRequests2![0].requestId;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
@@ -933,23 +937,23 @@ describe('AbstractDataConnectStreamTransport', () => {
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests1 =
-            transport.activeMutationExecuteRequests.get(expectedKey1);
+            transport.activeInvokeMutationRequests.get(expectedKey1);
           const activeRequests2 =
-            transport.activeMutationExecuteRequests.get(expectedKey2);
+            transport.activeInvokeMutationRequests.get(expectedKey2);
           const requestId1 = activeRequests1![0].requestId;
           const requestId2 = activeRequests2![0].requestId;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
-          expect(transport.activeMutationExecuteRequests.has(expectedKey1)).to
-            .be.false;
+          expect(transport.activeInvokeMutationRequests.has(expectedKey1)).to.be
+            .false;
           expect(transport.executeRequestPromises.has(requestId1)).to.be.false;
-          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-            .be.true;
+          expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
+            .true;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.true;
 
           await transport.invokeHandleResponse(requestId2, errorResponse);
-          expect(transport.activeMutationExecuteRequests.has(expectedKey2)).to
-            .be.false;
+          expect(transport.activeInvokeMutationRequests.has(expectedKey2)).to.be
+            .false;
           expect(transport.executeRequestPromises.has(requestId2)).to.be.false;
         });
       });
@@ -980,7 +984,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(observer2, queryName2, variables2);
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
-          const request1 = transport.activeSubscribeRequests.get(expectedKey1);
+          const request1 =
+            transport.activeInvokeSubscribeRequests.get(expectedKey1);
           const requestId1 = request1?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, response1);
@@ -991,7 +996,8 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(observer1.onData).to.have.been.calledWithExactly(response2);
 
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
-          const request2 = transport.activeSubscribeRequests.get(expectedKey2);
+          const request2 =
+            transport.activeInvokeSubscribeRequests.get(expectedKey2);
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId2, response3);
@@ -1007,10 +1013,12 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(observer2, queryName2, variables2);
 
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
-          const request1 = transport.activeSubscribeRequests.get(expectedKey1);
+          const request1 =
+            transport.activeInvokeSubscribeRequests.get(expectedKey1);
           const requestId1 = request1?.requestId!;
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
-          const request2 = transport.activeSubscribeRequests.get(expectedKey2);
+          const request2 =
+            transport.activeInvokeSubscribeRequests.get(expectedKey2);
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
@@ -1030,18 +1038,20 @@ describe('AbstractDataConnectStreamTransport', () => {
           transport.invokeSubscribe(observer2, queryName2, variables2);
           const expectedKey1 = transport.getMapKey(queryName1, variables1);
           const expectedKey2 = transport.getMapKey(queryName2, variables2);
-          const request1 = transport.activeSubscribeRequests.get(expectedKey1);
-          const request2 = transport.activeSubscribeRequests.get(expectedKey2);
+          const request1 =
+            transport.activeInvokeSubscribeRequests.get(expectedKey1);
+          const request2 =
+            transport.activeInvokeSubscribeRequests.get(expectedKey2);
           const requestId1 = request1?.requestId!;
           const requestId2 = request2?.requestId!;
 
           await transport.invokeHandleResponse(requestId1, errorResponse);
           await transport.invokeHandleResponse(requestId2, errorResponse);
-          expect(transport.activeSubscribeRequests.has(expectedKey1)).to.be
-            .true;
+          expect(transport.activeInvokeSubscribeRequests.has(expectedKey1)).to
+            .be.true;
           expect(transport.subscribeObservers.has(requestId1)).to.be.true;
-          expect(transport.activeSubscribeRequests.has(expectedKey2)).to.be
-            .true;
+          expect(transport.activeInvokeSubscribeRequests.has(expectedKey2)).to
+            .be.true;
           expect(transport.subscribeObservers.has(requestId2)).to.be.true;
         });
       });
@@ -1161,7 +1171,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       expect(closeSpy).to.not.have.been.called;
 
       const expectedKey = transport.getMapKey(queryName2, variables2);
-      const request = transport.activeQueryExecuteRequests.get(expectedKey);
+      const request = transport.activeInvokeQueryRequests.get(expectedKey);
       const requestId = (request as ExecuteStreamRequest<unknown>).requestId;
 
       const dummyResponse = {

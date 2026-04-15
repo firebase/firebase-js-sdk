@@ -47,7 +47,7 @@ const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
 /**
  * A promise that is settled for a request is received, and the functions that resolve or reject it.
  */
-interface TrackedExecuteRequestPromise<Data> {
+interface InvokeQueryPromise<Data> {
   responsePromise: Promise<DataConnectResponse<Data>>;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolveFn: (data: any) => void;
@@ -78,14 +78,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /** True if there are active subscriptions on the stream */
   get hasActiveSubscriptions(): boolean {
-    return this.activeSubscribeRequests.size > 0;
+    return this.activeInvokeSubscribeRequests.size > 0;
   }
 
   /** True if there are active execute or mutation requests on the stream */
   get hasActiveExecuteRequests(): boolean {
     return (
-      this.activeQueryExecuteRequests.size > 0 ||
-      this.activeMutationExecuteRequests.size > 0
+      this.activeInvokeQueryRequests.size > 0 ||
+      this.activeInvokeMutationRequests.size > 0
     );
   }
 
@@ -131,7 +131,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of query/variables to their active execute/resume request bodies.
    */
-  private activeQueryExecuteRequests = new Map<
+  private activeInvokeQueryRequests = new Map<
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >();
@@ -139,7 +139,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of mutation/variables to their active execute request bodies.
    */
-  private activeMutationExecuteRequests = new Map<
+  private activeInvokeMutationRequests = new Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
   >();
@@ -147,7 +147,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Map of query/variables to their active subscribe request bodies.
    */
-  private activeSubscribeRequests = new Map<
+  private activeInvokeSubscribeRequests = new Map<
     string,
     SubscribeStreamRequest<unknown>
   >();
@@ -157,7 +157,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private executeRequestPromises = new Map<
     string,
-    TrackedExecuteRequestPromise<unknown>
+    InvokeQueryPromise<unknown>
   >();
 
   /**
@@ -182,11 +182,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * @remarks
    * This method returns a promise, but is synchronous.
    */
-  private trackQueryExecuteRequest<Data>(
+  private trackInvokeQueryRequest<Data>(
     requestId: string,
     mapKey: string,
     executeBody: ExecuteStreamRequest<unknown>
-  ): TrackedExecuteRequestPromise<Data> {
+  ): InvokeQueryPromise<Data> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let resolveFn: (data: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -197,13 +197,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         rejectFn = reject;
       }
     );
-    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+    const executeRequestPromise: InvokeQueryPromise<Data> = {
       responsePromise,
       resolveFn: resolveFn!,
       rejectFn: rejectFn!
     };
 
-    this.activeQueryExecuteRequests.set(mapKey, executeBody);
+    this.activeInvokeQueryRequests.set(mapKey, executeBody);
     this.executeRequestPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
@@ -217,11 +217,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * @remarks
    * This method returns a promise, but is synchronous.
    */
-  private trackMutationExecuteRequest<Data>(
+  private trackInvokeMutationRequest<Data>(
     requestId: string,
     mapKey: string,
     executeBody: ExecuteStreamRequest<unknown>
-  ): TrackedExecuteRequestPromise<Data> {
+  ): InvokeQueryPromise<Data> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let resolveFn: (data: any) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -232,15 +232,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         rejectFn = reject;
       }
     );
-    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+    const executeRequestPromise: InvokeQueryPromise<Data> = {
       responsePromise,
       resolveFn: resolveFn!,
       rejectFn: rejectFn!
     };
 
-    const activeRequests = this.activeMutationExecuteRequests.get(mapKey) || [];
+    const activeRequests = this.activeInvokeMutationRequests.get(mapKey) || [];
     activeRequests.push(executeBody);
-    this.activeMutationExecuteRequests.set(mapKey, activeRequests);
+    this.activeInvokeMutationRequests.set(mapKey, activeRequests);
     this.executeRequestPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
@@ -251,13 +251,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * @remarks
    * This method is synchronous.
    */
-  private trackSubscribeRequest<Data>(
+  private trackInvokeSubscribeRequest<Data>(
     requestId: string,
     mapKey: string,
     subscribeBody: SubscribeStreamRequest<unknown>,
     observer: SubscribeObserver<Data>
   ): void {
-    this.activeSubscribeRequests.set(mapKey, subscribeBody);
+    this.activeInvokeSubscribeRequests.set(mapKey, subscribeBody);
     this.subscribeObservers.set(
       requestId,
       observer as SubscribeObserver<unknown>
@@ -268,8 +268,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Cleans up the query execute request tracking data structures, deleting the tracked request and
    * it's associated promise.
    */
-  private cleanupQueryExecuteRequest(requestId: string, mapKey: string): void {
-    this.activeQueryExecuteRequests.delete(mapKey);
+  private cleanupInvokeQueryRequest(requestId: string, mapKey: string): void {
+    this.activeInvokeQueryRequests.delete(mapKey);
     this.executeRequestPromises.delete(requestId);
   }
 
@@ -277,19 +277,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Cleans up the mutation execute request tracking data structures, deleting the tracked request and
    * it's associated promise.
    */
-  private cleanupMutationExecuteRequest(
+  private cleanupInvokeMutationRequest(
     requestId: string,
     mapKey: string
   ): void {
-    const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
+    const executeRequests = this.activeInvokeMutationRequests.get(mapKey);
     if (executeRequests) {
       const updatedRequests = executeRequests.filter(
         req => req.requestId !== requestId
       );
       if (updatedRequests.length > 0) {
-        this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
+        this.activeInvokeMutationRequests.set(mapKey, updatedRequests);
       } else {
-        this.activeMutationExecuteRequests.delete(mapKey);
+        this.activeInvokeMutationRequests.delete(mapKey);
       }
     }
     this.executeRequestPromises.delete(requestId);
@@ -299,8 +299,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Cleans up the subscribe request tracking data structures, deleting the tracked request and
    * it's associated promise.
    */
-  private cleanupSubscribeRequest(requestId: string, mapKey: string): void {
-    this.activeSubscribeRequests.delete(mapKey);
+  private cleanupInvokeSubscribeRequest(
+    requestId: string,
+    mapKey: string
+  ): void {
+    this.activeInvokeSubscribeRequests.delete(mapKey);
     this.subscribeObservers.delete(requestId);
   }
 
@@ -348,11 +351,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Begin closing the connection. Waits for and cleans up all active requests, and waits for
-   * {@link IDLE_CONNECTION_TIMEOUT_MS}. This is a graceful close - it will be called when there are
-   * no more active subscriptions, so there's no need to cleanup.
+   * Begin closing the connection. Waits for {@link IDLE_CONNECTION_TIMEOUT_MS} without cleaning up
+   * and requests (meaning it will not close after the timeout unless the requests are closed first).
+   * This is a graceful close - it will be called when there are no more active subscriptions, so
+   * there's no need to cleanup.
    */
-  private prepareToCloseGracefully(): void {
+  private closeAfterTimeout(): void {
     if (this.pendingClose) {
       return;
     }
@@ -379,10 +383,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Reject all active execute promises and notify all subscribe observers with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
    */
-  private rejectAllActiveRequests(code: Code, reason: string): void {
-    this.activeQueryExecuteRequests.clear();
-    this.activeMutationExecuteRequests.clear();
-    this.activeSubscribeRequests.clear();
+  private rejectAllRequests(code: Code, reason: string): void {
+    this.activeInvokeQueryRequests.clear();
+    this.activeInvokeMutationRequests.clear();
+    this.activeInvokeSubscribeRequests.clear();
 
     const error = new DataConnectError(code, reason);
     for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
@@ -400,7 +404,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
    */
   protected onStreamClose(code: number, reason: string): void {
-    this.rejectAllActiveRequests(
+    this.rejectAllRequests(
       Code.OTHER,
       `Stream disconnected with code ${code}: ${reason}`
     );
@@ -511,13 +515,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    let { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
+    let { responsePromise, rejectFn } = this.trackInvokeQueryRequest<Data>(
       requestId,
       mapKey,
       executeBody
     );
     responsePromise = responsePromise.finally(() => {
-      this.cleanupQueryExecuteRequest(requestId, mapKey);
+      this.cleanupInvokeQueryRequest(requestId, mapKey);
       if (
         !this.hasActiveSubscriptions &&
         !this.hasActiveExecuteRequests &&
@@ -553,13 +557,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    let { responsePromise, rejectFn } = this.trackMutationExecuteRequest<Data>(
+    let { responsePromise, rejectFn } = this.trackInvokeMutationRequest<Data>(
       requestId,
       mapKey,
       executeBody
     );
     responsePromise = responsePromise.finally(() => {
-      this.cleanupMutationExecuteRequest(requestId, mapKey);
+      this.cleanupInvokeMutationRequest(requestId, mapKey);
       if (
         !this.hasActiveSubscriptions &&
         !this.hasActiveExecuteRequests &&
@@ -600,7 +604,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       subscribe: activeRequestKey
     };
 
-    this.trackSubscribeRequest<Data>(
+    this.trackInvokeSubscribeRequest<Data>(
       requestId,
       mapKey,
       subscribeBody,
@@ -610,9 +614,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     // asynchronous, fire and forget
     this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
       observer.onError(err instanceof Error ? err : new Error(String(err)));
-      this.cleanupSubscribeRequest(requestId, mapKey);
+      this.cleanupInvokeSubscribeRequest(requestId, mapKey);
       if (!this.hasActiveSubscriptions) {
-        this.prepareToCloseGracefully();
+        this.closeAfterTimeout();
       }
     });
   }
@@ -626,7 +630,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
     const mapKey = this.getMapKey(queryName, variables);
-    const subscribeRequest = this.activeSubscribeRequests.get(mapKey);
+    const subscribeRequest = this.activeInvokeSubscribeRequests.get(mapKey);
     if (!subscribeRequest) {
       return;
     }
@@ -636,7 +640,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       cancel: {}
     };
 
-    this.cleanupSubscribeRequest(requestId, mapKey);
+    this.cleanupInvokeSubscribeRequest(requestId, mapKey);
 
     // asynchronous, fire and forget
     this.sendRequestMessage(cancelBody).catch(err => {
@@ -644,7 +648,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     });
 
     if (!this.hasActiveSubscriptions) {
-      this.prepareToCloseGracefully();
+      this.closeAfterTimeout();
     }
   }
 
@@ -668,7 +672,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (!oldAuthUid && newAuthUid) || // user logged in
       (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
-      this.rejectAllActiveRequests(
+      this.rejectAllRequests(
         Code.UNAUTHORIZED,
         'Stream disconnected due to auth change.'
       );
