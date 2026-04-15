@@ -113,8 +113,11 @@ describe('platform_browser/persistence/indexed_db', () => {
       (persistence as any).db = undefined;
       const originalOpen = indexedDB.open.bind(indexedDB);
       let errorsToThrow = 2;
-      
-      sinon.stub(indexedDB, 'open').callsFake(((name: string, version?: number) => {
+
+      sinon.stub(indexedDB, 'open').callsFake(((
+        name: string,
+        version?: number
+      ) => {
         if (errorsToThrow > 0) {
           errorsToThrow--;
           return {
