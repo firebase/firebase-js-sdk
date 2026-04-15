@@ -48,7 +48,7 @@ interface TransportWithInternals {
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void>;
-  rejectAllActiveRequests(code: Code, reason: string): void;
+  rejectAllRequests(code: Code, reason: string): void;
 }
 
 describe('WebSocketTransport', () => {
@@ -181,12 +181,12 @@ describe('WebSocketTransport', () => {
       expect(transport.connection).to.be.undefined;
     });
 
-    it('should call rejectAllActiveRequests and clean up when closed externally', async () => {
+    it('should call rejectAllRequests and clean up when closed externally', async () => {
       const openPromise = transport.openConnection();
       await transport.connection!.simulateOpen();
       await openPromise;
 
-      const rejectSpy = sinon.spy(transport, 'rejectAllActiveRequests');
+      const rejectSpy = sinon.spy(transport, 'rejectAllRequests');
 
       await transport.connection!.simulateClose();
 
