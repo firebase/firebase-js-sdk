@@ -310,9 +310,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       if (!indexedDB) {
         return false;
       }
-      const db = await _openDatabase();
-      await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
-      await _deleteObject(db, STORAGE_AVAILABLE_KEY);
+      await this._withRetries(async (db: IDBDatabase) => {
+        await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
+        await _deleteObject(db, STORAGE_AVAILABLE_KEY);
+      });
       return true;
     } catch {}
     return false;

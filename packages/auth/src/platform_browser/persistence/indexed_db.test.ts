@@ -39,6 +39,7 @@ import {
   _clearDatabase,
   _openDatabase,
   _POLLING_INTERVAL_MS,
+  _TRANSACTION_RETRY_COUNT,
   _putObject
 } from './indexed_db';
 
@@ -91,7 +92,8 @@ describe('platform_browser/persistence/indexed_db', () => {
       expect(await persistence._isAvailable()).to.be.true;
     });
 
-    it('should return false if db creation errors', async () => {
+    it('should return false if db creation errors repeatedly', async () => {
+      (persistence as any).db = undefined;
       sinon.stub(indexedDB, 'open').returns({
         addEventListener(evt: string, cb: () => void) {
           if (evt === 'error') {
@@ -102,6 +104,33 @@ describe('platform_browser/persistence/indexed_db', () => {
       } as any);
 
       expect(await persistence._isAvailable()).to.be.false;
+      expect((indexedDB.open as sinon.SinonStub).callCount).to.eq(
+        _TRANSACTION_RETRY_COUNT + 2
+      );
+    });
+
+    it('should retry if db creation errors temporarily and then succeed', async () => {
+      (persistence as any).db = undefined;
+      const originalOpen = indexedDB.open.bind(indexedDB);
+      let errorsToThrow = 2;
+      
+      sinon.stub(indexedDB, 'open').callsFake(((name: string, version?: number) => {
+        if (errorsToThrow > 0) {
+          errorsToThrow--;
+          return {
+            addEventListener(evt: string, cb: () => void) {
+              if (evt === 'error') {
+                cb();
+              }
+            },
+            error: new DOMException('temporary error')
+          } as any;
+        }
+        return originalOpen(name, version);
+      }) as typeof indexedDB.open);
+
+      expect(await persistence._isAvailable()).to.be.true;
+      expect((indexedDB.open as sinon.SinonStub).callCount).to.eq(3);
     });
   });
 
