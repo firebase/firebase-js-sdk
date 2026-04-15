@@ -30,7 +30,7 @@ import {
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { FetchTransport } from './fetch-transport';
-import { DynamicHeaderProvider, DynamicSignalAttributeProvider } from '../types';
+import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 
@@ -43,7 +43,7 @@ export function createLoggerProvider(
   app: FirebaseApp,
   endpointUrl: string,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
+  dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): LoggerProvider {
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
@@ -63,7 +63,7 @@ export function createLoggerProvider(
       }
     },
     dynamicHeaderProviders,
-    dynamicSignalAttributeProviders
+    dynamicAttributeProviders
   );
 
   return new LoggerProvider({
@@ -80,7 +80,7 @@ class OTLPLogExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
+    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -108,7 +108,7 @@ class OTLPLogExporter
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
     const attributes = await Promise.all(
-      this.dynamicSignalAttributeProviders.map(provider => provider.getAttribute())
+      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
     );
 
     const attributesToApply: Record<string, string> = {};

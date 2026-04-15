@@ -32,13 +32,14 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
   OTLPExporterBase,
   OTLPExporterConfigBase,
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { DynamicHeaderProvider, DynamicSignalAttributeProvider } from '../types';
+import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
@@ -53,8 +54,9 @@ import { FetchTransport } from '../logging/fetch-transport';
 export function createTracingProvider(
   app: FirebaseApp,
   endpointUrl: string,
+  tracingUrl: string,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-  dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
+  dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -68,23 +70,33 @@ export function createTracingProvider(
     'cloud.provider': 'gcp'
   });
 
-  if (endpointUrl.endsWith('/')) {
-    endpointUrl = endpointUrl.slice(0, -1);
+  if (tracingUrl.endsWith('/')) {
+    tracingUrl = tracingUrl.slice(0, -1);
   }
-
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/traces`;
-
-  const traceExporter = new OTLPTraceExporter(
-    {
+  let otlpEndpoint;
+  let traceExporter;
+  if (tracingUrl == "http://localhost:4318") {
+    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+    traceExporter = new OTLPStandardTraceExporter({
+      url: otlpEndpoint,
+      headers: {
+        'X-Goog-User-Project': projectId || '',
+        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
+      }
+    });
+  } else {
+    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/traces`;
+    traceExporter = new OTLPTraceExporter({
       url: otlpEndpoint,
       headers: {
         'Content-Type': 'application/json',
         ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
       }
     },
-    dynamicHeaderProviders,
-    dynamicSignalAttributeProviders
-  );
+      dynamicHeaderProviders,
+      dynamicAttributeProviders
+    );
+  }
 
   const provider = new WebTracerProvider({
     resource,
@@ -106,12 +118,16 @@ export function createTracingProvider(
   /* We must clean url before a regex match in the cases of special characters changing matched url.
      Ex: https://api.example.com/traces?version=1
      '.' -> matches any character so https://api-example.com/traces?version=1 will be ignored too
-     `?` -> makes the `s` optional so https://api.example.com/trace?version=1 will be ignored too
+     `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
   */
   const cleanedRegexEndpointUrl = endpointUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cleanedRegexTracingUrl = tracingUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation({ ignoreUrls: [new RegExp(cleanedRegexEndpointUrl)] }),
+      new FetchInstrumentation({
+        ignoreUrls: [new RegExp(cleanedRegexTracingUrl),
+        new RegExp(cleanedRegexEndpointUrl)]
+      }),
       new XMLHttpRequestInstrumentation()
     ]
   });
@@ -126,7 +142,7 @@ class OTLPTraceExporter
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],
-    private dynamicSignalAttributeProviders: DynamicSignalAttributeProvider[] = []
+    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
   ) {
     super(
       createOtlpNetworkExportDelegate(
@@ -154,7 +170,7 @@ class OTLPTraceExporter
     resultCallback: (result: ExportResult) => void
   ): Promise<void> {
     const attributes = await Promise.all(
-      this.dynamicSignalAttributeProviders.map(provider => provider.getAttribute())
+      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
     );
 
     const attributesToApply: Record<string, string> = {};

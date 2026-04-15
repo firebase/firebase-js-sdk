@@ -41,8 +41,11 @@ export function registerCrashlytics(): void {
           );
         }
 
-        const url = instanceIdentifier || 'http://localhost';
-
+        const endpointUrl = instanceIdentifier || 'http://localhost';
+        // TODO Change the tracingUrl host to either the proxy or the firebase telemetry server
+        const tracingUrl = 'https://staging-firebasetelemetry.sandbox.googleapis.com';
+        console.log('[Crashlytics Register] endpointUrl:', endpointUrl);
+        console.log('[Crashlytics Register] tracingUrl:', tracingUrl);
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
@@ -50,21 +53,22 @@ export function registerCrashlytics(): void {
           'installations-internal'
         );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const dynamicSignalAttributeProviders = [
+        const dynamicAttributeProviders = [
           new InstallationIdProvider(installationsProvider)
         ];
         const loggerProvider = createLoggerProvider(
           app,
-          url,
+          endpointUrl,
           dynamicHeaderProviders,
-          dynamicSignalAttributeProviders
+          dynamicAttributeProviders
         );
 
         const tracingProvider = createTracingProvider(
           app,
-          url,
+          endpointUrl,
+          tracingUrl,
           dynamicHeaderProviders,
-          dynamicSignalAttributeProviders
+          dynamicAttributeProviders
         );
 
         const crashlyticsService = new CrashlyticsService(

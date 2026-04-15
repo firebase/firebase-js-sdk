@@ -32,20 +32,20 @@ export interface CrashlyticsInternal extends Crashlytics {
 type KeyValuePair = [key: string, value: string];
 
 /**
- * A type for Cloud Logging log entry attributes
+ * A type for Cloud Telemetry signal attributes
  *
  * @internal
  */
 export type SignalAttribute = KeyValuePair;
 
 /**
- * An interface for classes that provide dynamic log entry attributes.
+ * An interface for classes that provide dynamic signal attributes.
  *
  * Classes that implement this interface can be used to supply custom headers for logging.
  *
  * @internal
  */
-export interface DynamicSignalAttributeProvider {
+export interface DynamicAttributeProvider {
   /**
    * Returns a record of attributes to be added to a log entry.
    *

@@ -16,7 +16,7 @@
  */
 
 import { Provider } from '@firebase/component';
-import { DynamicSignalAttributeProvider, SignalAttribute } from '../types';
+import { DynamicAttributeProvider, SignalAttribute } from '../types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { SIGNAL_ATTRIBUTE_KEYS } from '../constants';
 
@@ -25,7 +25,7 @@ import { SIGNAL_ATTRIBUTE_KEYS } from '../constants';
  *
  * @internal
  */
-export class InstallationIdProvider implements DynamicSignalAttributeProvider {
+export class InstallationIdProvider implements DynamicAttributeProvider {
   private installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
 
