@@ -6596,7 +6596,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         } else {
           expect(false).to.equal(
             true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
+            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${targetBackend}`
           );
         }
       });
@@ -6710,7 +6710,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         } else {
           expect(false).to.equal(
             true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
+            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${targetBackend}`
           );
         }
       });
