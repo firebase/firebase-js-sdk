@@ -31,8 +31,9 @@ const FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS = 3;
  * For the new FID-based register path:
  * - Create (or refresh) an FCM Web registration in the backend via CreateRegistration.
  * - Use the FIS auth token produced by the installations instance (implicitly associated with FID).
- * - When the response includes `fid`, it must match `expectedFid` from Installations.getId(); on
- *   mismatch we refresh the auth token and retry, then fail with `fid-registration-failed`.
+ * - CreateRegistration must echo a non-empty `fid`; it must match `expectedFid` from
+ *   Installations.getId(). On mismatch we refresh the auth token and retry, then fail with
+ *   `fid-registration-failed`.
  */
 export async function registerFcmRegistrationWithFid(
   messaging: MessagingService,
@@ -58,20 +59,19 @@ export async function registerFcmRegistrationWithFid(
     attempt < FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS;
     attempt++
   ) {
-    if (attempt > 0) {
-      await installations.getToken(true);
-    }
-
     const { responseFid } = await requestCreateRegistration(
       messaging.firebaseDependencies,
       subscriptionOptions
     );
 
-    if (responseFid === undefined) {
-      return;
-    }
     if (responseFid === expectedFid) {
       return;
+    }
+    // If CreateRegistration echoes an unexpected FID, the FIS auth token used for the request may
+    // be stale relative to the installation the backend associates with the call. Force-refresh
+    // the token before retrying so the next attempt uses credentials aligned with Installations.
+    if (attempt < FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS - 1) {
+      await installations.getToken(true);
     }
   }
 

@@ -66,7 +66,7 @@ describe('register', () => {
     requestCreateRegistrationStub = stub(
       requestsModule,
       'requestCreateRegistration'
-    ).resolves({});
+    ).resolves({ responseFid: 'FID' });
   });
 
   afterEach(() => {
@@ -194,6 +194,8 @@ describe('register', () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
+    requestCreateRegistrationStub.resolves({ responseFid: customFid });
+
     await register(messaging);
 
     expect(onRegisteredSpy).to.have.been.calledOnceWith(customFid);
@@ -210,7 +212,7 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
-  it('refreshes registration weekly even when FID unchanged, without re-notifying onRegisteredHandler', async () => {
+  it('refreshes registration weekly even when FID unchanged and notifies onRegisteredHandler again', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
@@ -245,6 +247,12 @@ describe('register', () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .resolves({ responseFid: 'FID_OLD' })
+      .onSecondCall()
+      .resolves({ responseFid: 'FID_NEW' });
+
     await register(messaging);
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_OLD');
 
@@ -256,7 +264,7 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
-  it('calls onRegisteredHandler only when FID changes across three register calls', async () => {
+  it('does not notify on third register when FID unchanged and within refresh window', async () => {
     const customInstallations = getFakeInstallations();
     const getIdStub = stub(customInstallations, 'getId')
       .onFirstCall()
@@ -275,6 +283,12 @@ describe('register', () => {
 
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
+
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .resolves({ responseFid: 'FID_A' })
+      .onSecondCall()
+      .resolves({ responseFid: 'FID_B' });
 
     await register(messaging);
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_A');

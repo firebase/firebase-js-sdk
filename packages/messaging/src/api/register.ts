@@ -38,8 +38,8 @@ const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  * Once onRegistered provides an FID, the app should instruct the backend to remove any
  * legacy token previously associated with this instance.
  *
- * When called multiple times, onRegistered is only invoked when the FID has changed
- * from the last notified value (or on first call), so the same identity is not reported twice.
+ * When called multiple times, onRegistered is invoked after each successful backend
+ * registration sync (including weekly refresh when the FID is unchanged).
  *
  * @param messaging - The MessagingService instance.
  * @param options - Optional. Same options as getToken (vapidKey, serviceWorkerRegistration).
@@ -94,19 +94,11 @@ export async function register(
       return;
     }
 
-    // Notify the app after a backend sync when the identity changes, or when a weekly refresh occurs.
-    // (Also notify when no stored registration exists, since we just established one.)
-    const shouldNotify =
-      fid !== messaging.lastNotifiedFid ||
-      !stored ||
-      now >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
-    if (shouldNotify) {
-      messaging.lastNotifiedFid = fid;
-      if (typeof handler === 'function') {
-        handler(fid);
-      } else {
-        handler.next(fid);
-      }
+    messaging.lastNotifiedFid = fid;
+    if (typeof handler === 'function') {
+      handler(fid);
+    } else {
+      handler.next(fid);
     }
   });
   return messaging._registerNotifyChain;

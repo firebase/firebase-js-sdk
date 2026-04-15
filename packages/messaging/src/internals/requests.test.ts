@@ -126,7 +126,11 @@ describe('API', () => {
     }
 
     it('calls fetch once when the first attempt succeeds', async () => {
-      fetchStub.resolves(new Response(null, { status: 200 }));
+      fetchStub.resolves(
+        new Response(JSON.stringify({ fid: 'installation-fid-1' }), {
+          status: 200
+        })
+      );
 
       await requestCreateRegistration(
         firebaseDependencies,
@@ -151,15 +155,15 @@ describe('API', () => {
       expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
     });
 
-    it('returns no responseFid when the success body is empty', async () => {
+    it('rejects when the success body is empty', async () => {
       fetchStub.resolves(new Response(null, { status: 200 }));
 
-      const result = await requestCreateRegistration(
-        firebaseDependencies,
-        tokenDetails.subscriptionOptions!
-      );
-
-      expect(result).to.deep.equal({});
+      await expect(
+        requestCreateRegistration(
+          firebaseDependencies,
+          tokenDetails.subscriptionOptions!
+        )
+      ).to.be.rejectedWith('messaging/fid-registration-failed');
     });
 
     it('retries fetch on thrown errors with exponential backoff then succeeds', async () => {
@@ -179,7 +183,11 @@ describe('API', () => {
         .onSecondCall()
         .rejects(new Error('network 2'))
         .onThirdCall()
-        .resolves(new Response(null, { status: 200 }));
+        .resolves(
+          new Response(JSON.stringify({ fid: 'installation-fid-1' }), {
+            status: 200
+          })
+        );
 
       await requestCreateRegistration(
         firebaseDependencies,

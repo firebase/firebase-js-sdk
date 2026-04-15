@@ -88,14 +88,14 @@ export async function requestGetToken(
 }
 
 /**
- * Creates (or refreshes) an FCM Web registration via CreateRegistration, but only relies on
- * HTTP success/failure.
+ * Creates (or refreshes) an FCM Web registration via CreateRegistration.
  *
- * This is used by the FID-based register path, where we don't require the returned FCM token.
+ * This is used by the FID-based register path, where we don't require the returned FCM token, but
+ * we do require a non-empty `fid` in the success response body.
  */
 export interface CreateRegistrationResult {
-  /** FID echoed by CreateRegistration when present; omitted if the body is empty or has no `fid`. */
-  responseFid?: string;
+  /** FID echoed by CreateRegistration on every successful response. */
+  responseFid: string;
 }
 
 export async function requestCreateRegistration(
@@ -127,7 +127,7 @@ export async function requestCreateRegistration(
 
   if (response.ok) {
     const responseFid = await parseCreateRegistrationSuccessFid(response);
-    return responseFid !== undefined ? { responseFid } : {};
+    return { responseFid };
   }
 
   // `fetch()` succeeded, but the backend returned a non-2xx response.
@@ -149,22 +149,35 @@ export async function requestCreateRegistration(
 }
 
 /**
- * Best-effort parse of a successful CreateRegistration body. Older backends may return an empty
- * body; when `fid` is absent we do not treat that as an error.
+ * Parses a successful CreateRegistration body. The backend must return JSON with a non-empty
+ * string `fid`.
  */
 async function parseCreateRegistrationSuccessFid(
   response: Response
-): Promise<string | undefined> {
+): Promise<string> {
   const text = await response.text();
   if (!text.trim()) {
-    return undefined;
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: 'CreateRegistration succeeded but response body is empty'
+    });
   }
+  let data: ApiResponse;
   try {
-    const data = JSON.parse(text) as ApiResponse;
-    return typeof data.fid === 'string' ? data.fid : undefined;
+    data = JSON.parse(text) as ApiResponse;
   } catch {
-    return undefined;
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo:
+        'CreateRegistration succeeded but response body is not valid JSON'
+    });
   }
+  const fid = data.fid;
+  if (typeof fid !== 'string' || fid.length === 0) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo:
+        'CreateRegistration succeeded but response did not include a non-empty fid'
+    });
+  }
+  return fid;
 }
 
 export async function requestUpdateToken(

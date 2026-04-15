@@ -76,7 +76,9 @@ describe('subscribeFidChangeRegistration', () => {
     requestCreateRegistrationStub = stub(
       requestsModule,
       'requestCreateRegistration'
-    ).resolves({}) as Stub<typeof requestsModule.requestCreateRegistration>;
+    ).callsFake(async () => ({
+      responseFid: currentFid
+    })) as Stub<typeof requestsModule.requestCreateRegistration>;
   });
 
   afterEach(async () => {
