@@ -75,7 +75,7 @@ export function createTracingProvider(
   }
   let otlpEndpoint;
   let traceExporter;
-  if (tracingUrl == "http://localhost:4318") {
+  if (tracingUrl == 'http://localhost:4318') {
     otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
     traceExporter = new OTLPStandardTraceExporter({
       url: otlpEndpoint,
@@ -86,13 +86,14 @@ export function createTracingProvider(
     });
   } else {
     otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/traces`;
-    traceExporter = new OTLPTraceExporter({
-      url: otlpEndpoint,
-      headers: {
-        'Content-Type': 'application/json',
-        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
-      }
-    },
+    traceExporter = new OTLPTraceExporter(
+      {
+        url: otlpEndpoint,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
+        }
+      },
       dynamicHeaderProviders,
       dynamicAttributeProviders
     );
@@ -120,13 +121,21 @@ export function createTracingProvider(
      '.' -> matches any character so https://api-example.com/traces?version=1 will be ignored too
      `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
   */
-  const cleanedRegexEndpointUrl = endpointUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const cleanedRegexTracingUrl = tracingUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cleanedRegexEndpointUrl = endpointUrl.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+  const cleanedRegexTracingUrl = tracingUrl.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
   registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation({
-        ignoreUrls: [new RegExp(cleanedRegexTracingUrl),
-        new RegExp(cleanedRegexEndpointUrl)]
+        ignoreUrls: [
+          new RegExp(cleanedRegexTracingUrl),
+          new RegExp(cleanedRegexEndpointUrl)
+        ]
       }),
       new XMLHttpRequestInstrumentation()
     ]

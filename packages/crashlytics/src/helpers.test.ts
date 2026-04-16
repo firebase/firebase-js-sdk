@@ -21,10 +21,7 @@ import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
-import {
-  SIGNAL_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
-} from './constants';
+import { SIGNAL_ATTRIBUTE_KEYS, CRASHLYTICS_SESSION_ID_KEY } from './constants';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';

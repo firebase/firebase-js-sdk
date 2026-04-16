@@ -17,10 +17,7 @@
 
 import { SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
-import {
-  SIGNAL_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
-} from './constants';
+import { SIGNAL_ATTRIBUTE_KEYS, CRASHLYTICS_SESSION_ID_KEY } from './constants';
 import { Crashlytics } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
