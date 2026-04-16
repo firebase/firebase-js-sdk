@@ -54,14 +54,14 @@ export function registerCrashlytics(): void {
           'installations-internal'
         );
         const dynamicHeaderProviders = [new AppCheckProvider(appCheckProvider)];
-        const dynamicLogAttributeProviders = [
+        const dynamicAttributeProviders = [
           new InstallationIdProvider(installationsProvider)
         ];
         const loggerProvider = createLoggerProvider(
           app,
           loggingUrl,
           dynamicHeaderProviders,
-          dynamicLogAttributeProviders
+          dynamicAttributeProviders
         );
 
         const tracingProvider = createTracingProvider(app, tracingUrl);
