@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { SIGNAL_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
+import { CRASHLYTICS_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
@@ -96,22 +96,22 @@ export function recordError(
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
   if (activeSpanContext?.traceId) {
-    customAttributes[SIGNAL_ATTRIBUTE_KEYS.TRACE_ID] =
+    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
       activeSpanContext.traceId;
     if (activeSpanContext?.spanId) {
-      customAttributes[SIGNAL_ATTRIBUTE_KEYS.SPAN_ID] =
+      customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID] =
         activeSpanContext.spanId;
     }
   }
 
   // Add app version metadata
-  customAttributes[SIGNAL_ATTRIBUTE_KEYS.APP_VERSION] =
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] =
     getAppVersion(crashlytics);
 
   // Add session ID metadata
   const sessionId = getSessionId();
   if (sessionId) {
-    customAttributes[SIGNAL_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
+    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
   }
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over

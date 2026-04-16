@@ -21,7 +21,10 @@ import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
-import { SIGNAL_ATTRIBUTE_KEYS, CRASHLYTICS_SESSION_ID_KEY } from './constants';
+import {
+  CRASHLYTICS_ATTRIBUTE_KEYS,
+  CRASHLYTICS_SESSION_ID_KEY
+} from './constants';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
@@ -140,10 +143,10 @@ describe('helpers', () => {
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal(MOCK_SESSION_ID);
       expect(emittedLogs.length).to.equal(1);
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
 
@@ -152,10 +155,10 @@ describe('helpers', () => {
       startNewSession(fakeCrashlytics);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
-        [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
 
@@ -170,10 +173,10 @@ describe('helpers', () => {
       startNewSession(telemetryWithVersion);
 
       expect(emittedLogs[0].attributes).to.deep.equal({
-        [SIGNAL_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
-        [SIGNAL_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
-        [SIGNAL_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
-        [SIGNAL_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID,
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '9.9.9',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
     });
   });

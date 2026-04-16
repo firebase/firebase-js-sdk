@@ -22,7 +22,7 @@ export const CRASHLYTICS_TYPE = 'crashlytics';
 export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
 /** Label keys that we write in all telemetry signal entries. */
-export const SIGNAL_ATTRIBUTE_KEYS = {
+export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   APP_VERSION: 'app_version',
   SESSION_ID: 'session_id',
   USER_ID: 'user_id',
