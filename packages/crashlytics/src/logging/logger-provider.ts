@@ -76,7 +76,8 @@ export function createLoggerProvider(
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */
 class OTLPLogExporter
   extends OTLPExporterBase<ReadableLogRecord[]>
-  implements LogRecordExporter {
+  implements LogRecordExporter
+{
   constructor(
     config: OTLPExporterConfigBase = {},
     dynamicHeaderProviders: DynamicHeaderProvider[] = [],

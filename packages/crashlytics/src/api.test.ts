@@ -34,10 +34,7 @@ import {
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { recordError, flush, getCrashlytics } from './api';
-import {
-  SIGNAL_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
-} from './constants';
+import { SIGNAL_ATTRIBUTE_KEYS, CRASHLYTICS_SESSION_ID_KEY } from './constants';
 import { CrashlyticsService } from './service';
 import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';

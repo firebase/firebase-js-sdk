@@ -63,7 +63,7 @@ export interface FetchTransportParameters {
  * @internal
  */
 export class FetchTransport implements IExporterTransport {
-  constructor(private parameters: FetchTransportParameters) { }
+  constructor(private parameters: FetchTransportParameters) {}
 
   async send(data: Uint8Array, timeoutMillis: number): Promise<ExportResponse> {
     const abortController = new AbortController();
