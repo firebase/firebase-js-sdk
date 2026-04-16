@@ -55,6 +55,29 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
+<<<<<<< HEAD
+=======
+  const fakeTracingProvider = {
+    getTracer: () => ({
+      startSpan: () => ({
+        setAttribute: () => {},
+        end: () => {
+          spanEnded = true;
+        },
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      }),
+      startActiveSpan: (name: string, fn: (span: any) => any) =>
+        fn({
+          end: () => {
+            spanEnded = true;
+          },
+          spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+        })
+    }),
+    register: () => {},
+    shutdown: () => Promise.resolve()
+  } as unknown as TracerProvider;
+>>>>>>> 609df1a2c (adding OTLP Trace Exporter for Firebase Telemetry Server (#9836))
 
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {

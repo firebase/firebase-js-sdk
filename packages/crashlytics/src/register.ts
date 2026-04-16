@@ -41,8 +41,8 @@ export function registerCrashlytics(): void {
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
         const crashlyticsOptions = options as CrashlyticsOptions;
-        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'http://localhost';
-
+        const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
+        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'https://staging-firebasetelemetry.sandbox.googleapis.com';
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
@@ -60,7 +60,13 @@ export function registerCrashlytics(): void {
           dynamicAttributeProviders
         );
 
-        const tracingProvider = createTracingProvider(app, tracingUrl);
+        const tracingProvider = createTracingProvider(
+          app,
+          endpointUrl,
+          tracingUrl,
+          dynamicHeaderProviders,
+          dynamicAttributeProviders
+        );
 
         const crashlyticsService = new CrashlyticsService(
           app,

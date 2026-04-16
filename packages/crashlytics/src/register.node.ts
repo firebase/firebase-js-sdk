@@ -37,10 +37,11 @@ export function registerCrashlytics(): void {
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider(app, crashlyticsOptions);
+        const loggerProvider = createLoggerProvider(app, crashlyticsOptions, [], []);
         
-        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'http://localhost';
-        const tracingProvider = createTracingProvider(app, tracingUrl);
+        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'https://staging-firebasetelemetry.sandbox.googleapis.com';
+        const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
+        const tracingProvider = createTracingProvider(app, endpointUrl, tracingUrl);
 
         return new CrashlyticsService(app, loggerProvider, tracingProvider);
       },

@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 062d7af72 (Snapshot of crashlytics tracing feature)
 import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
@@ -36,12 +33,19 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
+import {
+  OTLPExporterBase,
+  OTLPExporterConfigBase,
+  createOtlpNetworkExportDelegate
+} from '@opentelemetry/otlp-exporter-base';
+import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
+import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
-import { DynamicHeaderProvider } from '../types';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -50,7 +54,10 @@ import { DynamicHeaderProvider } from '../types';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  tracingUrl: string
+  endpointUrl: string,
+  tracingUrl: string,
+  dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+  dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
@@ -67,16 +74,31 @@ export function createTracingProvider(
   if (tracingUrl.endsWith('/')) {
     tracingUrl = tracingUrl.slice(0, -1);
   }
-
-  const otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
-
-  const traceExporter = new OTLPTraceExporter({
-    url: otlpEndpoint,
-    headers: {
-      'X-Goog-User-Project': projectId || '',
-      ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
-    }
-  });
+  let otlpEndpoint;
+  let traceExporter;
+  if (tracingUrl === 'http://localhost:4318') {
+    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
+    traceExporter = new OTLPStandardTraceExporter({
+      url: otlpEndpoint,
+      headers: {
+        'X-Goog-User-Project': projectId || '',
+        ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
+      }
+    });
+  } else {
+    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/traces`;
+    traceExporter = new OTLPTraceExporter(
+      {
+        url: otlpEndpoint,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(apiKey ? { 'X-Goog-Api-Key': apiKey } : {})
+        }
+      },
+      dynamicHeaderProviders,
+      dynamicAttributeProviders
+    );
+  }
 
   const provider = new WebTracerProvider({
     resource,
@@ -95,12 +117,84 @@ export function createTracingProvider(
     })
   });
 
+  /* We must clean url before a regex match in the cases of special characters changing matched url.
+     Ex: https://api.example.com/traces?version=1
+     '.' -> matches any character so https://api-example.com/traces?version=1 will be ignored too
+     `?` -> makes the `s` optional so https://api.example.com/traceversion=1 will be ignored too
+  */
+  const cleanedRegexEndpointUrl = endpointUrl.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
+  const cleanedRegexTracingUrl = tracingUrl.replace(
+    /[.*+?^${}()|[\]\\]/g,
+    '\\$&'
+  );
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation(),
+      new FetchInstrumentation({
+        ignoreUrls: [
+          new RegExp(cleanedRegexTracingUrl),
+          new RegExp(cleanedRegexEndpointUrl)
+        ]
+      }),
       new XMLHttpRequestInstrumentation()
     ]
   });
 
   return provider;
+}
+
+class OTLPTraceExporter
+  extends OTLPExporterBase<ReadableSpan[]>
+  implements SpanExporter
+{
+  constructor(
+    config: OTLPExporterConfigBase = {},
+    dynamicHeaderProviders: DynamicHeaderProvider[] = [],
+    private dynamicAttributeProviders: DynamicAttributeProvider[] = []
+  ) {
+    super(
+      createOtlpNetworkExportDelegate(
+        {
+          timeoutMillis: 10000,
+          concurrencyLimit: 5,
+          compression: 'none'
+        },
+        JsonTraceSerializer,
+        new FetchTransport({
+          url: config.url!,
+          headers: new Headers(
+            typeof config.headers === 'object'
+              ? (config.headers as Record<string, string>)
+              : {}
+          ),
+          dynamicHeaderProviders
+        })
+      )
+    );
+  }
+
+  override async export(
+    spans: ReadableSpan[],
+    resultCallback: (result: ExportResult) => void
+  ): Promise<void> {
+    const attributes = await Promise.all(
+      this.dynamicAttributeProviders.map(provider => provider.getAttribute())
+    );
+
+    const attributesToApply: Record<string, string> = {};
+    for (const attr of attributes) {
+      if (attr) {
+        attributesToApply[attr[0]] = attr[1];
+      }
+    }
+
+    if (Object.keys(attributesToApply).length > 0) {
+      spans.forEach(span => {
+        Object.assign(span.attributes, attributesToApply);
+      });
+    }
+    super.export(spans, resultCallback);
+  }
 }
