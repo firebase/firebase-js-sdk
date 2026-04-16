@@ -18,7 +18,7 @@
 import { Provider } from '@firebase/component';
 import { DynamicAttributeProvider, SignalAttribute } from '../types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { SIGNAL_ATTRIBUTE_KEYS } from '../constants';
+import { CRASHLYTICS_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * Allows logging to include the client's installation ID.
@@ -46,7 +46,7 @@ export class InstallationIdProvider implements DynamicAttributeProvider {
       return null;
     }
     if (this._iid) {
-      return [SIGNAL_ATTRIBUTE_KEYS.USER_ID, this._iid];
+      return [CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID, this._iid];
     }
 
     const iid = await this.installations.getId();
@@ -55,6 +55,6 @@ export class InstallationIdProvider implements DynamicAttributeProvider {
     }
 
     this._iid = iid;
-    return [SIGNAL_ATTRIBUTE_KEYS.USER_ID, iid];
+    return [CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID, iid];
   }
 }
