@@ -44,7 +44,7 @@ import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
-import { FetchTransport } from '../logging/fetch-transport';
+import { FetchTransport } from '../fetch-transport';
 
 /**
  * Create a tracing provider for the current execution environment.
