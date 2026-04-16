@@ -20,8 +20,8 @@
 
 import * as sinon from 'sinon';
 import * as assert from 'assert';
-import { DynamicHeaderProvider } from '../types';
-import { FetchTransport } from '../fetch-transport';
+import { DynamicHeaderProvider } from './types';
+import { FetchTransport } from './fetch-transport';
 import {
   ExportResponseRetryable,
   ExportResponseFailure,
