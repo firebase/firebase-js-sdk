@@ -57,7 +57,7 @@ describe('helpers', () => {
   const fakeTracingProvider = {
     getTracer: () => ({
       startSpan: () => ({
-        setAttribute: () => {},
+        setAttribute: () => { },
         end: () => {
           spanEnded = true;
         },
@@ -71,7 +71,7 @@ describe('helpers', () => {
           spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
         })
     }),
-    register: () => {},
+    register: () => { },
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
 

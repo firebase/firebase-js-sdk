@@ -20,6 +20,7 @@ import {
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
+import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
@@ -35,7 +36,6 @@ import { newUserDataReader, UserDataSource } from './user_data_reader';
 declare module './database' {
   interface Firestore {
     /**
-     * @beta
      * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
      *
      * @example
@@ -48,7 +48,6 @@ declare module './database' {
 }
 
 /**
- * @beta
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
@@ -82,6 +81,14 @@ declare module './database' {
  * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
+  if (!pipeline._db) {
+    return Promise.reject(
+      new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+      )
+    );
+  }
   const datastore = getDatastore(pipeline._db);
   const firestore = cast(pipeline._db, Firestore);
 
@@ -119,7 +126,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
             userDataWriter,
             element.fields!,
             element.key?.path
-              ? new DocumentReference(pipeline._db, null, element.key)
+              ? new DocumentReference(firestore, null, element.key)
               : undefined,
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
@@ -131,7 +138,6 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
 }
 
 /**
- * @beta
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example

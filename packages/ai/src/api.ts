@@ -44,7 +44,9 @@ import { TemplateImagenModel } from './models/template-imagen-model';
 import { logger } from './logger';
 
 export { ChatSession } from './methods/chat-session';
+export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
+export { TemplateChatSession } from './methods/template-chat-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
 export {
@@ -191,6 +193,11 @@ export function getGenerativeModel(
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
  *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
  * @param requestOptions - Additional options to use when making requests.
@@ -260,10 +267,13 @@ export function getTemplateGenerativeModel(
  * Returns a {@link TemplateImagenModel} class for executing server-side
  * Imagen templates.
  *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
  * @param ai - An {@link AI} instance.
  * @param requestOptions - Additional options to use when making requests.
- *
- * @beta
  */
 export function getTemplateImagenModel(
   ai: AI,

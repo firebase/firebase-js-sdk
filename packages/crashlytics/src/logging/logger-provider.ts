@@ -29,7 +29,7 @@ import {
   OTLPExporterBase,
   createOtlpNetworkExportDelegate
 } from '@opentelemetry/otlp-exporter-base';
-import { FetchTransport } from './fetch-transport';
+import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';

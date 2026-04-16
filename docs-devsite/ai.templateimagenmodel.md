@@ -10,7 +10,9 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateImagenModel class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> Warning: This API is now obsolete.
+> 
+> All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration)<!-- -->.
 > 
 
 Class for Imagen model APIs that execute on a server-side template.
@@ -27,13 +29,13 @@ export declare class TemplateImagenModel
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(ai, requestOptions)](./ai.templateimagenmodel.md#templateimagenmodelconstructor) |  | <b><i>(Public Preview)</i></b>  Constructs a new instance of the <code>TemplateImagenModel</code> class |
+|  [(constructor)(ai, requestOptions)](./ai.templateimagenmodel.md#templateimagenmodelconstructor) |  |  Constructs a new instance of the <code>TemplateImagenModel</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [requestOptions](./ai.templateimagenmodel.md#templateimagenmodelrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | <b><i>(Public Preview)</i></b> Additional options to use when making requests. |
+|  [requestOptions](./ai.templateimagenmodel.md#templateimagenmodelrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Additional options to use when making requests. |
 
 ## Methods
 
@@ -42,9 +44,6 @@ export declare class TemplateImagenModel
 |  [generateImages(templateId, templateVariables, singleRequestOptions)](./ai.templateimagenmodel.md#templateimagenmodelgenerateimages) |  | <b><i>(Public Preview)</i></b> Makes a single call to the model and returns an object containing a single [ImagenGenerationResponse](./ai.imagengenerationresponse.md#imagengenerationresponse_interface)<!-- -->. |
 
 ## TemplateImagenModel.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
  Constructs a new instance of the `TemplateImagenModel` class
 
@@ -62,9 +61,6 @@ constructor(ai: AI, requestOptions?: RequestOptions);
 |  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
 
 ## TemplateImagenModel.requestOptions
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Additional options to use when making requests.
 

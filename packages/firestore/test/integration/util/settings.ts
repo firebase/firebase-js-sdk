@@ -25,7 +25,7 @@ import { PrivateSettings } from './firebase_export';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const __karma__: any;
 
-enum TargetBackend {
+export enum TargetBackend {
   EMULATOR = 'emulator',
   QA = 'qa',
   NIGHTLY = 'nightly',
@@ -36,6 +36,8 @@ enum TargetBackend {
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 export const TARGET_DB_ID: string | '(default)' = getTargetDbId();
+
+export const RUN_ENTERPRISE_TESTS: boolean = getRunEnterpriseTests();
 
 const TARGET_BACKEND: TargetBackend = getTargetBackend();
 
@@ -62,6 +64,14 @@ function getTargetDbId(): string | '(default)' {
   return '(default)';
 }
 
+export function getRunEnterpriseTests(): boolean {
+  const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
+  if (karma && karma.config.firestoreEdition === 'enterprise') {
+    return true;
+  }
+  return !!process.env.RUN_ENTERPRISE_TESTS;
+}
+
 function parseTargetBackend(targetBackend: string): TargetBackend {
   switch (targetBackend) {
     case 'emulator':
@@ -79,7 +89,7 @@ function parseTargetBackend(targetBackend: string): TargetBackend {
   }
 }
 
-function getTargetBackend(): TargetBackend {
+export function getTargetBackend(): TargetBackend {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.targetBackend) {
     return parseTargetBackend(karma.config.targetBackend);
