@@ -677,6 +677,98 @@ describe('AbstractDataConnectStreamTransport', () => {
           const requestId = sendMessageStub.firstCall.args[0].requestId;
           expect(transport.invokeOperationPromises.has(requestId)).to.be.false;
         });
+
+        describe('de-duplication', () => {
+          it('should NOT de-duplicate identical mutation requests', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 5; i++) {
+              promises.push(
+                transport.invokeMutation(mutationName1, variables1)
+              );
+            }
+
+            expect(sendMessageSpy.callCount).to.equal(5);
+
+            const mapKey = transport.getMapKey(mutationName1, variables1);
+            const requests = transport.activeInvokeMutationRequests.get(mapKey);
+            expect(requests).to.have.lengthOf(5);
+
+            for (let i = 0; i < 5; i++) {
+              for (let j = i + 1; j < 5; j++) {
+                expect(promises[i]).to.not.equal(promises[j]);
+              }
+            }
+          });
+
+          it('mutation requests should resolve totally independent of one another', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promise1 = transport.invokeMutation(
+              mutationName1,
+              variables1
+            );
+            const promise2 = transport.invokeMutation(
+              mutationName1,
+              variables1
+            );
+            const promise3 = transport.invokeMutation(
+              mutationName1,
+              variables1
+            );
+
+            expect(sendMessageSpy.callCount).to.equal(3);
+
+            const mapKey = transport.getMapKey(mutationName1, variables1);
+            const requests = transport.activeInvokeMutationRequests.get(mapKey);
+            expect(requests).to.have.lengthOf(3);
+
+            const requestId1 = requests![0].requestId;
+            const requestId2 = requests![1].requestId;
+            const requestId3 = requests![2].requestId;
+
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+            const response2 = {
+              data: { result: '2' },
+              errors: [],
+              extensions: {}
+            };
+            const response3 = {
+              data: { result: '3' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId1, response1);
+            await expect(promise1).to.eventually.deep.equal(response1);
+            await expectIsNotSettled(promise2, 100);
+            await expectIsNotSettled(promise3, 100);
+
+            await transport.invokeHandleResponse(requestId2, response2);
+            await expect(promise1).to.eventually.deep.equal(response1);
+            await expect(promise2).to.eventually.deep.equal(response2);
+            await expectIsNotSettled(promise3, 100);
+
+            await transport.invokeHandleResponse(requestId3, response3);
+            await expect(promise1).to.eventually.deep.equal(response1);
+            await expect(promise2).to.eventually.deep.equal(response2);
+            await expect(promise3).to.eventually.deep.equal(response3);
+
+            expect(transport.activeInvokeMutationRequests.has(mapKey)).to.be
+              .false;
+            expect(transport.invokeOperationPromises.has(requestId1)).to.be
+              .false;
+            expect(transport.invokeOperationPromises.has(requestId2)).to.be
+              .false;
+            expect(transport.invokeOperationPromises.has(requestId3)).to.be
+              .false;
+          });
+        });
       });
 
       describe('invokeSubscribe', () => {
@@ -708,6 +800,17 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.subscribe).to.not.be.undefined;
           expect(sentMessage.subscribe?.operationName).to.equal(queryName1);
           expect(sentMessage.subscribe?.variables).to.deep.equal(variables1);
+        });
+ 
+        it('should NOT de-duplicate identical subscribe requests', async () => {
+          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+          const observer1 = { onData: sinon.spy(), onDisconnect: sinon.spy(), onError: sinon.spy() };
+          const observer2 = { onData: sinon.spy(), onDisconnect: sinon.spy(), onError: sinon.spy() };
+ 
+          transport.invokeSubscribe(observer1, queryName1, variables1);
+          transport.invokeSubscribe(observer2, queryName1, variables1);
+ 
+          expect(sendMessageSpy.callCount).to.equal(2);
         });
 
         it('should asynchronously call observer with error and clean up if sendMessage fails', async () => {
