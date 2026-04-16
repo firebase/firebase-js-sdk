@@ -33,8 +33,8 @@ export const FID_REGISTRATION_FETCH_BASE_BACKOFF_MS = 1000;
 
 export interface ApiResponse {
   token?: string;
-  /** Present when the CreateRegistration response echoes the Firebase Installation ID. */
-  fid?: string;
+  /** Present when the CreateRegistration response echoes the Firebase Installation ID in the resource `name` field. */
+  name?: string;
   error?: { message: string };
 }
 
@@ -91,10 +91,10 @@ export async function requestGetToken(
  * Creates (or refreshes) an FCM Web registration via CreateRegistration.
  *
  * This is used by the FID-based register path, where we don't require the returned FCM token, but
- * we do require a non-empty `fid` in the success response body.
+ * we do require a non-empty `name` (echoing the Firebase Installation ID) in the success response body.
  */
 export interface CreateRegistrationResult {
-  /** FID echoed by CreateRegistration on every successful response. */
+  /** Firebase Installation ID from the CreateRegistration response `name` field. */
   responseFid: string;
 }
 
@@ -150,7 +150,7 @@ export async function requestCreateRegistration(
 
 /**
  * Parses a successful CreateRegistration body. The backend must return JSON with a non-empty
- * string `fid`.
+ * string `name` containing the Firebase Installation ID.
  */
 async function parseCreateRegistrationSuccessFid(
   response: Response
@@ -170,11 +170,11 @@ async function parseCreateRegistrationSuccessFid(
         'CreateRegistration succeeded but response body is not valid JSON'
     });
   }
-  const fid = data.fid;
+  const fid = data.name;
   if (typeof fid !== 'string' || fid.length === 0) {
     throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
       errorInfo:
-        'CreateRegistration succeeded but response did not include a non-empty fid'
+        'CreateRegistration succeeded but response did not include a non-empty name'
     });
   }
   return fid;

@@ -127,7 +127,7 @@ describe('API', () => {
 
     it('calls fetch once when the first attempt succeeds', async () => {
       fetchStub.resolves(
-        new Response(JSON.stringify({ fid: 'installation-fid-1' }), {
+        new Response(JSON.stringify({ name: 'installation-fid-1' }), {
           status: 200
         })
       );
@@ -140,9 +140,9 @@ describe('API', () => {
       expect(fetchStub).to.have.callCount(1);
     });
 
-    it('returns responseFid when the success body includes fid', async () => {
+    it('returns responseFid when the success body includes name', async () => {
       fetchStub.resolves(
-        new Response(JSON.stringify({ fid: 'installation-fid-1' }), {
+        new Response(JSON.stringify({ name: 'installation-fid-1' }), {
           status: 200
         })
       );
@@ -184,7 +184,7 @@ describe('API', () => {
         .rejects(new Error('network 2'))
         .onThirdCall()
         .resolves(
-          new Response(JSON.stringify({ fid: 'installation-fid-1' }), {
+          new Response(JSON.stringify({ name: 'installation-fid-1' }), {
             status: 200
           })
         );

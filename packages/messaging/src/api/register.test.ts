@@ -168,13 +168,20 @@ describe('register', () => {
     messaging.swRegistration = new FakeServiceWorkerRegistration();
     messaging.onRegisteredHandler = stub();
 
-    requestCreateRegistrationStub.resolves({ responseFid: 'always-wrong' });
+    let createRegistrationCalls = 0;
+    requestCreateRegistrationStub.callsFake(async () => {
+      createRegistrationCalls++;
+      if (createRegistrationCalls > 3) {
+        throw new Error('unexpected fourth CreateRegistration invocation');
+      }
+      return { responseFid: 'always-wrong' };
+    });
 
     await expect(register(messaging)).to.be.rejectedWith(
       'messaging/fid-registration-failed'
     );
 
-    expect(requestCreateRegistrationStub).to.have.callCount(3);
+    expect(createRegistrationCalls).to.equal(3);
     expect(getTokenStub).to.have.been.calledTwice;
     expect(getTokenStub).to.have.been.calledWith(true);
   });
