@@ -104,7 +104,9 @@ export class LiveGenerativeModel extends AIModel {
         toolConfig: this.toolConfig,
         systemInstruction: this.systemInstruction,
         inputAudioTranscription,
-        outputAudioTranscription
+        outputAudioTranscription,
+        proactivity,
+        contextWindowCompression
       }
     };
 
