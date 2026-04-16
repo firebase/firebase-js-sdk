@@ -75,7 +75,7 @@ export function createTracingProvider(
   }
   let otlpEndpoint;
   let traceExporter;
-  if (tracingUrl == 'http://localhost:4318') {
+  if (tracingUrl === 'http://localhost:4318') {
     otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/traces`;
     traceExporter = new OTLPStandardTraceExporter({
       url: otlpEndpoint,

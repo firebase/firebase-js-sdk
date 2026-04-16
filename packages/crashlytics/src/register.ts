@@ -45,8 +45,6 @@ export function registerCrashlytics(): void {
         // TODO Change the tracingUrl host to either the proxy or the firebase telemetry server
         const tracingUrl =
           'https://staging-firebasetelemetry.sandbox.googleapis.com';
-        console.log('[Crashlytics Register] endpointUrl:', endpointUrl);
-        console.log('[Crashlytics Register] tracingUrl:', tracingUrl);
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
