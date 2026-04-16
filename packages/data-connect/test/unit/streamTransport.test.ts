@@ -133,6 +133,7 @@ interface TransportWithInternals {
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >;
+  queuedInvokeQueryRequests: Map<string, ExecuteStreamRequest<unknown>>;
   activeInvokeMutationRequests: Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
@@ -493,6 +494,142 @@ describe('AbstractDataConnectStreamTransport', () => {
 
           const requestId = sendMessageStub.firstCall.args[0].requestId;
           expect(transport.invokeOperationPromises.has(requestId)).to.be.false;
+        });
+
+        describe('de-duplication', () => {
+          it('should send the first request and queue subsequent requests when they are identical', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+            const mapKey = transport.getMapKey(queryName1, variables1);
+
+            expect(sendMessageSpy).to.have.been.calledOnce;
+            const sentMessage = sendMessageSpy.firstCall.args[0];
+            expect(sentMessage.execute?.operationName).to.equal(queryName1);
+
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            expect(activeRequest?.execute?.operationName).to.equal(queryName1);
+
+            const queuedMap = transport.queuedInvokeQueryRequests;
+            expect(queuedMap.has(mapKey)).to.be.true;
+
+            // promises 1 and 2 should be different, but 2-20 should be the same!
+            expect(promises[0]).to.not.equal(promises[1]);
+            for (let i = 1; i < 20; i++) {
+              expect(promises[i]).to.equal(promises[1]);
+            }
+          });
+
+          it('should resolve only the first request when it completes', async () => {
+            sinon.stub(transport, 'sendMessage').resolves();
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = (activeRequest as ExecuteStreamRequest<unknown>)
+              .requestId;
+
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId1, response1);
+
+            // verify promise 1 resolved, but other promises are not yet settled
+            const result1 = await promises[0];
+            expect(result1).to.deep.equal(response1);
+            for (let i = 1; i < 20; i++) {
+              await expectIsNotSettled(promises[i], 100);
+            }
+          });
+
+          it('should send the next request and clear queue when first request completes', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = (activeRequest as ExecuteStreamRequest<unknown>)
+              .requestId;
+
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId1, response1);
+
+            // verify queued request was popped + sent
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(sendMessageSpy).to.have.been.calledTwice;
+            const secondSentMessage = sendMessageSpy.secondCall.args[0];
+            expect(secondSentMessage.execute?.operationName).to.equal(
+              queryName1
+            );
+            expect(secondSentMessage.requestId).to.not.equal(requestId1);
+          });
+
+          it('should resolve all waiting promises when a queued request completes', async () => {
+            sinon.stub(transport, 'sendMessage').resolves();
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest1 =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = (activeRequest1 as ExecuteStreamRequest<unknown>)
+              .requestId;
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+            await transport.invokeHandleResponse(requestId1, response1);
+
+            const activeRequest2 =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId2 = (activeRequest2 as ExecuteStreamRequest<unknown>)
+              .requestId;
+            expect(requestId2).to.not.equal(requestId1);
+
+            const response2 = {
+              data: { result: '2' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId2, response2);
+
+            // verify all queued promises resolved to response2, and nothing active or in queue
+            for (let i = 1; i < 20; i++) {
+              const result = await promises[i];
+              expect(result).to.deep.equal(response2);
+            }
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+          });
         });
       });
 
