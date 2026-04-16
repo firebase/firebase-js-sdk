@@ -678,12 +678,17 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables: Variables
   ): void {
+    const mapKey = this.getMapKey(queryName, variables);
+
+    if (this.activeInvokeSubscribeRequests.has(mapKey)) {
+      // de-duplicate subscribe requests
+      return;
+    }
+
     // if we are waiting to close the stream, cancel closing!
     this.cancelClose();
-
     const requestId = this.nextRequestId();
     const activeRequestKey = { operationName: queryName, variables };
-    const mapKey = this.getMapKey(queryName, variables);
     const subscribeBody: SubscribeStreamRequest<Variables> = {
       requestId,
       subscribe: activeRequestKey

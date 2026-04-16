@@ -801,16 +801,24 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.subscribe?.operationName).to.equal(queryName1);
           expect(sentMessage.subscribe?.variables).to.deep.equal(variables1);
         });
- 
-        it('should NOT de-duplicate identical subscribe requests', async () => {
+
+        it('should de-duplicate identical subscribe requests', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
-          const observer1 = { onData: sinon.spy(), onDisconnect: sinon.spy(), onError: sinon.spy() };
-          const observer2 = { onData: sinon.spy(), onDisconnect: sinon.spy(), onError: sinon.spy() };
- 
+          const observer1 = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+          const observer2 = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+
           transport.invokeSubscribe(observer1, queryName1, variables1);
           transport.invokeSubscribe(observer2, queryName1, variables1);
- 
-          expect(sendMessageSpy.callCount).to.equal(2);
+
+          expect(sendMessageSpy.callCount).to.equal(1);
         });
 
         it('should asynchronously call observer with error and clean up if sendMessage fails', async () => {
