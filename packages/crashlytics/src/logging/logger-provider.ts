@@ -111,9 +111,12 @@ class OTLPLogExporter
       this.dynamicAttributeProviders.map(provider => provider.getAttribute())
     );
 
-    const attributesToApply = Object.fromEntries(
-      attributes.filter((attr): attr is [string, string] => attr != null)
-    );
+    const attributesToApply: Record<string, string> = {};
+    for (const attr of attributes) {
+      if (attr) {
+        attributesToApply[attr[0]] = attr[1];
+      }
+    }
 
     if (Object.keys(attributesToApply).length > 0) {
       logs.forEach(log => {

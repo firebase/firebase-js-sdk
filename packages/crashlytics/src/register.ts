@@ -41,12 +41,10 @@ export function registerCrashlytics(): void {
           );
         }
 
-        // TODO: change to default endpoint once it exists
-        const loggingUrl = instanceIdentifier || 'http://localhost';
-        // Traces will only be sent when running locally; change to instanceIdentifier once we can
-        // send trace data through the Crashlytics backend
-        const tracingUrl = 'http://localhost:4318';
-
+        const endpointUrl = instanceIdentifier || 'http://localhost';
+        // TODO Change the tracingUrl host to either the proxy or the firebase telemetry server
+        const tracingUrl =
+          'https://staging-firebasetelemetry.sandbox.googleapis.com';
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
@@ -59,12 +57,18 @@ export function registerCrashlytics(): void {
         ];
         const loggerProvider = createLoggerProvider(
           app,
-          loggingUrl,
+          endpointUrl,
           dynamicHeaderProviders,
           dynamicAttributeProviders
         );
 
-        const tracingProvider = createTracingProvider(app, tracingUrl);
+        const tracingProvider = createTracingProvider(
+          app,
+          endpointUrl,
+          tracingUrl,
+          dynamicHeaderProviders,
+          dynamicAttributeProviders
+        );
 
         const crashlyticsService = new CrashlyticsService(
           app,

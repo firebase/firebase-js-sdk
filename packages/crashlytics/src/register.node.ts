@@ -34,14 +34,18 @@ export function registerCrashlytics(): void {
           );
         }
 
-        // TODO: change to default endpoint once it exists
-        const loggingUrl = instanceIdentifier || 'http://localhost';
-        const tracingUrl = instanceIdentifier || 'http://localhost';
-
+        const endpointUrl = instanceIdentifier || 'http://localhost';
+        // TODO Change the tracingUrl host to either the proxy or the firebase telemetry server
+        const tracingUrl =
+          'https://staging-firebasetelemetry.sandbox.googleapis.com';
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider(app, loggingUrl);
-        const tracingProvider = createTracingProvider(app, tracingUrl);
+        const loggerProvider = createLoggerProvider(app, endpointUrl);
+        const tracingProvider = createTracingProvider(
+          app,
+          endpointUrl,
+          tracingUrl
+        );
 
         return new CrashlyticsService(app, loggerProvider, tracingProvider);
       },

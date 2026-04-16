@@ -86,7 +86,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
         attributes: {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
           [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
-          [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
+          [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${
+            span.spanContext().traceId
+          }`,
           [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
         }
       });
