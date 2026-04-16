@@ -16,16 +16,16 @@
  */
 
 import { Provider } from '@firebase/component';
-import { DynamicLogAttributeProvider, LogEntryAttribute } from '../types';
+import { DynamicAttributeProvider, SignalAttribute } from '../types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
-import { LOG_ENTRY_ATTRIBUTE_KEYS } from '../constants';
+import { SIGNAL_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * Allows logging to include the client's installation ID.
  *
  * @internal
  */
-export class InstallationIdProvider implements DynamicLogAttributeProvider {
+export class InstallationIdProvider implements DynamicAttributeProvider {
   private installations: _FirebaseInstallationsInternal | null;
   private _iid: string | undefined;
 
@@ -41,12 +41,12 @@ export class InstallationIdProvider implements DynamicLogAttributeProvider {
     }
   }
 
-  async getAttribute(): Promise<LogEntryAttribute | null> {
+  async getAttribute(): Promise<SignalAttribute | null> {
     if (!this.installations) {
       return null;
     }
     if (this._iid) {
-      return [LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, this._iid];
+      return [SIGNAL_ATTRIBUTE_KEYS.USER_ID, this._iid];
     }
 
     const iid = await this.installations.getId();
@@ -55,6 +55,6 @@ export class InstallationIdProvider implements DynamicLogAttributeProvider {
     }
 
     this._iid = iid;
-    return [LOG_ENTRY_ATTRIBUTE_KEYS.USER_ID, iid];
+    return [SIGNAL_ATTRIBUTE_KEYS.USER_ID, iid];
   }
 }

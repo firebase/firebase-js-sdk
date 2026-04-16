@@ -34,7 +34,7 @@ type KeyValuePair = [key: string, value: string];
  *
  * @internal
  */
-export type LogEntryAttribute = KeyValuePair;
+export type SignalAttribute = KeyValuePair;
 
 /**
  * An interface for classes that provide dynamic log entry attributes.
@@ -43,14 +43,14 @@ export type LogEntryAttribute = KeyValuePair;
  *
  * @internal
  */
-export interface DynamicLogAttributeProvider {
+export interface DynamicAttributeProvider {
   /**
    * Returns a record of attributes to be added to a log entry.
    *
-   * @returns A {@link Promise} that resolves to a {@link LogEntryAttribute} key-value pair,
+   * @returns A {@link Promise} that resolves to a {@link SignalAttribute} key-value pair,
    * or null if no attribute is to be added.
    */
-  getAttribute(): Promise<LogEntryAttribute | null>;
+  getAttribute(): Promise<SignalAttribute | null>;
 }
 
 /**
