@@ -93,34 +93,8 @@ export class LiveGenerativeModel extends AIModel {
       outputAudioTranscription,
       proactivity,
       contextWindowCompression,
-      ...generationConfigRest
+      ...generationConfig
     } = this.generationConfig;
-
-    const generationConfig: _LiveClientSetup['setup']['generationConfig'] = {
-      ...generationConfigRest
-    };
-
-    if (proactivity !== undefined) {
-      generationConfig.proactivity = {
-        // eslint-disable-next-line camelcase
-        proactive_audio: proactivity.proactiveAudio
-      };
-    }
-
-    if (contextWindowCompression !== undefined) {
-      // eslint-disable-next-line camelcase
-      generationConfig.context_window_compression = {
-        // eslint-disable-next-line camelcase
-        trigger_tokens: contextWindowCompression.triggerTokens,
-        // eslint-disable-next-line camelcase
-        sliding_window: contextWindowCompression.slidingWindow
-          ? {
-              // eslint-disable-next-line camelcase
-              target_tokens: contextWindowCompression.slidingWindow.targetTokens
-            }
-          : undefined
-      };
-    }
 
     const setupMessage: _LiveClientSetup = {
       setup: {

@@ -97,27 +97,7 @@ export interface _LiveClientSetup {
  * The public API ({@link LiveGenerationConfig}) has `inputAudioTranscription` and `outputAudioTranscription`,
  * but the server expects these fields to be in the top-level `setup` message. This was a conscious API decision.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export interface _LiveGenerationConfig
-  extends Omit<
-    LiveGenerationConfig,
-    | 'inputAudioTranscription'
-    | 'outputAudioTranscription'
-    | 'proactivity'
-    | 'contextWindowCompression'
-  > {
-  proactivity?: {
-    // eslint-disable-next-line camelcase
-    proactive_audio?: boolean;
-  };
-  // eslint-disable-next-line camelcase
-  context_window_compression?: {
-    // eslint-disable-next-line camelcase
-    trigger_tokens?: number;
-    // eslint-disable-next-line camelcase
-    sliding_window?: {
-      // eslint-disable-next-line camelcase
-      target_tokens?: number;
-    };
-  };
-}
+export type _LiveGenerationConfig = Omit<
+  LiveGenerationConfig,
+  'inputAudioTranscription' | 'outputAudioTranscription' | 'proactivity' | 'contextWindowCompression'
+>;
