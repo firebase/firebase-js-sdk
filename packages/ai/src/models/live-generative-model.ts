@@ -91,10 +91,42 @@ export class LiveGenerativeModel extends AIModel {
     const {
       inputAudioTranscription,
       outputAudioTranscription,
-      proactivity,
-      contextWindowCompression,
-      ...generationConfig
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      proactivity: _proactivity,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      contextWindowCompression: _contextWindowCompression,
+      ...generationConfigRest
     } = this.generationConfig;
+
+    const generationConfig: _LiveClientSetup['setup']['generationConfig'] = {
+      ...generationConfigRest
+    };
+
+    if (this.generationConfig.proactivity !== undefined) {
+      generationConfig.proactivity = {
+        // eslint-disable-next-line camelcase
+        proactive_audio: this.generationConfig.proactivity.proactiveAudio
+      };
+    }
+
+    if (this.generationConfig.contextWindowCompression !== undefined) {
+      // eslint-disable-next-line camelcase
+      generationConfig.context_window_compression = {
+        // eslint-disable-next-line camelcase
+        trigger_tokens:
+          this.generationConfig.contextWindowCompression.triggerTokens,
+        // eslint-disable-next-line camelcase
+        sliding_window: this.generationConfig.contextWindowCompression
+          .slidingWindow
+          ? {
+              // eslint-disable-next-line camelcase
+              target_tokens:
+                this.generationConfig.contextWindowCompression.slidingWindow
+                  .targetTokens
+            }
+          : undefined
+      };
+    }
 
     const setupMessage: _LiveClientSetup = {
       setup: {
@@ -104,9 +136,7 @@ export class LiveGenerativeModel extends AIModel {
         toolConfig: this.toolConfig,
         systemInstruction: this.systemInstruction,
         inputAudioTranscription,
-        outputAudioTranscription,
-        proactivity,
-        contextWindowCompression
+        outputAudioTranscription
       }
     };
 
