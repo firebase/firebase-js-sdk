@@ -23,7 +23,7 @@ import {
   ExportResponse
 } from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider } from './types';
 
 function isExportRetryable(statusCode: number): boolean {
   const retryCodes = [429, 502, 503, 504];

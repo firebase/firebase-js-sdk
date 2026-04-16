@@ -35,7 +35,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
 import { recordError, flush, getCrashlytics } from './api';
 import {
-  LOG_ENTRY_ATTRIBUTE_KEYS,
+  CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
 } from './constants';
 import { CrashlyticsService } from './service';
@@ -197,8 +197,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -215,8 +215,8 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'Error',
         'error.stack': 'No stack trace available',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -228,8 +228,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -241,8 +241,8 @@ describe('Top level API', () => {
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -269,10 +269,10 @@ describe('Top level API', () => {
       expect(emittedLogs[0].attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`,
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -295,14 +295,14 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
           boolAttr: true,
           numAttr: 2
         },
         arrAttr: [1, 2, 3],
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -321,8 +321,8 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -334,8 +334,8 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.attributes).to.deep.equal({
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -357,10 +357,10 @@ describe('Top level API', () => {
       expect(log.attributes).to.deep.equal({
         'error.type': 'TestError',
         'error.stack': '...stack trace...',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         'framework_attr1': 'framework attribute #1',
         'framework_attr2': 'framework attribute #2',
-        [LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
     });
 
@@ -372,7 +372,7 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
           'existing-session-id'
         );
       });
@@ -394,7 +394,7 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+        expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
           .undefined;
       });
 
@@ -415,7 +415,7 @@ describe('Top level API', () => {
 
         expect(emittedLogs.length).to.equal(1);
         const log = emittedLogs[0];
-        expect(log.attributes![LOG_ENTRY_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+        expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
           .undefined;
       });
     });
