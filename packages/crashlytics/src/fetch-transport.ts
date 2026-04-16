@@ -23,7 +23,7 @@ import {
   ExportResponse
 } from '@opentelemetry/otlp-exporter-base';
 import { diag } from '@opentelemetry/api';
-import { DynamicHeaderProvider } from '../types';
+import { DynamicHeaderProvider } from './types';
 
 function isExportRetryable(statusCode: number): boolean {
   const retryCodes = [429, 502, 503, 504];
@@ -63,7 +63,7 @@ export interface FetchTransportParameters {
  * @internal
  */
 export class FetchTransport implements IExporterTransport {
-  constructor(private parameters: FetchTransportParameters) {}
+  constructor(private parameters: FetchTransportParameters) { }
 
   async send(data: Uint8Array, timeoutMillis: number): Promise<ExportResponse> {
     const abortController = new AbortController();
