@@ -46,8 +46,9 @@ const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
 
 /**
  * A promise returned to the user when invoking an operation, and the functions that resolve/reject it.
+ * @internal
  */
-interface InvokeOperationPromise<Data> {
+export interface InvokeOperationPromise<Data> {
   responsePromise: Promise<DataConnectResponse<Data>>;
   resolveFn: (response: DataConnectResponse<Data>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -139,7 +140,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
-   * Map of query/variables to queued execute requests awaiting for active request to resolve.
+   * Map of query/variables to the promises returned to the user, for invokeQuery requests which are
+   * queued and waiting for active request to resolve.
    */
   private queuedInvokeQueryRequests = new Map<
     string,

@@ -30,7 +30,10 @@ import {
   DataConnectResponse,
   getGoogApiClientValue
 } from '../../src/network';
-import { AbstractDataConnectStreamTransport } from '../../src/network/stream/streamTransport';
+import {
+  AbstractDataConnectStreamTransport,
+  InvokeOperationPromise
+} from '../../src/network/stream/streamTransport';
 import {
   DataConnectStreamRequest,
   ExecuteStreamRequest,
@@ -133,22 +136,13 @@ interface TransportWithInternals {
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >;
-  queuedInvokeQueryRequests: Map<string, ExecuteStreamRequest<unknown>>;
+  queuedInvokeQueryRequests: Map<string, InvokeOperationPromise<unknown>>;
   activeInvokeMutationRequests: Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
   >;
   activeInvokeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
-  invokeOperationPromises: Map<
-    string,
-    {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      resolveFn: (response: DataConnectResponse<any>) => void;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      rejectFn: (reason: any) => void;
-      responsePromise: Promise<DataConnectResponse<unknown>>;
-    }
-  >;
+  invokeOperationPromises: Map<string, InvokeOperationPromise<unknown>>;
   subscribeObservers: Map<string, unknown>;
   getMapKey(operationName: string, variables?: unknown): string;
   invokeQuery<_Data, Variables>(
