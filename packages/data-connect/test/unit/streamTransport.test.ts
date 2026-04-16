@@ -588,6 +588,83 @@ describe('AbstractDataConnectStreamTransport', () => {
             expect(secondSentMessage.requestId).to.not.equal(requestId1);
           });
 
+          it('should send the next request even if the first request fails with response errors', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = activeRequest!.requestId;
+            const promise1 = promises[0];
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.true;
+
+            const errorResponse = {
+              data: null,
+              errors: [new Error('Query failed')],
+              extensions: {}
+            };
+            await transport.invokeHandleResponse(requestId1, errorResponse);
+
+            await expect(promise1).to.be.rejectedWith(
+              /DataConnect error while performing request/
+            );
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(sendMessageSpy).to.have.been.calledTwice;
+
+            // queued request should not be affected by the failure of request 1
+            const secondSentMessage = sendMessageSpy.secondCall.args[0];
+            expect(secondSentMessage.execute?.operationName).to.equal(
+              queryName1
+            );
+            expect(secondSentMessage.requestId).to.not.equal(requestId1);
+            await expectIsNotSettled(promises[1], 100);
+            const activeRequest2 =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId2 = activeRequest2!.requestId;
+            const response2 = {
+              data: { result: '2' },
+              errors: [],
+              extensions: {}
+            };
+            await transport.invokeHandleResponse(requestId2, response2);
+            const result2 = await promises[1];
+            expect(result2).to.deep.equal(response2);
+          });
+
+          it('should send the next request even if the first request fails with errors', async () => {
+            const sendMessageStub = sinon.stub(transport, 'sendMessage');
+            sendMessageStub.onFirstCall().rejects(expectedError);
+            sendMessageStub.onSecondCall().resolves();
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = activeRequest!.requestId;
+
+            await expect(promises[0]).to.be.rejectedWith(expectedError);
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(sendMessageStub).to.have.been.calledTwice;
+
+            const secondSentMessage = sendMessageStub.secondCall.args[0];
+            expect(secondSentMessage.execute?.operationName).to.equal(
+              queryName1
+            );
+            expect(secondSentMessage.requestId).to.not.equal(requestId1);
+          });
+
           it('should resolve all waiting promises when a queued request completes', async () => {
             sinon.stub(transport, 'sendMessage').resolves();
 

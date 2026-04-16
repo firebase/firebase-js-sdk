@@ -682,6 +682,8 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     if (this.activeInvokeSubscribeRequests.has(mapKey)) {
       // de-duplicate subscribe requests
+      // the Query Layer also de-dupes subscribe requests, but this is here for good measure.
+      // note that we do not multiplex observers here, that is handled by the Query Layer.
       return;
     }
 
