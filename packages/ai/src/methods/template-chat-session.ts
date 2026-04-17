@@ -35,6 +35,7 @@ import {
 } from './generate-content';
 import { ApiSettings } from '../types/internal';
 import { ChatSessionBase } from './chat-session-base';
+import { TemplateChatSession } from '../public-types';
 
 /**
  * `ChatSession` class for use with server prompt templates that
@@ -43,11 +44,14 @@ import { ChatSessionBase } from './chat-session-base';
  *
  * @beta
  */
-export class TemplateChatSession extends ChatSessionBase<
-  StartTemplateChatParams,
-  TemplateRequestInternal,
-  TemplateFunctionDeclarationsTool
-> {
+export class TemplateChatSessionImpl
+  extends ChatSessionBase<
+    StartTemplateChatParams,
+    TemplateRequestInternal,
+    TemplateFunctionDeclarationsTool
+  >
+  implements TemplateChatSession
+{
   constructor(
     apiSettings: ApiSettings,
     public params: StartTemplateChatParams,

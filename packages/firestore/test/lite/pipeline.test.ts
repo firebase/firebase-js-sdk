@@ -5883,27 +5883,33 @@ describe.skipClassic('Firestore Pipelines', () => {
 
   describe('stage options', () => {
     describe('forceIndex', () => {
-      // SKIP: requires pre-existing index
-      // eslint-disable-next-line no-restricted-properties
-      it.skip('Collection Stage', async () => {
+      it('Collection Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collection({
             collection: randomCol,
-            forceIndex: 'unknown'
+            forceIndex: 'primary'
           })
         );
+        expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshot as any)._pipeline.stages[0].optionsProto.force_index
+            .stringValue
+        ).equal('primary');
         expect(snapshot.results.length).to.equal(10);
       });
 
-      // SKIP: requires pre-existing index
-      // eslint-disable-next-line no-restricted-properties
-      it.skip('CollectionGroup Stage', async () => {
+      it('CollectionGroup Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collectionGroup({
             collectionId: randomCol.id,
-            forceIndex: 'unknown'
+            forceIndex: 'primary'
           })
         );
+        expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshot as any)._pipeline.stages[0].optionsProto.force_index
+            .stringValue
+        ).equal('primary');
         expect(snapshot.results.length).to.equal(10);
       });
     });
