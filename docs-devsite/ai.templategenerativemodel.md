@@ -86,7 +86,7 @@ Makes a single non-streaming call to the model and returns an object containing 
 <b>Signature:</b>
 
 ```typescript
-generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions | undefined, templateToolConfig?: TemplateToolConfig | undefined): Promise<GenerateContentResult>;
+generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
 ```
 
 #### Parameters
@@ -95,8 +95,8 @@ generateContent(templateId: string, templateVariables: Record<string, unknown>, 
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) \| undefined | Optional. Options to use for this request. |
-|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) \| undefined | Optional. Configuration for tools to use with this request. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
+|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
 
 <b>Returns:</b>
 
@@ -112,7 +112,7 @@ Makes a single streaming call to the model and returns an object containing an i
 <b>Signature:</b>
 
 ```typescript
-generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions | undefined, templateToolConfig?: TemplateToolConfig | undefined): Promise<GenerateContentStreamResult>;
+generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
 ```
 
 #### Parameters
@@ -121,8 +121,8 @@ generateContentStream(templateId: string, templateVariables: Record<string, unkn
 |  --- | --- | --- |
 |  templateId | string | The ID of the server-side template to execute. |
 |  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
-|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) \| undefined | Optional.Options to use for this request. |
-|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) \| undefined | Optional. Configuration for tools to use with this request. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional.Options to use for this request. |
+|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
 
 <b>Returns:</b>
 

@@ -10,6 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # RetrievalConfig interface
+Configuration options for data retrieval tools.
 
 <b>Signature:</b>
 

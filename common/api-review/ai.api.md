@@ -1230,7 +1230,7 @@ export const ResponseModality: {
 // @beta
 export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
 
-// @public (undocumented)
+// @public
 export interface RetrievalConfig {
     languageCode?: string;
     latLng?: LatLng;
@@ -1488,8 +1488,8 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions | undefined, templateToolConfig?: TemplateToolConfig | undefined): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions | undefined, templateToolConfig?: TemplateToolConfig | undefined): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }

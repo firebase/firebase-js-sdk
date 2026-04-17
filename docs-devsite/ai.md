@@ -131,7 +131,7 @@ The Firebase AI Web SDK.
 |  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a pre-built voice. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
-|  [RetrievalConfig](./ai.retrievalconfig.md#retrievalconfig_interface) |  |
+|  [RetrievalConfig](./ai.retrievalconfig.md#retrievalconfig_interface) | Configuration options for data retrieval tools. |
 |  [RetrievedContextAttribution](./ai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
 |  [SafetyRating](./ai.safetyrating.md#safetyrating_interface) | A safety rating associated with a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface) |
 |  [SafetySetting](./ai.safetysetting.md#safetysetting_interface) | Safety setting that can be sent as part of request parameters. |
@@ -149,7 +149,7 @@ The Firebase AI Web SDK.
 |  [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface) | <b><i>(Public Preview)</i></b> Structured representation of a template function declaration. Included in this declaration are the function name and parameters. This <code>TemplateFunctionDeclaration</code> is a representation of a block of code that can be used as a Tool by the model and executed by the client. Note: Template function declarations do not support description fields. |
 |  [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface) | <b><i>(Public Preview)</i></b> A piece of code that enables the system to interact with external systems. |
 |  [TemplateGenerateContentRequest](./ai.templategeneratecontentrequest.md#templategeneratecontentrequest_interface) | <b><i>(Public Preview)</i></b> Request sent through [TemplateGenerativeModel.generateContent()](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |
-|  [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Tool configiguration for <code>TemplateGenerativeModel</code>s. This config is shared for all tools provided in the Server Prompt Template request. |
+|  [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Tool configuration for <code>TemplateGenerativeModel</code>s. This config is shared for all tools provided in the Server Prompt Template request. |
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |

@@ -74,7 +74,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined }
+        { inputs: TEMPLATE_VARS }
       );
     });
 
@@ -90,7 +90,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined }
+        { inputs: TEMPLATE_VARS }
       );
     });
 
@@ -166,7 +166,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined },
+        { inputs: TEMPLATE_VARS },
         { timeout: 2000 }
       );
     });
@@ -189,7 +189,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined },
+        { inputs: TEMPLATE_VARS },
         { timeout: 1000, signal: abortController.signal }
       );
     });
@@ -208,7 +208,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined },
+        { inputs: TEMPLATE_VARS },
         { timeout: 5000 }
       );
     });
@@ -226,7 +226,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined },
+        { inputs: TEMPLATE_VARS },
         { timeout: 5000 }
       );
     });
@@ -301,7 +301,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined },
+        { inputs: TEMPLATE_VARS },
         { timeout: 2000 }
       );
     });
@@ -324,7 +324,7 @@ describe('TemplateGenerativeModel', () => {
       expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS, toolConfig: undefined },
+        { inputs: TEMPLATE_VARS },
         { timeout: 1000, signal: abortController.signal }
       );
     });

@@ -72,15 +72,15 @@ export class TemplateGenerativeModel {
   async generateContent(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions: SingleRequestOptions | undefined = undefined,
-    templateToolConfig: TemplateToolConfig | undefined = undefined
+    singleRequestOptions?: SingleRequestOptions,
+    templateToolConfig?: TemplateToolConfig
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
       templateId,
       {
         inputs: templateVariables,
-        toolConfig: templateToolConfig
+        ...(templateToolConfig && { toolConfig: templateToolConfig })
       },
       {
         ...this.requestOptions,
@@ -106,15 +106,15 @@ export class TemplateGenerativeModel {
   async generateContentStream(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions: SingleRequestOptions | undefined = undefined,
-    templateToolConfig: TemplateToolConfig | undefined = undefined
+    singleRequestOptions?: SingleRequestOptions,
+    templateToolConfig?: TemplateToolConfig
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
       templateId,
       {
         inputs: templateVariables,
-        toolConfig: templateToolConfig
+        ...(templateToolConfig && { toolConfig: templateToolConfig })
       },
       {
         ...this.requestOptions,

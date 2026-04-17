@@ -617,7 +617,7 @@ export interface ToolConfig {
 }
 
 /**
- * Tool configiguration for `TemplateGenerativeModel`s.
+ * Tool configuration for `TemplateGenerativeModel`s.
  * This config is shared for all tools provided in the Server Prompt Template request.
  * @public
  */
@@ -634,6 +634,7 @@ export interface FunctionCallingConfig {
 }
 
 /**
+ * Configuration options for data retrieval tools.
  * @public
  */
 export interface RetrievalConfig {
