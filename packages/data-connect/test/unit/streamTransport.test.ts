@@ -133,6 +133,7 @@ interface TransportWithInternals {
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >;
+  queuedInvokeQueryRequests: Map<string, ExecuteStreamRequest<unknown>>;
   activeInvokeMutationRequests: Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
@@ -494,6 +495,219 @@ describe('AbstractDataConnectStreamTransport', () => {
           const requestId = sendMessageStub.firstCall.args[0].requestId;
           expect(transport.invokeOperationPromises.has(requestId)).to.be.false;
         });
+
+        describe('de-duplication', () => {
+          it('should send the first request and queue subsequent requests when they are identical', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+            const mapKey = transport.getMapKey(queryName1, variables1);
+
+            expect(sendMessageSpy).to.have.been.calledOnce;
+            const sentMessage = sendMessageSpy.firstCall.args[0];
+            expect(sentMessage.execute?.operationName).to.equal(queryName1);
+
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            expect(activeRequest?.execute?.operationName).to.equal(queryName1);
+
+            const queuedMap = transport.queuedInvokeQueryRequests;
+            expect(queuedMap.has(mapKey)).to.be.true;
+
+            // promises 1 and 2 should be different, but 2-20 should be the same!
+            expect(promises[0]).to.not.equal(promises[1]);
+            for (let i = 1; i < 20; i++) {
+              expect(promises[i]).to.equal(promises[1]);
+            }
+          });
+
+          it('should resolve only the first request when it completes', async () => {
+            sinon.stub(transport, 'sendMessage').resolves();
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = (activeRequest as ExecuteStreamRequest<unknown>)
+              .requestId;
+
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId1, response1);
+
+            // verify promise 1 resolved, but other promises are not yet settled
+            const result1 = await promises[0];
+            expect(result1).to.deep.equal(response1);
+            for (let i = 1; i < 20; i++) {
+              await expectIsNotSettled(promises[i], 100);
+            }
+          });
+
+          it('should send the next request and clear queue when first request completes', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = (activeRequest as ExecuteStreamRequest<unknown>)
+              .requestId;
+
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId1, response1);
+
+            // verify queued request was popped + sent
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(sendMessageSpy).to.have.been.calledTwice;
+            const secondSentMessage = sendMessageSpy.secondCall.args[0];
+            expect(secondSentMessage.execute?.operationName).to.equal(
+              queryName1
+            );
+            expect(secondSentMessage.requestId).to.not.equal(requestId1);
+          });
+
+          it('should send the next request even if the first request fails with response errors', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = activeRequest!.requestId;
+            const promise1 = promises[0];
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.true;
+
+            const errorResponse = {
+              data: null,
+              errors: [new Error('Query failed')],
+              extensions: {}
+            };
+            await transport.invokeHandleResponse(requestId1, errorResponse);
+
+            await expect(promise1).to.be.rejectedWith(
+              /DataConnect error while performing request/
+            );
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(sendMessageSpy).to.have.been.calledTwice;
+
+            // queued request should not be affected by the failure of request 1
+            const secondSentMessage = sendMessageSpy.secondCall.args[0];
+            expect(secondSentMessage.execute?.operationName).to.equal(
+              queryName1
+            );
+            expect(secondSentMessage.requestId).to.not.equal(requestId1);
+            await expectIsNotSettled(promises[1], 100);
+            const activeRequest2 =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId2 = activeRequest2!.requestId;
+            const response2 = {
+              data: { result: '2' },
+              errors: [],
+              extensions: {}
+            };
+            await transport.invokeHandleResponse(requestId2, response2);
+            const result2 = await promises[1];
+            expect(result2).to.deep.equal(response2);
+          });
+
+          it('should send the next request even if the first request fails with errors', async () => {
+            const sendMessageStub = sinon.stub(transport, 'sendMessage');
+            sendMessageStub.onFirstCall().rejects(expectedError);
+            sendMessageStub.onSecondCall().resolves();
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = activeRequest!.requestId;
+
+            await expect(promises[0]).to.be.rejectedWith(expectedError);
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.true;
+            expect(sendMessageStub).to.have.been.calledTwice;
+
+            const secondSentMessage = sendMessageStub.secondCall.args[0];
+            expect(secondSentMessage.execute?.operationName).to.equal(
+              queryName1
+            );
+            expect(secondSentMessage.requestId).to.not.equal(requestId1);
+          });
+
+          it('should resolve all waiting promises when a queued request completes', async () => {
+            sinon.stub(transport, 'sendMessage').resolves();
+
+            const promises = [];
+            for (let i = 1; i <= 20; i++) {
+              promises.push(transport.invokeQuery(queryName1, variables1));
+            }
+
+            const mapKey = transport.getMapKey(queryName1, variables1);
+            const activeRequest1 =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId1 = (activeRequest1 as ExecuteStreamRequest<unknown>)
+              .requestId;
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+            await transport.invokeHandleResponse(requestId1, response1);
+
+            const activeRequest2 =
+              transport.activeInvokeQueryRequests.get(mapKey);
+            const requestId2 = (activeRequest2 as ExecuteStreamRequest<unknown>)
+              .requestId;
+            expect(requestId2).to.not.equal(requestId1);
+
+            const response2 = {
+              data: { result: '2' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId2, response2);
+
+            // verify all queued promises resolved to response2, and nothing active or in queue
+            for (let i = 1; i < 20; i++) {
+              const result = await promises[i];
+              expect(result).to.deep.equal(response2);
+            }
+            expect(transport.activeInvokeQueryRequests.has(mapKey)).to.be.false;
+            expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be.false;
+          });
+        });
       });
 
       describe('invokeMutation', () => {
@@ -540,6 +754,98 @@ describe('AbstractDataConnectStreamTransport', () => {
           const requestId = sendMessageStub.firstCall.args[0].requestId;
           expect(transport.invokeOperationPromises.has(requestId)).to.be.false;
         });
+
+        describe('de-duplication', () => {
+          it('should NOT de-duplicate identical mutation requests', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promises = [];
+            for (let i = 1; i <= 5; i++) {
+              promises.push(
+                transport.invokeMutation(mutationName1, variables1)
+              );
+            }
+
+            expect(sendMessageSpy.callCount).to.equal(5);
+
+            const mapKey = transport.getMapKey(mutationName1, variables1);
+            const requests = transport.activeInvokeMutationRequests.get(mapKey);
+            expect(requests).to.have.lengthOf(5);
+
+            for (let i = 0; i < 5; i++) {
+              for (let j = i + 1; j < 5; j++) {
+                expect(promises[i]).to.not.equal(promises[j]);
+              }
+            }
+          });
+
+          it('mutation requests should resolve totally independent of one another', async () => {
+            const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+            const promise1 = transport.invokeMutation(
+              mutationName1,
+              variables1
+            );
+            const promise2 = transport.invokeMutation(
+              mutationName1,
+              variables1
+            );
+            const promise3 = transport.invokeMutation(
+              mutationName1,
+              variables1
+            );
+
+            expect(sendMessageSpy.callCount).to.equal(3);
+
+            const mapKey = transport.getMapKey(mutationName1, variables1);
+            const requests = transport.activeInvokeMutationRequests.get(mapKey);
+            expect(requests).to.have.lengthOf(3);
+
+            const requestId1 = requests![0].requestId;
+            const requestId2 = requests![1].requestId;
+            const requestId3 = requests![2].requestId;
+
+            const response1 = {
+              data: { result: '1' },
+              errors: [],
+              extensions: {}
+            };
+            const response2 = {
+              data: { result: '2' },
+              errors: [],
+              extensions: {}
+            };
+            const response3 = {
+              data: { result: '3' },
+              errors: [],
+              extensions: {}
+            };
+
+            await transport.invokeHandleResponse(requestId1, response1);
+            await expect(promise1).to.eventually.deep.equal(response1);
+            await expectIsNotSettled(promise2, 100);
+            await expectIsNotSettled(promise3, 100);
+
+            await transport.invokeHandleResponse(requestId2, response2);
+            await expect(promise1).to.eventually.deep.equal(response1);
+            await expect(promise2).to.eventually.deep.equal(response2);
+            await expectIsNotSettled(promise3, 100);
+
+            await transport.invokeHandleResponse(requestId3, response3);
+            await expect(promise1).to.eventually.deep.equal(response1);
+            await expect(promise2).to.eventually.deep.equal(response2);
+            await expect(promise3).to.eventually.deep.equal(response3);
+
+            expect(transport.activeInvokeMutationRequests.has(mapKey)).to.be
+              .false;
+            expect(transport.invokeOperationPromises.has(requestId1)).to.be
+              .false;
+            expect(transport.invokeOperationPromises.has(requestId2)).to.be
+              .false;
+            expect(transport.invokeOperationPromises.has(requestId3)).to.be
+              .false;
+          });
+        });
       });
 
       describe('invokeSubscribe', () => {
@@ -571,6 +877,25 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(sentMessage.subscribe).to.not.be.undefined;
           expect(sentMessage.subscribe?.operationName).to.equal(queryName1);
           expect(sentMessage.subscribe?.variables).to.deep.equal(variables1);
+        });
+
+        it('should de-duplicate identical subscribe requests', async () => {
+          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+          const observer1 = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+          const observer2 = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+
+          transport.invokeSubscribe(observer1, queryName1, variables1);
+          transport.invokeSubscribe(observer2, queryName1, variables1);
+
+          expect(sendMessageSpy.callCount).to.equal(1);
         });
 
         it('should asynchronously call observer with error and clean up if sendMessage fails', async () => {
