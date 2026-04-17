@@ -9,59 +9,32 @@ overwritten. Changes should be made in the source code at
 https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
-# TemplateChatSession class
+# TemplateChatSession interface
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-`ChatSession` class for use with server prompt templates that enables sending chat messages and stores history of sent and received messages so far.
+Interface representing a `ChatSession` class for use with server prompt templates that enables sending chat messages and stores history of sent and received messages so far.
 
 <b>Signature:</b>
 
 ```typescript
-export declare class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> 
+export interface TemplateChatSession 
 ```
-<b>Extends:</b> [ChatSessionBase](./ai.chatsessionbase.md#chatsessionbase_class)<!-- -->&lt;[StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface)<!-- -->, TemplateRequestInternal, [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface)<!-- -->&gt;
-
-## Constructors
-
-|  Constructor | Modifiers | Description |
-|  --- | --- | --- |
-|  [(constructor)(apiSettings, params, requestOptions)](./ai.templatechatsession.md#templatechatsessionconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>TemplateChatSession</code> class |
 
 ## Properties
 
-|  Property | Modifiers | Type | Description |
-|  --- | --- | --- | --- |
-|  [params](./ai.templatechatsession.md#templatechatsessionparams) |  | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | <b><i>(Public Preview)</i></b> |
-|  [requestOptions](./ai.templatechatsession.md#templatechatsessionrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined | <b><i>(Public Preview)</i></b> |
+|  Property | Type | Description |
+|  --- | --- | --- |
+|  [params](./ai.templatechatsession.md#templatechatsessionparams) | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | <b><i>(Public Preview)</i></b> |
+|  [requestOptions](./ai.templatechatsession.md#templatechatsessionrequestoptions) | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | <b><i>(Public Preview)</i></b> |
 
 ## Methods
 
-|  Method | Modifiers | Description |
-|  --- | --- | --- |
-|  [sendMessage(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessage) |  | <b><i>(Public Preview)</i></b> Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
-|  [sendMessageStream(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessagestream) |  | <b><i>(Public Preview)</i></b> Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
-
-## TemplateChatSession.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
-Constructs a new instance of the `TemplateChatSession` class
-
-<b>Signature:</b>
-
-```typescript
-constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
-```
-
-#### Parameters
-
-|  Parameter | Type | Description |
-|  --- | --- | --- |
-|  apiSettings | ApiSettings |  |
-|  params | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) |  |
-|  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) \| undefined |  |
+|  Method | Description |
+|  --- | --- |
+|  [getHistory()](./ai.templatechatsession.md#templatechatsessiongethistory) | <b><i>(Public Preview)</i></b> Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history. |
+|  [sendMessage(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessage) | <b><i>(Public Preview)</i></b> Sends a chat message and receives a non-streaming [GenerateContentResult](./ai.generatecontentresult.md#generatecontentresult_interface) |
+|  [sendMessageStream(request, singleRequestOptions)](./ai.templatechatsession.md#templatechatsessionsendmessagestream) | <b><i>(Public Preview)</i></b> Sends a chat message and receives the response as a [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) containing an iterable stream and a response promise. |
 
 ## TemplateChatSession.params
 
@@ -82,8 +55,24 @@ params: StartTemplateChatParams;
 <b>Signature:</b>
 
 ```typescript
-requestOptions?: RequestOptions | undefined;
+requestOptions?: RequestOptions;
 ```
+
+## TemplateChatSession.getHistory()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Gets the chat history so far. Blocked prompts are not added to history. Neither blocked candidates nor the prompts that generated them are added to history.
+
+<b>Signature:</b>
+
+```typescript
+getHistory(): Promise<Content[]>;
+```
+<b>Returns:</b>
+
+Promise&lt;[Content](./ai.content.md#content_interface)<!-- -->\[\]&gt;
 
 ## TemplateChatSession.sendMessage()
 

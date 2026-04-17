@@ -76,7 +76,7 @@ export interface GenerateContentRequest extends BaseParams {
 
 /**
  * Request sent through {@link TemplateGenerativeModel.generateContent}
- * @beta
+ * @internal
  */
 export interface TemplateGenerateContentRequest {
   inputs?: Record<string, unknown>;
