@@ -45,6 +45,7 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
+import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -65,14 +66,13 @@ export function createTracingProvider(
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
-    'cloud.resource.id':
-      tracingUrl.replace(/^https?:/, '') +
-      `/projects/${projectId}/locations/global/`,
-    'gcp.firebase.app_id': appId,
-    'gcp.firebase.domain': window.location.hostname,
-    'service.namespace':
-      tracingUrl.replace(/^https?:/, '') + `/projects/${projectId}`,
-    'gcp.project_id': projectId
+    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]:
+      `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/global/`,
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID]: appId,
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname,
+    [RESOURCE_ATTRIBUTE_KEYS.SERVICE_NAMESPACE]:
+      `//firebasetelemetry.googleapis.com/projects/${projectId}`,
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
   });
 
   if (tracingUrl.endsWith('/')) {
