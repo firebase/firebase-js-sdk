@@ -24,7 +24,6 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { logWarn } from '../../../src/util/log';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -6574,9 +6573,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select('title', 'reviews');
 
         // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
-        const host = firestore._getSettings().host;
-        const isProd = host === 'firestore.googleapis.com';
-        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
+        const targetBackend = getTargetBackend();
+        const isProd = targetBackend === TargetBackend.PROD;
+        const isNightly = targetBackend === TargetBackend.NIGHTLY;
 
         if (isProd) {
           // The execution of this pipeline is expected to result in a network error
@@ -6587,7 +6586,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
             // If this is reached, the execution of the pipeline didn't throw an error, so the
             // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
-            logWarn(
+            console.warn(
               "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
             );
             expectResults(results, { title: '1984', reviews: ['Alice'] });
@@ -6603,7 +6602,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         } else {
           expect(false).to.equal(
             true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
+            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${targetBackend}`
           );
         }
       });
@@ -6688,9 +6687,9 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .select('title', 'reviews');
 
         // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
-        const host = firestore._getSettings().host;
-        const isProd = host === 'firestore.googleapis.com';
-        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
+        const targetBackend = getTargetBackend();
+        const isProd = targetBackend === TargetBackend.PROD;
+        const isNightly = targetBackend === TargetBackend.NIGHTLY;
 
         if (isProd) {
           // The execution of this pipeline is expected to result in a network error
@@ -6701,7 +6700,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
 
             // If this is reached, the execution of the pipeline didn't throw an error, so the
             // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
-            logWarn(
+            console.warn(
               "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
             );
             expectResults(results, { title: '1984', reviews: [] });
@@ -6717,7 +6716,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         } else {
           expect(false).to.equal(
             true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
+            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${targetBackend}`
           );
         }
       });

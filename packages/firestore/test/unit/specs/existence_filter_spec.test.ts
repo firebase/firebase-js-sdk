@@ -90,7 +90,7 @@ describeSpec('Existence Filters:', [], () => {
         // The empty existence filter is ignored since Watch hasn't ACKed the
         // target
         .watchFilters([query1])
-        .watchRemoves(query1)
+        .watchRemovesWithTargetIndex(query1, 0)
         .watchAcks(query1)
         .watchCurrents(query1, 'resume-token-2000')
         .watchSnapshots(2000)

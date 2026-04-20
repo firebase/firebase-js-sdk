@@ -265,6 +265,16 @@ export class SpecBuilder {
     return this;
   }
 
+  /**
+   * By default the spec test runner does not allow removal of a non-active target,
+   * but this scenario is possible in the real world due to a client / server race,
+   * and therefore must be allowed for some spec tests.
+   */
+  allowUnlistedTargetRemoval(): this {
+    this.config.allowUnlistedTargetRemoval = true;
+    return this;
+  }
+
   withMaxConcurrentLimboResolutions(value?: number): this {
     this.config.maxConcurrentLimboResolutions = value;
     return this;
@@ -758,7 +768,18 @@ export class SpecBuilder {
   watchAcks(query: Query): this {
     this.nextStep();
     this.currentStep = {
-      watchAck: [this.getTargetId(query)]
+      watchAck: [{ sdkTargetId: this.getTargetId(query) }]
+    };
+    return this;
+  }
+
+  watchAcksTargetIndex(
+    query: Query,
+    remoteTargetIndex: number | undefined
+  ): this {
+    this.nextStep();
+    this.currentStep = {
+      watchAck: [{ sdkTargetId: this.getTargetId(query), remoteTargetIndex }]
     };
     return this;
   }
@@ -782,7 +803,33 @@ export class SpecBuilder {
       watchRemove: { targetIds: [this.getTargetId(query)], cause }
     };
     if (cause) {
-      delete this.activeTargets[this.getTargetId(query)];
+      if (!this.config.allowUnlistedTargetRemoval) {
+        delete this.activeTargets[this.getTargetId(query)];
+      }
+      this.currentStep.expectedState = {
+        activeTargets: { ...this.activeTargets }
+      };
+    }
+    return this;
+  }
+
+  watchRemovesWithTargetIndex(
+    query: Query,
+    remoteTargetIndex: number | undefined,
+    cause?: RpcError
+  ): this {
+    this.nextStep();
+    this.currentStep = {
+      watchRemove: {
+        targetIds: [this.getTargetId(query)],
+        cause,
+        remoteTargetIndex
+      }
+    };
+    if (cause) {
+      if (!this.config.allowUnlistedTargetRemoval) {
+        delete this.activeTargets[this.getTargetId(query)];
+      }
       this.currentStep.expectedState = {
         activeTargets: { ...this.activeTargets }
       };
@@ -896,6 +943,19 @@ export class SpecBuilder {
     ...docs: Document[]
   ): this {
     this.watchAcks(query);
+    this.watchSends({ affects: [query] }, ...docs);
+    this.watchCurrents(query, 'resume-token-' + version);
+    this.watchSnapshots(version);
+    return this;
+  }
+
+  watchAcksTargetIndexFull(
+    query: Query,
+    targetIndex: number,
+    version: TestSnapshotVersion,
+    ...docs: Document[]
+  ): this {
+    this.watchAcksTargetIndex(query, targetIndex);
     this.watchSends({ affects: [query] }, ...docs);
     this.watchCurrents(query, 'resume-token-' + version);
     this.watchSnapshots(version);

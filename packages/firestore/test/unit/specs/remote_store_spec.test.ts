@@ -20,6 +20,7 @@ import { doc, query } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
+import { RpcError } from './spec_rpc_error';
 
 describeSpec('Remote store:', [], () => {
   specTest('Waits for watch to remove targets', [], () => {
@@ -34,7 +35,7 @@ describeSpec('Remote store:', [], () => {
       .watchSends({ affects: [query1] }, doc1) // Should be ignored.
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
-      .watchRemoves(query1) // Finally watch decides to ack the removal.
+      .watchRemovesWithTargetIndex(query1, 0) // Finally watch decides to ack the removal.
       .watchAcksFull(query1, 1001, doc1) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc1] }); // This should work now.
   });
@@ -58,12 +59,12 @@ describeSpec('Remote store:', [], () => {
       .watchSends({ affects: [query1] }, doc1) // Should be ignored.
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
-      .watchRemoves(query1) // Finally watch decides to ack the FIRST removal.
-      .watchAcksFull(query1, 1001, doc2) // Now watch should ack the second listen.
-      .watchRemoves(query1) // Finally watch decides to ack the SECOND removal.
-      .watchAcksFull(query1, 1001, doc3) // Now watch should ack the second listen.
-      .watchRemoves(query1) // Finally watch decides to ack the THIRD removal.
-      .watchAcksFull(query1, 1001, doc4) // Now watch should ack the query.
+      .watchRemovesWithTargetIndex(query1, 0, undefined) // Finally watch decides to ack the FIRST removal.
+      .watchAcksTargetIndexFull(query1, 1, 1001, doc2) // Now watch should ack the second listen.
+      .watchRemovesWithTargetIndex(query1, 1, undefined) // Finally watch decides to ack the SECOND removal.
+      .watchAcksTargetIndexFull(query1, 2, 1001, doc3) // Now watch should ack the second listen.
+      .watchRemovesWithTargetIndex(query1, 2, undefined) // Finally watch decides to ack the THIRD removal.
+      .watchAcksTargetIndexFull(query1, 3, 1001, doc4) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc4] }); // This should work now.
   });
 
@@ -113,6 +114,63 @@ describeSpec('Remote store:', [], () => {
           // retry with backoff, potentially reproducing the crash in b/74749605).
           .watchStreamCloses(Code.UNAVAILABLE)
       );
+    }
+  );
+
+  // This flow was identified as a root cause of "pendingResponses is less than 0" (ca9 assertion)
+  specTest(
+    'Handles removal of old target (with cause) after re-listen',
+    [],
+    () => {
+      const query1 = query('collection');
+      return (
+        spec()
+          .ensureManualLruGC()
+          .allowUnlistedTargetRemoval()
+          .userListens(query1)
+          .watchAcks(query1)
+          .userUnlistens(query1)
+          .userListens(query1)
+          // Use numerical code 8 for RESOURCE_EXHAUSTED
+          .watchRemovesWithTargetIndex(
+            query1,
+            0,
+            new RpcError(8, 'Resource exhausted')
+          )
+          .watchAcks(query1)
+          .expectActiveTargets({ query: query1, resumeToken: '' })
+      );
+    }
+  );
+
+  specTest('Handles removal of old target after re-listen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .watchAcks(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      .watchRemovesWithTargetIndex(query1, 0, undefined)
+      .watchAcks(query1)
+      .expectActiveTargets({ query: query1, resumeToken: '' });
+  });
+
+  specTest(
+    'Handles removal of target with cause after unlisten and ignores future messages',
+    [],
+    () => {
+      const query1 = query('collection');
+      const doc1 = doc('collection/a', 1000, { key: 'a' });
+      return spec()
+        .ensureManualLruGC()
+        .allowUnlistedTargetRemoval()
+        .userListens(query1)
+        .watchAcks(query1)
+        .userUnlistens(query1)
+        .watchRemoves(query1, new RpcError(8, 'Resource exhausted'))
+        .watchSends({ affects: [query1] }, doc1)
+        .expectActiveTargets();
     }
   );
 });
