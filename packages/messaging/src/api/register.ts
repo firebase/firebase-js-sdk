@@ -38,8 +38,8 @@ const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  * Once onRegistered provides an FID, the app should instruct the backend to remove any
  * legacy token previously associated with this instance.
  *
- * When called multiple times, onRegistered is only invoked when the FID has changed
- * from the last notified value (or on first call), so the same identity is not reported twice.
+ * When called multiple times, onRegistered is invoked after each successful backend
+ * registration sync (including weekly refresh when the FID is unchanged).
  *
  * @param messaging - The MessagingService instance.
  * @param options - Optional. Same options as getToken (vapidKey, serviceWorkerRegistration).
@@ -72,20 +72,21 @@ export async function register(
     const fid = await messaging.firebaseDependencies.installations.getId();
 
     const stored = await dbGetFidRegistration(messaging.firebaseDependencies);
+    const now = Date.now();
     const shouldRefresh =
       !stored ||
       stored.fid !== fid ||
-      Date.now() >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
+      now >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
 
     if (!shouldRefresh) {
       // Nothing to do: same FID and within refresh window.
       return;
     }
 
-    await registerFcmRegistrationWithFid(messaging);
+    await registerFcmRegistrationWithFid(messaging, fid);
     await dbSetFidRegistration(messaging.firebaseDependencies, {
       fid,
-      lastRegisterTime: Date.now()
+      lastRegisterTime: now
     });
 
     const handler = messaging.onRegisteredHandler;
@@ -93,14 +94,11 @@ export async function register(
       return;
     }
 
-    // Notify app only when identity changes (or first call), but still refresh weekly in background.
-    if (fid !== messaging.lastNotifiedFid) {
-      messaging.lastNotifiedFid = fid;
-      if (typeof handler === 'function') {
-        handler(fid);
-      } else {
-        handler.next(fid);
-      }
+    messaging.lastNotifiedFid = fid;
+    if (typeof handler === 'function') {
+      handler(fid);
+    } else {
+      handler.next(fid);
     }
   });
   return messaging._registerNotifyChain;

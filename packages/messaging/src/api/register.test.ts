@@ -66,7 +66,7 @@ describe('register', () => {
     requestCreateRegistrationStub = stub(
       requestsModule,
       'requestCreateRegistration'
-    ).resolves();
+    ).resolves({ responseFid: 'FID' });
   });
 
   afterEach(() => {
@@ -128,6 +128,64 @@ describe('register', () => {
     expect(observer.next).to.have.been.calledOnceWith('FID');
   });
 
+  it('retries CreateRegistration when response FID mismatches Installations then succeeds', async () => {
+    const customInstallations = getFakeInstallations();
+    const getTokenStub = stub(customInstallations, 'getToken').callsFake(
+      async (_force?: boolean) => 'authToken'
+    );
+    messaging = new MessagingService(
+      getFakeApp(),
+      customInstallations,
+      getFakeAnalyticsProvider()
+    );
+    messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
+    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.onRegisteredHandler = stub();
+
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .resolves({ responseFid: 'wrong-fid' })
+      .onSecondCall()
+      .resolves({ responseFid: 'FID' });
+
+    await register(messaging);
+
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(getTokenStub).to.have.been.calledOnceWith(true);
+  });
+
+  it('rejects when CreateRegistration FID never matches Installations after retries', async () => {
+    const customInstallations = getFakeInstallations();
+    const getTokenStub = stub(customInstallations, 'getToken').callsFake(
+      async () => 'authToken'
+    );
+    messaging = new MessagingService(
+      getFakeApp(),
+      customInstallations,
+      getFakeAnalyticsProvider()
+    );
+    messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
+    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.onRegisteredHandler = stub();
+
+    let createRegistrationCalls = 0;
+    requestCreateRegistrationStub.callsFake(async () => {
+      createRegistrationCalls++;
+      if (createRegistrationCalls > 3) {
+        throw new Error('unexpected fourth CreateRegistration invocation');
+      }
+      return { responseFid: 'always-wrong' };
+    });
+
+    await expect(register(messaging)).to.be.rejectedWith(
+      'messaging/fid-registration-failed'
+    );
+
+    expect(createRegistrationCalls).to.equal(3);
+    expect(getTokenStub).to.have.been.calledTwice;
+    expect(getTokenStub).to.have.been.calledWith(true);
+  });
+
   it('uses FID from installations.getId()', async () => {
     const customFid = 'custom-installation-id';
     const customInstallations = getFakeInstallations();
@@ -142,6 +200,8 @@ describe('register', () => {
 
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
+
+    requestCreateRegistrationStub.resolves({ responseFid: customFid });
 
     await register(messaging);
 
@@ -159,7 +219,7 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
-  it('refreshes registration weekly even when FID unchanged, without re-notifying onRegisteredHandler', async () => {
+  it('refreshes registration weekly even when FID unchanged and notifies onRegisteredHandler again', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
@@ -167,11 +227,12 @@ describe('register', () => {
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
 
-    // 8 days later: refresh should run but onRegistered should not fire again.
+    // 8 days later: refresh should run and onRegistered should fire again even if FID unchanged.
     clock.tick(8 * 24 * 60 * 60 * 1000);
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledOnce;
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
@@ -193,6 +254,12 @@ describe('register', () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .resolves({ responseFid: 'FID_OLD' })
+      .onSecondCall()
+      .resolves({ responseFid: 'FID_NEW' });
+
     await register(messaging);
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_OLD');
 
@@ -204,7 +271,7 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
-  it('calls onRegisteredHandler only when FID changes across three register calls', async () => {
+  it('does not notify on third register when FID unchanged and within refresh window', async () => {
     const customInstallations = getFakeInstallations();
     const getIdStub = stub(customInstallations, 'getId')
       .onFirstCall()
@@ -223,6 +290,12 @@ describe('register', () => {
 
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
+
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .resolves({ responseFid: 'FID_A' })
+      .onSecondCall()
+      .resolves({ responseFid: 'FID_B' });
 
     await register(messaging);
     expect(onRegisteredSpy).to.have.been.calledOnceWith('FID_A');

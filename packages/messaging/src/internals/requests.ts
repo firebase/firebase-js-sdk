@@ -33,6 +33,8 @@ export const FID_REGISTRATION_FETCH_BASE_BACKOFF_MS = 1000;
 
 export interface ApiResponse {
   token?: string;
+  /** Present when the CreateRegistration response echoes the Firebase Installation ID in the resource `name` field. */
+  name?: string;
   error?: { message: string };
 }
 
@@ -86,15 +88,20 @@ export async function requestGetToken(
 }
 
 /**
- * Creates (or refreshes) an FCM Web registration via CreateRegistration, but only relies on
- * HTTP success/failure.
+ * Creates (or refreshes) an FCM Web registration via CreateRegistration.
  *
- * This is used by the FID-based register path, where we don't require the returned FCM token.
+ * This is used by the FID-based register path, where we don't require the returned FCM token, but
+ * we do require a non-empty `name` (echoing the Firebase Installation ID) in the success response body.
  */
+export interface CreateRegistrationResult {
+  /** Firebase Installation ID from the CreateRegistration response `name` field. */
+  responseFid: string;
+}
+
 export async function requestCreateRegistration(
   firebaseDependencies: FirebaseInternalDependencies,
   subscriptionOptions: SubscriptionOptions
-): Promise<void> {
+): Promise<CreateRegistrationResult> {
   const headers = await getHeaders(firebaseDependencies);
   const body = getBody(subscriptionOptions);
 
@@ -119,7 +126,8 @@ export async function requestCreateRegistration(
   }
 
   if (response.ok) {
-    return;
+    const responseFid = await parseCreateRegistrationSuccessFid(response);
+    return { responseFid };
   }
 
   // `fetch()` succeeded, but the backend returned a non-2xx response.
@@ -138,6 +146,38 @@ export async function requestCreateRegistration(
   throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
     errorInfo: message
   });
+}
+
+/**
+ * Parses a successful CreateRegistration body. The backend must return JSON with a non-empty
+ * string `name` containing the Firebase Installation ID.
+ */
+async function parseCreateRegistrationSuccessFid(
+  response: Response
+): Promise<string> {
+  const text = await response.text();
+  if (!text.trim()) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo: 'CreateRegistration succeeded but response body is empty'
+    });
+  }
+  let data: ApiResponse;
+  try {
+    data = JSON.parse(text) as ApiResponse;
+  } catch {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo:
+        'CreateRegistration succeeded but response body is not valid JSON'
+    });
+  }
+  const fid = data.name;
+  if (typeof fid !== 'string' || fid.length === 0) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+      errorInfo:
+        'CreateRegistration succeeded but response did not include a non-empty name'
+    });
+  }
+  return fid;
 }
 
 export async function requestUpdateToken(

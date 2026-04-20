@@ -19,7 +19,17 @@ import '../testing/setup';
 
 import * as migrateOldDatabaseModule from '../helpers/migrate-old-database';
 
-import { dbGet, dbRemove, dbSet, DATABASE_NAME } from '../internals/idb-manager';
+import {
+  dbDelete,
+  dbGet,
+  dbGetFidRegistration,
+  dbRemove,
+  dbSet,
+  dbSetFidRegistration,
+  DATABASE_NAME,
+  _resetIdbForTests,
+  _setIdbForTests
+} from '../internals/idb-manager';
 
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
@@ -28,19 +38,30 @@ import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { stub } from 'sinon';
-import * as idb from 'idb';
+import { deleteDB, openDB } from 'idb';
 
 describe('idb manager', () => {
   let firebaseDependencies: FirebaseInternalDependencies;
   let tokenDetailsA: TokenDetails;
   let tokenDetailsB: TokenDetails;
+  let idbForTests: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Wrap the module namespace in a mutable object so sinon can stub methods reliably.
+    idbForTests = Object.assign({}, { openDB, deleteDB });
+    _setIdbForTests(idbForTests);
+    // Ensure no prior suite left an open connection or cached promise.
+    await dbDelete();
     firebaseDependencies = getFakeFirebaseDependencies();
     tokenDetailsA = getFakeTokenDetails();
     tokenDetailsB = getFakeTokenDetails();
     tokenDetailsA.token = 'TOKEN_A';
     tokenDetailsB.token = 'TOKEN_B';
+  });
+
+  afterEach(async () => {
+    await dbDelete();
+    _resetIdbForTests();
   });
 
   describe('get / set', () => {
@@ -127,7 +148,7 @@ describe('idb manager', () => {
     const key = firebaseDependencies.appConfig.appId;
 
     // Pre-create a v1 DB with the token object store and a record.
-    const dbV1 = await idb.openDB(DATABASE_NAME, 1, {
+    const dbV1 = await openDB(DATABASE_NAME, 1, {
       upgrade: upgradeDb => {
         upgradeDb.createObjectStore('firebase-messaging-store');
       }
@@ -137,20 +158,105 @@ describe('idb manager', () => {
     await tx.done;
     dbV1.close();
 
-    // Simulate upgrade/open v2 failing (e.g. blocked/aborted) at the lowest level so the
-    // behavior is independent of module import semantics.
-    const realIndexedDbOpen = indexedDB.open.bind(indexedDB);
-    const indexedDbOpenStub = stub(indexedDB, 'open').callsFake(
-      ((name: string, version?: number) => {
-        if (name === DATABASE_NAME && version === 2) {
-          throw new Error('upgrade failed');
-        }
-        return realIndexedDbOpen(name, version);
-      }) as any
-    );
+    const realOpenDB = openDB;
+    const openDbStub = stub(idbForTests, 'openDB').callsFake(((
+      name: string,
+      version?: number,
+      options?: unknown
+    ) => {
+      if (name === DATABASE_NAME && version === 2) {
+        return Promise.reject(new Error('upgrade failed'));
+      }
+      return realOpenDB(name, version as any, options as any);
+    }) as any);
 
     const value = await dbGet(firebaseDependencies);
     expect(value).to.deep.equal(tokenDetailsA);
-    expect(indexedDbOpenStub).to.have.been.called;
+    expect(openDbStub).to.have.been.called;
+  });
+
+  it('dbGetFidRegistration and dbSetFidRegistration reject when v2 open fails and the FID object store is missing', async () => {
+    const key = firebaseDependencies.appConfig.appId;
+
+    const dbV1 = await openDB(DATABASE_NAME, 1, {
+      upgrade: upgradeDb => {
+        upgradeDb.createObjectStore('firebase-messaging-store');
+      }
+    });
+    const tx = dbV1.transaction('firebase-messaging-store', 'readwrite');
+    await tx.objectStore('firebase-messaging-store').put(tokenDetailsA, key);
+    await tx.done;
+    dbV1.close();
+
+    const realOpenDB = openDB;
+    stub(idbForTests, 'openDB').callsFake(((
+      name: string,
+      version?: number,
+      options?: unknown
+    ) => {
+      if (name === DATABASE_NAME && version === 2) {
+        return Promise.reject(new Error('upgrade failed'));
+      }
+      return realOpenDB(name, version as any, options as any);
+    }) as any);
+
+    const schemaError = 'messaging/fid-registration-idb-schema-unavailable';
+
+    await expect(dbGetFidRegistration(firebaseDependencies)).to.be.rejectedWith(
+      schemaError
+    );
+    await expect(
+      dbSetFidRegistration(firebaseDependencies, {
+        fid: 'some-fid',
+        lastRegisterTime: Date.now()
+      })
+    ).to.be.rejectedWith(schemaError);
+  });
+
+  it('only initiates one openDB call under concurrent access', async () => {
+    const realOpenDB = openDB;
+    let releaseOpen!: () => void;
+    const barrier = new Promise<void>(resolve => {
+      releaseOpen = resolve;
+    });
+
+    const openDbStub = stub(idbForTests, 'openDB').callsFake(((
+      name: string,
+      version?: number,
+      options?: unknown
+    ) => {
+      if (name === DATABASE_NAME && version === 2) {
+        return barrier.then(() =>
+          realOpenDB(name, version as any, options as any)
+        );
+      }
+      return realOpenDB(name, version as any, options as any);
+    }) as any);
+
+    const p1 = dbGet(firebaseDependencies);
+    const p2 = dbSet(firebaseDependencies, tokenDetailsA);
+
+    // Both calls should share the same in-flight openDB promise.
+    expect(openDbStub.callCount).to.equal(1);
+
+    releaseOpen();
+    await Promise.all([p1, p2]);
+  });
+
+  it('dbDelete calls deleteDB even if dbPromise is rejected', async () => {
+    // Force both "open latest" and fallback open to fail, leaving dbPromise rejected.
+    const openDbStub = stub(idbForTests, 'openDB').rejects(
+      new Error('open failed')
+    );
+
+    // Trigger dbPromise creation (it will end up rejected).
+    await expect(dbGet(firebaseDependencies)).to.be.rejected;
+    expect(openDbStub).to.have.been.called;
+
+    const deleteDbStub = stub(idbForTests, 'deleteDB').resolves();
+
+    // Should still attempt deletion and not throw.
+    await dbDelete();
+    expect(deleteDbStub).to.have.been.calledOnceWith(DATABASE_NAME);
   });
 });
