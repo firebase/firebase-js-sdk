@@ -65,9 +65,15 @@ export function createTracingProvider(
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: appId,
-    'gcp.project_id': projectId,
-    'cloud.provider': 'gcp'
+    'cloud.resource.id':
+      tracingUrl.replace('https:', '') +
+      `/projects/${projectId}/locations/global/`,
+    'gcp.firebase.app_id': appId,
+    'gcp.firebase.domain':
+      typeof window === 'undefined' ? 'undefined' : window.location.hostname,
+    'service.namespace':
+      tracingUrl.replace('https:', '') + `/projects/${projectId}`,
+    'gcp.project_id': projectId
   });
 
   if (tracingUrl.endsWith('/')) {
