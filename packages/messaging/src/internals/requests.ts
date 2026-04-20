@@ -43,6 +43,7 @@ export interface ApiResponse {
 }
 
 export interface ApiRequestBody {
+  // eslint-disable-next-line camelcase
   fcm_sdk_version: string;
   /**
    * Client identifier for the registration: the site host (e.g. `www.example.com`) when the
@@ -365,6 +366,7 @@ function getBody(
   appNameFallback: string
 ): ApiRequestBody {
   const body: ApiRequestBody = {
+    // eslint-disable-next-line camelcase
     fcm_sdk_version: fcmSdkVersion,
     origin: getRegistrationOrigin(swScope, appNameFallback),
     web: {

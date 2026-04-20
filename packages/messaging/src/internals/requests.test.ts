@@ -68,6 +68,7 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
+        // eslint-disable-next-line camelcase
         fcm_sdk_version: fcmSdkVersion,
         origin: getRegistrationOrigin(
           tokenDetails.subscriptionOptions!.swScope,
@@ -138,7 +139,9 @@ describe('API', () => {
     it('calls fetch once when the first attempt succeeds', async () => {
       fetchStub.resolves(
         new Response(
-          JSON.stringify({ name: registrationResourceName('installation-fid-1') }),
+          JSON.stringify({
+            name: registrationResourceName('installation-fid-1')
+          }),
           {
             status: 200
           }
@@ -156,7 +159,9 @@ describe('API', () => {
     it('returns responseFid when the success body includes a registration resource name', async () => {
       fetchStub.resolves(
         new Response(
-          JSON.stringify({ name: registrationResourceName('installation-fid-1') }),
+          JSON.stringify({
+            name: registrationResourceName('installation-fid-1')
+          }),
           {
             status: 200
           }
@@ -216,7 +221,9 @@ describe('API', () => {
         .onThirdCall()
         .resolves(
           new Response(
-            JSON.stringify({ name: registrationResourceName('installation-fid-1') }),
+            JSON.stringify({
+              name: registrationResourceName('installation-fid-1')
+            }),
             {
               status: 200
             }
@@ -268,6 +275,7 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
+        // eslint-disable-next-line camelcase
         fcm_sdk_version: fcmSdkVersion,
         origin: getRegistrationOrigin(
           tokenDetails.subscriptionOptions!.swScope,
