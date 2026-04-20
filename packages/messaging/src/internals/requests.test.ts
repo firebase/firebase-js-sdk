@@ -21,6 +21,7 @@ import {
   ApiRequestBody,
   FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
   FID_REGISTRATION_FETCH_MAX_ATTEMPTS,
+  getRegistrationOrigin,
   requestCreateRegistration,
   requestDeleteToken,
   requestGetToken,
@@ -36,6 +37,7 @@ import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { stub } from 'sinon';
+import { version as fcmSdkVersion } from '../../package.json';
 
 describe('API', () => {
   let tokenDetails: TokenDetails;
@@ -66,6 +68,11 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
+        fcm_sdk_version: fcmSdkVersion,
+        origin: getRegistrationOrigin(
+          tokenDetails.subscriptionOptions!.swScope,
+          firebaseDependencies.appConfig.appName
+        ),
         web: {
           endpoint: 'https://example.org',
           auth: 'YXV0aC12YWx1ZQ',
@@ -125,11 +132,17 @@ describe('API', () => {
       );
     }
 
+    const registrationResourceName = (fid: string): string =>
+      `projects/projectId/registrations/${fid}`;
+
     it('calls fetch once when the first attempt succeeds', async () => {
       fetchStub.resolves(
-        new Response(JSON.stringify({ name: 'installation-fid-1' }), {
-          status: 200
-        })
+        new Response(
+          JSON.stringify({ name: registrationResourceName('installation-fid-1') }),
+          {
+            status: 200
+          }
+        )
       );
 
       await requestCreateRegistration(
@@ -140,9 +153,27 @@ describe('API', () => {
       expect(fetchStub).to.have.callCount(1);
     });
 
-    it('returns responseFid when the success body includes name', async () => {
+    it('returns responseFid when the success body includes a registration resource name', async () => {
       fetchStub.resolves(
-        new Response(JSON.stringify({ name: 'installation-fid-1' }), {
+        new Response(
+          JSON.stringify({ name: registrationResourceName('installation-fid-1') }),
+          {
+            status: 200
+          }
+        )
+      );
+
+      const result = await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
+    });
+
+    it('returns responseFid when the success body includes a legacy plain FID in name', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ name: 'installation-fid-legacy' }), {
           status: 200
         })
       );
@@ -152,7 +183,7 @@ describe('API', () => {
         tokenDetails.subscriptionOptions!
       );
 
-      expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
+      expect(result).to.deep.equal({ responseFid: 'installation-fid-legacy' });
     });
 
     it('rejects when the success body is empty', async () => {
@@ -184,9 +215,12 @@ describe('API', () => {
         .rejects(new Error('network 2'))
         .onThirdCall()
         .resolves(
-          new Response(JSON.stringify({ name: 'installation-fid-1' }), {
-            status: 200
-          })
+          new Response(
+            JSON.stringify({ name: registrationResourceName('installation-fid-1') }),
+            {
+              status: 200
+            }
+          )
         );
 
       await requestCreateRegistration(
@@ -234,6 +268,11 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
+        fcm_sdk_version: fcmSdkVersion,
+        origin: getRegistrationOrigin(
+          tokenDetails.subscriptionOptions!.swScope,
+          firebaseDependencies.appConfig.appName
+        ),
         web: {
           endpoint: 'https://example.org',
           auth: 'YXV0aC12YWx1ZQ',
