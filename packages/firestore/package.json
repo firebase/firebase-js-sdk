@@ -45,6 +45,8 @@
     "test:node": "ts-node ./scripts/run-tests.ts  --main=test/register.ts  --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:prod": "ts-node ./scripts/run-tests.ts --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:prod:nameddb": "ts-node ./scripts/run-tests.ts --main=test/register.ts --databaseId=enterprise  --firestoreEdition=enterprise 'test/{,!(browser|lite)/**/}*.test.ts'",
+    "test:node:nightly": "ts-node ./scripts/run-tests.ts --main=test/register.ts 'test/{,!(browser|lite)/**/}*.test.ts' --targetBackend=nightly",
+    "test:node:debug": "ts-node ./scripts/run-tests.ts --main=test/register.ts --emulator --debug 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:persistence": "ts-node ./scripts/run-tests.ts  --main=test/register.ts --persistence --emulator 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:node:persistence:prod": "ts-node ./scripts/run-tests.ts --main=test/register.ts --persistence 'test/{,!(browser|lite)/**/}*.test.ts'",
     "test:travis": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/firestore-test-runner.ts",
