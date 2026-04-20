@@ -134,17 +134,23 @@ export function createTracingProvider(
     /[.*+?^${}()|[\]\\]/g,
     '\\$&'
   );
+
+  const networkInstrumentationConfig = {
+    ignoreUrls: [
+      new RegExp(cleanedRegexTracingUrl),
+      new RegExp(cleanedRegexEndpointUrl)
+    ],
+    semconvStabilityOptIn: "http"
+  }
+
+
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation({
-        ignoreUrls: [
-          new RegExp(cleanedRegexTracingUrl),
-          new RegExp(cleanedRegexEndpointUrl)
-        ]
-      }),
-      new XMLHttpRequestInstrumentation()
+      new FetchInstrumentation(networkInstrumentationConfig),
+      new XMLHttpRequestInstrumentation(networkInstrumentationConfig)
     ]
   });
+
 
   return provider;
 }
