@@ -224,7 +224,7 @@ export interface Citation {
 /**
  * Metadata returned when grounding is enabled.
  *
- * Currently, only Grounding with Google Search and Google Maps is supported
+ * Currently, only Grounding with Google Search and Grounding with Google Maps are supported
  * (see {@link GoogleSearchTool} and {@link GoogleMapsTool}, respectively).
  *
  * Important: If using Grounding with Google Search, you are required to comply with the
