@@ -59,7 +59,7 @@ export function getCrashlytics(
 
   if (crashlyticsProvider.isInitialized()) {
     const existingInstance = crashlyticsProvider.getImmediate();
-    if (deepEqual(options!, crashlyticsProvider.getOptions())) {
+    if (deepEqual(options || {}, crashlyticsProvider.getOptions())) {
       return existingInstance;
     } else {
       throw new Error(
