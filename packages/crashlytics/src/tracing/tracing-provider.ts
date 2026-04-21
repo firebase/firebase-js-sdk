@@ -45,6 +45,7 @@ import { sessionContextManager } from './session-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
+import { CrashlyticsOptions } from '../public-types';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -54,13 +55,14 @@ import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
 export function createTracingProvider(
   app: FirebaseApp,
   endpointUrl: string,
-  tracingUrl: string,
+  crashlyticsOptions: CrashlyticsOptions,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
   }
+  let tracingUrl = crashlyticsOptions.tracingUrl || 'http://localhost';
 
   const { projectId, appId, apiKey } = app.options;
 
@@ -106,7 +108,7 @@ export function createTracingProvider(
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
-      new FirebaseSpanProcessor(),
+      new FirebaseSpanProcessor(crashlyticsOptions, app.options),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
