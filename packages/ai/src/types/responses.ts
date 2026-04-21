@@ -345,8 +345,8 @@ export interface WebGroundingChunk {
 /**
  * A grounding chunk from Google Maps.
  *
- * Important: If using Grounding with Google Search, you are required to comply with the
- * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Search".
+ * Important: If using Grounding with Google Maps, you are required to comply with the
+ * {@link https://cloud.google.com/terms/service-terms | Service Specific Terms} for "Grounding with Google Maps".
  *
  * @public
  */
@@ -365,7 +365,7 @@ export interface GoogleMapsGroundingChunk {
   text?: string;
   /**
    * This Place's resource name, in `places/{place_id}` format. This can be used to look up the
-   * place in the Google Maps API
+   * place in the Google Maps API.
    */
   placeId?: string;
 }

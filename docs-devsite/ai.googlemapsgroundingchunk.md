@@ -12,7 +12,7 @@ https://github.com/firebase/firebase-js-sdk
 # GoogleMapsGroundingChunk interface
 A grounding chunk from Google Maps.
 
-Important: If using Grounding with Google Search, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Search".
+Important: If using Grounding with Google Maps, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Maps".
 
 <b>Signature:</b>
 
@@ -24,14 +24,14 @@ export interface GoogleMapsGroundingChunk
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [placeId](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunkplaceid) | string | This Place's resource name, in <code>places/{place_id}</code> format. This can be used to look up the place in the Google Maps API |
+|  [placeId](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunkplaceid) | string | This Place's resource name, in <code>places/{place_id}</code> format. This can be used to look up the place in the Google Maps API. |
 |  [text](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunktext) | string | The text of the place answer. |
 |  [title](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunktitle) | string | The title of the place. |
 |  [uri](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunkuri) | string | The URI of the place. |
 
 ## GoogleMapsGroundingChunk.placeId
 
-This Place's resource name, in `places/{place_id}` format. This can be used to look up the place in the Google Maps API
+This Place's resource name, in `places/{place_id}` format. This can be used to look up the place in the Google Maps API.
 
 <b>Signature:</b>
 
