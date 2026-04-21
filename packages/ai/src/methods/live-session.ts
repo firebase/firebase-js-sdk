@@ -106,7 +106,7 @@ export class LiveSession {
       if (sessionResumption) {
         setupMessage.setup.sessionResumption = sessionResumption;
       }
-      this._webSocketHandler.send(JSON.stringify(this._setupMessage));
+      this._webSocketHandler.send(JSON.stringify(setupMessage));
 
       // Verify we received the handshake response 'setupComplete'
       const firstMessage = (await this._serverMessages.next()).value;
@@ -151,7 +151,6 @@ export class LiveSession {
       );
     }
     await this.close();
-    console.log('closed');
     await this._connectSession(sessionResumption);
   }
 
