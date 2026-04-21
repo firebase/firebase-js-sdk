@@ -10,7 +10,7 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateToolConfig interface
-Tool configuration for `TemplateGenerativeModel`<!-- -->s. This config is shared for all tools provided in the Server Prompt Template request.
+Tool configuration for `TemplateGenerativeModel`<!-- -->s. This config is shared for all tools provided in the server prompt template request.
 
 <b>Signature:</b>
 

@@ -617,7 +617,7 @@ export interface ToolConfig {
 
 /**
  * Tool configuration for `TemplateGenerativeModel`s.
- * This config is shared for all tools provided in the Server Prompt Template request.
+ * This config is shared for all tools provided in the server prompt template request.
  * @public
  */
 export interface TemplateToolConfig {
