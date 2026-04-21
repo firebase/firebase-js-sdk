@@ -42,10 +42,11 @@ import { CrashlyticsOptions } from '../public-types';
  */
 export function createLoggerProvider(
   app: FirebaseApp,
-  crashlyticsOptions: CrashlyticsOptions = {},
+  crashlyticsOptions: CrashlyticsOptions,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): LoggerProvider {
+  // TODO: change to default endpoint once it exists
   let endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
 
   const resource = resourceFromAttributes({

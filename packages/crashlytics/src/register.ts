@@ -41,12 +41,6 @@ export function registerCrashlytics(): void {
       (container, { options }: InstanceFactoryOptions) => {
         const crashlyticsOptions = options as CrashlyticsOptions;
 
-        if (crashlyticsOptions && !crashlyticsOptions.endpointUrl) {
-          throw new Error(
-            'CrashlyticsService instance identifier is undefined'
-          );
-        }
-
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
