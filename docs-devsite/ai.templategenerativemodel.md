@@ -41,7 +41,7 @@ export declare class TemplateGenerativeModel
 |  --- | --- | --- |
 |  [generateContent(templateId, templateVariables, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [generateContentStream(templateId, templateVariables, singleRequestOptions)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
-|  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class) that will use this template to respond to messages. |
+|  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages. |
 
 ## TemplateGenerativeModel.(constructor)
 
@@ -131,7 +131,7 @@ Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#gen
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class) that will use this template to respond to messages.
+Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages.
 
 <b>Signature:</b>
 
@@ -147,5 +147,5 @@ startChat(params: StartTemplateChatParams): TemplateChatSession;
 
 <b>Returns:</b>
 
-[TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class)
+[TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface)
 

@@ -1,5 +1,12 @@
 # firebase
 
+## 12.12.1
+
+### Patch Changes
+
+- Updated dependencies [[`23ab5b9`](https://github.com/firebase/firebase-js-sdk/commit/23ab5b9dadb0451e855740a48f4cb12d29091a70), [`6db5af4`](https://github.com/firebase/firebase-js-sdk/commit/6db5af46649382ee3ed73ab4e8f69abc5f9a33aa)]:
+  - @firebase/ai@2.11.1
+
 ## 12.12.0
 
 ### Minor Changes

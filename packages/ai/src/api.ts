@@ -43,6 +43,7 @@ import { TemplateGenerativeModel } from './models/template-generative-model';
 import { TemplateImagenModel } from './models/template-imagen-model';
 import { logger } from './logger';
 
+export { TemplateChatSession } from './public-types';
 export { ChatSession } from './methods/chat-session';
 export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
