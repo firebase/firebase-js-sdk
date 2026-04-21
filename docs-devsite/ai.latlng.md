@@ -22,12 +22,12 @@ export interface LatLng
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [latitude](./ai.latlng.md#latlnglatitude) | number | The latitude in degrees. It must be in the range \[-90.0, +90.0\]. |
-|  [longitude](./ai.latlng.md#latlnglongitude) | number | The longitude in degrees. It must be in the range \[-180.0, +180.0\]. |
+|  [latitude](./ai.latlng.md#latlnglatitude) | number | The latitude in degrees. It must be in the range <code>[-90.0, +90.0]</code>. |
+|  [longitude](./ai.latlng.md#latlnglongitude) | number | The longitude in degrees. It must be in the range <code>[-180.0, +180.0]</code>. |
 
 ## LatLng.latitude
 
-The latitude in degrees. It must be in the range \[-90.0, +90.0\].
+The latitude in degrees. It must be in the range `[-90.0, +90.0]`<!-- -->.
 
 <b>Signature:</b>
 
@@ -37,7 +37,7 @@ latitude?: number;
 
 ## LatLng.longitude
 
-The longitude in degrees. It must be in the range \[-180.0, +180.0\].
+The longitude in degrees. It must be in the range `[-180.0, +180.0]`<!-- -->.
 
 <b>Signature:</b>
 

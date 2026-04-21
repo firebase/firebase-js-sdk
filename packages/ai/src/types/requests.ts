@@ -523,12 +523,12 @@ export interface FunctionDeclarationsTool {
  */
 export interface LatLng {
   /**
-   * The latitude in degrees. It must be in the range [-90.0, +90.0].
+   * The latitude in degrees. It must be in the range `[-90.0, +90.0]`.
    */
   latitude?: number;
 
   /**
-   * The longitude in degrees. It must be in the range [-180.0, +180.0].
+   * The longitude in degrees. It must be in the range `[-180.0, +180.0]`.
    */
   longitude?: number;
 }
