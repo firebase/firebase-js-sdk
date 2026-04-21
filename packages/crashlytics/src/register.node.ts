@@ -16,7 +16,11 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app';
-import { Component, ComponentType, InstanceFactoryOptions } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 import { CRASHLYTICS_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
