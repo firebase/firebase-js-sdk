@@ -16,28 +16,26 @@ syntax = "proto3";
 
 package google.firestore.v1;
 
-import "google/firestore/v1/document.proto";
+import "google/protobuf/any.proto";
 
 option csharp_namespace = "Google.Cloud.Firestore.V1";
 option go_package = "cloud.google.com/go/firestore/apiv1/firestorepb;firestorepb";
 option java_multiple_files = true;
-option java_outer_classname = "AggregationResultProto";
+option java_outer_classname = "ExplainStatsProto";
 option java_package = "com.google.firestore.v1";
-option objc_class_prefix = "GCFS";
 option php_namespace = "Google\\Cloud\\Firestore\\V1";
 option ruby_package = "Google::Cloud::Firestore::V1";
 
-// The result of a single bucket from a Firestore aggregation query.
+// Specification of Firestore Explain Stats fields.
+
+// Pipeline explain stats.
 //
-// The keys of `aggregate_fields` are the same for all results in an aggregation
-// query, unlike document queries which can have different fields present for
-// each result.
-message AggregationResult {
-  // The result of the aggregation functions, ex: `COUNT(*) AS total_docs`.
+// Depending on the explain options in the original request, this can contain
+// the optimized plan and / or execution stats.
+message ExplainStats {
+  // The format depends on the `output_format` options in the request.
   //
-  // The key is the
-  // [alias][google.firestore.v1.StructuredAggregationQuery.Aggregation.alias]
-  // assigned to the aggregation function on input and the size of this map
-  // equals the number of aggregation functions in the query.
-  map<string, Value> aggregate_fields = 2;
+  // Currently there are two supported options: `TEXT` and `JSON`.
+  // Both supply a `google.protobuf.StringValue`.
+  google.protobuf.Any data = 1;
 }
