@@ -251,7 +251,7 @@ export interface CodeExecutionResultPart {
     thoughtSignature?: never;
 }
 
-// @beta
+// @public
 export interface CodeExecutionTool {
     codeExecution: {};
 }
@@ -1422,21 +1422,13 @@ export class StringSchema extends Schema {
     toJSON(): SchemaRequest;
 }
 
-// Warning: (ae-incompatible-release-tags) The symbol "TemplateChatSession" is marked as @beta, but its signature references "TemplateRequestInternal" which is marked as @internal
-//
 // @beta
-export class TemplateChatSession extends ChatSessionBase<StartTemplateChatParams, TemplateRequestInternal, TemplateFunctionDeclarationsTool> {
-    constructor(apiSettings: ApiSettings, params: StartTemplateChatParams, requestOptions?: RequestOptions | undefined);
-    // @internal
-    _callGenerateContent(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
-    // @internal
-    _callGenerateContentStream(formattedRequest: TemplateRequestInternal, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
-    // @internal
-    _formatRequest(incomingContent: Content, tempHistory: Content[]): TemplateRequestInternal;
+export interface TemplateChatSession {
+    getHistory(): Promise<Content[]>;
     // (undocumented)
     params: StartTemplateChatParams;
     // (undocumented)
-    requestOptions?: RequestOptions | undefined;
+    requestOptions?: RequestOptions;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
 }
@@ -1469,7 +1461,9 @@ export interface TemplateFunctionDeclarationsToolInternal {
     templateFunctions?: TemplateFunctionDeclarationInternal[];
 }
 
-// @beta
+// Warning: (ae-internal-missing-underscore) The name "TemplateGenerateContentRequest" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
 export interface TemplateGenerateContentRequest {
     // (undocumented)
     [key: string]: unknown;
@@ -1559,9 +1553,6 @@ export const ThinkingLevel: {
 // @public
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
-//
 // @public
 export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
@@ -1581,7 +1572,7 @@ export interface Transcription {
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
-// @beta
+// @public
 export interface URLContext {
 }
 
@@ -1590,7 +1581,7 @@ export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
 
-// @beta
+// @public
 export interface URLContextTool {
     urlContext: URLContext;
 }
