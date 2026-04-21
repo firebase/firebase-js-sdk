@@ -21,7 +21,7 @@ import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import * as generateContentMethods from './generate-content';
 import { Content, TemplateFunctionDeclaration } from '../types';
-import { TemplateChatSession } from './template-chat-session';
+import { TemplateChatSessionImpl } from './template-chat-session';
 import { ApiSettings } from '../types/internal';
 import { VertexAIBackend } from '../backend';
 import { logger } from '../logger';
@@ -61,7 +61,7 @@ describe('TemplateChatSession', () => {
       'should rename functionDeclarations to templateFunctions' +
         ' and parameters to inputSchema',
       () => {
-        const chatSession = new TemplateChatSession(fakeApiSettings, {
+        const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
           tools: [
             {
@@ -92,7 +92,7 @@ describe('TemplateChatSession', () => {
       }
     );
     it('should not include any properties not provided in params', () => {
-      const chatSession = new TemplateChatSession(fakeApiSettings, {
+      const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID
       });
       const formattedRequest = chatSession._formatRequest(
@@ -112,7 +112,7 @@ describe('TemplateChatSession', () => {
         generateContentMethods,
         'templateGenerateContent'
       ).rejects(new Error('templateGenerateContent failed'));
-      const chatSession = new TemplateChatSession(fakeApiSettings, {
+      const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID
       });
       await expect(chatSession.sendMessage('hello')).to.be.rejected;
@@ -143,7 +143,7 @@ describe('TemplateChatSession', () => {
         // @ts-ignore
         response: fakeResponse
       });
-      const chatSession = new TemplateChatSession(fakeApiSettings, {
+      const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
         templateId: TEMPLATE_ID
       });
       const result = await chatSession.sendMessage('hello');
@@ -255,7 +255,7 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(fakeApiSettings, {
+        const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
           tools: [
             {
@@ -317,7 +317,7 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(fakeApiSettings, {
+        const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
           tools: [
             {
@@ -383,7 +383,7 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(
+        const chatSession = new TemplateChatSessionImpl(
           fakeApiSettings,
           {
             templateId: TEMPLATE_ID,
@@ -439,7 +439,7 @@ describe('TemplateChatSession', () => {
             };
           }
         });
-        const chatSession = new TemplateChatSession(fakeApiSettings, {
+        const chatSession = new TemplateChatSessionImpl(fakeApiSettings, {
           templateId: TEMPLATE_ID,
           tools: [
             {
