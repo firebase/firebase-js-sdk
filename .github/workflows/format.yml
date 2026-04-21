@@ -32,7 +32,7 @@ jobs:
         # get all history for the diff
         fetch-depth: 0
     - name: Set up node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: 22.10.0
     - name: Yarn install
