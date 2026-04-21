@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
@@ -141,7 +140,7 @@ export function createTracingProvider(
       new RegExp(cleanedRegexEndpointUrl)
     ],
     semconvStabilityOptIn: "http"
-  }
+  };
 
 
   registerInstrumentations({

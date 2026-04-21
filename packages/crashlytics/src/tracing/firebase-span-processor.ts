@@ -18,7 +18,7 @@
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { getSessionId } from '../helpers';
-import { CRASHLYTICS_ATTRIBUTE_KEYS, COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
+import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
