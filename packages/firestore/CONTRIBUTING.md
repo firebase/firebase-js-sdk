@@ -9,8 +9,8 @@ the testing environment.
 
 ### Setting up the Firestore emulator
 
-The integration tests require that the Firestore emulator is running
-on port 8080.
+Integration tests that run against the Firestore emulator expect
+that it runs on port 8080.
 
 - [Install the Firebase CLI](https://firebase.google.com/docs/cli/).
   ```bash
@@ -62,7 +62,7 @@ yarn test:lite:browser
 
 Use these variables to change the target backend or database:
 
-- **`FIRESTORE_TARGET_BACKEND`**: Set to `emulator`, `prod`, or `nightly`.
+- **`FIRESTORE_TARGET_BACKEND`**: Set to `emulator`, `prod`, or `nightly`. `nightly` is only available to Googlers.
 - **`FIRESTORE_TARGET_DB_ID`**: Targets a specific database ID (default is `(default)`).
 - **`--firestoreEdition=enterprise`**: Enables enterprise-specific tests (sets `RUN_ENTERPRISE_TESTS=true`).
 - **`BROWSERS`**: (Browser tests only) A comma-separated list of browsers: `ChromeHeadless`, `Firefox`, `WebkitHeadless`.
