@@ -23,6 +23,7 @@ import {
 } from './content';
 import {
   AudioTranscriptionConfig,
+  ContextWindowCompressionConfig,
   LiveGenerationConfig,
   SessionResumptionConfig,
   Tool,
@@ -90,6 +91,7 @@ export interface _LiveClientSetup {
     inputAudioTranscription?: AudioTranscriptionConfig;
     outputAudioTranscription?: AudioTranscriptionConfig;
     sessionResumption?: SessionResumptionConfig;
+    contextWindowCompression?: ContextWindowCompressionConfig;
   };
 }
 

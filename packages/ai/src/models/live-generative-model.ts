@@ -92,10 +92,14 @@ export class LiveGenerativeModel extends AIModel {
       ...generationConfig
     } = this.generationConfig;
 
+    const contextWindowCompression = generationConfig.contextWindowCompression;
+    delete generationConfig.contextWindowCompression;
+
     const setupMessage: _LiveClientSetup = {
       setup: {
         model: fullModelPath,
         generationConfig,
+        contextWindowCompression,
         tools: this.tools,
         toolConfig: this.toolConfig,
         systemInstruction: this.systemInstruction,
