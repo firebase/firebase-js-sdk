@@ -29,7 +29,9 @@ import { sessionContextManager } from './tracing/session-context-manager';
 /**
  * Returns the app version from the provided Telemetry instance, if available.
  */
-export function getAppVersion(crashlyticsOptions: CrashlyticsOptions | undefined): string {
+export function getAppVersion(
+  crashlyticsOptions: CrashlyticsOptions | undefined
+): string {
   if (crashlyticsOptions?.appVersion) {
     return crashlyticsOptions?.appVersion;
   } else if (constants.AUTO_CONSTANTS?.appVersion) {
@@ -85,7 +87,9 @@ export function startNewSession(crashlytics: Crashlytics): void {
         body: 'Session created',
         attributes: {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion((crashlytics as CrashlyticsService).options),
+          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
+            (crashlytics as CrashlyticsService).options
+          ),
           [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${
             span.spanContext().traceId
           }`,

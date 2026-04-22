@@ -26,7 +26,6 @@ import { flush, getAppVersion, getSessionId } from './helpers';
 import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     [CRASHLYTICS_TYPE]: CrashlyticsService;
@@ -60,13 +59,17 @@ export function getCrashlytics(
 
   if (crashlyticsProvider.isInitialized()) {
     const existingInstance = crashlyticsProvider.getImmediate();
-    if (deepEqual(options!, crashlyticsProvider.getOptions())) {
+    if (deepEqual(options || {}, crashlyticsProvider.getOptions())) {
       return existingInstance;
     } else {
-      throw new Error("getCrashlytics() cannot be called with different options");
+      throw new Error(
+        'getCrashlytics() cannot be called with different options'
+      );
     }
   }
-  const crashlytics: CrashlyticsService = crashlyticsProvider.initialize({ options });;
+  const crashlytics: CrashlyticsService = crashlyticsProvider.initialize({
+    options
+  });
 
   if (options) {
     crashlytics.options = options;
@@ -114,8 +117,9 @@ export function recordError(
   }
 
   // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] =
-    getAppVersion((crashlytics as CrashlyticsService).options);
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
+    (crashlytics as CrashlyticsService).options
+  );
 
   // Add session ID metadata
   const sessionId = getSessionId();

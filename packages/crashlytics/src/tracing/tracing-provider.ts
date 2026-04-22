@@ -54,7 +54,6 @@ import { CrashlyticsOptions } from '../public-types';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  endpointUrl: string,
   crashlyticsOptions: CrashlyticsOptions,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
@@ -62,17 +61,17 @@ export function createTracingProvider(
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
   }
+  // TODO: change to default endpoint once it exists
+  let endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
   let tracingUrl = crashlyticsOptions.tracingUrl || 'http://localhost';
 
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
-    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]:
-      `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/global/`,
+    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/global/`,
     [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID]: appId,
     [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname,
-    [RESOURCE_ATTRIBUTE_KEYS.SERVICE_NAMESPACE]:
-      `//firebasetelemetry.googleapis.com/projects/${projectId}`,
+    [RESOURCE_ATTRIBUTE_KEYS.SERVICE_NAMESPACE]: `//firebasetelemetry.googleapis.com/projects/${projectId}`,
     [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
   });
 
@@ -141,9 +140,8 @@ export function createTracingProvider(
       new RegExp(cleanedRegexTracingUrl),
       new RegExp(cleanedRegexEndpointUrl)
     ],
-    semconvStabilityOptIn: "http"
+    semconvStabilityOptIn: 'http'
   };
-
 
   registerInstrumentations({
     instrumentations: [
@@ -151,7 +149,6 @@ export function createTracingProvider(
       new XMLHttpRequestInstrumentation(networkInstrumentationConfig)
     ]
   });
-
 
   return provider;
 }

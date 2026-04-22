@@ -16,7 +16,11 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app';
-import { Component, ComponentType, InstanceFactoryOptions } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
@@ -36,18 +40,7 @@ export function registerCrashlytics(): void {
     new Component(
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
-
         const crashlyticsOptions = options as CrashlyticsOptions;
-
-        const instanceIdentifier = crashlyticsOptions.endpointUrl;
-
-        if (instanceIdentifier === undefined) {
-          throw new Error(
-            'CrashlyticsService instance identifier is undefined'
-          );
-        }
-
-        const endpointUrl = instanceIdentifier || 'http://localhost';
 
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
@@ -61,14 +54,13 @@ export function registerCrashlytics(): void {
         ];
         const loggerProvider = createLoggerProvider(
           app,
-          endpointUrl,
+          crashlyticsOptions,
           dynamicHeaderProviders,
           dynamicAttributeProviders
         );
 
         const tracingProvider = createTracingProvider(
           app,
-          endpointUrl,
           crashlyticsOptions,
           dynamicHeaderProviders,
           dynamicAttributeProviders
