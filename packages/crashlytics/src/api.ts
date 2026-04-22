@@ -56,6 +56,7 @@ export function getCrashlytics(
     app,
     CRASHLYTICS_TYPE
   );
+
   if (crashlyticsProvider.isInitialized()) {
     const existingInstance = crashlyticsProvider.getImmediate();
     if (deepEqual(options || {}, crashlyticsProvider.getOptions())) {
@@ -108,10 +109,10 @@ export function recordError(
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
   if (activeSpanContext?.traceId) {
-    customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.TRACE_ID] =
+    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
       activeSpanContext.traceId;
     if (activeSpanContext?.spanId) {
-      customAttributes[LOG_ENTRY_ATTRIBUTE_KEYS.SPAN_ID] =
+      customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID] =
         activeSpanContext.spanId;
     }
   }

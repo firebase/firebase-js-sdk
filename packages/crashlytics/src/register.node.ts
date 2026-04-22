@@ -39,9 +39,7 @@ export function registerCrashlytics(): void {
         const app = container.getProvider('app').getImmediate();
         const loggerProvider = createLoggerProvider(app, crashlyticsOptions, [], []);
         
-        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'https://staging-firebasetelemetry.sandbox.googleapis.com';
-        const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
-        const tracingProvider = createTracingProvider(app, endpointUrl, tracingUrl);
+        const tracingProvider = createTracingProvider(app, crashlyticsOptions);
 
         return new CrashlyticsService(app, loggerProvider, tracingProvider);
       },

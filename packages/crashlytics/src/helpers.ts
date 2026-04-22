@@ -87,17 +87,10 @@ export function startNewSession(crashlytics: Crashlytics): void {
         body: 'Session created',
         attributes: {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-<<<<<<< HEAD
           [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
             (crashlytics as CrashlyticsService).options
           ),
           [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
-=======
-          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
-          [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${
-            span.spanContext().traceId
-          }`,
->>>>>>> 609df1a2c (adding OTLP Trace Exporter for Firebase Telemetry Server (#9836))
           [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
         }
       });

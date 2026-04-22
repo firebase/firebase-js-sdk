@@ -62,20 +62,7 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
-<<<<<<< HEAD
-=======
-const fakeTracingProvider = {
-  getTracer: () => ({
-    startActiveSpan: (name: string, fn: (span: any) => any) =>
-      fn({
-        end: () => {},
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-      })
-  }),
-  register: () => {},
-  shutdown: () => Promise.resolve()
-} as unknown as TracerProvider;
->>>>>>> 609df1a2c (adding OTLP Trace Exporter for Firebase Telemetry Server (#9836))
+
 
 const fakeCrashlytics: CrashlyticsInternal = {
   app: {
@@ -86,7 +73,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
       appId: APP_ID
     }
   },
-  loggerProvider: fakeLoggerProvider
+  loggerProvider: fakeLoggerProvider,
+  tracingProvider: null
 };
 
 describe('Top level API', () => {
@@ -157,7 +145,6 @@ describe('Top level API', () => {
       );
     });
 
-<<<<<<< HEAD
     it('works with options: config values set', () => {
       const app = getFakeApp();
       expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })).to.equal(
@@ -169,19 +156,6 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
-=======
-    it('works with options: endpointUrl set', () => {
-      const app = getFakeApp();
-      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1' })).to.equal(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
-      );
-      expect(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, { endpointUrl: 'http://endpoint2' }));
-      expect(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, {}));
->>>>>>> 8d9ca766f (Crashlytics tracing onboarding improvements (#9587))
     });
   });
 
@@ -332,7 +306,8 @@ describe('Top level API', () => {
       AUTO_CONSTANTS.appVersion = '1.2.3'; // Unused
       const crashlytics = new CrashlyticsService(
         fakeCrashlytics.app,
-        fakeLoggerProvider
+        fakeLoggerProvider,
+        null
       );
       crashlytics.options = {
         appVersion: '1.0.0'
