@@ -140,23 +140,23 @@ describe('Top level API', () => {
       );
     });
 
-    it('works with options: no endpointUrl', () => {
+    it('works with options: no config values', () => {
       expect(getCrashlytics(getFakeApp(), {})).to.equal(
         getCrashlytics(getFakeApp())
       );
     });
 
-    it('works with options: endpointUrl set', () => {
+    it('works with options: config values set', () => {
       const app = getFakeApp();
-      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1' })).to.equal(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
+      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })).to.equal(
+        getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })
       );
-      expect(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, { endpointUrl: 'http://endpoint2' }));
-      expect(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1' })
-      ).not.to.equal(getCrashlytics(app, {}));
+      expect(() => {
+        getCrashlytics(app, { endpointUrl: 'http://endpoint2', appVersion: "1.2.3" });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {});
+      }).to.throw('getCrashlytics() cannot be called with different options');
     });
   });
 
