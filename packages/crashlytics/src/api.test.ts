@@ -152,10 +152,10 @@ describe('Top level API', () => {
         getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })
       );
       expect(() => {
-        getCrashlytics(app, { endpointUrl: 'http://endpoint2', appVersion: "1.2.3" })
+        getCrashlytics(app, { endpointUrl: 'http://endpoint2', appVersion: "1.2.3" });
       }).to.throw('getCrashlytics() cannot be called with different options');
       expect(() => {
-        getCrashlytics(app, {})
+        getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
     });
   });
