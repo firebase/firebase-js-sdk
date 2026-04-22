@@ -238,7 +238,7 @@ message Pipeline {
     // Optional. Ordered list of arguments the given stage expects.
     repeated Value args = 2 [(google.api.field_behavior) = OPTIONAL];
 
-    // Optional. Optional named arguments that certain functions may support.
+    // Optional. Named arguments that certain functions may support.
     map<string, Value> options = 3 [(google.api.field_behavior) = OPTIONAL];
   }
 
