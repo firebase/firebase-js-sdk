@@ -45,6 +45,7 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
+import { CRASHLYTICS_ATTRIBUTE_KEYS } from '../constants';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -65,6 +66,7 @@ export function createTracingProvider(
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
+    [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '345',
     [ATTR_SERVICE_NAME]: appId,
     'gcp.project_id': projectId,
     'cloud.provider': 'gcp'

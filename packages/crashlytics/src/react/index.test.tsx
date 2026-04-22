@@ -22,9 +22,10 @@ import sinon, { restore, stub } from 'sinon';
 import * as crashlytics from '../api';
 import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
-import { FirebaseCrashlytics } from '.';
+import { FirebaseCrashlytics, useReportRenderComplete, useTraceOperation } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
+import { trace, context } from '@opentelemetry/api';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -99,5 +100,114 @@ describe('FirebaseCrashlytics', () => {
     );
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+  });
+});
+
+describe('useReportRenderComplete', () => {
+  it('ends the span after two animation frames', done => {
+    const spanEndStub = stub();
+    const fakeSpan = { end: spanEndStub } as any;
+
+    function TestComponent({ span }: { span: any }) {
+      useReportRenderComplete(span);
+      return <div>Test</div>;
+    }
+
+    render(<TestComponent span={fakeSpan} />);
+
+    // Wait for two animation frames
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        try {
+          expect(spanEndStub).to.have.been.calledOnce;
+          done();
+        } catch (e) {
+          done(e);
+        }
+      });
+    });
+  });
+
+  it('ends the span on unmount if it hasn\'t ended yet', () => {
+    const spanEndStub = stub();
+    const fakeSpan = { end: spanEndStub } as any;
+
+    function TestComponent({ span }: { span: any }) {
+      useReportRenderComplete(span);
+      return <div>Test</div>;
+    }
+
+    const { unmount } = render(<TestComponent span={fakeSpan} />);
+    unmount();
+
+    expect(spanEndStub).to.have.been.calledOnce;
+  });
+
+  it('cancels animation frames on unmount', () => {
+    const spanEndStub = stub();
+    const fakeSpan = { end: spanEndStub } as any;
+    const cancelSpy = stub(window, 'cancelAnimationFrame');
+
+    function TestComponent({ span }: { span: any }) {
+      useReportRenderComplete(span);
+      return <div>Test</div>;
+    }
+
+    const { unmount } = render(<TestComponent span={fakeSpan} />);
+    unmount();
+
+    expect(cancelSpy).to.have.been.called;
+    cancelSpy.restore();
+  });
+});
+
+describe('useTraceOperation', () => {
+  it('starts a span and provides a run function', () => {
+    const startSpanStub = stub().returns({ end: stub(), spanContext: () => ({}) });
+    const getTracerStub = stub(trace, 'getTracer').returns({
+      startSpan: startSpanStub
+    } as any);
+
+    function TestComponent({ id }: { id: string }) {
+      const { run } = useTraceOperation('test-op', [id]);
+      return <div onClick={() => run(async () => {})}>Test</div>;
+    }
+
+    render(<TestComponent id="1" />);
+
+    expect(getTracerStub).to.have.been.calledWith('@firebase/crashlytics');
+    expect(startSpanStub).to.have.been.calledWith('test-op');
+
+    getTracerStub.restore();
+  });
+
+  it('uses withSpan in the run function', async () => {
+    const fakeSpan = { end: stub(), spanContext: () => ({}) };
+    const startSpanStub = stub().returns(fakeSpan);
+    stub(trace, 'getTracer').returns({
+      startSpan: startSpanStub
+    } as any);
+    const dummyContext = {};
+    const setSpanStub = stub(trace, 'setSpan').returns(dummyContext as any);
+    const withStub = stub(context, 'with').callsFake((ctx, fn) => fn());
+
+    let runFn: any;
+    function TestComponent() {
+      const { run } = useTraceOperation('test-op', []);
+      runFn = run;
+      return <div>Test</div>;
+    }
+
+    render(<TestComponent />);
+
+    const myAsyncFn = stub().resolves('result');
+    const result = await runFn(myAsyncFn);
+
+    expect(result).to.equal('result');
+    expect(setSpanStub.firstCall.args[1]).to.equal(fakeSpan);
+    expect(withStub.firstCall.args[0]).to.equal(dummyContext);
+    expect(myAsyncFn).to.have.been.calledOnce;
+
+    restore();
   });
 });

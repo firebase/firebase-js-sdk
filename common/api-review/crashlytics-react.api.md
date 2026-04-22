@@ -4,7 +4,10 @@
 
 ```ts
 
+import { default } from 'react';
 import { FirebaseApp } from '@firebase/app';
+import { Span } from '@opentelemetry/api';
+import { SpanOptions } from '@opentelemetry/api';
 
 // @public
 export interface Crashlytics {
@@ -19,10 +22,20 @@ export interface CrashlyticsOptions {
 }
 
 // @public
-export function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions }: {
+export function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions, children }: {
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
-}): null;
+    children?: default.ReactNode;
+}): default.ReactNode;
+
+// @public
+export function useReportRenderComplete(span: Span | undefined): void;
+
+// @public
+export function useTraceOperation(operationName: string, deps: readonly unknown[], options?: SpanOptions): {
+    span: Span | undefined;
+    run: <T>(fn: () => Promise<T>) => Promise<T>;
+};
 
 
 // (No @packageDocumentation comment for this package)

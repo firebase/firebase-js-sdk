@@ -32,6 +32,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const sessionId = getSessionId();
     if (sessionId) {
       span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION, '123');
     }
   }
 
