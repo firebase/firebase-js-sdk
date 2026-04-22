@@ -33,6 +33,7 @@ import { FetchTransport } from '../fetch-transport';
 import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
+import { CrashlyticsOptions } from '../public-types';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -41,10 +42,13 @@ import { ExportResult } from '@opentelemetry/core';
  */
 export function createLoggerProvider(
   app: FirebaseApp,
-  endpointUrl: string,
+  crashlyticsOptions: CrashlyticsOptions,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): LoggerProvider {
+  // TODO: change to default endpoint once it exists
+  let endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
+
   const resource = resourceFromAttributes({
     [ATTR_SERVICE_NAME]: 'firebase_telemetry_service'
   });
