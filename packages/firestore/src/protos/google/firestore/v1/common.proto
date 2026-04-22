@@ -58,7 +58,7 @@ message Precondition {
 message TransactionOptions {
   // Options for a transaction that can be used to read and write documents.
   //
-  // Firestore does not allow 3rd party auth requests to create read-write.
+  // Firestore does not allow 3rd party auth requests to create read-write
   // transactions.
   message ReadWrite {
     // An optional transaction to retry.
