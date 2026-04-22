@@ -62,7 +62,7 @@ export function createTracingProvider(
     return trace.getTracerProvider();
   }
   // TODO: change to default endpoint once it exists
-  let endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
+  const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
   let tracingUrl = crashlyticsOptions.tracingUrl || 'http://localhost';
 
   const { projectId, appId, apiKey } = app.options;
