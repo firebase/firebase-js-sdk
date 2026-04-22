@@ -37,7 +37,7 @@ message StructuredPipeline {
   // Required. The pipeline query to execute.
   Pipeline pipeline = 1 [(google.api.field_behavior) = REQUIRED];
 
-  // Optional. Optional query-level arguments.
+  // Optional. Query-level arguments.
   //
   map<string, Value> options = 2 [(google.api.field_behavior) = OPTIONAL];
 }
