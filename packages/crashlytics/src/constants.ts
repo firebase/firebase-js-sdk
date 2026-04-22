@@ -30,6 +30,21 @@ export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   SPAN_ID: 'logging.googleapis.com/spanId'
 };
 
+/** Label keys for resource attributes in tracing provider */
+export const RESOURCE_ATTRIBUTE_KEYS = {
+  CLOUD_RESOURCE_ID: 'cloud.resource.id',
+  GCP_FIREBASE_APP_ID: 'gcp.firebase.app_id',
+  GCP_FIREBASE_DOMAIN: 'gcp.firebase.domain',
+  SERVICE_NAMESPACE: 'service.namespace',
+  GCP_PROJECT_ID: 'gcp.project_id'
+};
+
+export const COMMON_SPAN_ATTRIBUTE_KEYS = {
+  GCP_RESOURCE_NAME: 'gcp.resource.name',
+  GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
+  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
+};
+
 /**
  * Label keys that we write in log entries stemming from web framework wrappers.
  */

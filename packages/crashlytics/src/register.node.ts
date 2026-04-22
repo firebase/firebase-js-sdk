@@ -16,36 +16,29 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 import { CRASHLYTICS_TYPE } from './constants';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
 import { createTracingProvider } from './tracing/tracing-provider';
+import { CrashlyticsOptions } from './public-types';
 
 export function registerCrashlytics(): void {
   _registerComponent(
     new Component(
       CRASHLYTICS_TYPE,
-      (container, { instanceIdentifier }) => {
-        if (instanceIdentifier === undefined) {
-          throw new Error(
-            'CrashlyticsService instance identifier is undefined'
-          );
-        }
+      (container, { options }: InstanceFactoryOptions) => {
+        const crashlyticsOptions = options as CrashlyticsOptions;
 
-        const endpointUrl = instanceIdentifier || 'http://localhost';
-        // TODO Change the tracingUrl host to either the proxy or the firebase telemetry server
-        const tracingUrl =
-          'https://staging-firebasetelemetry.sandbox.googleapis.com';
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const loggerProvider = createLoggerProvider(app, endpointUrl);
-        const tracingProvider = createTracingProvider(
-          app,
-          endpointUrl,
-          tracingUrl
-        );
+        const loggerProvider = createLoggerProvider(app, crashlyticsOptions);
+        const tracingProvider = createTracingProvider(app, crashlyticsOptions);
 
         return new CrashlyticsService(app, loggerProvider, tracingProvider);
       },

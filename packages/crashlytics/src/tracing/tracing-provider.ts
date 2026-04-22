@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { ATTR_SERVICE_NAME } from '@opentelemetry/semantic-conventions';
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
@@ -45,6 +44,8 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { sessionContextManager } from './session-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
+import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
+import { CrashlyticsOptions } from '../public-types';
 
 /**
  * Create a tracing provider for the current execution environment.
@@ -53,21 +54,25 @@ import { FetchTransport } from '../fetch-transport';
  */
 export function createTracingProvider(
   app: FirebaseApp,
-  endpointUrl: string,
-  tracingUrl: string,
+  crashlyticsOptions: CrashlyticsOptions,
   dynamicHeaderProviders: DynamicHeaderProvider[] = [],
   dynamicAttributeProviders: DynamicAttributeProvider[] = []
 ): TracerProvider {
   if (typeof window === 'undefined') {
     return trace.getTracerProvider();
   }
+  // TODO: change to default endpoint once it exists
+  const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
+  let tracingUrl = crashlyticsOptions.tracingUrl || 'http://localhost';
 
   const { projectId, appId, apiKey } = app.options;
 
   const resource = resourceFromAttributes({
-    [ATTR_SERVICE_NAME]: appId,
-    'gcp.project_id': projectId,
-    'cloud.provider': 'gcp'
+    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/global/`,
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID]: appId,
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname,
+    [RESOURCE_ATTRIBUTE_KEYS.SERVICE_NAMESPACE]: `//firebasetelemetry.googleapis.com/projects/${projectId}`,
+    [RESOURCE_ATTRIBUTE_KEYS.GCP_PROJECT_ID]: projectId
   });
 
   if (tracingUrl.endsWith('/')) {
@@ -102,7 +107,7 @@ export function createTracingProvider(
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
-      new FirebaseSpanProcessor(),
+      new FirebaseSpanProcessor(crashlyticsOptions, app.options),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)
@@ -129,15 +134,19 @@ export function createTracingProvider(
     /[.*+?^${}()|[\]\\]/g,
     '\\$&'
   );
+
+  const networkInstrumentationConfig = {
+    ignoreUrls: [
+      new RegExp(cleanedRegexTracingUrl),
+      new RegExp(cleanedRegexEndpointUrl)
+    ],
+    semconvStabilityOptIn: 'http'
+  };
+
   registerInstrumentations({
     instrumentations: [
-      new FetchInstrumentation({
-        ignoreUrls: [
-          new RegExp(cleanedRegexTracingUrl),
-          new RegExp(cleanedRegexEndpointUrl)
-        ]
-      }),
-      new XMLHttpRequestInstrumentation()
+      new FetchInstrumentation(networkInstrumentationConfig),
+      new XMLHttpRequestInstrumentation(networkInstrumentationConfig)
     ]
   });
 

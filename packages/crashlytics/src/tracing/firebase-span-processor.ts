@@ -17,22 +17,40 @@
 
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import { getSessionId } from '../helpers';
-import { CRASHLYTICS_ATTRIBUTE_KEYS } from '../constants';
+import { getAppVersion, getSessionId } from '../helpers';
+import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
+import { CrashlyticsOptions } from '../public-types';
+import { FirebaseOptions } from '@firebase/app';
 
 /**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
+  constructor(
+    private crashlyticsOptions: CrashlyticsOptions = {},
+    private firebaseOptions: FirebaseOptions = {}
+  ) {}
+
   forceFlush(): Promise<void> {
     return Promise.resolve();
   }
 
   onStart(span: Span, _parentContext: Context): void {
+    span.setAttribute(
+      COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
+      `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/global/`
+    );
     const sessionId = getSessionId();
     if (sessionId) {
-      span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
+      span.setAttribute(
+        COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID,
+        sessionId
+      );
     }
+    span.setAttribute(
+      COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION,
+      getAppVersion(this.crashlyticsOptions)
+    );
   }
 
   onEnd(_span: ReadableSpan): void {}

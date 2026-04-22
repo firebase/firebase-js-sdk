@@ -20,7 +20,7 @@ import { Span } from '@opentelemetry/api';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
-  CRASHLYTICS_ATTRIBUTE_KEYS
+  COMMON_SPAN_ATTRIBUTE_KEYS
 } from '../constants';
 
 const MOCK_SESSION_ID = 'mock-session-id';
@@ -64,14 +64,15 @@ describe('FirebaseSpanProcessor', () => {
   it('should add session id to span if present in storage', () => {
     storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
     processor.onStart(mockSpan as Span, {} as any);
-    expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
-      MOCK_SESSION_ID
-    );
+    expect(
+      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
+    ).to.equal(MOCK_SESSION_ID);
   });
 
   it('should not add session id if not present in storage', () => {
     processor.onStart(mockSpan as Span, {} as any);
-    expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
-      .undefined;
+    expect(
+      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
+    ).to.be.undefined;
   });
 });
