@@ -97,7 +97,11 @@ class OTLPLogExporter
         JsonLogsSerializer,
         new FetchTransport({
           url: config.url!,
-          headers: new Headers(config.headers),
+          headers: new Headers(
+            typeof config.headers === 'object'
+              ? (config.headers as Record<string, string>)
+              : {}
+          ),
           dynamicHeaderProviders
         })
       )
