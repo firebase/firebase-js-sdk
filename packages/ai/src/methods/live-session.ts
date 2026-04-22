@@ -62,15 +62,15 @@ export class LiveSession {
    */
   inConversation = false;
   /**
-   * Allows external code to await the opening of the websocket connection.
+   * Allows external code to await the opening of the WebSocket connection.
    */
   connectionPromise: Promise<void>;
   /**
-   * Generator yielding websocket messages from the server.
+   * Generator yielding WebSocket messages from the server.
    */
   private _serverMessages: AsyncGenerator<unknown> | null = null;
   /**
-   * Websocket handler. Injectable for testing.
+   * WebSocket handler. Injectable for testing.
    */
   private _webSocketHandler: WebSocketHandler;
 
@@ -88,7 +88,7 @@ export class LiveSession {
   }
 
   /**
-   * Initializes connection to the websocket. Should be called immediately
+   * Initializes connection to the WebSocket. Should be called immediately
    * after instantiation.
    *
    * @internal
