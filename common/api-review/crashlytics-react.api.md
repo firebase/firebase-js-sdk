@@ -26,7 +26,7 @@ export function FirebaseCrashlytics({ firebaseApp, crashlyticsOptions, children 
     firebaseApp: FirebaseApp;
     crashlyticsOptions?: CrashlyticsOptions;
     children?: default.ReactNode;
-}): default.ReactNode;
+}): default.ReactElement | null;
 
 // @public
 export function useReportRenderComplete(span: Span | undefined): void;

@@ -21,7 +21,8 @@ import { getSessionId } from '../helpers';
 import { CRASHLYTICS_ATTRIBUTE_KEYS } from '../constants';
 
 /**
- * A SpanProcessor that adds Firebase-specific attributes to spans.
+ * A SpanProcessor that adds Firebase-specific attributes to spans and delays span completion
+ * until the UI has finished rendering.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
   forceFlush(): Promise<void> {
@@ -32,7 +33,18 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const sessionId = getSessionId();
     if (sessionId) {
       span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
-      span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION, '123');
+    }
+
+    // Intercept span.end to delay it until the UI has finished rendering and painting
+    if (typeof window !== 'undefined') {
+      const originalEnd = span.end;
+      span.end = function (endTime?: number | Date | undefined): void {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            originalEnd.call(this, endTime);
+          });
+        });
+      };
     }
   }
 
