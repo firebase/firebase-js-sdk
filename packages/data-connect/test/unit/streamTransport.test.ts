@@ -1270,8 +1270,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         extensions: {}
       };
 
-      it('should log a warning if an unrecognized requestId is received', async () => {
-        const logWarnStub = sinon.stub(console, 'warn');
+      it('should log an error if an unrecognized requestId is received', async () => {
+        const logErrorStub = sinon.stub(logger, 'logError');
         const unknownRequestId = 'unknown-999';
         const response: DataConnectResponse<unknown> = {
           data: {},
@@ -1279,11 +1279,11 @@ describe('AbstractDataConnectStreamTransport', () => {
           extensions: {}
         };
         await transport.invokeHandleResponse(unknownRequestId, response);
-        expect(logWarnStub).to.have.been.calledOnce;
-        expect(logWarnStub).to.have.been.calledWithMatch(
+        expect(logErrorStub).to.have.been.calledOnce;
+        expect(logErrorStub).to.have.been.calledWithMatch(
           `Stream response contained unrecognized requestId '${unknownRequestId}'`
         );
-        logWarnStub.restore();
+        logErrorStub.restore();
       });
 
       describe('invokeQuery tracking', async () => {

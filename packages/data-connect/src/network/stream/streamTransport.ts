@@ -654,6 +654,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   ): void {
     this.cleanupInvokeQueryRequest(requestId, mapKey);
 
+    const deferredCancel = this.pendingCancellations.get(requestId);
+    if (deferredCancel) {
+      this.pendingCancellations.delete(requestId);
+      this.cancelSubscription(requestId, mapKey);
+    }
+
     const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
     if (!queuedRequestPromise) {
       void this.attemptClose(false);
@@ -855,33 +861,23 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.resumeRequestPromises.has(requestId)
     ) {
       const observer = this.subscribeObservers.get(requestId);
+      const resumePromise = this.resumeRequestPromises.get(requestId);
+
+      if (resumePromise) {
+        this.resumeRequestPromises.delete(requestId);
+        const { resolveFn, rejectFn } = resumePromise;
+        this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
+      }
+
       if (observer) {
-        // it's possible that this query was pending cancellation with it's observers deleted but
-        // an active resume request. so only call onData() if the observer still exists
         try {
           await observer.onData(response);
         } catch (e) {
           logError(`Error in observer callback: ${e}`);
         }
       }
-      const resumePromise = this.resumeRequestPromises.get(requestId);
-      if (resumePromise) {
-        this.resumeRequestPromises.delete(requestId);
-        const { resolveFn, rejectFn } = resumePromise;
-        this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
-
-        const deferredCancel = this.pendingCancellations.get(requestId);
-        if (deferredCancel) {
-          this.pendingCancellations.delete(requestId);
-          const mapKey = this.getMapKey(
-            deferredCancel.operationName,
-            deferredCancel.variables
-          );
-          this.cancelSubscription(requestId, mapKey);
-        }
-      }
     } else {
-      console.warn(
+      logError(
         `Stream response contained unrecognized requestId '${requestId}'`
       );
     }
