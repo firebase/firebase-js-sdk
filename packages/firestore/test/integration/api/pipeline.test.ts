@@ -6962,7 +6962,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       1,
       async firestoreInstance => {
         firestore = firestoreInstance[0];
-        restaurantsCollection = collection(firestore, 'SearchIntegrationTests');
+        restaurantsCollection = collection(firestore, COLLECTION_NAME);
         await setupRestaurantDocs(restaurantsCollection);
         setupDeferred.resolve();
 
@@ -6979,7 +6979,6 @@ apiDescribe.skipClassic('Pipelines', persistence => {
   });
 
   describe('search stage', () => {
-    addEqualityMatcher();
     describe('DISABLE query expansion', () => {
       describe('query', () => {
         // TODO(search) enable with backend support
@@ -7328,7 +7327,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
               // queryEnhancement: 'disabled'
             });
 
-          await expect(execute(ppl)).to.be.rejected;
+          await expect(execute(ppl)).to.be.rejectedWith(/3 INVALID_ARGUMENT.*/);
         });
       });
 
