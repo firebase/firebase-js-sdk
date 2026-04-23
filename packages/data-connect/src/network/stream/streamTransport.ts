@@ -345,7 +345,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Attempt to close the connection. Will only close if there are no active requests preventing it
    * from doing so. Does not respect any {@linkcode closeTimeout} or {@linkcode pendingClose}.
    */
-  private async attemptClose(): Promise<void> {
+  private async attemptClose(skipTimeout: boolean = false): Promise<void> {
+    if (!skipTimeout && (!this.pendingClose || !this.closeTimeoutFinished)) {
+      return;
+    }
     if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
       return;
     }
@@ -361,14 +364,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * there's no need to cleanup.
    */
   private closeAfterTimeout(): void {
-    if (this.pendingClose) {
+    if (this.pendingClose && this.closeTimeout) {
       return;
     }
     this.pendingClose = true;
     this.closeTimeoutFinished = false;
     this.closeTimeout = setTimeout(() => {
       this.closeTimeoutFinished = true;
-      void this.attemptClose();
+      void this.attemptClose(false);
     }, IDLE_CONNECTION_TIMEOUT_MS);
   }
 
@@ -378,6 +381,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private cancelClose(): void {
     if (this.closeTimeout) {
       clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
     }
     this.pendingClose = false;
     this.closeTimeoutFinished = false;
@@ -841,7 +845,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         Code.UNAUTHORIZED,
         'Stream disconnected due to auth change.'
       );
-      void this.attemptClose();
+      void this.attemptClose(true);
     }
   }
 
