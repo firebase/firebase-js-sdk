@@ -83,7 +83,7 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can get bytes', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/exp-bytes-get');
     await uploadBytes(reference, new Uint8Array([0, 1, 3, 128, 255]));
     const bytes = await getBytes(reference);
     expect(new Uint8Array(bytes)).to.deep.equal(
@@ -92,7 +92,7 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can get first n bytes', async () => {
-    const reference = ref(storage, 'public/exp-bytes');
+    const reference = ref(storage, 'public/exp-bytes-get-n');
     await uploadBytes(reference, new Uint8Array([0, 1, 3]));
     const bytes = await getBytes(reference, 2);
     expect(new Uint8Array(bytes)).to.deep.equal(new Uint8Array([0, 1]));
@@ -140,13 +140,13 @@ describe('FirebaseStorage Exp', () => {
   });
 
   it('can delete object ', async () => {
-    const reference = ref(storage, 'public/exp-delete');
+    const reference = ref(storage, 'public/exp-delete-obj');
     await uploadString(reference, 'foo');
     await getDownloadURL(reference);
     await deleteObject(reference);
     await expect(getDownloadURL(reference)).to.eventually.be.rejectedWith(
       Error,
-      /Object 'public\/exp-delete' does not exist/
+      /Object 'public\/exp-delete-obj' does not exist/
     );
   });
 

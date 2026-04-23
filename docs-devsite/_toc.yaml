@@ -44,6 +44,8 @@ toc:
     path: /docs/reference/js/ai.codeexecutiontool.md
   - title: Content
     path: /docs/reference/js/ai.content.md
+  - title: ContextWindowCompression
+    path: /docs/reference/js/ai.contextwindowcompression.md
   - title: CountTokensRequest
     path: /docs/reference/js/ai.counttokensrequest.md
   - title: CountTokensResponse
@@ -170,6 +172,8 @@ toc:
     path: /docs/reference/js/ai.ondeviceparams.md
   - title: PrebuiltVoiceConfig
     path: /docs/reference/js/ai.prebuiltvoiceconfig.md
+  - title: ProactivityConfig
+    path: /docs/reference/js/ai.proactivityconfig.md
   - title: PromptFeedback
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions
@@ -196,6 +200,8 @@ toc:
     path: /docs/reference/js/ai.segment.md
   - title: SingleRequestOptions
     path: /docs/reference/js/ai.singlerequestoptions.md
+  - title: SlidingWindow
+    path: /docs/reference/js/ai.slidingwindow.md
   - title: SpeechConfig
     path: /docs/reference/js/ai.speechconfig.md
   - title: StartAudioConversationOptions

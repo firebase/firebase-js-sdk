@@ -491,12 +491,13 @@ describe('Firebase Storage > Upload Task', () => {
     task.resume();
     return promise;
   }
-  enum StateType {
-    RESUME = 'resume',
-    PAUSE = 'pause',
-    ERROR = 'error',
-    COMPLETE = 'complete'
-  }
+  const StateType = {
+    RESUME: 'resume',
+    PAUSE: 'pause',
+    ERROR: 'error',
+    COMPLETE: 'complete'
+  } as const;
+  type StateType = (typeof StateType)[keyof typeof StateType];
   interface State {
     type: StateType;
     data?: Error;

@@ -70,6 +70,7 @@ The Firebase AI Web SDK.
 |  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
 |  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
+|  [ContextWindowCompression](./ai.contextwindowcompression.md#contextwindowcompression_interface) | <b><i>(Public Preview)</i></b> Context window compression configuration. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
 |  [CustomErrorData](./ai.customerrordata.md#customerrordata_interface) | Details object that contains data originating from a bad HTTP response. |
@@ -124,6 +125,7 @@ The Firebase AI Web SDK.
 |  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the <code>Schema.object()</code> helper. |
 |  [OnDeviceParams](./ai.ondeviceparams.md#ondeviceparams_interface) | <b><i>(Public Preview)</i></b> Encapsulates configuration for on-device inference. |
 |  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a pre-built voice. |
+|  [ProactivityConfig](./ai.proactivityconfig.md#proactivityconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for proactivity. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [RetrievedContextAttribution](./ai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
@@ -136,6 +138,7 @@ The Firebase AI Web SDK.
 |  [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry point. |
 |  [Segment](./ai.segment.md#segment_interface) | Represents a specific segment within a [Content](./ai.content.md#content_interface) object, often used to pinpoint the exact location of text or data that grounding information refers to. |
 |  [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like <code>timeout</code> and <code>baseUrl</code>) with request-specific controls like cancellation via <code>AbortSignal</code>.<!-- -->Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (for example, [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->). |
+|  [SlidingWindow](./ai.slidingwindow.md#slidingwindow_interface) | <b><i>(Public Preview)</i></b> Sliding window configuration. |
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
