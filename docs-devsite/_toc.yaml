@@ -44,6 +44,8 @@ toc:
     path: /docs/reference/js/ai.codeexecutiontool.md
   - title: Content
     path: /docs/reference/js/ai.content.md
+  - title: ContextWindowCompressionConfig
+    path: /docs/reference/js/ai.contextwindowcompressionconfig.md
   - title: CountTokensRequest
     path: /docs/reference/js/ai.counttokensrequest.md
   - title: CountTokensResponse
@@ -156,6 +158,8 @@ toc:
     path: /docs/reference/js/ai.liveservertoolcallcancellation.md
   - title: LiveSession
     path: /docs/reference/js/ai.livesession.md
+  - title: LiveSessionResumptionUpdate
+    path: /docs/reference/js/ai.livesessionresumptionupdate.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
@@ -194,8 +198,12 @@ toc:
     path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SessionResumptionConfig
+    path: /docs/reference/js/ai.sessionresumptionconfig.md
   - title: SingleRequestOptions
     path: /docs/reference/js/ai.singlerequestoptions.md
+  - title: SlidingWindow
+    path: /docs/reference/js/ai.slidingwindow.md
   - title: SpeechConfig
     path: /docs/reference/js/ai.speechconfig.md
   - title: StartAudioConversationOptions

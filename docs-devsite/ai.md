@@ -70,6 +70,7 @@ The Firebase AI Web SDK.
 |  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
 |  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
+|  [ContextWindowCompressionConfig](./ai.contextwindowcompressionconfig.md#contextwindowcompressionconfig_interface) | <b><i>(Public Preview)</i></b> Enables context window compression to manage the model's context window. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
 |  [CustomErrorData](./ai.customerrordata.md#customerrordata_interface) | Details object that contains data originating from a bad HTTP response. |
@@ -119,6 +120,7 @@ The Firebase AI Web SDK.
 |  [LiveServerGoingAwayNotice](./ai.liveservergoingawaynotice.md#liveservergoingawaynotice_interface) | <b><i>(Public Preview)</i></b> Notification that the server will not be able to service the client soon. |
 |  [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) | <b><i>(Public Preview)</i></b> A request from the model for the client to execute one or more functions. |
 |  [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface) | <b><i>(Public Preview)</i></b> Notification to cancel a previous function call triggered by [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface)<!-- -->. |
+|  [LiveSessionResumptionUpdate](./ai.livesessionresumptionupdate.md#livesessionresumptionupdate_interface) | <b><i>(Public Preview)</i></b> An update of the session resumption state.<!-- -->This message is only sent if [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) was set in the session setup. |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the <code>Schema.object()</code> helper. |
@@ -135,7 +137,9 @@ The Firebase AI Web SDK.
 |  [SchemaShared](./ai.schemashared.md#schemashared_interface) | Basic [Schema](./ai.schema.md#schema_class) properties shared across several Schema-related types. |
 |  [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry point. |
 |  [Segment](./ai.segment.md#segment_interface) | Represents a specific segment within a [Content](./ai.content.md#content_interface) object, often used to pinpoint the exact location of text or data that grounding information refers to. |
+|  [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the session resumption mechanism. |
 |  [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like <code>timeout</code> and <code>baseUrl</code>) with request-specific controls like cancellation via <code>AbortSignal</code>.<!-- -->Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (for example, [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->). |
+|  [SlidingWindow](./ai.slidingwindow.md#slidingwindow_interface) | <b><i>(Public Preview)</i></b> Configures the sliding window context compression mechanism. |
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
@@ -775,6 +779,7 @@ LiveResponseType: {
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
     GOING_AWAY_NOTICE: string;
+    SESSION_RESUMPTION_UPDATE: string;
 }
 ```
 

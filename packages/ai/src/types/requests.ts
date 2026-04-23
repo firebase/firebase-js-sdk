@@ -232,6 +232,70 @@ export interface LiveGenerationConfig {
    * "How are you today?", the model may transcribe that output across three messages, broken up as "How a", "re yo", "u today?".
    */
   outputAudioTranscription?: AudioTranscriptionConfig;
+  /**
+   * The context window compression configuration.
+   *
+   * @beta
+   */
+  contextWindowCompression?: ContextWindowCompressionConfig;
+}
+
+/**
+ * Configures the sliding window context compression mechanism.
+ *
+ * @remarks
+ * The sliding window discards content at the beginning of the
+ * context window. The resulting context will always begin at
+ * the start of a `user` role turn. System instructions
+ * will always remain at the start of the result.
+ *
+ * @beta
+ */
+export interface SlidingWindow {
+  /**
+   * The session reduction target, for example, how many tokens the model
+   * should keep.
+   */
+  targetTokens?: number;
+}
+
+/**
+ * Enables context window compression to manage the model's context window.
+ *
+ * @remarks
+ * This mechanism prevents the context from exceeding a given length.
+ *
+ * @beta
+ */
+export interface ContextWindowCompressionConfig {
+  /**
+   * The number of tokens (before running a turn) that triggers the context
+   * window compression.
+   */
+  triggerTokens?: number;
+
+  /**
+   * The sliding window compression mechanism.
+   */
+  slidingWindow?: SlidingWindow;
+}
+
+/**
+ * Configuration for the session resumption mechanism.
+ *
+ * @remarks
+ * When included in the session setup, the server will send
+ * {@link LiveSessionResumptionUpdate} messages in the response stream.
+ *
+ * @beta
+ */
+export interface SessionResumptionConfig {
+  /**
+   * The session resumption handle of the previous session to restore.
+   *
+   * If not present, a new session will be started.
+   */
+  handle?: string;
 }
 
 /**
