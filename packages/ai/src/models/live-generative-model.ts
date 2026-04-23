@@ -25,6 +25,7 @@ import {
   Content,
   LiveGenerationConfig,
   LiveModelParams,
+  SessionResumptionConfig,
   Tool,
   ToolConfig
 } from '../public-types';
@@ -70,12 +71,28 @@ export class LiveGenerativeModel extends AIModel {
   /**
    * Starts a {@link LiveSession}.
    *
+   * @param sessionResumption - Optional configuration for session resumption.
    * @returns A {@link LiveSession}.
    * @throws If the connection failed to be established with the server.
    *
    * @beta
    */
-  async connect(): Promise<LiveSession> {
+  async connect(
+    sessionResumption?: SessionResumptionConfig
+  ): Promise<LiveSession> {
+    const serverMessages = await this._internalConnect(sessionResumption);
+    return new LiveSession(
+      this._webSocketHandler,
+      serverMessages,
+      async (resumptionConfig?: SessionResumptionConfig) => {
+        return this._internalConnect(resumptionConfig);
+      }
+    );
+  }
+
+  private async _internalConnect(
+    sessionResumption?: SessionResumptionConfig
+  ): Promise<AsyncGenerator<unknown>> {
     const url = new WebSocketUrl(this._apiSettings);
     await this._webSocketHandler.connect(url.toString());
 
@@ -102,7 +119,8 @@ export class LiveGenerativeModel extends AIModel {
         toolConfig: this.toolConfig,
         systemInstruction: this.systemInstruction,
         inputAudioTranscription,
-        outputAudioTranscription
+        outputAudioTranscription,
+        sessionResumption
       }
     };
 
@@ -125,7 +143,7 @@ export class LiveGenerativeModel extends AIModel {
         );
       }
 
-      return new LiveSession(this._webSocketHandler, serverMessages);
+      return serverMessages;
     } catch (e) {
       // Ensure connection is closed on any setup error
       await this._webSocketHandler.close();

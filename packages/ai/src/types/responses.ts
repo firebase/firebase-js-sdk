@@ -630,6 +630,30 @@ export interface LiveServerGoingAwayNotice {
 }
 
 /**
+ * An update of the session resumption state.
+ *
+ * This message is only sent if {@link SessionResumptionConfig} was set in the
+ * session setup.
+ *
+ * @beta
+ */
+export interface LiveSessionResumptionUpdate {
+  type: 'sessionResumptionUpdate';
+  /**
+   * The new handle that represents the state that can be resumed. Empty if `resumable` is false.
+   */
+  newHandle?: string;
+  /**
+   * Indicates if the session can be resumed at this point.
+   */
+  resumable?: boolean;
+  /**
+   * The index of the last client message that is included in the state represented by this update.
+   */
+  lastConsumedClientMessageIndex?: number;
+}
+
+/**
  * The types of responses that can be returned by {@link LiveSession.receive}.
  *
  * @beta
@@ -638,7 +662,8 @@ export const LiveResponseType = {
   SERVER_CONTENT: 'serverContent',
   TOOL_CALL: 'toolCall',
   TOOL_CALL_CANCELLATION: 'toolCallCancellation',
-  GOING_AWAY_NOTICE: 'goingAwayNotice'
+  GOING_AWAY_NOTICE: 'goingAwayNotice',
+  SESSION_RESUMPTION_UPDATE: 'sessionResumptionUpdate'
 };
 
 /**
