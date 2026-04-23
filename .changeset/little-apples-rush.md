@@ -3,4 +3,4 @@
 'firebase': minor
 ---
 
-Added `LiveSession.resumeSession()` to allow resuming a previous `LiveSession`.
+Added `LiveSession.resumeSession()` to allow resuming a previous `LiveSession`. Also added `contextWindowCompression` feature.
