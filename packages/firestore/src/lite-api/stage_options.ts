@@ -311,20 +311,18 @@ export type SearchStageOptions = StageOptions & {
    */
   query: BooleanExpression | string;
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
-  //  */
-  // languageCode?: string;
+  /**
+   * The BCP-47 language code of text in the search query, such as, “en” or “sr”
+   */
+  languageCode?: string;
 
   // TODO(search) add indexPartition after languageCode
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The maximum number of documents to retrieve. Documents will be retrieved in the
-  //  * pre-sort order specified by the search index.
-  //  */
-  // retrievalDepth?: number;
+  /**
+   * The maximum number of documents to retrieve. Documents will be retrieved in the
+   * pre-sort order specified by the search index.
+   */
+  retrievalDepth?: number;
 
   /**
    * Orderings specify how the returned documents are sorted.
@@ -332,17 +330,15 @@ export type SearchStageOptions = StageOptions & {
    */
   sort?: Ordering | Ordering[];
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The number of documents to skip from the beginning of the search result set.
-  //  */
-  // offset?: number;
+  /**
+   * The number of documents to skip from the beginning of the search result set.
+   */
+  offset?: number;
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The maximum number of documents to return from the Search stage.
-  //  */
-  // limit?: number;
+  /**
+   * The maximum number of documents to return from the Search stage.
+   */
+  limit?: number;
 
   // TODO(search) enable with backend support
   // /**
