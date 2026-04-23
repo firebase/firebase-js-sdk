@@ -691,6 +691,25 @@ export interface GoogleAIGenerateContentResponse {
 }
 
 // @public
+export interface GoogleMaps {
+    // (undocumented)
+    enableWidget?: boolean;
+}
+
+// @public
+export interface GoogleMapsGroundingChunk {
+    placeId?: string;
+    text?: string;
+    title?: string;
+    uri?: string;
+}
+
+// @public
+export interface GoogleMapsTool {
+    googleMaps: GoogleMaps;
+}
+
+// @public
 export interface GoogleSearch {
 }
 
@@ -701,11 +720,13 @@ export interface GoogleSearchTool {
 
 // @public
 export interface GroundingChunk {
+    maps?: GoogleMapsGroundingChunk;
     web?: WebGroundingChunk;
 }
 
 // @public
 export interface GroundingMetadata {
+    googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)
@@ -987,6 +1008,12 @@ export interface LanguageModelPromptOptions {
     responseConstraint?: object;
 }
 
+// @public
+export interface LatLng {
+    latitude?: number;
+    longitude?: number;
+}
+
 // @beta
 export interface LiveGenerationConfig {
     contextWindowCompression?: ContextWindowCompressionConfig;
@@ -1223,6 +1250,12 @@ export const ResponseModality: {
 
 // @beta
 export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
+
+// @public
+export interface RetrievalConfig {
+    languageCode?: string;
+    latLng?: LatLng;
+}
 
 // @public (undocumented)
 export interface RetrievedContextAttribution {
@@ -1480,8 +1513,8 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
@@ -1506,6 +1539,12 @@ export interface TemplateRequestInternal extends Omit<TemplateGenerateContentReq
 
 // @beta
 export type TemplateTool = TemplateFunctionDeclarationsTool;
+
+// @public
+export interface TemplateToolConfig {
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
+}
 
 // @public
 export interface TextPart {
@@ -1546,12 +1585,14 @@ export const ThinkingLevel: {
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
+export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
 }
 
 // @beta
