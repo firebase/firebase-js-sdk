@@ -215,13 +215,17 @@ export interface LiveGenerationConfig {
  * Configures the sliding window context compression mechanism.
  *
  * @remarks
- * The context window will be truncated by keeping only a suffix of it.
+ * The sliding window discards content at the beginning of the
+ * context window. The resulting context will always begin at
+ * the start of a `user` role turn. System instructions
+ * will always remain at the start of the result.
  *
  * @beta
  */
 export interface SlidingWindow {
   /**
-   * The session reduction target, i.e., how many tokens we should keep.
+   * The session reduction target, for example, how many tokens the model
+   * should keep.
    */
   targetTokens?: number;
 }

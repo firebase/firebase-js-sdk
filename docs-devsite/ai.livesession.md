@@ -29,7 +29,7 @@ export declare class LiveSession
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [connectionPromise](./ai.livesession.md#livesessionconnectionpromise) |  | Promise&lt;void&gt; | <b><i>(Public Preview)</i></b> Allows external code to await the opening of the websocket connection. |
+|  [connectionPromise](./ai.livesession.md#livesessionconnectionpromise) |  | Promise&lt;void&gt; | <b><i>(Public Preview)</i></b> Allows external code to await the opening of the WebSocket connection. |
 |  [inConversation](./ai.livesession.md#livesessioninconversation) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is being controlled by an <code>AudioConversationController</code>. |
 |  [isClosed](./ai.livesession.md#livesessionisclosed) |  | boolean | <b><i>(Public Preview)</i></b> Indicates whether this Live session is closed. |
 
@@ -53,7 +53,7 @@ export declare class LiveSession
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Allows external code to await the opening of the websocket connection.
+Allows external code to await the opening of the WebSocket connection.
 
 <b>Signature:</b>
 

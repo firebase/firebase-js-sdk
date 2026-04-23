@@ -362,7 +362,7 @@ export interface Segment {
   /**
    * The zero-based start index of the segment within the specified `Part`,
    * measured in UTF-8 bytes. This offset is inclusive, starting from 0 at the
-   * beginning of the part's content (e.g., `Part.text`).
+   * beginning of the part's content (for example, `Part.text`).
    */
   startIndex: number;
   /**
