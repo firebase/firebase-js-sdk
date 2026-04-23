@@ -800,32 +800,52 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
-      // don't clean up the tracking maps here, they're handled automatically when the execute promise settles
       const { resolveFn, rejectFn } =
         this.executeRequestPromises.get(requestId)!;
-      if (response.errors && response.errors.length) {
-        const failureResponse: DataConnectOperationFailureResponse = {
-          errors: response.errors as [],
-          data: response.data as Record<string, unknown>
-        };
-        const stringified = JSON.stringify(response.errors);
-        rejectFn(
-          new DataConnectOperationError(
-            'DataConnect error while performing request: ' + stringified,
-            failureResponse
-          )
-        );
-      } else {
-        resolveFn(response);
-      }
+      this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
     } else if (this.subscribeObservers.has(requestId)) {
-      const observer = this.subscribeObservers.get(requestId)!;
-      await observer.onData(response);
+      const observer = this.subscribeObservers.get(requestId);
+      if (observer) {
+        // it's possible that this query was pending cancellation with it's observers deleted but
+        // an active resume request. so only call onData() if the observer still exists
+        try {
+          await observer.onData(response);
+        } catch (e) {
+          logError(`Error in observer callback: ${e}`);
+        }
+      }
     } else {
       throw new DataConnectError(
         Code.OTHER,
         `Stream response contained unrecognized requestId '${requestId}'`
       );
+    }
+  }
+
+  /**
+   * Handles an invoke operation response, resolving or rejecting the promise returned to the user
+   * Does not handle any cleanup for requests - this should be handled by the caller or the promise's
+   * finally() block.
+   */
+  private handleInvokeOperationResponse<Data>(
+    resolveFn: (value: DataConnectResponse<Data>) => void,
+    rejectFn: (reason: unknown) => void,
+    response: DataConnectResponse<Data>
+  ): void {
+    if (response.errors && response.errors.length) {
+      const failureResponse: DataConnectOperationFailureResponse = {
+        errors: response.errors as [],
+        data: response.data as Record<string, unknown>
+      };
+      const stringified = JSON.stringify(response.errors);
+      rejectFn(
+        new DataConnectOperationError(
+          'DataConnect error while performing request: ' + stringified,
+          failureResponse
+        )
+      );
+    } else {
+      resolveFn(response);
     }
   }
 }

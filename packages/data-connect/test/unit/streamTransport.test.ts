@@ -1229,8 +1229,8 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         it('should clean map correctly when handleResponse rejects', async () => {
-          transport.invokeMutation(mutationName1, variables1).catch(() => { });
-          transport.invokeMutation(mutationName2, variables2).catch(() => { });
+          transport.invokeMutation(mutationName1, variables1).catch(() => {});
+          transport.invokeMutation(mutationName2, variables2).catch(() => {});
           const expectedKey1 = transport.getMapKey(mutationName1, variables1);
           const expectedKey2 = transport.getMapKey(mutationName2, variables2);
           const activeRequests1 =
