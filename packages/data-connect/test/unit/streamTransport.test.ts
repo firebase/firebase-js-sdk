@@ -475,7 +475,6 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         describe('optimizations', () => {
           describe('prefer resume over execute when executing already subscribed queries', () => {
-            // TODO: VERIFY
             it('should send a resume payload if there is an active subscription', async () => {
               const sendMessageSpy = sinon.spy(transport, 'sendMessage');
               const observer = {
@@ -511,7 +510,6 @@ describe('AbstractDataConnectStreamTransport', () => {
               expect(await queryPromise).to.deep.equal(response);
             });
 
-            // TODO: VERIFY
             it('should resolve resume promise even if observer callback throws', async () => {
               sinon.stub(transport, 'sendMessage').resolves();
               const observer = {
@@ -767,7 +765,6 @@ describe('AbstractDataConnectStreamTransport', () => {
                 .false;
             });
 
-            // TODO: VERIFY
             it('should de-duplicate identical resume requests', async () => {
               sinon.stub(transport, 'sendMessage').resolves();
               const observer = {
@@ -793,7 +790,6 @@ describe('AbstractDataConnectStreamTransport', () => {
               }
             });
 
-            // TODO: VERIFY
             it('should execute first, and then pop as resume if subscribed while waiting', async () => {
               const sendMessageSpy = sinon.spy(transport, 'sendMessage');
 
@@ -833,7 +829,6 @@ describe('AbstractDataConnectStreamTransport', () => {
               expect(resumeMessage.requestId).to.equal(subscribeRequestId);
             });
 
-            // TODO: VERIFY
             it('should resume first, and then pop as execute if unsubscribed while waiting', async () => {
               const sendMessageSpy = sinon.spy(transport, 'sendMessage');
               const observer = {
@@ -1162,7 +1157,6 @@ describe('AbstractDataConnectStreamTransport', () => {
             .false;
         });
 
-        // TODO: VERIFY
         it('should defer cancellation if there is a pending resume request', async () => {
           const sendMessageSpy = sinon.spy(transport, 'sendMessage');
           const observer = {
@@ -1197,7 +1191,6 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(cancelMessage.requestId).to.equal(subscribeRequestId);
         });
 
-        // TODO: VERIFY
         it('should resurrect a subscription if re-subscribed while pending cancellation', async () => {
           sinon.stub(transport, 'sendMessage').resolves();
           const observer1 = {
