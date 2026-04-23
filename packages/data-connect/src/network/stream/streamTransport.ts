@@ -323,9 +323,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Attempt to close the connection. Will only close if there are no active requests preventing it
-   * from doing so. Does not respect any {@linkcode closeTimeout}.
+   * from doing so.
+   * @param skipTimeout If true, the close timeout will be ignored (but we will still check for active
+   * requests). Defaults to `false`.
    */
-  private async attemptClose(): Promise<void> {
+  private async attemptClose(skipTimeout: boolean = false): Promise<void> {
+    if (!skipTimeout && (!this.pendingClose || !this.closeTimeoutFinished)) {
+      return;
+    }
     if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
       return;
     }
@@ -341,14 +346,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * there's no need to cleanup.
    */
   private closeAfterTimeout(): void {
-    if (this.pendingClose) {
+    if (this.pendingClose && this.closeTimeout) {
       return;
     }
     this.pendingClose = true;
     this.closeTimeoutFinished = false;
     this.closeTimeout = setTimeout(() => {
       this.closeTimeoutFinished = true;
-      void this.attemptClose();
+      void this.attemptClose(false);
     }, IDLE_CONNECTION_TIMEOUT_MS);
   }
 
@@ -358,6 +363,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private cancelClose(): void {
     if (this.closeTimeout) {
       clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
     }
     this.pendingClose = false;
     this.closeTimeoutFinished = false;
@@ -608,14 +614,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
     if (!queuedRequestPromise) {
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.pendingClose &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
-      }
+      void this.attemptClose(false);
       return;
     }
 
@@ -655,14 +654,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     );
     responsePromise = responsePromise.finally(() => {
       this.cleanupInvokeMutationRequest(requestId, mapKey);
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.pendingClose &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
-      }
+      void this.attemptClose(false);
     });
 
     // asynchronous, fire and forget
@@ -734,8 +726,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       return;
     }
     const requestId = subscribeRequest.requestId;
-
-    this.subscribeObservers.delete(requestId);
     this.cancelSubscription(requestId, mapKey);
   }
 
@@ -785,7 +775,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         Code.UNAUTHORIZED,
         'Stream disconnected due to auth change.'
       );
-      void this.attemptClose();
+      void this.attemptClose(true);
     }
   }
 
@@ -806,8 +796,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     } else if (this.subscribeObservers.has(requestId)) {
       const observer = this.subscribeObservers.get(requestId);
       if (observer) {
-        // it's possible that this query was pending cancellation with it's observers deleted but
-        // an active resume request. so only call onData() if the observer still exists
         try {
           await observer.onData(response);
         } catch (e) {
