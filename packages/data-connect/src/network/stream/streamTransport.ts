@@ -343,7 +343,9 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Attempt to close the connection. Will only close if there are no active requests preventing it
-   * from doing so. Does not respect any {@linkcode closeTimeout} or {@linkcode pendingClose}.
+   * from doing so.
+   * @param skipTimeout If true, the close timeout will be ignored (but we will still check for active
+   * requests). Defaults to `false`.
    */
   private async attemptClose(skipTimeout: boolean = false): Promise<void> {
     if (!skipTimeout && (!this.pendingClose || !this.closeTimeoutFinished)) {
@@ -654,14 +656,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
     const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
     if (!queuedRequestPromise) {
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.pendingClose &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
-      }
+      void this.attemptClose(false);
       return;
     }
 
@@ -701,14 +696,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     );
     responsePromise = responsePromise.finally(() => {
       this.cleanupInvokeMutationRequest(requestId, mapKey);
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.pendingClose &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
-      }
+      void this.attemptClose(false);
     });
 
     // asynchronous, fire and forget
@@ -804,8 +792,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * should close the stream due to inactivity.
    */
   private cancelSubscription(requestId: string, mapKey: string): void {
-    this.activeInvokeSubscribeRequests.delete(mapKey);
-    this.subscribeObservers.delete(requestId);
+    this.cleanupInvokeSubscribeRequest(requestId, mapKey);
     const cancelBody: CancelStreamRequest = {
       requestId,
       cancel: {}
