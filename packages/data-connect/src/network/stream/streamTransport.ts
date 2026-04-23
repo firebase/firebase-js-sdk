@@ -730,12 +730,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     const mapKey = this.getMapKey(queryName, variables);
     const existingSubscribe = this.activeInvokeSubscribeRequests.get(mapKey);
 
-    // if this query is pending cancellation, cancel the cancellation! 
+    // if this query is pending cancellation, cancel the cancellation!
     if (existingSubscribe) {
       const requestId = existingSubscribe.requestId;
       if (this.pendingCancellations.has(requestId)) {
         this.pendingCancellations.delete(requestId);
-        this.subscribeObservers.set(requestId, observer as SubscribeObserver<unknown>);
+        this.subscribeObservers.set(
+          requestId,
+          observer as SubscribeObserver<unknown>
+        );
       }
     } else {
       const requestId = this.nextRequestId();
@@ -864,7 +867,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       if (observer) {
         // it's possible that this query was pending cancellation with it's observers deleted but
         // an active resume request. so only call onData() if the observer still exists
-        await observer.onData(response);
+        try {
+          await observer.onData(response);
+        } catch (e) {
+          logError(`Error in observer callback: ${e}`);
+        }
       }
       const resumePromise = this.resumeRequestPromises.get(requestId);
       if (resumePromise) {
