@@ -176,7 +176,10 @@ interface TransportWithInternals {
   onOnline(): void;
   onVisibilityChange(): void;
   ensureConnection(): Promise<void>;
+  dispose(): Promise<void>;
   attemptReconnect(): void;
+  onOnlineEventListener(): void;
+  onVisibilityChangeEventListener(): void;
 }
 
 describe('AbstractDataConnectStreamTransport', () => {
@@ -1935,13 +1938,19 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       expect(transport.reconnectTimer).to.not.be.null;
 
-      transport.onOnline();
+      transport.onOnlineEventListener();
 
       expect(ensureConnectionStub).to.have.been.calledOnce;
       expect(transport.reconnectTimer).to.be.null;
     });
 
     it('onVisibilityChange should trigger immediate reconnect if waiting', async () => {
+      const isBrowser = typeof window !== 'undefined';
+      if (!isBrowser) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (global as any).document = { visibilityState: 'visible' };
+      }
+
       const observer = {
         onData: sinon.spy(),
         onDisconnect: sinon.spy(),
@@ -1952,10 +1961,84 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       expect(transport.reconnectTimer).to.not.be.null;
 
-      transport.onVisibilityChange();
+      transport.onVisibilityChangeEventListener();
 
       expect(ensureConnectionStub).to.have.been.calledOnce;
       expect(transport.reconnectTimer).to.be.null;
+
+      if (!isBrowser) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (global as any).document;
+      }
+    });
+  });
+
+  describe('Dispose', () => {
+    let clock: sinon.SinonFakeTimers;
+    let closeConnectionSpy: sinon.SinonSpy;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+      closeConnectionSpy = sinon.spy(transport, 'closeConnection');
+    });
+
+    afterEach(() => {
+      clock.restore();
+      sinon.restore();
+    });
+
+    it('should clean up event listeners and timers on dispose', async () => {
+      const isBrowser = typeof window !== 'undefined';
+      let removeEventListenerSpy: sinon.SinonSpy;
+      let removeDocEventListenerSpy: sinon.SinonSpy;
+
+      if (isBrowser) {
+        removeEventListenerSpy = sinon.spy(window, 'removeEventListener');
+        removeDocEventListenerSpy = sinon.spy(document, 'removeEventListener');
+      } else {
+        // Mock window and document for Node environment
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (global as any).window = { removeEventListener: sinon.spy() };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (global as any).document = { removeEventListener: sinon.spy() };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        removeEventListenerSpy = (global as any).window.removeEventListener;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        removeDocEventListenerSpy = (global as any).document
+          .removeEventListener;
+      }
+
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+
+      transport.onStreamClose(1006, 'Abnormal Closure');
+      expect(transport.reconnectTimer).to.not.be.null;
+
+      await transport.dispose();
+
+      expect(removeEventListenerSpy).to.have.been.calledWith(
+        'online',
+        transport.onOnlineEventListener
+      );
+      expect(removeDocEventListenerSpy).to.have.been.calledWith(
+        'visibilitychange',
+        transport.onVisibilityChangeEventListener
+      );
+
+      // Clean up global mocks if added
+      if (!isBrowser) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (global as any).window;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (global as any).document;
+      }
+
+      expect(transport.reconnectTimer).to.be.null;
+      expect(closeConnectionSpy).to.have.been.calledOnce;
     });
   });
 });

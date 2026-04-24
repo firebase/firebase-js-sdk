@@ -15,11 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  CallerSdkTypeEnum,
-  DataConnectOptions,
-  TransportOptions
-} from '../../api';
+import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import {
   Code,
@@ -32,6 +28,7 @@ import { logError, logDebug } from '../../logger';
 import {
   AbstractDataConnectTransport,
   CallerSdkType,
+  CallerSdkTypeEnum,
   DataConnectResponse,
   SubscribeObserver,
   getGoogApiClientValue
@@ -138,15 +135,40 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   private registerBrowserEventListeners(): void {
     if (typeof window !== 'undefined' && 'addEventListener' in window) {
-      window.addEventListener('online', () => this.onOnline());
+      window.addEventListener('online', this.onOnlineEventListener);
     }
     if (typeof document !== 'undefined' && 'addEventListener' in document) {
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          this.onVisible();
-        }
-      });
+      document.addEventListener(
+        'visibilitychange',
+        this.onVisibilityChangeEventListener
+      );
     }
+  }
+
+  /**
+   * Register event listeners for browser-specific events like online/offline and visibility changes.
+   */
+  private cleanupBrowserEventListeners(): void {
+    if (typeof window !== 'undefined' && 'removeEventListener' in window) {
+      window.removeEventListener('online', this.onOnlineEventListener);
+    }
+    if (typeof document !== 'undefined' && 'removeEventListener' in document) {
+      document.removeEventListener(
+        'visibilitychange',
+        this.onVisibilityChangeEventListener
+      );
+    }
+  }
+
+  /**
+   * Disposes of the transport instance, cleaning up event listeners and timers,
+   * and closing the connection.
+   */
+  async dispose(): Promise<void> {
+    this.cleanupBrowserEventListeners();
+    this.cancelReconnect();
+    this.rejectAllRequests(Code.OTHER, 'Stream disposed.');
+    await this.closeConnection();
   }
 
   /**
@@ -374,22 +396,27 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Triggered when the environment comes back online.
    */
-  onOnline(): void {
+  onOnlineEventListener = (): void => {
     if (this.reconnectTimer) {
       this.cancelReconnect();
       void this.attemptReconnect();
     }
-  }
+  };
 
   /**
-   * Triggered when the app becomes visible.
+   * Triggered when a visibility change event is dispatched.
    */
-  onVisible(): void {
-    if (this.reconnectTimer) {
-      this.cancelReconnect();
-      void this.attemptReconnect();
+  onVisibilityChangeEventListener = (): void => {
+    if (
+      typeof document !== 'undefined' &&
+      document.visibilityState === 'visible'
+    ) {
+      if (this.reconnectTimer) {
+        this.cancelReconnect();
+        void this.attemptReconnect();
+      }
     }
-  }
+  };
 
   private cancelReconnect(): void {
     if (this.reconnectTimer) {
@@ -499,7 +526,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * This is a graceful close - it will be called when there are no more active subscriptions, so
    * there's no need to cleanup.
    */
-  private closeAfterTimeout(): void {
+  private startIdleCloseTimeout(): void {
     if (this.pendingClose && this.idleTimeout) {
       return;
     }
@@ -579,11 +606,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected onStreamClose(code: number, reason: string): void {
     if (code === 1000 && !this.hasActiveSubscriptions) {
-      this.rejectAllRequests(Code.OTHER, `Stream disconnected gracefully.`);
+      this.rejectAllRequests(
+        Code.OTHER,
+        `Stream disconnected with code ${code}: ${reason}`
+      );
       return;
     }
     logDebug(
-      `Stream disconnected unexpectedly with code ${code}: ${reason}. Attempting reconnect...`
+      `Stream disconnected with code ${code}: ${reason}. Attempting reconnect...`
     );
     this.rejectAllMutationsOnReconnect();
     this.startReconnectBackoff();
@@ -914,7 +944,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         observer.onError(err instanceof Error ? err : new Error(String(err)));
         this.cleanupInvokeSubscribeRequest(requestId, mapKey);
         if (!this.hasActiveSubscriptions) {
-          this.closeAfterTimeout();
+          this.startIdleCloseTimeout();
         }
       });
     }
@@ -966,7 +996,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     });
 
     if (!this.hasActiveSubscriptions) {
-      this.closeAfterTimeout();
+      this.startIdleCloseTimeout();
     }
   }
 
