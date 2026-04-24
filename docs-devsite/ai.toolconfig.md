@@ -23,6 +23,7 @@ export interface ToolConfig
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [functionCallingConfig](./ai.toolconfig.md#toolconfigfunctioncallingconfig) | [FunctionCallingConfig](./ai.functioncallingconfig.md#functioncallingconfig_interface) |  |
+|  [retrievalConfig](./ai.toolconfig.md#toolconfigretrievalconfig) | [RetrievalConfig](./ai.retrievalconfig.md#retrievalconfig_interface) |  |
 
 ## ToolConfig.functionCallingConfig
 
@@ -30,4 +31,12 @@ export interface ToolConfig
 
 ```typescript
 functionCallingConfig?: FunctionCallingConfig;
+```
+
+## ToolConfig.retrievalConfig
+
+<b>Signature:</b>
+
+```typescript
+retrievalConfig?: RetrievalConfig;
 ```

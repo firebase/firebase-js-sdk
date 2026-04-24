@@ -24,11 +24,13 @@ import {
   AI,
   GenerateContentStreamResult,
   SingleRequestOptions,
-  StartTemplateChatParams
+  StartTemplateChatParams,
+  TemplateChatSession,
+  TemplateToolConfig
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
-import { TemplateChatSession } from '../methods/template-chat-session';
+import { TemplateChatSessionImpl } from '../methods/template-chat-session';
 
 /**
  * {@link GenerativeModel} APIs that execute on a server-side template.
@@ -63,18 +65,24 @@ export class TemplateGenerativeModel {
    * @param templateId - The ID of the server-side template to execute.
    * @param templateVariables - A key-value map of variables to populate the
    * template with.
+   * @param singleRequestOptions - Optional. Options to use for this request.
+   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
    *
    * @beta
    */
   async generateContent(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions?: SingleRequestOptions,
+    templateToolConfig?: TemplateToolConfig
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
       templateId,
-      { inputs: templateVariables },
+      {
+        inputs: templateVariables,
+        ...(templateToolConfig && { toolConfig: templateToolConfig })
+      },
       {
         ...this.requestOptions,
         ...singleRequestOptions
@@ -91,18 +99,24 @@ export class TemplateGenerativeModel {
    * @param templateId - The ID of the server-side template to execute.
    * @param templateVariables - A key-value map of variables to populate the
    * template with.
+   * @param singleRequestOptions - Optional.Options to use for this request.
+   * @param templateToolConfig - Optional. Configuration for tools to use with this request.
    *
    * @beta
    */
   async generateContentStream(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions?: SingleRequestOptions,
+    templateToolConfig?: TemplateToolConfig
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,
       templateId,
-      { inputs: templateVariables },
+      {
+        inputs: templateVariables,
+        ...(templateToolConfig && { toolConfig: templateToolConfig })
+      },
       {
         ...this.requestOptions,
         ...singleRequestOptions
@@ -120,7 +134,7 @@ export class TemplateGenerativeModel {
    * @beta
    */
   startChat(params: StartTemplateChatParams): TemplateChatSession {
-    return new TemplateChatSession(
+    return new TemplateChatSessionImpl(
       this._apiSettings,
       params,
       this.requestOptions
