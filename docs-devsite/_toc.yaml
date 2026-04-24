@@ -116,6 +116,8 @@ toc:
     path: /docs/reference/js/ai.groundingsupport.md
   - title: HybridParams
     path: /docs/reference/js/ai.hybridparams.md
+  - title: ImageConfig
+    path: /docs/reference/js/ai.imageconfig.md
   - title: ImagenGCSImage
     path: /docs/reference/js/ai.imagengcsimage.md
   - title: ImagenGenerationConfig
