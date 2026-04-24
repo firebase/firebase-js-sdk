@@ -54,6 +54,14 @@ describe('platform_browser/persistence/indexed_db', () => {
     indexedDBLocalPersistence
   );
 
+  beforeEach(() => {
+    (persistence as any).dbPromise = null;
+    (persistence as any).listeners = {};
+    (persistence as any).localCache = {};
+    (persistence as any).pendingWrites = 0;
+    (persistence as any).stopPolling();
+  });
+
   afterEach(sinon.restore);
 
   async function waitUntilPoll(clock: sinon.SinonFakeTimers): Promise<void> {
@@ -93,7 +101,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should return false if db creation errors repeatedly', async () => {
-      (persistence as any).db = undefined;
+      (persistence as any).dbPromise = null;
       sinon.stub(indexedDB, 'open').returns({
         addEventListener(evt: string, cb: () => void) {
           if (evt === 'error') {
@@ -110,7 +118,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should retry if db creation errors temporarily and then succeed', async () => {
-      (persistence as any).db = undefined;
+      (persistence as any).dbPromise = null;
       const originalOpen = indexedDB.open.bind(indexedDB);
       let errorsToThrow = 2;
 
@@ -148,6 +156,10 @@ describe('platform_browser/persistence/indexed_db', () => {
       db = await _openDatabase();
     });
 
+    after(async () => {
+      db.close();
+    });
+
     beforeEach(async () => {
       clock = sinon.useFakeTimers();
       callback = sinon.spy();
@@ -166,6 +178,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should trigger a listener when the key changes', async () => {
+      await persistence._get(key); // Ensure cache is populated before change
       await _putObject(db, key, newValue);
 
       await waitUntilPoll(clock);
@@ -186,6 +199,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should not trigger the listener when a different key changes', async () => {
+      await persistence._get(key); // Ensure cache is populated
       await _putObject(db, 'other-key', newValue);
 
       await waitUntilPoll(clock);
@@ -194,6 +208,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should not trigger if a write is pending', async () => {
+      await persistence._get(key); // Ensure cache is populated
       await _putObject(db, key, newValue);
       (persistence as any)['pendingWrites'] = 1;
 
@@ -216,6 +231,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       });
 
       it('should trigger both listeners if multiple listeners are registered', async () => {
+        await persistence._get(key); // Ensure cache is populated
         await _putObject(db, key, newValue);
 
         await waitUntilPoll(clock);

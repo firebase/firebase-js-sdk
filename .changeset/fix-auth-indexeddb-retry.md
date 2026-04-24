@@ -1,5 +1,6 @@
 ---
 '@firebase/auth': patch
+'@firebase/auth-compat': patch
 'firebase': patch
 ---
 
