@@ -157,7 +157,7 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   static type: 'LOCAL' = 'LOCAL';
 
   type = PersistenceType.LOCAL;
-  db?: IDBDatabase;
+  private dbPromise: Promise<IDBDatabase> | null = null;
   readonly _shouldAllowMigration = true;
 
   private readonly listeners: Record<string, Set<StorageEventListener>> = {};
@@ -184,11 +184,14 @@ class IndexedDBLocalPersistence implements InternalPersistence {
   }
 
   async _openDb(): Promise<IDBDatabase> {
-    if (this.db) {
-      return this.db;
+    if (this.dbPromise) {
+      return this.dbPromise;
     }
-    this.db = await _openDatabase();
-    return this.db;
+    this.dbPromise = _openDatabase();
+    this.dbPromise.catch(() => {
+      this.dbPromise = null;
+    });
+    return this.dbPromise;
   }
 
   async _withRetries<T>(op: (db: IDBDatabase) => Promise<T>): Promise<T> {
@@ -202,9 +205,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
         if (numAttempts++ > _TRANSACTION_RETRY_COUNT) {
           throw e;
         }
-        if (this.db) {
-          this.db.close();
-          this.db = undefined;
+        if (this.dbPromise) {
+          const db = await this.dbPromise;
+          db.close();
+          this.dbPromise = null;
         }
         // TODO: consider adding exponential backoff
       }
@@ -310,9 +314,10 @@ class IndexedDBLocalPersistence implements InternalPersistence {
       if (!indexedDB) {
         return false;
       }
-      const db = await _openDatabase();
-      await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
-      await _deleteObject(db, STORAGE_AVAILABLE_KEY);
+      await this._withRetries(async (db: IDBDatabase) => {
+        await _putObject(db, STORAGE_AVAILABLE_KEY, '1');
+        await _deleteObject(db, STORAGE_AVAILABLE_KEY);
+      });
       return true;
     } catch {}
     return false;
