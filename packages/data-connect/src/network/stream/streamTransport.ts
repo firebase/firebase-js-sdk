@@ -261,10 +261,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     observer: SubscribeObserver<Data>
   ): void {
     this.activeInvokeSubscribeRequests.set(mapKey, subscribeBody);
-    this.subscribeObservers.set(
-      requestId,
-      observer as SubscribeObserver<unknown>
-    );
+    this.subscribeObservers.set(requestId, observer);
   }
 
   /**
@@ -544,9 +541,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     const existingQueued = this.queuedInvokeQueryRequests.get(mapKey);
     if (existingQueued) {
       // only queue one request per mapKey - return existing queued request promise
-      return existingQueued.responsePromise as Promise<
-        DataConnectResponse<Data>
-      >;
+      return existingQueued.responsePromise;
     }
 
     let resolveFn: (response: DataConnectResponse<Data>) => void;
@@ -605,7 +600,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (activeSubscription) {
       // resume!
       requestId = activeSubscription.requestId;
-      requestBody = { requestId, resume: {} } as ResumeStreamRequest;
+      requestBody = { requestId, resume: {} };
       this.resumeRequestPromises.set(requestId, {
         responsePromise,
         resolveFn: resolveFn!,
@@ -617,7 +612,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       requestBody = {
         requestId,
         execute: { operationName: queryName, variables }
-      } as ExecuteStreamRequest<Variables>;
+      };
       this.executeRequestPromises.set(requestId, {
         responsePromise,
         resolveFn: resolveFn!,
@@ -733,10 +728,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       const requestId = existingSubscribe.requestId;
       if (this.pendingCancellations.has(requestId)) {
         this.pendingCancellations.delete(requestId);
-        this.subscribeObservers.set(
-          requestId,
-          observer as SubscribeObserver<unknown>
-        );
+        this.subscribeObservers.set(requestId, observer);
       }
     } else {
       const requestId = this.nextRequestId();

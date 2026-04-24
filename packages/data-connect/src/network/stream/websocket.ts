@@ -336,6 +336,6 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
         'WebSocket message did not include requestId'
       );
     }
-    return result as DataConnectStreamResponse<Data>;
+    return result;
   }
 }
