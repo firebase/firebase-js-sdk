@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Expression class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents an expression that can be evaluated to a value within the execution of a [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
 
 Expressions are the building blocks for creating complex queries and transformations in Firestore pipelines. They can represent:
@@ -31,185 +28,188 @@ export declare abstract class Expression
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [expressionType](./firestore_pipelines.expression.md#expressionexpressiontype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) | <b><i>(Public Preview)</i></b> |
+|  [expressionType](./firestore_pipelines.expression.md#expressionexpressiontype) |  | [ExpressionType](./firestore_pipelines.md#expressiontype) |  |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [abs()](./firestore_pipelines.expression.md#expressionabs) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the absolute value of a numeric value. |
-|  [add(second)](./firestore_pipelines.expression.md#expressionadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds this expression to another expression. |
-|  [arrayAgg()](./firestore_pipelines.expression.md#expressionarrayagg) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
-|  [arrayAggDistinct()](./firestore_pipelines.expression.md#expressionarrayaggdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
-|  [arrayConcat(secondArray, otherArrays)](./firestore_pipelines.expression.md#expressionarrayconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates an array expression with one or more other arrays. |
-|  [arrayContains(expression)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific element. |
-|  [arrayContains(value)](./firestore_pipelines.expression.md#expressionarraycontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains a specific value. |
-|  [arrayContainsAll(values)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
-|  [arrayContainsAll(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains all the specified elements. |
-|  [arrayContainsAny(values)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
-|  [arrayContainsAny(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if an array contains any of the specified elements. |
-|  [arrayFirst()](./firestore_pipelines.expression.md#expressionarrayfirst) |  | <b><i>(Public Preview)</i></b> Returns the first element of the array. |
-|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
-|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | <b><i>(Public Preview)</i></b> Returns the first <code>n</code> elements of the array. |
-|  [arrayGet(offset)](./firestore_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayGet(offsetExpr)](./firestore_pipelines.expression.md#expressionarrayget) |  | <b><i>(Public Preview)</i></b> Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
-|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or -1 if not found. |
-|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | <b><i>(Public Preview)</i></b> Returns the first index of the search value in the array, or -1 if not found. |
-|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
-|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | <b><i>(Public Preview)</i></b> Returns all indices of the search value in the array. |
-|  [arrayLast()](./firestore_pipelines.expression.md#expressionarraylast) |  | <b><i>(Public Preview)</i></b> Returns the last element of the array. |
-|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or -1 if not found. |
-|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | <b><i>(Public Preview)</i></b> Returns the last index of the search value in the array, or -1 if not found. |
-|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
-|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | <b><i>(Public Preview)</i></b> Returns the last <code>n</code> elements of the array. |
-|  [arrayLength()](./firestore_pipelines.expression.md#expressionarraylength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of an array. |
-|  [arrayMaximum()](./firestore_pipelines.expression.md#expressionarraymaximum) |  | <b><i>(Public Preview)</i></b> Returns the maximum value in the array. |
-|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | <b><i>(Public Preview)</i></b> Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimum()](./firestore_pipelines.expression.md#expressionarrayminimum) |  | <b><i>(Public Preview)</i></b> Returns the minimum value in the array. |
-|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | <b><i>(Public Preview)</i></b> Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
-|  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses an array. |
-|  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the sum of the elements in an array. |
-|  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | <b><i>(Public Preview)</i></b> Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
-|  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | <b><i>(Public Preview)</i></b> Wraps the expression in a \[BooleanExpression\]. |
-|  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
-|  [average()](./firestore_pipelines.expression.md#expressionaverage) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs. |
-|  [byteLength()](./firestore_pipelines.expression.md#expressionbytelength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of this string expression in bytes. |
-|  [ceil()](./firestore_pipelines.expression.md#expressionceil) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the ceiling of a numeric value. |
-|  [charLength()](./firestore_pipelines.expression.md#expressioncharlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the character length of a string in UTF-8. |
-|  [coalesce(replacement, others)](./firestore_pipelines.expression.md#expressioncoalesce) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
-|  [collectionId()](./firestore_pipelines.expression.md#expressioncollectionid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the collection ID from a path. |
-|  [concat(second, others)](./firestore_pipelines.expression.md#expressionconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates expression results together. |
-|  [cosineDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the cosine distance between two vectors. |
-|  [cosineDistance(vector)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | <b><i>(Public Preview)</i></b> Calculates the Cosine distance between two vectors. |
-|  [count()](./firestore_pipelines.expression.md#expressioncount) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field. |
-|  [countDistinct()](./firestore_pipelines.expression.md#expressioncountdistinct) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that counts the number of distinct values of the expression or field. |
-|  [descending()](./firestore_pipelines.expression.md#expressiondescending) |  | <b><i>(Public Preview)</i></b> Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression. |
-|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by another expression. |
-|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | <b><i>(Public Preview)</i></b> Creates an expression that divides this expression by a constant value. |
-|  [documentId()](./firestore_pipelines.expression.md#expressiondocumentid) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the document ID from a path. |
-|  [dotProduct(vectorExpression)](./firestore_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors. |
-|  [dotProduct(vector)](./firestore_pipelines.expression.md#expressiondotproduct) |  | <b><i>(Public Preview)</i></b> Calculates the dot product between two vectors. |
-|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix. |
-|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string ends with a given postfix (represented as an expression). |
-|  [equal(expression)](./firestore_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to another expression. |
-|  [equal(value)](./firestore_pipelines.expression.md#expressionequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to a constant value. |
-|  [equalAny(values)](./firestore_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
-|  [equalAny(arrayExpression)](./firestore_pipelines.expression.md#expressionequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
-|  [euclideanDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
-|  [euclideanDistance(vector)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | <b><i>(Public Preview)</i></b> Calculates the Euclidean distance between two vectors. |
-|  [exists()](./firestore_pipelines.expression.md#expressionexists) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a field exists in the document. |
-|  [exp()](./firestore_pipelines.expression.md#expressionexp) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes e to the power of this expression. |
-|  [first()](./firestore_pipelines.expression.md#expressionfirst) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
-|  [floor()](./firestore_pipelines.expression.md#expressionfloor) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the floor of a numeric value. |
-|  [greaterThan(expression)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than another expression. |
-|  [greaterThan(value)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than a constant value. |
-|  [greaterThanOrEqual(expression)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to another expression. |
-|  [greaterThanOrEqual(value)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is greater than or equal to a constant value. |
-|  [ifAbsent(elseValue)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
-|  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
-|  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
-|  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
-|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression evaluates to null, else return the result of this expression evaluation. |
-|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the <code>elseValue</code> argument if this expression evaluates to null, else return the result of this expression evaluation. |
-|  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
-|  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a given expression produces an error. |
-|  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if the result of this expression is of the given type. |
-|  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array into a string. |
-|  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | <b><i>(Public Preview)</i></b> Creates an expression that joins the elements of an array field into a string. |
-|  [last()](./firestore_pipelines.expression.md#expressionlast) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
-|  [length()](./firestore_pipelines.expression.md#expressionlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
-|  [lessThan(experession)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than another expression. |
-|  [lessThan(value)](./firestore_pipelines.expression.md#expressionlessthan) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than a constant value. |
-|  [lessThanOrEqual(expression)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to another expression. |
-|  [lessThanOrEqual(value)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is less than or equal to a constant value. |
-|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison. |
-|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | <b><i>(Public Preview)</i></b> Creates an expression that performs a case-sensitive string comparison. |
-|  [ln()](./firestore_pipelines.expression.md#expressionln) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the natural logarithm of a numeric value. |
-|  [log10()](./firestore_pipelines.expression.md#expressionlog10) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the base-10 logarithm of a numeric value. |
-|  [logicalMaximum(second, others)](./firestore_pipelines.expression.md#expressionlogicalmaximum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
-|  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
-|  [ltrim(valueToTrim)](./firestore_pipelines.expression.md#expressionltrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
-|  [mapEntries()](./firestore_pipelines.expression.md#expressionmapentries) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
-|  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | <b><i>(Public Preview)</i></b> Accesses a value from a map (object) field using the provided key. |
-|  [mapKeys()](./firestore_pipelines.expression.md#expressionmapkeys) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the keys of a map. |
-|  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | <b><i>(Public Preview)</i></b> Creates an expression that merges multiple map values. |
-|  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
-|  [mapRemove(keyExpr)](./firestore_pipelines.expression.md#expressionmapremove) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes a key from the map produced by evaluating this expression. |
-|  [mapSet(key, value, moreKeyValues)](./firestore_pipelines.expression.md#expressionmapset) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a new map with the specified entries added or updated. |
-|  [mapValues()](./firestore_pipelines.expression.md#expressionmapvalues) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the values of a map. |
-|  [maximum()](./firestore_pipelines.expression.md#expressionmaximum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
-|  [minimum()](./firestore_pipelines.expression.md#expressionminimum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
-|  [mod(expression)](./firestore_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression. |
-|  [mod(value)](./firestore_pipelines.expression.md#expressionmod) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value. |
-|  [multiply(second)](./firestore_pipelines.expression.md#expressionmultiply) |  | <b><i>(Public Preview)</i></b> Creates an expression that multiplies this expression by another expression. |
-|  [notEqual(expression)](./firestore_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to another expression. |
-|  [notEqual(value)](./firestore_pipelines.expression.md#expressionnotequal) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to a constant value. |
-|  [notEqualAny(values)](./firestore_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
-|  [notEqualAny(arrayExpression)](./firestore_pipelines.expression.md#expressionnotequalany) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
-|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of another expression. |
-|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the value of this expression raised to the power of a constant value. |
-|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
-|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified regular expression as a substring. |
-|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | <b><i>(Public Preview)</i></b> Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
-|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
-|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string matches a specified regular expression. |
-|  [reverse()](./firestore_pipelines.expression.md#expressionreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses this string expression. |
-|  [round()](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the nearest whole number. |
-|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | <b><i>(Public Preview)</i></b> Creates an expression that rounds a numeric value to the specified number of decimal places. |
-|  [rtrim(valueToTrim)](./firestore_pipelines.expression.md#expressionrtrim) |  | <b><i>(Public Preview)</i></b> Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
-|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
-|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | <b><i>(Public Preview)</i></b> Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
-|  [sqrt()](./firestore_pipelines.expression.md#expressionsqrt) |  | <b><i>(Public Preview)</i></b> Creates an expression that computes the square root of a numeric value. |
-|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix. |
-|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string starts with a given prefix (represented as an expression). |
-|  [stringConcat(secondString, otherStrings)](./firestore_pipelines.expression.md#expressionstringconcat) |  | <b><i>(Public Preview)</i></b> Creates an expression that concatenates string expressions together. |
-|  [stringContains(substring)](./firestore_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains a specified substring. |
-|  [stringContains(expr)](./firestore_pipelines.expression.md#expressionstringcontains) |  | <b><i>(Public Preview)</i></b> Creates an expression that checks if a string contains the string represented by another expression. |
-|  [stringIndexOf(search)](./firestore_pipelines.expression.md#expressionstringindexof) |  | <b><i>(Public Preview)</i></b> Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
-|  [stringRepeat(repetitions)](./firestore_pipelines.expression.md#expressionstringrepeat) |  | <b><i>(Public Preview)</i></b> Creates an expression that repeats a string or byte array a specified number of times. |
-|  [stringReplaceAll(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceall) |  | <b><i>(Public Preview)</i></b> Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
-|  [stringReplaceOne(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceone) |  | <b><i>(Public Preview)</i></b> Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
-|  [stringReverse()](./firestore_pipelines.expression.md#expressionstringreverse) |  | <b><i>(Public Preview)</i></b> Creates an expression that reverses a string. |
-|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
-|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns a substring of the results of this expression. |
-|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts another expression from this expression. |
-|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a constant value from this expression. |
-|  [sum()](./firestore_pipelines.expression.md#expressionsum) |  | <b><i>(Public Preview)</i></b> Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs. |
-|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression. |
-|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | <b><i>(Public Preview)</i></b> Creates an expression that adds a specified amount of time to this timestamp expression. |
-|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between this timestamp and another timestamp. |
-|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the difference between this timestamp and another timestamp. |
-|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from this timestamp expression. |
-|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | <b><i>(Public Preview)</i></b> Creates an expression that extracts a specified part from this timestamp expression. |
-|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression. |
-|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | <b><i>(Public Preview)</i></b> Creates an expression that subtracts a specified amount of time from this timestamp expression. |
-|  [timestampToUnixMicros()](./firestore_pipelines.expression.md#expressiontimestamptounixmicros) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixMillis()](./firestore_pipelines.expression.md#expressiontimestamptounixmillis) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampToUnixSeconds()](./firestore_pipelines.expression.md#expressiontimestamptounixseconds) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
-|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
-|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a timestamp to a specified granularity. |
-|  [toLower()](./firestore_pipelines.expression.md#expressiontolower) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to lowercase. |
-|  [toUpper()](./firestore_pipelines.expression.md#expressiontoupper) |  | <b><i>(Public Preview)</i></b> Creates an expression that converts a string to uppercase. |
-|  [trim(valueToTrim)](./firestore_pipelines.expression.md#expressiontrim) |  | <b><i>(Public Preview)</i></b> Creates an expression that removes leading and trailing characters from a string or byte array. |
-|  [trunc()](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates the numeric value to an integer. |
-|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
-|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | <b><i>(Public Preview)</i></b> Creates an expression that truncates a numeric value to the specified number of decimal places. |
-|  [type()](./firestore_pipelines.expression.md#expressiontype) |  | <b><i>(Public Preview)</i></b> Creates an expression that returns the data type of this expression's result, as a string. |
-|  [unixMicrosToTimestamp()](./firestore_pipelines.expression.md#expressionunixmicrostotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixMillisToTimestamp()](./firestore_pipelines.expression.md#expressionunixmillistotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [unixSecondsToTimestamp()](./firestore_pipelines.expression.md#expressionunixsecondstotimestamp) |  | <b><i>(Public Preview)</i></b> Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
-|  [vectorLength()](./firestore_pipelines.expression.md#expressionvectorlength) |  | <b><i>(Public Preview)</i></b> Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression. |
+|  [abs()](./firestore_pipelines.expression.md#expressionabs) |  | Creates an expression that computes the absolute value of a numeric value. |
+|  [add(second)](./firestore_pipelines.expression.md#expressionadd) |  | Creates an expression that adds this expression to another expression. |
+|  [arrayAgg()](./firestore_pipelines.expression.md#expressionarrayagg) |  | Creates an aggregation that collects all values of an expression across multiple stage inputs into an array. |
+|  [arrayAggDistinct()](./firestore_pipelines.expression.md#expressionarrayaggdistinct) |  | Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array. |
+|  [arrayConcat(secondArray, otherArrays)](./firestore_pipelines.expression.md#expressionarrayconcat) |  | Creates an expression that concatenates an array expression with one or more other arrays. |
+|  [arrayContains(expression)](./firestore_pipelines.expression.md#expressionarraycontains) |  | Creates an expression that checks if an array contains a specific element. |
+|  [arrayContains(value)](./firestore_pipelines.expression.md#expressionarraycontains) |  | Creates an expression that checks if an array contains a specific value. |
+|  [arrayContainsAll(values)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | Creates an expression that checks if an array contains all the specified elements. |
+|  [arrayContainsAll(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsall) |  | Creates an expression that checks if an array contains all the specified elements. |
+|  [arrayContainsAny(values)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayContainsAny(arrayExpression)](./firestore_pipelines.expression.md#expressionarraycontainsany) |  | Creates an expression that checks if an array contains any of the specified elements. |
+|  [arrayFilter(alias, filter)](./firestore_pipelines.expression.md#expressionarrayfilter) |  | Filters the array using a provided alias and predicate expression. |
+|  [arrayFirst()](./firestore_pipelines.expression.md#expressionarrayfirst) |  | Returns the first element of the array. |
+|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | Returns the first <code>n</code> elements of the array. |
+|  [arrayFirstN(n)](./firestore_pipelines.expression.md#expressionarrayfirstn) |  | Returns the first <code>n</code> elements of the array. |
+|  [arrayGet(offset)](./firestore_pipelines.expression.md#expressionarrayget) |  | Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayGet(offsetExpr)](./firestore_pipelines.expression.md#expressionarrayget) |  | Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end. |
+|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | Returns the first index of the search value in the array, or -1 if not found. |
+|  [arrayIndexOf(search)](./firestore_pipelines.expression.md#expressionarrayindexof) |  | Returns the first index of the search value in the array, or -1 if not found. |
+|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | Returns all indices of the search value in the array. |
+|  [arrayIndexOfAll(search)](./firestore_pipelines.expression.md#expressionarrayindexofall) |  | Returns all indices of the search value in the array. |
+|  [arrayLast()](./firestore_pipelines.expression.md#expressionarraylast) |  | Returns the last element of the array. |
+|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | Returns the last index of the search value in the array, or -1 if not found. |
+|  [arrayLastIndexOf(search)](./firestore_pipelines.expression.md#expressionarraylastindexof) |  | Returns the last index of the search value in the array, or -1 if not found. |
+|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | Returns the last <code>n</code> elements of the array. |
+|  [arrayLastN(n)](./firestore_pipelines.expression.md#expressionarraylastn) |  | Returns the last <code>n</code> elements of the array. |
+|  [arrayLength()](./firestore_pipelines.expression.md#expressionarraylength) |  | Creates an expression that calculates the length of an array. |
+|  [arrayMaximum()](./firestore_pipelines.expression.md#expressionarraymaximum) |  | Returns the maximum value in the array. |
+|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMaximumN(n)](./firestore_pipelines.expression.md#expressionarraymaximumn) |  | Returns the largest <code>n</code> elements of the array.<!-- -->Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimum()](./firestore_pipelines.expression.md#expressionarrayminimum) |  | Returns the minimum value in the array. |
+|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayMinimumN(n)](./firestore_pipelines.expression.md#expressionarrayminimumn) |  | Returns the smallest <code>n</code> elements of the array.<!-- -->Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined. |
+|  [arrayReverse()](./firestore_pipelines.expression.md#expressionarrayreverse) |  | Creates an expression that reverses an array. |
+|  [arraySlice(offset, length)](./firestore_pipelines.expression.md#expressionarrayslice) |  | Returns a subset of the array. |
+|  [arraySum()](./firestore_pipelines.expression.md#expressionarraysum) |  | Creates an expression that computes the sum of the elements in an array. |
+|  [arrayTransform(elementAlias, transform)](./firestore_pipelines.expression.md#expressionarraytransform) |  | Creates an expression that applies a provided transformation to each element in an array. |
+|  [arrayTransformWithIndex(elementAlias, indexAlias, transform)](./firestore_pipelines.expression.md#expressionarraytransformwithindex) |  | Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression. |
+|  [as(name)](./firestore_pipelines.expression.md#expressionas) |  | Assigns an alias to this expression.<!-- -->Aliases are useful for renaming fields in the output of a stage or for giving meaningful names to calculated values. |
+|  [asBoolean()](./firestore_pipelines.expression.md#expressionasboolean) |  | Wraps the expression in a \[BooleanExpression\]. |
+|  [ascending()](./firestore_pipelines.expression.md#expressionascending) |  | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression. |
+|  [average()](./firestore_pipelines.expression.md#expressionaverage) |  | Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs. |
+|  [byteLength()](./firestore_pipelines.expression.md#expressionbytelength) |  | Creates an expression that calculates the length of this string expression in bytes. |
+|  [ceil()](./firestore_pipelines.expression.md#expressionceil) |  | Creates an expression that computes the ceiling of a numeric value. |
+|  [charLength()](./firestore_pipelines.expression.md#expressioncharlength) |  | Creates an expression that calculates the character length of a string in UTF-8. |
+|  [coalesce(replacement, others)](./firestore_pipelines.expression.md#expressioncoalesce) |  | Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument. |
+|  [collectionId()](./firestore_pipelines.expression.md#expressioncollectionid) |  | Creates an expression that returns the collection ID from a path. |
+|  [concat(second, others)](./firestore_pipelines.expression.md#expressionconcat) |  | Creates an expression that concatenates expression results together. |
+|  [cosineDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | Calculates the cosine distance between two vectors. |
+|  [cosineDistance(vector)](./firestore_pipelines.expression.md#expressioncosinedistance) |  | Calculates the Cosine distance between two vectors. |
+|  [count()](./firestore_pipelines.expression.md#expressioncount) |  | Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field. |
+|  [countDistinct()](./firestore_pipelines.expression.md#expressioncountdistinct) |  | Creates an aggregation that counts the number of distinct values of the expression or field. |
+|  [descending()](./firestore_pipelines.expression.md#expressiondescending) |  | Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression. |
+|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | Creates an expression that divides this expression by another expression. |
+|  [divide(divisor)](./firestore_pipelines.expression.md#expressiondivide) |  | Creates an expression that divides this expression by a constant value. |
+|  [documentId()](./firestore_pipelines.expression.md#expressiondocumentid) |  | Creates an expression that returns the document ID from a path. |
+|  [dotProduct(vectorExpression)](./firestore_pipelines.expression.md#expressiondotproduct) |  | Calculates the dot product between two vectors. |
+|  [dotProduct(vector)](./firestore_pipelines.expression.md#expressiondotproduct) |  | Calculates the dot product between two vectors. |
+|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | Creates an expression that checks if a string ends with a given postfix. |
+|  [endsWith(suffix)](./firestore_pipelines.expression.md#expressionendswith) |  | Creates an expression that checks if a string ends with a given postfix (represented as an expression). |
+|  [equal(expression)](./firestore_pipelines.expression.md#expressionequal) |  | Creates an expression that checks if this expression is equal to another expression. |
+|  [equal(value)](./firestore_pipelines.expression.md#expressionequal) |  | Creates an expression that checks if this expression is equal to a constant value. |
+|  [equalAny(values)](./firestore_pipelines.expression.md#expressionequalany) |  | Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
+|  [equalAny(arrayExpression)](./firestore_pipelines.expression.md#expressionequalany) |  | Creates an expression that checks if this expression is equal to any of the provided values or expressions. |
+|  [euclideanDistance(vectorExpression)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | Calculates the Euclidean distance between two vectors. |
+|  [euclideanDistance(vector)](./firestore_pipelines.expression.md#expressioneuclideandistance) |  | Calculates the Euclidean distance between two vectors. |
+|  [exists()](./firestore_pipelines.expression.md#expressionexists) |  | Creates an expression that checks if a field exists in the document. |
+|  [exp()](./firestore_pipelines.expression.md#expressionexp) |  | Creates an expression that computes e to the power of this expression. |
+|  [first()](./firestore_pipelines.expression.md#expressionfirst) |  | Creates an aggregation that finds the first value of an expression across multiple stage inputs. |
+|  [floor()](./firestore_pipelines.expression.md#expressionfloor) |  | Creates an expression that computes the floor of a numeric value. |
+|  [getField(key)](./firestore_pipelines.expression.md#expressiongetfield) |  | Creates an expression that returns the value of a field from the document that results from the evaluation of this expression. |
+|  [greaterThan(expression)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | Creates an expression that checks if this expression is greater than another expression. |
+|  [greaterThan(value)](./firestore_pipelines.expression.md#expressiongreaterthan) |  | Creates an expression that checks if this expression is greater than a constant value. |
+|  [greaterThanOrEqual(expression)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | Creates an expression that checks if this expression is greater than or equal to another expression. |
+|  [greaterThanOrEqual(value)](./firestore_pipelines.expression.md#expressiongreaterthanorequal) |  | Creates an expression that checks if this expression is greater than or equal to a constant value. |
+|  [ifAbsent(elseValue)](./firestore_pipelines.expression.md#expressionifabsent) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
+|  [ifAbsent(elseExpression)](./firestore_pipelines.expression.md#expressionifabsent) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression results in an absent value, else return the result of this expression evaluation. |
+|  [ifError(catchExpr)](./firestore_pipelines.expression.md#expressioniferror) |  | Creates an expression that returns the result of the <code>catchExpr</code> argument if there is an error, else return the result of this expression. |
+|  [ifError(catchValue)](./firestore_pipelines.expression.md#expressioniferror) |  | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of this expression. |
+|  [ifNull(elseExpression)](./firestore_pipelines.expression.md#expressionifnull) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression evaluates to null, else return the result of this expression evaluation. |
+|  [ifNull(elseValue)](./firestore_pipelines.expression.md#expressionifnull) |  | Creates an expression that returns the <code>elseValue</code> argument if this expression evaluates to null, else return the result of this expression evaluation. |
+|  [isAbsent()](./firestore_pipelines.expression.md#expressionisabsent) |  | Creates an expression that returns <code>true</code> if the result of this expression is absent. Otherwise, returns <code>false</code> even if the value is <code>null</code>. |
+|  [isError()](./firestore_pipelines.expression.md#expressioniserror) |  | Creates an expression that checks if a given expression produces an error. |
+|  [isType(type)](./firestore_pipelines.expression.md#expressionistype) |  | Creates an expression that checks if the result of this expression is of the given type. |
+|  [join(delimiterExpression)](./firestore_pipelines.expression.md#expressionjoin) |  | Creates an expression that joins the elements of an array into a string. |
+|  [join(delimiter)](./firestore_pipelines.expression.md#expressionjoin) |  | Creates an expression that joins the elements of an array field into a string. |
+|  [last()](./firestore_pipelines.expression.md#expressionlast) |  | Creates an aggregation that finds the last value of an expression across multiple stage inputs. |
+|  [length()](./firestore_pipelines.expression.md#expressionlength) |  | Creates an expression that calculates the length of a string, array, map, vector, or bytes. |
+|  [lessThan(experession)](./firestore_pipelines.expression.md#expressionlessthan) |  | Creates an expression that checks if this expression is less than another expression. |
+|  [lessThan(value)](./firestore_pipelines.expression.md#expressionlessthan) |  | Creates an expression that checks if this expression is less than a constant value. |
+|  [lessThanOrEqual(expression)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | Creates an expression that checks if this expression is less than or equal to another expression. |
+|  [lessThanOrEqual(value)](./firestore_pipelines.expression.md#expressionlessthanorequal) |  | Creates an expression that checks if this expression is less than or equal to a constant value. |
+|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | Creates an expression that performs a case-sensitive string comparison. |
+|  [like(pattern)](./firestore_pipelines.expression.md#expressionlike) |  | Creates an expression that performs a case-sensitive string comparison. |
+|  [ln()](./firestore_pipelines.expression.md#expressionln) |  | Creates an expression that computes the natural logarithm of a numeric value. |
+|  [log10()](./firestore_pipelines.expression.md#expressionlog10) |  | Creates an expression that computes the base-10 logarithm of a numeric value. |
+|  [logicalMaximum(second, others)](./firestore_pipelines.expression.md#expressionlogicalmaximum) |  | Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering. |
+|  [logicalMinimum(second, others)](./firestore_pipelines.expression.md#expressionlogicalminimum) |  | Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering. |
+|  [ltrim(valueToTrim)](./firestore_pipelines.expression.md#expressionltrim) |  | Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array. |
+|  [mapEntries()](./firestore_pipelines.expression.md#expressionmapentries) |  | Creates an expression that returns the entries of a map as an array of maps, where each map contains a <code>&quot;k&quot;</code> property for the key and a <code>&quot;v&quot;</code> property for the value. For example: <code>[{ k: &quot;key1&quot;, v: &quot;value1&quot; }, ...]</code>. |
+|  [mapGet(subfield)](./firestore_pipelines.expression.md#expressionmapget) |  | Accesses a value from a map (object) field using the provided key. |
+|  [mapKeys()](./firestore_pipelines.expression.md#expressionmapkeys) |  | Creates an expression that returns the keys of a map. |
+|  [mapMerge(secondMap, otherMaps)](./firestore_pipelines.expression.md#expressionmapmerge) |  | Creates an expression that merges multiple map values. |
+|  [mapRemove(key)](./firestore_pipelines.expression.md#expressionmapremove) |  | Creates an expression that removes a key from the map produced by evaluating this expression. |
+|  [mapRemove(keyExpr)](./firestore_pipelines.expression.md#expressionmapremove) |  | Creates an expression that removes a key from the map produced by evaluating this expression. |
+|  [mapSet(key, value, moreKeyValues)](./firestore_pipelines.expression.md#expressionmapset) |  | Creates an expression that returns a new map with the specified entries added or updated. |
+|  [mapValues()](./firestore_pipelines.expression.md#expressionmapvalues) |  | Creates an expression that returns the values of a map. |
+|  [maximum()](./firestore_pipelines.expression.md#expressionmaximum) |  | Creates an aggregation that finds the maximum value of a field across multiple stage inputs. |
+|  [minimum()](./firestore_pipelines.expression.md#expressionminimum) |  | Creates an aggregation that finds the minimum value of a field across multiple stage inputs. |
+|  [mod(expression)](./firestore_pipelines.expression.md#expressionmod) |  | Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression. |
+|  [mod(value)](./firestore_pipelines.expression.md#expressionmod) |  | Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value. |
+|  [multiply(second)](./firestore_pipelines.expression.md#expressionmultiply) |  | Creates an expression that multiplies this expression by another expression. |
+|  [notEqual(expression)](./firestore_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to another expression. |
+|  [notEqual(value)](./firestore_pipelines.expression.md#expressionnotequal) |  | Creates an expression that checks if this expression is not equal to a constant value. |
+|  [notEqualAny(values)](./firestore_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the provided values or expressions. |
+|  [notEqualAny(arrayExpression)](./firestore_pipelines.expression.md#expressionnotequalany) |  | Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression. |
+|  [parent()](./firestore_pipelines.expression.md#expressionparent) |  | Creates an expression that returns the parent document reference of a document reference. |
+|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of another expression. |
+|  [pow(exponent)](./firestore_pipelines.expression.md#expressionpow) |  | Creates an expression that returns the value of this expression raised to the power of a constant value. |
+|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexContains(pattern)](./firestore_pipelines.expression.md#expressionregexcontains) |  | Creates an expression that checks if a string contains a specified regular expression as a substring. |
+|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFind(pattern)](./firestore_pipelines.expression.md#expressionregexfind) |  | Creates an expression that returns the first substring of a string expression that matches a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexFindAll(pattern)](./firestore_pipelines.expression.md#expressionregexfindall) |  | Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.<!-- -->This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax. |
+|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | Creates an expression that checks if a string matches a specified regular expression. |
+|  [regexMatch(pattern)](./firestore_pipelines.expression.md#expressionregexmatch) |  | Creates an expression that checks if a string matches a specified regular expression. |
+|  [reverse()](./firestore_pipelines.expression.md#expressionreverse) |  | Creates an expression that reverses this string expression. |
+|  [round()](./firestore_pipelines.expression.md#expressionround) |  | Creates an expression that rounds a numeric value to the nearest whole number. |
+|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [round(decimalPlaces)](./firestore_pipelines.expression.md#expressionround) |  | Creates an expression that rounds a numeric value to the specified number of decimal places. |
+|  [rtrim(valueToTrim)](./firestore_pipelines.expression.md#expressionrtrim) |  | Trims whitespace or a specified set of characters/bytes from the end of a string or byte array. |
+|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
+|  [split(delimiter)](./firestore_pipelines.expression.md#expressionsplit) |  | Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter. |
+|  [sqrt()](./firestore_pipelines.expression.md#expressionsqrt) |  | Creates an expression that computes the square root of a numeric value. |
+|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | Creates an expression that checks if a string starts with a given prefix. |
+|  [startsWith(prefix)](./firestore_pipelines.expression.md#expressionstartswith) |  | Creates an expression that checks if a string starts with a given prefix (represented as an expression). |
+|  [stringConcat(secondString, otherStrings)](./firestore_pipelines.expression.md#expressionstringconcat) |  | Creates an expression that concatenates string expressions together. |
+|  [stringContains(substring)](./firestore_pipelines.expression.md#expressionstringcontains) |  | Creates an expression that checks if a string contains a specified substring. |
+|  [stringContains(expr)](./firestore_pipelines.expression.md#expressionstringcontains) |  | Creates an expression that checks if a string contains the string represented by another expression. |
+|  [stringIndexOf(search)](./firestore_pipelines.expression.md#expressionstringindexof) |  | Creates an expression that finds the index of the first occurrence of a substring or byte sequence. |
+|  [stringRepeat(repetitions)](./firestore_pipelines.expression.md#expressionstringrepeat) |  | Creates an expression that repeats a string or byte array a specified number of times. |
+|  [stringReplaceAll(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceall) |  | Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement. |
+|  [stringReplaceOne(find, replacement)](./firestore_pipelines.expression.md#expressionstringreplaceone) |  | Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement. |
+|  [stringReverse()](./firestore_pipelines.expression.md#expressionstringreverse) |  | Creates an expression that reverses a string. |
+|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | Creates an expression that returns a substring of the results of this expression. |
+|  [substring(position, length)](./firestore_pipelines.expression.md#expressionsubstring) |  | Creates an expression that returns a substring of the results of this expression. |
+|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | Creates an expression that subtracts another expression from this expression. |
+|  [subtract(subtrahend)](./firestore_pipelines.expression.md#expressionsubtract) |  | Creates an expression that subtracts a constant value from this expression. |
+|  [sum()](./firestore_pipelines.expression.md#expressionsum) |  | Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs. |
+|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | Creates an expression that adds a specified amount of time to this timestamp expression. |
+|  [timestampAdd(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampadd) |  | Creates an expression that adds a specified amount of time to this timestamp expression. |
+|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | Creates an expression that calculates the difference between this timestamp and another timestamp. |
+|  [timestampDiff(start, unit)](./firestore_pipelines.expression.md#expressiontimestampdiff) |  | Creates an expression that calculates the difference between this timestamp and another timestamp. |
+|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | Creates an expression that extracts a specified part from this timestamp expression. |
+|  [timestampExtract(part, timezone)](./firestore_pipelines.expression.md#expressiontimestampextract) |  | Creates an expression that extracts a specified part from this timestamp expression. |
+|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | Creates an expression that subtracts a specified amount of time from this timestamp expression. |
+|  [timestampSubtract(unit, amount)](./firestore_pipelines.expression.md#expressiontimestampsubtract) |  | Creates an expression that subtracts a specified amount of time from this timestamp expression. |
+|  [timestampToUnixMicros()](./firestore_pipelines.expression.md#expressiontimestamptounixmicros) |  | Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixMillis()](./firestore_pipelines.expression.md#expressiontimestamptounixmillis) |  | Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampToUnixSeconds()](./firestore_pipelines.expression.md#expressiontimestamptounixseconds) |  | Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC). |
+|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | Creates an expression that truncates a timestamp to a specified granularity. |
+|  [timestampTruncate(granularity, timezone)](./firestore_pipelines.expression.md#expressiontimestamptruncate) |  | Creates an expression that truncates a timestamp to a specified granularity. |
+|  [toLower()](./firestore_pipelines.expression.md#expressiontolower) |  | Creates an expression that converts a string to lowercase. |
+|  [toUpper()](./firestore_pipelines.expression.md#expressiontoupper) |  | Creates an expression that converts a string to uppercase. |
+|  [trim(valueToTrim)](./firestore_pipelines.expression.md#expressiontrim) |  | Creates an expression that removes leading and trailing characters from a string or byte array. |
+|  [trunc()](./firestore_pipelines.expression.md#expressiontrunc) |  | Creates an expression that truncates the numeric value to an integer. |
+|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [trunc(decimalPlaces)](./firestore_pipelines.expression.md#expressiontrunc) |  | Creates an expression that truncates a numeric value to the specified number of decimal places. |
+|  [type()](./firestore_pipelines.expression.md#expressiontype) |  | Creates an expression that returns the data type of this expression's result, as a string. |
+|  [unixMicrosToTimestamp()](./firestore_pipelines.expression.md#expressionunixmicrostotimestamp) |  | Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixMillisToTimestamp()](./firestore_pipelines.expression.md#expressionunixmillistotimestamp) |  | Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [unixSecondsToTimestamp()](./firestore_pipelines.expression.md#expressionunixsecondstotimestamp) |  | Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp. |
+|  [vectorLength()](./firestore_pipelines.expression.md#expressionvectorlength) |  | Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression. |
 
 ## Expression.expressionType
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -218,9 +218,6 @@ abstract readonly expressionType: ExpressionType;
 ```
 
 ## Expression.abs()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that computes the absolute value of a numeric value.
 
@@ -245,9 +242,6 @@ field("price").abs();
 ```
 
 ## Expression.add()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that adds this expression to another expression.
 
@@ -280,9 +274,6 @@ field("quantity").add(field("reserve"));
 
 ## Expression.arrayAgg()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that collects all values of an expression across multiple stage inputs into an array.
 
 If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
@@ -309,9 +300,6 @@ field("tags").arrayAgg().as("allTags");
 
 ## Expression.arrayAggDistinct()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that collects all distinct values of an expression across multiple stage inputs into an array.
 
 If the expression resolves to an absent value, it is converted to `null`<!-- -->. The order of elements in the output array is not stable and shouldn't be relied upon.
@@ -337,9 +325,6 @@ field("tags").arrayAggDistinct().as("allDistinctTags");
 ```
 
 ## Expression.arrayConcat()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that concatenates an array expression with one or more other arrays.
 
@@ -373,9 +358,6 @@ field("items").arrayConcat(field("otherItems"));
 
 ## Expression.arrayContains()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if an array contains a specific element.
 
 <b>Signature:</b>
@@ -406,9 +388,6 @@ field("sizes").arrayContains(field("selectedSize"));
 ```
 
 ## Expression.arrayContains()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if an array contains a specific value.
 
@@ -441,9 +420,6 @@ field("colors").arrayContains("red");
 
 ## Expression.arrayContainsAll()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if an array contains all the specified elements.
 
 <b>Signature:</b>
@@ -474,9 +450,6 @@ field("tags").arrayContainsAll([field("tag1"), "tag2"]);
 ```
 
 ## Expression.arrayContainsAll()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if an array contains all the specified elements.
 
@@ -509,9 +482,6 @@ field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
 
 ## Expression.arrayContainsAny()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if an array contains any of the specified elements.
 
 <b>Signature:</b>
@@ -543,9 +513,6 @@ field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
 
 ## Expression.arrayContainsAny()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if an array contains any of the specified elements.
 
 <b>Signature:</b>
@@ -576,10 +543,39 @@ field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
 
 ```
 
-## Expression.arrayFirst()
+## Expression.arrayFilter()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Filters the array using a provided alias and predicate expression.
+
+<b>Signature:</b>
+
+```typescript
+arrayFilter(alias: string, filter: BooleanExpression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  alias | string | The variable name to use for each element. |
+|  filter | [BooleanExpression](./firestore_pipelines.booleanexpression.md#booleanexpression_class) | The predicate boolean expression to filter by. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the filtered array.
+
+### Example
+
+
+```typescript
+// Filter the 'items' array to only include those where the 'price' is greater than 10
+field("items").arrayFilter('item', greaterThan(variable('item.price'), 10));
+
+```
+
+## Expression.arrayFirst()
 
 Returns the first element of the array.
 
@@ -604,9 +600,6 @@ field("myArray").arrayFirst();
 ```
 
 ## Expression.arrayFirstN()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns the first `n` elements of the array.
 
@@ -639,9 +632,6 @@ field("myArray").arrayFirstN(3);
 
 ## Expression.arrayFirstN()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the first `n` elements of the array.
 
 <b>Signature:</b>
@@ -673,9 +663,6 @@ field("myArray").arrayFirstN(field("count"));
 
 ## Expression.arrayGet()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
 
 <b>Signature:</b>
@@ -706,9 +693,6 @@ field('tags').arrayGet(1);
 ```
 
 ## Expression.arrayGet()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that indexes into an array from the beginning or end and returns the element. If the offset exceeds the array length, an error is returned. A negative offset, starts from the end.
 
@@ -742,9 +726,6 @@ field('tags').arrayGet(field('favoriteTag'));
 
 ## Expression.arrayIndexOf()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the first index of the search value in the array, or -1 if not found.
 
 <b>Signature:</b>
@@ -775,9 +756,6 @@ field("myArray").arrayIndexOf(3);
 ```
 
 ## Expression.arrayIndexOf()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns the first index of the search value in the array, or -1 if not found.
 
@@ -810,9 +788,6 @@ field("myArray").arrayIndexOf(field("searchVal"));
 
 ## Expression.arrayIndexOfAll()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns all indices of the search value in the array.
 
 <b>Signature:</b>
@@ -843,9 +818,6 @@ field("myArray").arrayIndexOfAll(3);
 ```
 
 ## Expression.arrayIndexOfAll()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns all indices of the search value in the array.
 
@@ -878,9 +850,6 @@ field("myArray").arrayIndexOfAll(field("searchVal"));
 
 ## Expression.arrayLast()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the last element of the array.
 
 <b>Signature:</b>
@@ -904,9 +873,6 @@ field("myArray").arrayLast();
 ```
 
 ## Expression.arrayLastIndexOf()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns the last index of the search value in the array, or -1 if not found.
 
@@ -939,9 +905,6 @@ field("myArray").arrayLastIndexOf(3);
 
 ## Expression.arrayLastIndexOf()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the last index of the search value in the array, or -1 if not found.
 
 <b>Signature:</b>
@@ -972,9 +935,6 @@ field("myArray").arrayLastIndexOf(field("searchVal"));
 ```
 
 ## Expression.arrayLastN()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns the last `n` elements of the array.
 
@@ -1007,9 +967,6 @@ field("myArray").arrayLastN(3);
 
 ## Expression.arrayLastN()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the last `n` elements of the array.
 
 <b>Signature:</b>
@@ -1041,9 +998,6 @@ field("myArray").arrayLastN(field("count"));
 
 ## Expression.arrayLength()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that calculates the length of an array.
 
 <b>Signature:</b>
@@ -1068,9 +1022,6 @@ field("cart").arrayLength();
 
 ## Expression.arrayMaximum()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the maximum value in the array.
 
 <b>Signature:</b>
@@ -1094,9 +1045,6 @@ field("myArray").arrayMaximum();
 ```
 
 ## Expression.arrayMaximumN()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns the largest `n` elements of the array.
 
@@ -1131,9 +1079,6 @@ field("myArray").arrayMaximumN(3);
 
 ## Expression.arrayMaximumN()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the largest `n` elements of the array.
 
 Note: Returns the n largest non-null elements in the array, in descending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
@@ -1167,9 +1112,6 @@ field("myArray").arrayMaximumN(field("count"));
 
 ## Expression.arrayMinimum()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the minimum value in the array.
 
 <b>Signature:</b>
@@ -1193,9 +1135,6 @@ field("myArray").arrayMinimum();
 ```
 
 ## Expression.arrayMinimumN()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns the smallest `n` elements of the array.
 
@@ -1230,9 +1169,6 @@ field("myArray").arrayMinimumN(3);
 
 ## Expression.arrayMinimumN()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns the smallest `n` elements of the array.
 
 Note: Returns the n smallest non-null elements in the array, in ascending order. This does not use a stable sort, meaning the order of equivalent elements is undefined.
@@ -1266,9 +1202,6 @@ field("myArray").arrayMinimumN(field("count"));
 
 ## Expression.arrayReverse()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that reverses an array.
 
 <b>Signature:</b>
@@ -1291,10 +1224,42 @@ field("myArray").arrayReverse();
 
 ```
 
-## Expression.arraySum()
+## Expression.arraySlice()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Returns a subset of the array.
+
+<b>Signature:</b>
+
+```typescript
+arraySlice(offset: number | Expression, length?: number | Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  offset | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The starting offset. |
+|  length | number \| [Expression](./firestore_pipelines.expression.md#expression_class) | The optional length of the slice. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the sliced array.
+
+### Example
+
+
+```typescript
+// Get 5 elements from the 'items' array starting from index 2
+field("items").arraySlice(2, 5);
+
+// Get n number of elements from the 'items' array starting from index 2
+field("items").arraySlice(2, field("count"));
+
+```
+
+## Expression.arraySum()
 
 Creates an expression that computes the sum of the elements in an array.
 
@@ -1318,10 +1283,72 @@ field("scores").arraySum();
 
 ```
 
-## Expression.as()
+## Expression.arrayTransform()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Creates an expression that applies a provided transformation to each element in an array.
+
+<b>Signature:</b>
+
+```typescript
+arrayTransform(elementAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elementAlias | string | The variable name to use for each element. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the arrayTransform operation.
+
+### Example
+
+
+```typescript
+// Transform the 'scores' array by multiplying each score by 10
+field("scores").arrayTransform("score", multiply(variable("score"), 10));
+
+```
+
+## Expression.arrayTransformWithIndex()
+
+Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+
+<b>Signature:</b>
+
+```typescript
+arrayTransformWithIndex(elementAlias: string, indexAlias: string, transform: Expression): FunctionExpression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  elementAlias | string | The variable name to use for each element. |
+|  indexAlias | string | The variable name to use for the current index. |
+|  transform | [Expression](./firestore_pipelines.expression.md#expression_class) | The lambda expression used to transform the elements. |
+
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new `Expression` representing the arrayTransformWithIndex operation.
+
+### Example
+
+
+```typescript
+// Transform the 'scores' array by adding the index to each score
+field("scores").arrayTransformWithIndex("score", "i", add(variable("score"), variable("i")));
+
+```
+
+## Expression.as()
 
 Assigns an alias to this expression.
 
@@ -1357,9 +1384,6 @@ firestore.pipeline().collection("items")
 
 ## Expression.asBoolean()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Wraps the expression in a \[BooleanExpression\].
 
 <b>Signature:</b>
@@ -1374,9 +1398,6 @@ asBoolean(): BooleanExpression;
 A \[BooleanExpression\] representing the same expression.
 
 ## Expression.ascending()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in ascending order based on this expression.
 
@@ -1403,9 +1424,6 @@ firestore.pipeline().collection("users")
 
 ## Expression.average()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that calculates the average (mean) of a numeric field across multiple stage inputs.
 
 <b>Signature:</b>
@@ -1429,9 +1447,6 @@ field("age").average().as("averageAge");
 ```
 
 ## Expression.byteLength()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that calculates the length of this string expression in bytes.
 
@@ -1457,9 +1472,6 @@ field("myString").byteLength();
 
 ## Expression.ceil()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that computes the ceiling of a numeric value.
 
 <b>Signature:</b>
@@ -1484,9 +1496,6 @@ field("price").ceil();
 
 ## Expression.charLength()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that calculates the character length of a string in UTF-8.
 
 <b>Signature:</b>
@@ -1510,9 +1519,6 @@ field("name").charLength();
 ```
 
 ## Expression.coalesce()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the first non-null, non-absent argument, without evaluating the rest of the arguments. When all arguments are null or absent, returns the last argument.
 
@@ -1547,9 +1553,6 @@ field("preferredName").coalesce(field("fullName"), "Anonymous");
 
 ## Expression.collectionId()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the collection ID from a path.
 
 <b>Signature:</b>
@@ -1573,9 +1576,6 @@ field("__path__").collectionId();
 ```
 
 ## Expression.concat()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that concatenates expression results together.
 
@@ -1609,9 +1609,6 @@ field("firstName").concat(constant(" "), field("lastName"));
 
 ## Expression.cosineDistance()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Calculates the cosine distance between two vectors.
 
 <b>Signature:</b>
@@ -1642,9 +1639,6 @@ field("userVector").cosineDistance(field("itemVector"));
 ```
 
 ## Expression.cosineDistance()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Calculates the Cosine distance between two vectors.
 
@@ -1677,9 +1671,6 @@ field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
 
 ## Expression.count()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that counts the number of stage inputs with valid evaluations of the expression or field.
 
 <b>Signature:</b>
@@ -1703,9 +1694,6 @@ field("productId").count().as("totalProducts");
 ```
 
 ## Expression.countDistinct()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an aggregation that counts the number of distinct values of the expression or field.
 
@@ -1731,9 +1719,6 @@ field("productId").countDistinct().as("distinctProducts");
 
 ## Expression.descending()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an [Ordering](./firestore_pipelines.ordering.md#ordering_class) that sorts documents in descending order based on this expression.
 
 <b>Signature:</b>
@@ -1758,9 +1743,6 @@ firestore.pipeline().collection("users")
 ```
 
 ## Expression.divide()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that divides this expression by another expression.
 
@@ -1793,9 +1775,6 @@ field("total").divide(field("count"));
 
 ## Expression.divide()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that divides this expression by a constant value.
 
 <b>Signature:</b>
@@ -1827,9 +1806,6 @@ field("value").divide(10);
 
 ## Expression.documentId()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the document ID from a path.
 
 <b>Signature:</b>
@@ -1853,9 +1829,6 @@ field("__path__").documentId();
 ```
 
 ## Expression.dotProduct()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Calculates the dot product between two vectors.
 
@@ -1888,9 +1861,6 @@ field("features").dotProduct([0.5, 0.8, 0.2]);
 
 ## Expression.dotProduct()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Calculates the dot product between two vectors.
 
 <b>Signature:</b>
@@ -1921,9 +1891,6 @@ field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
 ```
 
 ## Expression.endsWith()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if a string ends with a given postfix.
 
@@ -1956,9 +1923,6 @@ field("filename").endsWith(".txt");
 
 ## Expression.endsWith()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if a string ends with a given postfix (represented as an expression).
 
 <b>Signature:</b>
@@ -1989,9 +1953,6 @@ field("url").endsWith(field("extension"));
 ```
 
 ## Expression.equal()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if this expression is equal to another expression.
 
@@ -2024,9 +1985,6 @@ field("age").equal(21);
 
 ## Expression.equal()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is equal to a constant value.
 
 <b>Signature:</b>
@@ -2057,9 +2015,6 @@ field("city").equal("London");
 ```
 
 ## Expression.equalAny()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if this expression is equal to any of the provided values or expressions.
 
@@ -2092,9 +2047,6 @@ field("category").equalAny(["Electronics", field("primaryType")]);
 
 ## Expression.equalAny()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is equal to any of the provided values or expressions.
 
 <b>Signature:</b>
@@ -2125,9 +2077,6 @@ field("category").equalAny(array(["Electronics", field("primaryType")]));
 ```
 
 ## Expression.euclideanDistance()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Calculates the Euclidean distance between two vectors.
 
@@ -2160,9 +2109,6 @@ field("location").euclideanDistance([37.7749, -122.4194]);
 
 ## Expression.euclideanDistance()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Calculates the Euclidean distance between two vectors.
 
 <b>Signature:</b>
@@ -2194,9 +2140,6 @@ field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
 
 ## Expression.exists()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if a field exists in the document.
 
 <b>Signature:</b>
@@ -2220,9 +2163,6 @@ field("phoneNumber").exists();
 ```
 
 ## Expression.exp()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that computes e to the power of this expression.
 
@@ -2248,9 +2188,6 @@ field("value").exp();
 
 ## Expression.first()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that finds the first value of an expression across multiple stage inputs.
 
 <b>Signature:</b>
@@ -2275,9 +2212,6 @@ field("rating").first().as("firstRating");
 
 ## Expression.floor()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that computes the floor of a numeric value.
 
 <b>Signature:</b>
@@ -2300,10 +2234,38 @@ field("price").floor();
 
 ```
 
-## Expression.greaterThan()
+## Expression.getField()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
+
+<b>Signature:</b>
+
+```typescript
+getField(key: string | Expression): Expression;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  key | string \| [Expression](./firestore_pipelines.expression.md#expression_class) | The field to access in the document. |
+
+<b>Returns:</b>
+
+[Expression](./firestore_pipelines.expression.md#expression_class)
+
+A new `Expression` representing the value of the field in the document.
+
+### Example
+
+
+```typescript
+// Get the value of the "city" field in the "address" document.
+field("address").getField("city")
+
+```
+
+## Expression.greaterThan()
 
 Creates an expression that checks if this expression is greater than another expression.
 
@@ -2336,9 +2298,6 @@ field("age").greaterThan(field("limit"));
 
 ## Expression.greaterThan()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is greater than a constant value.
 
 <b>Signature:</b>
@@ -2369,9 +2328,6 @@ field("price").greaterThan(100);
 ```
 
 ## Expression.greaterThanOrEqual()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if this expression is greater than or equal to another expression.
 
@@ -2404,9 +2360,6 @@ field("quantity").greaterThanOrEqual(field('requirement').add(1));
 
 ## Expression.greaterThanOrEqual()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is greater than or equal to a constant value.
 
 <b>Signature:</b>
@@ -2437,9 +2390,6 @@ field("score").greaterThanOrEqual(80);
 ```
 
 ## Expression.ifAbsent()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else return the result of this expression evaluation.
 
@@ -2473,9 +2423,6 @@ field("optional_field").ifAbsent("default_value")
 
 ## Expression.ifAbsent()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else return the result of this expression evaluation.
 
 <b>Signature:</b>
@@ -2507,9 +2454,6 @@ field("optional_field").ifAbsent(field('default_field'))
 ```
 
 ## Expression.ifError()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the result of the `catchExpr` argument if there is an error, else return the result of this expression.
 
@@ -2543,9 +2487,6 @@ field("title").arrayGet(0).ifError(field("title"));
 
 ## Expression.ifError()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the `catch` argument if there is an error, else return the result of this expression.
 
 <b>Signature:</b>
@@ -2577,9 +2518,6 @@ field("title").arrayGet(0).ifError("Default Title");
 ```
 
 ## Expression.ifNull()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else return the result of this expression evaluation.
 
@@ -2614,9 +2552,6 @@ field("preferredName").ifNull(field("fullName"))
 
 ## Expression.ifNull()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else return the result of this expression evaluation.
 
 This function provides a fallback for both absent and explicit null values. In contrast, `ifAbsent()` only triggers for missing fields.
@@ -2650,9 +2585,6 @@ field("displayName").ifNull("Anonymous")
 
 ## Expression.isAbsent()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns `true` if the result of this expression is absent. Otherwise, returns `false` even if the value is `null`<!-- -->.
 
 <b>Signature:</b>
@@ -2676,9 +2608,6 @@ field("value").isAbsent();
 ```
 
 ## Expression.isError()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if a given expression produces an error.
 
@@ -2704,24 +2633,21 @@ field("title").arrayContains(1).isError();
 
 ## Expression.isType()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if the result of this expression is of the given type.
 
-Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data. Supported values for `type` are: `'null'`<!-- -->, `'array'`<!-- -->, `'boolean'`<!-- -->, `'bytes'`<!-- -->, `'timestamp'`<!-- -->, `'geo_point'`<!-- -->, `'number'`<!-- -->, `'int32'`<!-- -->, `'int64'`<!-- -->, `'float64'`<!-- -->, `'decimal128'`<!-- -->, `'map'`<!-- -->, `'reference'`<!-- -->, `'string'`<!-- -->, `'vector'`<!-- -->, `'max_key'`<!-- -->, `'min_key'`<!-- -->, `'object_id'`<!-- -->, `'regex'`<!-- -->, `'request_timestamp'`<!-- -->.
 
 <b>Signature:</b>
 
 ```typescript
-isType(type: Type): BooleanExpression;
+isType(type: string): BooleanExpression;
 ```
 
 #### Parameters
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  type | [Type](./firestore_pipelines.md#type) | The type to check for. |
+|  type | string | The type to check for. |
 
 <b>Returns:</b>
 
@@ -2739,9 +2665,6 @@ field('price').isType('int64');
 ```
 
 ## Expression.join()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that joins the elements of an array into a string.
 
@@ -2774,9 +2697,6 @@ field("tags").join(field("separator"))
 
 ## Expression.join()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that joins the elements of an array field into a string.
 
 <b>Signature:</b>
@@ -2808,9 +2728,6 @@ field("tags").join(", ")
 
 ## Expression.last()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that finds the last value of an expression across multiple stage inputs.
 
 <b>Signature:</b>
@@ -2834,9 +2751,6 @@ field("rating").last().as("lastRating");
 ```
 
 ## Expression.length()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that calculates the length of a string, array, map, vector, or bytes.
 
@@ -2864,9 +2778,6 @@ field("cart").length();
 ```
 
 ## Expression.lessThan()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if this expression is less than another expression.
 
@@ -2899,9 +2810,6 @@ field("age").lessThan(field('limit'));
 
 ## Expression.lessThan()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is less than a constant value.
 
 <b>Signature:</b>
@@ -2932,9 +2840,6 @@ field("price").lessThan(50);
 ```
 
 ## Expression.lessThanOrEqual()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if this expression is less than or equal to another expression.
 
@@ -2967,9 +2872,6 @@ field("quantity").lessThan(constant(20));
 
 ## Expression.lessThanOrEqual()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is less than or equal to a constant value.
 
 <b>Signature:</b>
@@ -3000,9 +2902,6 @@ field("score").lessThan(70);
 ```
 
 ## Expression.like()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that performs a case-sensitive string comparison.
 
@@ -3035,9 +2934,6 @@ field("title").like("%guide%");
 
 ## Expression.like()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that performs a case-sensitive string comparison.
 
 <b>Signature:</b>
@@ -3069,9 +2965,6 @@ field("title").like("%guide%");
 
 ## Expression.ln()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that computes the natural logarithm of a numeric value.
 
 <b>Signature:</b>
@@ -3096,9 +2989,6 @@ field("value").ln();
 
 ## Expression.log10()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that computes the base-10 logarithm of a numeric value.
 
 <b>Signature:</b>
@@ -3122,9 +3012,6 @@ field("value").log10();
 ```
 
 ## Expression.logicalMaximum()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
 
@@ -3158,9 +3045,6 @@ field("timestamp").logicalMaximum(currentTimestamp());
 
 ## Expression.logicalMinimum()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering.
 
 <b>Signature:</b>
@@ -3192,9 +3076,6 @@ field("timestamp").logicalMinimum(currentTimestamp());
 ```
 
 ## Expression.ltrim()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
 
@@ -3230,9 +3111,6 @@ field("userInput").ltrim('"');
 
 ## Expression.mapEntries()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the entries of a map as an array of maps, where each map contains a `"k"` property for the key and a `"v"` property for the value. For example: `[{ k: "key1", v: "value1" }, ...]`<!-- -->.
 
 <b>Signature:</b>
@@ -3256,9 +3134,6 @@ field("address").mapEntries();
 ```
 
 ## Expression.mapGet()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Accesses a value from a map (object) field using the provided key.
 
@@ -3291,9 +3166,6 @@ field("address").mapGet("city");
 
 ## Expression.mapKeys()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the keys of a map.
 
 While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
@@ -3319,9 +3191,6 @@ field("address").mapKeys();
 ```
 
 ## Expression.mapMerge()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that merges multiple map values.
 
@@ -3356,9 +3225,6 @@ field('settings').mapMerge({ enabled: true }, conditional(field('isAdmin'), { ad
 
 ## Expression.mapRemove()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that removes a key from the map produced by evaluating this expression.
 
 <b>Signature:</b>
@@ -3389,9 +3255,6 @@ map({foo: 'bar', baz: true}).mapRemove('baz');
 ```
 
 ## Expression.mapRemove()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that removes a key from the map produced by evaluating this expression.
 
@@ -3424,9 +3287,6 @@ map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
 ```
 
 ## Expression.mapSet()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns a new map with the specified entries added or updated.
 
@@ -3463,9 +3323,6 @@ field("address").mapSet("city", "San Francisco");
 
 ## Expression.mapValues()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the values of a map.
 
 While the backend generally preserves insertion order, relying on the order of the output array is not guaranteed and should be avoided.
@@ -3492,9 +3349,6 @@ field("address").mapValues();
 
 ## Expression.maximum()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
 
 <b>Signature:</b>
@@ -3519,9 +3373,6 @@ field("score").maximum().as("highestScore");
 
 ## Expression.minimum()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
 
 <b>Signature:</b>
@@ -3545,9 +3396,6 @@ field("price").minimum().as("lowestPrice");
 ```
 
 ## Expression.mod()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression.
 
@@ -3580,9 +3428,6 @@ field("value").mod(field("divisor"));
 
 ## Expression.mod()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
 
 <b>Signature:</b>
@@ -3613,9 +3458,6 @@ field("value").mod(10);
 ```
 
 ## Expression.multiply()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that multiplies this expression by another expression.
 
@@ -3648,9 +3490,6 @@ field("quantity").multiply(field("price"));
 
 ## Expression.notEqual()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is not equal to another expression.
 
 <b>Signature:</b>
@@ -3681,9 +3520,6 @@ field("status").notEqual("completed");
 ```
 
 ## Expression.notEqual()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if this expression is not equal to a constant value.
 
@@ -3716,9 +3552,6 @@ field("country").notEqual("USA");
 
 ## Expression.notEqualAny()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is not equal to any of the provided values or expressions.
 
 <b>Signature:</b>
@@ -3750,9 +3583,6 @@ field("status").notEqualAny(["pending", field("rejectedStatus")]);
 
 ## Expression.notEqualAny()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
 
 <b>Signature:</b>
@@ -3782,10 +3612,31 @@ field("status").notEqualAny(field('rejectedStatuses'));
 
 ```
 
-## Expression.pow()
+## Expression.parent()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
+Creates an expression that returns the parent document reference of a document reference.
+
+<b>Signature:</b>
+
+```typescript
+parent(): FunctionExpression;
+```
+<b>Returns:</b>
+
+[FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
+
+A new [Expression](./firestore_pipelines.expression.md#expression_class) representing the parent operation.
+
+### Example
+
+
+```typescript
+// Get the parent document reference of a document reference.
+field("__path__").parent();
+
+```
+
+## Expression.pow()
 
 Creates an expression that returns the value of this expression raised to the power of another expression.
 
@@ -3818,9 +3669,6 @@ field("base").pow(field("exponent"));
 
 ## Expression.pow()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the value of this expression raised to the power of a constant value.
 
 <b>Signature:</b>
@@ -3851,9 +3699,6 @@ field("base").pow(2);
 ```
 
 ## Expression.regexContains()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if a string contains a specified regular expression as a substring.
 
@@ -3886,9 +3731,6 @@ field("description").regexContains("(?i)example");
 
 ## Expression.regexContains()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if a string contains a specified regular expression as a substring.
 
 <b>Signature:</b>
@@ -3919,9 +3761,6 @@ field("description").regexContains(field("regex"));
 ```
 
 ## Expression.regexFind()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
 
@@ -3956,9 +3795,6 @@ field("email").regexFind("@.+")
 
 ## Expression.regexFind()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the first substring of a string expression that matches a specified regular expression.
 
 This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
@@ -3991,9 +3827,6 @@ field("email").regexFind(field("domain"))
 ```
 
 ## Expression.regexFindAll()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.
 
@@ -4028,9 +3861,6 @@ field("content").regexFindAll("#[A-Za-z0-9_]+")
 
 ## Expression.regexFindAll()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that evaluates to a list of all substrings in this string expression that match a specified regular expression.
 
 This expression uses the [RE2](https://github.com/google/re2/wiki/Syntax) regular expression syntax.
@@ -4064,9 +3894,6 @@ field("content").regexFindAll(field("names"))
 
 ## Expression.regexMatch()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if a string matches a specified regular expression.
 
 <b>Signature:</b>
@@ -4097,9 +3924,6 @@ field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
 ```
 
 ## Expression.regexMatch()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if a string matches a specified regular expression.
 
@@ -4132,9 +3956,6 @@ field("email").regexMatch(field("regex"));
 
 ## Expression.reverse()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that reverses this string expression.
 
 <b>Signature:</b>
@@ -4159,9 +3980,6 @@ field("myString").reverse();
 
 ## Expression.round()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that rounds a numeric value to the nearest whole number.
 
 <b>Signature:</b>
@@ -4185,9 +4003,6 @@ field("price").round();
 ```
 
 ## Expression.round()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that rounds a numeric value to the specified number of decimal places.
 
@@ -4220,9 +4035,6 @@ field("price").round(2);
 
 ## Expression.round()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that rounds a numeric value to the specified number of decimal places.
 
 <b>Signature:</b>
@@ -4253,9 +4065,6 @@ field("price").round(constant(2));
 ```
 
 ## Expression.rtrim()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
 
@@ -4291,9 +4100,6 @@ field("userInput").rtrim('"');
 
 ## Expression.split()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter.
 
 <b>Signature:</b>
@@ -4324,9 +4130,6 @@ field('scoresCsv').split(',')
 ```
 
 ## Expression.split()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that splits the result of this expression into an array of substrings based on the provided delimiter.
 
@@ -4359,9 +4162,6 @@ field('scores').split(conditional(field('format').equal('csv'), constant(','), c
 
 ## Expression.sqrt()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that computes the square root of a numeric value.
 
 <b>Signature:</b>
@@ -4385,9 +4185,6 @@ field("value").sqrt();
 ```
 
 ## Expression.startsWith()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if a string starts with a given prefix.
 
@@ -4420,9 +4217,6 @@ field("name").startsWith("Mr.");
 
 ## Expression.startsWith()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if a string starts with a given prefix (represented as an expression).
 
 <b>Signature:</b>
@@ -4453,9 +4247,6 @@ field("fullName").startsWith(field("firstName"));
 ```
 
 ## Expression.stringConcat()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that concatenates string expressions together.
 
@@ -4489,9 +4280,6 @@ field("firstName").stringConcat(constant(" "), field("lastName"));
 
 ## Expression.stringContains()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that checks if a string contains a specified substring.
 
 <b>Signature:</b>
@@ -4522,9 +4310,6 @@ field("description").stringContains("example");
 ```
 
 ## Expression.stringContains()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that checks if a string contains the string represented by another expression.
 
@@ -4557,9 +4342,6 @@ field("description").stringContains(field("keyword"));
 
 ## Expression.stringIndexOf()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
 
 <b>Signature:</b>
@@ -4591,9 +4373,6 @@ field("text").stringIndexOf("foo");
 
 ## Expression.stringRepeat()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that repeats a string or byte array a specified number of times.
 
 <b>Signature:</b>
@@ -4624,9 +4403,6 @@ field("label").stringRepeat(3);
 ```
 
 ## Expression.stringReplaceAll()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
 
@@ -4660,9 +4436,6 @@ field("text").stringReplaceAll("foo", "bar");
 
 ## Expression.stringReplaceOne()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
 
 <b>Signature:</b>
@@ -4695,9 +4468,6 @@ field("text").stringReplaceOne("foo", "bar");
 
 ## Expression.stringReverse()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that reverses a string.
 
 <b>Signature:</b>
@@ -4722,9 +4492,6 @@ field("myString").stringReverse();
 
 ## Expression.substring()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns a substring of the results of this expression.
 
 <b>Signature:</b>
@@ -4746,9 +4513,6 @@ substring(position: number, length?: number): FunctionExpression;
 
 ## Expression.substring()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns a substring of the results of this expression.
 
 <b>Signature:</b>
@@ -4769,9 +4533,6 @@ substring(position: Expression, length?: Expression): FunctionExpression;
 [FunctionExpression](./firestore_pipelines.functionexpression.md#functionexpression_class)
 
 ## Expression.subtract()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that subtracts another expression from this expression.
 
@@ -4804,9 +4565,6 @@ field("price").subtract(field("discount"));
 
 ## Expression.subtract()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that subtracts a constant value from this expression.
 
 <b>Signature:</b>
@@ -4838,9 +4596,6 @@ field("total").subtract(20);
 
 ## Expression.sum()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs.
 
 <b>Signature:</b>
@@ -4864,9 +4619,6 @@ field("orderAmount").sum().as("totalRevenue");
 ```
 
 ## Expression.timestampAdd()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that adds a specified amount of time to this timestamp expression.
 
@@ -4900,9 +4652,6 @@ field("timestamp").timestampAdd(field("unit"), field("amount"));
 
 ## Expression.timestampAdd()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that adds a specified amount of time to this timestamp expression.
 
 <b>Signature:</b>
@@ -4934,9 +4683,6 @@ field("timestamp").timestampAdd("day", 1);
 ```
 
 ## Expression.timestampDiff()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that calculates the difference between this timestamp and another timestamp.
 
@@ -4970,9 +4716,6 @@ field("endTime").timestampDiff(field("startTime"), field("unit"));
 
 ## Expression.timestampDiff()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that calculates the difference between this timestamp and another timestamp.
 
 <b>Signature:</b>
@@ -5004,9 +4747,6 @@ field("endTime").timestampDiff("startTime", "day");
 ```
 
 ## Expression.timestampExtract()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that extracts a specified part from this timestamp expression.
 
@@ -5040,9 +4780,6 @@ field('createdAt').timestampExtract('year')
 
 ## Expression.timestampExtract()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that extracts a specified part from this timestamp expression.
 
 <b>Signature:</b>
@@ -5074,9 +4811,6 @@ field('createdAt').timestampExtract(field('extractionPart'))
 ```
 
 ## Expression.timestampSubtract()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that subtracts a specified amount of time from this timestamp expression.
 
@@ -5110,9 +4844,6 @@ field("timestamp").timestampSubtract(field("unit"), field("amount"));
 
 ## Expression.timestampSubtract()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that subtracts a specified amount of time from this timestamp expression.
 
 <b>Signature:</b>
@@ -5145,9 +4876,6 @@ field("timestamp").timestampSubtract("day", 1);
 
 ## Expression.timestampToUnixMicros()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
 <b>Signature:</b>
@@ -5171,9 +4899,6 @@ field("timestamp").timestampToUnixMicros();
 ```
 
 ## Expression.timestampToUnixMillis()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
@@ -5199,9 +4924,6 @@ field("timestamp").timestampToUnixMillis();
 
 ## Expression.timestampToUnixSeconds()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
 
 <b>Signature:</b>
@@ -5225,9 +4947,6 @@ field("timestamp").timestampToUnixSeconds();
 ```
 
 ## Expression.timestampTruncate()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that truncates a timestamp to a specified granularity.
 
@@ -5261,9 +4980,6 @@ field('createdAt').timestampTruncate('day')
 
 ## Expression.timestampTruncate()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that truncates a timestamp to a specified granularity.
 
 <b>Signature:</b>
@@ -5296,9 +5012,6 @@ field('createdAt').timestampTruncate(field('granularity'))
 
 ## Expression.toLower()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that converts a string to lowercase.
 
 <b>Signature:</b>
@@ -5323,9 +5036,6 @@ field("name").toLower();
 
 ## Expression.toUpper()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that converts a string to uppercase.
 
 <b>Signature:</b>
@@ -5349,9 +5059,6 @@ field("title").toUpper();
 ```
 
 ## Expression.trim()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that removes leading and trailing characters from a string or byte array.
 
@@ -5387,9 +5094,6 @@ field("userInput").trim('"');
 
 ## Expression.trunc()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that truncates the numeric value to an integer.
 
 <b>Signature:</b>
@@ -5413,9 +5117,6 @@ field("rating").trunc();
 ```
 
 ## Expression.trunc()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that truncates a numeric value to the specified number of decimal places.
 
@@ -5448,9 +5149,6 @@ field("rating").trunc(2);
 
 ## Expression.trunc()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that truncates a numeric value to the specified number of decimal places.
 
 <b>Signature:</b>
@@ -5482,9 +5180,6 @@ field("rating").trunc(constant(2));
 
 ## Expression.type()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that returns the data type of this expression's result, as a string.
 
 This is evaluated on the backend. This means: 1. Generic typed elements (like `array<string>`<!-- -->) evaluate strictly to the primitive `'array'`<!-- -->. 2. Any custom `FirestoreDataConverter` mappings are ignored. 3. For numeric values, the backend does not yield the JavaScript `"number"` type; it evaluates precisely as `"int64"` or `"float64"`<!-- -->. 4. For date or timestamp objects, the backend evaluates to `"timestamp"`<!-- -->.
@@ -5511,9 +5206,6 @@ field('title').type()
 
 ## Expression.unixMicrosToTimestamp()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
 <b>Signature:</b>
@@ -5537,9 +5229,6 @@ field("microseconds").unixMicrosToTimestamp();
 ```
 
 ## Expression.unixMillisToTimestamp()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
@@ -5565,9 +5254,6 @@ field("milliseconds").unixMillisToTimestamp();
 
 ## Expression.unixSecondsToTimestamp()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC) and returns a timestamp.
 
 <b>Signature:</b>
@@ -5591,9 +5277,6 @@ field("seconds").unixSecondsToTimestamp();
 ```
 
 ## Expression.vectorLength()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression.
 

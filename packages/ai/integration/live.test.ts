@@ -23,7 +23,8 @@ import {
   LiveServerToolCall,
   LiveServerToolCallCancellation,
   LiveServerGoingAwayNotice,
-  ResponseModality
+  ResponseModality,
+  LiveSessionResumptionUpdate
 } from '../src';
 import { liveTestConfigs } from './constants';
 import { HELLO_AUDIO_PCM_BASE64 } from './sample-data/hello-audio';
@@ -35,6 +36,7 @@ async function nextTurnData(
     | LiveServerToolCall
     | LiveServerToolCallCancellation
     | LiveServerGoingAwayNotice
+    | LiveSessionResumptionUpdate
   >
 ): Promise<{
   text: string;

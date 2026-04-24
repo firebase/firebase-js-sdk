@@ -15,11 +15,21 @@
  * limitations under the License.
  */
 
-import { initializeFetch } from './network/fetch';
+import { initializeFetch } from './network/rest';
+import { initializeWebSocket } from './network/stream/websocket';
 import { registerDataConnect } from './register';
 
 export * from './api';
 export * from './api.node';
+
 initializeFetch(fetch);
+
+if (typeof WebSocket !== 'undefined') {
+  initializeWebSocket(WebSocket);
+} else {
+  console.warn(
+    'WebSocket is not available in this environment. Use a polyfill or upgrade your Node version to one that supports WebSockets.'
+  );
+}
 
 registerDataConnect('node');
