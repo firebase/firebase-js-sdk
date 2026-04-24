@@ -15,17 +15,10 @@
  * limitations under the License.
  */
 
-import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
-import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../../core/error';
-import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
 import { logError } from '../../logger';
 import { websocketUrlBuilder } from '../../util/url';
-import {
-  CallerSdkType,
-  CallerSdkTypeEnum,
-  DataConnectResponse
-} from '../transport';
+import { DataConnectResponse } from '../transport';
 
 import { AbstractDataConnectStreamTransport } from './streamTransport';
 import { DataConnectStreamRequest, DataConnectStreamResponse } from './wire';
@@ -98,28 +91,6 @@ export class WebSocketTransport extends AbstractDataConnectStreamTransport {
    * or already connected). Will be resolved or rejected when the connection is opened or fails to open.
    */
   private connectionAttempt: Promise<void> | null = null;
-
-  constructor(
-    options: DataConnectOptions,
-    protected apiKey?: string | undefined,
-    protected appId?: string | null,
-    protected authProvider?: AuthTokenProvider | undefined,
-    protected appCheckProvider?: AppCheckTokenProvider | undefined,
-    transportOptions?: TransportOptions | undefined,
-    protected _isUsingGen = false,
-    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
-  ) {
-    super(
-      options,
-      apiKey,
-      appId,
-      authProvider,
-      appCheckProvider,
-      transportOptions,
-      _isUsingGen,
-      _callerSdkType
-    );
-  }
 
   protected ensureConnection(): Promise<void> {
     try {

@@ -16,14 +16,22 @@
  */
 
 import {
+  CallerSdkTypeEnum,
+  DataConnectOptions,
+  TransportOptions
+} from '../../api';
+import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
+import {
   Code,
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
 } from '../../core/error';
-import { logError } from '../../logger';
+import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { logError, logDebug } from '../../logger';
 import {
   AbstractDataConnectTransport,
+  CallerSdkType,
   DataConnectResponse,
   SubscribeObserver,
   getGoogApiClientValue
@@ -43,6 +51,15 @@ const FIRST_REQUEST_ID = 1;
 
 /** Time to wait before closing an idle connection (no active subscriptions). */
 const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
+
+/** Initial reconnect delay in ms */
+const INITIAL_RECONNECT_DELAY_MS = 1000;
+/** Max reconnect delay in ms */
+const MAX_RECONNECT_DELAY_MS = 30000;
+/** Max random jitter to add to reconnect delay in ms */
+const MAX_RECONNECT_JITTER_MS = 500;
+/** Factor to multiply delay by on failure */
+const RECONNECT_BACKOFF_FACTOR = 1.3;
 
 /**
  * A promise returned to the user when invoking an operation via {@linkcode AbstractDataConnectStreamTransport.invokeQuery | invokeQuery}
@@ -90,6 +107,46 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.activeInvokeQueryRequests.size > 0 ||
       this.activeInvokeMutationRequests.size > 0
     );
+  }
+
+  constructor(
+    options: DataConnectOptions,
+    protected apiKey?: string | undefined,
+    protected appId?: string | null,
+    protected authProvider?: AuthTokenProvider | undefined,
+    protected appCheckProvider?: AppCheckTokenProvider | undefined,
+    transportOptions?: TransportOptions | undefined,
+    protected _isUsingGen = false,
+    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
+  ) {
+    super(
+      options,
+      apiKey,
+      appId,
+      authProvider,
+      appCheckProvider,
+      transportOptions,
+      _isUsingGen,
+      _callerSdkType
+    );
+
+    this.registerBrowserEventListeners();
+  }
+
+  /**
+   * Register event listeners for browser-specific events like online/offline and visibility changes.
+   */
+  private registerBrowserEventListeners(): void {
+    if (typeof window !== 'undefined' && 'addEventListener' in window) {
+      window.addEventListener('online', () => this.onOnline());
+    }
+    if (typeof document !== 'undefined' && 'addEventListener' in document) {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          this.onVisible();
+        }
+      });
+    }
   }
 
   /**
@@ -204,10 +261,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     { operationName: string; variables: unknown }
   >();
 
-  /** current close timeout from setTimeout(), if any */
-  private closeTimeout: NodeJS.Timeout | null = null;
-  /** has the close timeout finished? */
-  private closeTimeoutFinished = false;
+  /** current idle timeout, if any */
+  private idleTimeout: NodeJS.Timeout | null = null;
+  /** has the idle timeout finished? */
+  private idleTimeoutFinished = false;
+
   /** current auth uid. used to detect if a different user logs in */
   private authUid: string | null | undefined;
   /** Flag to ensure we wait for the initial auth state once per connection attempt. */
@@ -308,15 +366,94 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.subscribeObservers.delete(requestId);
   }
 
+  /** Delay for next reconnection attempt in ms */
+  private reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
+  /** Timer for reconnection */
+  private reconnectTimer: NodeJS.Timeout | null = null;
+
+  /**
+   * Triggered when the environment comes back online.
+   */
+  private onOnline(): void {
+    if (this.reconnectTimer) {
+      this.cancelReconnect();
+      void this.attemptReconnect();
+    }
+  }
+
+  /**
+   * Triggered when the app becomes visible.
+   */
+  private onVisible(): void {
+    if (this.reconnectTimer) {
+      this.cancelReconnect();
+      void this.attemptReconnect();
+    }
+  }
+
+  private cancelReconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  /**
+   * Starts the backoff timer for reconnection attempts. We use an exponential backoff with randomized
+   * jitter to prevent overwhelming the backend with connection attempts.
+   */
+  private startReconnectBackoff(): void {
+    if (this.reconnectTimer) {
+      return;
+    }
+    const delay = this.reconnectDelayMs;
+    this.reconnectDelayMs = Math.min(
+      this.reconnectDelayMs * RECONNECT_BACKOFF_FACTOR,
+      MAX_RECONNECT_DELAY_MS
+    );
+    const jitter = Math.random() * MAX_RECONNECT_JITTER_MS;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.attemptReconnect();
+    }, delay + jitter);
+  }
+
+  private async attemptReconnect(): Promise<void> {
+    try {
+      await this.ensureConnection();
+      // reset on success
+      this.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
+      await this.retriggerActiveRequests();
+    } catch (e) {
+      this.startReconnectBackoff();
+    }
+  }
+
+  /**
+   * Retriggers all active requests on the stream connection - first subscribes, then query executions, 
+   * and skip mutations. Used after a successful reconnection.
+   */
+  private async retriggerActiveRequests(): Promise<void> {
+    for (const [_, subscribeBody] of this.activeInvokeSubscribeRequests) {
+      await this.sendRequestMessage(subscribeBody);
+    }
+    for (const [_, requestBody] of this.activeInvokeQueryRequests) {
+      await this.sendRequestMessage(requestBody);
+    }
+  }
+
   /**
    * Tracks if the next message to be sent is the first message of the stream.
    */
   private isFirstStreamMessage = true;
+
   /**
    * Tracks the last auth token sent to the server.
    * Used to detect if the token has changed and needs to be resent.
    */
   private lastSentAuthToken: string | null = null;
+
   /**
    * Indicates whether we should include the auth token in the next message.
    * Only true if there is an auth token and it is different from the last sent auth token, or this
@@ -345,7 +482,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * requests). Defaults to `false`.
    */
   private async attemptClose(skipTimeout: boolean = false): Promise<void> {
-    if (!skipTimeout && (!this.pendingClose || !this.closeTimeoutFinished)) {
+    if (!skipTimeout && (!this.pendingClose || !this.idleTimeoutFinished)) {
       return;
     }
     if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
@@ -363,13 +500,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * there's no need to cleanup.
    */
   private closeAfterTimeout(): void {
-    if (this.pendingClose && this.closeTimeout) {
+    if (this.pendingClose && this.idleTimeout) {
       return;
     }
     this.pendingClose = true;
-    this.closeTimeoutFinished = false;
-    this.closeTimeout = setTimeout(() => {
-      this.closeTimeoutFinished = true;
+    this.idleTimeoutFinished = false;
+    this.idleTimeout = setTimeout(() => {
+      this.idleTimeoutFinished = true;
       void this.attemptClose(false);
     }, IDLE_CONNECTION_TIMEOUT_MS);
   }
@@ -378,12 +515,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Cancel closing the connection.
    */
   private cancelClose(): void {
-    if (this.closeTimeout) {
-      clearTimeout(this.closeTimeout);
-      this.closeTimeout = null;
+    if (this.idleTimeout) {
+      clearTimeout(this.idleTimeout);
+      this.idleTimeout = null;
     }
     this.pendingClose = false;
-    this.closeTimeoutFinished = false;
+    this.idleTimeoutFinished = false;
   }
 
   /**
@@ -413,16 +550,44 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       observer.onDisconnect(code, reason);
     }
     this.pendingCancellations.clear();
+    this.cancelReconnect();
+  }
+
+  private rejectAllMutations(): void {
+    const error = new DataConnectError(
+      Code.OTHER,
+      'Mutation aborted due to stream disconnect.'
+    );
+    for (const [_, requests] of this.activeInvokeMutationRequests) {
+      for (const req of requests) {
+        const promise = this.executeRequestPromises.get(req.requestId);
+        if (promise) {
+          promise.rejectFn(error);
+          this.executeRequestPromises.delete(req.requestId);
+        }
+      }
+    }
+    this.activeInvokeMutationRequests.clear();
   }
 
   /**
    * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
    */
   protected onStreamClose(code: number, reason: string): void {
-    this.rejectAllRequests(
-      Code.OTHER,
-      `Stream disconnected with code ${code}: ${reason}`
+    if (code === 1000 && !this.hasActiveSubscriptions) {
+      this.rejectAllRequests(Code.OTHER, `Stream disconnected gracefully.`);
+      return;
+    }
+
+    logDebug(
+      `Stream disconnected unexpectedly with code ${code}: ${reason}. Attempting reconnect...`
     );
+
+    // Fail all pending mutations
+    this.rejectAllMutations();
+
+    // Start reconnect backoff
+    this.startReconnectBackoff();
   }
 
   /**
