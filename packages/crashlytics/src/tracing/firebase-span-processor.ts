@@ -17,7 +17,7 @@
 
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import { getAppVersion, getSessionId } from '../helpers';
+import { getSessionId } from '../helpers';
 import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
@@ -55,6 +55,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
       span.end = function (endTime?: number | Date | undefined): void {
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
+            console.log('ending span on UI render: ', span);
             originalEnd.call(this, endTime);
           });
         });
