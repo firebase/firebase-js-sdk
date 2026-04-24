@@ -143,7 +143,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (typeof document !== 'undefined' && 'addEventListener' in document) {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          this.onVisible();
+          this.onVisibilityChange();
         }
       });
     }
@@ -374,7 +374,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Triggered when the environment comes back online.
    */
-  private onOnline(): void {
+  onOnline(): void {
     if (this.reconnectTimer) {
       this.cancelReconnect();
       void this.attemptReconnect();
@@ -384,7 +384,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Triggered when the app becomes visible.
    */
-  private onVisible(): void {
+  onVisibilityChange(): void {
     if (this.reconnectTimer) {
       this.cancelReconnect();
       void this.attemptReconnect();
@@ -553,7 +553,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     this.cancelReconnect();
   }
 
-  private rejectAllMutations(): void {
+  /**
+   * Reject all mutation execute promises.
+   * Clear active request tracking maps without cancelling or re-invoking any requests.
+   */
+  private rejectAllMutationsOnReconnect(): void {
     const error = new DataConnectError(
       Code.OTHER,
       'Mutation aborted due to stream disconnect.'
@@ -578,15 +582,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.rejectAllRequests(Code.OTHER, `Stream disconnected gracefully.`);
       return;
     }
-
     logDebug(
       `Stream disconnected unexpectedly with code ${code}: ${reason}. Attempting reconnect...`
     );
-
-    // Fail all pending mutations
-    this.rejectAllMutations();
-
-    // Start reconnect backoff
+    this.rejectAllMutationsOnReconnect();
     this.startReconnectBackoff();
   }
 

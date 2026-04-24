@@ -171,6 +171,12 @@ interface TransportWithInternals {
     requestId: string,
     response: DataConnectResponse<Data>
   ): Promise<void>;
+  onStreamClose(code: number, reason: string): void;
+  reconnectTimer: NodeJS.Timeout | null;
+  onOnline(): void;
+  onVisibilityChange(): void;
+  ensureConnection(): Promise<void>;
+  attemptReconnect(): void;
 }
 
 describe('AbstractDataConnectStreamTransport', () => {
@@ -1829,6 +1835,127 @@ describe('AbstractDataConnectStreamTransport', () => {
 
         expect(closeSpy).to.not.have.been.called;
       });
+    });
+  });
+
+  describe('Reconnection', () => {
+    let clock: sinon.SinonFakeTimers;
+    let sendMessageStub: sinon.SinonStub;
+    let ensureConnectionStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+      sendMessageStub = sinon.stub(transport, 'sendMessage').resolves();
+      ensureConnectionStub = sinon
+        .stub(transport, 'ensureConnection')
+        .resolves();
+    });
+
+    afterEach(() => {
+      clock.restore();
+      sinon.restore();
+    });
+
+    it('should start backoff on unexpected disconnect', async () => {
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+
+      // Trigger unexpected disconnect (code 1006)
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      // Should have started timer
+      expect(transport.reconnectTimer).to.not.be.null;
+    });
+
+    it('should NOT start backoff on graceful close with no subscriptions', async () => {
+      // No active subscriptions
+      transport.onStreamClose(1000, 'Normal Closure');
+
+      // Should NOT have started timer
+      expect(transport.reconnectTimer).to.be.null;
+    });
+
+    it('should fail all pending mutations on unexpected disconnect', async () => {
+      const mutationPromise = transport.invokeMutation(
+        mutationName1,
+        variables1
+      );
+
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      await expect(mutationPromise).to.be.rejectedWith(
+        'Mutation aborted due to stream disconnect.'
+      );
+      expect(transport.activeInvokeMutationRequests.size).to.equal(0);
+    });
+
+    it('should re-request active subscriptions and queries on successful reconnect', async () => {
+      const attemptReconnectSpy = sinon.spy(transport, 'attemptReconnect');
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+
+      // Stagger an execute request
+      void transport.invokeQuery(queryName1, variables1);
+
+      sendMessageStub.resetHistory();
+
+      // Trigger unexpected disconnect
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      // Fast forward time to trigger reconnect
+      await clock.tickAsync(2000); // Default is 1000 + jitter
+      expect(attemptReconnectSpy).to.have.been.calledOnce;
+      expect(ensureConnectionStub).to.have.been.calledOnce;
+
+      // Should re-send subscribe and then query
+      expect(sendMessageStub).to.have.been.calledTwice;
+      const firstSent = sendMessageStub.firstCall.args[0];
+      const secondSent = sendMessageStub.secondCall.args[0];
+
+      expect(firstSent.subscribe).to.not.be.undefined;
+      expect(secondSent.resume).to.not.be.undefined;
+    });
+
+    it('onOnline should trigger immediate reconnect if waiting', async () => {
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      expect(transport['reconnectTimer']).to.not.be.null;
+
+      transport.onOnline();
+
+      expect(ensureConnectionStub).to.have.been.calledOnce;
+      expect(transport['reconnectTimer']).to.be.null;
+    });
+
+    it('onVisibilityChange should trigger immediate reconnect if waiting', async () => {
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+      transport.onStreamClose(1006, 'Abnormal Closure');
+
+      expect(transport['reconnectTimer']).to.not.be.null;
+
+      transport.onVisibilityChange();
+
+      expect(ensureConnectionStub).to.have.been.calledOnce;
+      expect(transport['reconnectTimer']).to.be.null;
     });
   });
 });
