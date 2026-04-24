@@ -22,7 +22,7 @@ import {
   W3CTraceContextPropagator,
   ExportResult
 } from '@opentelemetry/core';
-import { TracerProvider, trace } from '@opentelemetry/api';
+import { TracerProvider, trace, context } from '@opentelemetry/api';
 import {
   WebTracerProvider,
   BatchSpanProcessor,
@@ -42,7 +42,7 @@ import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
-import { sessionContextManager } from './session-context-manager';
+import { rootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
@@ -116,7 +116,7 @@ export function createTracingProvider(
   });
 
   provider.register({
-    contextManager: sessionContextManager,
+    contextManager: rootSpanContextManager,
     propagator: new CompositePropagator({
       propagators: [new W3CTraceContextPropagator()]
     })

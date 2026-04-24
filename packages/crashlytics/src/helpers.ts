@@ -20,12 +20,14 @@ import { trace } from '@opentelemetry/api';
 import * as constants from './auto-constants';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
+  CRASHLYTICS_SESSION_ID_KEY,
+  CRASHLYTICS_TRACER_NAME
 } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { sessionContextManager } from './tracing/session-context-manager';
+import { rootSpanContextManager } from './tracing/root-span-context-manager';
+import type { Span } from '@opentelemetry/api';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -79,7 +81,6 @@ export function startNewSession(crashlytics: Crashlytics): void {
         getAppVersion((crashlytics as CrashlyticsService).options)
       );
       sessionContextManager.setSessionSpan(span);
-
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
@@ -101,6 +102,26 @@ export function startNewSession(crashlytics: Crashlytics): void {
 }
 
 /**
+ * Starts a new trace for the given Crashlytics instance.
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param rootSpanName - The name of the root span.
+ */
+export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): Span {
+  const tracer = (crashlytics as CrashlyticsInternal).tracingProvider.getTracer(
+    CRASHLYTICS_TRACER_NAME
+  );
+  const previousRootSpan = rootSpanContextManager.getRootSpan();
+  const newRootSpan = tracer.startSpan(rootSpanName);
+  rootSpanContextManager.setRootSpan(newRootSpan);
+  if (previousRootSpan) {
+    // TODO: Add logic to also end all child spans 
+    previousRootSpan.end();
+  }
+  return newRootSpan;
+}
+
+/**
  * Registers event listeners to flush logs when the page is hidden. In some cases multiple listeners
  * may trigger at the same time, but flushing only occurs once per batch.
  */
@@ -108,12 +129,14 @@ export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
-        sessionContextManager.getSessionSpan()?.end();
+        // TODO: Update this with idleness logic instead
+        rootSpanContextManager.getRootSpan()?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
-      sessionContextManager.getSessionSpan()?.end();
+        // TODO: Update this with idleness logic instead
+      rootSpanContextManager.getRootSpan()?.end();
       await flush(crashlytics);
     });
   }
