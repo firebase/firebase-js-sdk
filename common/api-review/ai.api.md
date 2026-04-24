@@ -958,7 +958,6 @@ export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpected[];
     // (undocumented)
     expectedOutputs?: LanguageModelExpected[];
-    // (undocumented)
     monitor?: (monitor: LanguageModelDownloadMonitor) => void;
     // @deprecated (undocumented)
     temperature?: number;
@@ -974,7 +973,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @public (undocumented)
+// @beta
 export interface LanguageModelDownloadMonitor {
     // (undocumented)
     addEventListener: (eventType: 'downloadprogress', eventListener: (e: {

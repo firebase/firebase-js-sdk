@@ -140,6 +140,8 @@ toc:
     path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
   - title: LanguageModelCreateOptions
     path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelDownloadMonitor
+    path: /docs/reference/js/ai.languagemodeldownloadmonitor.md
   - title: LanguageModelExpected
     path: /docs/reference/js/ai.languagemodelexpected.md
   - title: LanguageModelMessage

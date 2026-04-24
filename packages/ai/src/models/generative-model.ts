@@ -95,8 +95,15 @@ export class GenerativeModel extends AIModel {
    * such as a button click. If it is called without a user interaction,
    * and it requires a download, this will cause an error.
    *
+   * @param onDownloadProgress A callback called repeatedly as the
+   * download progresses that provides a `progressValue` between 0
+   * and 1 representing how much of the download is complete. This
+   * will be ignored if `monitor` was populated in
+   * {@link LanguageModelCreateOptions}.
+   *
    * @public
    */
+
   async initializeDeviceModel(
     onDownloadProgress?: (progressValue: number) => void
   ): Promise<void> {

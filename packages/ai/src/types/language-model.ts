@@ -64,9 +64,22 @@ export interface LanguageModelCreateCoreOptions {
   temperature?: number;
   expectedInputs?: LanguageModelExpected[];
   expectedOutputs?: LanguageModelExpected[];
+  /**
+   * The native download monitor provided by the Chrome API.
+   * This provides direct access to the monitor object and is
+   * only needed for advanced cases. For
+   * a simpler download monitoring interface, provide an
+   * `onDownloadProgress` callback
+   * to {@link GenerativeModel.initializeDeviceModel} instead.
+   */
   monitor?: (monitor: LanguageModelDownloadMonitor) => void;
 }
 
+/**
+ * Interface representing the Chrome Prompt API's native
+ * download monitor object.
+ * @beta
+ */
 export interface LanguageModelDownloadMonitor {
   addEventListener: (
     eventType: 'downloadprogress',

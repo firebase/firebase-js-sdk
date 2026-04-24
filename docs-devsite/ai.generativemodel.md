@@ -194,7 +194,7 @@ initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Pro
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  onDownloadProgress | (progressValue: number) =&gt; void |  |
+|  onDownloadProgress | (progressValue: number) =&gt; void | A callback called repeatedly as the download progresses that provides a <code>progressValue</code> between 0 and 1 representing how much of the download is complete. This will be ignored if <code>monitor</code> was populated in [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface)<!-- -->. |
 
 <b>Returns:</b>
 
