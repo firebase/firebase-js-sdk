@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2017 Google Inc.
+# Copyright 2026 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,10 +17,16 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Variables
+# Verify dependencies
+for cmd in git patch npx; do
+  if ! command -v "$cmd" &> /dev/null; then
+    echo "Error: $cmd is required but not installed." >&2
+    exit 1
+  fi
+done
+
 PROTOS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-WORK_DIR=`mktemp -d`
-PBJS="$(npm bin)/pbjs"
+WORK_DIR=$(mktemp -d)
 
 # deletes the temp directory on exit
 function cleanup {
@@ -32,15 +38,15 @@ function cleanup {
 trap cleanup EXIT
 
 # Enter work dir
-pushd "$WORK_DIR"
+pushd "$WORK_DIR" > /dev/null
 
-# Clone necessary git repos.
+# Clone necessary git repos
 git clone --depth 1 https://github.com/googleapis/googleapis.git
 git clone --depth 1 https://github.com/google/protobuf.git
 
 # Copy necessary protos.
 mkdir -p "${PROTOS_DIR}/google/api"
-cp googleapis/google/api/{annotations.proto,http.proto,client.proto,field_behavior.proto} \
+cp googleapis/google/api/{annotations.proto,http.proto,client.proto,field_behavior.proto,launch_stage.proto,routing.proto,resource.proto} \
    "${PROTOS_DIR}/google/api/"
 
 mkdir -p "${PROTOS_DIR}/google/firestore/v1"
@@ -55,22 +61,17 @@ mkdir -p "${PROTOS_DIR}/google/type"
 cp googleapis/google/type/latlng.proto \
    "${PROTOS_DIR}/google/type/"
 
-# Hack in `verify` support
-ex "${PROTOS_DIR}/google/firestore/v1/write.proto" <<eof
-44 insert
-    // The name of a document on which to verify the \`current_document\`
-    // precondition.
-    // This only requires read access to the document.
-    string verify = 5;
+mkdir -p "${PROTOS_DIR}/google/protobuf"
+cp protobuf/src/google/protobuf/{any,descriptor,empty,struct,timestamp,wrappers}.proto \
+   "${PROTOS_DIR}/google/protobuf/"
 
-.
-xit
-eof
+popd > /dev/null
 
-"${PBJS}" --proto_path=. --target=json -o protos.json \
-  -r firestore_v1 \
-  "${PROTOS_DIR}/google/firestore/v1/*.proto" \
-  "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
-  "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"
+# Apply patch for `verify` support
+if [ -f "${PROTOS_DIR}/verify.patch" ]; then
+  patch -f -d "${PROTOS_DIR}" -p1 < "${PROTOS_DIR}/verify.patch"
+  find "${PROTOS_DIR}" -name "*.orig" -delete
+fi
 
-cp protos.json "${PROTOS_DIR}/protos.json"
+# Run compile script to generate outputs
+bash "${PROTOS_DIR}/compile.sh"
