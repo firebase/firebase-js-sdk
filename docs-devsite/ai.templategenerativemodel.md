@@ -1,5 +1,5 @@
-Project: /docs/reference/js/\_project.yaml
-Book: /docs/reference/\_book.yaml
+Project: /docs/reference/js/_project.yaml
+Book: /docs/reference/_book.yaml
 page_type: reference
 
 {% comment %}
@@ -10,8 +10,8 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # TemplateGenerativeModel class
-
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.
 
@@ -20,34 +20,35 @@ This class should only be instantiated with [getTemplateGenerativeModel()](./ai.
 <b>Signature:</b>
 
 ```typescript
-export declare class TemplateGenerativeModel
+export declare class TemplateGenerativeModel 
 ```
 
 ## Constructors
 
-| Constructor                                                                                             | Modifiers | Description                                                                                                |
-| ------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------- |
-| [(constructor)(ai, requestOptions)](./ai.templategenerativemodel.md#templategenerativemodelconstructor) |           | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>TemplateGenerativeModel</code> class |
+|  Constructor | Modifiers | Description |
+|  --- | --- | --- |
+|  [(constructor)(ai, requestOptions)](./ai.templategenerativemodel.md#templategenerativemodelconstructor) |  | <b><i>(Public Preview)</i></b>  Constructs a new instance of the <code>TemplateGenerativeModel</code> class |
 
 ## Properties
 
-| Property                                                                                | Modifiers | Type                                                              | Description                                                                    |
-| --------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| [requestOptions](./ai.templategenerativemodel.md#templategenerativemodelrequestoptions) |           | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | <b><i>(Public Preview)</i></b> Additional options to use when making requests. |
+|  Property | Modifiers | Type | Description |
+|  --- | --- | --- | --- |
+|  [requestOptions](./ai.templategenerativemodel.md#templategenerativemodelrequestoptions) |  | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | <b><i>(Public Preview)</i></b> Additional options to use when making requests. |
 
 ## Methods
 
-| Method                                                                                                                                                                         | Modifiers | Description                                                                                                                                                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| [generateContent(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent)             |           | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.                          |
-| [generateContentStream(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |           | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
-| [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat)                                                                                          |           | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages.                                                                           |
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [generateContent(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |  | <b><i>(Public Preview)</i></b> Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
+|  [generateContentStream(templateId, templateVariables, singleRequestOptions, templateToolConfig)](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontentstream) |  | <b><i>(Public Preview)</i></b> Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [startChat(params)](./ai.templategenerativemodel.md#templategenerativemodelstartchat) |  | <b><i>(Public Preview)</i></b> Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages. |
 
 ## TemplateGenerativeModel.(constructor)
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
-Constructs a new instance of the `TemplateGenerativeModel` class
+ Constructs a new instance of the `TemplateGenerativeModel` class
 
 <b>Signature:</b>
 
@@ -57,14 +58,15 @@ constructor(ai: AI, requestOptions?: RequestOptions);
 
 #### Parameters
 
-| Parameter      | Type                                                              | Description |
-| -------------- | ----------------------------------------------------------------- | ----------- |
-| ai             | [AI](./ai.ai.md#ai_interface)                                     |             |
-| requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |             |
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  ai | [AI](./ai.ai.md#ai_interface) |  |
+|  requestOptions | [RequestOptions](./ai.requestoptions.md#requestoptions_interface) |  |
 
 ## TemplateGenerativeModel.requestOptions
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Additional options to use when making requests.
 
@@ -77,6 +79,7 @@ requestOptions?: RequestOptions;
 ## TemplateGenerativeModel.generateContent()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->.
 
@@ -88,12 +91,12 @@ generateContent(templateId: string, templateVariables: Record<string, unknown>, 
 
 #### Parameters
 
-| Parameter            | Type                                                                                | Description                                                 |
-| -------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| templateId           | string                                                                              | The ID of the server-side template to execute.              |
-| templateVariables    | Record&lt;string, unknown&gt;                                                       | A key-value map of variables to populate the template with. |
-| singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request.                  |
-| templateToolConfig   | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface)       | Optional. Configuration for tools to use with this request. |
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  templateId | string | The ID of the server-side template to execute. |
+|  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional. Options to use for this request. |
+|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
 
 <b>Returns:</b>
 
@@ -102,6 +105,7 @@ Promise&lt;[GenerateContentResult](./ai.generatecontentresult.md#generatecontent
 ## TemplateGenerativeModel.generateContentStream()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response.
 
@@ -113,12 +117,12 @@ generateContentStream(templateId: string, templateVariables: Record<string, unkn
 
 #### Parameters
 
-| Parameter            | Type                                                                                | Description                                                 |
-| -------------------- | ----------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| templateId           | string                                                                              | The ID of the server-side template to execute.              |
-| templateVariables    | Record&lt;string, unknown&gt;                                                       | A key-value map of variables to populate the template with. |
-| singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional.Options to use for this request.                   |
-| templateToolConfig   | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface)       | Optional. Configuration for tools to use with this request. |
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  templateId | string | The ID of the server-side template to execute. |
+|  templateVariables | Record&lt;string, unknown&gt; | A key-value map of variables to populate the template with. |
+|  singleRequestOptions | [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Optional.Options to use for this request. |
+|  templateToolConfig | [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Optional. Configuration for tools to use with this request. |
 
 <b>Returns:</b>
 
@@ -127,6 +131,7 @@ Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#gen
 ## TemplateGenerativeModel.startChat()
 
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
 
 Starts a [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) that will use this template to respond to messages.
 
@@ -138,10 +143,11 @@ startChat(params: StartTemplateChatParams): TemplateChatSession;
 
 #### Parameters
 
-| Parameter | Type                                                                                         | Description                                                                 |
-| --------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| params    | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | Configurations for the chat, including the template ID and input variables. |
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  params | [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | Configurations for the chat, including the template ID and input variables. |
 
 <b>Returns:</b>
 
 [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface)
+
