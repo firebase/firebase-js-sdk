@@ -22,7 +22,7 @@ import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { trace } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
-import { flush, getAppVersion, getSessionId } from './helpers';
+import { flush, getAppVersion, getSessionId, startNewTrace } from './helpers';
 import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
@@ -158,4 +158,4 @@ export function recordError(
   }
 }
 
-export { flush };
+export { flush, startNewTrace };
