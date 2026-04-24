@@ -25,7 +25,7 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { rootSpanContextManager } from './tracing/root-span-context-manager';
+import { RootSpanContextManager } from './tracing/root-span-context-manager';
 import type { Span } from '@opentelemetry/api';
 
 /**
@@ -98,12 +98,11 @@ export function startNewSession(crashlytics: Crashlytics): void {
  * @param rootSpanName - The name of the root span.
  */
 export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): Span {
-  const tracer = (crashlytics as CrashlyticsInternal).tracingProvider.getTracer(
-    CRASHLYTICS_TRACER_NAME
-  );
-  const previousRootSpan = rootSpanContextManager.getRootSpan();
+  const { contextManager, tracingProvider } = crashlytics as CrashlyticsInternal;
+  const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
+  const previousRootSpan = contextManager.getRootSpan();
   const newRootSpan = tracer.startSpan(rootSpanName);
-  rootSpanContextManager.setRootSpan(newRootSpan);
+  contextManager.setRootSpan(newRootSpan);
   if (previousRootSpan) {
     // TODO: Add logic to also end all child spans 
     previousRootSpan.end();
@@ -116,17 +115,18 @@ export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): S
  * may trigger at the same time, but flushing only occurs once per batch.
  */
 export function registerListeners(crashlytics: Crashlytics): void {
+  const { contextManager } = crashlytics as CrashlyticsInternal;
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
         // TODO: Update this with idleness logic instead
-        rootSpanContextManager.getRootSpan()?.end();
+        contextManager.getRootSpan()?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
         // TODO: Update this with idleness logic instead
-      rootSpanContextManager.getRootSpan()?.end();
+      contextManager.getRootSpan()?.end();
       await flush(crashlytics);
     });
   }
