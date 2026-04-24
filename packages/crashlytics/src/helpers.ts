@@ -19,19 +19,23 @@ import { SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
-  CRASHLYTICS_SESSION_ID_KEY
+  CRASHLYTICS_SESSION_ID_KEY,
+  CRASHLYTICS_TRACER_NAME
 } from './constants';
-import { Crashlytics } from './public-types';
+import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { sessionContextManager } from './tracing/session-context-manager';
+import { rootSpanContextManager } from './tracing/root-span-context-manager';
+import type { Span } from '@opentelemetry/api';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
  */
-export function getAppVersion(crashlytics: Crashlytics): string {
-  if ((crashlytics as CrashlyticsService).options?.appVersion) {
-    return (crashlytics as CrashlyticsService).options!.appVersion!;
+export function getAppVersion(
+  crashlyticsOptions: CrashlyticsOptions | undefined
+): string {
+  if (crashlyticsOptions?.appVersion) {
+    return crashlyticsOptions?.appVersion;
   } else if (constants.AUTO_CONSTANTS?.appVersion) {
     return constants.AUTO_CONSTANTS.appVersion;
   }
@@ -69,15 +73,6 @@ export function startNewSession(crashlytics: Crashlytics): void {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
 
-      const tracer = tracingProvider.getTracer('session-tracer');
-      const span = tracer.startSpan('session-start');
-      span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
-      span.setAttribute(
-        CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION,
-        getAppVersion(crashlytics)
-      );
-      sessionContextManager.setSessionSpan(span);
-
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
@@ -85,17 +80,35 @@ export function startNewSession(crashlytics: Crashlytics): void {
         body: 'Session created',
         attributes: {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(crashlytics),
-          [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${
-            span.spanContext().traceId
-          }`,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
+          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
+            (crashlytics as CrashlyticsService).options
+          ),
         }
       });
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
     }
   }
+}
+
+/**
+ * Starts a new trace for the given Crashlytics instance.
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param rootSpanName - The name of the root span.
+ */
+export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): Span {
+  const tracer = (crashlytics as CrashlyticsInternal).tracingProvider.getTracer(
+    CRASHLYTICS_TRACER_NAME
+  );
+  const previousRootSpan = rootSpanContextManager.getRootSpan();
+  const newRootSpan = tracer.startSpan(rootSpanName);
+  rootSpanContextManager.setRootSpan(newRootSpan);
+  if (previousRootSpan) {
+    // TODO: Add logic to also end all child spans 
+    previousRootSpan.end();
+  }
+  return newRootSpan;
 }
 
 /**
@@ -106,12 +119,14 @@ export function registerListeners(crashlytics: Crashlytics): void {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
-        sessionContextManager.getSessionSpan()?.end();
+        // TODO: Update this with idleness logic instead
+        rootSpanContextManager.getRootSpan()?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
-      sessionContextManager.getSessionSpan()?.end();
+        // TODO: Update this with idleness logic instead
+      rootSpanContextManager.getRootSpan()?.end();
       await flush(crashlytics);
     });
   }

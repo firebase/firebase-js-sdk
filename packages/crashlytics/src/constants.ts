@@ -18,6 +18,9 @@
 /** Type constant for Firebase Crashlytics. */
 export const CRASHLYTICS_TYPE = 'crashlytics';
 
+/** The name of the tracer for Firebase Crashlytics. */
+export const CRASHLYTICS_TRACER_NAME = 'firebase.crashlytics';
+
 /** Key for storing the session ID in sessionStorage. */
 export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
@@ -28,6 +31,21 @@ export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   USER_ID: 'user_id',
   TRACE_ID: 'logging.googleapis.com/trace',
   SPAN_ID: 'logging.googleapis.com/spanId'
+};
+
+/** Label keys for resource attributes in tracing provider */
+export const RESOURCE_ATTRIBUTE_KEYS = {
+  CLOUD_RESOURCE_ID: 'cloud.resource.id',
+  GCP_FIREBASE_APP_ID: 'gcp.firebase.app_id',
+  GCP_FIREBASE_DOMAIN: 'gcp.firebase.domain',
+  SERVICE_NAMESPACE: 'service.namespace',
+  GCP_PROJECT_ID: 'gcp.project_id'
+};
+
+export const COMMON_SPAN_ATTRIBUTE_KEYS = {
+  GCP_RESOURCE_NAME: 'gcp.resource.name',
+  GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
+  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
 };
 
 /**

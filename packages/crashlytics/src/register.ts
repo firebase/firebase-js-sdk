@@ -16,7 +16,11 @@
  */
 
 import { _registerComponent, registerVersion } from '@firebase/app';
-import { Component, ComponentType } from '@firebase/component';
+import {
+  Component,
+  ComponentType,
+  InstanceFactoryOptions
+} from '@firebase/component';
 import { name, version } from '../package.json';
 import { CrashlyticsService } from './service';
 import { createLoggerProvider } from './logging/logger-provider';
@@ -25,6 +29,7 @@ import { AppCheckProvider } from './logging/appcheck-provider';
 import { InstallationIdProvider } from './logging/installation-id-provider';
 import { CRASHLYTICS_TYPE } from './constants';
 import { getSessionId, registerListeners, startNewSession } from './helpers';
+import { CrashlyticsOptions } from './public-types';
 
 // We only import types from this package elsewhere in the `telemetry` package, so this
 // explicit import is needed here to prevent this module from being tree-shaken out.
@@ -34,17 +39,9 @@ export function registerCrashlytics(): void {
   _registerComponent(
     new Component(
       CRASHLYTICS_TYPE,
-      (container, { instanceIdentifier }) => {
-        if (instanceIdentifier === undefined) {
-          throw new Error(
-            'CrashlyticsService instance identifier is undefined'
-          );
-        }
+      (container, { options }: InstanceFactoryOptions) => {
+        const crashlyticsOptions = options as CrashlyticsOptions;
 
-        const endpointUrl = instanceIdentifier || 'http://localhost';
-        // TODO Change the tracingUrl host to either the proxy or the firebase telemetry server
-        const tracingUrl =
-          'https://staging-firebasetelemetry.sandbox.googleapis.com';
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');
@@ -57,15 +54,14 @@ export function registerCrashlytics(): void {
         ];
         const loggerProvider = createLoggerProvider(
           app,
-          endpointUrl,
+          crashlyticsOptions,
           dynamicHeaderProviders,
           dynamicAttributeProviders
         );
 
         const tracingProvider = createTracingProvider(
           app,
-          endpointUrl,
-          tracingUrl,
+          crashlyticsOptions,
           dynamicHeaderProviders,
           dynamicAttributeProviders
         );
