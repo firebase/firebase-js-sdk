@@ -958,8 +958,6 @@ export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpected[];
     // (undocumented)
     expectedOutputs?: LanguageModelExpected[];
-    // Warning: (ae-forgotten-export) The symbol "LanguageModelDownloadMonitor" needs to be exported by the entry point index.d.ts
-    //
     // (undocumented)
     monitor?: (monitor: LanguageModelDownloadMonitor) => void;
     // @deprecated (undocumented)
@@ -974,6 +972,18 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     initialPrompts?: LanguageModelMessage[];
     // (undocumented)
     signal?: AbortSignal;
+}
+
+// @public (undocumented)
+export interface LanguageModelDownloadMonitor {
+    // (undocumented)
+    addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+        loaded: number;
+    }) => void) => void;
+    // (undocumented)
+    removeEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+        loaded: number;
+    }) => void) => void;
 }
 
 // @beta
