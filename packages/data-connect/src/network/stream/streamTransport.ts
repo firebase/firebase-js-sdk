@@ -181,9 +181,28 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   >();
 
   /**
+   * Map of active {@linkcode ResumeStreamRequest} RequestIds from {@linkcode invokeQuery}, and their
+   * corresponding {@linkcode InvokeOperationPromise}.
+   */
+  private resumeRequestPromises = new Map<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    InvokeOperationPromise<any>
+  >();
+
+  /**
    * Map of active {@linkcode invokeSubscribe} RequestIds and their corresponding {@linkcode SubscribeObserver}.
    */
   private subscribeObservers = new Map<string, SubscribeObserver<unknown>>();
+
+  /**
+   * Map of subscribe RequestIds to deferred unsubscription requests. Used when a client unsubscribes
+   * while a resume request is actively pending.
+   */
+  private pendingCancellations = new Map<
+    string,
+    { operationName: string; variables: unknown }
+  >();
 
   /** current close timeout from setTimeout(), if any */
   private closeTimeout: NodeJS.Timeout | null = null;
@@ -242,10 +261,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     observer: SubscribeObserver<Data>
   ): void {
     this.activeInvokeSubscribeRequests.set(mapKey, subscribeBody);
-    this.subscribeObservers.set(
-      requestId,
-      observer as SubscribeObserver<unknown>
-    );
+    this.subscribeObservers.set(requestId, observer);
   }
 
   /**
@@ -255,6 +271,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private cleanupInvokeQueryRequest(requestId: string, mapKey: string): void {
     this.activeInvokeQueryRequests.delete(mapKey);
     this.executeRequestPromises.delete(requestId);
+    this.resumeRequestPromises.delete(requestId);
   }
 
   /**
@@ -387,10 +404,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.executeRequestPromises.delete(requestId);
       rejectFn(error);
     }
+    for (const [requestId, { rejectFn }] of this.resumeRequestPromises) {
+      this.resumeRequestPromises.delete(requestId);
+      rejectFn(error);
+    }
     for (const [requestId, observer] of this.subscribeObservers) {
       this.subscribeObservers.delete(requestId);
       observer.onDisconnect(code, reason);
     }
+    this.pendingCancellations.clear();
   }
 
   /**
@@ -519,9 +541,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     const existingQueued = this.queuedInvokeQueryRequests.get(mapKey);
     if (existingQueued) {
       // only queue one request per mapKey - return existing queued request promise
-      return existingQueued.responsePromise as Promise<
-        DataConnectResponse<Data>
-      >;
+      return existingQueued.responsePromise;
     }
 
     let resolveFn: (response: DataConnectResponse<Data>) => void;
@@ -553,11 +573,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     mapKey: string,
     queuedInvokeOperationPromise?: InvokeOperationPromise<Data>
   ): Promise<DataConnectResponse<Data>> {
+    const activeSubscription = this.activeInvokeSubscribeRequests.get(mapKey);
+
     let resolveFn: (response: DataConnectResponse<Data>) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let rejectFn: (reason: any) => void;
     let responsePromise: Promise<DataConnectResponse<Data>>;
 
+    // track the existing queued promise if one exists - otherwise create a new one
     if (queuedInvokeOperationPromise) {
       resolveFn = queuedInvokeOperationPromise.resolveFn;
       rejectFn = queuedInvokeOperationPromise.rejectFn;
@@ -571,21 +594,35 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       );
     }
 
-    const requestId = this.nextRequestId();
-    const requestBody = {
-      requestId,
-      execute: { operationName: queryName, variables }
-    } as ExecuteStreamRequest<Variables>;
+    let requestId: string;
+    let requestBody: ExecuteStreamRequest<Variables> | ResumeStreamRequest;
 
-    this.executeRequestPromises.set(requestId, {
-      responsePromise,
-      resolveFn: resolveFn!,
-      rejectFn: rejectFn!
-    });
+    if (activeSubscription) {
+      // resume!
+      requestId = activeSubscription.requestId;
+      requestBody = { requestId, resume: {} };
+      this.resumeRequestPromises.set(requestId, {
+        responsePromise,
+        resolveFn: resolveFn!,
+        rejectFn: rejectFn!
+      });
+    } else {
+      // execute!
+      requestId = this.nextRequestId();
+      requestBody = {
+        requestId,
+        execute: { operationName: queryName, variables }
+      };
+      this.executeRequestPromises.set(requestId, {
+        responsePromise,
+        resolveFn: resolveFn!,
+        rejectFn: rejectFn!
+      });
+    }
 
     this.activeInvokeQueryRequests.set(mapKey, requestBody);
 
-    void responsePromise.finally(() => {
+    responsePromise = responsePromise.finally(() => {
       this.onInvokeQueryRequestFulfilled(
         queryName,
         variables,
@@ -611,6 +648,12 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     requestId: string
   ): void {
     this.cleanupInvokeQueryRequest(requestId, mapKey);
+
+    const deferredCancel = this.pendingCancellations.get(requestId);
+    if (deferredCancel) {
+      this.pendingCancellations.delete(requestId);
+      this.cancelSubscription(requestId, mapKey);
+    }
 
     const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
     if (!queuedRequestPromise) {
@@ -678,38 +721,41 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     variables: Variables
   ): void {
     const mapKey = this.getMapKey(queryName, variables);
+    const existingSubscribe = this.activeInvokeSubscribeRequests.get(mapKey);
 
-    if (this.activeInvokeSubscribeRequests.has(mapKey)) {
-      // de-duplicate subscribe requests
-      // the Query Layer also de-dupes subscribe requests, but this is here for good measure.
-      // note that we do not multiplex observers here, that is handled by the Query Layer.
-      return;
+    // if this query is pending cancellation, cancel the cancellation!
+    if (existingSubscribe) {
+      const requestId = existingSubscribe.requestId;
+      if (this.pendingCancellations.has(requestId)) {
+        this.pendingCancellations.delete(requestId);
+        this.subscribeObservers.set(requestId, observer);
+      }
+    } else {
+      const requestId = this.nextRequestId();
+      const activeRequestKey = { operationName: queryName, variables };
+      const subscribeBody: SubscribeStreamRequest<Variables> = {
+        requestId,
+        subscribe: activeRequestKey
+      };
+
+      this.trackInvokeSubscribeRequest<Data>(
+        requestId,
+        mapKey,
+        subscribeBody,
+        observer
+      );
+
+      // asynchronous, fire and forget
+      this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
+        observer.onError(err instanceof Error ? err : new Error(String(err)));
+        this.cleanupInvokeSubscribeRequest(requestId, mapKey);
+        if (!this.hasActiveSubscriptions) {
+          this.closeAfterTimeout();
+        }
+      });
     }
-
     // if we are waiting to close the stream, cancel closing!
     this.cancelClose();
-    const requestId = this.nextRequestId();
-    const activeRequestKey = { operationName: queryName, variables };
-    const subscribeBody: SubscribeStreamRequest<Variables> = {
-      requestId,
-      subscribe: activeRequestKey
-    };
-
-    this.trackInvokeSubscribeRequest<Data>(
-      requestId,
-      mapKey,
-      subscribeBody,
-      observer
-    );
-
-    // asynchronous, fire and forget
-    this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
-      observer.onError(err instanceof Error ? err : new Error(String(err)));
-      this.cleanupInvokeSubscribeRequest(requestId, mapKey);
-      if (!this.hasActiveSubscriptions) {
-        this.closeAfterTimeout();
-      }
-    });
   }
 
   /**
@@ -726,6 +772,16 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       return;
     }
     const requestId = subscribeRequest.requestId;
+
+    this.subscribeObservers.delete(requestId);
+    const resumePromise = this.resumeRequestPromises.get(requestId);
+    if (resumePromise) {
+      this.pendingCancellations.set(requestId, {
+        operationName: queryName,
+        variables
+      });
+      return;
+    }
     this.cancelSubscription(requestId, mapKey);
   }
 
@@ -734,8 +790,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * should close the stream due to inactivity.
    */
   private cancelSubscription(requestId: string, mapKey: string): void {
-    this.activeInvokeSubscribeRequests.delete(mapKey);
-    this.subscribeObservers.delete(requestId);
+    this.cleanupInvokeSubscribeRequest(requestId, mapKey);
     const cancelBody: CancelStreamRequest = {
       requestId,
       cancel: {}
@@ -793,8 +848,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       const { resolveFn, rejectFn } =
         this.executeRequestPromises.get(requestId)!;
       this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
-    } else if (this.subscribeObservers.has(requestId)) {
+    } else if (
+      this.subscribeObservers.has(requestId) ||
+      this.resumeRequestPromises.has(requestId)
+    ) {
       const observer = this.subscribeObservers.get(requestId);
+      const resumePromise = this.resumeRequestPromises.get(requestId);
+
+      if (resumePromise) {
+        this.resumeRequestPromises.delete(requestId);
+        const { resolveFn, rejectFn } = resumePromise;
+        this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
+      }
+
       if (observer) {
         try {
           await observer.onData(response);
@@ -803,8 +869,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
         }
       }
     } else {
-      throw new DataConnectError(
-        Code.OTHER,
+      logError(
         `Stream response contained unrecognized requestId '${requestId}'`
       );
     }

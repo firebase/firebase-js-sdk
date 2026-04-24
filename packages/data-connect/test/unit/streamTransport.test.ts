@@ -143,6 +143,11 @@ interface TransportWithInternals {
   >;
   activeInvokeSubscribeRequests: Map<string, SubscribeStreamRequest<unknown>>;
   executeRequestPromises: Map<string, InvokeOperationPromise<unknown>>;
+  resumeRequestPromises: Map<string, InvokeOperationPromise<unknown>>;
+  pendingCancellations: Map<
+    string,
+    { operationName: string; variables: unknown }
+  >;
   subscribeObservers: Map<string, unknown>;
   getMapKey(operationName: string, variables?: unknown): string;
   invokeQuery<_Data, Variables>(
@@ -469,6 +474,76 @@ describe('AbstractDataConnectStreamTransport', () => {
         });
 
         describe('optimizations', () => {
+          describe('prefer resume over execute when executing already subscribed queries', () => {
+            it('should send a resume payload if there is an active subscription', async () => {
+              const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+              const observer = {
+                onData: sinon.spy(),
+                onDisconnect: sinon.spy(),
+                onError: sinon.spy()
+              };
+
+              transport.invokeSubscribe(observer, queryName1, variables1);
+              expect(sendMessageSpy).to.have.been.calledOnce;
+              const subscribeMessage = sendMessageSpy.firstCall.args[0];
+              expect(subscribeMessage.subscribe).to.not.be.undefined;
+              const subscribeRequestId = subscribeMessage.requestId;
+
+              const queryPromise = transport.invokeQuery(
+                queryName1,
+                variables1
+              );
+              expect(sendMessageSpy).to.have.been.calledTwice;
+              const resumeMessage = sendMessageSpy.secondCall.args[0];
+              expect(resumeMessage.resume).to.not.be.undefined;
+              expect(resumeMessage.requestId).to.equal(subscribeRequestId);
+
+              const response = {
+                data: { result: '1' },
+                errors: [],
+                extensions: {}
+              };
+              await transport.invokeHandleResponse(
+                subscribeRequestId,
+                response
+              );
+              expect(await queryPromise).to.deep.equal(response);
+            });
+
+            it('should resolve resume promise even if observer callback throws', async () => {
+              sinon.stub(transport, 'sendMessage').resolves();
+              const observer = {
+                onData: sinon.stub().throws(new Error('Callback crashed')),
+                onDisconnect: sinon.spy(),
+                onError: sinon.spy()
+              };
+
+              transport.invokeSubscribe(observer, queryName1, variables1);
+              const subscribeRequestId =
+                transport.activeInvokeSubscribeRequests.get(
+                  transport.getMapKey(queryName1, variables1)
+                )!.requestId;
+
+              const queryPromise = transport.invokeQuery(
+                queryName1,
+                variables1
+              );
+
+              const response = {
+                data: { result: '1' },
+                errors: [],
+                extensions: {}
+              };
+
+              await transport.invokeHandleResponse(
+                subscribeRequestId,
+                response
+              );
+              const result = await queryPromise;
+              expect(result).to.deep.equal(response);
+            });
+          });
+
           describe('de-duplication of identical requests', () => {
             it('should send the first request and queue subsequent requests when they are identical', async () => {
               const sendMessageSpy = sinon.spy(transport, 'sendMessage');
@@ -688,6 +763,115 @@ describe('AbstractDataConnectStreamTransport', () => {
                 .false;
               expect(transport.queuedInvokeQueryRequests.has(mapKey)).to.be
                 .false;
+            });
+
+            it('should de-duplicate identical resume requests', async () => {
+              sinon.stub(transport, 'sendMessage').resolves();
+              const observer = {
+                onData: sinon.spy(),
+                onDisconnect: sinon.spy(),
+                onError: sinon.spy()
+              };
+
+              transport.invokeSubscribe(observer, queryName1, variables1);
+
+              const promises = [];
+              for (let i = 1; i <= 20; i++) {
+                promises.push(transport.invokeQuery(queryName1, variables1));
+              }
+              const mapKey = transport.getMapKey(queryName1, variables1);
+              const queuedMap = transport.queuedInvokeQueryRequests;
+              expect(queuedMap.has(mapKey)).to.be.true;
+
+              // promises 1 and 2 should be different, but 2-20 should be the same!
+              expect(promises[0]).to.not.equal(promises[1]);
+              for (let i = 1; i < 20; i++) {
+                expect(promises[i]).to.equal(promises[1]);
+              }
+            });
+
+            it('should execute first, and then pop as resume if subscribed while waiting', async () => {
+              const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+
+              const queryPromise1 = transport.invokeQuery(
+                queryName1,
+                variables1
+              );
+              expect(sendMessageSpy).to.have.been.calledOnce;
+              const executeMessage = sendMessageSpy.firstCall.args[0];
+              expect(executeMessage.execute).to.not.be.undefined;
+              const executeRequestId = executeMessage.requestId;
+
+              void transport.invokeQuery(queryName1, variables1);
+              expect(sendMessageSpy).to.have.been.calledOnce;
+
+              const observer = {
+                onData: sinon.spy(),
+                onDisconnect: sinon.spy(),
+                onError: sinon.spy()
+              };
+              transport.invokeSubscribe(observer, queryName1, variables1);
+              expect(sendMessageSpy).to.have.been.calledTwice;
+              const subscribeRequestId =
+                sendMessageSpy.secondCall.args[0].requestId;
+
+              const response1 = {
+                data: { result: '1' },
+                errors: [],
+                extensions: {}
+              };
+              await transport.invokeHandleResponse(executeRequestId, response1);
+              await queryPromise1;
+
+              expect(sendMessageSpy).to.have.been.calledThrice;
+              const resumeMessage = sendMessageSpy.thirdCall.args[0];
+              expect(resumeMessage.resume).to.not.be.undefined;
+              expect(resumeMessage.requestId).to.equal(subscribeRequestId);
+            });
+
+            it('should resume first, and then pop as execute if unsubscribed while waiting', async () => {
+              const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+              const observer = {
+                onData: sinon.spy(),
+                onDisconnect: sinon.spy(),
+                onError: sinon.spy()
+              };
+
+              transport.invokeSubscribe(observer, queryName1, variables1);
+              expect(sendMessageSpy).to.have.been.calledOnce;
+              const subscribeRequestId =
+                sendMessageSpy.firstCall.args[0].requestId;
+
+              const queryPromise1 = transport.invokeQuery(
+                queryName1,
+                variables1
+              );
+              expect(sendMessageSpy).to.have.been.calledTwice;
+
+              void transport.invokeQuery(queryName1, variables1);
+              expect(sendMessageSpy).to.have.been.calledTwice;
+
+              transport.invokeUnsubscribe(queryName1, variables1);
+              expect(sendMessageSpy).to.have.been.calledTwice;
+
+              const response1 = {
+                data: { result: '1' },
+                errors: [],
+                extensions: {}
+              };
+              await transport.invokeHandleResponse(
+                subscribeRequestId,
+                response1
+              );
+              await queryPromise1;
+
+              expect(sendMessageSpy.callCount).to.equal(4);
+              const cancelMessage = sendMessageSpy.getCall(2).args[0];
+              expect(cancelMessage.cancel).to.not.be.undefined;
+
+              const executeMessage = sendMessageSpy.getCall(3).args[0];
+              expect(executeMessage.execute).to.not.be.undefined;
+              expect(executeMessage.requestId).to.not.equal(subscribeRequestId);
             });
           });
         });
@@ -972,6 +1156,78 @@ describe('AbstractDataConnectStreamTransport', () => {
           expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
             .false;
         });
+
+        it('should defer cancellation if there is a pending resume request', async () => {
+          const sendMessageSpy = sinon.spy(transport, 'sendMessage');
+          const observer = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+
+          transport.invokeSubscribe(observer, queryName1, variables1);
+          const subscribeRequestId = sendMessageSpy.firstCall.args[0].requestId;
+
+          const queryPromise = transport.invokeQuery(queryName1, variables1);
+          expect(sendMessageSpy).to.have.been.calledTwice;
+
+          // Unsubscribe while resume is pending
+          transport.invokeUnsubscribe(queryName1, variables1);
+          // Should NOT have sent cancel message yet
+          expect(sendMessageSpy).to.have.been.calledTwice;
+
+          const response = {
+            data: { result: '1' },
+            errors: [],
+            extensions: {}
+          };
+          await transport.invokeHandleResponse(subscribeRequestId, response);
+          expect(await queryPromise).to.deep.equal(response);
+
+          // Now cancel message should be sent
+          expect(sendMessageSpy).to.have.been.calledThrice;
+          const cancelMessage = sendMessageSpy.thirdCall.args[0];
+          expect(cancelMessage.cancel).to.not.be.undefined;
+          expect(cancelMessage.requestId).to.equal(subscribeRequestId);
+        });
+
+        it('should resurrect a subscription if re-subscribed while pending cancellation', async () => {
+          sinon.stub(transport, 'sendMessage').resolves();
+          const observer1 = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+          const observer2 = {
+            onData: sinon.spy(),
+            onDisconnect: sinon.spy(),
+            onError: sinon.spy()
+          };
+
+          transport.invokeSubscribe(observer1, queryName1, variables1);
+          const subscribeRequestId =
+            transport.activeInvokeSubscribeRequests.get(
+              transport.getMapKey(queryName1, variables1)
+            )!.requestId;
+
+          // Start a resume to put it in flight
+          void transport.invokeQuery(queryName1, variables1);
+
+          // Unsubscribe -> goes to pendingCancellations
+          transport.invokeUnsubscribe(queryName1, variables1);
+          expect(transport.pendingCancellations.has(subscribeRequestId)).to.be
+            .true;
+          expect(transport.subscribeObservers.has(subscribeRequestId)).to.be
+            .false;
+
+          // Re-subscribe -> should resurrect!
+          transport.invokeSubscribe(observer2, queryName1, variables1);
+          expect(transport.pendingCancellations.has(subscribeRequestId)).to.be
+            .false;
+          expect(transport.subscribeObservers.get(subscribeRequestId)).to.equal(
+            observer2
+          );
+        });
       });
     });
 
@@ -1007,20 +1263,20 @@ describe('AbstractDataConnectStreamTransport', () => {
         extensions: {}
       };
 
-      it('should throw an error if an unrecognized requestId is received', async () => {
+      it('should log an error if an unrecognized requestId is received', async () => {
+        const logErrorStub = sinon.stub(logger, 'logError');
         const unknownRequestId = 'unknown-999';
         const response: DataConnectResponse<unknown> = {
           data: {},
           errors: [],
           extensions: {}
         };
-        const errorPromise = transport.invokeHandleResponse(
-          unknownRequestId,
-          response
-        );
-        await expect(errorPromise).to.be.rejectedWith(
+        await transport.invokeHandleResponse(unknownRequestId, response);
+        expect(logErrorStub).to.have.been.calledOnce;
+        expect(logErrorStub).to.have.been.calledWithMatch(
           `Stream response contained unrecognized requestId '${unknownRequestId}'`
         );
+        logErrorStub.restore();
       });
 
       describe('invokeQuery tracking', async () => {
