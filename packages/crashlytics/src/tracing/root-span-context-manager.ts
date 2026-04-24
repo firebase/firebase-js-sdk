@@ -21,7 +21,7 @@ import { ZoneContextManager } from '@opentelemetry/context-zone';
 /**
  * A custom ContextManager that ensures the latest active root span is the default parent.
  */
-class RootSpanContextManager extends ZoneContextManager {
+export class RootSpanContextManager extends ZoneContextManager {
   private _rootSpan: Span | undefined;
 
   setRootSpan(span: Span | undefined): void {
@@ -41,19 +41,3 @@ class RootSpanContextManager extends ZoneContextManager {
     return context;
   }
 }
-
-const rootSpanContextManagerKey = Symbol.for("firebase.crashlytics.rootSpanContextManager");
-
-function getRootSpanContextManager(): RootSpanContextManager {
-  const globalObj = globalThis as any;
-  if (!globalObj[rootSpanContextManagerKey]) {
-    globalObj[rootSpanContextManagerKey] = new RootSpanContextManager();
-  }
-  return globalObj[rootSpanContextManagerKey];
-}
-
-/**
- * Global instance of the RootSpanContextManager.
- * @internal
- */
-export const rootSpanContextManager = getRootSpanContextManager();
