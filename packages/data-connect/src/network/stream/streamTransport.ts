@@ -143,7 +143,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     if (typeof document !== 'undefined' && 'addEventListener' in document) {
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') {
-          this.onVisibilityChange();
+          this.onVisible();
         }
       });
     }
@@ -384,7 +384,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   /**
    * Triggered when the app becomes visible.
    */
-  onVisibilityChange(): void {
+  onVisible(): void {
     if (this.reconnectTimer) {
       this.cancelReconnect();
       void this.attemptReconnect();
@@ -431,7 +431,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Retriggers all active requests on the stream connection - first subscribes, then query executions, 
+   * Retriggers all active requests on the stream connection - first subscribes, then query executions,
    * and skip mutations. Used after a successful reconnection.
    */
   private async retriggerActiveRequests(): Promise<void> {

@@ -1933,12 +1933,12 @@ describe('AbstractDataConnectStreamTransport', () => {
       transport.invokeSubscribe(observer, queryName1, variables1);
       transport.onStreamClose(1006, 'Abnormal Closure');
 
-      expect(transport['reconnectTimer']).to.not.be.null;
+      expect(transport.reconnectTimer).to.not.be.null;
 
       transport.onOnline();
 
       expect(ensureConnectionStub).to.have.been.calledOnce;
-      expect(transport['reconnectTimer']).to.be.null;
+      expect(transport.reconnectTimer).to.be.null;
     });
 
     it('onVisibilityChange should trigger immediate reconnect if waiting', async () => {
@@ -1950,12 +1950,12 @@ describe('AbstractDataConnectStreamTransport', () => {
       transport.invokeSubscribe(observer, queryName1, variables1);
       transport.onStreamClose(1006, 'Abnormal Closure');
 
-      expect(transport['reconnectTimer']).to.not.be.null;
+      expect(transport.reconnectTimer).to.not.be.null;
 
       transport.onVisibilityChange();
 
       expect(ensureConnectionStub).to.have.been.calledOnce;
-      expect(transport['reconnectTimer']).to.be.null;
+      expect(transport.reconnectTimer).to.be.null;
     });
   });
 });
