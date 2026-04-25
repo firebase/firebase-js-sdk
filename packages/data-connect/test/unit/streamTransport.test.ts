@@ -1883,6 +1883,13 @@ describe('AbstractDataConnectStreamTransport', () => {
     });
 
     it('should fail all pending mutations on unexpected disconnect', async () => {
+      const observer = {
+        onData: sinon.spy(),
+        onDisconnect: sinon.spy(),
+        onError: sinon.spy()
+      };
+      transport.invokeSubscribe(observer, queryName1, variables1);
+
       const mutationPromise = transport.invokeMutation(
         mutationName1,
         variables1

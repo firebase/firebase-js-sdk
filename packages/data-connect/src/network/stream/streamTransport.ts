@@ -605,10 +605,11 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
    */
   protected onStreamClose(code: number, reason: string): void {
-    if (code === 1000 && !this.hasActiveSubscriptions) {
+    this.cancelClose();
+    if (!this.hasActiveSubscriptions) {
       this.rejectAllRequests(
         Code.OTHER,
-        `Stream disconnected with code ${code}: ${reason}`
+        `Stream disconnected while idle with code ${code}: ${reason}`
       );
       return;
     }
