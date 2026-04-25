@@ -46,7 +46,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
@@ -80,7 +80,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -144,7 +144,7 @@ jobs:
         echo "::warning ::${CHROME_VERSION_MISMATCH_MESSAGE}"
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
         fi
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -194,7 +194,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -247,7 +247,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
