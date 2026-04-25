@@ -240,12 +240,19 @@ class TargetState {
 
   recordTargetResponse(): void {
     this.pendingResponses -= 1;
-    hardAssert(
-      this.pendingResponses >= 0,
-      0x0ca9,
-      '`pendingResponses` is less than 0. This indicates that the SDK received more target acks from the server than expected. The SDK should not continue to operate.',
-      { pendingResponses: this.pendingResponses }
-    );
+    if (this.pendingResponses < 0) {
+      // It is possible for pendingResponses to go negative in environments
+      // where effects are double-invoked (e.g. React 19 StrictMode). A rapid
+      // listen/unlisten/re-listen cycle can cause the server to send more
+      // target acks than the client has recorded pending requests. Rather
+      // than fatally crashing the entire SDK instance (which is
+      // unrecoverable), we clamp to zero and continue.
+      // See: https://github.com/firebase/firebase-js-sdk/issues/9729
+      logWarn(
+        `Received more target responses than pending target requests (pendingResponses=${this.pendingResponses}). This may happen in environments that re-invoke effects (e.g. React StrictMode).`
+      );
+      this.pendingResponses = 0;
+    }
   }
 
   markCurrent(): void {

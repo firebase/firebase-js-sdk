@@ -697,4 +697,160 @@ describe('RemoteEvent', () => {
     // Doc3 is only in the non-limbo target, therefore not tracked as limbo
     expect(event.resolvedLimboDocuments.has(doc3.key)).to.be.false;
   });
+
+  it('does not crash when receiving more target responses than pending requests', () => {
+    // Regression test for https://github.com/firebase/firebase-js-sdk/issues/9729
+    //
+    // React 19 StrictMode double-invokes effects, which can cause
+    // listen/unlisten/re-listen sequences that result in the server sending
+    // more target acks than the client expects. The old hardAssert in
+    // recordTargetResponse() would permanently crash the Firestore SDK
+    // instance in this scenario.
+    //
+    // Scenario:
+    //   1. Client sends watch request (pendingResponses = 1)
+    //   2. StrictMode cleanup sends unwatch + rewatch, but the watch stream
+    //      may be recreated, losing track of the first pending request
+    //   3. Server responds with Added for a target that has 0 pending requests
+    //   4. pendingResponses goes to -1 → hardAssert fires → SDK poisoned
+
+    // Set up target 1 with only 1 outstanding response
+    const targets = listens(1);
+    const outstandingResponses = { 1: 1 };
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+
+    // First response: Removed (consumes the 1 pending response → 0)
+    const change1 = new WatchTargetChange(WatchTargetChangeState.Removed, [1]);
+    // Second response: Added (would decrement to -1, triggering the crash)
+    const change2 = new WatchTargetChange(WatchTargetChangeState.Added, [1]);
+    // A document arrives after the re-add
+    const change3 = new DocumentWatchChange([1], [], doc1.key, doc1);
+
+    // This should NOT throw. Before the fix, hardAssert would fire with
+    // "pendingResponses is less than 0" and permanently break the SDK.
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      outstandingResponses,
+      changes: [change1, change2, change3]
+    });
+
+    expectEqual(event.snapshotVersion, version(3));
+    // The document should be tracked after the target is re-added
+    expect(event.documentUpdates.size).to.equal(1);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+  });
+
+  it('handles the stream-startup race that causes pending response undercount', () => {
+    // Root cause test for https://github.com/firebase/firebase-js-sdk/issues/9729
+    //
+    // This test reproduces the exact bookkeeping mismatch that occurs when
+    // a target is added while the watch stream is starting, then removed
+    // before onWatchStreamOpen fires.
+    //
+    // In remoteStoreListen, when shouldStartWatchStream() is true,
+    // startWatchStream() is called but recordPendingTargetRequest() is
+    // deferred to onWatchStreamOpen. If the target is removed from
+    // listenTargets before onWatchStreamOpen fires (e.g. by StrictMode
+    // cleanup calling remoteStoreUnlisten), the deferred
+    // recordPendingTargetRequest never runs for the original watch —
+    // but the server still acks it.
+    //
+    // Timeline:
+    //   1. remoteStoreListen → startWatchStream (no pending recorded)
+    //   2. remoteStoreUnlisten → sendUnwatchRequest (pending = 1)
+    //      Target removed from listenTargets
+    //   3. onWatchStreamOpen iterates listenTargets — target is gone,
+    //      so no sendWatchRequest, no pending recorded for original watch
+    //   4. remoteStoreListen again → sendWatchRequest (pending = 2)
+    //   5. Server acks all 3 messages: Added, Removed, Added
+    //      3 acks vs 2 pending → pendingResponses goes to -1
+
+    const targets = listens(1);
+    // Only 2 pending recorded (steps 2 and 4), not 3
+    const outstandingResponses = { 1: 2 };
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+
+    // Server responds to all 3 messages it received:
+    // Ack 1: Added for original watch from step 1  (2 → 1)
+    // Ack 2: Removed for unwatch from step 2       (1 → 0)
+    // Ack 3: Added for re-watch from step 4        (0 → -1, crash)
+    const changes = [
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Removed, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]),
+      new DocumentWatchChange([1], [], doc1.key, doc1)
+    ];
+
+    // Before the fix, this throws:
+    // "INTERNAL ASSERTION FAILED: pendingResponses is less than 0"
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      outstandingResponses,
+      changes
+    });
+
+    expectEqual(event.snapshotVersion, version(3));
+    expect(event.documentUpdates.size).to.equal(1);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+  });
+
+  it('handles pending response undercount during network reconnection', () => {
+    // This test proves the bug is NOT specific to React StrictMode.
+    // The same bookkeeping mismatch can occur during network reconnection:
+    //
+    //   1. Client has active listen for target 1
+    //   2. Network drops → watch stream closes
+    //   3. Stream reconnects → startWatchStream creates new aggregator
+    //   4. Before onWatchStreamOpen fires, a rapid unlisten/re-listen
+    //      occurs (e.g. user navigates away and back quickly)
+    //   5. onWatchStreamOpen misses the original target, same undercount
+    //
+    // The key invariant being violated: the number of messages the client
+    // sends to the server does not match the number of pending responses
+    // the client records, because recordPendingTargetRequest is deferred
+    // to onWatchStreamOpen which reads listenTargets at callback time,
+    // not at request time.
+
+    const targets = listens(1, 2);
+    // Target 1: stream reconnect sent watch but pending wasn't recorded
+    //           then unlisten + re-listen each recorded pending = 2
+    //           server acks all 3 → undercount by 1
+    // Target 2: normal target, no issues
+    const outstandingResponses = { 1: 2, 2: 1 };
+
+    const doc1 = doc('docs/1', 1, { value: 1 });
+    const doc2 = doc('docs/2', 2, { value: 2 });
+
+    const changes = [
+      // Target 2: normal ack (1 → 0), no issue
+      new WatchTargetChange(WatchTargetChangeState.Added, [2]),
+      // Target 1: 3 acks for 2 pending
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Removed, [1]),
+      new WatchTargetChange(WatchTargetChangeState.Added, [1]),
+      // Documents arrive for both targets
+      new DocumentWatchChange([1], [], doc1.key, doc1),
+      new DocumentWatchChange([2], [], doc2.key, doc2)
+    ];
+
+    // Should not throw — target 1's undercount is handled gracefully,
+    // and target 2 is completely unaffected
+    const event = createRemoteEvent({
+      snapshotVersion: 3,
+      targets,
+      outstandingResponses,
+      changes
+    });
+
+    expectEqual(event.snapshotVersion, version(3));
+    expect(event.documentUpdates.size).to.equal(2);
+    expectEqual(event.documentUpdates.get(doc1.key), doc1);
+    expectEqual(event.documentUpdates.get(doc2.key), doc2);
+    // Both targets should have changes
+    expect(event.targetChanges.size).to.equal(2);
+  });
 });
