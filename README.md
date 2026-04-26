@@ -238,6 +238,12 @@ implement git hooks. We leverage the prepush hook to do two things:
 - Automated code styling (using [`prettier`](https://npm.im/prettier))
 - Automated LICENSE header insertion
 
+Alternatively, you can apply the above stylings locally by running the following at the root of the SDK:
+
+```bash
+$ yarn format
+```
+
 ## Contributing
 
 See [Contributing](./CONTRIBUTING.md) for more information on contributing to the Firebase
