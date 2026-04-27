@@ -45,8 +45,19 @@ export const RESOURCE_ATTRIBUTE_KEYS = {
 export const COMMON_SPAN_ATTRIBUTE_KEYS = {
   GCP_RESOURCE_NAME: 'gcp.resource.name',
   GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
-  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
+  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version',
 };
+
+export const HTTP_SPAN_ATTRIBUTE_KEYS = {
+  HTTP_REQUEST_METHOD: 'http.request.method',
+  URL_TEMPLATE: 'url.template'
+};
+
+/** Scope names of request instrumentation used for collecting spans  **/
+export const REQUEST_SCOPE_NAMES = new Set<string>([
+  "@opentelemetry/instrumentation-fetch",
+  "@opentelemetry/instrumentation-xml-http-request"
+])
 
 /**
  * Label keys that we write in log entries stemming from web framework wrappers.
