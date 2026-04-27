@@ -25,7 +25,8 @@ import {
   GenerateContentStreamResult,
   SingleRequestOptions,
   StartTemplateChatParams,
-  TemplateChatSession
+  TemplateChatSession,
+  TemplateToolConfig
 } from '../public-types';
 import { ApiSettings } from '../types/internal';
 import { initApiSettings } from './utils';
@@ -72,7 +73,8 @@ export class TemplateGenerativeModel {
   async generateContent(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions?: SingleRequestOptions,
+    templateToolConfig?: TemplateToolConfig
   ): Promise<GenerateContentResult> {
     return templateGenerateContent(
       this._apiSettings,
@@ -105,7 +107,8 @@ export class TemplateGenerativeModel {
   async generateContentStream(
     templateId: string,
     templateVariables: Record<string, unknown>,
-    singleRequestOptions?: SingleRequestOptions
+    singleRequestOptions?: SingleRequestOptions,
+    templateToolConfig?: TemplateToolConfig
   ): Promise<GenerateContentStreamResult> {
     return templateGenerateContentStream(
       this._apiSettings,

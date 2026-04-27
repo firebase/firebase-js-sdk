@@ -529,6 +529,18 @@ export interface CodeExecutionTool {
 export interface GoogleSearch {}
 
 /**
+ * Specifies the Google Maps configuration.
+ *
+ * @public
+ */
+export interface GoogleMaps {
+  /*
+   *  If true, include the widget context token in the response.
+   */
+  enableWidget?: boolean;
+}
+
+/**
  * A tool that allows you to provide additional context to the models in the form of public web
  * URLs. By including URLs in your request, the Gemini model will access the content from those
  * pages to inform and enhance its response.
@@ -567,6 +579,22 @@ export interface FunctionDeclarationsTool {
    * declarations can be provided.
    */
   functionDeclarations?: FunctionDeclaration[];
+}
+
+/**
+ * An object that represents a latitude/longitude pair.
+ * @public
+ */
+export interface LatLng {
+  /**
+   * The latitude in degrees. It must be in the range `[-90.0, +90.0]`.
+   */
+  latitude?: number;
+
+  /**
+   * The longitude in degrees. It must be in the range `[-180.0, +180.0]`.
+   */
+  longitude?: number;
 }
 
 /**

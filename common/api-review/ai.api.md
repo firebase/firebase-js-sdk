@@ -1516,8 +1516,8 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
@@ -1542,6 +1542,12 @@ export interface TemplateRequestInternal extends Omit<TemplateGenerateContentReq
 
 // @beta
 export type TemplateTool = TemplateFunctionDeclarationsTool;
+
+// @public
+export interface TemplateToolConfig {
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
+}
 
 // @public
 export interface TextPart {
@@ -1582,7 +1588,7 @@ export const ThinkingLevel: {
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
+export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
