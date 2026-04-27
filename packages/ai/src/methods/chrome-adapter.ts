@@ -37,8 +37,14 @@ import {
   LanguageModelMessageRole
 } from '../types/language-model';
 
-// Defaults to support image inputs for convenience.
-const defaultExpectedInputs: LanguageModelExpected[] = [{ type: 'image' }];
+// Defaults to English text. This can be overriden by user config.
+export const defaultExpectedInputs: LanguageModelExpected[] = [
+  { type: 'text', languages: ['en'] },
+  { type: 'image' }
+];
+// Defaults to English text. This can be overriden by user config.
+export const defaultExpectedOutputs: LanguageModelExpected[] =
+  defaultExpectedInputs;
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,
@@ -48,12 +54,13 @@ const defaultExpectedInputs: LanguageModelExpected[] = [{ type: 'image' }];
 export class ChromeAdapterImpl implements ChromeAdapter {
   // Visible for testing
   static SUPPORTED_MIME_TYPES = ['image/jpeg', 'image/png'];
-  private isDownloading = false;
-  private downloadPromise: Promise<LanguageModel | void> | undefined;
+  // Promise for on-device model download completion
+  downloadPromise: Promise<LanguageModel | void> | null = null;
   private oldSession: LanguageModel | undefined;
   onDeviceParams: OnDeviceParams = {
     createOptions: {
-      expectedInputs: defaultExpectedInputs
+      expectedInputs: defaultExpectedInputs,
+      expectedOutputs: defaultExpectedOutputs
     }
   };
   constructor(
@@ -65,11 +72,18 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       this.onDeviceParams = onDeviceParams;
       if (!this.onDeviceParams.createOptions) {
         this.onDeviceParams.createOptions = {
-          expectedInputs: defaultExpectedInputs
+          expectedInputs: defaultExpectedInputs,
+          expectedOutputs: defaultExpectedOutputs
         };
-      } else if (!this.onDeviceParams.createOptions.expectedInputs) {
-        this.onDeviceParams.createOptions.expectedInputs =
-          defaultExpectedInputs;
+      } else {
+        if (!this.onDeviceParams.createOptions.expectedInputs) {
+          this.onDeviceParams.createOptions.expectedInputs =
+            defaultExpectedInputs;
+        }
+        if (!this.onDeviceParams.createOptions.expectedOutputs) {
+          this.onDeviceParams.createOptions.expectedOutputs =
+            defaultExpectedOutputs;
+        }
       }
     }
   }
@@ -81,7 +95,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
    *   the mode
    *   API existence
    *   prompt formatting
-   *   model availability, including triggering download if necessary
+   *   model availability
    *
    *
    * Pros: callers needn't be concerned with details of on-device availability.</p>
@@ -103,8 +117,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       return false;
     }
 
-    // Triggers out-of-band download so model will eventually become available.
-    const availability = await this.downloadIfAvailable();
+    const availability = await this.languageModelProvider?.availability(
+      this.onDeviceParams.createOptions
+    );
 
     if (this.mode === InferenceMode.ONLY_ON_DEVICE) {
       // If it will never be available due to API inavailability, throw.
@@ -117,9 +132,12 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         availability === Availability.DOWNLOADABLE ||
         availability === Availability.DOWNLOADING
       ) {
-        // TODO(chholland): Better user experience during download - progress?
         logger.debug(`Waiting for download of LanguageModel to complete.`);
-        await this.downloadPromise;
+        try {
+          await this.downloadPromise;
+        } catch (e) {
+          throw new AIError(AIErrorCode.ERROR, (e as Error).message);
+        }
         return true;
       }
       return true;
@@ -231,13 +249,23 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Encapsulates logic to get availability and download a model if one is downloadable.
    */
-  private async downloadIfAvailable(): Promise<Availability | undefined> {
+  async downloadIfAvailable(
+    onDownloadProgress?: (progressValue: number) => void
+  ): Promise<Availability | undefined> {
     const availability = await this.languageModelProvider?.availability(
       this.onDeviceParams.createOptions
     );
 
-    if (availability === Availability.DOWNLOADABLE) {
-      this.download();
+    /**
+     * Download may have been automatically started by Chrome or other
+     * code, in which case we should still call create() to get a promise
+     * for when the download completes.
+     */
+    if (
+      availability === Availability.DOWNLOADABLE ||
+      availability === Availability.DOWNLOADING
+    ) {
+      this.download(onDownloadProgress);
     }
 
     return availability;
@@ -246,21 +274,28 @@ export class ChromeAdapterImpl implements ChromeAdapter {
   /**
    * Triggers out-of-band download of an on-device model.
    *
-   * Chrome only downloads models as needed. Chrome knows a model is needed when code calls
-   * LanguageModel.create.
+   * Chrome may automatically begin a download on startup or
+   * it may trigger a download when code calls LanguageModel.create.
    *
    * Since Chrome manages the download, the SDK can only avoid redundant download requests by
    * tracking if a download has previously been requested.
    */
-  private download(): void {
-    if (this.isDownloading) {
+  private download(onDownloadProgress?: (progressValue: number) => void): void {
+    if (this.downloadPromise) {
       return;
     }
-    this.isDownloading = true;
+    const options = { ...this.onDeviceParams.createOptions };
+    if (options && !options.monitor && onDownloadProgress) {
+      options.monitor = m => {
+        m.addEventListener('downloadprogress', e => {
+          onDownloadProgress(e.loaded);
+        });
+      };
+    }
     this.downloadPromise = this.languageModelProvider
-      ?.create(this.onDeviceParams.createOptions)
+      ?.create(options)
       .finally(() => {
-        this.isDownloading = false;
+        this.downloadPromise = null;
       });
   }
 
@@ -334,6 +369,13 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         'Chrome AI requested for unsupported browser version.'
       );
     }
+    /**
+     * Note: `create()` will trigger a download as a side effect if
+     * a model is not downloaded or downloading, but this specific
+     * create() call should not be relied on for the download. The download
+     * should be triggered explicitly by the user in
+     * GenerativeModel.initializeDeviceModel().
+     */
     const newSession = await this.languageModelProvider.create(
       this.onDeviceParams.createOptions
     );

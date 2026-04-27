@@ -37,6 +37,7 @@ import { VertexAIBackend } from '../backend';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
 import { fakeChromeAdapter } from '../../test-utils/get-fake-firebase-services';
+import { Availability } from '../types/language-model';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -657,8 +658,76 @@ describe('GenerativeModel', () => {
     );
   });
 });
+describe('initializeDeviceModel', () => {
+  it('throws if unavailable and ONLY_ON_DEVICE', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.ONLY_ON_DEVICE,
+      downloadIfAvailable: stub().resolves(Availability.UNAVAILABLE),
+      download: stub()
+    };
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model' },
+      {},
+      //@ts-ignore
+      mockChromeAdapter
+    );
+    await expect(model.initializeDeviceModel()).to.be.rejectedWith(
+      'Local LanguageModel API not available in this environment'
+    );
+    expect(mockChromeAdapter.download).to.not.be.called;
+  });
+  it('noops if ONLY_IN_CLOUD', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.ONLY_IN_CLOUD,
+      downloadIfAvailable: stub().resolves(Availability.AVAILABLE),
+      download: stub()
+    };
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model' },
+      {},
+      //@ts-ignore
+      mockChromeAdapter
+    );
+    await model.initializeDeviceModel();
+    expect(mockChromeAdapter.download).to.not.be.called;
+  });
+  it('noops if no adapter', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.PREFER_ON_DEVICE,
+      downloadIfAvailable: stub().resolves(Availability.AVAILABLE),
+      download: stub()
+    };
+    const model = new GenerativeModel(fakeAI, { model: 'model' }, {});
+    await model.initializeDeviceModel();
+    expect(mockChromeAdapter.download).to.not.be.called;
+  });
+  it('passes downloadProgress callback to download()', async () => {
+    // @ts-ignore
+    const mockChromeAdapter = {
+      mode: InferenceMode.PREFER_ON_DEVICE,
+      downloadIfAvailable: stub().resolves(Availability.AVAILABLE)
+    };
+    const model = new GenerativeModel(
+      fakeAI,
+      { model: 'model' },
+      {},
+      //@ts-ignore
+      mockChromeAdapter
+    );
+    const progressCallback = (): void => {};
+    await model.initializeDeviceModel(progressCallback);
+    expect(mockChromeAdapter.downloadIfAvailable).to.be.calledWith(
+      progressCallback
+    );
+  });
+});
 
-describe('GenerativeModel dispatch logic', () => {
+describe('GenerativeModel hybrid dispatch logic', () => {
   let makeRequestStub: SinonStub;
   let mockChromeAdapter: ChromeAdapter;
 

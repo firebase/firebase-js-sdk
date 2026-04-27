@@ -42,10 +42,13 @@ import {
   formatGenerateContentInput,
   formatSystemInstruction
 } from '../requests/request-helpers';
-import { AI, AIErrorCode } from '../public-types';
+import { AI, AIErrorCode, InferenceMode } from '../public-types';
 import { AIModel } from './ai-model';
 import { ChromeAdapter } from '../types/chrome-adapter';
 import { AIError } from '../errors';
+import { ChromeAdapterImpl } from '../methods/chrome-adapter';
+import { Availability } from '../types/language-model';
+import { logger } from '../logger';
 
 /**
  * Class for generative model APIs.
@@ -75,6 +78,57 @@ export class GenerativeModel extends AIModel {
       modelParams.systemInstruction
     );
     this.requestOptions = requestOptions || {};
+  }
+
+  /**
+   * Initializes on-device models.
+   *
+   * @remarks
+   * This may trigger a download on first
+   * use. Wait for this promise to complete before calling inference
+   * methods if you want to ensure the device models are ready before
+   * any calls. Calling inference methods before the device is ready
+   * will result in a cloud fallback if `inferenceMode` is set to
+   * PREFER_ON_DEVICE, and an error if set to ONLY_ON_DEVICE.
+   *
+   * IMPORTANT: This call must be made on or after a user interaction
+   * such as a button click. If it is called without a user interaction,
+   * and it requires a download, this will cause an error.
+   *
+   * @param onDownloadProgress A callback called repeatedly as the
+   * download progresses that provides a `progressValue` between 0
+   * and 1 representing how much of the download is complete. This
+   * will be ignored if `monitor` was populated in
+   * {@link LanguageModelCreateOptions}.
+   *
+   * @public
+   */
+
+  async initializeDeviceModel(
+    onDownloadProgress?: (progressValue: number) => void
+  ): Promise<void> {
+    if (
+      !this.chromeAdapter ||
+      this.chromeAdapter.mode === InferenceMode.ONLY_IN_CLOUD
+    ) {
+      return;
+    }
+    const availability = await (
+      this.chromeAdapter as ChromeAdapterImpl
+    ).downloadIfAvailable(onDownloadProgress);
+    if (availability === Availability.UNAVAILABLE) {
+      const notEnabledError = new AIError(
+        AIErrorCode.API_NOT_ENABLED,
+        'Local LanguageModel API not available in this environment.'
+      );
+      if (this.chromeAdapter.mode === InferenceMode.ONLY_ON_DEVICE) {
+        throw notEnabledError;
+      } else {
+        // No reason to throw if not in ONLY_ON_DEVICE mode.
+        logger.debug(notEnabledError.message);
+      }
+    }
+    await (this.chromeAdapter as ChromeAdapterImpl).downloadPromise;
   }
 
   /**

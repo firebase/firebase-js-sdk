@@ -43,6 +43,7 @@ export declare class GenerativeModel extends AIModel
 |  [countTokens(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelcounttokens) |  | Counts the tokens in the provided request. |
 |  [generateContent(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontent) |  | Makes a single non-streaming call to the model and returns an object containing a single [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [generateContentStream(request, singleRequestOptions)](./ai.generativemodel.md#generativemodelgeneratecontentstream) |  | Makes a single streaming call to the model and returns an object containing an iterable stream that iterates over all chunks in the streaming response as well as a promise that returns the final aggregated response. |
+|  [initializeDeviceModel(onDownloadProgress)](./ai.generativemodel.md#generativemodelinitializedevicemodel) |  | Initializes on-device models. |
 |  [startChat(startChatParams)](./ai.generativemodel.md#generativemodelstartchat) |  | Gets a new [ChatSession](./ai.chatsession.md#chatsession_class) instance which can be used for multi-turn chats. |
 
 ## GenerativeModel.(constructor)
@@ -174,6 +175,30 @@ generateContentStream(request: GenerateContentRequest | string | Array<string | 
 <b>Returns:</b>
 
 Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface)<!-- -->&gt;
+
+## GenerativeModel.initializeDeviceModel()
+
+Initializes on-device models.
+
+This may trigger a download on first use. Wait for this promise to complete before calling inference methods if you want to ensure the device models are ready before any calls. Calling inference methods before the device is ready will result in a cloud fallback if `inferenceMode` is set to PREFER\_ON\_DEVICE, and an error if set to ONLY\_ON\_DEVICE.
+
+IMPORTANT: This call must be made on or after a user interaction such as a button click. If it is called without a user interaction, and it requires a download, this will cause an error.
+
+<b>Signature:</b>
+
+```typescript
+initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  onDownloadProgress | (progressValue: number) =&gt; void | A callback called repeatedly as the download progresses that provides a <code>progressValue</code> between 0 and 1 representing how much of the download is complete. This will be ignored if <code>monitor</code> was populated in [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface)<!-- -->. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
 
 ## GenerativeModel.startChat()
 

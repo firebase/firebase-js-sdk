@@ -42,7 +42,8 @@ describe('callCloudOrDevice', () => {
     // @ts-ignore
     chromeAdapter = {
       mode: InferenceMode.PREFER_ON_DEVICE,
-      isAvailable: stub(),
+      // @ts-ignore
+      isAvailable: stub().resolves(true),
       generateContent: stub(),
       generateContentStream: stub(),
       countTokens: stub()

@@ -19,7 +19,12 @@ import { AIError } from '../errors';
 import { expect, use } from 'chai';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { chromeAdapterFactory, ChromeAdapterImpl } from './chrome-adapter';
+import {
+  chromeAdapterFactory,
+  ChromeAdapterImpl,
+  defaultExpectedInputs,
+  defaultExpectedOutputs
+} from './chrome-adapter';
 import {
   Availability,
   LanguageModel,
@@ -54,7 +59,7 @@ async function toStringArray(
 
 describe('ChromeAdapter', () => {
   describe('constructor', () => {
-    it('sets image as expected input type by default', async () => {
+    it('sets default expectedInputs/Outputs if createOptions not provided', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -75,10 +80,11 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).to.have.been.calledWith({
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: defaultExpectedInputs,
+        expectedOutputs: defaultExpectedOutputs
       });
     });
-    it('sets image as expected input type by default even if other onDeviceParams params are set', async () => {
+    it('sets default expectedInputs/Outputs even if other onDeviceParams params are set', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -102,10 +108,11 @@ describe('ChromeAdapter', () => {
         ]
       });
       expect(availabilityStub).to.have.been.calledWith({
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: defaultExpectedInputs,
+        expectedOutputs: defaultExpectedOutputs
       });
     });
-    it('sets image as expected input type by default even if other createOptions params are set', async () => {
+    it('sets default expectedInputs/Outputs even if other createOptions params are set', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -132,10 +139,11 @@ describe('ChromeAdapter', () => {
       });
       expect(availabilityStub).to.have.been.calledWith({
         topK: 22,
-        expectedInputs: [{ type: 'image' }]
+        expectedInputs: defaultExpectedInputs,
+        expectedOutputs: defaultExpectedOutputs
       });
     });
-    it('honors explicitly set expected inputs', async () => {
+    it('honors explicitly set expected inputs and outputs', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.AVAILABLE)
       } as LanguageModel;
@@ -145,7 +153,8 @@ describe('ChromeAdapter', () => {
       ).resolves(Availability.AVAILABLE);
       const createOptions = {
         // Explicitly sets expected inputs.
-        expectedInputs: [{ type: 'text' }]
+        expectedInputs: [{ type: 'text', languages: ['en'] }],
+        expectedOutputs: [{ type: 'text', languages: ['de'] }]
       } as LanguageModelCreateOptions;
       const adapter = new ChromeAdapterImpl(
         languageModelProvider,
@@ -310,12 +319,12 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.true;
     });
-    it('returns false and triggers download when model is available after download', async () => {
+    it('returns false if model is downloadable but not downloaded', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
+      stub(languageModelProvider, 'create').resolves(
         {} as LanguageModel
       );
       const createOptions = {
@@ -331,7 +340,51 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
+    });
+    it('returns false when model is never available', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.UNAVAILABLE),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      expect(
+        await adapter.isAvailable({
+          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
+        })
+      ).to.be.false;
+    });
+  });
+  describe('downloadIfAvailable', () => {
+    it('calls create() with listener if downloadable', async () => {
+      const progressCallback = stub();
+      const mockCreate = stub().resolves();
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: stub().resolves(Availability.DOWNLOADABLE),
+          create: mockCreate
+        } as unknown as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable(progressCallback);
+      await adapter.downloadPromise;
+      expect(mockCreate.getCall(0).args[0].monitor).to.exist;
+    });
+    it('calls create() with listener if downloading', async () => {
+      const progressCallback = stub();
+      const mockCreate = stub().resolves();
+      const adapter = new ChromeAdapterImpl(
+        {
+          availability: stub().resolves(Availability.DOWNLOADING),
+          create: mockCreate
+        } as unknown as LanguageModel,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable(progressCallback);
+      await adapter.downloadPromise;
+      expect(mockCreate.getCall(0).args[0].monitor).to.exist;
     });
     it('avoids redundant downloads', async () => {
       const languageModelProvider = {
@@ -348,12 +401,8 @@ describe('ChromeAdapter', () => {
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE
       );
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
+      await adapter.downloadIfAvailable();
+      await adapter.downloadIfAvailable();
       expect(createStub).to.have.been.calledOnce;
     });
     it('clears state when download completes', async () => {
@@ -372,29 +421,10 @@ describe('ChromeAdapter', () => {
         languageModelProvider,
         InferenceMode.PREFER_ON_DEVICE
       );
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
+      await adapter.downloadIfAvailable();
       resolveDownload!();
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
+      await adapter.downloadIfAvailable();
       expect(createStub).to.have.been.calledTwice;
-    });
-    it('returns false when model is never available', async () => {
-      const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.UNAVAILABLE),
-        create: () => Promise.resolve({})
-      } as LanguageModel;
-      const adapter = new ChromeAdapterImpl(
-        languageModelProvider,
-        InferenceMode.PREFER_ON_DEVICE
-      );
-      expect(
-        await adapter.isAvailable({
-          contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-        })
-      ).to.be.false;
     });
   });
   describe('generateContent', () => {

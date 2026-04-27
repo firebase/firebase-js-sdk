@@ -26,6 +26,8 @@ export interface LanguageModelCreateCoreOptions
 |  Property | Type | Description |
 |  --- | --- | --- |
 |  [expectedInputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedinputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
+|  [expectedOutputs](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsexpectedoutputs) | [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface)<!-- -->\[\] | <b><i>(Public Preview)</i></b> |
+|  [monitor](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionsmonitor) | (monitor: [LanguageModelDownloadMonitor](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitor_interface)<!-- -->) =&gt; void | <b><i>(Public Preview)</i></b> The native download monitor provided by the Chrome API. This provides direct access to the monitor object and is only needed for advanced cases. For a simpler download monitoring interface, provide an <code>onDownloadProgress</code> callback to [GenerativeModel.initializeDeviceModel()](./ai.generativemodel.md#generativemodelinitializedevicemodel) instead. |
 |  [temperature](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstemperature) | number | <b><i>(Public Preview)</i></b> |
 |  [topK](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptionstopk) | number | <b><i>(Public Preview)</i></b> |
 
@@ -38,6 +40,30 @@ export interface LanguageModelCreateCoreOptions
 
 ```typescript
 expectedInputs?: LanguageModelExpected[];
+```
+
+## LanguageModelCreateCoreOptions.expectedOutputs
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+<b>Signature:</b>
+
+```typescript
+expectedOutputs?: LanguageModelExpected[];
+```
+
+## LanguageModelCreateCoreOptions.monitor
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+The native download monitor provided by the Chrome API. This provides direct access to the monitor object and is only needed for advanced cases. For a simpler download monitoring interface, provide an `onDownloadProgress` callback to [GenerativeModel.initializeDeviceModel()](./ai.generativemodel.md#generativemodelinitializedevicemodel) instead.
+
+<b>Signature:</b>
+
+```typescript
+monitor?: (monitor: LanguageModelDownloadMonitor) => void;
 ```
 
 ## LanguageModelCreateCoreOptions.temperature
