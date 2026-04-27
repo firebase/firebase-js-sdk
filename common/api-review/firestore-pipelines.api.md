@@ -1475,7 +1475,11 @@ export function score(): Expression;
 // @beta
 export type SearchStageOptions = StageOptions & {
     query: BooleanExpression | string;
+    languageCode?: string;
+    retrievalDepth?: number;
     sort?: Ordering | Ordering[];
+    offset?: number;
+    limit?: number;
     addFields?: Selectable[];
 };
 

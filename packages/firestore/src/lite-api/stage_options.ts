@@ -291,13 +291,14 @@ export type SearchStageOptions = StageOptions & {
    * })
    * ```
    *
-   * The query can also be expressed as a string in the Search domain-specific language (DSL):
+   * The query can also be expressed as a string in the Search domain-specific language (DSL), which will be used for searching the document.
    *
    * @example
    * ```typescript
-   * db.pipeline().collection('restaurants').search({
-   *   query: 'menu:(waffle and coffee) OR breakfast'
-   * })
+   * db.pipeline().collection('restaurants').search({ query: 'breakfast -diner' });
+   *
+   * // The above query is equivalent to:
+   * db.pipeline().collection('restaurants').search({ query: documentMatches('breakfast -diner') });
    * ```
    *
    * The query can also represent a geoDistance query:
@@ -311,20 +312,19 @@ export type SearchStageOptions = StageOptions & {
    */
   query: BooleanExpression | string;
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The BCP-47 language code of text in the search query, such as, “en-US” or “sr-Latn”
-  //  */
-  // languageCode?: string;
+  /**
+   * The BCP-47 language code of text in the search query, such as “en” or “sr”.
+   */
+  languageCode?: string;
 
   // TODO(search) add indexPartition after languageCode
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The maximum number of documents to retrieve. Documents will be retrieved in the
-  //  * pre-sort order specified by the search index.
-  //  */
-  // retrievalDepth?: number;
+  /**
+   * The maximum number of documents to retrieve from the search index. Documents will be retrieved in the
+   * pre-sort order specified by the search index. The `retrievalDepth` is a limit applied before documents
+   * are scored and sorted, which can reduce costs of expensive scoring and sorting operations.
+   */
+  retrievalDepth?: number;
 
   /**
    * Orderings specify how the returned documents are sorted.
@@ -332,17 +332,16 @@ export type SearchStageOptions = StageOptions & {
    */
   sort?: Ordering | Ordering[];
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The number of documents to skip from the beginning of the search result set.
-  //  */
-  // offset?: number;
+  /**
+   * The number of documents to skip from the beginning of the search result set.
+   */
+  offset?: number;
 
-  // TODO(search) enable with backend support
-  // /**
-  //  * The maximum number of documents to return from the Search stage.
-  //  */
-  // limit?: number;
+  /**
+   * The maximum number of documents to return from the Search stage. The `limit` is applied after documents
+   * are scored and sorted.
+   */
+  limit?: number;
 
   // TODO(search) enable with backend support
   // /**

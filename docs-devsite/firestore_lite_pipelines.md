@@ -12250,7 +12250,11 @@ Options defining how a SearchStage is evaluated. See .
 ```typescript
 export declare type SearchStageOptions = StageOptions & {
     query: BooleanExpression | string;
+    languageCode?: string;
+    retrievalDepth?: number;
     sort?: Ordering | Ordering[];
+    offset?: number;
+    limit?: number;
     addFields?: Selectable[];
 };
 ```
