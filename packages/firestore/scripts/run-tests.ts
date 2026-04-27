@@ -73,6 +73,8 @@ let executable = nyc;
 let args = [
   '--reporter',
   'lcovonly',
+  '--reporter',
+  'html',
   mocha,
   '--require',
   babel,
