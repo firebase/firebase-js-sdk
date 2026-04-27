@@ -18,7 +18,12 @@
 import { use, expect } from 'chai';
 import sinonChai from 'sinon-chai';
 import { restore, stub } from 'sinon';
-import { AI } from '../public-types';
+import {
+  AI,
+  TemplateToolConfig,
+  RetrievalConfig,
+  LatLng
+} from '../public-types';
 import { VertexAIBackend } from '../backend';
 import { TemplateGenerativeModel } from './template-generative-model';
 import * as generateContentMethods from '../methods/generate-content';
@@ -57,19 +62,89 @@ describe('TemplateGenerativeModel', () => {
   });
 
   describe('generateContent', () => {
-    it('should call templateGenerateContent with correct parameters', async () => {
+    it('should call templateGenerateContent with correct parameters no options', async () => {
       const templateGenerateContentStub = stub(
         generateContentMethods,
         'templateGenerateContent'
       ).resolves({} as any);
-      const model = new TemplateGenerativeModel(fakeAI, { timeout: 5000 });
+      const model = new TemplateGenerativeModel(fakeAI);
 
       await model.generateContent(TEMPLATE_ID, TEMPLATE_VARS);
 
       expect(templateGenerateContentStub).to.have.been.calledOnceWith(
         model._apiSettings,
         TEMPLATE_ID,
-        { inputs: TEMPLATE_VARS },
+        { inputs: TEMPLATE_VARS }
+      );
+    });
+
+    it('should call templateGenerateContent with correct parameters w/ request options', async () => {
+      const templateGenerateContentStub = stub(
+        generateContentMethods,
+        'templateGenerateContent'
+      ).resolves({} as any);
+      const model = new TemplateGenerativeModel(fakeAI);
+
+      await model.generateContent(TEMPLATE_ID, TEMPLATE_VARS);
+
+      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS }
+      );
+    });
+
+    it('should call templateGenerateContent with correct parameters w/ tool config', async () => {
+      const templateGenerateContentStub = stub(
+        generateContentMethods,
+        'templateGenerateContent'
+      ).resolves({} as any);
+      const model = new TemplateGenerativeModel(fakeAI);
+      const latLng: LatLng = {
+        latitude: 50.0,
+        longitude: 50.0
+      };
+      const retrievalConfig: RetrievalConfig = { latLng };
+      const templateToolConfig: TemplateToolConfig = { retrievalConfig };
+
+      await model.generateContent(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        undefined,
+        templateToolConfig
+      );
+
+      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig }
+      );
+    });
+
+    it('should call templateGenerateContent with correct parameters w/ both optional params', async () => {
+      const templateGenerateContentStub = stub(
+        generateContentMethods,
+        'templateGenerateContent'
+      ).resolves({} as any);
+      const model = new TemplateGenerativeModel(fakeAI);
+      const latLng: LatLng = {
+        latitude: 50.0,
+        longitude: 50.0
+      };
+      const retrievalConfig: RetrievalConfig = { latLng };
+      const templateToolConfig: TemplateToolConfig = { retrievalConfig };
+
+      await model.generateContent(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        { timeout: 5000 },
+        templateToolConfig
+      );
+
+      expect(templateGenerateContentStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
         { timeout: 5000 }
       );
     });
@@ -134,6 +209,77 @@ describe('TemplateGenerativeModel', () => {
         model._apiSettings,
         TEMPLATE_ID,
         { inputs: TEMPLATE_VARS },
+        { timeout: 5000 }
+      );
+    });
+
+    it('should call templateGenerateContentStream with correct parameters w/ request options', async () => {
+      const templateGenerateContentStreamStub = stub(
+        generateContentMethods,
+        'templateGenerateContentStream'
+      ).resolves({} as any);
+      const model = new TemplateGenerativeModel(fakeAI);
+      await model.generateContentStream(TEMPLATE_ID, TEMPLATE_VARS, {
+        timeout: 5000
+      });
+
+      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS },
+        { timeout: 5000 }
+      );
+    });
+
+    it('should call templateGenerateContentStream with correct parameters w/ tool config', async () => {
+      const templateGenerateContentStreamStub = stub(
+        generateContentMethods,
+        'templateGenerateContentStream'
+      ).resolves({} as any);
+      const latLng: LatLng = {
+        latitude: 50.0,
+        longitude: 50.0
+      };
+      const retrievalConfig: RetrievalConfig = { latLng };
+      const templateToolConfig: TemplateToolConfig = { retrievalConfig };
+      const model = new TemplateGenerativeModel(fakeAI);
+      await model.generateContentStream(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        undefined,
+        templateToolConfig
+      );
+
+      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig }
+      );
+    });
+
+    it('should call templateGenerateContent with correct parameters w/ both optional params', async () => {
+      const templateGenerateContentStreamStub = stub(
+        generateContentMethods,
+        'templateGenerateContentStream'
+      ).resolves({} as any);
+      const latLng: LatLng = {
+        latitude: 50.0,
+        longitude: 50.0
+      };
+      const retrievalConfig: RetrievalConfig = { latLng };
+      const templateToolConfig: TemplateToolConfig = { retrievalConfig };
+      const model = new TemplateGenerativeModel(fakeAI);
+      await model.generateContentStream(
+        TEMPLATE_ID,
+        TEMPLATE_VARS,
+        { timeout: 5000 },
+        templateToolConfig
+      );
+
+      expect(templateGenerateContentStreamStub).to.have.been.calledOnceWith(
+        model._apiSettings,
+        TEMPLATE_ID,
+        { inputs: TEMPLATE_VARS, toolConfig: templateToolConfig },
         { timeout: 5000 }
       );
     });

@@ -44,6 +44,8 @@ toc:
     path: /docs/reference/js/ai.codeexecutiontool.md
   - title: Content
     path: /docs/reference/js/ai.content.md
+  - title: ContextWindowCompressionConfig
+    path: /docs/reference/js/ai.contextwindowcompressionconfig.md
   - title: CountTokensRequest
     path: /docs/reference/js/ai.counttokensrequest.md
   - title: CountTokensResponse
@@ -96,6 +98,12 @@ toc:
     path: /docs/reference/js/ai.generativemodel.md
   - title: GoogleAIBackend
     path: /docs/reference/js/ai.googleaibackend.md
+  - title: GoogleMaps
+    path: /docs/reference/js/ai.googlemaps.md
+  - title: GoogleMapsGroundingChunk
+    path: /docs/reference/js/ai.googlemapsgroundingchunk.md
+  - title: GoogleMapsTool
+    path: /docs/reference/js/ai.googlemapstool.md
   - title: GoogleSearch
     path: /docs/reference/js/ai.googlesearch.md
   - title: GoogleSearchTool
@@ -140,6 +148,8 @@ toc:
     path: /docs/reference/js/ai.languagemodelmessagecontent.md
   - title: LanguageModelPromptOptions
     path: /docs/reference/js/ai.languagemodelpromptoptions.md
+  - title: LatLng
+    path: /docs/reference/js/ai.latlng.md
   - title: LiveGenerationConfig
     path: /docs/reference/js/ai.livegenerationconfig.md
   - title: LiveGenerativeModel
@@ -156,6 +166,8 @@ toc:
     path: /docs/reference/js/ai.liveservertoolcallcancellation.md
   - title: LiveSession
     path: /docs/reference/js/ai.livesession.md
+  - title: LiveSessionResumptionUpdate
+    path: /docs/reference/js/ai.livesessionresumptionupdate.md
   - title: ModalityTokenCount
     path: /docs/reference/js/ai.modalitytokencount.md
   - title: ModelParams
@@ -174,6 +186,8 @@ toc:
     path: /docs/reference/js/ai.promptfeedback.md
   - title: RequestOptions
     path: /docs/reference/js/ai.requestoptions.md
+  - title: RetrievalConfig
+    path: /docs/reference/js/ai.retrievalconfig.md
   - title: RetrievedContextAttribution
     path: /docs/reference/js/ai.retrievedcontextattribution.md
   - title: SafetyRating
@@ -194,8 +208,12 @@ toc:
     path: /docs/reference/js/ai.searchentrypoint.md
   - title: Segment
     path: /docs/reference/js/ai.segment.md
+  - title: SessionResumptionConfig
+    path: /docs/reference/js/ai.sessionresumptionconfig.md
   - title: SingleRequestOptions
     path: /docs/reference/js/ai.singlerequestoptions.md
+  - title: SlidingWindow
+    path: /docs/reference/js/ai.slidingwindow.md
   - title: SpeechConfig
     path: /docs/reference/js/ai.speechconfig.md
   - title: StartAudioConversationOptions
@@ -216,6 +234,8 @@ toc:
     path: /docs/reference/js/ai.templategenerativemodel.md
   - title: TemplateImagenModel
     path: /docs/reference/js/ai.templateimagenmodel.md
+  - title: TemplateToolConfig
+    path: /docs/reference/js/ai.templatetoolconfig.md
   - title: TextPart
     path: /docs/reference/js/ai.textpart.md
   - title: ThinkingConfig
