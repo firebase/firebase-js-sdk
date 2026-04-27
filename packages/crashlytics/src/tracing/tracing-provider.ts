@@ -90,7 +90,7 @@ export function createTracingProvider(
       }
     });
   } else {
-    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/locations/global/apps/${appId}/traces`;
+    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/locations/global/traces`;
     traceExporter = new OTLPTraceExporter(
       {
         url: otlpEndpoint,
