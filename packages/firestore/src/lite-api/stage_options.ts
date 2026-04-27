@@ -312,7 +312,7 @@ export type SearchStageOptions = StageOptions & {
   query: BooleanExpression | string;
 
   /**
-   * The BCP-47 language code of text in the search query, such as, “en” or “sr”
+   * The BCP-47 language code of text in the search query, such as “en” or “sr”.
    */
   languageCode?: string;
 
