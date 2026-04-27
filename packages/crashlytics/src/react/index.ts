@@ -20,8 +20,7 @@ import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
 import { CrashlyticsOptions, Crashlytics } from '../public-types';
 import { useEffect, useState } from 'react';
-import { Span, trace, context } from '@opentelemetry/api';
-import { CrashlyticsService } from '../service';
+import { useAutoNetworkTracing } from './useAutoNetworkTracing';
 import React from 'react';
 
 registerCrashlytics();
@@ -29,11 +28,10 @@ registerCrashlytics();
 export * from '../public-types';
 
 /**
- * Registers event listeners for uncaught errors and automatically traces network requests.
+ * Registers event listeners for uncaught errors.
  *
- * This should be installed near the root of your application, wrapping your main content.
- * Background network requests (fetch/XHR) triggered without user interaction will be
- * automatically traced, and the spans will end only after the UI has completed rendering and painting.
+ * This should be installed near the root of your application. Caught errors, including those
+ * implicitly caught by Error Boundaries, will not be captured by this component.
  *
  * @example
  * ```tsx
@@ -140,114 +138,4 @@ export function FirebaseCrashlytics({
   return (
     React.createElement(React.Fragment, null, children) as React.ReactElement
   ) || null;
-}
-
-/**
- * Internal hook to automatically trace network requests with render completion.
- */
-function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
-  useEffect(() => {
-    if (!crashlytics || typeof window === 'undefined') {
-      return;
-    }
-
-    const service = crashlytics as CrashlyticsService;
-    const { tracingProvider } = service;
-    if (!tracingProvider) {
-      return;
-    }
-    const tracer = tracingProvider.getTracer('@firebase/crashlytics-auto');
-
-    // Get endpoints to ignore
-    const options = service.options;
-    const endpointUrl = options?.endpointUrl || 'http://localhost';
-    const tracingUrl =
-      options?.tracingUrl ||
-      'https://staging-firebasetelemetry.sandbox.googleapis.com';
-
-    const shouldIgnore = (url: string): boolean => {
-      return url.includes(endpointUrl) || url.includes(tracingUrl);
-    };
-
-    /**
-     * Determines if the current request should wait for a UI render before ending the span.
-     * We only wait if the request was NOT triggered by a direct user interaction.
-     */
-    const shouldWaitByRender = (): boolean => {
-      // isActive is true if there's an ongoing user interaction (click, keydown, etc.)
-      return !(navigator as any).userActivation?.isActive;
-    };
-
-    const endSpan = (span: Span): void => {
-      if (shouldWaitByRender()) {
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            span.end();
-          });
-        });
-      } else {
-        span.end();
-      }
-    };
-
-    // Instrument Fetch
-    const originalFetch = window.fetch;
-    window.fetch = function (...args): Promise<Response> {
-      const url =
-        typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
-
-      // If this is a user-initiated request, don't create a parent span.
-      // Auto-instrumentation will handle it.
-      if (shouldIgnore(url) || !shouldWaitByRender()) {
-        return originalFetch.apply(window, args);
-      }
-
-      const span = tracer.startSpan(`fetch ${url}`);
-      return context.with(trace.setSpan(context.active(), span), async () => {
-        try {
-          return await originalFetch.apply(window, args);
-        } finally {
-          endSpan(span);
-        }
-      });
-    };
-
-    // Instrument XMLHttpRequest
-    const originalOpen = XMLHttpRequest.prototype.open;
-    const originalSend = XMLHttpRequest.prototype.send;
-
-    XMLHttpRequest.prototype.open = function (
-      this: XMLHttpRequest & { _span?: Span },
-      ...args: any[]
-    ): void {
-      const url = args[1];
-      // Only create a parent span if it's a background request
-      if (!shouldIgnore(url) && shouldWaitByRender()) {
-        this._span = tracer.startSpan(`xhr ${url}`);
-      }
-      return originalOpen.apply(this, args as any);
-    };
-
-    XMLHttpRequest.prototype.send = function (
-      this: XMLHttpRequest & { _span?: Span },
-      ...args: any[]
-    ): void {
-      if (this._span) {
-        const span = this._span;
-        this.addEventListener('loadend', () => {
-          endSpan(span);
-        });
-        return context.with(trace.setSpan(context.active(), span), () =>
-          originalSend.apply(this, args as any)
-        );
-      }
-      return originalSend.apply(this, args as any);
-    };
-
-    return () => {
-      window.fetch = originalFetch;
-      XMLHttpRequest.prototype.open = originalOpen;
-      XMLHttpRequest.prototype.send = originalSend;
-    };
-  }, [crashlytics]);
 }
