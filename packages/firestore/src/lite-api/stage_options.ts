@@ -291,13 +291,14 @@ export type SearchStageOptions = StageOptions & {
    * })
    * ```
    *
-   * The query can also be expressed as a string in the Search domain-specific language (DSL):
+   * The query can also be expressed as a string in the Search domain-specific language (DSL), which will be used for searching the document.
    *
    * @example
    * ```typescript
-   * db.pipeline().collection('restaurants').search({
-   *   query: 'menu:(waffle and coffee) OR breakfast'
-   * })
+   * db.pipeline().collection('restaurants').search({ query: 'breakfast -diner' });
+   *
+   * // The above query is equivalent to:
+   * db.pipeline().collection('restaurants').search({ query: documentMatches('breakfast -diner') });
    * ```
    *
    * The query can also represent a geoDistance query:
