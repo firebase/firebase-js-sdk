@@ -86,8 +86,7 @@ export class DataConnectTransportManager
           this.transportOptions.sslEnabled
         );
       }
-      this.streamTransport.onGracefulStreamClose = async () => {
-        await this.streamTransport?.dispose();
+      this.streamTransport.onCloseCallback = () => {
         this.streamTransport = undefined;
       };
     }
