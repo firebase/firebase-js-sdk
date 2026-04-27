@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
+
 import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
 import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import {
@@ -476,7 +478,20 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       this.reconnectAttempts = 0;
       await this.retriggerActiveRequests();
     } catch (e) {
-      this.startReconnectBackoff();
+      if (e instanceof FirebaseError) {
+        logDebug(
+          `Reconnect attempt #${this.reconnectAttempts} failed with Firebase error: ${e.message}. Retrying...`
+        );
+        this.startReconnectBackoff();
+      } else {
+        logError(
+          `Unexpected error during reconnect attempt #${this.reconnectAttempts}: ${e}`
+        );
+        void this.cleanupAndTerminate(
+          Code.OTHER,
+          `Unexpected error during reconnect attempt #${this.reconnectAttempts}: ${e}`
+        );
+      }
     }
   }
 
