@@ -47,7 +47,7 @@ for (let i = 0; i < args.length; i++) {
 }
 
 if (!sourceDtsPath || !destTxtPath) {
-  console.error('❌ Error: Missing required arguments.');
+  console.error('Error: Missing required arguments.');
   console.error(
     'Usage: ts-node build-console-ui-types.ts --input <path/to/pipelines.d.ts> --output <path/to/output.txt>'
   );
@@ -55,7 +55,7 @@ if (!sourceDtsPath || !destTxtPath) {
 }
 
 if (!fs.existsSync(sourceDtsPath)) {
-  console.error(`❌ Error: Source file not found: ${sourceDtsPath}`);
+  console.error(`Error: Source file not found: ${sourceDtsPath}`);
   process.exit(1);
 }
 
@@ -89,7 +89,7 @@ interface Firestore {
 /**
  * @type {Firestore}
 */
-declare var db: Firestore;
+var db: Firestore;
 
 /**
  * Not supported in the query editor.
@@ -109,7 +109,7 @@ type DocumentReference = never;
  * Create a \`FieldPath\` by providing field names. If more than one field
  * name is provided, the path will point to a nested field in a document.
  */
-declare class FieldPath {
+class FieldPath {
     /**
      * Creates a \`FieldPath\` from the provided field names. If more than one field
      * name is provided, the path will point to a nested field in a document.
@@ -133,7 +133,7 @@ declare class FieldPath {
  *
  * @returns A new \`VectorValue\` constructed with a copy of the given array of numbers.
  */
-declare function vector(values?: number[]): VectorValue;
+function vector(values?: number[]): VectorValue;
 
 /**
  * Represents a vector type in Firestore documents.
@@ -141,7 +141,7 @@ declare function vector(values?: number[]): VectorValue;
  *
  * @class VectorValue
  */
-declare class VectorValue {
+class VectorValue {
     /**
      * Returns a copy of the raw number array form of the vector.
      */
@@ -169,7 +169,7 @@ declare class VectorValue {
 /**
  * An immutable object representing an array of bytes.
  */
-declare class Bytes {
+class Bytes {
     private constructor();
     /**
      * Creates a new \`Bytes\` object from the given Base64 string, converting it to
@@ -239,7 +239,7 @@ declare class Bytes {
  * For examples and further specifications, refer to the
  * {@link https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto | Timestamp definition}.
  */
-declare class Timestamp {
+class Timestamp {
     /**
      * The number of seconds of UTC time since Unix epoch 1970-01-01T00:00:00Z.
      */
@@ -343,7 +343,7 @@ declare class Timestamp {
  * Latitude values are in the range of [-90, 90].
  * Longitude values are in the range of [-180, 180].
  */
-declare class GeoPoint {
+class GeoPoint {
     /**
      * Creates a new immutable \`GeoPoint\` object with the provided latitude and
      * longitude values.
@@ -405,7 +405,8 @@ dtsContent = dtsContent.replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, '');
 // Strip 'export ' modifiers from the beginning of lines.
 // This converts 'export declare class' -> 'declare class', which is standard
 // for ambient global declaration files.
-dtsContent = dtsContent.replace(/^\s*export\s+/gm, '');
+dtsContent = dtsContent.replace(/^\s*export declare\s+/gm, '');
+dtsContent = dtsContent.replace(/^\s*declare\s+/gm, '');
 
 const finalContent: string = HEADER + '\n' + dtsContent;
 
@@ -473,4 +474,4 @@ if (diagnostics.length > 0) {
 
 // Write output
 fs.writeFileSync(destTxtPath, finalContent);
-console.log(`✅ Successfully generated and verified console UI types at ${destTxtPath}`);
+console.log(`Successfully generated and verified console UI types at ${destTxtPath}`);
