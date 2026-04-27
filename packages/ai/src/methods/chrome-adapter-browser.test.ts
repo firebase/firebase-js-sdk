@@ -319,12 +319,12 @@ describe('ChromeAdapter', () => {
         })
       ).to.be.true;
     });
-    it('returns false and triggers download when model is available after download', async () => {
+    it('returns false if model is downloadable but not downloaded', async () => {
       const languageModelProvider = {
         availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
-      const createStub = stub(languageModelProvider, 'create').resolves(
+      stub(languageModelProvider, 'create').resolves(
         {} as LanguageModel
       );
       const createOptions = {
@@ -340,55 +340,6 @@ describe('ChromeAdapter', () => {
           contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
         })
       ).to.be.false;
-      expect(createStub).to.have.been.calledOnceWith(createOptions);
-    });
-    it('avoids redundant downloads', async () => {
-      const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
-        create: () => Promise.resolve({})
-      } as LanguageModel;
-      const downloadPromise = new Promise<LanguageModel>(() => {
-        /* never resolves */
-      });
-      const createStub = stub(languageModelProvider, 'create').returns(
-        downloadPromise
-      );
-      const adapter = new ChromeAdapterImpl(
-        languageModelProvider,
-        InferenceMode.PREFER_ON_DEVICE
-      );
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
-      expect(createStub).to.have.been.calledOnce;
-    });
-    it('clears state when download completes', async () => {
-      const languageModelProvider = {
-        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
-        create: () => Promise.resolve({})
-      } as LanguageModel;
-      let resolveDownload;
-      const downloadPromise = new Promise<LanguageModel>(resolveCallback => {
-        resolveDownload = resolveCallback;
-      });
-      const createStub = stub(languageModelProvider, 'create').returns(
-        downloadPromise
-      );
-      const adapter = new ChromeAdapterImpl(
-        languageModelProvider,
-        InferenceMode.PREFER_ON_DEVICE
-      );
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
-      resolveDownload!();
-      await adapter.isAvailable({
-        contents: [{ role: 'user', parts: [{ text: 'hi' }] }]
-      });
-      expect(createStub).to.have.been.calledTwice;
     });
     it('returns false when model is never available', async () => {
       const languageModelProvider = {
@@ -434,6 +385,46 @@ describe('ChromeAdapter', () => {
       await adapter.downloadIfAvailable(progressCallback);
       await adapter.downloadPromise;
       expect(mockCreate.getCall(0).args[0].monitor).to.exist;
+    });
+    it('avoids redundant downloads', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      const downloadPromise = new Promise<LanguageModel>(() => {
+        /* never resolves */
+      });
+      const createStub = stub(languageModelProvider, 'create').returns(
+        downloadPromise
+      );
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable();
+      await adapter.downloadIfAvailable();
+      expect(createStub).to.have.been.calledOnce;
+    });
+    it('clears state when download completes', async () => {
+      const languageModelProvider = {
+        availability: () => Promise.resolve(Availability.DOWNLOADABLE),
+        create: () => Promise.resolve({})
+      } as LanguageModel;
+      let resolveDownload;
+      const downloadPromise = new Promise<LanguageModel>(resolveCallback => {
+        resolveDownload = resolveCallback;
+      });
+      const createStub = stub(languageModelProvider, 'create').returns(
+        downloadPromise
+      );
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      await adapter.downloadIfAvailable();
+      resolveDownload!();
+      await adapter.downloadIfAvailable();
+      expect(createStub).to.have.been.calledTwice;
     });
   });
   describe('generateContent', () => {

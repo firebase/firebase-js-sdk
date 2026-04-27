@@ -95,7 +95,7 @@ export class ChromeAdapterImpl implements ChromeAdapter {
    *   the mode
    *   API existence
    *   prompt formatting
-   *   model availability, including triggering download if necessary
+   *   model availability
    *
    *
    * Pros: callers needn't be concerned with details of on-device availability.</p>
@@ -117,8 +117,9 @@ export class ChromeAdapterImpl implements ChromeAdapter {
       return false;
     }
 
-    // Triggers out-of-band download so model will eventually become available.
-    const availability = await this.downloadIfAvailable();
+    const availability = await this.languageModelProvider?.availability(
+      this.onDeviceParams.createOptions
+    );
 
     if (this.mode === InferenceMode.ONLY_ON_DEVICE) {
       // If it will never be available due to API inavailability, throw.
@@ -368,6 +369,13 @@ export class ChromeAdapterImpl implements ChromeAdapter {
         'Chrome AI requested for unsupported browser version.'
       );
     }
+    /**
+     * Note: `create()` will trigger a download as a side effect if
+     * a model is not downloaded or downloading, but this specific
+     * create() call should not be relied on for the download. The download
+     * should be triggered explicitly by the user in
+     * GenerativeModel.initializeDeviceModel().
+     */
     const newSession = await this.languageModelProvider.create(
       this.onDeviceParams.createOptions
     );
