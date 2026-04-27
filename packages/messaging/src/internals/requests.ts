@@ -24,6 +24,7 @@ import {
 
 import { AppConfig } from '../interfaces/app-config';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
+import { version as fcmSdkVersion } from '../../package.json';
 
 /** Max attempts (initial fetch + retries) when CreateRegistration `fetch()` throws. */
 export const FID_REGISTRATION_FETCH_MAX_ATTEMPTS = 3;
@@ -33,12 +34,22 @@ export const FID_REGISTRATION_FETCH_BASE_BACKOFF_MS = 1000;
 
 export interface ApiResponse {
   token?: string;
-  /** Present when the CreateRegistration response echoes the Firebase Installation ID in the resource `name` field. */
+  /**
+   * CreateRegistration resource name, e.g. `projects/{projectId}/registrations/{fid}`.
+   * A legacy plain FID string (no `/`) is also accepted.
+   */
   name?: string;
   error?: { message: string };
 }
 
 export interface ApiRequestBody {
+  // eslint-disable-next-line camelcase
+  fcm_sdk_version?: string;
+  /**
+   * Client identifier for the registration: the site host (e.g. `www.example.com`) when the
+   * service worker scope is a URL, otherwise the app name.
+   */
+  origin: string;
   web: {
     endpoint: string;
     p256dh: string;
@@ -52,7 +63,11 @@ export async function requestGetToken(
   subscriptionOptions: SubscriptionOptions
 ): Promise<string> {
   const headers = await getHeaders(firebaseDependencies);
-  const body = getBody(subscriptionOptions);
+  const body = getBody(
+    subscriptionOptions,
+    firebaseDependencies.appConfig.appName,
+    /* includeSdkVersion= */ false
+  );
 
   const subscribeOptions = {
     method: 'POST',
@@ -94,7 +109,7 @@ export async function requestGetToken(
  * we do require a non-empty `name` (echoing the Firebase Installation ID) in the success response body.
  */
 export interface CreateRegistrationResult {
-  /** Firebase Installation ID from the CreateRegistration response `name` field. */
+  /** Firebase Installation ID parsed from the CreateRegistration response `name` field. */
   responseFid: string;
 }
 
@@ -103,7 +118,11 @@ export async function requestCreateRegistration(
   subscriptionOptions: SubscriptionOptions
 ): Promise<CreateRegistrationResult> {
   const headers = await getHeaders(firebaseDependencies);
-  const body = getBody(subscriptionOptions);
+  const body = getBody(
+    subscriptionOptions,
+    firebaseDependencies.appConfig.appName,
+    /* includeSdkVersion= */ true
+  );
 
   const subscribeOptions = {
     method: 'POST',
@@ -150,7 +169,8 @@ export async function requestCreateRegistration(
 
 /**
  * Parses a successful CreateRegistration body. The backend must return JSON with a non-empty
- * string `name` containing the Firebase Installation ID.
+ * string `name`: either a resource name `projects/{projectId}/registrations/{fid}` or a legacy
+ * plain FID.
  */
 async function parseCreateRegistrationSuccessFid(
   response: Response
@@ -170,14 +190,34 @@ async function parseCreateRegistrationSuccessFid(
         'CreateRegistration succeeded but response body is not valid JSON'
     });
   }
-  const fid = data.name;
-  if (typeof fid !== 'string' || fid.length === 0) {
+  const name = data.name;
+  if (typeof name !== 'string' || name.length === 0) {
     throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
       errorInfo:
         'CreateRegistration succeeded but response did not include a non-empty name'
     });
   }
-  return fid;
+  return parseFidFromRegistrationResourceName(name);
+}
+
+const REGISTRATIONS_NAME_SEGMENT = '/registrations/';
+
+/** Extracts the Firebase Installation ID from `name` (resource path or legacy plain FID). */
+function parseFidFromRegistrationResourceName(name: string): string {
+  const segmentIndex = name.indexOf(REGISTRATIONS_NAME_SEGMENT);
+  if (segmentIndex !== -1) {
+    const fid = name.slice(segmentIndex + REGISTRATIONS_NAME_SEGMENT.length);
+    if (fid.length > 0) {
+      return fid;
+    }
+  }
+  if (!name.includes('/')) {
+    return name;
+  }
+  throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
+    errorInfo:
+      'CreateRegistration succeeded but response name is not a valid registration resource name'
+  });
 }
 
 export async function requestUpdateToken(
@@ -185,7 +225,11 @@ export async function requestUpdateToken(
   tokenDetails: TokenDetails
 ): Promise<string> {
   const headers = await getHeaders(firebaseDependencies);
-  const body = getBody(tokenDetails.subscriptionOptions!);
+  const body = getBody(
+    tokenDetails.subscriptionOptions!,
+    firebaseDependencies.appConfig.appName,
+    /* includeSdkVersion= */ false
+  );
 
   const updateOptions = {
     method: 'PATCH',
@@ -292,19 +336,52 @@ async function getHeaders({
   });
 }
 
-function getBody({
-  p256dh,
-  auth,
-  endpoint,
-  vapidKey
-}: SubscriptionOptions): ApiRequestBody {
+/**
+ * Hostname for the registering web client (e.g. `www.example.com`), or the app name
+ * (`appNameFallback`) when the scope cannot be resolved (e.g. some test environments).
+ */
+export function getRegistrationOrigin(
+  swScope: string,
+  appNameFallback: string
+): string {
+  try {
+    if (/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(swScope)) {
+      return new URL(swScope).host;
+    }
+  } catch {
+    // Fall through to relative-scope handling.
+  }
+  try {
+    if (typeof self !== 'undefined' && self.location?.href) {
+      return new URL(swScope, self.location.origin).host;
+    }
+  } catch {
+    // Fall through.
+  }
+  if (typeof self !== 'undefined' && self.location?.host) {
+    return self.location.host;
+  }
+  return appNameFallback;
+}
+
+function getBody(
+  { p256dh, auth, endpoint, vapidKey, swScope }: SubscriptionOptions,
+  appNameFallback: string,
+  includeSdkVersion: boolean
+): ApiRequestBody {
   const body: ApiRequestBody = {
+    origin: getRegistrationOrigin(swScope, appNameFallback),
     web: {
       endpoint,
       auth,
       p256dh
     }
   };
+
+  if (includeSdkVersion) {
+    // eslint-disable-next-line camelcase
+    body.fcm_sdk_version = fcmSdkVersion;
+  }
 
   if (vapidKey !== DEFAULT_VAPID_KEY) {
     body.web.applicationPubKey = vapidKey;

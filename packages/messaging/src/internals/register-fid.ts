@@ -31,7 +31,8 @@ const FID_REGISTRATION_FID_MATCH_MAX_ATTEMPTS = 3;
  * For the new FID-based register path:
  * - Create (or refresh) an FCM Web registration in the backend via CreateRegistration.
  * - Use the FIS auth token produced by the installations instance (implicitly associated with FID).
- * - CreateRegistration must echo a non-empty FID in `name`; it must match `expectedFid` from
+ * - CreateRegistration must echo the installation in `name` (e.g.
+ *   `projects/{projectId}/registrations/{fid}`); it must match `expectedFid` from
  *   Installations.getId(). On mismatch we refresh the auth token and retry, then fail with
  *   `fid-registration-failed`.
  */
