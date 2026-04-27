@@ -123,6 +123,7 @@
     "@opentelemetry/exporter-trace-otlp-proto": "0.212.0",
     "@opentelemetry/instrumentation": "0.212.0",
     "@opentelemetry/instrumentation-fetch": "0.212.0",
+    "@opentelemetry/instrumentation-user-interaction": "0.59.0",
     "@opentelemetry/instrumentation-xml-http-request": "0.213.0",
     "@opentelemetry/otlp-exporter-base": "0.212.0",
     "@opentelemetry/otlp-transformer": "0.212.0",
