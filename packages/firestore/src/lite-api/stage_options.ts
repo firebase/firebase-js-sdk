@@ -312,15 +312,16 @@ export type SearchStageOptions = StageOptions & {
   query: BooleanExpression | string;
 
   /**
-   * The BCP-47 language code of text in the search query, such as, “en” or “sr”
+   * The BCP-47 language code of text in the search query, such as “en” or “sr”.
    */
   languageCode?: string;
 
   // TODO(search) add indexPartition after languageCode
 
   /**
-   * The maximum number of documents to retrieve. Documents will be retrieved in the
-   * pre-sort order specified by the search index.
+   * The maximum number of documents to retrieve from the search index. Documents will be retrieved in the
+   * pre-sort order specified by the search index. The `retrievalDepth` is a limit applied before documents
+   * are scored and sorted, which can reduce costs of expensive scoring and sorting operations.
    */
   retrievalDepth?: number;
 
@@ -336,7 +337,8 @@ export type SearchStageOptions = StageOptions & {
   offset?: number;
 
   /**
-   * The maximum number of documents to return from the Search stage.
+   * The maximum number of documents to return from the Search stage. The `limit` is applied after documents
+   * are scored and sorted.
    */
   limit?: number;
 
