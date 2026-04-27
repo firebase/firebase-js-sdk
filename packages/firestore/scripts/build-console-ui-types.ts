@@ -405,8 +405,7 @@ dtsContent = dtsContent.replace(/^export\s+\{[\s\S]*?\};?\s*$/gm, '');
 // Strip 'export ' modifiers from the beginning of lines.
 // This converts 'export declare class' -> 'declare class', which is standard
 // for ambient global declaration files.
-dtsContent = dtsContent.replace(/^\s*export declare\s+/gm, '');
-dtsContent = dtsContent.replace(/^\s*declare\s+/gm, '');
+dtsContent = dtsContent.replace(/^\s*((export|declare)\s+)+/gm, '');
 
 const finalContent: string = HEADER + '\n' + dtsContent;
 
