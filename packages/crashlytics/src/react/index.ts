@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app';
+import { FirebaseApp, getApp, getApps } from '@firebase/app';
 import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
 import { CrashlyticsOptions, Crashlytics } from '../public-types';
@@ -29,26 +29,47 @@ registerCrashlytics();
 export * from '../public-types';
 
 /**
- * Registers event listeners for uncaught errors and automatically traces network requests.
+ * Registers event listeners for uncaught errors.
  *
- * This should be installed near the root of your application, wrapping your main content.
- * Background network requests (fetch/XHR) triggered without user interaction will be
- * automatically traced, and the spans will end only after the UI has completed rendering and painting.
+ * This should be installed near the root of your application. Caught errors, including those
+ * implicitly caught by Error Boundaries, will not be captured by this component.
  *
  * @example
  * ```tsx
+ * import { useEffect, useState } from "react";
  * import { FirebaseCrashlytics } from "@firebase/crashlytics/react";
+ * import { FirebaseApp, initializeApp, getApps, getApp } from "@firebase/app";
  *
  * export default function MyApp() {
+ *   const [app, setApp] = useState<FirebaseApp | null>(null);
+ *
+ *   useEffect(() => {
+ *     if (getApps().length === 0) {
+ *       const newApp = initializeApp({...});
+ *       setApp(newApp);
+ *     } else {
+ *       setApp(getApp());
+ *     }
+ *   }, []);
+ *
  *   return (
- *     <FirebaseCrashlytics firebaseApp={app}>
- *       <App />
- *     </FirebaseCrashlytics>
+ *     <>
+ *       {app && (
+ *         <FirebaseCrashlytics
+ *           firebaseApp={app}
+ *           crashlyticsOptions={{...}}
+ *         >
+ *           <AppContent />
+ *         </FirebaseCrashlytics>
+ *       )}
+ *       ...
+ *     </>
  *   );
  * }
  * ```
  *
- * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param firebaseApp - Optional. The {@link @firebase/app#FirebaseApp} instance to use. If not provided,
+ * the component will attempt to retrieve the default app instance.
  * @param crashlyticsOptions - {@link CrashlyticsOptions} that configure the Crashlytics instance.
  * @param children - The application content to be rendered and traced.
  * @returns The rendered children.
@@ -60,14 +81,29 @@ export function FirebaseCrashlytics({
   crashlyticsOptions,
   children
 }: {
-  firebaseApp: FirebaseApp;
+  firebaseApp?: FirebaseApp;
   crashlyticsOptions?: CrashlyticsOptions;
   children?: React.ReactNode;
 }): React.ReactElement | null {
+  const [app, setApp] = useState<FirebaseApp | undefined>(firebaseApp);
   const [crashlytics, setCrashlytics] = useState<Crashlytics | undefined>();
 
   useEffect(() => {
-    const inst = getCrashlytics(firebaseApp, crashlyticsOptions);
+    if (app) return;
+    try {
+      if (getApps().length > 0) {
+        setApp(getApp());
+      }
+    } catch (e) {
+      // No app initialized yet.
+    }
+  }, [app]);
+
+  useEffect(() => {
+    if (!app) {
+      return;
+    }
+    const inst = getCrashlytics(app, crashlyticsOptions);
     setCrashlytics(inst);
 
     if (typeof window === 'undefined') {
@@ -96,7 +132,7 @@ export function FirebaseCrashlytics({
         unhandledRejectionListener
       );
     };
-  }, [firebaseApp, crashlyticsOptions]);
+  }, [app, crashlyticsOptions]);
 
   useAutoNetworkTracing(crashlytics);
 
@@ -240,6 +276,18 @@ function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
       return !(navigator as any).userActivation?.isActive;
     };
 
+    const endSpan = (span: Span): void => {
+      if (shouldWaitByRender()) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            span.end();
+          });
+        });
+      } else {
+        span.end();
+      }
+    };
+
     // Instrument Fetch
     const originalFetch = window.fetch;
     window.fetch = function (...args): Promise<Response> {
@@ -257,11 +305,7 @@ function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
         try {
           return await originalFetch.apply(window, args);
         } finally {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              span.end();
-            });
-          });
+          endSpan(span);
         }
       });
     };
@@ -289,11 +333,7 @@ function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
       if (this._span) {
         const span = this._span;
         this.addEventListener('loadend', () => {
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              span.end();
-            });
-          });
+          endSpan(span);
         });
         return context.with(trace.setSpan(context.active(), span), () =>
           originalSend.apply(this, args as any)
