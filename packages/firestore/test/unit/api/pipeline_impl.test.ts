@@ -201,6 +201,103 @@ describe('execute(Pipeline|PipelineOptions)', () => {
       executePipelineRequest
     );
   });
+
+  it('serializes delete() stage', async () => {
+    const firestore = newTestFirestore();
+    const spy = fakePipelineResponse(firestore);
+
+    await execute({
+      pipeline: firestore.pipeline().collection('foo').delete()
+    });
+
+    const executePipelineRequest: ProtoExecutePipelineRequest = {
+      database: 'projects/new-project/databases/(default)',
+      structuredPipeline: {
+        'options': {},
+        'pipeline': {
+          'stages': [
+            {
+              'args': [
+                {
+                  'referenceValue': '/foo'
+                }
+              ],
+              'name': 'collection',
+              'options': {}
+            },
+            {
+              'args': [],
+              'name': 'delete',
+              'options': {}
+            }
+          ]
+        }
+      }
+    };
+    expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+      executePipelineRequest
+    );
+  });
+
+  it('serializes update() stage', async () => {
+    const firestore = newTestFirestore();
+    const spy = fakePipelineResponse(firestore);
+
+    await execute({
+      pipeline: firestore
+        .pipeline()
+        .collection('foo')
+        .update(
+          field('rating').as('bookRating'),
+          field('author'),
+          constant('Steven King').as('authorName')
+        )
+    });
+
+    const executePipelineRequest: ProtoExecutePipelineRequest = {
+      database: 'projects/new-project/databases/(default)',
+      structuredPipeline: {
+        'options': {},
+        'pipeline': {
+          'stages': [
+            {
+              'args': [
+                {
+                  'referenceValue': '/foo'
+                }
+              ],
+              'name': 'collection',
+              'options': {}
+            },
+            {
+              'args': [
+                {
+                  'mapValue': {
+                    'fields': {
+                      'bookRating': {
+                        'fieldReferenceValue': 'rating'
+                      },
+                      'author': {
+                        'fieldReferenceValue': 'author'
+                      },
+                      'authorName': {
+                        'stringValue': 'Steven King'
+                      }
+                    }
+                  }
+                }
+              ],
+              'name': 'update',
+              'options': {}
+            }
+          ]
+        }
+      }
+    };
+    expect(spy.args[FIRST_CALL][EXECUTE_PIPELINE_REQUEST]).to.deep.equal(
+      executePipelineRequest
+    );
+  });
 });
 
 describe('stage serialization', () => {

@@ -71,6 +71,8 @@ import {
   Sort,
   Stage,
   Union,
+  Delete,
+  Update,
   Unnest,
   Where,
   Define,
@@ -1627,13 +1629,44 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @internal
    * @private
    * @param db
-   * @param userDataReader
-   * @param userDataWriter
    * @param stages
    * @protected
    */
   protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
     return new Pipeline(db, stages);
+  }
+
+  /**
+   * @beta
+   * Deletes the documents resulting from the pipeline.
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().collection('books').where(field('rating').lt(2)).delete();
+   * ```
+   *
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  delete(): Pipeline {
+    const stage = new Delete();
+    return this._addStage(stage);
+  }
+
+  /**
+   * @beta
+   * Updates the documents resulting from the pipeline.
+   *
+   * @example
+   * ```typescript
+   * firestore.pipeline().collection('books').update(field('rating').as('bookRating'));
+   * ```
+   *
+   * @param transformedFields - Expressions to apply during the update.
+   * @returns A new Pipeline object with this stage appended to the stage list.
+   */
+  update(...transformedFields: Selectable[]): Pipeline {
+    const stage = new Update(transformedFields);
+    return this._addStage(stage);
   }
 }
 

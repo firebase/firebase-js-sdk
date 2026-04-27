@@ -20,7 +20,8 @@ import { OptionsUtil } from '../core/options_util';
 import {
   ApiClientObjectMap,
   firestoreV1ApiClientInterfaces,
-  Stage as ProtoStage
+  Stage as ProtoStage,
+  Value
 } from '../protos/firestore_proto_api';
 import { toNumber } from '../remote/number_serializer';
 import {
@@ -31,6 +32,7 @@ import {
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { selectablesToMap } from '../util/pipeline_util';
 
 import {
   AggregateFunction,
@@ -38,7 +40,8 @@ import {
   Expression,
   Field,
   field,
-  Ordering
+  Ordering,
+  Selectable
 } from './expressions';
 import { Pipeline } from './pipeline';
 import { QueryEnhancement, StageOptions } from './stage_options';
@@ -865,4 +868,82 @@ function readUserDataHelper<
     );
   }
   return expressionMap;
+}
+
+/**
+ * @beta
+ */
+export class Delete extends Stage {
+  get _name(): string {
+    return 'delete';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor() {
+    super({});
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    return {
+      ...super._toProto(serializer),
+      args: []
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+  }
+}
+/**
+ * @beta
+ */
+export class Update extends Stage {
+  get _name(): string {
+    return 'update';
+  }
+
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  constructor(private transformedFields?: Selectable[]) {
+    super({});
+  }
+
+  /**
+   * @internal
+   * @private
+   */
+  _toProto(serializer: JsonProtoSerializer): ProtoStage {
+    const args: Value[] = [];
+
+    if (this.transformedFields && this.transformedFields.length > 0) {
+      const mapped = selectablesToMap(this.transformedFields);
+      args.push(toMapValue(serializer, mapped));
+    } else {
+      args.push(toMapValue(serializer, new Map()));
+    }
+
+    return {
+      ...super._toProto(serializer),
+      args
+    };
+  }
+
+  _readUserData(context: ParseContext): void {
+    super._readUserData(context);
+    if (this.transformedFields) {
+      readUserDataHelper(
+        this.transformedFields as unknown as UserData[],
+        context
+      );
+    }
+  }
 }
