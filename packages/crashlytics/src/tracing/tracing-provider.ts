@@ -44,7 +44,7 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { rootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
-import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
+import { HTTP_SPAN_ATTRIBUTE_KEYS, REQUEST_SCOPE_NAMES, RESOURCE_ATTRIBUTE_KEYS } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
 /**
@@ -200,6 +200,13 @@ class OTLPTraceExporter
 
     if (Object.keys(attributesToApply).length > 0) {
       spans.forEach(span => {
+        const scope = span.instrumentationScope;
+        if (REQUEST_SCOPE_NAMES.has(scope.name)) {
+          const method = span.attributes[HTTP_SPAN_ATTRIBUTE_KEYS.HTTP_REQUEST_METHOD];
+          const urlTemplate = span.attributes[HTTP_SPAN_ATTRIBUTE_KEYS.URL_TEMPLATE];
+          (span as any).name = `${method} ${urlTemplate}`;
+        }
+
         Object.assign(span.attributes, attributesToApply);
       });
     }

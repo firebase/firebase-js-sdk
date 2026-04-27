@@ -18,7 +18,7 @@
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { getAppVersion, getSessionId } from '../helpers';
-import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
+import { COMMON_SPAN_ATTRIBUTE_KEYS, HTTP_SPAN_ATTRIBUTE_KEYS } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
 
@@ -50,6 +50,10 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     span.setAttribute(
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION,
       getAppVersion(this.crashlyticsOptions)
+    );
+    span.setAttribute(
+      HTTP_SPAN_ATTRIBUTE_KEYS.URL_TEMPLATE,
+      `/v1/projects/${this.firebaseOptions.projectId}`
     );
   }
 
