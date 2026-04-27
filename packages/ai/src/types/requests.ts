@@ -232,6 +232,70 @@ export interface LiveGenerationConfig {
    * "How are you today?", the model may transcribe that output across three messages, broken up as "How a", "re yo", "u today?".
    */
   outputAudioTranscription?: AudioTranscriptionConfig;
+  /**
+   * The context window compression configuration.
+   *
+   * @beta
+   */
+  contextWindowCompression?: ContextWindowCompressionConfig;
+}
+
+/**
+ * Configures the sliding window context compression mechanism.
+ *
+ * @remarks
+ * The sliding window discards content at the beginning of the
+ * context window. The resulting context will always begin at
+ * the start of a `user` role turn. System instructions
+ * will always remain at the start of the result.
+ *
+ * @beta
+ */
+export interface SlidingWindow {
+  /**
+   * The session reduction target, for example, how many tokens the model
+   * should keep.
+   */
+  targetTokens?: number;
+}
+
+/**
+ * Enables context window compression to manage the model's context window.
+ *
+ * @remarks
+ * This mechanism prevents the context from exceeding a given length.
+ *
+ * @beta
+ */
+export interface ContextWindowCompressionConfig {
+  /**
+   * The number of tokens (before running a turn) that triggers the context
+   * window compression.
+   */
+  triggerTokens?: number;
+
+  /**
+   * The sliding window compression mechanism.
+   */
+  slidingWindow?: SlidingWindow;
+}
+
+/**
+ * Configuration for the session resumption mechanism.
+ *
+ * @remarks
+ * When included in the session setup, the server will send
+ * {@link LiveSessionResumptionUpdate} messages in the response stream.
+ *
+ * @beta
+ */
+export interface SessionResumptionConfig {
+  /**
+   * The session resumption handle of the previous session to restore.
+   *
+   * If not present, a new session will be started.
+   */
+  handle?: string;
 }
 
 /**
@@ -356,6 +420,7 @@ export interface SingleRequestOptions extends RequestOptions {
  */
 export type Tool =
   | FunctionDeclarationsTool
+  | GoogleMapsTool
   | GoogleSearchTool
   | CodeExecutionTool
   | URLContextTool;
@@ -420,6 +485,29 @@ export interface GoogleSearchTool {
 }
 
 /**
+ * A tool that allows a Gemini model to connect to Google Maps to access and incorporate
+ * location-based information into its responses.
+ *
+ * Important: If using Grounding with Google Maps, you are required to comply with the
+ * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * @public
+ */
+export interface GoogleMapsTool {
+  /**
+   * Specifies the Google Maps configuration.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Maps"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * section within the Service Specific Terms).
+   */
+  googleMaps: GoogleMaps;
+}
+
+/**
  * A tool that enables the model to use code execution.
  *
  * @public
@@ -439,6 +527,18 @@ export interface CodeExecutionTool {
  * @public
  */
 export interface GoogleSearch {}
+
+/**
+ * Specifies the Google Maps configuration.
+ *
+ * @public
+ */
+export interface GoogleMaps {
+  /*
+   *  If true, include the widget context token in the response.
+   */
+  enableWidget?: boolean;
+}
 
 /**
  * A tool that allows you to provide additional context to the models in the form of public web
@@ -479,6 +579,22 @@ export interface FunctionDeclarationsTool {
    * declarations can be provided.
    */
   functionDeclarations?: FunctionDeclaration[];
+}
+
+/**
+ * An object that represents a latitude/longitude pair.
+ * @public
+ */
+export interface LatLng {
+  /**
+   * The latitude in degrees. It must be in the range `[-90.0, +90.0]`.
+   */
+  latitude?: number;
+
+  /**
+   * The longitude in degrees. It must be in the range `[-180.0, +180.0]`.
+   */
+  longitude?: number;
 }
 
 /**
@@ -560,6 +676,16 @@ export type TemplateTool = TemplateFunctionDeclarationsTool;
  */
 export interface ToolConfig {
   functionCallingConfig?: FunctionCallingConfig;
+  retrievalConfig?: RetrievalConfig;
+}
+
+/**
+ * Tool configuration for `TemplateGenerativeModel`s.
+ * This config is shared for all tools provided in the server prompt template request.
+ * @public
+ */
+export interface TemplateToolConfig {
+  retrievalConfig?: RetrievalConfig;
 }
 
 /**
@@ -568,6 +694,22 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * Configuration options for data retrieval tools.
+ * @public
+ */
+export interface RetrievalConfig {
+  /**
+   * The location of the user.
+   */
+  latLng?: LatLng;
+
+  /**
+   * The language code of the user.
+   */
+  languageCode?: string;
 }
 
 /**
