@@ -53,7 +53,6 @@ import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { writeBatch } from '../../src/lite-api/write_batch';
 import { Code, FirestoreError } from '../../src/util/error';
-import { logWarn } from '../../src/util/log';
 import {
   getRunEnterpriseTests,
   getTargetBackend,
@@ -5883,27 +5882,33 @@ describe.skipClassic('Firestore Pipelines', () => {
 
   describe('stage options', () => {
     describe('forceIndex', () => {
-      // SKIP: requires pre-existing index
-      // eslint-disable-next-line no-restricted-properties
-      it.skip('Collection Stage', async () => {
+      it('Collection Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collection({
             collection: randomCol,
-            forceIndex: 'unknown'
+            forceIndex: 'primary'
           })
         );
+        expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshot as any)._pipeline.stages[0].optionsProto.force_index
+            .stringValue
+        ).equal('primary');
         expect(snapshot.results.length).to.equal(10);
       });
 
-      // SKIP: requires pre-existing index
-      // eslint-disable-next-line no-restricted-properties
-      it.skip('CollectionGroup Stage', async () => {
+      it('CollectionGroup Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collectionGroup({
             collectionId: randomCol.id,
-            forceIndex: 'unknown'
+            forceIndex: 'primary'
           })
         );
+        expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshot as any)._pipeline.stages[0].optionsProto.force_index
+            .stringValue
+        ).equal('primary');
         expect(snapshot.results.length).to.equal(10);
       });
     });
@@ -6439,39 +6444,8 @@ describe.skipClassic('Firestore Pipelines', () => {
           .addFields(reviewsSub.toArrayExpression().as('reviews'))
           .select('title', 'reviews');
 
-        // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
-        const host = firestore._getSettings().host;
-        const isProd = host === 'firestore.googleapis.com';
-        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
-
-        if (isProd) {
-          // The execution of this pipeline is expected to result in a network error
-          // from the backend until the breaking change to rename the 'field' expression to
-          // 'get_field' has rolled out to prod.
-          try {
-            const results = await execute(ppl);
-
-            // If this is reached, the execution of the pipeline didn't throw an error, so the
-            // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
-            logWarn(
-              "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
-            );
-            expectResults(results, { title: '1984', reviews: ['Alice'] });
-          } catch (err: unknown) {
-            const error: Error = err as Error;
-            expect(error.message).to.equals(
-              "Request failed with error: The function 'get_field' does not exist, did you mean 'field'?"
-            );
-          }
-        } else if (isNightly) {
-          const results = await execute(ppl);
-          expectResults(results, { title: '1984', reviews: ['Alice'] });
-        } else {
-          expect(false).to.equal(
-            true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
-          );
-        }
+        const results = await execute(ppl);
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
       });
     });
 
@@ -6554,39 +6528,8 @@ describe.skipClassic('Firestore Pipelines', () => {
           .addFields(reviewsSub.toArrayExpression().as('reviews'))
           .select('title', 'reviews');
 
-        // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
-        const host = firestore._getSettings().host;
-        const isProd = host === 'firestore.googleapis.com';
-        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
-
-        if (isProd) {
-          // The execution of this pipeline is expected to result in a network error
-          // from the backend until the breaking change to rename the 'field' expression to
-          // 'get_field' has rolled out to prod.
-          try {
-            const results = await execute(ppl);
-
-            // If this is reached, the execution of the pipeline didn't throw an error, so the
-            // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
-            logWarn(
-              "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
-            );
-            expectResults(results, { title: '1984', reviews: [] });
-          } catch (err: unknown) {
-            const error: Error = err as Error;
-            expect(error.message).to.equals(
-              "Request failed with error: The function 'get_field' does not exist, did you mean 'field'?"
-            );
-          }
-        } else if (isNightly) {
-          const results = await execute(ppl);
-          expectResults(results, { title: '1984', reviews: [] });
-        } else {
-          expect(false).to.equal(
-            true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
-          );
-        }
+        const results = await execute(ppl);
+        expectResults(results, { title: '1984', reviews: [] });
       });
     });
 

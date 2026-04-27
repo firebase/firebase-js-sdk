@@ -1,5 +1,13 @@
 # @firebase/ai
 
+## 2.11.1
+
+### Patch Changes
+
+- [`23ab5b9`](https://github.com/firebase/firebase-js-sdk/commit/23ab5b9dadb0451e855740a48f4cb12d29091a70) [#9817](https://github.com/firebase/firebase-js-sdk/pull/9817) - Update code execution and URL context features to reflect that they are generally available and no longer public preview.
+
+- [`6db5af4`](https://github.com/firebase/firebase-js-sdk/commit/6db5af46649382ee3ed73ab4e8f69abc5f9a33aa) [#9840](https://github.com/firebase/firebase-js-sdk/pull/9840) (fixes [#9832](https://github.com/firebase/firebase-js-sdk/issues/9832)) - Fix `TemplateChatSession` type so it does not error on TypeScript build. See Github issue #9832.
+
 ## 2.11.0
 
 ### Minor Changes

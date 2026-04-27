@@ -50,7 +50,6 @@ The Firebase AI Web SDK.
 |  [ObjectSchema](./ai.objectschema.md#objectschema_class) | Schema class for "object" types. The <code>properties</code> param must be a map of <code>Schema</code> objects. |
 |  [Schema](./ai.schema.md#schema_class) | Parent class encompassing all Schema types, with static methods that allow building specific Schema types. This class can be converted with <code>JSON.stringify()</code> into a JSON string accepted by Vertex AI REST endpoints. (This string conversion is automatically done when calling SDK methods.) |
 |  [StringSchema](./ai.stringschema.md#stringschema_class) | Schema class for "string" types. Can be used with or without enum values. |
-|  [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_class) | <b><i>(Public Preview)</i></b> <code>ChatSession</code> class for use with server prompt templates that enables sending chat messages and stores history of sent and received messages so far. |
 |  [TemplateGenerativeModel](./ai.templategenerativemodel.md#templategenerativemodel_class) | <b><i>(Public Preview)</i></b> [GenerativeModel](./ai.generativemodel.md#generativemodel_class) APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateGenerativeModel()](./ai.md#gettemplategenerativemodel_9476bbc)<!-- -->. |
 |  [TemplateImagenModel](./ai.templateimagenmodel.md#templateimagenmodel_class) | Class for Imagen model APIs that execute on a server-side template.<!-- -->This class should only be instantiated with [getTemplateImagenModel()](./ai.md#gettemplateimagenmodel_9476bbc)<!-- -->. |
 |  [VertexAIBackend](./ai.vertexaibackend.md#vertexaibackend_class) | Configuration class for the Vertex AI Gemini API.<!-- -->Use this with [AIOptions](./ai.aioptions.md#aioptions_interface) when initializing the AI service via [getAI()](./ai.md#getai_a94a413) to specify the Vertex AI Gemini API as the backend. |
@@ -69,8 +68,9 @@ The Firebase AI Web SDK.
 |  [CitationMetadata](./ai.citationmetadata.md#citationmetadata_interface) | Citation metadata that may be found on a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface)<!-- -->. |
 |  [CodeExecutionResult](./ai.codeexecutionresult.md#codeexecutionresult_interface) | The results of code execution run by the model. |
 |  [CodeExecutionResultPart](./ai.codeexecutionresultpart.md#codeexecutionresultpart_interface) | Represents the code execution result from the model. |
-|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | <b><i>(Public Preview)</i></b> A tool that enables the model to use code execution. |
+|  [CodeExecutionTool](./ai.codeexecutiontool.md#codeexecutiontool_interface) | A tool that enables the model to use code execution. |
 |  [Content](./ai.content.md#content_interface) | Content type for both prompts and response candidates. |
+|  [ContextWindowCompressionConfig](./ai.contextwindowcompressionconfig.md#contextwindowcompressionconfig_interface) | <b><i>(Public Preview)</i></b> Enables context window compression to manage the model's context window. |
 |  [CountTokensRequest](./ai.counttokensrequest.md#counttokensrequest_interface) | Params for calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens) |
 |  [CountTokensResponse](./ai.counttokensresponse.md#counttokensresponse_interface) | Response from calling [GenerativeModel.countTokens()](./ai.generativemodel.md#generativemodelcounttokens)<!-- -->. |
 |  [CustomErrorData](./ai.customerrordata.md#customerrordata_interface) | Details object that contains data originating from a bad HTTP response. |
@@ -95,10 +95,13 @@ The Firebase AI Web SDK.
 |  [GenerateContentStreamResult](./ai.generatecontentstreamresult.md#generatecontentstreamresult_interface) | Result object returned from [GenerativeModel.generateContentStream()](./ai.generativemodel.md#generativemodelgeneratecontentstream) call. Iterate over <code>stream</code> to get chunks as they come in and/or use the <code>response</code> promise to get the aggregated response when the stream is done. |
 |  [GenerationConfig](./ai.generationconfig.md#generationconfig_interface) | Config options for content-related requests |
 |  [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) | Interface for sending an image. |
+|  [GoogleMaps](./ai.googlemaps.md#googlemaps_interface) | Specifies the Google Maps configuration. |
+|  [GoogleMapsGroundingChunk](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunk_interface) | A grounding chunk from Google Maps.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the [Service Specific Terms](https://cloud.google.com/terms/service-terms) for "Grounding with Google Maps". |
+|  [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface) | A tool that allows a Gemini model to connect to Google Maps to access and incorporate location-based information into its responses.<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GoogleSearch](./ai.googlesearch.md#googlesearch_interface) | Specifies the Google Search configuration. |
 |  [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) | A tool that allows a Gemini model to connect to Google Search to access and incorporate up-to-date information from the web into its responses.<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) | Represents a chunk of retrieved data that supports a claim in the model's response. This is part of the grounding information provided when grounding is enabled. |
-|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search is supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface)<!-- -->).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
+|  [GroundingMetadata](./ai.groundingmetadata.md#groundingmetadata_interface) | Metadata returned when grounding is enabled.<!-- -->Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).<!-- -->Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).<!-- -->Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms). |
 |  [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) | Provides information about how a specific segment of the model's response is supported by the retrieved grounding chunks. |
 |  [HybridParams](./ai.hybridparams.md#hybridparams_interface) | <b><i>(Public Preview)</i></b> Configures hybrid inference. |
 |  [ImagenGCSImage](./ai.imagengcsimage.md#imagengcsimage_interface) | An image generated by Imagen, stored in a Cloud Storage for Firebase bucket.<!-- -->This feature is not available yet. |
@@ -114,12 +117,14 @@ The Firebase AI Web SDK.
 |  [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface) | <b><i>(Public Preview)</i></b> An on-device language model message. |
 |  [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) | <b><i>(Public Preview)</i></b> An on-device language model content object. |
 |  [LanguageModelPromptOptions](./ai.languagemodelpromptoptions.md#languagemodelpromptoptions_interface) | <b><i>(Public Preview)</i></b> Options for an on-device language model prompt. |
+|  [LatLng](./ai.latlng.md#latlng_interface) | An object that represents a latitude/longitude pair. |
 |  [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface) | <b><i>(Public Preview)</i></b> Configuration parameters used by [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) to control live content generation. |
 |  [LiveModelParams](./ai.livemodelparams.md#livemodelparams_interface) | <b><i>(Public Preview)</i></b> Params passed to [getLiveGenerativeModel()](./ai.md#getlivegenerativemodel_f2099ac)<!-- -->. |
 |  [LiveServerContent](./ai.liveservercontent.md#liveservercontent_interface) | <b><i>(Public Preview)</i></b> An incremental content update from the model. |
 |  [LiveServerGoingAwayNotice](./ai.liveservergoingawaynotice.md#liveservergoingawaynotice_interface) | <b><i>(Public Preview)</i></b> Notification that the server will not be able to service the client soon. |
 |  [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface) | <b><i>(Public Preview)</i></b> A request from the model for the client to execute one or more functions. |
 |  [LiveServerToolCallCancellation](./ai.liveservertoolcallcancellation.md#liveservertoolcallcancellation_interface) | <b><i>(Public Preview)</i></b> Notification to cancel a previous function call triggered by [LiveServerToolCall](./ai.liveservertoolcall.md#liveservertoolcall_interface)<!-- -->. |
+|  [LiveSessionResumptionUpdate](./ai.livesessionresumptionupdate.md#livesessionresumptionupdate_interface) | <b><i>(Public Preview)</i></b> An update of the session resumption state.<!-- -->This message is only sent if [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) was set in the session setup. |
 |  [ModalityTokenCount](./ai.modalitytokencount.md#modalitytokencount_interface) | Represents token counting info for a single modality. |
 |  [ModelParams](./ai.modelparams.md#modelparams_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
 |  [ObjectSchemaRequest](./ai.objectschemarequest.md#objectschemarequest_interface) | Interface for JSON parameters in a schema of [SchemaType](./ai.md#schematype) "object" when not using the <code>Schema.object()</code> helper. |
@@ -127,6 +132,7 @@ The Firebase AI Web SDK.
 |  [PrebuiltVoiceConfig](./ai.prebuiltvoiceconfig.md#prebuiltvoiceconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for a pre-built voice. |
 |  [PromptFeedback](./ai.promptfeedback.md#promptfeedback_interface) | If the prompt was blocked, this will be populated with <code>blockReason</code> and the relevant <code>safetyRatings</code>. |
 |  [RequestOptions](./ai.requestoptions.md#requestoptions_interface) | Params passed to [getGenerativeModel()](./ai.md#getgenerativemodel_c63f46a)<!-- -->. |
+|  [RetrievalConfig](./ai.retrievalconfig.md#retrievalconfig_interface) | Configuration options for data retrieval tools. |
 |  [RetrievedContextAttribution](./ai.retrievedcontextattribution.md#retrievedcontextattribution_interface) |  |
 |  [SafetyRating](./ai.safetyrating.md#safetyrating_interface) | A safety rating associated with a [GenerateContentCandidate](./ai.generatecontentcandidate.md#generatecontentcandidate_interface) |
 |  [SafetySetting](./ai.safetysetting.md#safetysetting_interface) | Safety setting that can be sent as part of request parameters. |
@@ -136,21 +142,24 @@ The Firebase AI Web SDK.
 |  [SchemaShared](./ai.schemashared.md#schemashared_interface) | Basic [Schema](./ai.schema.md#schema_class) properties shared across several Schema-related types. |
 |  [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google search entry point. |
 |  [Segment](./ai.segment.md#segment_interface) | Represents a specific segment within a [Content](./ai.content.md#content_interface) object, often used to pinpoint the exact location of text or data that grounding information refers to. |
+|  [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) | <b><i>(Public Preview)</i></b> Configuration for the session resumption mechanism. |
 |  [SingleRequestOptions](./ai.singlerequestoptions.md#singlerequestoptions_interface) | Options that can be provided per-request. Extends the base [RequestOptions](./ai.requestoptions.md#requestoptions_interface) (like <code>timeout</code> and <code>baseUrl</code>) with request-specific controls like cancellation via <code>AbortSignal</code>.<!-- -->Options specified here will override any default [RequestOptions](./ai.requestoptions.md#requestoptions_interface) configured on a model (for example, [GenerativeModel](./ai.generativemodel.md#generativemodel_class)<!-- -->). |
+|  [SlidingWindow](./ai.slidingwindow.md#slidingwindow_interface) | <b><i>(Public Preview)</i></b> Configures the sliding window context compression mechanism. |
 |  [SpeechConfig](./ai.speechconfig.md#speechconfig_interface) | <b><i>(Public Preview)</i></b> Configures speech synthesis. |
 |  [StartAudioConversationOptions](./ai.startaudioconversationoptions.md#startaudioconversationoptions_interface) | <b><i>(Public Preview)</i></b> Options for [startAudioConversation()](./ai.md#startaudioconversation_01c8e7f)<!-- -->. |
 |  [StartChatParams](./ai.startchatparams.md#startchatparams_interface) | Params for [GenerativeModel.startChat()](./ai.generativemodel.md#generativemodelstartchat)<!-- -->. |
 |  [StartTemplateChatParams](./ai.starttemplatechatparams.md#starttemplatechatparams_interface) | <b><i>(Public Preview)</i></b> Params for [TemplateGenerativeModel.startChat()](./ai.templategenerativemodel.md#templategenerativemodelstartchat)<!-- -->. |
+|  [TemplateChatSession](./ai.templatechatsession.md#templatechatsession_interface) | <b><i>(Public Preview)</i></b> Interface representing a <code>ChatSession</code> class for use with server prompt templates that enables sending chat messages and stores history of sent and received messages so far. |
 |  [TemplateFunctionDeclaration](./ai.templatefunctiondeclaration.md#templatefunctiondeclaration_interface) | <b><i>(Public Preview)</i></b> Structured representation of a template function declaration. Included in this declaration are the function name and parameters. This <code>TemplateFunctionDeclaration</code> is a representation of a block of code that can be used as a Tool by the model and executed by the client. Note: Template function declarations do not support description fields. |
 |  [TemplateFunctionDeclarationsTool](./ai.templatefunctiondeclarationstool.md#templatefunctiondeclarationstool_interface) | <b><i>(Public Preview)</i></b> A piece of code that enables the system to interact with external systems. |
-|  [TemplateGenerateContentRequest](./ai.templategeneratecontentrequest.md#templategeneratecontentrequest_interface) | <b><i>(Public Preview)</i></b> Request sent through [TemplateGenerativeModel.generateContent()](./ai.templategenerativemodel.md#templategenerativemodelgeneratecontent) |
+|  [TemplateToolConfig](./ai.templatetoolconfig.md#templatetoolconfig_interface) | Tool configuration for <code>TemplateGenerativeModel</code>s. This config is shared for all tools provided in the server prompt template request. |
 |  [TextPart](./ai.textpart.md#textpart_interface) | Content part interface if the part represents a text string. |
 |  [ThinkingConfig](./ai.thinkingconfig.md#thinkingconfig_interface) | Configuration for "thinking" behavior of compatible Gemini models.<!-- -->Certain models utilize a thinking process before generating a response. This allows them to reason through complex problems and plan a more coherent and accurate answer. |
 |  [ToolConfig](./ai.toolconfig.md#toolconfig_interface) | Tool config. This config is shared for all tools provided in the request. |
 |  [Transcription](./ai.transcription.md#transcription_interface) | <b><i>(Public Preview)</i></b> Transcription of audio. This can be returned from a [LiveGenerativeModel](./ai.livegenerativemodel.md#livegenerativemodel_class) if transcription is enabled with the <code>inputAudioTranscription</code> or <code>outputAudioTranscription</code> properties on the [LiveGenerationConfig](./ai.livegenerationconfig.md#livegenerationconfig_interface)<!-- -->. |
-|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | <b><i>(Public Preview)</i></b> Specifies the URL Context configuration. |
+|  [URLContext](./ai.urlcontext.md#urlcontext_interface) | Specifies the URL Context configuration. |
 |  [URLContextMetadata](./ai.urlcontextmetadata.md#urlcontextmetadata_interface) | Metadata related to [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface)<!-- -->. |
-|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | <b><i>(Public Preview)</i></b> A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
+|  [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) | A tool that allows you to provide additional context to the models in the form of public web URLs. By including URLs in your request, the Gemini model will access the content from those pages to inform and enhance its response. |
 |  [URLMetadata](./ai.urlmetadata.md#urlmetadata_interface) | Metadata for a single URL retrieved by the [URLContextTool](./ai.urlcontexttool.md#urlcontexttool_interface) tool. |
 |  [UsageMetadata](./ai.usagemetadata.md#usagemetadata_interface) | Usage metadata about a [GenerateContentResponse](./ai.generatecontentresponse.md#generatecontentresponse_interface)<!-- -->. |
 |  [VideoMetadata](./ai.videometadata.md#videometadata_interface) | Describes the input video content. |
@@ -776,6 +785,7 @@ LiveResponseType: {
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
     GOING_AWAY_NOTICE: string;
+    SESSION_RESUMPTION_UPDATE: string;
 }
 ```
 
@@ -1221,7 +1231,7 @@ Defines a tool that model can call to access external knowledge.
 <b>Signature:</b>
 
 ```typescript
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
+export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 ```
 
 ## TypedSchema
