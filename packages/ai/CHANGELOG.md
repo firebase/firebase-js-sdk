@@ -1,5 +1,29 @@
 # @firebase/ai
 
+## 2.11.1
+
+### Patch Changes
+
+- [`23ab5b9`](https://github.com/firebase/firebase-js-sdk/commit/23ab5b9dadb0451e855740a48f4cb12d29091a70) [#9817](https://github.com/firebase/firebase-js-sdk/pull/9817) - Update code execution and URL context features to reflect that they are generally available and no longer public preview.
+
+- [`6db5af4`](https://github.com/firebase/firebase-js-sdk/commit/6db5af46649382ee3ed73ab4e8f69abc5f9a33aa) [#9840](https://github.com/firebase/firebase-js-sdk/pull/9840) (fixes [#9832](https://github.com/firebase/firebase-js-sdk/issues/9832)) - Fix `TemplateChatSession` type so it does not error on TypeScript build. See Github issue #9832.
+
+## 2.11.0
+
+### Minor Changes
+
+- [`cccb6d0`](https://github.com/firebase/firebase-js-sdk/commit/cccb6d058cc2dac5495b797740697902ddfd4a93) [#9771](https://github.com/firebase/firebase-js-sdk/pull/9771) - [deprecated] All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+- [`6cbe865`](https://github.com/firebase/firebase-js-sdk/commit/6cbe86569cc49ed12e9e53173bb66e8624bc8d6e) [#9816](https://github.com/firebase/firebase-js-sdk/pull/9816) - Deprecate `topK` and `temperature` properties for hybrid inference mode.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add `startChat()` for `TemplateGenerativeModel`.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add automatic function calling and chat history for server prompt templates.
+
+### Patch Changes
+
+- [`f87c15e`](https://github.com/firebase/firebase-js-sdk/commit/f87c15e97af9913182ebaa1afb94a3fe802e04f4) [#9791](https://github.com/firebase/firebase-js-sdk/pull/9791) (fixes [#9792](https://github.com/firebase/firebase-js-sdk/issues/9792)) - Fixed a bug that causes the model to error if the user specifies `responseSchema` or `responseJsonSchema`.
+
 ## 2.10.0
 
 ### Minor Changes

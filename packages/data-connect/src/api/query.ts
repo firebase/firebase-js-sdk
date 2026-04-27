@@ -20,7 +20,7 @@ import {
   ExecuteQueryOptions,
   QueryFetchPolicy
 } from '../core/query/queryOptions';
-import { DataConnectExtensionWithMaxAge } from '../network/transport';
+import { DataConnectExtensionWithMaxAge } from '../network';
 
 import { DataConnect, getDataConnect } from './DataConnect';
 import {

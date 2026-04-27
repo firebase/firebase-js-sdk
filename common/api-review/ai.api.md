@@ -140,16 +140,15 @@ export class BooleanSchema extends Schema {
 }
 
 // @public
-export class ChatSession {
+export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
     // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // @internal
-    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _callGenerateContentStream(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
     // @internal
     _formatRequest(incomingContent: Content, tempHistory: Content[]): GenerateContentRequest;
-    // @internal
-    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
-    getHistory(): Promise<Content[]>;
     // (undocumented)
     model: string;
     // (undocumented)
@@ -158,7 +157,40 @@ export class ChatSession {
     requestOptions?: RequestOptions | undefined;
     sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
     sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
-    }
+}
+
+// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "StartTemplateChatParams" which is marked as @beta
+// Warning: (ae-incompatible-release-tags) The symbol "ChatSessionBase" is marked as @public, but its signature references "TemplateFunctionDeclarationsTool" which is marked as @beta
+//
+// @public
+export abstract class ChatSessionBase<ParamsType extends StartChatParams | StartTemplateChatParams, RequestType, FunctionDeclarationsToolType extends FunctionDeclarationsTool | TemplateFunctionDeclarationsTool> {
+    constructor(apiSettings: ApiSettings, params?: ParamsType | undefined, requestOptions?: RequestOptions | undefined);
+    // (undocumented)
+    protected _apiSettings: ApiSettings;
+    // @internal
+    _callFunctionsAsNeeded(functionCalls: FunctionCall[]): Promise<FunctionResponsePart[]>;
+    // @internal
+    abstract _callGenerateContent(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    abstract _callGenerateContentStream(formattedRequest: RequestType, singleRequestOptions?: RequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    abstract _formatRequest(incomingContent: Content, tempHistory: Content[]): RequestType;
+    // @internal
+    _getCallableFunctionCalls(response?: GenerateContentResponse): FunctionCall[] | undefined;
+    getHistory(): Promise<Content[]>;
+    // (undocumented)
+    protected _history: Content[];
+    // (undocumented)
+    params?: ParamsType | undefined;
+    // (undocumented)
+    requestOptions?: RequestOptions | undefined;
+    // @internal
+    _sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    // @internal
+    _sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    // @internal
+    protected _sendPromise: Promise<void>;
+}
 
 // @beta
 export interface ChromeAdapter {
@@ -219,7 +251,7 @@ export interface CodeExecutionResultPart {
     thoughtSignature?: never;
 }
 
-// @beta
+// @public
 export interface CodeExecutionTool {
     codeExecution: {};
 }
@@ -230,6 +262,12 @@ export interface Content {
     parts: Part[];
     // (undocumented)
     role: Role;
+}
+
+// @beta
+export interface ContextWindowCompressionConfig {
+    slidingWindow?: SlidingWindow;
+    triggerTokens?: number;
 }
 
 // @public
@@ -653,6 +691,25 @@ export interface GoogleAIGenerateContentResponse {
 }
 
 // @public
+export interface GoogleMaps {
+    // (undocumented)
+    enableWidget?: boolean;
+}
+
+// @public
+export interface GoogleMapsGroundingChunk {
+    placeId?: string;
+    text?: string;
+    title?: string;
+    uri?: string;
+}
+
+// @public
+export interface GoogleMapsTool {
+    googleMaps: GoogleMaps;
+}
+
+// @public
 export interface GoogleSearch {
 }
 
@@ -663,11 +720,13 @@ export interface GoogleSearchTool {
 
 // @public
 export interface GroundingChunk {
+    maps?: GoogleMapsGroundingChunk;
     web?: WebGroundingChunk;
 }
 
 // @public
 export interface GroundingMetadata {
+    googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)
@@ -896,9 +955,9 @@ export type Language = (typeof Language)[keyof typeof Language];
 export interface LanguageModelCreateCoreOptions {
     // (undocumented)
     expectedInputs?: LanguageModelExpected[];
-    // (undocumented)
+    // @deprecated (undocumented)
     temperature?: number;
-    // (undocumented)
+    // @deprecated (undocumented)
     topK?: number;
 }
 
@@ -949,8 +1008,15 @@ export interface LanguageModelPromptOptions {
     responseConstraint?: object;
 }
 
+// @public
+export interface LatLng {
+    latitude?: number;
+    longitude?: number;
+}
+
 // @beta
 export interface LiveGenerationConfig {
+    contextWindowCompression?: ContextWindowCompressionConfig;
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
@@ -969,8 +1035,8 @@ export class LiveGenerativeModel extends AIModel {
     //
     // @internal
     constructor(ai: AI, modelParams: LiveModelParams,
-    _webSocketHandler: WebSocketHandler);
-    connect(): Promise<LiveSession>;
+    _webSocketHandler?: WebSocketHandler | undefined);
+    connect(sessionResumption?: SessionResumptionConfig): Promise<LiveSession>;
     // (undocumented)
     generationConfig: LiveGenerationConfig;
     // (undocumented)
@@ -1001,6 +1067,7 @@ export const LiveResponseType: {
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
     GOING_AWAY_NOTICE: string;
+    SESSION_RESUMPTION_UPDATE: string;
 };
 
 // @beta
@@ -1040,12 +1107,16 @@ export interface LiveServerToolCallCancellation {
 
 // @beta
 export class LiveSession {
+    // Warning: (ae-forgotten-export) The symbol "_LiveClientSetup" needs to be exported by the entry point index.d.ts
+    //
     // @internal
-    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    constructor(_setupMessage: _LiveClientSetup, _apiSettings: ApiSettings, _sessionResumption?: SessionResumptionConfig | undefined, webSocketHandler?: WebSocketHandler);
     close(): Promise<void>;
+    connectionPromise: Promise<void>;
     inConversation: boolean;
     isClosed: boolean;
-    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice | LiveSessionResumptionUpdate>;
+    resumeSession(sessionResumption?: SessionResumptionConfig): Promise<void>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
@@ -1056,6 +1127,15 @@ export class LiveSession {
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
+
+// @beta
+export interface LiveSessionResumptionUpdate {
+    lastConsumedClientMessageIndex?: number;
+    newHandle?: string;
+    resumable?: boolean;
+    // (undocumented)
+    type: 'sessionResumptionUpdate';
+}
 
 // @public
 export const Modality: {
@@ -1157,7 +1237,7 @@ export interface PromptFeedback {
 // @public
 export interface RequestOptions {
     baseUrl?: string;
-    maxSequentalFunctionCalls?: number;
+    maxSequentialFunctionCalls?: number;
     timeout?: number;
 }
 
@@ -1170,6 +1250,12 @@ export const ResponseModality: {
 
 // @beta
 export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
+
+// @public
+export interface RetrievalConfig {
+    languageCode?: string;
+    latLng?: LatLng;
+}
 
 // @public (undocumented)
 export interface RetrievedContextAttribution {
@@ -1310,9 +1396,19 @@ export interface Segment {
     text: string;
 }
 
+// @beta
+export interface SessionResumptionConfig {
+    handle?: string;
+}
+
 // @public
 export interface SingleRequestOptions extends RequestOptions {
     signal?: AbortSignal;
+}
+
+// @beta
+export interface SlidingWindow {
+    targetTokens?: number;
 }
 
 // @beta
@@ -1340,6 +1436,14 @@ export interface StartChatParams extends BaseParams {
     tools?: Tool[];
 }
 
+// @beta
+export interface StartTemplateChatParams extends Omit<StartChatParams, 'tools'> {
+    templateId: string;
+    templateVariables?: Record<string, unknown>;
+    // (undocumented)
+    tools?: TemplateTool[];
+}
+
 // @public
 export class StringSchema extends Schema {
     constructor(schemaParams?: SchemaParams, enumValues?: string[]);
@@ -1350,13 +1454,69 @@ export class StringSchema extends Schema {
 }
 
 // @beta
+export interface TemplateChatSession {
+    getHistory(): Promise<Content[]>;
+    // (undocumented)
+    params: StartTemplateChatParams;
+    // (undocumented)
+    requestOptions?: RequestOptions;
+    sendMessage(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
+    sendMessageStream(request: string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+}
+
+// @beta
+export interface TemplateFunctionDeclaration {
+    description?: never;
+    functionReference?: Function;
+    name: string;
+    parameters?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal (undocumented)
+export interface TemplateFunctionDeclarationInternal extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+    // (undocumented)
+    inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
+// @beta
+export interface TemplateFunctionDeclarationsTool {
+    functionDeclarations?: TemplateFunctionDeclaration[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateFunctionDeclarationsToolInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateFunctionDeclarationsToolInternal {
+    templateFunctions?: TemplateFunctionDeclarationInternal[];
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateGenerateContentRequest" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateGenerateContentRequest {
+    // (undocumented)
+    [key: string]: unknown;
+    // (undocumented)
+    history?: Content[];
+    // (undocumented)
+    inputs?: Record<string, unknown>;
+    // (undocumented)
+    toolConfig?: ToolConfig;
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsTool[];
+}
+
+// @beta
 export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
+    startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
 
 // @public @deprecated
@@ -1367,6 +1527,23 @@ export class TemplateImagenModel {
     // @beta
     generateImages(templateId: string, templateVariables: object, singleRequestOptions?: SingleRequestOptions): Promise<ImagenGenerationResponse<ImagenInlineImage>>;
     requestOptions?: RequestOptions;
+}
+
+// Warning: (ae-internal-missing-underscore) The name "TemplateRequestInternal" should be prefixed with an underscore because the declaration is marked as @internal
+//
+// @internal
+export interface TemplateRequestInternal extends Omit<TemplateGenerateContentRequest, 'tools'> {
+    // (undocumented)
+    tools?: TemplateFunctionDeclarationsToolInternal[];
+}
+
+// @beta
+export type TemplateTool = TemplateFunctionDeclarationsTool;
+
+// @public
+export interface TemplateToolConfig {
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
 }
 
 // @public
@@ -1407,16 +1584,15 @@ export const ThinkingLevel: {
 // @public
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "CodeExecutionTool" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Tool" is marked as @public, but its signature references "URLContextTool" which is marked as @beta
-//
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
+export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
 }
 
 // @beta
@@ -1427,7 +1603,7 @@ export interface Transcription {
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
 
-// @beta
+// @public
 export interface URLContext {
 }
 
@@ -1436,7 +1612,7 @@ export interface URLContextMetadata {
     urlMetadata: URLMetadata[];
 }
 
-// @beta
+// @public
 export interface URLContextTool {
     urlContext: URLContext;
 }
