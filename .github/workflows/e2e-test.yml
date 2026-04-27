@@ -17,11 +17,11 @@ name: E2E Smoke Tests
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
 on:
   repository_dispatch:
-    types: [staging-tests,canary-tests]
+    types: [staging-tests, canary-tests]
 
 env:
   # Bump Node memory limit
-  NODE_OPTIONS: "--max_old_space_size=4096"
+  NODE_OPTIONS: '--max_old_space_size=4096'
 
 jobs:
   test:
@@ -66,16 +66,6 @@ jobs:
           yarn
         env:
           GITHUB_EVENT_CLIENT_PAYLOAD_VERSIONORTAG: ${{ github.event.client_payload.versionOrTag }}
-      - name: Deploy "callTest" cloud function
-        continue-on-error: true
-        run: |
-          pushd functions
-          npm install
-          popd
-          npx firebase-tools@14.24.2 deploy --only functions:callTest --project jscore-sandbox-141b5 --token $FIREBASE_CLI_TOKEN
-        working-directory: ./config
-        env:
-          FIREBASE_CLI_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
       - name: Do modular build
         run: yarn build:modular
       - name: Do compat build
