@@ -24,6 +24,14 @@ export const assertionError: (message: string) => Error;
 // @public
 export function async(fn: Function, onError?: ErrorFn): Function;
 
+// Warning: (ae-missing-release-tag) "AuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface AuthInfo {
+    // (undocumented)
+    authInfo: ErrorAuthInfo | null;
+}
+
 // Warning: (ae-forgotten-export) The symbol "Base64" needs to be exported by the entry point index.d.ts
 // Warning: (ae-missing-release-tag) "base64" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -76,6 +84,11 @@ export const CONSTANTS: {
 //
 // @public
 export function contains<T extends object>(obj: T, key: string): boolean;
+
+// Warning: (ae-missing-release-tag) "copyErrorStack" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function copyErrorStack(target: Error, source: Error): void;
 
 // Warning: (ae-missing-release-tag) "createMockUserToken" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -139,6 +152,25 @@ export type EmulatorMockTokenOptions = ({
 } | {
     sub: string;
 }) & Partial<FirebaseIdToken>;
+
+// Warning: (ae-missing-release-tag) "enableContextualErrors" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function enableContextualErrors(enabled: boolean): void;
+
+// Warning: (ae-missing-release-tag) "ErrorAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export interface ErrorAuthInfo {
+    // (undocumented)
+    email: string | null;
+    // (undocumented)
+    emailVerified: boolean;
+    // (undocumented)
+    isAnonymous: boolean;
+    // (undocumented)
+    userId: string;
+}
 
 // Warning: (ae-missing-release-tag) "ErrorData" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -207,12 +239,12 @@ export interface FirebaseDefaults {
 // Warning: (ae-missing-release-tag) "FirebaseError" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
-export class FirebaseError extends Error {
+export class FirebaseError<T = Record<string, unknown>> extends Error {
     constructor(
     code: string, message: string,
-    customData?: Record<string, unknown> | undefined);
+    customData?: T | undefined);
     readonly code: string;
-    customData?: Record<string, unknown> | undefined;
+    customData?: T | undefined;
     readonly name: string;
 }
 
@@ -223,6 +255,13 @@ export type FirebaseSignInProvider = 'custom' | 'email' | 'password' | 'phone' |
 
 // @public
 export function generateSHA256Hash(input: string): Promise<string>;
+
+// Warning: (ae-missing-release-tag) "getContextualMsg" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function getContextualMsg<T extends {
+    authInfo: ErrorAuthInfo | null;
+}, E extends FirebaseError<T>>(originalError: E): string;
 
 // @public
 export const getDefaultAppConfig: () => Record<string, string> | undefined;
@@ -274,6 +313,11 @@ export function isCloudflareWorker(): boolean;
 
 // @public
 export function isCloudWorkstation(url: string): boolean;
+
+// Warning: (ae-missing-release-tag) "isContextualErrorsEnabled" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function isContextualErrorsEnabled(): boolean;
 
 // Warning: (ae-missing-release-tag) "isElectron" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
@@ -400,6 +444,11 @@ export interface Observer<T> {
 //
 // @public
 export function ordinal(i: number): string;
+
+// Warning: (ae-missing-release-tag) "parseIdTokenToAuthInfo" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo;
 
 // Warning: (ae-missing-release-tag) "PartialObserver" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //

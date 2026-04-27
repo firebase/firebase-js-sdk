@@ -55,6 +55,7 @@
  *   }
  */
 
+import { decode } from './jwt';
 export type ErrorMap<ErrorCode extends string> = {
   readonly [K in ErrorCode]: string;
 };
@@ -69,9 +70,19 @@ export interface ErrorData {
   [key: string]: unknown;
 }
 
+let contextualErrorsEnabled = false;
+
+export function enableContextualErrors(enabled: boolean): void {
+  contextualErrorsEnabled = enabled;
+}
+
+export function isContextualErrorsEnabled(): boolean {
+  return contextualErrorsEnabled;
+}
+
 // Based on code from:
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
-export class FirebaseError extends Error {
+export class FirebaseError<T = Record<string, unknown>> extends Error {
   /** The custom name for all FirebaseErrors. */
   readonly name: string = ERROR_NAME;
 
@@ -80,10 +91,9 @@ export class FirebaseError extends Error {
     readonly code: string,
     message: string,
     /** Custom data for this error. */
-    public customData?: Record<string, unknown>
+    public customData?: T
   ) {
     super(message);
-
     // Fix For ES5
     // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
     // TODO(dlarocque): Replace this with `new.target`: https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-2.html#support-for-newtarget
@@ -96,6 +106,54 @@ export class FirebaseError extends Error {
       Error.captureStackTrace(this, ErrorFactory.prototype.create);
     }
   }
+}
+
+export function getContextualMsg<
+  T extends { authInfo: ErrorAuthInfo | null },
+  E extends FirebaseError<T>
+>(originalError: E): string {
+  if (!isContextualErrorsEnabled() || !originalError.customData) {
+    return originalError.message;
+  }
+
+  const { authInfo, ...rest } = originalError.customData;
+
+  let restStr: string = '';
+  try {
+    restStr = JSON.stringify(rest);
+  } catch {}
+
+  let authInfoStr = '';
+  if (authInfo) {
+    try {
+      authInfoStr = JSON.stringify(authInfo);
+    } catch {}
+  }
+
+  return `${originalError.message} Extra Context: ${restStr} ${
+    authInfo ? `AuthInfo: ${authInfoStr}` : ''
+  }`;
+}
+
+export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo {
+  const tokenInfo = decode(idToken);
+  return {
+    userId: tokenInfo.claims['user_id'] as string,
+    email: tokenInfo.claims['email'] as string,
+    emailVerified: tokenInfo.claims['email_verified'] as boolean,
+    isAnonymous: tokenInfo.claims['provider_id'] === 'anonymous'
+  };
+}
+
+export interface ErrorAuthInfo {
+  userId: string;
+  email: string | null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+}
+
+export interface AuthInfo {
+  authInfo: ErrorAuthInfo | null;
 }
 
 export class ErrorFactory<
@@ -134,3 +192,4 @@ function replaceTemplate(template: string, data: ErrorData): string {
 }
 
 const PATTERN = /\{\$([^}]+)}/g;
+

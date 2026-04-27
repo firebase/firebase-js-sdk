@@ -17,7 +17,12 @@
 
 import { Observer } from '../core/event_manager';
 
-import { FirestoreError } from './error';
+import {
+  FirestoreError,
+  firestoreToContextualError,
+  OperationType,
+  ContextualFirestoreError
+} from './error';
 import { logError } from './log';
 import { EventHandler } from './misc';
 
@@ -31,9 +36,9 @@ export class AsyncObserver<T> implements Observer<T> {
    * When set to true, will not raise future events. Necessary to deal with
    * async detachment of listener.
    */
-  private muted = false;
+  protected muted = false;
 
-  constructor(private observer: Partial<Observer<T>>) {}
+  constructor(protected observer: Partial<Observer<T>>) {}
 
   next(value: T): void {
     if (this.muted) {
@@ -59,11 +64,40 @@ export class AsyncObserver<T> implements Observer<T> {
     this.muted = true;
   }
 
-  private scheduleEvent<E>(eventHandler: EventHandler<E>, event: E): void {
+  protected scheduleEvent<E>(eventHandler: EventHandler<E>, event: E): void {
     setTimeout(() => {
       if (!this.muted) {
         eventHandler(event);
       }
     }, 0);
+  }
+}
+
+export class ContextualErrorObserver<T> extends AsyncObserver<T> {
+  constructor(
+    observer: Partial<Observer<T>>,
+    readonly path: string,
+    readonly operationType: OperationType
+  ) {
+    super(observer);
+  }
+
+  error(error: FirestoreError): void {
+    if (this.muted) {
+      return;
+    }
+    const errorWithPath = firestoreToContextualError(
+      error,
+      { path: this.path, operationType: this.operationType },
+      true
+    ) as ContextualFirestoreError;
+    if (this.observer.error) {
+      this.scheduleEvent(this.observer.error, errorWithPath);
+    } else {
+      logError(
+        'Uncaught Error in snapshot listener:',
+        errorWithPath.toString()
+      );
+    }
   }
 }

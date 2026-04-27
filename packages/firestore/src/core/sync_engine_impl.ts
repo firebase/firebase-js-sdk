@@ -633,7 +633,7 @@ export function syncEngineApplyOnlineStateChange(
       source === OnlineStateSource.SharedClientState)
   ) {
     const newViewSnapshots = [] as ViewSnapshot[];
-    syncEngineImpl.queryViewsByQuery.forEach((query, queryView) => {
+    syncEngineImpl.queryViewsByQuery.forEach((_query, queryView) => {
       const viewChange = queryView.view.applyOnlineStateChange(onlineState);
       debugAssert(
         viewChange.limboChanges.length === 0,
@@ -679,7 +679,6 @@ export async function syncEngineRejectListen(
 ): Promise<void> {
   const syncEngineImpl = debugCast(syncEngine, SyncEngineImpl);
 
-  // PORTING NOTE: Multi-tab only.
   syncEngineImpl.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
   const limboResolution =
@@ -783,7 +782,11 @@ export async function syncEngineRejectFailedWrite(
     // raise events immediately (depending on whether the watcher is caught up),
     // so we raise user callbacks first so that they consistently happen before
     // listen events.
+    // TODO: Make sure that the error used here parses FirestoreError.
+    // TODO: Make sure that the stack trace is correct.
     processUserCallback(syncEngineImpl, batchId, error);
+    // Attach the fact that it was a write here.
+    // syncEngineImpl.
     triggerPendingWritesCallbacks(syncEngineImpl, batchId);
 
     syncEngineImpl.sharedClientState.updateMutationState(

@@ -53,7 +53,8 @@ import {
   deepEqual,
   getDefaultAppConfig,
   isBrowser,
-  isWebWorker
+  isWebWorker,
+  enableContextualErrors as enableContextualErrorsImpl
 } from '@firebase/util';
 
 export { FirebaseError } from '@firebase/util';
@@ -515,4 +516,22 @@ export function onLog(
  */
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
+}
+
+/**
+ * Enable or disable Firebase contextual error reporting.
+ *
+ * When contextual error reporting is enabled, the Firebase JS SDKs will
+ * automatically add context to error objects at the time the error is thrown.
+ * The contextual information may include the Firebase service and API that triggered
+ * the error, as well as other useful context.
+ *
+ * By default, contextual error reporting is disabled for all Firebase SDKs.
+ *
+ * @param enabled - Whether to enable or disable contextual error reporting.
+ *
+ * @public
+ */
+export function enableContextualErrors(enabled: boolean): void {
+  enableContextualErrorsImpl(enabled);
 }

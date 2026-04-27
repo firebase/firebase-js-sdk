@@ -199,13 +199,15 @@ export abstract class PersistentStream<
 
   protected backoff: ExponentialBackoff;
 
+  protected authToken: Token | null = null;
+
   constructor(
     private queue: AsyncQueue,
     connectionTimerId: TimerId,
     private idleTimerId: TimerId,
     private healthTimerId: TimerId,
     protected connection: Connection,
-    private authCredentialsProvider: CredentialsProvider<User>,
+    protected authCredentialsProvider: CredentialsProvider<User>,
     private appCheckCredentialsProvider: CredentialsProvider<string>,
     protected listener: ListenerType
   ) {
@@ -500,6 +502,7 @@ export abstract class PersistentStream<
 
     const dispatchIfNotClosed = this.getCloseGuardedDispatcher(this.closeCount);
 
+    this.authToken = authToken;
     this.stream = this.startRpc(authToken, appCheckToken);
     this.stream.onConnected(() => {
       dispatchIfNotClosed(() => this.listener!.onConnected());
@@ -530,7 +533,9 @@ export abstract class PersistentStream<
     });
     this.stream.onClose((error?: FirestoreError) => {
       dispatchIfNotClosed(() => {
-        return this.handleStreamClose(error);
+        return this.handleStreamClose(
+          error?.copyWithAuthInfo(authToken?.user?.idToken || null)
+        );
       });
     });
     this.stream.onMessage((msg: ReceiveType) => {
@@ -667,8 +672,12 @@ export class PersistentListenStream extends PersistentStream<
   protected onNext(watchChangeProto: ProtoListenResponse): Promise<void> {
     // A successful response means the stream is healthy
     this.backoff.reset();
-
-    const watchChange = fromWatchChange(this.serializer, watchChangeProto);
+    const credentials = this.authToken?.user;
+    const watchChange = fromWatchChange(
+      this.serializer,
+      watchChangeProto,
+      credentials
+    );
     const snapshot = versionFromListenResponse(watchChangeProto);
     return this.listener!.onWatchChange(watchChange, snapshot);
   }

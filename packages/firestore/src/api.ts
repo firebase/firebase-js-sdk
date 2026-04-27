@@ -193,7 +193,12 @@ export { Timestamp } from './api/timestamp';
 
 export { CACHE_SIZE_UNLIMITED } from './api/database';
 
-export { FirestoreError, FirestoreErrorCode } from './util/error';
+export {
+  FirestoreError,
+  FirestoreErrorCode,
+  CustomErrorInfo,
+  OperationType
+} from './util/error';
 
 export { AbstractUserDataWriter } from './lite-api/user_data_writer';
 
