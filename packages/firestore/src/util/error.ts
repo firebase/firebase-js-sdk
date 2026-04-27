@@ -19,7 +19,7 @@ import {
   FirebaseError,
   parseIdTokenToAuthInfo,
   ErrorAuthInfo,
-  getContextualMsg
+  getContextualMsg,
 } from '@firebase/util';
 
 /**
@@ -216,12 +216,10 @@ export const Code = {
 
 export type OperationType = 'read' | 'write' | 'listen';
 
-export interface WithPath {
+export interface CustomErrorInfo {
   path: string;
   operationType: OperationType;
 }
-
-export type CustomErrorInfo = WithPath;
 
 /** An error returned by a Firestore operation. */
 export class FirestoreError extends FirebaseError {
@@ -255,47 +253,43 @@ export class FirestoreError extends FirebaseError {
       return this;
     }
     const authInfo = parseIdTokenToAuthInfo(idToken);
-    return new FirestoreError(this.code, this.message, {
+    this.customData = {
       ...this.customData,
       authInfo
-    });
+    };
+    return this;
   }
 }
 
-export interface ErrorContext {
-  path: string;
-  operationType: OperationType;
-}
+export type ContextualFirestoreError = FirestoreError & {
+  readonly customData: CustomErrorInfo & { authInfo: ErrorAuthInfo | null };
+};
+
 export function firestoreToContextualError(
   err: Error,
-  context: ErrorContext,
+  context: CustomErrorInfo,
   addContext = false
-): Error {
+): ContextualFirestoreError | Error {
   if (err.name !== 'FirebaseError') {
     return err;
   }
 
   const firestoreErr = err as FirestoreError;
 
-  const customData: Record<string, unknown> = {
+  firestoreErr.customData = {
     ...firestoreErr.customData,
     ...context
   };
 
-  if (!('authInfo' in customData)) {
-    customData.authInfo = null;
+  if (!('authInfo' in firestoreErr.customData)) {
+    firestoreErr.customData.authInfo = null;
   }
-  const newFirestoreErr = new FirestoreError(
-    firestoreErr.code,
-    firestoreErr.message,
-    customData
-  );
 
   if (addContext) {
-    newFirestoreErr.message = getContextualMsg(
-      newFirestoreErr as FirebaseError<{ authInfo: ErrorAuthInfo | null }>
+    firestoreErr.message = getContextualMsg(
+      firestoreErr as FirebaseError<{ authInfo: ErrorAuthInfo | null }>
     );
   }
 
-  return newFirestoreErr;
+  return firestoreErr as ContextualFirestoreError;
 }

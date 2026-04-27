@@ -20,7 +20,8 @@ import { Observer } from '../core/event_manager';
 import {
   FirestoreError,
   firestoreToContextualError,
-  OperationType
+  OperationType,
+  ContextualFirestoreError
 } from './error';
 import { logError } from './log';
 import { EventHandler } from './misc';
@@ -89,9 +90,8 @@ export class ContextualErrorObserver<T> extends AsyncObserver<T> {
       error,
       { path: this.path, operationType: this.operationType },
       true
-    ) as FirestoreError;
+    ) as ContextualFirestoreError;
     if (this.observer.error) {
-      // TODO: Copy stack
       this.scheduleEvent(this.observer.error, errorWithPath);
     } else {
       logError(

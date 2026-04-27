@@ -197,7 +197,6 @@ export {
   FirestoreError,
   FirestoreErrorCode,
   CustomErrorInfo,
-  WithPath,
   OperationType
 } from './util/error';
 

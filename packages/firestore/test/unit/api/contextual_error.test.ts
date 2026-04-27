@@ -17,12 +17,27 @@
 
 import { expect } from 'chai';
 import * as sinon from 'sinon';
-import { getDoc, doc, setDoc, getDocs, collection, updateDoc, deleteDoc, addDoc, getDocFromCache, getDocsFromCache } from '../../../src';
-import { FirestoreError } from '../../../src/util/error';
-import { newTestFirestore } from '../../util/api_helpers';
+
+import {
+  getDoc,
+  doc,
+  setDoc,
+  getDocs,
+  collection,
+  updateDoc,
+  deleteDoc,
+  addDoc,
+  getDocFromCache,
+  getDocsFromCache
+} from '../../../src';
 import * as eventManagerModule from '../../../src/core/event_manager';
 import * as syncEngineModule from '../../../src/core/sync_engine_impl';
 import * as localStoreImpl from '../../../src/local/local_store_impl';
+import {
+  FirestoreError,
+  ContextualFirestoreError
+} from '../../../src/util/error';
+import { newTestFirestore } from '../../util/api_helpers';
 
 describe('Contextual Errors', () => {
   afterEach(() => {
@@ -31,141 +46,183 @@ describe('Contextual Errors', () => {
 
   it('getDoc throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
-    
-    sinon.stub(eventManagerModule, 'eventManagerListen').callsFake(async (eventManager, listener) => {
-      listener.onError(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
-    });
+
+    sinon
+      .stub(eventManagerModule, 'eventManagerListen')
+      .callsFake(async (eventManager, listener) => {
+        listener.onError(
+          new FirestoreError('permission-denied', 'Permission denied', {
+            authInfo: { uid: 'mock-uid' }
+          })
+        );
+      });
 
     const docRef = doc(firestore, 'coll/doc');
-    
+
     try {
       await getDoc(docRef);
       expect.fail('getDoc should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.code).to.equal('permission-denied');
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.code).to.equal('permission-denied');
+      expect(err.customData).to.include({
         path: 'coll/doc',
         operationType: 'read'
       });
-      expect(e.customData.authInfo).to.deep.equal({ uid: 'mock-uid' });
+      expect(err.customData!.authInfo).to.deep.equal({ uid: 'mock-uid' });
     }
   });
 
   it('getDocs throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
-    
-    sinon.stub(eventManagerModule, 'eventManagerListen').callsFake(async (eventManager, listener) => {
-      listener.onError(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
-    });
+
+    sinon
+      .stub(eventManagerModule, 'eventManagerListen')
+      .callsFake(async (eventManager, listener) => {
+        listener.onError(
+          new FirestoreError('permission-denied', 'Permission denied', {
+            authInfo: { uid: 'mock-uid' }
+          })
+        );
+      });
 
     const collRef = collection(firestore, 'coll');
-    
+
     try {
       await getDocs(collRef);
       expect.fail('getDocs should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.code).to.equal('permission-denied');
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.code).to.equal('permission-denied');
+      expect(err.customData).to.include({
         path: 'coll',
         operationType: 'read'
       });
-      expect(e.customData.authInfo).to.deep.equal({ uid: 'mock-uid' });
+      expect(err.customData!.authInfo).to.deep.equal({ uid: 'mock-uid' });
     }
   });
 
   it('setDoc throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
-    
-    sinon.stub(syncEngineModule, 'syncEngineWrite').callsFake((syncEngine, batch, userCallback) => {
-      userCallback.reject(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
-      return Promise.resolve();
-    });
+
+    sinon
+      .stub(syncEngineModule, 'syncEngineWrite')
+      .callsFake((syncEngine, batch, userCallback) => {
+        userCallback.reject(
+          new FirestoreError('permission-denied', 'Permission denied', {
+            authInfo: { uid: 'mock-uid' }
+          })
+        );
+        return Promise.resolve();
+      });
 
     const docRef = doc(firestore, 'coll/doc');
-    
+
     try {
       await setDoc(docRef, { foo: 'bar' });
       expect.fail('setDoc should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.code).to.equal('permission-denied');
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.code).to.equal('permission-denied');
+      expect(err.customData).to.include({
         path: 'coll/doc',
         operationType: 'write'
       });
-      expect(e.customData.authInfo).to.deep.equal({ uid: 'mock-uid' });
+      expect(err.customData!.authInfo).to.deep.equal({ uid: 'mock-uid' });
     }
   });
 
   it('updateDoc throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
-    
-    sinon.stub(syncEngineModule, 'syncEngineWrite').callsFake((syncEngine, batch, userCallback) => {
-      userCallback.reject(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
-      return Promise.resolve();
-    });
+
+    sinon
+      .stub(syncEngineModule, 'syncEngineWrite')
+      .callsFake((syncEngine, batch, userCallback) => {
+        userCallback.reject(
+          new FirestoreError('permission-denied', 'Permission denied', {
+            authInfo: { uid: 'mock-uid' }
+          })
+        );
+        return Promise.resolve();
+      });
 
     const docRef = doc(firestore, 'coll/doc');
-    
+
     try {
       await updateDoc(docRef, { foo: 'bar' });
       expect.fail('updateDoc should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.code).to.equal('permission-denied');
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.code).to.equal('permission-denied');
+      expect(err.customData).to.include({
         path: 'coll/doc',
         operationType: 'write'
       });
-      expect(e.customData.authInfo).to.deep.equal({ uid: 'mock-uid' });
+      expect(err.customData!.authInfo).to.deep.equal({ uid: 'mock-uid' });
     }
   });
 
   it('deleteDoc throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
-    
-    sinon.stub(syncEngineModule, 'syncEngineWrite').callsFake((syncEngine, batch, userCallback) => {
-      userCallback.reject(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
-      return Promise.resolve();
-    });
+
+    sinon
+      .stub(syncEngineModule, 'syncEngineWrite')
+      .callsFake((syncEngine, batch, userCallback) => {
+        userCallback.reject(
+          new FirestoreError('permission-denied', 'Permission denied', {
+            authInfo: { uid: 'mock-uid' }
+          })
+        );
+        return Promise.resolve();
+      });
 
     const docRef = doc(firestore, 'coll/doc');
-    
+
     try {
       await deleteDoc(docRef);
       expect.fail('deleteDoc should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.code).to.equal('permission-denied');
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.code).to.equal('permission-denied');
+      expect(err.customData).to.include({
         path: 'coll/doc',
         operationType: 'write'
       });
-      expect(e.customData.authInfo).to.deep.equal({ uid: 'mock-uid' });
+      expect(err.customData!.authInfo).to.deep.equal({ uid: 'mock-uid' });
     }
   });
 
   it('addDoc throws contextual error on failure with authInfo', async () => {
     const firestore = newTestFirestore();
-    
-    sinon.stub(syncEngineModule, 'syncEngineWrite').callsFake((syncEngine, batch, userCallback) => {
-      userCallback.reject(new FirestoreError('permission-denied' as any, 'Permission denied', { authInfo: { uid: 'mock-uid' } }));
-      return Promise.resolve();
-    });
+
+    sinon
+      .stub(syncEngineModule, 'syncEngineWrite')
+      .callsFake((syncEngine, batch, userCallback) => {
+        userCallback.reject(
+          new FirestoreError('permission-denied', 'Permission denied', {
+            authInfo: { uid: 'mock-uid' }
+          })
+        );
+        return Promise.resolve();
+      });
 
     const collRef = collection(firestore, 'coll');
-    
+
     try {
       await addDoc(collRef, { foo: 'bar' });
       expect.fail('addDoc should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.code).to.equal('permission-denied');
-      expect(e.customData.operationType).to.equal('write');
-      expect(e.customData.path).to.match(/^coll\/.+$/);
-      expect(e.customData.authInfo).to.deep.equal({ uid: 'mock-uid' });
+      const err = e as ContextualFirestoreError;
+      expect(err.code).to.equal('permission-denied');
+      expect(err.customData!.operationType).to.equal('write');
+      expect(err.customData!.path).to.match(/^coll\/.+$/);
+      expect(err.customData!.authInfo).to.deep.equal({ uid: 'mock-uid' });
     }
   });
 
@@ -174,19 +231,20 @@ describe('Contextual Errors', () => {
   // when wrapping IndexedDb errors.
   it('getDocFromCache throws contextual error on failure', async () => {
     const firestore = newTestFirestore();
-    
+
     const error = new Error('Read failed');
     error.name = 'IndexedDbTransactionError';
     sinon.stub(localStoreImpl, 'localStoreReadDocument').rejects(error);
 
     const docRef = doc(firestore, 'coll/doc');
-    
+
     try {
       await getDocFromCache(docRef);
       expect.fail('getDocFromCache should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.customData).to.include({
         path: 'coll/doc',
         operationType: 'read'
       });
@@ -195,19 +253,20 @@ describe('Contextual Errors', () => {
 
   it('getDocsFromCache throws contextual error on failure', async () => {
     const firestore = newTestFirestore();
-    
+
     const error = new Error('Query failed');
     error.name = 'IndexedDbTransactionError';
     sinon.stub(localStoreImpl, 'localStoreExecuteQuery').rejects(error);
 
     const collRef = collection(firestore, 'coll');
-    
+
     try {
       await getDocsFromCache(collRef);
       expect.fail('getDocsFromCache should have failed');
-    } catch (e: any) {
+    } catch (e: unknown) {
       expect(e).to.be.instanceOf(FirestoreError);
-      expect(e.customData).to.include({
+      const err = e as ContextualFirestoreError;
+      expect(err.customData).to.include({
         path: 'coll',
         operationType: 'read'
       });

@@ -145,6 +145,13 @@ export function parseIdTokenToAuthInfo(idToken: string): ErrorAuthInfo {
   };
 }
 
+export interface ErrorAuthInfo {
+  userId: string;
+  email: string | null;
+  emailVerified: boolean;
+  isAnonymous: boolean;
+}
+
 export interface AuthInfo {
   authInfo: ErrorAuthInfo | null;
 }
@@ -185,9 +192,4 @@ function replaceTemplate(template: string, data: ErrorData): string {
 }
 
 const PATTERN = /\{\$([^}]+)}/g;
-export interface ErrorAuthInfo {
-  userId: string;
-  email: string | null;
-  emailVerified: boolean;
-  isAnonymous: boolean;
-}
+

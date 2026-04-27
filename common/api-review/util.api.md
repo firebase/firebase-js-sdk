@@ -85,6 +85,11 @@ export const CONSTANTS: {
 // @public
 export function contains<T extends object>(obj: T, key: string): boolean;
 
+// Warning: (ae-missing-release-tag) "copyErrorStack" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
+//
+// @public (undocumented)
+export function copyErrorStack(target: Error, source: Error): void;
+
 // Warning: (ae-missing-release-tag) "createMockUserToken" is exported by the package, but it is missing a release tag (@alpha, @beta, @public, or @internal)
 //
 // @public (undocumented)
