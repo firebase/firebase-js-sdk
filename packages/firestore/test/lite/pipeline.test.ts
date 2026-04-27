@@ -623,7 +623,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    });
+    }).timeout(30_000); // Returning all the documents in the database is slow.
 
     it('can create pipeline from a query', async () => {
       const snapshot = await execute(
