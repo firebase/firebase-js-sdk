@@ -156,10 +156,11 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     const contents = await Promise.all(
       request.contents.map(ChromeAdapterImpl.toLanguageModelMessage)
     );
-    const text = await session.prompt(
-      contents,
-      this.onDeviceParams.promptOptions
-    );
+    const promptOptions = { ...this.onDeviceParams.promptOptions };
+    if (request.generationConfig?.responseJsonSchema) {
+      promptOptions.responseConstraint = request.generationConfig.responseJsonSchema;
+    }
+    const text = await session.prompt(contents, promptOptions);
     return ChromeAdapterImpl.toResponse(text);
   }
 
@@ -179,10 +180,11 @@ export class ChromeAdapterImpl implements ChromeAdapter {
     const contents = await Promise.all(
       request.contents.map(ChromeAdapterImpl.toLanguageModelMessage)
     );
-    const stream = session.promptStreaming(
-      contents,
-      this.onDeviceParams.promptOptions
-    );
+    const promptOptions = { ...this.onDeviceParams.promptOptions };
+    if (request.generationConfig?.responseJsonSchema) {
+      promptOptions.responseConstraint = request.generationConfig.responseJsonSchema;
+    }
+    const stream = session.promptStreaming(contents, promptOptions);
     return ChromeAdapterImpl.toStreamResponse(stream);
   }
 

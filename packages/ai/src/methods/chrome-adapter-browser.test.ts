@@ -573,6 +573,42 @@ describe('ChromeAdapter', () => {
         promptOptions
       );
     });
+    it('honors responseJsonSchema in generationConfig', async () => {
+      const languageModel = {
+        prompt: (_p: LanguageModelMessage[]) => Promise.resolve('')
+      } as LanguageModel;
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const promptOutput = '{}';
+      const promptStub = stub(languageModel, 'prompt').resolves(promptOutput);
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      const responseJsonSchema = { type: 'object', properties: {} };
+      const request = {
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }],
+        generationConfig: {
+          responseJsonSchema
+        }
+      } as GenerateContentRequest;
+      await adapter.generateContent(request);
+      expect(promptStub).to.have.been.calledOnceWith(
+        [
+          {
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                value: request.contents[0].parts[0].text
+              }
+            ]
+          }
+        ],
+        { responseConstraint: responseJsonSchema }
+      );
+    });
     it('normalizes roles', async () => {
       const languageModel = {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -791,6 +827,43 @@ describe('ChromeAdapter', () => {
           }
         ],
         promptOptions
+      );
+    });
+    it('honors responseJsonSchema in generationConfig', async () => {
+      const languageModel = {
+        promptStreaming: _p => new ReadableStream()
+      } as LanguageModel;
+      const languageModelProvider = {
+        create: () => Promise.resolve(languageModel)
+      } as LanguageModel;
+      const promptStub = stub(languageModel, 'promptStreaming').returns(
+        new ReadableStream()
+      );
+      const adapter = new ChromeAdapterImpl(
+        languageModelProvider,
+        InferenceMode.PREFER_ON_DEVICE
+      );
+      const responseJsonSchema = { type: 'object', properties: {} };
+      const request = {
+        contents: [{ role: 'user', parts: [{ text: 'anything' }] }],
+        generationConfig: {
+          responseJsonSchema
+        }
+      } as GenerateContentRequest;
+      await adapter.generateContentStream(request);
+      expect(promptStub).to.have.been.calledOnceWith(
+        [
+          {
+            role: request.contents[0].role,
+            content: [
+              {
+                type: 'text',
+                value: request.contents[0].parts[0].text
+              }
+            ]
+          }
+        ],
+        { responseConstraint: responseJsonSchema }
       );
     });
     it('normalizes roles', async () => {
