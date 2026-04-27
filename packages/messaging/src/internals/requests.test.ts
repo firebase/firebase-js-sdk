@@ -68,8 +68,6 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
-        // eslint-disable-next-line camelcase
-        fcm_sdk_version: fcmSdkVersion,
         origin: getRegistrationOrigin(
           tokenDetails.subscriptionOptions!.swScope,
           firebaseDependencies.appConfig.appName
@@ -93,6 +91,28 @@ describe('API', () => {
       // TODO: expect fis.getToken to be called. There is some issue w/ stubbing the fis module.
       const actualHeaders = fetchStub.lastCall.lastArg.headers;
       compareHeaders(expectedHeaders, actualHeaders);
+    });
+
+    it('does not include fcm_sdk_version in legacy createToken request payload', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
+      );
+
+      await requestGetToken(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      const [, requestInit] = fetchStub.getCall(0).args as [
+        string,
+        RequestInit
+      ];
+      const body = JSON.parse(requestInit.body as string) as Record<
+        string,
+        unknown
+      >;
+
+      expect(body).to.not.have.property('fcm_sdk_version');
     });
 
     it('throws if there is a problem with the response', async () => {
@@ -154,6 +174,30 @@ describe('API', () => {
       );
 
       expect(fetchStub).to.have.callCount(1);
+    });
+
+    it('includes fcm_sdk_version in the CreateRegistration request payload', async () => {
+      fetchStub.resolves(
+        new Response(
+          JSON.stringify({
+            name: registrationResourceName('installation-fid-1')
+          }),
+          { status: 200 }
+        )
+      );
+
+      await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      const [, requestInit] = fetchStub.getCall(0).args as [
+        string,
+        RequestInit
+      ];
+      const body = JSON.parse(requestInit.body as string) as ApiRequestBody;
+
+      expect(body.fcm_sdk_version).to.equal(fcmSdkVersion);
     });
 
     it('returns responseFid when the success body includes a registration resource name', async () => {
@@ -275,8 +319,6 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
-        // eslint-disable-next-line camelcase
-        fcm_sdk_version: fcmSdkVersion,
         origin: getRegistrationOrigin(
           tokenDetails.subscriptionOptions!.swScope,
           firebaseDependencies.appConfig.appName
@@ -299,6 +341,25 @@ describe('API', () => {
       expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
       const actualHeaders = fetchStub.lastCall.lastArg.headers;
       compareHeaders(expectedHeaders, actualHeaders);
+    });
+
+    it('does not include fcm_sdk_version in legacy updateToken request payload', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
+      );
+
+      await requestUpdateToken(firebaseDependencies, tokenDetails);
+
+      const [, requestInit] = fetchStub.getCall(0).args as [
+        string,
+        RequestInit
+      ];
+      const body = JSON.parse(requestInit.body as string) as Record<
+        string,
+        unknown
+      >;
+
+      expect(body).to.not.have.property('fcm_sdk_version');
     });
 
     it('throws if there is a problem with the response', async () => {

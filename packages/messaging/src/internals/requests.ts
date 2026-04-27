@@ -44,7 +44,7 @@ export interface ApiResponse {
 
 export interface ApiRequestBody {
   // eslint-disable-next-line camelcase
-  fcm_sdk_version: string;
+  fcm_sdk_version?: string;
   /**
    * Client identifier for the registration: the site host (e.g. `www.example.com`) when the
    * service worker scope is a URL, otherwise the app name.
@@ -65,7 +65,8 @@ export async function requestGetToken(
   const headers = await getHeaders(firebaseDependencies);
   const body = getBody(
     subscriptionOptions,
-    firebaseDependencies.appConfig.appName
+    firebaseDependencies.appConfig.appName,
+    /* includeSdkVersion= */ false
   );
 
   const subscribeOptions = {
@@ -119,7 +120,8 @@ export async function requestCreateRegistration(
   const headers = await getHeaders(firebaseDependencies);
   const body = getBody(
     subscriptionOptions,
-    firebaseDependencies.appConfig.appName
+    firebaseDependencies.appConfig.appName,
+    /* includeSdkVersion= */ true
   );
 
   const subscribeOptions = {
@@ -225,7 +227,8 @@ export async function requestUpdateToken(
   const headers = await getHeaders(firebaseDependencies);
   const body = getBody(
     tokenDetails.subscriptionOptions!,
-    firebaseDependencies.appConfig.appName
+    firebaseDependencies.appConfig.appName,
+    /* includeSdkVersion= */ false
   );
 
   const updateOptions = {
@@ -363,11 +366,10 @@ export function getRegistrationOrigin(
 
 function getBody(
   { p256dh, auth, endpoint, vapidKey, swScope }: SubscriptionOptions,
-  appNameFallback: string
+  appNameFallback: string,
+  includeSdkVersion: boolean
 ): ApiRequestBody {
   const body: ApiRequestBody = {
-    // eslint-disable-next-line camelcase
-    fcm_sdk_version: fcmSdkVersion,
     origin: getRegistrationOrigin(swScope, appNameFallback),
     web: {
       endpoint,
@@ -375,6 +377,11 @@ function getBody(
       p256dh
     }
   };
+
+  if (includeSdkVersion) {
+    // eslint-disable-next-line camelcase
+    body.fcm_sdk_version = fcmSdkVersion;
+  }
 
   if (vapidKey !== DEFAULT_VAPID_KEY) {
     body.web.applicationPubKey = vapidKey;
