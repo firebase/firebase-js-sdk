@@ -32,8 +32,8 @@ export * from '../public-types';
  * Registers event listeners for uncaught errors and automatically traces network requests.
  *
  * This should be installed near the root of your application, wrapping your main content.
- * Any network requests (fetch/XHR) triggered within the application will be automatically
- * traced, and the spans will end only after the UI has completed rendering and painting.
+ * Background network requests (fetch/XHR) triggered without user interaction will be
+ * automatically traced, and the spans will end only after the UI has completed rendering and painting.
  *
  * @example
  * ```tsx
@@ -231,13 +231,24 @@ function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
       return url.includes(endpointUrl) || url.includes(tracingUrl);
     };
 
+    /**
+     * Determines if the current request should wait for a UI render before ending the span.
+     * We only wait if the request was NOT triggered by a direct user interaction.
+     */
+    const shouldWaitByRender = (): boolean => {
+      // isActive is true if there's an ongoing user interaction (click, keydown, etc.)
+      return !(navigator as any).userActivation?.isActive;
+    };
+
     // Instrument Fetch
     const originalFetch = window.fetch;
     window.fetch = function (...args): Promise<Response> {
       const url =
         typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
 
-      if (shouldIgnore(url)) {
+      // If this is a user-initiated request, don't create a parent span.
+      // Auto-instrumentation will handle it.
+      if (shouldIgnore(url) || !shouldWaitByRender()) {
         return originalFetch.apply(window, args);
       }
 
@@ -264,7 +275,8 @@ function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
       ...args: any[]
     ): void {
       const url = args[1];
-      if (!shouldIgnore(url)) {
+      // Only create a parent span if it's a background request
+      if (!shouldIgnore(url) && shouldWaitByRender()) {
         this._span = tracer.startSpan(`xhr ${url}`);
       }
       return originalOpen.apply(this, args as any);
@@ -275,14 +287,15 @@ function useAutoNetworkTracing(crashlytics: Crashlytics | undefined): void {
       ...args: any[]
     ): void {
       if (this._span) {
+        const span = this._span;
         this.addEventListener('loadend', () => {
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-              this._span?.end();
+              span.end();
             });
           });
         });
-        return context.with(trace.setSpan(context.active(), this._span), () =>
+        return context.with(trace.setSpan(context.active(), span), () =>
           originalSend.apply(this, args as any)
         );
       }
