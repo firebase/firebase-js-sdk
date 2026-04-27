@@ -61,8 +61,8 @@ describe('FirebaseCrashlytics', () => {
   let fakeCrashlytics: Crashlytics;
 
   beforeEach(() => {
-    fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeCrashlytics = {} as Crashlytics;
+    fakeApp = { name: 'fakeApp', options: {} } as FirebaseApp;
+    fakeCrashlytics = { tracingProvider: { getTracer: stub().returns({ startSpan: stub() }) } } as any;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics

@@ -19,8 +19,8 @@ import { FirebaseApp, getApp, getApps } from '@firebase/app';
 import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
 import { CrashlyticsOptions, Crashlytics } from '../public-types';
-import { useEffect, useState, useCallback } from 'react';
-import { Span, trace, SpanOptions, context } from '@opentelemetry/api';
+import { useEffect, useState } from 'react';
+import { Span, trace, context } from '@opentelemetry/api';
 import { CrashlyticsService } from '../service';
 import React from 'react';
 
@@ -29,10 +29,11 @@ registerCrashlytics();
 export * from '../public-types';
 
 /**
- * Registers event listeners for uncaught errors.
+ * Registers event listeners for uncaught errors and automatically traces network requests.
  *
- * This should be installed near the root of your application. Caught errors, including those
- * implicitly caught by Error Boundaries, will not be captured by this component.
+ * This should be installed near the root of your application, wrapping your main content.
+ * Background network requests (fetch/XHR) triggered without user interaction will be
+ * automatically traced, and the spans will end only after the UI has completed rendering and painting.
  *
  * @example
  * ```tsx
@@ -139,105 +140,6 @@ export function FirebaseCrashlytics({
   return (
     React.createElement(React.Fragment, null, children) as React.ReactElement
   ) || null;
-}
-
-/**
- * A hook that ends the provided OpenTelemetry span when the component has finished rendering
- * and the browser has painted the frame.
- *
- * @param span - The OpenTelemetry span to end.
- *
- * @public
- */
-export function useReportRenderComplete(span: Span | undefined): void {
-  useEffect(() => {
-    if (!span) {
-      return;
-    }
-
-    let rafId1: number;
-    let rafId2: number;
-    let ended = false;
-
-    // Use double requestAnimationFrame to ensure the browser has painted the frame
-    rafId1 = requestAnimationFrame(() => {
-      rafId2 = requestAnimationFrame(() => {
-        if (!ended) {
-          span.end();
-          ended = true;
-        }
-      });
-    });
-
-    return () => {
-      if (rafId1) {
-        cancelAnimationFrame(rafId1);
-      }
-      if (rafId2) {
-        cancelAnimationFrame(rafId2);
-      }
-      if (!ended) {
-        span.end();
-        ended = true;
-      }
-    };
-  }, [span]);
-}
-
-/**
- * A hook that manages a span for a logical operation that includes both an async action
- * (like a fetch) and the subsequent UI render.
- *
- * @example
- * ```tsx
- * function MyComponent({ id }) {
- *   const [data, setData] = useState(null);
- *   const { run } = useTraceOperation('fetch-and-render', [id]);
- *
- *   useEffect(() => {
- *     run(async () => {
- *       const res = await fetch(`/api/data/${id}`);
- *       setData(await res.json());
- *     });
- *   }, [id, run]);
- *
- *   return <div>{data?.name}</div>;
- * }
- * ```
- *
- * @param operationName - The name of the span.
- * @param deps - Dependency array that triggers a new span when changed.
- * @param options - Optional span options.
- * @returns An object containing the current span and a `run` function to execute async logic.
- *
- * @public
- */
-export function useTraceOperation(
-  operationName: string,
-  deps: readonly unknown[],
-  options?: SpanOptions
-): { span: Span | undefined; run: <T>(fn: () => Promise<T>) => Promise<T> } {
-  const [span, setSpan] = useState<Span | undefined>();
-
-  useEffect(() => {
-    const tracer = trace.getTracer('@firebase/crashlytics');
-    const newSpan = tracer.startSpan(operationName, options);
-    setSpan(newSpan);
-  }, deps);
-
-  useReportRenderComplete(span);
-
-  const run = useCallback(
-    async <T>(fn: () => Promise<T>): Promise<T> => {
-      if (!span) {
-        return fn();
-      }
-      return context.with(trace.setSpan(context.active(), span), () => fn());
-    },
-    [span]
-  );
-
-  return { span, run };
 }
 
 /**
