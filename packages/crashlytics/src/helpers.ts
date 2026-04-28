@@ -81,7 +81,7 @@ export function startNewSession(crashlytics: Crashlytics): void {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
           [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
             (crashlytics as CrashlyticsService).options
-          ),
+          )
         }
       });
     } catch (e) {
@@ -98,9 +98,14 @@ export function startNewSession(crashlytics: Crashlytics): void {
  * @param rootSpanName - The name of the root span.
  * @param locationKey - The key of the location (route path) for the span.
  */
-export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string, locationKey: string): Span {
-  const { contextManager, tracingProvider } = crashlytics as CrashlyticsInternal;
-  
+export function startNewTrace(
+  crashlytics: Crashlytics,
+  rootSpanName: string,
+  locationKey: string
+): Span {
+  const { contextManager, tracingProvider } =
+    crashlytics as CrashlyticsInternal;
+
   if (contextManager.getLocationKey() === locationKey) {
     const currentSpan = contextManager.getRootSpan();
     if (currentSpan) {
@@ -113,9 +118,9 @@ export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string, lo
   const newRootSpan = tracer.startSpan(rootSpanName);
   contextManager.setRootSpan(newRootSpan);
   contextManager.setLocationKey(locationKey);
-  
+
   if (previousRootSpan) {
-    // TODO: Add logic to also end all child spans 
+    // TODO: Add logic to also end all child spans
     previousRootSpan.end();
   }
   return newRootSpan;
@@ -136,7 +141,7 @@ export function registerListeners(crashlytics: Crashlytics): void {
       }
     });
     window.addEventListener('pagehide', async () => {
-        // TODO: Update this with idleness logic instead
+      // TODO: Update this with idleness logic instead
       contextManager.getRootSpan()?.end();
       await flush(crashlytics);
     });
