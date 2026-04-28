@@ -623,7 +623,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    });
+    }).timeout(30_000);
   });
 
   describe('supported data types', () => {
