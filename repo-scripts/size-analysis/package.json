@@ -26,7 +26,7 @@
     "@rollup/plugin-node-resolve": "16.0.0",
     "@rollup/plugin-virtual": "3.0.2",
     "child-process-promise": "2.2.1",
-    "glob": "7.2.3",
+    "glob": "10.5.0",
     "gzip-size": "6.0.0",
     "memfs": "4.57.2",
     "rollup": "2.79.2",
