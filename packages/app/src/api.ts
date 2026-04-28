@@ -190,6 +190,10 @@ export function initializeApp(
 
   _apps.set(name, newApp);
 
+  for (const callback of appInitCallbacks) {
+    callback(newApp);
+  }
+
   return newApp;
 }
 
@@ -515,4 +519,23 @@ export function onLog(
  */
 export function setLogLevel(logLevel: LogLevelString): void {
   setLogLevelImpl(logLevel);
+}
+
+type AppInitCallback = (app: FirebaseApp) => void;
+
+const appInitCallbacks: AppInitCallback[] = [];
+
+export function onAppInit(callback: (app: FirebaseApp) => void): void {
+  const app = _apps.get(DEFAULT_ENTRY_NAME);
+  if (app) {
+    callback(app);
+  }
+  appInitCallbacks.push(callback);
+}
+
+export function offAppInit(callback: (app: FirebaseApp) => void): void {
+  const index = appInitCallbacks.indexOf(callback);
+  if (index > -1) {
+    appInitCallbacks.splice(index, 1);
+  }
 }
