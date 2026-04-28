@@ -3456,7 +3456,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   //  * Evaluates to an HTML-formatted text snippet that renders terms matching
   //  * the search query in `<b>bold</b>`.
   //  *
-  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  * @remarks This Expression can only be used within a `search` stage.
   //  *
   //  * @param rquery Define the search query using the search domain-specific language (DSL).
   //  */
@@ -3466,7 +3466,7 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   //  * Evaluates to an HTML-formatted text snippet that renders terms matching
   //  * the search query in `<b>bold</b>`.
   //  *
-  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  * @remarks This Expression can only be used within a `search` stage.
   //  *
   //  * @param options Define how snippeting behaves.
   //  */
@@ -3795,7 +3795,7 @@ export class Field extends Expression implements Selectable {
   // /**
   //  * Perform a full-text search on this field.
   //  *
-  //  * @remarks This Expression can only be used within a `Search` stage.
+  //  * @remarks This Expression can only be used within a `search` stage.
   //  *
   //  * @param rquery Define the search query using the search domain-specific language (DSL).
   //  */
@@ -3812,7 +3812,7 @@ export class Field extends Expression implements Selectable {
    * Evaluates to the distance in meters between the location specified
    * by this field and the query location.
    *
-   * @remarks This Expression can only be used within a `Search` stage.
+   * @remarks This Expression can only be used within a `search` stage.
    *
    * @param location - Compute distance to this GeoPoint.
    */
@@ -11649,7 +11649,7 @@ export function timestampExtract(
 // /**
 //  * Perform a full-text search on the specified field.
 //  *
-//  * @remarks This Expression can only be used within a `Search` stage.
+//  * @remarks This Expression can only be used within a `search` stage.
 //  *
 //  * @example
 //  * ```typescript
@@ -11672,7 +11672,7 @@ export function timestampExtract(
  * @beta
  * Perform a full-text search on all indexed search fields in the document.
  *
- * @remarks This Expression can only be used within a `Search` stage.
+ * @remarks This Expression can only be used within a `search` stage.
  *
  * @example
  * ```typescript
@@ -11709,7 +11709,7 @@ export function documentMatches(
  * })
  * ```
  *
- * @remarks This Expression can only be used within a `Search` stage.
+ * @remarks This Expression can only be used within a `search` stage.
  */
 export function score(): Expression {
   return new FunctionExpression('score', [], 'score');
@@ -11747,7 +11747,7 @@ export function score(): Expression {
 //  * Evaluates to an HTML-formatted text snippet that highlights terms matching
 //  * the search query in `<b>bold</b>`.
 //  *
-//  * @remarks This Expression can only be used within a `Search` stage.
+//  * @remarks This Expression can only be used within a `search` stage.
 //  *
 //  * @example
 //  * ```typescript
@@ -11769,7 +11769,7 @@ export function score(): Expression {
 //  * Evaluates to an HTML-formatted text snippet that highlights terms matching
 //  * the search query in `<b>bold</b>`.
 //  *
-//  * @remarks This Expression can only be used within a `Search` stage.
+//  * @remarks This Expression can only be used within a `search` stage.
 //  *
 //  * @param searchField Search the specified field for matching terms.
 //  * @param options Define the search query using the search domain-specific language (DSL).
@@ -11792,7 +11792,7 @@ export function score(): Expression {
  * Evaluates to the distance in meters between the location in the specified
  * field and the query location.
  *
- * @remarks This Expression can only be used within a `Search` stage.
+ * @remarks This Expression can only be used within a `search` stage.
  *
  * @example
  * ```typescript

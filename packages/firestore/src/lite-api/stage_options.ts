@@ -270,7 +270,7 @@ export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
 
 /**
  * @beta
- * Options defining how a SearchStage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
+ * Options defining how a search stage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
  */
 export type SearchStageOptions = StageOptions & {
   /**
@@ -279,7 +279,7 @@ export type SearchStageOptions = StageOptions & {
    *
    * The query can be expressed as an `Expression`, which will be used to score
    * and filter the results. Not all expressions supported by Pipelines
-   * are supported in the Search query.
+   * are supported in the search query.
    *
    * @example
    * ```typescript
@@ -291,7 +291,7 @@ export type SearchStageOptions = StageOptions & {
    * })
    * ```
    *
-   * The query can also be expressed as a string in the Search domain-specific language (DSL), which will be used for searching the document.
+   * The query can also be expressed as a string in the search domain-specific language (DSL), which will be used for searching the document.
    *
    * @example
    * ```typescript
@@ -338,7 +338,7 @@ export type SearchStageOptions = StageOptions & {
   offset?: number;
 
   /**
-   * The maximum number of documents to return from the Search stage. The `limit` is applied after documents
+   * The maximum number of documents to return from the `search` stage. The `limit` is applied after documents
    * are scored and sorted.
    */
   limit?: number;
