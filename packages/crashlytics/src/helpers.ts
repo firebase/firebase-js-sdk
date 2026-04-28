@@ -62,8 +62,7 @@ export function getSessionId(): string | undefined {
  */
 export function startNewSession(crashlytics: Crashlytics): void {
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  const { loggerProvider, tracingProvider } =
-    crashlytics as CrashlyticsInternal;
+  const { loggerProvider } = crashlytics as CrashlyticsInternal;
 
   if (
     typeof sessionStorage !== 'undefined' &&
