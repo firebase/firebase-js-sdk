@@ -152,7 +152,7 @@
     "@firebase/auth": "1.13.0",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
-    "@types/eslint": "7.29.0",
+    "@types/eslint": "9.6.1",
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
     "protobufjs": "7.5.5",
