@@ -39,6 +39,7 @@ import { registerCrashlytics } from './register';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsInternal } from './types';
+import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 const PROJECT_ID = 'my-project';
 const APP_ID = 'my-appid';
@@ -74,6 +75,11 @@ const fakeTracingProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as TracerProvider;
 
+const fakeContextManager = {
+  getRootSpan: () => undefined,
+  setRootSpan: () => {}
+} as unknown as RootSpanContextManager;
+
 const fakeCrashlytics: CrashlyticsInternal = {
   app: {
     name: 'DEFAULT',
@@ -84,7 +90,8 @@ const fakeCrashlytics: CrashlyticsInternal = {
     }
   },
   loggerProvider: fakeLoggerProvider,
-  tracingProvider: fakeTracingProvider
+  tracingProvider: fakeTracingProvider,
+  contextManager: fakeContextManager
 };
 
 describe('Top level API', () => {
@@ -180,6 +187,25 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
+    });
+  });
+
+  describe('Multi-App Isolation', () => {
+    it('should provide different instances of RootSpanContextManager for different apps', () => {
+      const app1 = getFakeApp();
+      const app2 = initializeApp({ projectId: 'p2', appId: 'a2' }, 'app2');
+
+      const crash1 = getCrashlytics(app1);
+      const crash2 = getCrashlytics(app2);
+
+      const manager1 = (crash1 as CrashlyticsInternal).contextManager;
+      const manager2 = (crash2 as CrashlyticsInternal).contextManager;
+
+      expect(manager1).to.be.instanceOf(RootSpanContextManager);
+      expect(manager2).to.be.instanceOf(RootSpanContextManager);
+      expect(manager1).to.not.equal(manager2);
+
+      deleteApp(app2);
     });
   });
 
@@ -334,7 +360,8 @@ describe('Top level API', () => {
       const crashlytics = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        fakeTracingProvider
+        fakeTracingProvider,
+        fakeContextManager
       );
       crashlytics.options = {
         appVersion: '1.0.0'
@@ -502,3 +529,4 @@ function getFakeApp(): FirebaseApp {
   );
   return app;
 }
+

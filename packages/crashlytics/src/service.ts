@@ -19,6 +19,7 @@ import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
+import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
@@ -27,7 +28,8 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
   constructor(
     public app: FirebaseApp,
     public loggerProvider: LoggerProvider,
-    public tracingProvider: TracerProvider | null
+    public tracingProvider: TracerProvider | null,
+    public contextManager: RootSpanContextManager
   ) {}
 
   _delete(): Promise<void> {

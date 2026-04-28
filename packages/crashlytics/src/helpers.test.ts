@@ -28,6 +28,7 @@ import {
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -43,6 +44,15 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
+          const rootSpan = fakeContextManager.getRootSpan();
+          if (rootSpan) {
+            const spanContext = rootSpan.spanContext();
+            logRecord.attributes = {
+              ...logRecord.attributes,
+              [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: spanContext.traceId,
+              [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: spanContext.spanId
+            };
+          }
           emittedLogs.push(logRecord);
         }
       };
@@ -75,6 +85,13 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as TracerProvider;
 
+  const fakeContextManager = {
+    getRootSpan: () => ({
+      spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+    }),
+    setRootSpan: () => {}
+  } as unknown as RootSpanContextManager;
+
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
       name: 'DEFAULT',
@@ -85,7 +102,8 @@ describe('helpers', () => {
       }
     },
     loggerProvider: fakeLoggerProvider,
-    tracingProvider: fakeTracingProvider
+    tracingProvider: fakeTracingProvider,
+    contextManager: fakeContextManager
   };
 
   beforeEach(() => {
@@ -166,7 +184,8 @@ describe('helpers', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        fakeTracingProvider
+        fakeTracingProvider,
+        fakeContextManager
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
@@ -218,3 +237,4 @@ describe('helpers', () => {
     }
   });
 });
+
