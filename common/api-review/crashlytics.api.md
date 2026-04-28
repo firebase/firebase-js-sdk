@@ -36,7 +36,7 @@ export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Ins
 export function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
 
 // @public
-export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): Span;
+export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string, locationKey: string): Span;
 
 
 // (No @packageDocumentation comment for this package)

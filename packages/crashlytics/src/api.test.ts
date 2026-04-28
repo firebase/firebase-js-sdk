@@ -529,4 +529,3 @@ function getFakeApp(): FirebaseApp {
   );
   return app;
 }
-
