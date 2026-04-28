@@ -270,7 +270,7 @@ export type QueryEnhancement = 'disabled' | 'required' | 'preferred';
 
 /**
  * @beta
- * Options defining how a search stage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search)}.
+ * Options defining how a search stage is evaluated. See {@link @firebase/firestore/pipelines#Pipeline.(search:1)}.
  */
 export type SearchStageOptions = StageOptions & {
   /**

@@ -478,7 +478,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [RemoveFieldsStageOptions](./firestore_lite_pipelines.md#removefieldsstageoptions) | Options defining how a RemoveFieldsStage is evaluated. See [Pipeline.removeFields()](./firestore_pipelines.pipeline.md#pipelineremovefields)<!-- -->. |
 |  [ReplaceWithStageOptions](./firestore_lite_pipelines.md#replacewithstageoptions) | Options defining how a ReplaceWithStage is evaluated. See [Pipeline.replaceWith()](./firestore_pipelines.pipeline.md#pipelinereplacewith)<!-- -->. |
 |  [SampleStageOptions](./firestore_lite_pipelines.md#samplestageoptions) | Defines the options for evaluating a sample stage within a pipeline. This type combines common [StageOptions](./firestore_pipelines.md#stageoptions) with a specific configuration where only one of the defined sampling methods can be applied.<!-- -->See [Pipeline.sample()](./firestore_pipelines.pipeline.md#pipelinesample) to create a sample stage.. |
-|  [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a SearchStage is evaluated. See . |
+|  [SearchStageOptions](./firestore_lite_pipelines.md#searchstageoptions) | <b><i>(Public Preview)</i></b> Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->. |
 |  [SelectStageOptions](./firestore_lite_pipelines.md#selectstageoptions) | Options defining how a SelectStage is evaluated. See [Pipeline.select()](./firestore_pipelines.pipeline.md#pipelineselect)<!-- -->. |
 |  [SetOptions](./firestore_lite_pipelines.md#setoptions) | An options object that configures the behavior of [setDoc()](./firestore_lite.md#setdoc_ee215ad)<!-- -->,  and  calls. These calls can be configured to perform granular merges instead of overwriting the target documents in their entirety by providing a <code>SetOptions</code> with <code>merge: true</code>. |
 |  [SortStageOptions](./firestore_lite_pipelines.md#sortstageoptions) | Options defining how a SortStage is evaluated. See [Pipeline.sort()](./firestore_pipelines.pipeline.md#pipelinesort)<!-- -->. |
@@ -600,7 +600,7 @@ rand();
 
 Evaluates to the search score that reflects the topicality of the document to all of the text predicates (for example: `documentMatches`<!-- -->) in the search query. If `SearchOptions.query` is not set or does not contain any text predicates, then this topicality score will always be `0`<!-- -->.
 
-This Expression can only be used within a `Search` stage.
+This Expression can only be used within a `search` stage.
 
 <b>Signature:</b>
 
@@ -6196,7 +6196,7 @@ A new [Expression](./firestore_pipelines.expression.md#expression_class) represe
 
 Evaluates to the distance in meters between the location in the specified field and the query location.
 
-This Expression can only be used within a `Search` stage.
+This Expression can only be used within a `search` stage.
 
 <b>Signature:</b>
 
@@ -10351,7 +10351,7 @@ const results: PipelineResults = snapshot.results;
 
 Perform a full-text search on all indexed search fields in the document.
 
-This Expression can only be used within a `Search` stage.
+This Expression can only be used within a `search` stage.
 
 <b>Signature:</b>
 
@@ -12243,7 +12243,7 @@ export declare type SampleStageOptions = StageOptions & OneOf<{
 > This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
 > 
 
-Options defining how a SearchStage is evaluated. See .
+Options defining how a search stage is evaluated. See [Pipeline.search()](./firestore_pipelines.pipeline.md#pipelinesearch)<!-- -->.
 
 <b>Signature:</b>
 
