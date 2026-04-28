@@ -111,7 +111,7 @@ export function CrashlyticsRoutes({
   };
 
   React.useEffect(() => {
-    startNewTrace(crashlytics, pattern);
+    startNewTrace(crashlytics, pattern, location.key);
   }, [location]);
 
   return React.createElement(CrashlyticsErrorBoundary, {

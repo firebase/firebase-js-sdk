@@ -26,7 +26,7 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
+
 import type { Span } from '@opentelemetry/api';
 
 /**
@@ -80,7 +80,7 @@ export function startNewSession(crashlytics: Crashlytics): void {
         CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION,
         getAppVersion((crashlytics as CrashlyticsService).options)
       );
-      sessionContextManager.setSessionSpan(span);
+      (crashlytics as CrashlyticsInternal).contextManager.setRootSpan(span);
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
@@ -102,19 +102,36 @@ export function startNewSession(crashlytics: Crashlytics): void {
 }
 
 /**
- * Starts a new trace for the given Crashlytics instance.
+ * Starts a new trace for the given Crashlytics instance. If the location key matches the current
+ * location key, don't create a new trace and just return the existing root span.
  *
  * @param crashlytics - The {@link Crashlytics} instance.
  * @param rootSpanName - The name of the root span.
+ * @param locationKey - The key of the location (route path) for the span.
  */
-export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): Span {
-  const { contextManager, tracingProvider } = crashlytics as CrashlyticsInternal;
-  const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
+export function startNewTrace(
+  crashlytics: Crashlytics,
+  rootSpanName: string,
+  locationKey: string
+): Span {
+  const { contextManager, tracingProvider } =
+    crashlytics as CrashlyticsInternal;
+
+  if (contextManager.getLocationKey() === locationKey) {
+    const currentSpan = contextManager.getRootSpan();
+    if (currentSpan) {
+      return currentSpan;
+    }
+  }
+
+  const tracer = trace.getTracer(CRASHLYTICS_TRACER_NAME);
   const previousRootSpan = contextManager.getRootSpan();
   const newRootSpan = tracer.startSpan(rootSpanName);
   contextManager.setRootSpan(newRootSpan);
+  contextManager.setLocationKey(locationKey);
+
   if (previousRootSpan) {
-    // TODO: Add logic to also end all child spans 
+    // TODO: Add logic to also end all child spans
     previousRootSpan.end();
   }
   return newRootSpan;
@@ -135,7 +152,7 @@ export function registerListeners(crashlytics: Crashlytics): void {
       }
     });
     window.addEventListener('pagehide', async () => {
-        // TODO: Update this with idleness logic instead
+      // TODO: Update this with idleness logic instead
       contextManager.getRootSpan()?.end();
       await flush(crashlytics);
     });
