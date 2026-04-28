@@ -137,17 +137,19 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Register event listeners for browser-specific events like online/offline and visibility changes.
    */
   private registerBrowserEventListeners(): void {
-    this.globalWindow = globalThis.window;
-    this.globalDocument = globalThis.document;
-
-    if (this.globalWindow && 'addEventListener' in this.globalWindow) {
-      this.globalWindow.addEventListener('online', this.onOnlineEventListener);
+    if ('addEventListener' in globalThis) {
+      const listener = this.onOnlineEventListener;
+      globalThis.addEventListener('online', listener);
+      this.removeOnlineEventListener = () =>
+        globalThis.removeEventListener('online', listener);
     }
-    if (this.globalDocument && 'addEventListener' in this.globalDocument) {
-      this.globalDocument.addEventListener(
-        'visibilitychange',
-        this.onVisibilityChangeEventListener
-      );
+
+    const doc = globalThis.document;
+    if (doc && 'addEventListener' in doc) {
+      const listener = this.onVisibilityChangeEventListener;
+      doc.addEventListener('visibilitychange', listener);
+      this.removeVisibilityChangeEventListener = () =>
+        doc.removeEventListener('visibilitychange', listener);
     }
   }
 
@@ -156,18 +158,10 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * for browser-specific events like online/offline and visibility changes.
    */
   private cleanupBrowserEventListeners(): void {
-    if (this.globalWindow && 'removeEventListener' in this.globalWindow) {
-      this.globalWindow.removeEventListener(
-        'online',
-        this.onOnlineEventListener
-      );
-    }
-    if (this.globalDocument && 'removeEventListener' in this.globalDocument) {
-      this.globalDocument.removeEventListener(
-        'visibilitychange',
-        this.onVisibilityChangeEventListener
-      );
-    }
+    this.removeVisibilityChangeEventListener?.();
+    this.removeVisibilityChangeEventListener = null;
+    this.removeOnlineEventListener?.();
+    this.removeOnlineEventListener = null;
   }
 
   /**
@@ -404,13 +398,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   /** Number of consecutive reconnection attempts */
   private reconnectAttempts = 0;
-  /** Saved Window object for cleanup */
-  private globalWindow: Window | undefined;
-  /** Saved Document object for cleanup */
-  private globalDocument: Document | undefined;
+
+  /** Callback to remove online event listener */
+  private removeOnlineEventListener: (() => void) | null = null;
+  /** Callback to remove visibility change event listener */
+  private removeVisibilityChangeEventListener: (() => void) | null = null;
 
   /**
-   * Triggered when the environment comes back online.
+   * Short-circuit a reconnection attempt, if one is pending. Triggered when an online event is
+   * dispatched.
    */
   onOnlineEventListener = (): void => {
     if (this.reconnectTimer) {
@@ -420,15 +416,14 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   };
 
   /**
-   * Triggered when a visibility change event is dispatched.
+   * Short-circuit a reconnection attempt, if one is pending. Triggered when a visibility change
+   * event is dispatched.
    */
   onVisibilityChangeEventListener = (): void => {
-    const doc = this.globalDocument;
-    if (doc && doc.visibilityState === 'visible') {
-      if (this.reconnectTimer) {
-        this.cancelReconnect();
-        void this.attemptReconnect();
-      }
+    const doc = globalThis.document;
+    if (doc && doc.visibilityState === 'visible' && this.reconnectTimer) {
+      this.cancelReconnect();
+      void this.attemptReconnect();
     }
   };
 

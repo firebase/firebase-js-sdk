@@ -2001,6 +2001,8 @@ describe('AbstractDataConnectStreamTransport', () => {
 
     it('should clean up event listeners and timers on dispose', async () => {
       const isBrowser = typeof window !== 'undefined';
+      let hadAddEventListener = false;
+      let hadRemoveEventListener = false;
 
       let removeEventListenerSpy: sinon.SinonSpy;
       let removeDocEventListenerSpy: sinon.SinonSpy;
@@ -2011,13 +2013,26 @@ describe('AbstractDataConnectStreamTransport', () => {
       } else {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const anyGlobalThis = globalThis as any;
-        anyGlobalThis.window = {
-          removeEventListener: sinon.spy()
-        } as unknown as Window & typeof globalThis;
+
+        hadAddEventListener = 'addEventListener' in anyGlobalThis;
+        hadRemoveEventListener = 'removeEventListener' in anyGlobalThis;
+
+        if (!hadAddEventListener) {
+          anyGlobalThis.addEventListener = () => {};
+        }
+        if (!hadRemoveEventListener) {
+          anyGlobalThis.removeEventListener = () => {};
+        }
+
+        removeEventListenerSpy = sinon.spy(
+          anyGlobalThis,
+          'removeEventListener'
+        );
+
         anyGlobalThis.document = {
+          addEventListener: sinon.spy(),
           removeEventListener: sinon.spy()
         } as unknown as Document;
-        removeEventListenerSpy = anyGlobalThis.window.removeEventListener;
         removeDocEventListenerSpy = anyGlobalThis.document.removeEventListener;
       }
 
@@ -2065,6 +2080,12 @@ describe('AbstractDataConnectStreamTransport', () => {
           const anyGlobalThis = globalThis as any;
           delete anyGlobalThis.window;
           delete anyGlobalThis.document;
+          if (!hadAddEventListener) {
+            delete anyGlobalThis.addEventListener;
+          }
+          if (!hadRemoveEventListener) {
+            delete anyGlobalThis.removeEventListener;
+          }
         }
       }
 
