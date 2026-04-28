@@ -25,7 +25,7 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { RootSpanContextManager } from './tracing/root-span-context-manager';
+
 import type { Span } from '@opentelemetry/api';
 
 /**
@@ -91,17 +91,29 @@ export function startNewSession(crashlytics: Crashlytics): void {
 }
 
 /**
- * Starts a new trace for the given Crashlytics instance.
+ * Starts a new trace for the given Crashlytics instance. If the location key matches the current
+ * location key, don't create a new trace and just return the existing root span.
  *
  * @param crashlytics - The {@link Crashlytics} instance.
  * @param rootSpanName - The name of the root span.
+ * @param locationKey - The key of the location (route path) for the span.
  */
-export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string): Span {
+export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string, locationKey: string): Span {
   const { contextManager, tracingProvider } = crashlytics as CrashlyticsInternal;
+  
+  if (contextManager.getLocationKey() === locationKey) {
+    const currentSpan = contextManager.getRootSpan();
+    if (currentSpan) {
+      return currentSpan;
+    }
+  }
+
   const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
   const previousRootSpan = contextManager.getRootSpan();
   const newRootSpan = tracer.startSpan(rootSpanName);
   contextManager.setRootSpan(newRootSpan);
+  contextManager.setLocationKey(locationKey);
+  
   if (previousRootSpan) {
     // TODO: Add logic to also end all child spans 
     previousRootSpan.end();

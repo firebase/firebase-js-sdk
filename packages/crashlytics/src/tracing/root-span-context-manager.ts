@@ -23,6 +23,7 @@ import { ZoneContextManager } from '@opentelemetry/context-zone';
  */
 export class RootSpanContextManager extends ZoneContextManager {
   private _rootSpan: Span | undefined;
+  private _locationKey: string | undefined;
 
   setRootSpan(span: Span | undefined): void {
     this._rootSpan = span;
@@ -30,6 +31,14 @@ export class RootSpanContextManager extends ZoneContextManager {
 
   getRootSpan(): Span | undefined {
     return this._rootSpan;
+  }
+
+  setLocationKey(locationKey: string | undefined): void {
+    this._locationKey = locationKey;
+  }
+
+  getLocationKey(): string | undefined {
+    return this._locationKey;
   }
 
   override active(): Context {
