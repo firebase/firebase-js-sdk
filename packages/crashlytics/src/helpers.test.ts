@@ -30,6 +30,7 @@ import {
 import { AUTO_CONSTANTS } from './auto-constants';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 const MOCK_SESSION_ID = '00000000-0000-0000-0000-000000000000';
 
@@ -44,6 +45,15 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
+          const rootSpan = fakeContextManager.getRootSpan();
+          if (rootSpan) {
+            const spanContext = rootSpan.spanContext();
+            logRecord.attributes = {
+              ...logRecord.attributes,
+              [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: spanContext.traceId,
+              [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: spanContext.spanId
+            };
+          }
           emittedLogs.push(logRecord);
         }
       };
@@ -55,29 +65,14 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
-<<<<<<< HEAD
-=======
-  const fakeTracingProvider = {
-    getTracer: () => ({
-      startSpan: () => ({
-        setAttribute: () => {},
-        end: () => {
-          spanEnded = true;
-        },
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-      }),
-      startActiveSpan: (name: string, fn: (span: any) => any) =>
-        fn({
-          end: () => {
-            spanEnded = true;
-          },
-          spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-        })
+
+
+  const fakeContextManager = {
+    getRootSpan: () => ({
+      spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
     }),
-    register: () => {},
-    shutdown: () => Promise.resolve()
-  } as unknown as TracerProvider;
->>>>>>> 609df1a2c (adding OTLP Trace Exporter for Firebase Telemetry Server (#9836))
+    setRootSpan: () => {}
+  } as unknown as RootSpanContextManager;
 
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
@@ -89,7 +84,8 @@ describe('helpers', () => {
       }
     },
     loggerProvider: fakeLoggerProvider,
-    tracingProvider: null
+    tracingProvider: null,
+    contextManager: fakeContextManager
   };
 
   beforeEach(() => {
@@ -176,7 +172,8 @@ describe('helpers', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        null
+        null,
+        fakeContextManager
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
 
@@ -223,3 +220,4 @@ describe('helpers', () => {
     }
   });
 });
+
