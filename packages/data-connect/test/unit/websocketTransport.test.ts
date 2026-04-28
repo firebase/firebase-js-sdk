@@ -193,7 +193,7 @@ describe('WebSocketTransport', () => {
       expect(rejectSpy).to.have.been.calledOnce;
       expect(rejectSpy.firstCall.args[0]).to.equal(Code.OTHER);
       expect(rejectSpy.firstCall.args[1]).to.equal(
-        `Stream disconnected with code ${WEBSOCKET_CLOSE_CODE}: Normal Closure`
+        `Stream disconnected while idle with code ${WEBSOCKET_CLOSE_CODE}: Normal Closure`
       );
     });
   });
