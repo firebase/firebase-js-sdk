@@ -117,7 +117,7 @@ class ConfirmationResultImpl implements ConfirmationResult {
  * @example
  * ```javascript
  * // 'recaptcha-container' is the ID of an element in the DOM.
- * const applicationVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container');
+ * const applicationVerifier = new RecaptchaVerifier(auth, 'recaptcha-container');
  * const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, applicationVerifier);
  * // Obtain a verificationCode from the user.
  * const credential = await confirmationResult.confirm(verificationCode);
@@ -435,7 +435,7 @@ export async function _verifyPhoneNumber(
  * @example
  * ```
  * // 'recaptcha-container' is the ID of an element in the DOM.
- * const applicationVerifier = new RecaptchaVerifier('recaptcha-container');
+ * const applicationVerifier = new RecaptchaVerifier(auth, 'recaptcha-container');
  * const provider = new PhoneAuthProvider(auth);
  * const verificationId = await provider.verifyPhoneNumber('+16505550101', applicationVerifier);
  * // Obtain the verificationCode from the user.
