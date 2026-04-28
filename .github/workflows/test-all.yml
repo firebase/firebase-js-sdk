@@ -50,7 +50,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.22.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -90,7 +90,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.22.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -154,7 +154,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.22.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -204,7 +204,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.22.2
     - name: Test setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
@@ -257,7 +257,7 @@ jobs:
     - name: Set up Node (22)
       uses: actions/setup-node@v4
       with:
-        node-version: 22.10.0
+        node-version: 22.22.2
     - run: cp config/ci.config.json config/project.json
     - run: yarn
     - run: yarn build:${{ matrix.persistence }}
