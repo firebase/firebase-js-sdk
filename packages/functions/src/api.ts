@@ -35,7 +35,6 @@ import {
 export { FunctionsError } from './error';
 export * from './public-types';
 
-//test
 /**
  * Returns a {@link Functions} instance for the given app.
  * @param app - The {@link @firebase/app#FirebaseApp} to use.
