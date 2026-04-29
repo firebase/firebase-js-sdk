@@ -310,6 +310,16 @@ describe('API tests', () => {
       await deleteApp(app);
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
+    it('throws when creating FirebaseServerApp with malformed JSON config string', () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser environments.
+        return;
+      }
+
+      expect(() =>
+        initializeServerApp('{invalid json', {})
+      ).throws(/Unable to parse FirebaseOptions JSON string/);
+    });
     it('creates FirebaseServerApp with options as first parameter and config object with automaticDataCollectionEnabled as second parameter', async () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser environments.
