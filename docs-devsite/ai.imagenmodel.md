@@ -44,7 +44,7 @@ export declare class ImagenModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [generateImages(prompt)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
+|  [generateImages(prompt, singleRequestOptions)](./ai.imagenmodel.md#imagenmodelgenerateimages) |  | Generates images using the Imagen model and returns them as base64-encoded strings. |
 
 ## ImagenModel.(constructor)
 

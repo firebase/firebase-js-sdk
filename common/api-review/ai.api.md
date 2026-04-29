@@ -223,13 +223,13 @@ export interface CitationMetadata {
     citations: Citation[];
 }
 
-// @beta
+// @public
 export interface CodeExecutionResult {
     outcome?: Outcome;
     output?: string;
 }
 
-// @beta
+// @public
 export interface CodeExecutionResultPart {
     // (undocumented)
     codeExecutionResult?: CodeExecutionResult;
@@ -327,13 +327,13 @@ export interface ErrorDetails {
     reason?: string;
 }
 
-// @beta
+// @public
 export interface ExecutableCode {
     code?: string;
     language?: Language;
 }
 
-// @beta
+// @public
 export interface ExecutableCodePart {
     // (undocumented)
     codeExecutionResult?: never;
@@ -508,8 +508,6 @@ export interface GenerateContentCandidate {
     index: number;
     // (undocumented)
     safetyRatings?: SafetyRating[];
-    // Warning: (ae-incompatible-release-tags) The symbol "urlContextMetadata" is marked as @public, but its signature references "URLContextMetadata" which is marked as @beta
-    //
     // (undocumented)
     urlContextMetadata?: URLContextMetadata;
 }
@@ -944,13 +942,13 @@ export class IntegerSchema extends Schema {
     constructor(schemaParams?: SchemaParams);
 }
 
-// @beta
+// @public
 export const Language: {
     UNSPECIFIED: string;
     PYTHON: string;
 };
 
-// @beta
+// @public
 export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
@@ -1120,7 +1118,9 @@ export class LiveSession {
     receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice | LiveSessionResumptionUpdate>;
     resumeSession(sessionResumption?: SessionResumptionConfig): Promise<void>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
+    sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
+    // @deprecated
     sendMediaChunks(mediaChunks: GenerativeContentBlob[]): Promise<void>;
     // @deprecated (undocumented)
     sendMediaStream(mediaChunkStream: ReadableStream<GenerativeContentBlob>): Promise<void>;
@@ -1203,7 +1203,7 @@ export interface OnDeviceParams {
     promptOptions?: LanguageModelPromptOptions;
 }
 
-// @beta
+// @public
 export const Outcome: {
     UNSPECIFIED: string;
     OK: string;
@@ -1211,12 +1211,9 @@ export const Outcome: {
     DEADLINE_EXCEEDED: string;
 };
 
-// @beta
+// @public
 export type Outcome = (typeof Outcome)[keyof typeof Outcome];
 
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "ExecutableCodePart" which is marked as @beta
-// Warning: (ae-incompatible-release-tags) The symbol "Part" is marked as @public, but its signature references "CodeExecutionResultPart" which is marked as @beta
-//
 // @public
 export type Part = TextPart | InlineDataPart | FunctionCallPart | FunctionResponsePart | FileDataPart | ExecutableCodePart | CodeExecutionResultPart;
 
@@ -1605,38 +1602,6 @@ export interface Transcription {
 
 // @public
 export type TypedSchema = IntegerSchema | NumberSchema | StringSchema | BooleanSchema | ObjectSchema | ArraySchema | AnyOfSchema;
-
-// @public
-export interface URLContext {
-}
-
-// @beta
-export interface URLContextMetadata {
-    urlMetadata: URLMetadata[];
-}
-
-// @public
-export interface URLContextTool {
-    urlContext: URLContext;
-}
-
-// @beta
-export interface URLMetadata {
-    retrievedUrl?: string;
-    urlRetrievalStatus?: URLRetrievalStatus;
-}
-
-// @beta
-export const URLRetrievalStatus: {
-    URL_RETRIEVAL_STATUS_UNSPECIFIED: string;
-    URL_RETRIEVAL_STATUS_SUCCESS: string;
-    URL_RETRIEVAL_STATUS_ERROR: string;
-    URL_RETRIEVAL_STATUS_PAYWALL: string;
-    URL_RETRIEVAL_STATUS_UNSAFE: string;
-};
-
-// @beta
-export type URLRetrievalStatus = (typeof URLRetrievalStatus)[keyof typeof URLRetrievalStatus];
 
 // @public
 export interface URLContext {

@@ -60,8 +60,7 @@ const PREFERRED_PARAMS = [
   'performance',
   'remoteConfig',
   'storage',
-  'ai',
-  'crashlytics'
+  'ai'
 ];
 
 let authApiReportOriginal: string;

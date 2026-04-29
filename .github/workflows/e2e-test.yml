@@ -17,11 +17,11 @@ name: E2E Smoke Tests
 # Allows REST trigger. Currently triggered by release-cli script during a staging run.
 on:
   repository_dispatch:
-    types: [staging-tests, canary-tests]
+    types: [staging-tests,canary-tests]
 
 env:
   # Bump Node memory limit
-  NODE_OPTIONS: '--max_old_space_size=4096'
+  NODE_OPTIONS: "--max_old_space_size=4096"
 
 jobs:
   test:

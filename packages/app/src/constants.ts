@@ -41,7 +41,6 @@ import { name as storageCompatName } from '../../../packages/storage-compat/pack
 import { name as firestoreName } from '../../../packages/firestore/package.json';
 import { name as aiName } from '../../../packages/ai/package.json';
 import { name as firestoreCompatName } from '../../../packages/firestore-compat/package.json';
-import { name as crashlyticsName } from '../../../packages/crashlytics/package.json';
 import { name as packageName } from '../../../packages/firebase/package.json';
 
 /**
@@ -75,7 +74,6 @@ export const PLATFORM_LOG_STRING = {
   [remoteConfigCompatName]: 'fire-rc-compat',
   [storageName]: 'fire-gcs',
   [storageCompatName]: 'fire-gcs-compat',
-  [crashlyticsName]: 'fire-crashlytics',
   [firestoreName]: 'fire-fst',
   [firestoreCompatName]: 'fire-fst-compat',
   [aiName]: 'fire-vertex',

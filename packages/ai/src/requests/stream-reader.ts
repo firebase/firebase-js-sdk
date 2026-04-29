@@ -28,7 +28,11 @@ import { createEnhancedContentResponse } from './response-helpers';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { GoogleAIGenerateContentResponse } from '../types/googleai';
 import { ApiSettings } from '../types/internal';
-import { BackendType, URLContextMetadata } from '../public-types';
+import {
+  BackendType,
+  InferenceSource,
+  URLContextMetadata
+} from '../public-types';
 
 const responseLineRE = /^data\: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
 
@@ -271,12 +275,7 @@ export function aggregateResponses(
             urlContextMetadata as URLContextMetadata;
         }
 
-        /**
-         * Candidates should always have content and parts, but this handles
-         * possible malformed responses.
-         */
         if (candidate.content) {
-          // Skip a candidate without parts.
           if (!candidate.content.parts) {
             continue;
           }

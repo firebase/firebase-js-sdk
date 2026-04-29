@@ -41,6 +41,7 @@ export declare class LiveSession
 |  [receive()](./ai.livesession.md#livesessionreceive) |  | <b><i>(Public Preview)</i></b> Yields messages received from the server. This can only be used by one consumer at a time. |
 |  [resumeSession(sessionResumption)](./ai.livesession.md#livesessionresumesession) |  | <b><i>(Public Preview)</i></b> Resumes an existing live session with the server.<!-- -->This closes the current WebSocket connection and establishes a new one using the same configuration (URI, headers, model, system instruction, tools, etc.) as the original session. |
 |  [send(request, turnComplete)](./ai.livesession.md#livesessionsend) |  | <b><i>(Public Preview)</i></b> Sends content to the server. |
+|  [sendAudioRealtime(blob)](./ai.livesession.md#livesessionsendaudiorealtime) |  | <b><i>(Public Preview)</i></b> Sends audio data to the server in realtime. |
 |  [sendFunctionResponses(functionResponses)](./ai.livesession.md#livesessionsendfunctionresponses) |  | <b><i>(Public Preview)</i></b> Sends function responses to the server. |
 |  [sendMediaChunks(mediaChunks)](./ai.livesession.md#livesessionsendmediachunks) |  | <b><i>(Public Preview)</i></b> Sends realtime input to the server. |
 |  [sendMediaStream(mediaChunkStream)](./ai.livesession.md#livesessionsendmediastream) |  | <b><i>(Public Preview)</i></b> |
@@ -180,6 +181,45 @@ Promise&lt;void&gt;
 #### Exceptions
 
 If this session has been closed.
+
+## LiveSession.sendAudioRealtime()
+
+> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
+> 
+
+Sends audio data to the server in realtime.
+
+The server requires that the audio data is base64-encoded 16-bit PCM at 16kHz little-endian.
+
+<b>Signature:</b>
+
+```typescript
+sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  blob | [GenerativeContentBlob](./ai.generativecontentblob.md#generativecontentblob_interface) | The base64-encoded PCM data to send to the server in realtime. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+#### Exceptions
+
+If this session has been closed.
+
+### Example
+
+
+```javascript
+// const pcmData = ... base64-encoded 16-bit PCM at 16kHz little-endian.
+const blob = { mimeType: "audio/pcm", data: pcmData };
+liveSession.sendAudioRealtime(blob);
+
+```
 
 ## LiveSession.sendFunctionResponses()
 
