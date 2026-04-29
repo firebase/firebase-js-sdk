@@ -1,5 +1,5 @@
 ---
-"@firebase/app": patch
+"@firebase/app": minor
 ---
 
 Add ability to pass in a Node environment variable into `initializeApp` and `initializeServerApp`

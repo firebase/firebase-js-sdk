@@ -172,14 +172,22 @@ export function initializeApp(
 ): FirebaseApp {
   let options: FirebaseOptions | undefined;
   if (typeof optionsOrJsonConfigString === 'string') {
+    let parsed: unknown = undefined;
     try {
-      options = JSON.parse(optionsOrJsonConfigString);
+      parsed = JSON.parse(optionsOrJsonConfigString);
     } catch (error) {
       throw new FirebaseError(
         AppError.INVALID_APP_ARGUMENT,
         'Unable to parse FirebaseOptions JSON string.'
       );
     }
+    if (typeof parsed !== 'object') {
+      throw new FirebaseError(
+        AppError.INVALID_APP_ARGUMENT,
+        'Invalid FirebaseOptions JSON string.'
+      );
+    }
+    options = parsed || undefined;
   } else {
     options = optionsOrJsonConfigString;
   }
@@ -305,8 +313,6 @@ export function initializeServerApp(
 /**
  * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance from a JSON config string.
  * @param jsonConfigString - A JSON string containing the app's configuration.
- * @param name - Optional name of the app to initialize. If no name
- *   is provided, the default is `"[DEFAULT]"`.
  * @returns The initialized `FirebaseServerApp`.
  */
 export function initializeServerApp(
@@ -326,14 +332,22 @@ export function initializeServerApp(
 
   if (_options) {
     if (typeof _options === 'string') {
+      let parsed: unknown = undefined;
       try {
-        firebaseOptions = JSON.parse(_options);
-      } catch {
+        parsed = JSON.parse(_options);
+      } catch (error) {
         throw new FirebaseError(
           AppError.INVALID_APP_ARGUMENT,
           'Unable to parse FirebaseOptions JSON string.'
         );
       }
+      if (typeof parsed !== 'object') {
+        throw new FirebaseError(
+          AppError.INVALID_APP_ARGUMENT,
+          'Invalid FirebaseOptions JSON string.'
+        );
+      }
+      firebaseOptions = parsed || undefined;
     } else if (_isFirebaseApp(_options)) {
       firebaseOptions = _options.options;
     } else if (_isFirebaseServerAppSettings(_options)) {
