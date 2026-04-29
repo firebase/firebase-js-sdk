@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
+
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession } from './helpers';
 import {
@@ -51,6 +52,7 @@ describe('helpers', () => {
     },
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
+
 
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {

@@ -19,6 +19,7 @@ import { _FirebaseService, FirebaseApp } from '@firebase/app';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 
+
 export class CrashlyticsService implements Crashlytics, _FirebaseService {
   private _options?: CrashlyticsOptions;
   private _frameworkAttributesProvider?: () => Record<string, string>;

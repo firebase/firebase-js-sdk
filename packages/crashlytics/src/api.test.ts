@@ -17,13 +17,9 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { trace } from '@opentelemetry/api';
+import { trace, TracerProvider } from '@opentelemetry/api';
 import { Logger, LogRecord, SeverityNumber } from '@opentelemetry/api-logs';
-import {
-  InMemorySpanExporter,
-  SimpleSpanProcessor,
-  WebTracerProvider
-} from '@opentelemetry/sdk-trace-web';
+import sinon from 'sinon';
 import {
   FirebaseApp,
   initializeApp,
@@ -65,6 +61,7 @@ const fakeLoggerProvider = {
   },
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
+
 
 const fakeCrashlytics: CrashlyticsInternal = {
   app: {
@@ -246,25 +243,22 @@ describe('Top level API', () => {
       });
     });
 
-    it('should propagate trace context', async () => {
-      const provider = new WebTracerProvider({
-        spanProcessors: [new SimpleSpanProcessor(new InMemorySpanExporter())]
-      });
-      provider.register();
+    it('should propagate trace context', () => {
+      const getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns({
+        spanContext: () => ({
+          traceId: 'my-trace',
+          spanId: 'my-span',
+          traceFlags: 0,
+          isRemote: false
+        })
+      } as any);
 
-      trace.getTracer('test-tracer').startActiveSpan('test-span', span => {
+
         const error = new Error('This is a test error');
         error.stack = '...stack trace...';
         error.name = 'TestError';
 
-        span.spanContext().traceId = 'my-trace';
-        span.spanContext().spanId = 'my-span';
-
         recordError(fakeCrashlytics, error);
-        span.end();
-      });
-
-      await provider.shutdown();
 
       expect(emittedLogs[0].attributes).to.deep.equal({
         'error.type': 'TestError',
