@@ -87,10 +87,12 @@ describeSpec('Existence Filters:', [], () => {
         .userUnlistens(query1)
         .userListens(query1, { resumeToken: 'resume-token-1000' })
         .expectEvents(query1, { added: [doc1], fromCache: true })
+        .watchUsesTargetIndex(0)
         // The empty existence filter is ignored since Watch hasn't ACKed the
         // target
         .watchFilters([query1])
-        .watchRemovesWithTargetIndex(query1, 0)
+        .watchRemoves(query1)
+        .watchUsesTargetIndex('latest')
         .watchAcks(query1)
         .watchCurrents(query1, 'resume-token-2000')
         .watchSnapshots(2000)

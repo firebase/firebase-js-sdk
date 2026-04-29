@@ -255,6 +255,7 @@ abstract class TestRunner {
    * applies to.
    */
   private sdkToRemoteTargetIds = new Map<TargetId, RemoteTargetId[]>();
+  private currentRemoteTargetIndex?: number;
 
   private expectedActiveLimboDocs: DocumentKey[];
   private expectedEnqueuedLimboDocs: DocumentKey[];
@@ -480,6 +481,8 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
+    } else if ('watchUsesTargetIndex' in step) {
+      return this.doUseTargetIndex(step.watchUsesTargetIndex!);
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -494,6 +497,11 @@ abstract class TestRunner {
     } else {
       return fail(0x6bb3, 'Unknown step: ' + JSON.stringify(step));
     }
+  }
+
+  private doUseTargetIndex(index: number | 'latest'): Promise<void> {
+    this.currentRemoteTargetIndex = index === 'latest' ? undefined : index;
+    return Promise.resolve();
   }
 
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
@@ -664,7 +672,7 @@ abstract class TestRunner {
    */
   private getRemoteTargetId(
     sdkTargetId: TargetId,
-    sdkTargetIndex: number | undefined = undefined
+    isWatchStep: boolean = false
   ): RemoteTargetId {
     // Get and update the list with the current mapping from RemoteStore
     // if the remote target ID is not already in the sdkToRemoteTargetIds list
@@ -682,12 +690,14 @@ abstract class TestRunner {
     }
 
     if (list.length === 0) {
-      console.warn(`Mapping not found for SDK ID ${sdkTargetId}`);
+      console.warn(
+        `Mapping not found for SDK ID ${JSON.stringify(sdkTargetId)}`
+      );
       return sdkTargetId as RemoteTargetId;
     }
 
-    if (sdkTargetIndex !== undefined) {
-      return list[sdkTargetIndex];
+    if (isWatchStep && this.currentRemoteTargetIndex !== undefined) {
+      return list[this.currentRemoteTargetIndex];
     }
 
     // Default: return the latest one.
@@ -696,10 +706,7 @@ abstract class TestRunner {
 
   private doWatchAck(ackedTargets: SpecWatchAck): Promise<void> {
     const remoteTargetIds = ackedTargets.map(ackedTarget =>
-      this.getRemoteTargetId(
-        ackedTarget.sdkTargetId,
-        ackedTarget.remoteTargetIndex
-      )
+      this.getRemoteTargetId(ackedTarget, true)
     );
     const change = new WatchTargetChange(
       WatchTargetChangeState.Added,
@@ -710,7 +717,7 @@ abstract class TestRunner {
 
   private doWatchCurrent(currentTargets: SpecWatchCurrent): Promise<void> {
     const targets = currentTargets[0];
-    const remoteTargetIds = targets.map(id => this.getRemoteTargetId(id));
+    const remoteTargetIds = targets.map(id => this.getRemoteTargetId(id, true));
     const resumeToken = byteStringFromString(currentTargets[1]);
     const change = new WatchTargetChange(
       WatchTargetChangeState.Current,
@@ -721,7 +728,9 @@ abstract class TestRunner {
   }
 
   private doWatchReset(targetIds: SpecWatchReset): Promise<void> {
-    const remoteTargetIds = targetIds.map(id => this.getRemoteTargetId(id));
+    const remoteTargetIds = targetIds.map(id =>
+      this.getRemoteTargetId(id, true)
+    );
     const change = new WatchTargetChange(
       WatchTargetChangeState.Reset,
       remoteTargetIds
@@ -738,7 +747,7 @@ abstract class TestRunner {
       );
     const mappedIds = new Map<TargetId, RemoteTargetId>();
     const remoteTargetIds = removed.targetIds.map(id => {
-      const remoteId = this.getRemoteTargetId(id, removed.remoteTargetIndex);
+      const remoteId = this.getRemoteTargetId(id, true);
       mappedIds.set(id, remoteId);
       return remoteId;
     });
@@ -770,10 +779,10 @@ abstract class TestRunner {
 
   private doWatchEntity(watchEntity: SpecWatchEntity): Promise<void> {
     const remoteTargets = (watchEntity.targets || []).map(id =>
-      this.getRemoteTargetId(id)
+      this.getRemoteTargetId(id, true)
     );
     const remoteRemovedTargets = (watchEntity.removedTargets || []).map(id =>
-      this.getRemoteTargetId(id)
+      this.getRemoteTargetId(id, true)
     );
 
     if (watchEntity.docs) {
@@ -829,7 +838,7 @@ abstract class TestRunner {
       targetIds.length === 1,
       'ExistenceFilters currently support exactly one target only.'
     );
-    const remoteTargetId = this.getRemoteTargetId(targetIds[0]);
+    const remoteTargetId = this.getRemoteTargetId(targetIds[0], true);
     const filter = new ExistenceFilter(keys.length, bloomFilter);
     const change = new ExistenceFilterChange(remoteTargetId, filter);
     return this.doWatchEvent(change);
@@ -840,7 +849,7 @@ abstract class TestRunner {
     // change with an empty set of target IDs. So we should be sure to send a
     // separate event.
     const remoteTargetIds = watchSnapshot.targetIds.map(id =>
-      this.getRemoteTargetId(id)
+      this.getRemoteTargetId(id, true)
     );
     const protoJSON: api.ListenResponse = {
       targetChange: {
@@ -974,6 +983,7 @@ abstract class TestRunner {
     // Reinitialize everything.
     await this.doShutdown();
     this.sdkToRemoteTargetIds.clear();
+    this.currentRemoteTargetIndex = undefined;
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
@@ -1637,6 +1647,9 @@ export interface SpecStep {
   /** Shut down the client and close it network connection. */
   shutdown?: true;
 
+  /** Sets the remote target index to be used by following steps. */
+  watchUsesTargetIndex?: number | 'latest';
+
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
@@ -1680,10 +1693,7 @@ export type SpecUserPatch = [string, JsonObject<unknown>];
 export type SpecUserDelete = string;
 
 /** [{sdkTargetId: <target-id>, remoteTargetIndex: <num?>}, ...] */
-export type SpecWatchAck = Array<{
-  sdkTargetId: TargetId;
-  remoteTargetIndex?: number;
-}>;
+export type SpecWatchAck = TargetId[];
 
 /** [[<target-id>, ...], <resume-token>] */
 export type SpecWatchCurrent = [TargetId[], string];
@@ -1699,7 +1709,6 @@ export interface SpecError {
 export interface SpecWatchRemove {
   targetIds: TargetId[];
   cause?: SpecError;
-  remoteTargetIndex?: number;
 }
 
 export interface SpecWatchSnapshot {

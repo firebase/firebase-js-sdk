@@ -32,10 +32,12 @@ describeSpec('Remote store:', [], () => {
       .watchAcks(query1)
       .userUnlistens(query1) // Now we simulate a quick unlisten.
       .userListens(query1) // But add it back before watch acks it.
+      .watchUsesTargetIndex(0)
       .watchSends({ affects: [query1] }, doc1) // Should be ignored.
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
-      .watchRemovesWithTargetIndex(query1, 0) // Finally watch decides to ack the removal.
+      .watchRemoves(query1) // Finally watch decides to ack the removal.
+      .watchUsesTargetIndex('latest')
       .watchAcksFull(query1, 1001, doc1) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc1] }); // This should work now.
   });
@@ -59,12 +61,16 @@ describeSpec('Remote store:', [], () => {
       .watchSends({ affects: [query1] }, doc1) // Should be ignored.
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
-      .watchRemovesWithTargetIndex(query1, 0, undefined) // Finally watch decides to ack the FIRST removal.
-      .watchAcksTargetIndexFull(query1, 1, 1001, doc2) // Now watch should ack the second listen.
-      .watchRemovesWithTargetIndex(query1, 1, undefined) // Finally watch decides to ack the SECOND removal.
-      .watchAcksTargetIndexFull(query1, 2, 1001, doc3) // Now watch should ack the second listen.
-      .watchRemovesWithTargetIndex(query1, 2, undefined) // Finally watch decides to ack the THIRD removal.
-      .watchAcksTargetIndexFull(query1, 3, 1001, doc4) // Now watch should ack the query.
+      .watchUsesTargetIndex(0)
+      .watchRemoves(query1, undefined) // Finally watch decides to ack the FIRST removal.
+      .watchUsesTargetIndex(1)
+      .watchAcksFull(query1, 1001, doc2) // Now watch should ack the second listen.
+      .watchRemoves(query1, undefined) // Finally watch decides to ack the SECOND removal.
+      .watchUsesTargetIndex(2)
+      .watchAcksFull(query1, 1001, doc3) // Now watch should ack the second listen.
+      .watchRemoves(query1, undefined) // Finally watch decides to ack the THIRD removal.
+      .watchUsesTargetIndex(3)
+      .watchAcksFull(query1, 1001, doc4) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc4] }); // This should work now.
   });
 
@@ -131,12 +137,10 @@ describeSpec('Remote store:', [], () => {
           .watchAcks(query1)
           .userUnlistens(query1)
           .userListens(query1)
+          .watchUsesTargetIndex(0)
           // Use numerical code 8 for RESOURCE_EXHAUSTED
-          .watchRemovesWithTargetIndex(
-            query1,
-            0,
-            new RpcError(8, 'Resource exhausted')
-          )
+          .watchRemoves(query1, new RpcError(8, 'Resource exhausted'))
+          .watchUsesTargetIndex('latest')
           .watchAcks(query1)
           .expectActiveTargets({ query: query1, resumeToken: '' })
       );
@@ -151,7 +155,9 @@ describeSpec('Remote store:', [], () => {
       .watchAcks(query1)
       .userUnlistens(query1)
       .userListens(query1)
-      .watchRemovesWithTargetIndex(query1, 0, undefined)
+      .watchUsesTargetIndex(0)
+      .watchRemoves(query1, undefined)
+      .watchUsesTargetIndex('latest')
       .watchAcks(query1)
       .expectActiveTargets({ query: query1, resumeToken: '' });
   });

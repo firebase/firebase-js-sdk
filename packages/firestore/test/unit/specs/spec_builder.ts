@@ -768,18 +768,7 @@ export class SpecBuilder {
   watchAcks(query: Query): this {
     this.nextStep();
     this.currentStep = {
-      watchAck: [{ sdkTargetId: this.getTargetId(query) }]
-    };
-    return this;
-  }
-
-  watchAcksTargetIndex(
-    query: Query,
-    remoteTargetIndex: number | undefined
-  ): this {
-    this.nextStep();
-    this.currentStep = {
-      watchAck: [{ sdkTargetId: this.getTargetId(query), remoteTargetIndex }]
+      watchAck: [this.getTargetId(query)]
     };
     return this;
   }
@@ -813,7 +802,30 @@ export class SpecBuilder {
     return this;
   }
 
-  watchRemovesWithTargetIndex(
+  /**
+   * After setting the remote target index, for any watch* step following
+   * this step, the simulated watch message will use the Nth remote target ID
+   * that was associated with this query
+   *
+   * .userListens(q1) // remote target id: 1002, index: 0
+   * .userUnlistens(q1))
+   * .userListens(q1) // remote target id: 1004, index: 1
+   * .userUnlistens(q1))
+   * .watchUsesTargetIndex(0)
+   * .watchAcks(q1) //will ack 1002
+   * .watchUsesTargetIndex(1)
+   * .watchAcks(q1) //will ack 1004
+   */
+  watchUsesTargetIndex(remoteTargetIndex: number | 'latest' | 'last'): this {
+    this.nextStep();
+    this.currentStep = {
+      watchUsesTargetIndex:
+        remoteTargetIndex === 'last' ? 'latest' : remoteTargetIndex
+    };
+    return this;
+  }
+
+  private watchRemovesWithTargetIndex(
     query: Query,
     remoteTargetIndex: number | undefined,
     cause?: RpcError
@@ -822,8 +834,7 @@ export class SpecBuilder {
     this.currentStep = {
       watchRemove: {
         targetIds: [this.getTargetId(query)],
-        cause,
-        remoteTargetIndex
+        cause
       }
     };
     if (cause) {
@@ -943,19 +954,6 @@ export class SpecBuilder {
     ...docs: Document[]
   ): this {
     this.watchAcks(query);
-    this.watchSends({ affects: [query] }, ...docs);
-    this.watchCurrents(query, 'resume-token-' + version);
-    this.watchSnapshots(version);
-    return this;
-  }
-
-  watchAcksTargetIndexFull(
-    query: Query,
-    targetIndex: number,
-    version: TestSnapshotVersion,
-    ...docs: Document[]
-  ): this {
-    this.watchAcksTargetIndex(query, targetIndex);
     this.watchSends({ affects: [query] }, ...docs);
     this.watchCurrents(query, 'resume-token-' + version);
     this.watchSnapshots(version);
