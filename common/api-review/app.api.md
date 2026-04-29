@@ -113,7 +113,7 @@ export function initializeApp(options: FirebaseOptions | string, config?: Fireba
 export function initializeApp(): FirebaseApp;
 
 // @public
-export function initializeServerApp(options: FirebaseOptions | FirebaseApp, config?: FirebaseServerAppSettings): FirebaseServerApp;
+export function initializeServerApp(options: FirebaseOptions | FirebaseApp | string, config?: FirebaseServerAppSettings): FirebaseServerApp;
 
 // @public
 export function initializeServerApp(config?: FirebaseServerAppSettings): FirebaseServerApp;
