@@ -104,10 +104,13 @@ export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provide
 export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
 
 // @public
-export function initializeApp(jsonConfigString: string, name?: string): FirebaseApp;
+export function initializeApp(jsonConfigStr: string, name?: string): FirebaseApp;
 
 // @public
-export function initializeApp(options: FirebaseOptions | string, config?: FirebaseAppSettings): FirebaseApp;
+export function initializeApp(jsonConfigStr: string, config?: FirebaseAppSettings): FirebaseApp;
+
+// @public
+export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSettings): FirebaseApp;
 
 // @public
 export function initializeApp(): FirebaseApp;

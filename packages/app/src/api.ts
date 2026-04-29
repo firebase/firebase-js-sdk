@@ -51,7 +51,6 @@ import {
 } from '@firebase/logger';
 import {
   deepEqual,
-  FirebaseError,
   getDefaultAppConfig,
   isBrowser,
   isWebWorker
@@ -129,7 +128,7 @@ export function initializeApp(
  * initializeApp(process.env.FIREBASE_OPTIONS);
  * ```
  *
- * @param jsonConfigString - A JSON string containing the app's configuration.
+ * @param jsonConfigStr - A JSON string containing the app's configuration.
  * @param name - Optional name of the app to initialize. If no name
  *   is provided, the default is `"[DEFAULT]"`.
  *
@@ -142,8 +141,35 @@ export function initializeApp(
  * @public
  */
 export function initializeApp(
-  jsonConfigString: string,
+  jsonConfigStr: string,
   name?: string
+): FirebaseApp;
+/**
+ * Creates and initializes a FirebaseApp instance.
+ * @example
+ * ```javascript
+ *
+ * // Initialize default app
+ * // Retrieve your own options values by adding a web app on
+ * // https://console.firebase.google.com
+ * initializeApp(process.env.FIREBASE_OPTIONS);
+ * ```
+ *
+ * @param jsonConfigStr - A JSON string containing the app's configuration.
+ * @param name - Optional name of the app to initialize. If no name
+ *   is provided, the default is `"[DEFAULT]"`.
+ *
+ * @returns The initialized app.
+ *
+ * @throws If the optional `name` parameter is malformed or empty.
+ *
+ * @throws If a `FirebaseApp` already exists with the same name but with a different configuration.
+ *
+ * @public
+ */
+export function initializeApp(
+  jsonConfigStr: string,
+  config?: FirebaseAppSettings
 ): FirebaseApp;
 /**
  * Creates and initializes a FirebaseApp instance.
@@ -157,7 +183,7 @@ export function initializeApp(
  * @public
  */
 export function initializeApp(
-  options: FirebaseOptions | string,
+  options: FirebaseOptions,
   config?: FirebaseAppSettings
 ): FirebaseApp;
 /**
@@ -176,16 +202,7 @@ export function initializeApp(
     try {
       parsed = JSON.parse(optionsOrJsonConfigString);
     } catch (error) {
-      throw new FirebaseError(
-        AppError.INVALID_APP_ARGUMENT,
-        'Unable to parse FirebaseOptions JSON string.'
-      );
-    }
-    if (typeof parsed !== 'object') {
-      throw new FirebaseError(
-        AppError.INVALID_APP_ARGUMENT,
-        'Invalid FirebaseOptions JSON string.'
-      );
+      throw ERROR_FACTORY.create(AppError.INVALID_JSON_CONFIG);
     }
     options = parsed || undefined;
   } else {
@@ -336,16 +353,7 @@ export function initializeServerApp(
       try {
         parsed = JSON.parse(_options);
       } catch (error) {
-        throw new FirebaseError(
-          AppError.INVALID_APP_ARGUMENT,
-          'Unable to parse FirebaseOptions JSON string.'
-        );
-      }
-      if (typeof parsed !== 'object') {
-        throw new FirebaseError(
-          AppError.INVALID_APP_ARGUMENT,
-          'Invalid FirebaseOptions JSON string.'
-        );
+        throw ERROR_FACTORY.create(AppError.INVALID_JSON_CONFIG);
       }
       firebaseOptions = parsed || undefined;
     } else if (_isFirebaseApp(_options)) {

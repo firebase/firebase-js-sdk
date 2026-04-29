@@ -112,12 +112,6 @@ describe('API tests', () => {
       );
     });
 
-    it('throws when creating DEFAULT App with a json string that does not parse to an object', () => {
-      expect(() => initializeApp('1')).throws(
-        /Invalid FirebaseOptions JSON string./
-      );
-    });
-
     it('creates named and DEFAULT App', () => {
       const appName = 'MyApp';
       const app1 = initializeApp({});
@@ -291,17 +285,6 @@ describe('API tests', () => {
       expect(app.automaticDataCollectionEnabled).to.be.true;
       await deleteApp(app);
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
-    });
-
-    it('throws when creating FirebaseServerApp with a json string that does not parse to an object', () => {
-      if (isBrowser()) {
-        // FirebaseServerApp isn't supported for execution in browser environments.
-        return;
-      }
-
-      expect(() => initializeServerApp('1')).throws(
-        /Invalid FirebaseOptions JSON string./
-      );
     });
 
     it('creates FirebaseServerApp with string options and config object as second parameter', async () => {
