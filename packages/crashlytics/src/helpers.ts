@@ -16,7 +16,6 @@
  */
 
 import { SeverityNumber } from '@opentelemetry/api-logs';
-import { trace } from '@opentelemetry/api';
 import * as constants from './auto-constants';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -36,7 +35,7 @@ export function getAppVersion(
   crashlyticsOptions: CrashlyticsOptions | undefined
 ): string {
   if (crashlyticsOptions?.appVersion) {
-    return crashlyticsOptions.appVersion;
+    return crashlyticsOptions?.appVersion;
   } else if (constants.AUTO_CONSTANTS?.appVersion) {
     return constants.AUTO_CONSTANTS.appVersion;
   }
@@ -73,14 +72,6 @@ export function startNewSession(crashlytics: Crashlytics): void {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
 
-      const tracer = trace.getTracer('session-tracer');
-      const span = tracer.startSpan('session-start');
-      span.setAttribute(CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID, sessionId);
-      span.setAttribute(
-        CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION,
-        getAppVersion((crashlytics as CrashlyticsService).options)
-      );
-      (crashlytics as CrashlyticsInternal).contextManager.setRootSpan(span);
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
@@ -90,9 +81,7 @@ export function startNewSession(crashlytics: Crashlytics): void {
           [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
           [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
             (crashlytics as CrashlyticsService).options
-          ),
-          [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: `${span.spanContext().traceId}`,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: `${span.spanContext().spanId}`
+          )
         }
       });
     } catch (e) {
@@ -124,7 +113,7 @@ export function startNewTrace(
     }
   }
 
-  const tracer = trace.getTracer(CRASHLYTICS_TRACER_NAME);
+  const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
   const previousRootSpan = contextManager.getRootSpan();
   const newRootSpan = tracer.startSpan(rootSpanName);
   contextManager.setRootSpan(newRootSpan);

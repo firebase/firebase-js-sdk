@@ -63,7 +63,17 @@ const fakeLoggerProvider = {
   shutdown: () => Promise.resolve()
 } as unknown as LoggerProvider;
 
-
+const fakeTracingProvider = {
+  getTracer: () => ({
+    startActiveSpan: (name: string, fn: (span: any) => any) =>
+      fn({
+        end: () => {},
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      })
+  }),
+  register: () => {},
+  shutdown: () => Promise.resolve()
+} as unknown as TracerProvider;
 
 const fakeContextManager = {
   getRootSpan: () => undefined,
@@ -80,7 +90,7 @@ const fakeCrashlytics: CrashlyticsInternal = {
     }
   },
   loggerProvider: fakeLoggerProvider,
-  tracingProvider: null,
+  tracingProvider: fakeTracingProvider,
   contextManager: fakeContextManager
 };
 
@@ -154,11 +164,25 @@ describe('Top level API', () => {
 
     it('works with options: config values set', () => {
       const app = getFakeApp();
-      expect(getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })).to.equal(
-        getCrashlytics(app, { endpointUrl: 'http://endpoint1', appVersion: "1.2.3" })
+      expect(
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          tracingUrl: 'http://endpoint2',
+          appVersion: '1.2.3'
+        })
+      ).to.equal(
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          tracingUrl: 'http://endpoint2',
+          appVersion: '1.2.3'
+        })
       );
       expect(() => {
-        getCrashlytics(app, { endpointUrl: 'http://endpoint2', appVersion: "1.2.3" });
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint2',
+          tracingUrl: 'http://endpoint2',
+          appVersion: '1.2.3'
+        });
       }).to.throw('getCrashlytics() cannot be called with different options');
       expect(() => {
         getCrashlytics(app, {});
@@ -281,21 +305,24 @@ describe('Top level API', () => {
         })
       } as any);
 
-
+      try {
         const error = new Error('This is a test error');
         error.stack = '...stack trace...';
         error.name = 'TestError';
 
         recordError(fakeCrashlytics, error);
 
-      expect(emittedLogs[0].attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
-        'logging.googleapis.com/spanId': `my-span`,
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+        expect(emittedLogs[0].attributes).to.deep.equal({
+          'error.type': 'TestError',
+          'error.stack': '...stack trace...',
+          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
+          'logging.googleapis.com/trace': `my-trace`,
+          'logging.googleapis.com/spanId': `my-span`,
+          [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
+        });
+      } finally {
+        getActiveSpanStub.restore();
+      }
     });
 
     it('should propagate custom attributes', () => {
@@ -333,7 +360,7 @@ describe('Top level API', () => {
       const crashlytics = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        null,
+        fakeTracingProvider,
         fakeContextManager
       );
       crashlytics.options = {

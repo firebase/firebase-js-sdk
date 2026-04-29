@@ -18,9 +18,7 @@
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import sinon from 'sinon';
-import { trace } from '@opentelemetry/api';
-
+import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
 import { registerListeners, startNewSession, startNewTrace } from './helpers';
 import {
@@ -40,6 +38,7 @@ describe('helpers', () => {
   let storage: Record<string, string> = {};
   let emittedLogs: LogRecord[] = [];
   let flushed = false;
+  let spanEnded = false;
 
   const fakeLoggerProvider = {
     getLogger: (): Logger => {
@@ -65,7 +64,26 @@ describe('helpers', () => {
     shutdown: () => Promise.resolve()
   } as unknown as LoggerProvider;
 
-
+  const fakeTracingProvider = {
+    getTracer: () => ({
+      startSpan: () => ({
+        setAttribute: () => {},
+        end: () => {
+          spanEnded = true;
+        },
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      }),
+      startActiveSpan: (name: string, fn: (span: any) => any) =>
+        fn({
+          end: () => {
+            spanEnded = true;
+          },
+          spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+        })
+    }),
+    register: () => {},
+    shutdown: () => Promise.resolve()
+  } as unknown as TracerProvider;
 
   const fakeContextManager = {
     getRootSpan: () => ({
@@ -84,13 +102,14 @@ describe('helpers', () => {
       }
     },
     loggerProvider: fakeLoggerProvider,
-    tracingProvider: null,
+    tracingProvider: fakeTracingProvider,
     contextManager: fakeContextManager
   };
 
   beforeEach(() => {
     emittedLogs = [];
     flushed = false;
+    spanEnded = false;
     storage = {};
     // @ts-ignore
     originalSessionStorage = global.sessionStorage;
@@ -115,13 +134,6 @@ describe('helpers', () => {
       value: cryptoMock,
       writable: true
     });
-
-    sinon.stub(trace, 'getTracer').returns({
-      startSpan: () => ({
-        setAttribute: () => {},
-        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
-      })
-    } as any);
   });
 
   afterEach(() => {
@@ -172,7 +184,7 @@ describe('helpers', () => {
       const telemetryWithVersion = new CrashlyticsService(
         fakeCrashlytics.app,
         fakeLoggerProvider,
-        null,
+        fakeTracingProvider,
         fakeContextManager
       );
       telemetryWithVersion.options = { appVersion: '9.9.9' };
@@ -198,6 +210,7 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(spanEnded).to.be.false;
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
@@ -206,16 +219,20 @@ describe('helpers', () => {
         window.dispatchEvent(new Event('visibilitychange'));
 
         expect(flushed).to.be.true;
+        expect(spanEnded).to.be.true;
       });
 
       it('should flush logs when the pagehide event fires', () => {
+        startNewSession(fakeCrashlytics);
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
+        expect(spanEnded).to.be.false;
 
         window.dispatchEvent(new Event('pagehide'));
 
         expect(flushed).to.be.true;
+        expect(spanEnded).to.be.true;
       });
     }
   });

@@ -23,18 +23,6 @@
     "compat/index.d.ts"
   ],
   "exports": {
-    "./ai": {
-      "types": "./ai/dist/ai/index.d.ts",
-      "node": {
-        "require": "./ai/dist/index.cjs.js",
-        "import": "./ai/dist/index.mjs"
-      },
-      "browser": {
-        "require": "./ai/dist/index.cjs.js",
-        "import": "./ai/dist/esm/index.esm.js"
-      },
-      "default": "./ai/dist/esm/index.esm.js"
-    },
     "./analytics": {
       "types": "./analytics/dist/analytics/index.d.ts",
       "node": {
@@ -263,17 +251,17 @@
       },
       "default": "./storage/dist/esm/index.esm.js"
     },
-    "./crashlytics": {
-      "types": "./crashlytics/dist/index-public.d.ts",
+    "./ai": {
+      "types": "./ai/dist/ai/index.d.ts",
       "node": {
-        "import": "./crashlytics/dist/node-esm/index.node.esm.js",
-        "default": "./crashlytics/dist/index.node.cjs.js"
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/index.mjs"
       },
       "browser": {
-        "require": "./crashlytics/dist/index.cjs.js",
-        "import": "./crashlytics/dist/index.esm.js"
+        "require": "./ai/dist/index.cjs.js",
+        "import": "./ai/dist/esm/index.esm.js"
       },
-      "default": "./crashlytics/dist/index.esm.js"
+      "default": "./ai/dist/esm/index.esm.js"
     },
     "./compat/analytics": {
       "types": "./compat/analytics/dist/compat/analytics/index.d.ts",
@@ -454,7 +442,6 @@
     "@firebase/messaging-compat": "0.2.25",
     "@firebase/storage": "0.14.2",
     "@firebase/storage-compat": "0.4.2",
-    "@firebase/crashlytics": "0.0.1",
     "@firebase/performance": "0.7.11",
     "@firebase/performance-compat": "0.2.24",
     "@firebase/remote-config": "0.8.2",
@@ -496,7 +483,6 @@
     "storage",
     "performance",
     "remote-config",
-    "crashlytics",
     "messaging",
     "messaging/sw",
     "database",

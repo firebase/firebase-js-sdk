@@ -70,12 +70,11 @@ export function createLoggerProvider(
     dynamicAttributeProviders
   );
 
-  const loggerProvider = new LoggerProvider({
+  return new LoggerProvider({
     resource,
-    processors: [new BatchLogRecordProcessor(logExporter)]
+    processors: [new BatchLogRecordProcessor(logExporter)],
+    logRecordLimits: {}
   });
-
-  return loggerProvider;
 }
 
 /** OTLP exporter that uses custom FetchTransport and resolves async attributes. */

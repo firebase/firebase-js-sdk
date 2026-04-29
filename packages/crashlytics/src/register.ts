@@ -42,12 +42,7 @@ export function registerCrashlytics(): void {
       CRASHLYTICS_TYPE,
       (container, { options }: InstanceFactoryOptions) => {
         const crashlyticsOptions = options as CrashlyticsOptions;
-<<<<<<< HEAD
-        const endpointUrl = crashlyticsOptions.endpointUrl || 'http://localhost';
-        const tracingUrl = crashlyticsOptions.tracingUrl || crashlyticsOptions.endpointUrl || 'https://staging-firebasetelemetry.sandbox.googleapis.com';
-=======
 
->>>>>>> 43c4f1886 (adding network trace schema attributes for tracing provider (#9861))
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
         const appCheckProvider = container.getProvider('app-check-internal');

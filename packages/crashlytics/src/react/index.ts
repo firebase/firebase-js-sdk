@@ -15,20 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseOptions, initializeApp } from '@firebase/app';
+import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
 import { recordError, getCrashlytics } from '../api';
+import { CrashlyticsOptions } from '../public-types';
 import { useEffect } from 'react';
 
 registerCrashlytics();
 
-function errorListener(event: ErrorEvent): void {
-  recordError(getCrashlytics(), event.error, {});
-}
-
-function unhandledRejectionListener(event: PromiseRejectionEvent): void {
-  recordError(getCrashlytics(), event.reason, {});
-}
+export * from '../public-types';
 
 /**
  * Registers event listeners for uncaught errors.
@@ -37,40 +32,71 @@ function unhandledRejectionListener(event: PromiseRejectionEvent): void {
  * implicitly caught by Error Boundaries, will not be captured by this component.
  *
  * @example
- * ```html
- * <body>
- *  <FirebaseTelemetry firebaseOptions={options} />
- *  ... my app ...
- * </body>
+ * ```tsx
+ * import { useEffect, useState } from "react";
+ * import { FirebaseCrashlytics } from "@firebase/crashlytics/react";
+ * import { FirebaseApp, initializeApp } from "@firebase/app";
+ *
+ * export default function MyApp() {
+ *   const [app, setApp] = useState<FirebaseApp | null>(null);
+ *
+ *   useEffect(() => {
+ *     if (getApps().length === 0) {
+ *       const newApp = initializeApp({...});
+ *       setApp(newApp);
+ *     } else {
+ *       setApp(getApp());
+ *     }
+ *   }, []);
+ *
+ *   return (
+ *     <>
+ *       {app && (
+ *         <FirebaseCrashlytics
+ *           firebaseApp={app}
+ *           crashlyticsOptions={{...}}
+ *         />
+ *       )}
+ *       ...
+ *     </>
+ *   );
+ * }
  * ```
  *
- * @param firebaseOptions - Options to run {@link @firebase/app#initializeApp}. If this is not provided, initializeApp needs to be called explicitly elsewhere in your application.
- * @returns The default {@link Telemetry} instance for the given {@link @firebase/app#FirebaseApp}.
+ * @param firebaseApp - The {@link @firebase/app#FirebaseApp} instance to use.
+ * @param crashlyticsOptions - {@link CrashlyticsOptions} that configure the Crashlytics instance.
+ * @returns The default {@link Crashlytics} instance for the given {@link @firebase/app#FirebaseApp}.
  *
  * @public
  */
-export function FirebaseTelemetry({
-  firebaseOptions
+export function FirebaseCrashlytics({
+  firebaseApp,
+  crashlyticsOptions
 }: {
-  firebaseOptions?: FirebaseOptions;
+  firebaseApp: FirebaseApp;
+  crashlyticsOptions?: CrashlyticsOptions;
 }): null {
   useEffect(() => {
+    const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
+
     if (typeof window === 'undefined') {
       return;
     }
 
-    // TODO: This will be removed once there is a default endpoint
-    process.env.OTEL_ENDPOINT = window.location.origin;
+    const errorListener = (event: ErrorEvent): void => {
+      recordError(crashlytics, event.error, {});
+    };
+
+    const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
+      recordError(crashlytics, event.reason, {});
+    };
 
     try {
-      if (firebaseOptions) {
-        initializeApp(firebaseOptions);
-      }
       window.addEventListener('error', errorListener);
       window.addEventListener('unhandledrejection', unhandledRejectionListener);
     } catch (error) {
       // Log the error here, but don't die.
-      console.warn(`Firebase Telemetry was not initialized:\n`, error);
+      console.warn(`Firebase Crashlytics was not initialized:\n`, error);
     }
     return () => {
       window.removeEventListener('error', errorListener);
@@ -79,7 +105,7 @@ export function FirebaseTelemetry({
         unhandledRejectionListener
       );
     };
-  }, []);
+  }, [firebaseApp, crashlyticsOptions]);
 
   return null;
 }

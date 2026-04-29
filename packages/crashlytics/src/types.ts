@@ -16,9 +16,8 @@
  */
 
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-
-import { Crashlytics } from './public-types';
 import { TracerProvider } from '@opentelemetry/api';
+import { Crashlytics } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
 
 /**
@@ -28,7 +27,7 @@ import { RootSpanContextManager } from './tracing/root-span-context-manager';
  */
 export interface CrashlyticsInternal extends Crashlytics {
   loggerProvider: LoggerProvider;
-  tracingProvider: TracerProvider | null;
+  tracingProvider: TracerProvider;
   contextManager: RootSpanContextManager;
 }
 

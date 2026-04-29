@@ -67,7 +67,6 @@ export function getCrashlytics(
       );
     }
   }
-
   const crashlytics: CrashlyticsService = crashlyticsProvider.initialize({
     options
   });

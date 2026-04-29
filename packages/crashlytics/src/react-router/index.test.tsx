@@ -173,7 +173,9 @@ describe('CrashlyticsRoutes', () => {
 
   it('passes location.key as locationKey to startNewTrace', () => {
     const startNewTraceStub = stub(crashlytics, 'startNewTrace');
-    const fakeSpan = { spanContext: () => ({ traceId: '123', spanId: '456' }) } as any;
+    const fakeSpan = {
+      spanContext: () => ({ traceId: '123', spanId: '456' })
+    } as any;
     startNewTraceStub.returns(fakeSpan);
 
     render(
