@@ -18,7 +18,7 @@
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetIdGenerator } from '../core/target_id_generator';
-import { OnlineState, TargetId } from '../core/types';
+import { OnlineState, RemoteTargetId, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
 import {
   localStoreGetLastRemoteSnapshotVersion,
@@ -140,12 +140,12 @@ class RemoteStoreImpl implements RemoteStore {
    * to the server. The targets removed with unlistens are removed eagerly
    * without waiting for confirmation from the listen stream.
    */
-  listenTargets = new Map<TargetId, TargetData>();
+  listenTargets = new Map<RemoteTargetId, TargetData<RemoteTargetId>>();
 
-  targetIdMapSdkToRemote = new Map<TargetId, TargetId>();
-  targetIdMapRemoteToSdk = new Map<TargetId, TargetId>();
-  targetCacheTargetIdGenerator = new TargetIdGenerator(1000);
-  syncEngineTargetIdGenerator = new TargetIdGenerator(1001);
+  targetIdMapSdkToRemote = new Map<TargetId, RemoteTargetId>();
+  targetIdMapRemoteToSdk = new Map<RemoteTargetId, TargetId>();
+  targetCacheTargetIdGenerator = new TargetIdGenerator<RemoteTargetId>(1000);
+  syncEngineTargetIdGenerator = new TargetIdGenerator<RemoteTargetId>(1001);
 
   connectivityMonitor: ConnectivityMonitor;
   watchStream?: PersistentListenStream;
@@ -285,8 +285,8 @@ export async function remoteStoreShutdown(
 function getRemoteTargetId(
   remoteStoreImpl: RemoteStoreImpl,
   sdkTargetId: TargetId
-): TargetId {
-  return remoteStoreImpl.targetIdMapSdkToRemote.get(sdkTargetId) || 0;
+): RemoteTargetId | undefined {
+  return remoteStoreImpl.targetIdMapSdkToRemote.get(sdkTargetId) || undefined;
 }
 
 /**
@@ -296,7 +296,7 @@ function getRemoteTargetId(
 export function remoteStoreGetRemoteTargetId(
   remoteStore: RemoteStore,
   sdkTargetId: TargetId
-): TargetId {
+): RemoteTargetId | undefined {
   const remoteStoreImpl = debugCast(remoteStore, RemoteStoreImpl);
   return getRemoteTargetId(remoteStoreImpl, sdkTargetId);
 }
@@ -310,7 +310,7 @@ export function remoteStoreGetRemoteTargetId(
 function generateRemoteTargetId(
   remoteStoreImpl: RemoteStoreImpl,
   sdkTargetId: TargetId
-): TargetId {
+): RemoteTargetId {
   // If the given sdkTargetId is odd, map it to an odd (sync engine) target ID
   if (sdkTargetId % 2 !== 0) {
     return remoteStoreImpl.syncEngineTargetIdGenerator.next();
@@ -326,15 +326,15 @@ function generateRemoteTargetId(
  * Delete any mapping of the old remote ID, if given.
  * @param remoteStoreImpl
  * @param sdkTargetId
- * @param currentRemoteTargetId
  * @return The new remote ID.
  */
 function allocateRemoteTargetId(
   remoteStoreImpl: RemoteStoreImpl,
-  sdkTargetId: TargetId,
-  currentRemoteTargetId: TargetId
-): TargetId {
-  if (currentRemoteTargetId !== 0) {
+  sdkTargetId: TargetId
+): RemoteTargetId {
+  const currentRemoteTargetId = getRemoteTargetId(remoteStoreImpl, sdkTargetId);
+
+  if (currentRemoteTargetId !== undefined) {
     // If there was an existing remote target ID mapped to that SDK target ID, forget about the old remote ID.
     remoteStoreImpl.targetIdMapRemoteToSdk.delete(currentRemoteTargetId);
   }
@@ -367,15 +367,17 @@ export function remoteStoreListen(
   );
 
   // If remote store is still listening for this remote target ID, this is a no-op.
-  if (remoteStoreImpl.listenTargets.has(currentRemoteTargetId)) {
+  if (
+    currentRemoteTargetId !== undefined &&
+    remoteStoreImpl.listenTargets.has(currentRemoteTargetId)
+  ) {
     return;
   }
 
   // Generate and map a new remote ID to the SDK target ID
   const remoteTargetId = allocateRemoteTargetId(
     remoteStoreImpl,
-    targetData.targetId,
-    currentRemoteTargetId
+    targetData.targetId
   );
 
   logDebug(
@@ -428,8 +430,9 @@ export function remoteStoreUnlisten(
   );
 
   debugAssert(
-    remoteStoreImpl.listenTargets.has(remoteTargetId),
-    `unlisten called on target no currently watched: ${remoteTargetId}`
+    remoteTargetId !== undefined &&
+      remoteStoreImpl.listenTargets.has(remoteTargetId),
+    `unlisten called on target not currently watched: ${remoteTargetId}`
   );
 
   remoteStoreImpl.listenTargets.delete(remoteTargetId);
@@ -458,7 +461,7 @@ export function remoteStoreUnlisten(
  */
 function sendWatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
-  remoteTargetData: TargetData
+  remoteTargetData: TargetData<RemoteTargetId>
 ): void {
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
     remoteTargetData.targetId
@@ -469,7 +472,7 @@ function sendWatchRequest(
     remoteTargetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
   ) {
     const sdkTargetId = remoteStoreImpl.targetIdMapRemoteToSdk.get(
-      remoteTargetData.targetId
+      remoteTargetData.targetId as RemoteTargetId
     );
 
     if (sdkTargetId === undefined) {
@@ -498,7 +501,7 @@ function sendWatchRequest(
  */
 function sendUnwatchRequest(
   remoteStoreImpl: RemoteStoreImpl,
-  targetId: TargetId
+  targetId: RemoteTargetId
 ): void {
   remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(targetId);
   ensureWatchStream(remoteStoreImpl).unwatch(targetId);
@@ -803,8 +806,8 @@ function raiseWatchSnapshot(
  */
 function toSdkRemoteEvent(
   remoteStoreImpl: RemoteStoreImpl,
-  remoteEvent: RemoteEvent
-): RemoteEvent {
+  remoteEvent: RemoteEvent<RemoteTargetId>
+): RemoteEvent<TargetId> {
   // Map TargetChanges to TargetChanges with SDK ID
   const sdkTargetChanges = new Map<TargetId, TargetChange>();
   remoteEvent.targetChanges.forEach((change, remoteTargetId) => {
