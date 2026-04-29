@@ -265,6 +265,75 @@ describe('API tests', () => {
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
 
+    it('creates FirebaseServerApp with json config string', async () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser environments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {};
+
+      const app = initializeServerApp(
+        JSON.stringify(options),
+        serverAppSettings
+      );
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.true;
+      await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
+    });
+
+    it('creates FirebaseServerApp with string options and config object as second parameter', async () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser environments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: true
+      };
+
+      const app = initializeServerApp(
+        JSON.stringify(options),
+        serverAppSettings
+      );
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.true;
+      await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
+    });
+    it('creates FirebaseServerApp with options as first parameter and config object with automaticDataCollectionEnabled as second parameter', async () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser environments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {
+        automaticDataCollectionEnabled: true
+      };
+
+      const app = initializeServerApp(
+        JSON.stringify(options),
+        serverAppSettings
+      );
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.true;
+      await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
+    });
+
     it('creates FirebaseServerApp with automaticDataCollectionEnabled', async () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser environments.

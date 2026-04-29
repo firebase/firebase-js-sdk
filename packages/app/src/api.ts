@@ -280,7 +280,7 @@ export function initializeApp(
  * @public
  */
 export function initializeServerApp(
-  options: FirebaseOptions | FirebaseApp,
+  options: FirebaseOptions | FirebaseApp | string,
   config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
