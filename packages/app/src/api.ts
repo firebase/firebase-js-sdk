@@ -51,6 +51,7 @@ import {
 } from '@firebase/logger';
 import {
   deepEqual,
+  FirebaseError,
   getDefaultAppConfig,
   isBrowser,
   isWebWorker
@@ -119,6 +120,33 @@ export function initializeApp(
 ): FirebaseApp;
 /**
  * Creates and initializes a FirebaseApp instance.
+ * @example
+ * ```javascript
+ *
+ * // Initialize default app
+ * // Retrieve your own options values by adding a web app on
+ * // https://console.firebase.google.com
+ * initializeApp(process.env.FIREBASE_OPTIONS);
+ * ```
+ *
+ * @param jsonConfigString - A JSON string containing the app's configuration.
+ * @param name - Optional name of the app to initialize. If no name
+ *   is provided, the default is `"[DEFAULT]"`.
+ *
+ * @returns The initialized app.
+ *
+ * @throws If the optional `name` parameter is malformed or empty.
+ *
+ * @throws If a `FirebaseApp` already exists with the same name but with a different configuration.
+ *
+ * @public
+ */
+export function initializeApp(
+  jsonConfigString: string,
+  name?: string
+): FirebaseApp;
+/**
+ * Creates and initializes a FirebaseApp instance.
  *
  * @param options - Options to configure the app's services.
  * @param config - FirebaseApp Configuration
@@ -129,7 +157,7 @@ export function initializeApp(
  * @public
  */
 export function initializeApp(
-  options: FirebaseOptions,
+  options: FirebaseOptions | string,
   config?: FirebaseAppSettings
 ): FirebaseApp;
 /**
@@ -139,10 +167,22 @@ export function initializeApp(
  */
 export function initializeApp(): FirebaseApp;
 export function initializeApp(
-  _options?: FirebaseOptions,
+  optionsOrJsonConfigString?: FirebaseOptions | string,
   rawConfig = {}
 ): FirebaseApp {
-  let options = _options;
+  let options: FirebaseOptions | undefined;
+  if (typeof optionsOrJsonConfigString === 'string') {
+    try {
+      options = JSON.parse(optionsOrJsonConfigString);
+    } catch (error) {
+      throw new FirebaseError(
+        AppError.INVALID_APP_ARGUMENT,
+        'Unable to parse FirebaseOptions JSON string.'
+      );
+    }
+  } else {
+    options = optionsOrJsonConfigString;
+  }
 
   if (typeof rawConfig !== 'object') {
     const name = rawConfig;
@@ -262,8 +302,18 @@ export function initializeServerApp(
 export function initializeServerApp(
   config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
+/**
+ * Creates and initializes a {@link @firebase/app#FirebaseServerApp} instance from a JSON config string.
+ * @param jsonConfigString - A JSON string containing the app's configuration.
+ * @param name - Optional name of the app to initialize. If no name
+ *   is provided, the default is `"[DEFAULT]"`.
+ * @returns The initialized `FirebaseServerApp`.
+ */
 export function initializeServerApp(
-  _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions,
+  jsonConfigString: string
+): FirebaseServerApp;
+export function initializeServerApp(
+  _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions | string,
   _serverAppConfig: FirebaseServerAppSettings = {}
 ): FirebaseServerApp {
   if (isBrowser() && !isWebWorker()) {
@@ -275,7 +325,16 @@ export function initializeServerApp(
   let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || {};
 
   if (_options) {
-    if (_isFirebaseApp(_options)) {
+    if (typeof _options === 'string') {
+      try {
+        firebaseOptions = JSON.parse(_options);
+      } catch {
+        throw new FirebaseError(
+          AppError.INVALID_APP_ARGUMENT,
+          'Unable to parse FirebaseOptions JSON string.'
+        );
+      }
+    } else if (_isFirebaseApp(_options)) {
       firebaseOptions = _options.options;
     } else if (_isFirebaseServerAppSettings(_options)) {
       serverAppSettings = _options;
