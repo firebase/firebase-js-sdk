@@ -65,7 +65,7 @@ import {
   triggerRemoteStoreListen,
   triggerRemoteStoreUnlisten
 } from '../../../src/core/sync_engine_impl';
-import { TargetId } from '../../../src/core/types';
+import { RemoteTargetId, TargetId } from '../../../src/core/types';
 import {
   ChangeType,
   DocumentViewChange
@@ -254,7 +254,7 @@ abstract class TestRunner {
    * a FIFO heuristic to resolve which remote ID an event (like ACK or REMOVE)
    * applies to.
    */
-  private sdkToRemoteTargetIds = new Map<TargetId, TargetId[]>();
+  private sdkToRemoteTargetIds = new Map<TargetId, RemoteTargetId[]>();
 
   private expectedActiveLimboDocs: DocumentKey[];
   private expectedEnqueuedLimboDocs: DocumentKey[];
@@ -530,7 +530,7 @@ abstract class TestRunner {
       this.remoteStore,
       sdkTargetId
     );
-    if (remoteTargetId !== 0) {
+    if (remoteTargetId !== undefined) {
       // Add this new remoteTargetId to a list mapping the sdk target ID to the
       // remote target ID
       const list = this.sdkToRemoteTargetIds.get(sdkTargetId) || [];
@@ -665,7 +665,7 @@ abstract class TestRunner {
   private getRemoteTargetId(
     sdkTargetId: TargetId,
     sdkTargetIndex: number | undefined = undefined
-  ): TargetId {
+  ): RemoteTargetId {
     // Get and update the list with the current mapping from RemoteStore
     // if the remote target ID is not already in the sdkToRemoteTargetIds list
     const remoteStoreId = remoteStoreGetRemoteTargetId(
@@ -673,7 +673,7 @@ abstract class TestRunner {
       sdkTargetId
     );
     const list = this.sdkToRemoteTargetIds.get(sdkTargetId) || [];
-    if (remoteStoreId !== 0 && !list.includes(remoteStoreId)) {
+    if (remoteStoreId !== undefined && !list.includes(remoteStoreId)) {
       console.warn(
         `The sdk target ID ${sdkTargetId} was mapped to remote target id ${remoteStoreId} but was not found in the TestRunner sdkToRemoteTargetIds list ${this.sdkToRemoteTargetIds}`
       );
@@ -683,7 +683,7 @@ abstract class TestRunner {
 
     if (list.length === 0) {
       console.warn(`Mapping not found for SDK ID ${sdkTargetId}`);
-      return sdkTargetId;
+      return sdkTargetId as RemoteTargetId;
     }
 
     if (sdkTargetIndex !== undefined) {
@@ -736,7 +736,7 @@ abstract class TestRunner {
         mapCodeFromRpcCode(removed.cause.code),
         removed.cause.message
       );
-    const mappedIds = new Map<TargetId, TargetId>();
+    const mappedIds = new Map<TargetId, RemoteTargetId>();
     const remoteTargetIds = removed.targetIds.map(id => {
       const remoteId = this.getRemoteTargetId(id, removed.remoteTargetIndex);
       mappedIds.set(id, remoteId);

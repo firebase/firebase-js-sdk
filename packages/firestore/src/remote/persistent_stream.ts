@@ -18,7 +18,6 @@
 import { CredentialsProvider, Token } from '../api/credentials';
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { RemoteTargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import {
