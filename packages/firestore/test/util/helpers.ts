@@ -544,20 +544,12 @@ export function docUpdateRemoteEvent(
   return castRemoteEvent(aggregator.createRemoteEvent(doc.version));
 }
 
-export type RemoteToSDKRemoteEvent = (src: unknown) => RemoteEvent<TargetId>;
 export function castRemoteEvent<T extends TargetId | RemoteTargetId>(
   src: unknown
 ): RemoteEvent<T> {
   return src as RemoteEvent<T>;
 }
 
-export type RemoteTargetIdLookup = (targetId: TargetId) => RemoteTargetId;
-export type SdkTargetIdLookup = (targetId: RemoteTargetId) => TargetId;
-export function castTargetId<T extends TargetId | RemoteTargetId>(
-  src: unknown
-): T {
-  return src as T;
-}
 export function castTargetIds<T extends TargetId | RemoteTargetId>(
   src: unknown
 ): T[] {
