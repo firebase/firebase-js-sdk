@@ -17,14 +17,14 @@
 
 const assert = require('assert');
 const cors = require('cors')({ origin: true });
-const functions = require('firebase-functions/v1');
+const { onRequest, onCall } = require('firebase-functions/v2/https');
 
 /*
  * These backend test helpers are copied from the iOS and Android SDKs, but are
  * not all implemented as tests in the JS SDK yet.
  */
 
-exports.dataTest = functions.https.onRequest((request, response) => {
+exports.dataTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     assert.deepEqual(request.body, {
       data: {
@@ -53,14 +53,14 @@ exports.dataTest = functions.https.onRequest((request, response) => {
   });
 });
 
-exports.scalarTest = functions.https.onRequest((request, response) => {
+exports.scalarTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     assert.deepEqual(request.body, { data: 17 });
     response.send({ data: 76 });
   });
 });
 
-exports.tokenTest = functions.https.onRequest((request, response) => {
+exports.tokenTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     assert.equal(request.get('Authorization'), 'Bearer token');
     assert.deepEqual(request.body, { data: {} });
@@ -68,7 +68,7 @@ exports.tokenTest = functions.https.onRequest((request, response) => {
   });
 });
 
-exports.instanceIdTest = functions.https.onRequest((request, response) => {
+exports.instanceIdTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     assert.equal(request.get('Firebase-Instance-ID-Token'), 'iid');
     assert.deepEqual(request.body, { data: {} });
@@ -76,7 +76,7 @@ exports.instanceIdTest = functions.https.onRequest((request, response) => {
   });
 });
 
-exports.appCheckTest = functions.https.onRequest((request, response) => {
+exports.appCheckTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     const token = request.get('X-Firebase-AppCheck');
     assert.equal(token !== undefined, true);
@@ -85,28 +85,28 @@ exports.appCheckTest = functions.https.onRequest((request, response) => {
   });
 });
 
-exports.nullTest = functions.https.onRequest((request, response) => {
+exports.nullTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     assert.deepEqual(request.body, { data: null });
     response.send({ data: null });
   });
 });
 
-exports.missingResultTest = functions.https.onRequest((request, response) => {
+exports.missingResultTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     assert.deepEqual(request.body, { data: null });
     response.send({});
   });
 });
 
-exports.unhandledErrorTest = functions.https.onRequest((request, response) => {
+exports.unhandledErrorTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     // Fail in a way that the client shouldn't see.
     throw 'nope';
   });
 });
 
-exports.unknownErrorTest = functions.https.onRequest((request, response) => {
+exports.unknownErrorTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     // Send an http error with a body with an explicit code.
     response.status(400).send({
@@ -118,7 +118,7 @@ exports.unknownErrorTest = functions.https.onRequest((request, response) => {
   });
 });
 
-exports.explicitErrorTest = functions.https.onRequest((request, response) => {
+exports.explicitErrorTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     // Send an http error with a body with an explicit code.
     response.status(400).send({
@@ -138,14 +138,14 @@ exports.explicitErrorTest = functions.https.onRequest((request, response) => {
   });
 });
 
-exports.httpErrorTest = functions.https.onRequest((request, response) => {
+exports.httpErrorTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     // Send an http error with no body.
     response.status(400).send();
   });
 });
 
-exports.timeoutTest = functions.https.onRequest((request, response) => {
+exports.timeoutTestv2 = onRequest((request, response) => {
   cors(request, response, () => {
     // Wait for longer than 500ms.
     setTimeout(() => response.send({ data: true }), 500);
@@ -153,6 +153,6 @@ exports.timeoutTest = functions.https.onRequest((request, response) => {
 });
 
 // Used by E2E test.
-exports.callTest = functions.https.onCall((data, context) => {
+exports.callTestv2 = onCall((data, context) => {
   return { word: 'hellooo' };
 });
