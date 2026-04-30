@@ -1254,7 +1254,6 @@ export { parent_2 as parent }
 // @public (undocumented)
 export class Pipeline {
     addFields(field: Selectable, ...additionalFields: Selectable[]): Pipeline;
-    // (undocumented)
     addFields(options: AddFieldsStageOptions): Pipeline;
     aggregate(accumulator: AliasedAggregate, ...additionalAccumulators: AliasedAggregate[]): Pipeline;
     aggregate(options: AggregateStageOptions): Pipeline;

@@ -178,8 +178,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * - {@link @firebase/firestore/pipelines#Expression}: Either a literal value (see {@link @firebase/firestore/pipelines#(constant:1)}) or a computed value
    *   with an assigned alias using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
-   * Example:
-   *
    * @example
    * ```typescript
    * firestore.pipeline().collection("books")
@@ -207,9 +205,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * - {@link @firebase/firestore/pipelines#Expression}: Either a literal value (see {@link @firebase/firestore/pipelines#(constant:1)}) or a computed value
    *   with an assigned alias using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
@@ -249,9 +245,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * Remove fields from outputs of previous stages.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
@@ -272,9 +266,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
   /**
    * Remove fields from outputs of previous stages.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * firestore.pipeline().collection('books')
    *   // removes field 'rating' and 'cost' from the previous stage outputs.
@@ -543,8 +535,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @firebase/firestore/pipelines#Pipeline.(addFields:1)} instead if only additions are
    * desired.
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * db.pipeline().collection("books")
@@ -580,8 +570,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * <p>If no selections are provided, the output of this stage is empty. Use {@link
    * @firebase/firestore/pipelines#Pipeline.(addFields:1)} instead if only additions are
    * desired.
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -639,8 +627,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *       @firebase/firestore/pipelines#Expression.(arrayContains:1)}, etc.</li>
    * </ul>
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * firestore.pipeline().collection("books")
@@ -671,8 +657,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *   <li>advanced functions: {@link @firebase/firestore/pipelines#Expression.(regexMatch:1)}, {@link
    *       @firebase/firestore/pipelines#Expression.(arrayContains:1)}, etc.</li>
    * </ul>
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -710,8 +694,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.limit} to control the
    * size of each page.
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * // Retrieve the second page of 20 results
@@ -731,8 +713,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * <p>This stage is useful for implementing pagination in your pipelines, allowing you to retrieve
    * results in chunks. It is typically used in conjunction with {@link @firebase/firestore/pipelines#Pipeline.limit} to control the
    * size of each page.
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -779,8 +759,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *       especially when dealing with large collections.</li>
    * </ul>
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * // Limit the results to the top 10 highest-rated books
@@ -805,8 +783,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *   <li>**Limiting Data Retrieval:** To prevent excessive data transfer and improve performance,
    *       especially when dealing with large collections.</li>
    * </ul>
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -847,9 +823,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * - {@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name
    *   using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
@@ -880,9 +854,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * - {@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name
    *   using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * // Get a list of unique author names in uppercase and genre combinations.
    * firestore.pipeline().collection("books")
@@ -925,8 +897,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * aggregations to perform using {@link @firebase/firestore/pipelines#AliasedAggregate} expressions which are typically results of
    * calling {@link @firebase/firestore/pipelines#Expression.(as:1)} on {@link @firebase/firestore/pipelines#AggregateFunction} instances.
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * // Calculate the average rating and the total number of books
@@ -963,8 +933,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *       calling {@link @firebase/firestore/pipelines#Expression.(as:1)} on {@link @firebase/firestore/pipelines#AggregateFunction} instances. Each aggregation
    *       calculates a value (e.g., sum, average, count) based on the documents within its group.</li>
    * </ul>
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -1017,8 +985,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * K-nearest documents based on the specified query `vectorValue` and `distanceMeasure`. The
    * returned documents will be sorted in order from nearest to furthest from the query `vectorValue`.
    *
-   * <p>Example:
-   *
+   * @example
    * ```typescript
    * // Find the 10 most similar books based on the book description.
    * const bookDescription = "Lorem ipsum...";
@@ -1145,8 +1112,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * all orderings result in equal comparison, the documents are considered equal and the order is
    * unspecified.
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * // Sort books by rating in descending order, and then by title in ascending order for books
@@ -1171,8 +1136,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * have the same value for a field used for sorting, the next specified ordering will be used. If
    * all orderings result in equal comparison, the documents are considered equal and the order is
    * unspecified.
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -1212,8 +1175,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
    * on the document that contains the corresponding value.
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * // Input.
@@ -1244,8 +1205,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
    * on the document that contains the corresponding value.
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -1282,8 +1241,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * <p>This stage allows you to emit a map value as a document. Each key of the map becomes a field
    * on the document that contains the corresponding value.
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -1407,8 +1364,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * from previous stage of the `other` {@link @firebase/firestore/pipelines#Pipeline} given in parameter. The order of documents
    * emitted from this stage is undefined.
    *
-   * <p>Example:
-   *
    * @example
    * ```typescript
    * // Emit documents from books collection and magazines collection.
@@ -1426,8 +1381,6 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * <p>This stage will pass through documents from previous stage, and also pass through documents
    * from previous stage of the `other` {@link @firebase/firestore/pipelines#Pipeline} given in parameter. The order of documents
    * emitted from this stage is undefined.
-   *
-   * <p>Example:
    *
    * @example
    * ```typescript
@@ -1470,9 +1423,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * No documents are emitted when `selectable` evaluates to an empty array.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * // Input:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
@@ -1504,9 +1455,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    *
    * No documents are emitted when `selectable` evaluates to an empty array.
    *
-   * Example:
-   *
-   * @example
+   *    * @example
    * ```typescript
    * // Input:
    * // { "title": "The Hitchhiker's Guide to the Galaxy", "tags": [ "comedy", "space", "adventure" ], ... }
