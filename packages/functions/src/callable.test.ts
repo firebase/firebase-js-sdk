@@ -405,7 +405,7 @@ describe('Firebase Functions > Stream', () => {
 
     const func = httpsCallable<Record<string, any>, string, string>(
       functions,
-      'errTestv2'
+      'errTest'
     );
     const streamResult = await func.stream({});
 
