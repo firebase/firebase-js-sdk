@@ -143,6 +143,16 @@ class RemoteStoreImpl implements RemoteStore {
   watchChangeAggregator?: WatchChangeAggregator;
 
   /**
+   * Set of target IDs whose pending responses were pre-recorded when
+   * startWatchStream was called. Used by onWatchStreamOpen to avoid
+   * double-counting pending responses for targets that existed at
+   * stream-start time.
+   *
+   * See: https://github.com/firebase/firebase-js-sdk/issues/9729
+   */
+  pendingTargetsForWatchOpen?: Set<TargetId>;
+
+  /**
    * A set of reasons for why the RemoteStore may be offline. If empty, the
    * RemoteStore may start its network connections.
    */
@@ -324,17 +334,14 @@ export function remoteStoreUnlisten(
 }
 
 /**
- * We need to increment the expected number of pending responses we're due
- * from watch so we wait for the ack to process any messages from this target.
+ * Sends a watch request on the wire, attaching the expected count when the
+ * target carries a resume token or snapshot version. This shared helper is
+ * used by both {@link sendWatchRequest} and {@link sendWatchMessage}.
  */
-function sendWatchRequest(
+function writeWatchTarget(
   remoteStoreImpl: RemoteStoreImpl,
   targetData: TargetData
 ): void {
-  remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
-    targetData.targetId
-  );
-
   if (
     targetData.resumeToken.approximateByteSize() > 0 ||
     targetData.snapshotVersion.compareTo(SnapshotVersion.min()) > 0
@@ -346,6 +353,32 @@ function sendWatchRequest(
   }
 
   ensureWatchStream(remoteStoreImpl).watch(targetData);
+}
+
+/**
+ * We need to increment the expected number of pending responses we're due
+ * from watch so we wait for the ack to process any messages from this target.
+ */
+function sendWatchRequest(
+  remoteStoreImpl: RemoteStoreImpl,
+  targetData: TargetData
+): void {
+  remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(
+    targetData.targetId
+  );
+  writeWatchTarget(remoteStoreImpl, targetData);
+}
+
+/**
+ * Sends a watch request on the wire without recording a pending target
+ * request. Used by onWatchStreamOpen for targets whose pending requests
+ * were already recorded in startWatchStream.
+ */
+function sendWatchMessage(
+  remoteStoreImpl: RemoteStoreImpl,
+  targetData: TargetData
+): void {
+  writeWatchTarget(remoteStoreImpl, targetData);
 }
 
 /**
@@ -378,6 +411,19 @@ function startWatchStream(remoteStoreImpl: RemoteStoreImpl): void {
       remoteStoreImpl.listenTargets.get(targetId) || null,
     getDatabaseId: () => remoteStoreImpl.datastore.serializer.databaseId
   });
+
+  // Record pending target requests for all current listen targets immediately,
+  // rather than deferring to onWatchStreamOpen. This prevents a bookkeeping
+  // mismatch when targets are removed/re-added between stream start and open
+  // (e.g. React StrictMode double-invoking effects, or rapid navigation during
+  // network reconnection).
+  // See: https://github.com/firebase/firebase-js-sdk/issues/9729
+  remoteStoreImpl.pendingTargetsForWatchOpen = new Set<TargetId>();
+  remoteStoreImpl.listenTargets.forEach((_, targetId) => {
+    remoteStoreImpl.watchChangeAggregator!.recordPendingTargetRequest(targetId);
+    remoteStoreImpl.pendingTargetsForWatchOpen!.add(targetId);
+  });
+
   ensureWatchStream(remoteStoreImpl).start();
   remoteStoreImpl.onlineStateTracker.handleWatchStreamStart();
 }
@@ -401,6 +447,7 @@ export function canUseNetwork(remoteStore: RemoteStore): boolean {
 
 function cleanUpWatchStreamState(remoteStoreImpl: RemoteStoreImpl): void {
   remoteStoreImpl.watchChangeAggregator = undefined;
+  remoteStoreImpl.pendingTargetsForWatchOpen = undefined;
 }
 
 async function onWatchStreamConnected(
@@ -413,9 +460,30 @@ async function onWatchStreamConnected(
 async function onWatchStreamOpen(
   remoteStoreImpl: RemoteStoreImpl
 ): Promise<void> {
+  const preRecorded = remoteStoreImpl.pendingTargetsForWatchOpen;
+  remoteStoreImpl.pendingTargetsForWatchOpen = undefined;
+
   remoteStoreImpl.listenTargets.forEach((targetData, targetId) => {
-    sendWatchRequest(remoteStoreImpl, targetData);
+    if (preRecorded?.has(targetId)) {
+      // Pending request was already recorded in startWatchStream.
+      // Just send the wire message without re-recording.
+      sendWatchMessage(remoteStoreImpl, targetData);
+    } else {
+      // Target was added after startWatchStream. Record pending + send.
+      sendWatchRequest(remoteStoreImpl, targetData);
+    }
   });
+
+  // Clean up pre-recorded targets that were removed before the stream opened.
+  // Their pending requests were recorded but no wire message was sent, so no
+  // server response will arrive. Remove their orphaned target state.
+  if (preRecorded) {
+    for (const targetId of preRecorded) {
+      if (!remoteStoreImpl.listenTargets.has(targetId)) {
+        remoteStoreImpl.watchChangeAggregator!.removeTarget(targetId);
+      }
+    }
+  }
 }
 
 async function onWatchStreamClose(
