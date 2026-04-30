@@ -205,7 +205,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * - {@link @firebase/firestore/pipelines#Expression}: Either a literal value (see {@link @firebase/firestore/pipelines#(constant:1)}) or a computed value
    *   with an assigned alias using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
    *
-   *    * @example
+   * @example
    * ```typescript
    * firestore.pipeline().collection("books")
    *   .addFields(
