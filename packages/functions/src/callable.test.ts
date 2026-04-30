@@ -86,7 +86,7 @@ describe('Firebase Functions > Call', () => {
     app = makeFakeApp({ projectId, messagingSenderId });
   });
 
-  it.only('simple data', async () => {
+  it('simple data', async () => {
     const functions = createTestService(app, region);
     // TODO(klimt): Should we add an API to create a "long" in JS?
     const data = {
