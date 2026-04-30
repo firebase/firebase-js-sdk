@@ -62,13 +62,13 @@ describeSpec('Remote store:', [], () => {
       .watchCurrents(query1, 'resume-token')
       .watchSnapshots(1000)
       .watchUsesTargetIndex(0)
-      .watchRemoves(query1, undefined) // Finally watch decides to ack the FIRST removal.
+      .watchRemoves(query1) // Finally watch decides to ack the FIRST removal.
       .watchUsesTargetIndex(1)
       .watchAcksFull(query1, 1001, doc2) // Now watch should ack the second listen.
-      .watchRemoves(query1, undefined) // Finally watch decides to ack the SECOND removal.
+      .watchRemoves(query1) // Finally watch decides to ack the SECOND removal.
       .watchUsesTargetIndex(2)
       .watchAcksFull(query1, 1001, doc3) // Now watch should ack the second listen.
-      .watchRemoves(query1, undefined) // Finally watch decides to ack the THIRD removal.
+      .watchRemoves(query1) // Finally watch decides to ack the THIRD removal.
       .watchUsesTargetIndex(3)
       .watchAcksFull(query1, 1001, doc4) // Now watch should ack the query.
       .expectEvents(query1, { added: [doc4] }); // This should work now.
@@ -156,7 +156,7 @@ describeSpec('Remote store:', [], () => {
       .userUnlistens(query1)
       .userListens(query1)
       .watchUsesTargetIndex(0)
-      .watchRemoves(query1, undefined)
+      .watchRemoves(query1)
       .watchUsesTargetIndex('latest')
       .watchAcks(query1)
       .expectActiveTargets({ query: query1, resumeToken: '' });
