@@ -21,7 +21,7 @@ export declare class Pipeline
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
 |  [addFields(field, additionalFields)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<!-- -->- [Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field. - [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_0c00f91)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->. |
-|  [addFields(options)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  | Adds new fields to outputs from previous stages.<!-- -->This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).<!-- -->The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:<!-- -->- [Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field. - [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_0c00f91)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.<!-- -->\* |
+|  [addFields(options)](./firestore_pipelines.pipeline.md#pipelineaddfields) |  |  |
 |  [aggregate(accumulator, additionalAccumulators)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs aggregation operations on the documents from previous stages.<p>This stage allows you to calculate aggregate values over a set of documents. You define the aggregations to perform using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions which are typically results of calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. |
 |  [aggregate(options)](./firestore_pipelines.pipeline.md#pipelineaggregate) |  | Performs optionally grouped aggregation operations on the documents from previous stages.<p>This stage allows you to calculate aggregate values over a set of documents, optionally grouped by one or more fields or functions. You can specify:<ul> <li>\*\*Grouping Fields or Functions:\*\* One or more fields or functions to group the documents by. For each distinct combination of values in these fields, a separate group is created. If no grouping fields are provided, a single group containing all documents is used. Not specifying groups is the same as putting the entire inputs into one group.</li> <li>\*\*Accumulators:\*\* One or more accumulation operations to perform within each group. These are defined using [AliasedAggregate](./firestore_pipelines.aliasedaggregate.md#aliasedaggregate_class) expressions, which are typically created by calling [Expression.as()](./firestore_pipelines.expression.md#expressionas) on [AggregateFunction](./firestore_pipelines.aggregatefunction.md#aggregatefunction_class) instances. Each aggregation calculates a value (e.g., sum, average, count) based on the documents within its group.</li> </ul> |
 |  [define(aliasedExpression, additionalExpressions)](./firestore_pipelines.pipeline.md#pipelinedefine) |  |  |
@@ -98,16 +98,6 @@ add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
 
 ## Pipeline.addFields()
 
-Adds new fields to outputs from previous stages.
-
-This stage allows you to compute values on-the-fly based on existing data from previous stages or constants. You can use this to create new fields or overwrite existing ones (if there is name overlaps).
-
-The added fields are defined using [Selectable](./firestore_pipelines.selectable.md#selectable_interface)<!-- -->s, which can be:
-
-- [Field](./firestore_pipelines.field.md#field_class)<!-- -->: References an existing document field. - [Expression](./firestore_pipelines.expression.md#expression_class)<!-- -->: Either a literal value (see [constant()](./firestore_pipelines.md#constant_0c00f91)<!-- -->) or a computed value with an assigned alias using [Expression.as()](./firestore_pipelines.expression.md#expressionas)<!-- -->.
-
-\*
-
 <b>Signature:</b>
 
 ```typescript
@@ -118,25 +108,11 @@ addFields(options: AddFieldsStageOptions): Pipeline;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) | An object that specifies required and optional parameters for the stage. |
+|  options | [AddFieldsStageOptions](./firestore_pipelines.md#addfieldsstageoptions) |  |
 
 <b>Returns:</b>
 
 [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)
-
-A new Pipeline object with this stage appended to the stage list.
-
-### Example
-
-
-```typescript
-firestore.pipeline().collection("books")
-.addFields(
-field("rating").as("bookRating"), // Rename 'rating' to 'bookRating'
-add(field("quantity"), 5).as("totalCost")  // Calculate 'totalCost'
-);
-
-```
 
 ## Pipeline.aggregate()
 
