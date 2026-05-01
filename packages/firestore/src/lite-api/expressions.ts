@@ -4669,7 +4669,7 @@ export function isAbsent(value: Expression | string): BooleanExpression {
  * Creates an expression that removes a key from the map at the specified field name.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'city' field from the map in the address field of the input document.
  * mapRemove('address', 'city');
  * ```
@@ -4683,10 +4683,9 @@ export function mapRemove(mapField: string, key: string): FunctionExpression;
  * Creates an expression that removes a key from the map produced by evaluating an expression.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), 'baz');
- * @example
  * ```
  *
  * @param mapExpr - An expression return a map value.
@@ -4698,7 +4697,7 @@ export function mapRemove(mapExpr: Expression, key: string): FunctionExpression;
  * Creates an expression that removes a key from the map at the specified field name.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'city' field from the map in the address field of the input document.
  * mapRemove('address', constant('city'));
  * ```
@@ -4715,10 +4714,9 @@ export function mapRemove(
  * Creates an expression that removes a key from the map produced by evaluating an expression.
  *
  * @example
- * ```
+ * ```typescript
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
- * @example
  * ```
  *
  * @param mapExpr - An expression return a map value.
@@ -4741,7 +4739,7 @@ export function mapRemove(
  * Creates an expression that merges multiple map values.
  *
  * @example
- * ```
+ * ```typescript
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
  * mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -4764,7 +4762,7 @@ export function mapMerge(
  * Creates an expression that merges multiple map values.
  *
  * @example
- * ```
+ * ```typescript
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
  * mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
