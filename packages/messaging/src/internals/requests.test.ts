@@ -68,11 +68,11 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
-        origin: getRegistrationOrigin(
-          tokenDetails.subscriptionOptions!.swScope,
-          firebaseDependencies.appConfig.appName
-        ),
         web: {
+          origin: getRegistrationOrigin(
+            tokenDetails.subscriptionOptions!.swScope,
+            firebaseDependencies.appConfig.appName
+          ),
           endpoint: 'https://example.org',
           auth: 'YXV0aC12YWx1ZQ',
           p256dh: 'cDI1Ni12YWx1ZQ',
@@ -319,11 +319,11 @@ describe('API', () => {
         'x-goog-firebase-installations-auth': `FIS authToken`
       });
       const expectedBody: ApiRequestBody = {
-        origin: getRegistrationOrigin(
-          tokenDetails.subscriptionOptions!.swScope,
-          firebaseDependencies.appConfig.appName
-        ),
         web: {
+          origin: getRegistrationOrigin(
+            tokenDetails.subscriptionOptions!.swScope,
+            firebaseDependencies.appConfig.appName
+          ),
           endpoint: 'https://example.org',
           auth: 'YXV0aC12YWx1ZQ',
           p256dh: 'cDI1Ni12YWx1ZQ',

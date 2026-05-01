@@ -36,7 +36,6 @@ export interface ApiResponse {
   token?: string;
   /**
    * CreateRegistration resource name, e.g. `projects/{projectId}/registrations/{fid}`.
-   * A legacy plain FID string (no `/`) is also accepted.
    */
   name?: string;
   error?: { message: string };
@@ -45,12 +44,12 @@ export interface ApiResponse {
 export interface ApiRequestBody {
   // eslint-disable-next-line camelcase
   fcm_sdk_version?: string;
-  /**
-   * Client identifier for the registration: the site host (e.g. `www.example.com`) when the
-   * service worker scope is a URL, otherwise the app name.
-   */
-  origin: string;
   web: {
+    /**
+     * Client identifier for the registration: the site host (e.g. `www.example.com`) when the
+     * service worker scope is a URL, otherwise the app name.
+     */
+    origin: string;
     endpoint: string;
     p256dh: string;
     auth: string;
@@ -169,8 +168,7 @@ export async function requestCreateRegistration(
 
 /**
  * Parses a successful CreateRegistration body. The backend must return JSON with a non-empty
- * string `name`: either a resource name `projects/{projectId}/registrations/{fid}` or a legacy
- * plain FID.
+ * string `name`: a resource name `projects/{projectId}/registrations/{fid}`
  */
 async function parseCreateRegistrationSuccessFid(
   response: Response
@@ -370,8 +368,8 @@ function getBody(
   includeSdkVersion: boolean
 ): ApiRequestBody {
   const body: ApiRequestBody = {
-    origin: getRegistrationOrigin(swScope, appNameFallback),
     web: {
+      origin: getRegistrationOrigin(swScope, appNameFallback),
       endpoint,
       auth,
       p256dh
