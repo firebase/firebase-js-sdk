@@ -852,8 +852,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * <ul>
    *  <li>`string`: Name of an existing field</li>
    *  <li>{@link @firebase/firestore/pipelines#Field}: References an existing document field.</li>
-   *  <li>{@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name</li>
-   *   using {@link @firebase/firestore/pipelines#Expression.(as:1)}.
+   *  <li>{@link @firebase/firestore/pipelines#AliasedExpression}: Represents the result of a function with an assigned alias name
+   *   using {@link @firebase/firestore/pipelines#Expression.(as:1)}.</li>
    * </ul>
    *
    * @example
