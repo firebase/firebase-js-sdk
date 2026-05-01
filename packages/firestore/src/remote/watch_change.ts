@@ -18,7 +18,7 @@
 import { DatabaseId } from '../core/database_info';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget } from '../core/target';
-import { TargetId } from '../core/types';
+import { RemoteTargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
 import { TargetData, TargetPurpose } from '../local/target_data';
 import {
@@ -63,9 +63,9 @@ export type WatchChange =
 export class DocumentWatchChange {
   constructor(
     /** The new document applies to all of these targets. */
-    public updatedTargetIds: TargetId[],
+    public updatedTargetIds: RemoteTargetId[],
     /** The new document is removed from all of these targets. */
-    public removedTargetIds: TargetId[],
+    public removedTargetIds: RemoteTargetId[],
     /** The key of the document for this change. */
     public key: DocumentKey,
     /**
@@ -78,7 +78,7 @@ export class DocumentWatchChange {
 
 export class ExistenceFilterChange {
   constructor(
-    public targetId: TargetId,
+    public targetId: RemoteTargetId,
     public existenceFilter: ExistenceFilter
   ) {}
 }
@@ -101,7 +101,7 @@ export class WatchTargetChange {
     /** What kind of change occurred to the watch target. */
     public state: WatchTargetChangeState,
     /** The target IDs that were added/removed/set. */
-    public targetIds: TargetId[],
+    public targetIds: RemoteTargetId[],
     /**
      * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
@@ -263,13 +263,15 @@ export interface TargetMetadataProvider {
    * Returns the set of remote document keys for the given target ID as of the
    * last raised snapshot.
    */
-  getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
+  getRemoteKeysForTarget(targetId: RemoteTargetId): DocumentKeySet;
 
   /**
    * Returns the TargetData for an active target ID or 'null' if this target
    * has become inactive
    */
-  getTargetDataForTarget(targetId: TargetId): TargetData | null;
+  getTargetDataForTarget(
+    targetId: RemoteTargetId
+  ): TargetData<RemoteTargetId> | null;
 
   /**
    * Returns the database ID of the Firestore instance.
@@ -286,7 +288,7 @@ export class WatchChangeAggregator {
   constructor(private metadataProvider: TargetMetadataProvider) {}
 
   /** The internal state of all tracked targets. */
-  private targetStates = new Map<TargetId, TargetState>();
+  private targetStates = new Map<RemoteTargetId, TargetState>();
 
   /** Keeps track of the documents to update since the last raised snapshot. */
   private pendingDocumentUpdates = mutableDocumentMap();
@@ -300,7 +302,7 @@ export class WatchChangeAggregator {
    * known to be inconsistent and their listens needs to be re-established by
    * RemoteStore.
    */
-  private pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
+  private pendingTargetResets = new SortedMap<RemoteTargetId, TargetPurpose>(
     primitiveComparator
   );
 
@@ -391,7 +393,7 @@ export class WatchChangeAggregator {
    */
   forEachTarget(
     targetChange: WatchTargetChange,
-    fn: (targetId: TargetId) => void
+    fn: (targetId: RemoteTargetId) => void
   ): void {
     if (targetChange.targetIds.length > 0) {
       targetChange.targetIds.forEach(fn);
@@ -557,7 +559,7 @@ export class WatchChangeAggregator {
    */
   private filterRemovedDocuments(
     bloomFilter: BloomFilter,
-    targetId: number
+    targetId: RemoteTargetId
   ): number {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     let removalCount = 0;
@@ -582,8 +584,10 @@ export class WatchChangeAggregator {
    * Converts the currently accumulated state into a remote event at the
    * provided snapshot version. Resets the accumulated changes before returning.
    */
-  createRemoteEvent(snapshotVersion: SnapshotVersion): RemoteEvent {
-    const targetChanges = new Map<TargetId, TargetChange>();
+  createRemoteEvent(
+    snapshotVersion: SnapshotVersion
+  ): RemoteEvent<RemoteTargetId> {
+    const targetChanges = new Map<RemoteTargetId, TargetChange>();
 
     this.targetStates.forEach((targetState, targetId) => {
       const targetData = this.targetDataForActiveTarget(targetId);
@@ -661,7 +665,7 @@ export class WatchChangeAggregator {
     this.pendingDocumentUpdates = mutableDocumentMap();
     this.pendingDocumentUpdatesByTarget = documentTargetMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
-    this.pendingTargetResets = new SortedMap<TargetId, TargetPurpose>(
+    this.pendingTargetResets = new SortedMap<RemoteTargetId, TargetPurpose>(
       primitiveComparator
     );
 
@@ -673,7 +677,10 @@ export class WatchChangeAggregator {
    * its document key to the given target's mapping.
    */
   // Visible for testing.
-  addDocumentToTarget(targetId: TargetId, document: MutableDocument): void {
+  addDocumentToTarget(
+    targetId: RemoteTargetId,
+    document: MutableDocument
+  ): void {
     if (!this.isActiveTarget(targetId)) {
       return;
     }
@@ -712,7 +719,7 @@ export class WatchChangeAggregator {
    */
   // Visible for testing.
   removeDocumentFromTarget(
-    targetId: TargetId,
+    targetId: RemoteTargetId,
     key: DocumentKey,
     updatedDocument: MutableDocument | null
   ): void {
@@ -749,7 +756,7 @@ export class WatchChangeAggregator {
     }
   }
 
-  removeTarget(targetId: TargetId): void {
+  removeTarget(targetId: RemoteTargetId): void {
     this.targetStates.delete(targetId);
   }
 
@@ -758,7 +765,7 @@ export class WatchChangeAggregator {
    * the number of documents that the LocalStore considers to be part of the
    * target as well as any accumulated changes.
    */
-  private getCurrentDocumentCountForTarget(targetId: TargetId): number {
+  private getCurrentDocumentCountForTarget(targetId: RemoteTargetId): number {
     const targetState = this.ensureTargetState(targetId);
     const targetChange = targetState.toTargetChange();
     return (
@@ -772,13 +779,13 @@ export class WatchChangeAggregator {
    * Increment the number of acks needed from watch before we can consider the
    * server to be 'in-sync' with the client's active targets.
    */
-  recordPendingTargetRequest(targetId: TargetId): void {
+  recordPendingTargetRequest(targetId: RemoteTargetId): void {
     // For each request we get we need to record we need a response for it.
     const targetState = this.ensureTargetState(targetId);
     targetState.recordPendingTargetRequest();
   }
 
-  private ensureTargetState(targetId: TargetId): TargetState {
+  private ensureTargetState(targetId: RemoteTargetId): TargetState {
     let result = this.targetStates.get(targetId);
     if (!result) {
       result = new TargetState();
@@ -787,11 +794,13 @@ export class WatchChangeAggregator {
     return result;
   }
 
-  private ensureDocumentTargetMapping(key: DocumentKey): SortedSet<TargetId> {
+  private ensureDocumentTargetMapping(
+    key: DocumentKey
+  ): SortedSet<RemoteTargetId> {
     let targetMapping = this.pendingDocumentTargetMapping.get(key);
 
     if (!targetMapping) {
-      targetMapping = new SortedSet<TargetId>(primitiveComparator);
+      targetMapping = new SortedSet<RemoteTargetId>(primitiveComparator);
       this.pendingDocumentTargetMapping =
         this.pendingDocumentTargetMapping.insert(key, targetMapping);
     }
@@ -799,11 +808,13 @@ export class WatchChangeAggregator {
     return targetMapping;
   }
 
-  private ensureDocumentUpdateByTarget(key: DocumentKey): SortedSet<TargetId> {
+  private ensureDocumentUpdateByTarget(
+    key: DocumentKey
+  ): SortedSet<RemoteTargetId> {
     let targetMapping = this.pendingDocumentUpdatesByTarget.get(key);
 
     if (!targetMapping) {
-      targetMapping = new SortedSet<TargetId>(primitiveComparator);
+      targetMapping = new SortedSet<RemoteTargetId>(primitiveComparator);
       this.pendingDocumentUpdatesByTarget =
         this.pendingDocumentUpdatesByTarget.insert(key, targetMapping);
     }
@@ -816,7 +827,7 @@ export class WatchChangeAggregator {
    * `getTargetDataForTarget()`) and that we are not waiting for pending ADDs
    * from watch.
    */
-  protected isActiveTarget(targetId: TargetId): boolean {
+  protected isActiveTarget(targetId: RemoteTargetId): boolean {
     const targetActive = this.targetDataForActiveTarget(targetId) !== null;
     if (!targetActive) {
       logDebug(LOG_TAG, 'Detected inactive target', targetId);
@@ -828,7 +839,9 @@ export class WatchChangeAggregator {
    * Returns the TargetData for an active target (i.e. a target that the user
    * is still interested in that has no outstanding target change requests).
    */
-  protected targetDataForActiveTarget(targetId: TargetId): TargetData | null {
+  protected targetDataForActiveTarget(
+    targetId: RemoteTargetId
+  ): TargetData<RemoteTargetId> | null {
     const targetState = this.targetStates.get(targetId);
     return targetState && targetState.isPending
       ? null
@@ -840,7 +853,7 @@ export class WatchChangeAggregator {
    * 'current' to false, clears the resume token and removes its target mapping
    * from all documents).
    */
-  private resetTarget(targetId: TargetId): void {
+  private resetTarget(targetId: RemoteTargetId): void {
     debugAssert(
       !this.targetStates.get(targetId)!.isPending,
       'Should only reset active targets'
@@ -860,7 +873,7 @@ export class WatchChangeAggregator {
    * specified target.
    */
   private targetContainsDocument(
-    targetId: TargetId,
+    targetId: RemoteTargetId,
     key: DocumentKey
   ): boolean {
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
@@ -868,8 +881,11 @@ export class WatchChangeAggregator {
   }
 }
 
-function documentTargetMap(): SortedMap<DocumentKey, SortedSet<TargetId>> {
-  return new SortedMap<DocumentKey, SortedSet<TargetId>>(
+function documentTargetMap(): SortedMap<
+  DocumentKey,
+  SortedSet<RemoteTargetId>
+> {
+  return new SortedMap<DocumentKey, SortedSet<RemoteTargetId>>(
     DocumentKey.comparator
   );
 }
