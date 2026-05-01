@@ -47,12 +47,22 @@ export function applyTransformOperationToLocalView(
     return applyArrayUnionTransformOperation(transform, previousValue);
   } else if (transform instanceof ArrayRemoveTransformOperation) {
     return applyArrayRemoveTransformOperation(transform, previousValue);
+  } else if (transform instanceof NumericIncrementTransformOperation) {
+    return applyNumericIncrementTransformOperationToLocalView(
+      transform,
+      previousValue
+    );
+  } else if (transform instanceof NumericMinimumTransformOperation) {
+    return applyNumericMinimumTransformOperationToLocalView(
+      transform,
+      previousValue
+    );
   } else {
     debugAssert(
-      transform instanceof NumericIncrementTransformOperation,
-      'Expected NumericIncrementTransformOperation but was: ' + transform
+      transform instanceof NumericMaximumTransformOperation,
+      'Expected NumericMaximumTransformOperation but was: ' + transform
     );
-    return applyNumericIncrementTransformOperationToLocalView(
+    return applyNumericMaximumTransformOperationToLocalView(
       transform,
       previousValue
     );
@@ -128,6 +138,16 @@ export function transformOperationEquals(
     right instanceof NumericIncrementTransformOperation
   ) {
     return valueEquals(left.operand, right.operand);
+  } else if (
+    left instanceof NumericMinimumTransformOperation &&
+    right instanceof NumericMinimumTransformOperation
+  ) {
+    return valueEquals(left.operand, right.operand);
+  } else if (
+    left instanceof NumericMaximumTransformOperation &&
+    right instanceof NumericMaximumTransformOperation
+  ) {
+    return valueEquals(left.operand, right.operand);
   }
 
   return (
@@ -183,15 +203,21 @@ function applyArrayRemoveTransformOperation(
  * backend does not cap integer values at 2^63. Instead, JavaScript number
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
-export class NumericIncrementTransformOperation extends TransformOperation {
+export abstract class NumericTransformOperation extends TransformOperation {
   constructor(readonly serializer: Serializer, readonly operand: ProtoValue) {
     super();
     debugAssert(
       isNumber(operand),
-      'NumericIncrementTransform transform requires a NumberValue'
+      'NumericTransformOperation transform requires a NumberValue'
     );
   }
 }
+
+export class NumericIncrementTransformOperation extends NumericTransformOperation {}
+
+export class NumericMinimumTransformOperation extends NumericTransformOperation {}
+
+export class NumericMaximumTransformOperation extends NumericTransformOperation {}
 
 export function applyNumericIncrementTransformOperationToLocalView(
   transform: NumericIncrementTransformOperation,
@@ -209,6 +235,40 @@ export function applyNumericIncrementTransformOperationToLocalView(
     return toInteger(sum);
   } else {
     return toDouble(transform.serializer, sum);
+  }
+}
+
+export function applyNumericMinimumTransformOperationToLocalView(
+  transform: NumericMinimumTransformOperation,
+  previousValue: ProtoValue | null
+): ProtoValue {
+  if (!isNumber(previousValue)) {
+    return transform.operand;
+  }
+  const prev = asNumber(previousValue);
+  const oper = asNumber(transform.operand);
+  const min = Math.min(prev, oper);
+  if (isInteger(previousValue) && isInteger(transform.operand)) {
+    return toInteger(min);
+  } else {
+    return toDouble(transform.serializer, min);
+  }
+}
+
+export function applyNumericMaximumTransformOperationToLocalView(
+  transform: NumericMaximumTransformOperation,
+  previousValue: ProtoValue | null
+): ProtoValue {
+  if (!isNumber(previousValue)) {
+    return transform.operand;
+  }
+  const prev = asNumber(previousValue);
+  const oper = asNumber(transform.operand);
+  const max = Math.max(prev, oper);
+  if (isInteger(previousValue) && isInteger(transform.operand)) {
+    return toInteger(max);
+  } else {
+    return toDouble(transform.serializer, max);
   }
 }
 

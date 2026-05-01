@@ -24,6 +24,8 @@ import {
   DocumentData,
   DocumentSnapshot,
   enableNetwork,
+  maximum,
+  minimum,
   onSnapshot,
   serverTimestamp,
   setDoc,
@@ -239,6 +241,75 @@ apiDescribe('Numeric Transforms:', persistence => {
 
       snap = await accumulator.awaitRemoteEvent();
       expect(snap.get('val')).to.equal(1);
+    });
+  });
+  it('create document with minimum', async () => {
+    await withTestSetup(async () => {
+      await setDoc(docRef, { sum: minimum(42) });
+      await expectLocalAndRemoteValue(42);
+    });
+  });
+
+  it('create document with maximum', async () => {
+    await withTestSetup(async () => {
+      await setDoc(docRef, { sum: maximum(42) });
+      await expectLocalAndRemoteValue(42);
+    });
+  });
+
+  it('minimum applies to existing value', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 2 });
+      await updateDoc(docRef, 'sum', minimum(1));
+      await expectLocalAndRemoteValue(1);
+    });
+  });
+
+  it('maximum applies to existing value', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 1 });
+      await updateDoc(docRef, 'sum', maximum(2));
+      await expectLocalAndRemoteValue(2);
+    });
+  });
+
+  it('minimum with disableNetwork', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 2 });
+
+      await disableNetwork(db);
+
+      /* eslint-disable @typescript-eslint/no-floating-promises */
+      updateDoc(docRef, 'sum', minimum(1));
+      /* eslint-enable @typescript-eslint/no-floating-promises */
+
+      let snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('sum')).to.equal(1);
+
+      await enableNetwork(db);
+
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('sum')).to.equal(1);
+    });
+  });
+
+  it('maximum with disableNetwork', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 1 });
+
+      await disableNetwork(db);
+
+      /* eslint-disable @typescript-eslint/no-floating-promises */
+      updateDoc(docRef, 'sum', maximum(2));
+      /* eslint-enable @typescript-eslint/no-floating-promises */
+
+      let snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('sum')).to.equal(2);
+
+      await enableNetwork(db);
+
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('sum')).to.equal(2);
     });
   });
 });

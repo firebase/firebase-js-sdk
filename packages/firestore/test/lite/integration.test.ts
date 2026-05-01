@@ -42,6 +42,8 @@ import {
   arrayUnion,
   deleteField,
   increment,
+  maximum,
+  minimum,
   serverTimestamp,
   vector
 } from '../../src/lite-api/field_value_impl';
@@ -915,6 +917,15 @@ describe('FieldValue', () => {
     expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
     expect(increment(1).isEqual(increment(1))).to.be.true;
     expect(increment(1).isEqual(increment(2))).to.be.false;
+    
+    expect(minimum(1).isEqual(minimum(1))).to.be.true;
+    expect(minimum(1).isEqual(minimum(2))).to.be.false;
+    expect(maximum(1).isEqual(maximum(1))).to.be.true;
+    expect(maximum(1).isEqual(maximum(2))).to.be.false;
+    
+    // Test NaN equality
+    expect(minimum(NaN).isEqual(minimum(NaN))).to.be.true;
+    expect(maximum(NaN).isEqual(maximum(NaN))).to.be.true;
   });
 
   it('support instanceof checks', () => {
@@ -923,6 +934,8 @@ describe('FieldValue', () => {
     expect(increment(1)).to.be.an.instanceOf(FieldValue);
     expect(arrayUnion('a')).to.be.an.instanceOf(FieldValue);
     expect(arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+    expect(minimum(1)).to.be.an.instanceOf(FieldValue);
+    expect(maximum(1)).to.be.an.instanceOf(FieldValue);
   });
 
   it('can apply arrayUnion', () => {
@@ -949,6 +962,54 @@ describe('FieldValue', () => {
       await updateDoc(docRef, 'val', serverTimestamp());
       const snap = await getDoc(docRef);
       expect(snap.get('val')).to.be.an.instanceOf(Timestamp);
+    });
+  });
+
+  it('can apply minimum', () => {
+    return withTestDocAndInitialData({ 'val': 2 }, async docRef => {
+      await updateDoc(docRef, 'val', minimum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
+    });
+  });
+
+  it('can apply minimum (noop)', () => {
+    return withTestDocAndInitialData({ 'val': 1 }, async docRef => {
+      await updateDoc(docRef, 'val', minimum(2));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
+    });
+  });
+
+  it('can apply maximum', () => {
+    return withTestDocAndInitialData({ 'val': 1 }, async docRef => {
+      await updateDoc(docRef, 'val', maximum(2));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 2 });
+    });
+  });
+
+  it('can apply maximum (noop)', () => {
+    return withTestDocAndInitialData({ 'val': 2 }, async docRef => {
+      await updateDoc(docRef, 'val', maximum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 2 });
+    });
+  });
+
+  it('can apply minimum against non-numeric', () => {
+    return withTestDocAndInitialData({ 'val': 'string' }, async docRef => {
+      await updateDoc(docRef, 'val', minimum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
+    });
+  });
+
+  it('can apply maximum against non-numeric', () => {
+    return withTestDocAndInitialData({ 'val': 'string' }, async docRef => {
+      await updateDoc(docRef, 'val', maximum(1));
+      const snap = await getDoc(docRef);
+      expect(snap.data()).to.deep.equal({ 'val': 1 });
     });
   });
 
