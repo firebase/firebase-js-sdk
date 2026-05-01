@@ -158,7 +158,12 @@ export class GenerativeModel extends AIModel {
          * StartChatParams. For example, if startChatParams.generationConfig is set, it'll override
          * this.generationConfig.
          */
-        ...startChatParams
+        ...startChatParams,
+        // Ensure systemInstruction is always normalized to a Content object,
+        // even if a raw string or Part was passed in startChatParams.
+        systemInstruction: formatSystemInstruction(
+          startChatParams?.systemInstruction ?? this.systemInstruction
+        )
       },
       this.requestOptions
     );
