@@ -109,6 +109,9 @@ export interface MessagePayload {
 /**
  * Options for {@link getToken}.
  *
+ * @deprecated Use {@link RegisterOptions} with {@link register} and {@link onRegistered}
+ * instead of {@link getToken}.
+ *
  * @public
  */
 export interface GetTokenOptions {

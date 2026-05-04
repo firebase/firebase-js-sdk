@@ -200,7 +200,7 @@ async function parseCreateRegistrationSuccessFid(
 
 const REGISTRATIONS_NAME_SEGMENT = '/registrations/';
 
-/** Extracts the Firebase Installation ID from `name` (resource path or legacy plain FID). */
+/** Extracts the Firebase Installation ID from CreateRegistration `name` (resource path). */
 function parseFidFromRegistrationResourceName(name: string): string {
   const segmentIndex = name.indexOf(REGISTRATIONS_NAME_SEGMENT);
   if (segmentIndex !== -1) {
@@ -208,9 +208,6 @@ function parseFidFromRegistrationResourceName(name: string): string {
     if (fid.length > 0) {
       return fid;
     }
-  }
-  if (!name.includes('/')) {
-    return name;
   }
   throw ERROR_FACTORY.create(ErrorCode.FID_REGISTRATION_FAILED, {
     errorInfo:
