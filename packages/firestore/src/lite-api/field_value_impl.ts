@@ -119,7 +119,7 @@ export function minimum(n: number): FieldValue {
  * @firebase/firestore/lite#(updateDoc:1)} that tells the server to set the field to the numeric maximum of the
  * field's current and the given value.
  *
- * @param n - The value to compare to the exiting field value.
+ * @param n - The value to compare to the existing field value.
  * @returns The `FieldValue` sentinel for use in a call to `setDoc()` or
  * `updateDoc()`
  */
