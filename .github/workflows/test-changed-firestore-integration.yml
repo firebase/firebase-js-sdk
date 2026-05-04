@@ -47,9 +47,11 @@ jobs:
     - name: Terraform Init
       if: ${{ fromJSON(env.run_terraform_steps) }}
       run: |
-        cp config/ci.config.json config/project.json
+        echo "$CI_PROJECT" > config/project.json
         cd packages/firestore
         terraform init
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
       continue-on-error: true
     - name: Terraform Apply
       if: github.event_name == 'pull_request' && fromJSON(env.run_terraform_steps)

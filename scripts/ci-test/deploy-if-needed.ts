@@ -22,7 +22,7 @@ import { exec } from 'child-process-promise';
 const firebaseTools = require('firebase-tools');
 
 const root = resolve(__dirname, '../..');
-const config = require(resolve(root, 'config/ci.config.json'));
+const config = require(resolve(root, 'config/project.json'));
 const git = simpleGit(root);
 
 interface DeployOptions {

@@ -41,8 +41,10 @@ jobs:
         sudo apt-get install google-chrome-stable
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo "$CI_PROJECT" > config/project.json
         yarn
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
     - name: build
       run: yarn build:changed misc
     - name: Run tests
