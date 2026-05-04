@@ -24,14 +24,22 @@ import {
   getFakeLogEvent,
   getSuccessResponse
 } from '../testing/fakes/logging-object';
-import { restore, stub } from 'sinon';
+import { restore, stub, useFakeTimers } from 'sinon';
 
-import { MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST } from '../util/constants';
+import { _setDeliveryMetricsExportedToBigQueryEnabled } from '../api/setDeliveryMetricsExportedToBigQueryEnabled';
+import { MessagePayloadInternal } from '../interfaces/internal-message-payload';
+import {
+  LOG_INTERVAL_IN_MS,
+  MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
+} from '../util/constants';
 import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
 import { getFakeMessagingService } from '../testing/fakes/messaging-service';
 
 const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
+
+/** Enough fake time for INITIAL_LOG_FLUSH_DELAY_MS (0) timers + fetch microtasks */
+const INITIAL_FLUSH_FAKE_TICK_MS = 10;
 
 const FCM_TRANSPORT_KEY = LogModule._mergeStrings(
   'AzSCbw63g1R0nCw85jG8',
@@ -210,6 +218,75 @@ describe('logToFirelog', () => {
         expect(messaging.logEvents.length).to.equal(0);
         done();
       }, 1000);
+    });
+  });
+
+  describe('startLoggingService', () => {
+    it('dispatches first queued batch promptly', async () => {
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+      messaging.logEvents.push(getFakeLogEvent());
+
+      LogModule.startLoggingService(messaging);
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.have.been.called;
+      expect(messaging.logEvents).to.be.empty;
+    });
+
+    it('after first flush, waits LOG_INTERVAL_IN_MS before next dispatch', async () => {
+      const clock = useFakeTimers();
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+      messaging.logEvents.push(getFakeLogEvent());
+
+      LogModule.startLoggingService(messaging);
+      await clock.tickAsync(INITIAL_FLUSH_FAKE_TICK_MS);
+      expect(fetchStub).to.have.been.calledOnce;
+
+      messaging.logEvents.push(getFakeLogEvent());
+      await clock.tickAsync(LOG_INTERVAL_IN_MS);
+      expect(fetchStub).to.have.been.calledTwice;
+      expect(messaging.logEvents).to.be.empty;
+
+      clock.restore();
+    });
+  });
+
+  describe('stageLog', () => {
+    it('starts logging service so first delivery metrics flush promptly', async () => {
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+
+      const internalPayload: MessagePayloadInternal = {
+        from: '1234567890',
+        fcmMessageId: 'mid',
+        productId: 0,
+        notification: { title: 't' },
+        /* eslint-disable camelcase */
+        collapse_key: ''
+        /* eslint-enable camelcase */
+      };
+
+      await LogModule.stageLog(messaging, internalPayload);
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.have.been.called;
+      expect(messaging.logEvents).to.be.empty;
+    });
+  });
+
+  describe('_setDeliveryMetricsExportedToBigQueryEnabled integration', () => {
+    it('starts logging service when enabling export', async () => {
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.logEvents.push(getFakeLogEvent());
+
+      _setDeliveryMetricsExportedToBigQueryEnabled(messaging, true);
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.have.been.called;
+      expect(messaging.logEvents).to.be.empty;
+      expect(messaging.deliveryMetricsExportedToBigQueryEnabled).to.be.true;
     });
   });
 });

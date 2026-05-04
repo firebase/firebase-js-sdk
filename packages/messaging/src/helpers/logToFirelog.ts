@@ -38,6 +38,9 @@ import { MessagingService } from '../messaging-service';
 
 const LOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
 
+/** First flush ASAP (next timer turn); `_dispatchLogEvents` reschedules with `LOG_INTERVAL_IN_MS`. */
+const INITIAL_LOG_FLUSH_DELAY_MS = 0;
+
 const FCM_TRANSPORT_KEY = _mergeStrings(
   'AzSCbw63g1R0nCw85jG8',
   'Iaya3yLKwmgvh7cF0q4'
@@ -45,7 +48,7 @@ const FCM_TRANSPORT_KEY = _mergeStrings(
 
 export function startLoggingService(messaging: MessagingService): void {
   if (!messaging.isLogServiceStarted) {
-    _processQueue(messaging, LOG_INTERVAL_IN_MS);
+    _processQueue(messaging, INITIAL_LOG_FLUSH_DELAY_MS);
     messaging.isLogServiceStarted = true;
   }
 }
@@ -161,6 +164,7 @@ export async function stageLog(
   );
 
   createAndEnqueueLogEvent(messaging, fcmEvent, internalPayload.productId);
+  startLoggingService(messaging);
 }
 
 function createFcmEvent(
