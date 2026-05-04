@@ -189,7 +189,7 @@ export function onBackgroundMessage(
  * supports FID as a target.
  *
  * @param messaging - The {@link Messaging} instance.
- * @param options - Optional. VAPID key and/or service worker registration (same shape as {@link RegisterOptions}).
+ * @param options - Optional. VAPID key and/or service worker registration (same as getToken).
  * @returns Promise that resolves when registration has been initiated; FID is delivered via onRegistered.
  *
  * @public
