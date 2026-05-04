@@ -17,15 +17,21 @@
 
 import { FirestoreError } from '../api';
 import { ParseContext } from '../api/parse_context';
+import { OptionsUtil } from '../core/options_util';
 import {
   DOCUMENT_KEY_NAME,
   FieldPath as InternalFieldPath
 } from '../model/path';
-import { Value as ProtoValue } from '../protos/firestore_proto_api';
+import {
+  ApiClientObjectMap,
+  firestoreV1ApiClientInterfaces,
+  Value as ProtoValue
+} from '../protos/firestore_proto_api';
 import {
   JsonProtoSerializer,
   ProtoValueSerializable,
   toMapValue,
+  toPipelineValue,
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
@@ -37,13 +43,13 @@ import { Bytes } from './bytes';
 import { documentId as documentIdFieldPath, FieldPath } from './field_path';
 import { vector } from './field_value_impl';
 import { GeoPoint } from './geo_point';
+import type { Pipeline } from './pipeline';
 import { DocumentReference } from './reference';
 import { Timestamp } from './timestamp';
 import { fieldPathFromArgument, parseData, UserData } from './user_data_reader';
 import { VectorValue } from './vector_value';
 
 /**
- * @beta
  *
  * An enumeration of the different types of expressions.
  */
@@ -53,10 +59,12 @@ export type ExpressionType =
   | 'Function'
   | 'AggregateFunction'
   | 'ListOfExpressions'
-  | 'AliasedExpression';
+  | 'AliasedExpression'
+  | 'Variable'
+  | 'PipelineValue';
 
 /**
- * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  *
  * @private
@@ -79,7 +87,7 @@ function valueToDefaultExpr(value: unknown): Expression {
 }
 
 /**
- * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  *
  * @private
@@ -99,7 +107,7 @@ function vectorToExpr(value: VectorValue | number[] | Expression): Expression {
 }
 
 /**
- * Converts a value to an Expr, Returning either a Constant, MapFunction,
+ * Converts a value to an Expression, Returning either a Constant, MapFunction,
  * ArrayFunction, or the input itself (if it's already an expression).
  * If the input is a string, it is assumed to be a field name, and a
  * field(value) is returned.
@@ -116,12 +124,10 @@ function fieldOrExpression(value: unknown): Expression {
     return valueToDefaultExpr(value);
   }
 }
-
 /**
- * @beta
  *
  * Represents an expression that can be evaluated to a value within the execution of a {@link
- * Pipeline}.
+ * @firebase/firestore/pipelines#Pipeline}.
  *
  * Expressions are the building blocks for creating complex queries and transformations in
  * Firestore pipelines. They can represent:
@@ -130,7 +136,7 @@ function fieldOrExpression(value: unknown): Expression {
  * - **Literals:** Represent constant values (strings, numbers, booleans).
  * - **Function calls:** Apply functions to one or more expressions.
  *
- * The `Expr` class provides a fluent API for building expressions. You can chain together
+ * The `Expression` class provides a fluent API for building expressions. You can chain together
  * method calls to create complex expressions.
  */
 export abstract class Expression implements ProtoValueSerializable, UserData {
@@ -154,14 +160,15 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   /**
    * Creates an expression that adds this expression to another expression.
    *
+   * @example
    * ```typescript
    * // Add the value of the 'quantity' field and the 'reserve' field.
    * field("quantity").add(field("reserve"));
    * ```
    *
-   * @param second The expression or literal to add to this expression.
-   * @param others Optional additional expressions or literals to add to this expression.
-   * @return A new `Expr` representing the addition operation.
+   * @param second - The expression or literal to add to this expression.
+   * @param others - Optional additional expressions or literals to add to this expression.
+   * @returns A new `Expression` representing the addition operation.
    */
   add(second: Expression | unknown): FunctionExpression {
     return new FunctionExpression(
@@ -172,10 +179,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Wraps the expression in a [BooleanExpression].
    *
-   * @return A [BooleanExpression] representing the same expression.
+   * @returns A [BooleanExpression] representing the same expression.
    */
   asBoolean(): BooleanExpression {
     if (this instanceof BooleanExpression) {
@@ -195,30 +201,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that subtracts another expression from this expression.
    *
+   * @example
    * ```typescript
    * // Subtract the 'discount' field from the 'price' field
    * field("price").subtract(field("discount"));
    * ```
    *
-   * @param subtrahend The expression to subtract from this expression.
-   * @return A new `Expr` representing the subtraction operation.
+   * @param subtrahend - The expression to subtract from this expression.
+   * @returns A new `Expression` representing the subtraction operation.
    */
   subtract(subtrahend: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that subtracts a constant value from this expression.
    *
+   * @example
    * ```typescript
    * // Subtract 20 from the value of the 'total' field
    * field("total").subtract(20);
    * ```
    *
-   * @param subtrahend The constant value to subtract.
-   * @return A new `Expr` representing the subtraction operation.
+   * @param subtrahend - The constant value to subtract.
+   * @returns A new `Expression` representing the subtraction operation.
    */
   subtract(subtrahend: number): FunctionExpression;
   subtract(subtrahend: number | Expression): FunctionExpression {
@@ -230,17 +236,17 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that multiplies this expression by another expression.
    *
+   * @example
    * ```typescript
    * // Multiply the 'quantity' field by the 'price' field
    * field("quantity").multiply(field("price"));
    * ```
    *
-   * @param second The second expression or literal to multiply by.
-   * @param others Optional additional expressions or literals to multiply by.
-   * @return A new `Expr` representing the multiplication operation.
+   * @param second - The second expression or literal to multiply by.
+   * @param others - Optional additional expressions or literals to multiply by.
+   * @returns A new `Expression` representing the multiplication operation.
    */
   multiply(second: Expression | number): FunctionExpression {
     return new FunctionExpression(
@@ -251,30 +257,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that divides this expression by another expression.
    *
+   * @example
    * ```typescript
    * // Divide the 'total' field by the 'count' field
    * field("total").divide(field("count"));
    * ```
    *
-   * @param divisor The expression to divide by.
-   * @return A new `Expr` representing the division operation.
+   * @param divisor - The expression to divide by.
+   * @returns A new `Expression` representing the division operation.
    */
   divide(divisor: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that divides this expression by a constant value.
    *
+   * @example
    * ```typescript
    * // Divide the 'value' field by 10
    * field("value").divide(10);
    * ```
    *
-   * @param divisor The constant value to divide by.
-   * @return A new `Expr` representing the division operation.
+   * @param divisor - The constant value to divide by.
+   * @returns A new `Expression` representing the division operation.
    */
   divide(divisor: number): FunctionExpression;
   divide(divisor: number | Expression): FunctionExpression {
@@ -286,30 +292,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by another expression.
    *
+   * @example
    * ```typescript
    * // Calculate the remainder of dividing the 'value' field by the 'divisor' field
    * field("value").mod(field("divisor"));
    * ```
    *
-   * @param expression The expression to divide by.
-   * @return A new `Expr` representing the modulo operation.
+   * @param expression - The expression to divide by.
+   * @returns A new `Expression` representing the modulo operation.
    */
   mod(expression: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that calculates the modulo (remainder) of dividing this expression by a constant value.
    *
+   * @example
    * ```typescript
    * // Calculate the remainder of dividing the 'value' field by 10
    * field("value").mod(10);
    * ```
    *
-   * @param value The constant value to divide by.
-   * @return A new `Expr` representing the modulo operation.
+   * @param value - The constant value to divide by.
+   * @returns A new `Expression` representing the modulo operation.
    */
   mod(value: number): FunctionExpression;
   mod(other: number | Expression): FunctionExpression {
@@ -321,30 +327,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is equal to another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'age' field is equal to 21
    * field("age").equal(21);
    * ```
    *
-   * @param expression The expression to compare for equality.
-   * @return A new `Expr` representing the equality comparison.
+   * @param expression - The expression to compare for equality.
+   * @returns A new `Expression` representing the equality comparison.
    */
   equal(expression: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is equal to a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'city' field is equal to "London"
    * field("city").equal("London");
    * ```
    *
-   * @param value The constant value to compare for equality.
-   * @return A new `Expr` representing the equality comparison.
+   * @param value - The constant value to compare for equality.
+   * @returns A new `Expression` representing the equality comparison.
    */
   equal(value: unknown): BooleanExpression;
   equal(other: unknown): BooleanExpression {
@@ -356,30 +362,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is not equal to another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'status' field is not equal to "completed"
    * field("status").notEqual("completed");
    * ```
    *
-   * @param expression The expression to compare for inequality.
-   * @return A new `Expr` representing the inequality comparison.
+   * @param expression - The expression to compare for inequality.
+   * @returns A new `Expression` representing the inequality comparison.
    */
   notEqual(expression: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is not equal to a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'country' field is not equal to "USA"
    * field("country").notEqual("USA");
    * ```
    *
-   * @param value The constant value to compare for inequality.
-   * @return A new `Expr` representing the inequality comparison.
+   * @param value - The constant value to compare for inequality.
+   * @returns A new `Expression` representing the inequality comparison.
    */
   notEqual(value: unknown): BooleanExpression;
   notEqual(other: unknown): BooleanExpression {
@@ -391,30 +397,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is less than another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'age' field is less than 'limit'
    * field("age").lessThan(field('limit'));
    * ```
    *
-   * @param experession The expression to compare for less than.
-   * @return A new `Expr` representing the less than comparison.
+   * @param experession - The expression to compare for less than.
+   * @returns A new `Expression` representing the less than comparison.
    */
   lessThan(experession: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is less than a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'price' field is less than 50
    * field("price").lessThan(50);
    * ```
    *
-   * @param value The constant value to compare for less than.
-   * @return A new `Expr` representing the less than comparison.
+   * @param value - The constant value to compare for less than.
+   * @returns A new `Expression` representing the less than comparison.
    */
   lessThan(value: unknown): BooleanExpression;
   lessThan(other: unknown): BooleanExpression {
@@ -426,31 +432,31 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is less than or equal to another
    * expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'quantity' field is less than or equal to 20
    * field("quantity").lessThan(constant(20));
    * ```
    *
-   * @param expression The expression to compare for less than or equal to.
-   * @return A new `Expr` representing the less than or equal to comparison.
+   * @param expression - The expression to compare for less than or equal to.
+   * @returns A new `Expression` representing the less than or equal to comparison.
    */
   lessThanOrEqual(expression: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is less than or equal to a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'score' field is less than or equal to 70
    * field("score").lessThan(70);
    * ```
    *
-   * @param value The constant value to compare for less than or equal to.
-   * @return A new `Expr` representing the less than or equal to comparison.
+   * @param value - The constant value to compare for less than or equal to.
+   * @returns A new `Expression` representing the less than or equal to comparison.
    */
   lessThanOrEqual(value: unknown): BooleanExpression;
   lessThanOrEqual(other: unknown): BooleanExpression {
@@ -462,30 +468,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is greater than another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'age' field is greater than the 'limit' field
    * field("age").greaterThan(field("limit"));
    * ```
    *
-   * @param expression The expression to compare for greater than.
-   * @return A new `Expr` representing the greater than comparison.
+   * @param expression - The expression to compare for greater than.
+   * @returns A new `Expression` representing the greater than comparison.
    */
   greaterThan(expression: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is greater than a constant value.
    *
+   * @example
    * ```typescript
    * // Check if the 'price' field is greater than 100
    * field("price").greaterThan(100);
    * ```
    *
-   * @param value The constant value to compare for greater than.
-   * @return A new `Expr` representing the greater than comparison.
+   * @param value - The constant value to compare for greater than.
+   * @returns A new `Expression` representing the greater than comparison.
    */
   greaterThan(value: unknown): BooleanExpression;
   greaterThan(other: unknown): BooleanExpression {
@@ -497,32 +503,32 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is greater than or equal to another
    * expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'quantity' field is greater than or equal to field 'requirement' plus 1
    * field("quantity").greaterThanOrEqual(field('requirement').add(1));
    * ```
    *
-   * @param expression The expression to compare for greater than or equal to.
-   * @return A new `Expr` representing the greater than or equal to comparison.
+   * @param expression - The expression to compare for greater than or equal to.
+   * @returns A new `Expression` representing the greater than or equal to comparison.
    */
   greaterThanOrEqual(expression: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is greater than or equal to a constant
    * value.
    *
+   * @example
    * ```typescript
    * // Check if the 'score' field is greater than or equal to 80
    * field("score").greaterThanOrEqual(80);
    * ```
    *
-   * @param value The constant value to compare for greater than or equal to.
-   * @return A new `Expr` representing the greater than or equal to comparison.
+   * @param value - The constant value to compare for greater than or equal to.
+   * @returns A new `Expression` representing the greater than or equal to comparison.
    */
   greaterThanOrEqual(value: unknown): BooleanExpression;
   greaterThanOrEqual(other: unknown): BooleanExpression {
@@ -534,16 +540,16 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that concatenates an array expression with one or more other arrays.
    *
+   * @example
    * ```typescript
    * // Combine the 'items' array with another array field.
    * field("items").arrayConcat(field("otherItems"));
    * ```
-   * @param secondArray Second array expression or array literal to concatenate.
-   * @param otherArrays Optional additional array expressions or array literals to concatenate.
-   * @return A new `Expr` representing the concatenated array.
+   * @param secondArray - Second array expression or array literal to concatenate.
+   * @param otherArrays - Optional additional array expressions or array literals to concatenate.
+   * @returns A new `Expression` representing the concatenated array.
    */
   arrayConcat(
     secondArray: Expression | unknown[],
@@ -559,30 +565,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if an array contains a specific element.
    *
+   * @example
    * ```typescript
    * // Check if the 'sizes' array contains the value from the 'selectedSize' field
    * field("sizes").arrayContains(field("selectedSize"));
    * ```
    *
-   * @param expression The element to search for in the array.
-   * @return A new `Expr` representing the 'array_contains' comparison.
+   * @param expression - The element to search for in the array.
+   * @returns A new `Expression` representing the 'array_contains' comparison.
    */
   arrayContains(expression: Expression): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if an array contains a specific value.
    *
+   * @example
    * ```typescript
    * // Check if the 'colors' array contains "red"
    * field("colors").arrayContains("red");
    * ```
    *
-   * @param value The element to search for in the array.
-   * @return A new `Expr` representing the 'array_contains' comparison.
+   * @param value - The element to search for in the array.
+   * @returns A new `Expression` representing the 'array_contains' comparison.
    */
   arrayContains(value: unknown): BooleanExpression;
   arrayContains(element: unknown): BooleanExpression {
@@ -594,30 +600,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if an array contains all the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'tags' array contains both the value in field "tag1" and the literal value "tag2"
    * field("tags").arrayContainsAll([field("tag1"), "tag2"]);
    * ```
    *
-   * @param values The elements to check for in the array.
-   * @return A new `Expr` representing the 'array_contains_all' comparison.
+   * @param values - The elements to check for in the array.
+   * @returns A new `Expression` representing the 'array_contains_all' comparison.
    */
   arrayContainsAll(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if an array contains all the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'tags' array contains both of the values from field "tag1" and the literal value "tag2"
    * field("tags").arrayContainsAll(array([field("tag1"), "tag2"]));
    * ```
    *
-   * @param arrayExpression The elements to check for in the array.
-   * @return A new `Expr` representing the 'array_contains_all' comparison.
+   * @param arrayExpression - The elements to check for in the array.
+   * @returns A new `Expression` representing the 'array_contains_all' comparison.
    */
   arrayContainsAll(arrayExpression: Expression): BooleanExpression;
   arrayContainsAll(values: unknown[] | Expression): BooleanExpression {
@@ -632,31 +638,31 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if an array contains any of the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'categories' array contains either values from field "cate1" or "cate2"
    * field("categories").arrayContainsAny([field("cate1"), field("cate2")]);
    * ```
    *
-   * @param values The elements to check for in the array.
-   * @return A new `Expr` representing the 'array_contains_any' comparison.
+   * @param values - The elements to check for in the array.
+   * @returns A new `Expression` representing the 'array_contains_any' comparison.
    */
   arrayContainsAny(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if an array contains any of the specified elements.
    *
+   * @example
    * ```typescript
    * // Check if the 'groups' array contains either the value from the 'userGroup' field
    * // or the value "guest"
    * field("groups").arrayContainsAny(array([field("userGroup"), "guest"]));
    * ```
    *
-   * @param arrayExpression The elements to check for in the array.
-   * @return A new `Expr` representing the 'array_contains_any' comparison.
+   * @param arrayExpression - The elements to check for in the array.
+   * @returns A new `Expression` representing the 'array_contains_any' comparison.
    */
   arrayContainsAny(arrayExpression: Expression): BooleanExpression;
   arrayContainsAny(
@@ -673,62 +679,62 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that reverses an array.
    *
+   * @example
    * ```typescript
    * // Reverse the value of the 'myArray' field.
    * field("myArray").arrayReverse();
    * ```
    *
-   * @return A new {@code Expr} representing the reversed array.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed array.
    */
   arrayReverse(): FunctionExpression {
     return new FunctionExpression('array_reverse', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that calculates the length of an array.
    *
+   * @example
    * ```typescript
    * // Get the number of items in the 'cart' array
    * field("cart").arrayLength();
    * ```
    *
-   * @return A new `Expr` representing the length of the array.
+   * @returns A new `Expression` representing the length of the array.
    */
   arrayLength(): FunctionExpression {
     return new FunctionExpression('array_length', [this], 'arrayLength');
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
    *
+   * @example
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
-   * field("category").equalAny("Electronics", field("primaryType"));
+   * field("category").equalAny(["Electronics", field("primaryType")]);
    * ```
    *
-   * @param values The values or expressions to check against.
-   * @return A new `Expr` representing the 'IN' comparison.
+   * @param values - The values or expressions to check against.
+   * @returns A new `Expression` representing the 'IN' comparison.
    */
   equalAny(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is equal to any of the provided values or
    * expressions.
    *
+   * @example
    * ```typescript
    * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
    * field("category").equalAny(array(["Electronics", field("primaryType")]));
    * ```
    *
-   * @param arrayExpression An expression that evaluates to an array of values to check against.
-   * @return A new `Expr` representing the 'IN' comparison.
+   * @param arrayExpression - An expression that evaluates to an array of values to check against.
+   * @returns A new `Expression` representing the 'IN' comparison.
    */
   equalAny(arrayExpression: Expression): BooleanExpression;
   equalAny(others: unknown[] | Expression): BooleanExpression {
@@ -743,31 +749,31 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is not equal to any of the provided values or
    * expressions.
    *
+   * @example
    * ```typescript
    * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
    * field("status").notEqualAny(["pending", field("rejectedStatus")]);
    * ```
    *
-   * @param values The values or expressions to check against.
-   * @return A new `Expr` representing the 'notEqualAny' comparison.
+   * @param values - The values or expressions to check against.
+   * @returns A new `Expression` representing the 'notEqualAny' comparison.
    */
   notEqualAny(values: Array<Expression | unknown>): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if this expression is not equal to any of the values in the evaluated expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
    * field("status").notEqualAny(field('rejectedStatuses'));
    * ```
    *
-   * @param arrayExpression The values or expressions to check against.
-   * @return A new `Expr` representing the 'notEqualAny' comparison.
+   * @param arrayExpression - The values or expressions to check against.
+   * @returns A new `Expression` representing the 'notEqualAny' comparison.
    */
   notEqualAny(arrayExpression: Expression): BooleanExpression;
   notEqualAny(others: unknown[] | Expression): BooleanExpression {
@@ -782,60 +788,60 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if a field exists in the document.
    *
+   * @example
    * ```typescript
    * // Check if the document has a field named "phoneNumber"
    * field("phoneNumber").exists();
    * ```
    *
-   * @return A new `Expr` representing the 'exists' check.
+   * @returns A new `Expression` representing the 'exists' check.
    */
   exists(): BooleanExpression {
     return new FunctionExpression('exists', [this], 'exists').asBoolean();
   }
 
   /**
-   * @beta
    * Creates an expression that calculates the character length of a string in UTF-8.
    *
+   * @example
    * ```typescript
    * // Get the character length of the 'name' field in its UTF-8 form.
    * field("name").charLength();
    * ```
    *
-   * @return A new `Expr` representing the length of the string.
+   * @returns A new `Expression` representing the length of the string.
    */
   charLength(): FunctionExpression {
     return new FunctionExpression('char_length', [this], 'charLength');
   }
 
   /**
-   * @beta
    * Creates an expression that performs a case-sensitive string comparison.
    *
+   * @example
    * ```typescript
    * // Check if the 'title' field contains the word "guide" (case-sensitive)
    * field("title").like("%guide%");
    * ```
    *
-   * @param pattern The pattern to search for. You can use "%" as a wildcard character.
-   * @return A new `Expr` representing the 'like' comparison.
+   * @param pattern - The pattern to search for. You can use "%" as a wildcard character.
+   * @returns A new `Expression` representing the 'like' comparison.
    */
   like(pattern: string): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that performs a case-sensitive string comparison.
    *
+   * @example
    * ```typescript
    * // Check if the 'title' field contains the word "guide" (case-sensitive)
    * field("title").like("%guide%");
    * ```
    *
-   * @param pattern The pattern to search for. You can use "%" as a wildcard character.
-   * @return A new `Expr` representing the 'like' comparison.
+   * @param pattern - The pattern to search for. You can use "%" as a wildcard character.
+   * @returns A new `Expression` representing the 'like' comparison.
    */
   like(pattern: Expression): BooleanExpression;
   like(stringOrExpr: string | Expression): BooleanExpression {
@@ -847,32 +853,32 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if a string contains a specified regular expression as a
    * substring.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains "example" (case-insensitive)
    * field("description").regexContains("(?i)example");
    * ```
    *
-   * @param pattern The regular expression to use for the search.
-   * @return A new `Expr` representing the 'contains' comparison.
+   * @param pattern - The regular expression to use for the search.
+   * @returns A new `Expression` representing the 'contains' comparison.
    */
   regexContains(pattern: string): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if a string contains a specified regular expression as a
    * substring.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains the regular expression stored in field 'regex'
    * field("description").regexContains(field("regex"));
    * ```
    *
-   * @param pattern The regular expression to use for the search.
-   * @return A new `Expr` representing the 'contains' comparison.
+   * @param pattern - The regular expression to use for the search.
+   * @returns A new `Expression` representing the 'contains' comparison.
    */
   regexContains(pattern: Expression): BooleanExpression;
   regexContains(stringOrExpr: string | Expression): BooleanExpression {
@@ -884,30 +890,114 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Creates an expression that returns the first substring of a string expression that matches
+   * a specified regular expression.
+   *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+   *
+   * @example
+   * ```typescript
+   * // Extract the domain from an email address
+   * field("email").regexFind("@.+")
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+   */
+  regexFind(pattern: string): FunctionExpression;
+
+  /**
+   * Creates an expression that returns the first substring of a string expression that matches
+   * a specified regular expression.
+   *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+   *
+   * @example
+   * ```typescript
+   * // Extract the domain from an email address
+   * field("email").regexFind(field("domain"))
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+   */
+  regexFind(pattern: Expression): FunctionExpression;
+  regexFind(stringOrExpr: string | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'regex_find',
+      [this, valueToDefaultExpr(stringOrExpr)],
+      'regexFind'
+    );
+  }
+
+  /**
+   *
+   * Creates an expression that evaluates to a list of all substrings in this string expression that
+   * match a specified regular expression.
+   *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+   *
+   * @example
+   * ```typescript
+   * // Extract all hashtags from a post content field
+   * field("content").regexFindAll("#[A-Za-z0-9_]+")
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} that evaluates to an array of matched substrings.
+   */
+  regexFindAll(pattern: string): FunctionExpression;
+
+  /**
+   *
+   * Creates an expression that evaluates to a list of all substrings in this string expression that
+   * match a specified regular expression.
+   *
+   * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+   *
+   * @example
+   * ```typescript
+   * // Extract all names from a post content field
+   * field("content").regexFindAll(field("names"))
+   * ```
+   *
+   * @param pattern - The regular expression to search for.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} that evaluates to an array of matched substrings.
+   */
+  regexFindAll(pattern: Expression): FunctionExpression;
+  regexFindAll(stringOrExpr: string | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'regex_find_all',
+      [this, valueToDefaultExpr(stringOrExpr)],
+      'regexFindAll'
+    );
+  }
+
+  /**
    * Creates an expression that checks if a string matches a specified regular expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'email' field matches a valid email pattern
    * field("email").regexMatch("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
    * ```
    *
-   * @param pattern The regular expression to use for the match.
-   * @return A new `Expr` representing the regular expression match.
+   * @param pattern - The regular expression to use for the match.
+   * @returns A new `Expression` representing the regular expression match.
    */
   regexMatch(pattern: string): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if a string matches a specified regular expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'email' field matches a regular expression stored in field 'regex'
    * field("email").regexMatch(field("regex"));
    * ```
    *
-   * @param pattern The regular expression to use for the match.
-   * @return A new `Expr` representing the regular expression match.
+   * @param pattern - The regular expression to use for the match.
+   * @returns A new `Expression` representing the regular expression match.
    */
   regexMatch(pattern: Expression): BooleanExpression;
   regexMatch(stringOrExpr: string | Expression): BooleanExpression {
@@ -919,30 +1009,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if a string contains a specified substring.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains "example".
    * field("description").stringContains("example");
    * ```
    *
-   * @param substring The substring to search for.
-   * @return A new `Expr` representing the 'contains' comparison.
+   * @param substring - The substring to search for.
+   * @returns A new `Expression` representing the 'contains' comparison.
    */
   stringContains(substring: string): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if a string contains the string represented by another expression.
    *
+   * @example
    * ```typescript
    * // Check if the 'description' field contains the value of the 'keyword' field.
    * field("description").stringContains(field("keyword"));
    * ```
    *
-   * @param expr The expression representing the substring to search for.
-   * @return A new `Expr` representing the 'contains' comparison.
+   * @param expr - The expression representing the substring to search for.
+   * @returns A new `Expression` representing the 'contains' comparison.
    */
   stringContains(expr: Expression): BooleanExpression;
   stringContains(stringOrExpr: string | Expression): BooleanExpression {
@@ -954,31 +1044,31 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if a string starts with a given prefix.
    *
+   * @example
    * ```typescript
    * // Check if the 'name' field starts with "Mr."
    * field("name").startsWith("Mr.");
    * ```
    *
-   * @param prefix The prefix to check for.
-   * @return A new `Expr` representing the 'starts with' comparison.
+   * @param prefix - The prefix to check for.
+   * @returns A new `Expression` representing the 'starts with' comparison.
    */
   startsWith(prefix: string): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if a string starts with a given prefix (represented as an
    * expression).
    *
+   * @example
    * ```typescript
    * // Check if the 'fullName' field starts with the value of the 'firstName' field
    * field("fullName").startsWith(field("firstName"));
    * ```
    *
-   * @param prefix The prefix expression to check for.
-   * @return A new `Expr` representing the 'starts with' comparison.
+   * @param prefix - The prefix expression to check for.
+   * @returns A new `Expression` representing the 'starts with' comparison.
    */
   startsWith(prefix: Expression): BooleanExpression;
   startsWith(stringOrExpr: string | Expression): BooleanExpression {
@@ -990,31 +1080,31 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that checks if a string ends with a given postfix.
    *
+   * @example
    * ```typescript
    * // Check if the 'filename' field ends with ".txt"
    * field("filename").endsWith(".txt");
    * ```
    *
-   * @param suffix The postfix to check for.
-   * @return A new `Expr` representing the 'ends with' comparison.
+   * @param suffix - The postfix to check for.
+   * @returns A new `Expression` representing the 'ends with' comparison.
    */
   endsWith(suffix: string): BooleanExpression;
 
   /**
-   * @beta
    * Creates an expression that checks if a string ends with a given postfix (represented as an
    * expression).
    *
+   * @example
    * ```typescript
    * // Check if the 'url' field ends with the value of the 'extension' field
    * field("url").endsWith(field("extension"));
    * ```
    *
-   * @param suffix The postfix expression to check for.
-   * @return A new `Expr` representing the 'ends with' comparison.
+   * @param suffix - The postfix expression to check for.
+   * @returns A new `Expression` representing the 'ends with' comparison.
    */
   endsWith(suffix: Expression): BooleanExpression;
   endsWith(stringOrExpr: string | Expression): BooleanExpression {
@@ -1026,39 +1116,39 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that converts a string to lowercase.
    *
+   * @example
    * ```typescript
    * // Convert the 'name' field to lowercase
    * field("name").toLower();
    * ```
    *
-   * @return A new `Expr` representing the lowercase string.
+   * @returns A new `Expression` representing the lowercase string.
    */
   toLower(): FunctionExpression {
     return new FunctionExpression('to_lower', [this], 'toLower');
   }
 
   /**
-   * @beta
    * Creates an expression that converts a string to uppercase.
    *
+   * @example
    * ```typescript
    * // Convert the 'title' field to uppercase
    * field("title").toUpper();
    * ```
    *
-   * @return A new `Expr` representing the uppercase string.
+   * @returns A new `Expression` representing the uppercase string.
    */
   toUpper(): FunctionExpression {
     return new FunctionExpression('to_upper', [this], 'toUpper');
   }
 
   /**
-   * @beta
    * Creates an expression that removes leading and trailing characters from a string or byte array.
    *
+   * @example
    * ```typescript
    * // Trim whitespace from the 'userInput' field
    * field("userInput").trim();
@@ -1066,9 +1156,9 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * // Trim quotes from the 'userInput' field
    * field("userInput").trim('"');
    * ```
-   * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+   * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
    * trimmed from the input. If not specified, then whitespace will be trimmed.
-   * @return A new `Expr` representing the trimmed string or byte array.
+   * @returns A new `Expression` representing the trimmed string or byte array.
    */
   trim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
     const args: Expression[] = [this];
@@ -1079,17 +1169,114 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the beginning of the 'userInput' field
+   * field("userInput").ltrim();
+   *
+   * // Trim quotes from the beginning of the 'userInput' field
+   * field("userInput").ltrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string.
+   */
+  ltrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('ltrim', args, 'ltrim');
+  }
+
+  /**
+   * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+   *
+   * @example
+   * ```typescript
+   * // Trim whitespace from the end of the 'userInput' field
+   * field("userInput").rtrim();
+   *
+   * // Trim quotes from the end of the 'userInput' field
+   * field("userInput").rtrim('"');
+   * ```
+   *
+   * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+   * If not specified, whitespace will be trimmed.
+   * @returns A new `Expression` representing the trimmed string or byte array.
+   */
+  rtrim(valueToTrim?: string | Expression | Bytes): FunctionExpression {
+    const args: Expression[] = [this];
+    if (valueToTrim) {
+      args.push(valueToDefaultExpr(valueToTrim));
+    }
+    return new FunctionExpression('rtrim', args, 'rtrim');
+  }
+
+  /**
+   * Creates an expression that returns the data type of this expression's result, as a string.
+   *
+   * @remarks
+   * This is evaluated on the backend. This means:
+   * 1. Generic typed elements (like `array<string>`) evaluate strictly to the primitive `'array'`.
+   * 2. Any custom `FirestoreDataConverter` mappings are ignored.
+   * 3. For numeric values, the backend does not yield the JavaScript `"number"` type; it evaluates
+   *    precisely as `"int64"` or `"float64"`.
+   * 4. For date or timestamp objects, the backend evaluates to `"timestamp"`.
+   *
+   * @example
+   * ```typescript
+   * // Get the data type of the value in field 'title'
+   * field('title').type()
+   * ```
+   *
+   * @returns A new `Expression` representing the data type.
+   */
+  type(): FunctionExpression {
+    return new FunctionExpression('type', [this]);
+  }
+
+  /**
+   * Creates an expression that checks if the result of this expression is of the given type.
+   *
+   * @remarks Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+   * Supported values for `type` are:
+   * `'null'`, `'array'`, `'boolean'`, `'bytes'`, `'timestamp'`, `'geo_point'`, `'number'`,
+   * `'int32'`, `'int64'`, `'float64'`, `'decimal128'`, `'map'`, `'reference'`, `'string'`,
+   * `'vector'`, `'max_key'`, `'min_key'`, `'object_id'`, `'regex'`, `'request_timestamp'`.
+   *
+   * @example
+   * ```typescript
+   * // Check if the 'price' field is specifically an integer (not just 'number')
+   * field('price').isType('int64');
+   * ```
+   *
+   * @param type - The type to check for.
+   * @returns A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+   */
+  isType(type: string): BooleanExpression {
+    return new FunctionExpression(
+      'is_type',
+      [this, constant(type)],
+      'isType'
+    ).asBoolean();
+  }
+
+  /**
    * Creates an expression that concatenates string expressions together.
    *
+   * @example
    * ```typescript
    * // Combine the 'firstName', " ", and 'lastName' fields into a single string
    * field("firstName").stringConcat(constant(" "), field("lastName"));
    * ```
    *
-   * @param secondString The additional expression or string literal to concatenate.
-   * @param otherStrings Optional additional expressions or string literals to concatenate.
-   * @return A new `Expr` representing the concatenated string.
+   * @param secondString - The additional expression or string literal to concatenate.
+   * @param otherStrings - Optional additional expressions or string literals to concatenate.
+   * @returns A new `Expression` representing the concatenated string.
    */
   stringConcat(
     secondString: Expression | string,
@@ -1105,17 +1292,105 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+   *
+   * @example
+   * ```typescript
+   * // Find the index of "foo" in the 'text' field
+   * field("text").stringIndexOf("foo");
+   * ```
+   *
+   * @param search - The substring or byte sequence to search for.
+   * @returns A new `Expression` representing the index of the first occurrence.
+   */
+  stringIndexOf(search: string | Expression | Bytes): FunctionExpression {
+    return new FunctionExpression(
+      'string_index_of',
+      [this, valueToDefaultExpr(search)],
+      'stringIndexOf'
+    );
+  }
+
+  /**
+   * Creates an expression that repeats a string or byte array a specified number of times.
+   *
+   * @example
+   * ```typescript
+   * // Repeat the 'label' field 3 times
+   * field("label").stringRepeat(3);
+   * ```
+   *
+   * @param repetitions - The number of times to repeat the string or byte array.
+   * @returns A new `Expression` representing the repeated string or byte array.
+   */
+  stringRepeat(repetitions: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'string_repeat',
+      [this, valueToDefaultExpr(repetitions)],
+      'stringRepeat'
+    );
+  }
+
+  /**
+   * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+   *
+   * @example
+   * ```typescript
+   * // Replace all occurrences of "foo" with "bar" in the 'text' field
+   * field("text").stringReplaceAll("foo", "bar");
+   * ```
+   *
+   * @param find - The substring or byte sequence to search for.
+   * @param replacement - The replacement string or byte sequence.
+   * @returns A new `Expression` representing the string or byte array with replacements.
+   */
+  stringReplaceAll(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'string_replace_all',
+      [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
+      'stringReplaceAll'
+    );
+  }
+
+  /**
+   * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+   *
+   * @example
+   * ```typescript
+   * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+   * field("text").stringReplaceOne("foo", "bar");
+   * ```
+   *
+   * @param find - The substring or byte sequence to search for.
+   * @param replacement - The replacement string or byte sequence.
+   * @returns A new `Expression` representing the string or byte array with the replacement.
+   */
+  stringReplaceOne(
+    find: string | Expression | Bytes,
+    replacement: string | Expression | Bytes
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'string_replace_one',
+      [this, valueToDefaultExpr(find), valueToDefaultExpr(replacement)],
+      'stringReplaceOne'
+    );
+  }
+
+  /**
    * Creates an expression that concatenates expression results together.
    *
+   * @example
    * ```typescript
    * // Combine the 'firstName', ' ', and 'lastName' fields into a single value.
    * field("firstName").concat(constant(" "), field("lastName"));
    * ```
    *
-   * @param second The additional expression or literal to concatenate.
-   * @param others Optional additional expressions or literals to concatenate.
-   * @return A new `Expr` representing the concatenated value.
+   * @param second - The additional expression or literal to concatenate.
+   * @param others - Optional additional expressions or literals to concatenate.
+   * @returns A new `Expression` representing the concatenated value.
    */
   concat(
     second: Expression | unknown,
@@ -1127,106 +1402,530 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that reverses this string expression.
    *
+   * @example
    * ```typescript
    * // Reverse the value of the 'myString' field.
    * field("myString").reverse();
    * ```
    *
-   * @return A new {@code Expr} representing the reversed string.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed string.
    */
   reverse(): FunctionExpression {
     return new FunctionExpression('reverse', [this], 'reverse');
   }
 
   /**
-   * @beta
+   * Filters the array using a provided alias and predicate expression.
+   *
+   * @example
+   * ```typescript
+   * // Filter the 'items' array to only include those where the 'price' is greater than 10
+   * field("items").arrayFilter('item', greaterThan(variable('item.price'), 10));
+   * ```
+   *
+   * @param alias - The variable name to use for each element.
+   * @param filter - The predicate boolean expression to filter by.
+   * @returns A new `Expression` representing the filtered array.
+   */
+  arrayFilter(alias: string, filter: BooleanExpression): FunctionExpression {
+    return new FunctionExpression(
+      'array_filter',
+      [this, valueToDefaultExpr(alias), filter],
+      'arrayFilter'
+    );
+  }
+
+  /**
+   * Creates an expression that applies a provided transformation to each element in an array.
+   *
+   * @example
+   * ```typescript
+   * // Transform the 'scores' array by multiplying each score by 10
+   * field("scores").arrayTransform("score", multiply(variable("score"), 10));
+   * ```
+   *
+   * @param elementAlias - The variable name to use for each element.
+   * @param transform - The lambda expression used to transform the elements.
+   * @returns A new `Expression` representing the arrayTransform operation.
+   */
+  arrayTransform(
+    elementAlias: string,
+    transform: Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'array_transform',
+      [this, valueToDefaultExpr(elementAlias), transform],
+      'arrayTransform'
+    );
+  }
+
+  /**
+   * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+   *
+   * @example
+   * ```typescript
+   * // Transform the 'scores' array by adding the index to each score
+   * field("scores").arrayTransformWithIndex("score", "i", add(variable("score"), variable("i")));
+   * ```
+   *
+   * @param elementAlias - The variable name to use for each element.
+   * @param indexAlias - The variable name to use for the current index.
+   * @param transform - The lambda expression used to transform the elements.
+   * @returns A new `Expression` representing the arrayTransformWithIndex operation.
+   */
+  arrayTransformWithIndex(
+    elementAlias: string,
+    indexAlias: string,
+    transform: Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'array_transform',
+      [
+        this,
+        valueToDefaultExpr(elementAlias),
+        valueToDefaultExpr(indexAlias),
+        transform
+      ],
+      'arrayTransformWithIndex'
+    );
+  }
+
+  /**
+   * Returns a subset of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get 5 elements from the 'items' array starting from index 2
+   * field("items").arraySlice(2, 5);
+   *
+   * // Get n number of elements from the 'items' array starting from index 2
+   * field("items").arraySlice(2, field("count"));
+   * ```
+   *
+   * @param offset - The starting offset.
+   * @param length - The optional length of the slice.
+   * @returns A new `Expression` representing the sliced array.
+   */
+  arraySlice(
+    offset: number | Expression,
+    length?: number | Expression
+  ): FunctionExpression {
+    const args: Expression[] = [this, valueToDefaultExpr(offset)];
+    if (length !== undefined) {
+      args.push(valueToDefaultExpr(length));
+    }
+    return new FunctionExpression('array_slice', args, 'arraySlice');
+  }
+
+  /**
+   * Returns the first element of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first element of the 'myArray' field.
+   * field("myArray").arrayFirst();
+   * ```
+   *
+   * @returns A new `Expression` representing the first element.
+   */
+  arrayFirst(): FunctionExpression {
+    return new FunctionExpression('array_first', [this], 'arrayFirst');
+  }
+
+  /**
+   * Returns the first `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first 3 elements of the 'myArray' field.
+   * field("myArray").arrayFirstN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the first `n` elements.
+   */
+  arrayFirstN(n: number): FunctionExpression;
+
+  /**
+   * Returns the first `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the first n elements of the 'myArray' field.
+   * field("myArray").arrayFirstN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the first `n` elements.
+   */
+  arrayFirstN(n: Expression): FunctionExpression;
+  arrayFirstN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_first_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayFirstN'
+    );
+  }
+
+  /**
+   * Returns the last element of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last element of the 'myArray' field.
+   * field("myArray").arrayLast();
+   * ```
+   *
+   * @returns A new `Expression` representing the last element.
+   */
+  arrayLast(): FunctionExpression {
+    return new FunctionExpression('array_last', [this], 'arrayLast');
+  }
+
+  /**
+   * Returns the last `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last 3 elements of the 'myArray' field.
+   * field("myArray").arrayLastN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the last `n` elements.
+   */
+  arrayLastN(n: number): FunctionExpression;
+
+  /**
+   * Returns the last `n` elements of the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the last n elements of the 'myArray' field.
+   * field("myArray").arrayLastN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the last `n` elements.
+   */
+  arrayLastN(n: Expression): FunctionExpression;
+  arrayLastN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_last_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayLastN'
+    );
+  }
+
+  /**
+   * Returns the maximum value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the maximum value of the 'myArray' field.
+   * field("myArray").arrayMaximum();
+   * ```
+   *
+   * @returns A new `Expression` representing the maximum value.
+   */
+  arrayMaximum(): FunctionExpression {
+    return new FunctionExpression('maximum', [this], 'arrayMaximum');
+  }
+
+  /**
+   * Returns the largest `n` elements of the array.
+   *
+   * Note: Returns the n largest non-null elements in the array, in descending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the largest 3 elements of the 'myArray' field.
+   * field("myArray").arrayMaximumN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the largest `n` elements.
+   */
+  arrayMaximumN(n: number): FunctionExpression;
+
+  /**
+   * Returns the largest `n` elements of the array.
+   *
+   * Note: Returns the n largest non-null elements in the array, in descending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the largest n elements of the 'myArray' field.
+   * field("myArray").arrayMaximumN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the largest `n` elements.
+   */
+  arrayMaximumN(n: Expression): FunctionExpression;
+  arrayMaximumN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'maximum_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayMaximumN'
+    );
+  }
+
+  /**
+   * Returns the minimum value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get the minimum value of the 'myArray' field.
+   * field("myArray").arrayMinimum();
+   * ```
+   *
+   * @returns A new `Expression` representing the minimum value.
+   */
+  arrayMinimum(): FunctionExpression {
+    return new FunctionExpression('minimum', [this], 'arrayMinimum');
+  }
+
+  /**
+   * Returns the smallest `n` elements of the array.
+   *
+   * Note: Returns the n smallest non-null elements in the array, in ascending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the smallest 3 elements of the 'myArray' field.
+   * field("myArray").arrayMinimumN(3);
+   * ```
+   *
+   * @param n - The number of elements to return.
+   * @returns A new `Expression` representing the smallest `n` elements.
+   */
+  arrayMinimumN(n: number): FunctionExpression;
+
+  /**
+   * Returns the smallest `n` elements of the array.
+   *
+   * Note: Returns the n smallest non-null elements in the array, in ascending
+   * order. This does not use a stable sort, meaning the order of equivalent
+   * elements is undefined.
+   *
+   * @example
+   * ```typescript
+   * // Get the smallest n elements of the 'myArray' field.
+   * field("myArray").arrayMinimumN(field("count"));
+   * ```
+   *
+   * @param n - An expression evaluating to the number of elements to return.
+   * @returns A new `Expression` representing the smallest `n` elements.
+   */
+  arrayMinimumN(n: Expression): FunctionExpression;
+  arrayMinimumN(n: number | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'minimum_n',
+      [this, valueToDefaultExpr(n)],
+      'arrayMinimumN'
+    );
+  }
+
+  /**
+   * Returns the first index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the first index of the value 3 in the 'myArray' field.
+   * field("myArray").arrayIndexOf(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayIndexOf(search: unknown): FunctionExpression;
+
+  /**
+   * Returns the first index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the first index of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayIndexOf(field("searchVal"));
+   * ```
+   *
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayIndexOf(search: Expression): FunctionExpression;
+  arrayIndexOf(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of',
+      [this, valueToDefaultExpr(search), valueToDefaultExpr('first')],
+      'arrayIndexOf'
+    );
+  }
+
+  /**
+   * Returns the last index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the last index of the value 3 in the 'myArray' field.
+   * field("myArray").arrayLastIndexOf(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayLastIndexOf(search: unknown): FunctionExpression;
+
+  /**
+   * Returns the last index of the search value in the array, or -1 if not found.
+   *
+   * @example
+   * ```typescript
+   * // Get the last index of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayLastIndexOf(field("searchVal"));
+   * ```
+   *
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the index.
+   */
+  arrayLastIndexOf(search: Expression): FunctionExpression;
+  arrayLastIndexOf(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of',
+      [this, valueToDefaultExpr(search), valueToDefaultExpr('last')],
+      'arrayLastIndexOf'
+    );
+  }
+
+  /**
+   * Returns all indices of the search value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get all indices of the value 3 in the 'myArray' field.
+   * field("myArray").arrayIndexOfAll(3);
+   * ```
+   *
+   * @param search - The value to search for.
+   * @returns A new `Expression` representing the indices.
+   */
+  arrayIndexOfAll(search: unknown): FunctionExpression;
+
+  /**
+   * Returns all indices of the search value in the array.
+   *
+   * @example
+   * ```typescript
+   * // Get all indices of the value in 'searchVal' field in the 'myArray' field.
+   * field("myArray").arrayIndexOfAll(field("searchVal"));
+   * ```
+   *
+   * @param search - An expression evaluating to the value to search for.
+   * @returns A new `Expression` representing the indices.
+   */
+  arrayIndexOfAll(search: Expression): FunctionExpression;
+  arrayIndexOfAll(search: unknown | Expression): FunctionExpression {
+    return new FunctionExpression(
+      'array_index_of_all',
+      [this, valueToDefaultExpr(search)],
+      'arrayIndexOfAll'
+    );
+  }
+
+  /**
    * Creates an expression that calculates the length of this string expression in bytes.
    *
+   * @example
    * ```typescript
    * // Calculate the length of the 'myString' field in bytes.
    * field("myString").byteLength();
    * ```
    *
-   * @return A new {@code Expr} representing the length of the string in bytes.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the string in bytes.
    */
   byteLength(): FunctionExpression {
     return new FunctionExpression('byte_length', [this], 'byteLength');
   }
 
   /**
-   * @beta
    * Creates an expression that computes the ceiling of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the ceiling of the 'price' field.
    * field("price").ceil();
    * ```
    *
-   * @return A new {@code Expr} representing the ceiling of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ceiling of the numeric value.
    */
   ceil(): FunctionExpression {
     return new FunctionExpression('ceil', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that computes the floor of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the floor of the 'price' field.
    * field("price").floor();
    * ```
    *
-   * @return A new {@code Expr} representing the floor of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the floor of the numeric value.
    */
   floor(): FunctionExpression {
     return new FunctionExpression('floor', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that computes the absolute value of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the absolute value of the 'price' field.
    * field("price").abs();
    * ```
    *
-   * @return A new {@code Expr} representing the absolute value of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the absolute value of the numeric value.
    */
   abs(): FunctionExpression {
     return new FunctionExpression('abs', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that computes e to the power of this expression.
    *
+   * @example
    * ```typescript
    * // Compute e to the power of the 'value' field.
    * field("value").exp();
    * ```
    *
-   * @return A new {@code Expr} representing the exp of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the exp of the numeric value.
    */
   exp(): FunctionExpression {
     return new FunctionExpression('exp', [this]);
   }
 
   /**
-   * @beta
    * Accesses a value from a map (object) field using the provided key.
    *
+   * @example
    * ```typescript
    * // Get the 'city' value from the 'address' map field
    * field("address").mapGet("city");
    * ```
    *
-   * @param subfield The key to access in the map.
-   * @return A new `Expr` representing the value associated with the given key in the map.
+   * @param subfield - The key to access in the map.
+   * @returns A new `Expression` representing the value associated with the given key in the map.
    */
   mapGet(subfield: string): FunctionExpression {
     return new FunctionExpression(
@@ -1237,109 +1936,291 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Creates an expression that returns a new map with the specified entries added or updated.
+   *
+   * @remarks
+   * Note that `mapSet` only performs shallow updates to the map. Setting a value to `null`
+   * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
+   *
+   * @example
+   * ```typescript
+   * // Set the 'city' to "San Francisco" in the 'address' map
+   * field("address").mapSet("city", "San Francisco");
+   * ```
+   *
+   * @param key - The key to set. Must be a string or a constant string expression.
+   * @param value - The value to set.
+   * @param moreKeyValues - Additional key-value pairs to set.
+   * @returns A new `Expression` representing the map with the entries set.
+   */
+  mapSet(
+    key: string | Expression,
+    value: unknown,
+    ...moreKeyValues: unknown[]
+  ): FunctionExpression {
+    const args = [
+      this,
+      valueToDefaultExpr(key),
+      valueToDefaultExpr(value),
+      ...moreKeyValues.map(valueToDefaultExpr)
+    ];
+    return new FunctionExpression('map_set', args, 'mapSet');
+  }
+
+  /**
+   * Creates an expression that returns the keys of a map.
+   *
+   * @remarks
+   * While the backend generally preserves insertion order, relying on the
+   * order of the output array is not guaranteed and should be avoided.
+   *
+   * @example
+   * ```typescript
+   * // Get the keys of the 'address' map
+   * field("address").mapKeys();
+   * ```
+   *
+   * @returns A new `Expression` representing the keys of the map.
+   */
+  mapKeys(): FunctionExpression {
+    return new FunctionExpression('map_keys', [this], 'mapKeys');
+  }
+
+  /**
+   * Creates an expression that returns the values of a map.
+   *
+   * @remarks
+   * While the backend generally preserves insertion order, relying on the
+   * order of the output array is not guaranteed and should be avoided.
+   *
+   * @example
+   * ```typescript
+   * // Get the values of the 'address' map
+   * field("address").mapValues();
+   * ```
+   *
+   * @returns A new `Expression` representing the values of the map.
+   */
+  mapValues(): FunctionExpression {
+    return new FunctionExpression('map_values', [this], 'mapValues');
+  }
+
+  /**
+   * Creates an expression that returns the entries of a map as an array of maps,
+   * where each map contains a `"k"` property for the key and a `"v"` property for the value.
+   * For example: `[{ k: "key1", v: "value1" }, ...]`.
+   *
+   * @example
+   * ```typescript
+   * // Get the entries of the 'address' map
+   * field("address").mapEntries();
+   * ```
+   *
+   * @returns A new `Expression` representing the entries of the map.
+   */
+  mapEntries(): FunctionExpression {
+    return new FunctionExpression('map_entries', [this], 'mapEntries');
+  }
+
+  /**
+   * @public
+   * Creates an expression that returns the value of a field from the document that results from the evaluation of this expression.
+   *
+   * @example
+   * ```typescript
+   * // Get the value of the "city" field in the "address" document.
+   * field("address").getField("city")
+   * ```
+   *
+   * @param key The field to access in the document.
+   * @returns A new `Expression` representing the value of the field in the document.
+   */
+  getField(key: string | Expression): Expression {
+    return new FunctionExpression(
+      'get_field',
+      [this, valueToDefaultExpr(key)],
+      'get_field'
+    );
+  }
+
+  /**
    * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
    * expression or field.
    *
+   * @example
    * ```typescript
    * // Count the total number of products
    * field("productId").count().as("totalProducts");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'count' aggregation.
+   * @returns A new `AggregateFunction` representing the 'count' aggregation.
    */
   count(): AggregateFunction {
     return AggregateFunction._create('count', [this], 'count');
   }
 
   /**
-   * @beta
    * Creates an aggregation that calculates the sum of a numeric field across multiple stage inputs.
    *
+   * @example
    * ```typescript
    * // Calculate the total revenue from a set of orders
    * field("orderAmount").sum().as("totalRevenue");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'sum' aggregation.
+   * @returns A new `AggregateFunction` representing the 'sum' aggregation.
    */
   sum(): AggregateFunction {
     return AggregateFunction._create('sum', [this], 'sum');
   }
 
   /**
-   * @beta
    * Creates an aggregation that calculates the average (mean) of a numeric field across multiple
    * stage inputs.
    *
+   * @example
    * ```typescript
    * // Calculate the average age of users
    * field("age").average().as("averageAge");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'average' aggregation.
+   * @returns A new `AggregateFunction` representing the 'average' aggregation.
    */
   average(): AggregateFunction {
     return AggregateFunction._create('average', [this], 'average');
   }
 
   /**
-   * @beta
    * Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
    *
+   * @example
    * ```typescript
    * // Find the lowest price of all products
    * field("price").minimum().as("lowestPrice");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'minimum' aggregation.
+   * @returns A new `AggregateFunction` representing the 'minimum' aggregation.
    */
   minimum(): AggregateFunction {
     return AggregateFunction._create('minimum', [this], 'minimum');
   }
 
   /**
-   * @beta
    * Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
    *
+   * @example
    * ```typescript
    * // Find the highest score in a leaderboard
    * field("score").maximum().as("highestScore");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'maximum' aggregation.
+   * @returns A new `AggregateFunction` representing the 'maximum' aggregation.
    */
   maximum(): AggregateFunction {
     return AggregateFunction._create('maximum', [this], 'maximum');
   }
 
   /**
-   * @beta
+   * Creates an aggregation that finds the first value of an expression across multiple stage inputs.
+   *
+   * @example
+   * ```typescript
+   * // Find the first value of the 'rating' field
+   * field("rating").first().as("firstRating");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'first' aggregation.
+   */
+  first(): AggregateFunction {
+    return AggregateFunction._create('first', [this], 'first');
+  }
+
+  /**
+   * Creates an aggregation that finds the last value of an expression across multiple stage inputs.
+   *
+   * @example
+   * ```typescript
+   * // Find the last value of the 'rating' field
+   * field("rating").last().as("lastRating");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'last' aggregation.
+   */
+  last(): AggregateFunction {
+    return AggregateFunction._create('last', [this], 'last');
+  }
+
+  /**
+   * Creates an aggregation that collects all values of an expression across multiple stage inputs
+   * into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
+   * @example
+   * ```typescript
+   * // Collect all tags from books into an array
+   * field("tags").arrayAgg().as("allTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg' aggregation.
+   */
+  arrayAgg(): AggregateFunction {
+    return AggregateFunction._create('array_agg', [this], 'arrayAgg');
+  }
+
+  /**
+   * Creates an aggregation that collects all distinct values of an expression across multiple stage
+   * inputs into an array.
+   *
+   * @remarks
+   * If the expression resolves to an absent value, it is converted to `null`.
+   * The order of elements in the output array is not stable and shouldn't be relied upon.
+   *
+   * @example
+   * ```typescript
+   * // Collect all distinct tags from books into an array
+   * field("tags").arrayAggDistinct().as("allDistinctTags");
+   * ```
+   *
+   * @returns A new `AggregateFunction` representing the 'array_agg_distinct' aggregation.
+   */
+  arrayAggDistinct(): AggregateFunction {
+    return AggregateFunction._create(
+      'array_agg_distinct',
+      [this],
+      'arrayAggDistinct'
+    );
+  }
+
+  /**
    * Creates an aggregation that counts the number of distinct values of the expression or field.
    *
+   * @example
    * ```typescript
    * // Count the distinct number of products
    * field("productId").countDistinct().as("distinctProducts");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'count_distinct' aggregation.
+   * @returns A new `AggregateFunction` representing the 'count_distinct' aggregation.
    */
   countDistinct(): AggregateFunction {
     return AggregateFunction._create('count_distinct', [this], 'countDistinct');
   }
 
   /**
-   * @beta
    * Creates an expression that returns the larger value between this expression and another expression, based on Firestore's value type ordering.
    *
+   * @example
    * ```typescript
    * // Returns the larger value between the 'timestamp' field and the current timestamp.
-   * field("timestamp").logicalMaximum(Function.currentTimestamp());
+   * field("timestamp").logicalMaximum(currentTimestamp());
    * ```
    *
-   * @param second The second expression or literal to compare with.
-   * @param others Optional additional expressions or literals to compare with.
-   * @return A new {@code Expr} representing the logical maximum operation.
+   * @param second - The second expression or literal to compare with.
+   * @param others - Optional additional expressions or literals to compare with.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical maximum operation.
    */
   logicalMaximum(
     second: Expression | unknown,
@@ -1354,17 +2235,17 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that returns the smaller value between this expression and another expression, based on Firestore's value type ordering.
    *
+   * @example
    * ```typescript
    * // Returns the smaller value between the 'timestamp' field and the current timestamp.
-   * field("timestamp").logicalMinimum(Function.currentTimestamp());
+   * field("timestamp").logicalMinimum(currentTimestamp());
    * ```
    *
-   * @param second The second expression or literal to compare with.
-   * @param others Optional additional expressions or literals to compare with.
-   * @return A new {@code Expr} representing the logical minimum operation.
+   * @param second - The second expression or literal to compare with.
+   * @param others - Optional additional expressions or literals to compare with.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical minimum operation.
    */
   logicalMinimum(
     second: Expression | unknown,
@@ -1379,44 +2260,44 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that calculates the length (number of dimensions) of this Firestore Vector expression.
    *
+   * @example
    * ```typescript
    * // Get the vector length (dimension) of the field 'embedding'.
    * field("embedding").vectorLength();
    * ```
    *
-   * @return A new {@code Expr} representing the length of the vector.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the vector.
    */
   vectorLength(): FunctionExpression {
     return new FunctionExpression('vector_length', [this], 'vectorLength');
   }
 
   /**
-   * @beta
    * Calculates the cosine distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
    * field("userVector").cosineDistance(field("itemVector"));
    * ```
    *
-   * @param vectorExpression The other vector (represented as an Expr) to compare against.
-   * @return A new `Expr` representing the cosine distance between the two vectors.
+   * @param vectorExpression - The other vector (represented as an Expression) to compare against.
+   * @returns A new `Expression` representing the cosine distance between the two vectors.
    */
   cosineDistance(vectorExpression: Expression): FunctionExpression;
   /**
-   * @beta
    * Calculates the Cosine distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the Cosine distance between the 'location' field and a target location
    * field("location").cosineDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
-   * @param vector The other vector (as a VectorValue) to compare against.
-   * @return A new `Expr` representing the Cosine* distance between the two vectors.
+   * @param vector - The other vector (as a VectorValue) to compare against.
+   * @returns A new `Expression` representing the Cosine* distance between the two vectors.
    */
   cosineDistance(vector: VectorValue | number[]): FunctionExpression;
   cosineDistance(
@@ -1430,30 +2311,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Calculates the dot product between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
    * field("features").dotProduct([0.5, 0.8, 0.2]);
    * ```
    *
-   * @param vectorExpression The other vector (as an array of numbers) to calculate with.
-   * @return A new `Expr` representing the dot product between the two vectors.
+   * @param vectorExpression - The other vector (as an array of numbers) to calculate with.
+   * @returns A new `Expression` representing the dot product between the two vectors.
    */
   dotProduct(vectorExpression: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Calculates the dot product between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the dot product between a feature vector and a target vector
    * field("features").dotProduct(new VectorValue([0.5, 0.8, 0.2]));
    * ```
    *
-   * @param vector The other vector (as an array of numbers) to calculate with.
-   * @return A new `Expr` representing the dot product between the two vectors.
+   * @param vector - The other vector (as an array of numbers) to calculate with.
+   * @returns A new `Expression` representing the dot product between the two vectors.
    */
   dotProduct(vector: VectorValue | number[]): FunctionExpression;
   dotProduct(other: Expression | VectorValue | number[]): FunctionExpression {
@@ -1465,30 +2346,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Calculates the Euclidean distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
    * field("location").euclideanDistance([37.7749, -122.4194]);
    * ```
    *
-   * @param vectorExpression The other vector (as an array of numbers) to calculate with.
-   * @return A new `Expr` representing the Euclidean distance between the two vectors.
+   * @param vectorExpression - The other vector (as an array of numbers) to calculate with.
+   * @returns A new `Expression` representing the Euclidean distance between the two vectors.
    */
   euclideanDistance(vectorExpression: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Calculates the Euclidean distance between two vectors.
    *
+   * @example
    * ```typescript
    * // Calculate the Euclidean distance between the 'location' field and a target location
    * field("location").euclideanDistance(new VectorValue([37.7749, -122.4194]));
    * ```
    *
-   * @param vector The other vector (as a VectorValue) to compare against.
-   * @return A new `Expr` representing the Euclidean distance between the two vectors.
+   * @param vector - The other vector (as a VectorValue) to compare against.
+   * @returns A new `Expression` representing the Euclidean distance between the two vectors.
    */
   euclideanDistance(vector: VectorValue | number[]): FunctionExpression;
   euclideanDistance(
@@ -1502,16 +2383,16 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that interprets this expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
+   * @example
    * ```typescript
    * // Interpret the 'microseconds' field as microseconds since epoch.
    * field("microseconds").unixMicrosToTimestamp();
    * ```
    *
-   * @return A new {@code Expr} representing the timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
    */
   unixMicrosToTimestamp(): FunctionExpression {
     return new FunctionExpression(
@@ -1522,15 +2403,15 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that converts this timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
+   * @example
    * ```typescript
    * // Convert the 'timestamp' field to microseconds since epoch.
    * field("timestamp").timestampToUnixMicros();
    * ```
    *
-   * @return A new {@code Expr} representing the number of microseconds since epoch.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of microseconds since epoch.
    */
   timestampToUnixMicros(): FunctionExpression {
     return new FunctionExpression(
@@ -1541,16 +2422,16 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that interprets this expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
+   * @example
    * ```typescript
    * // Interpret the 'milliseconds' field as milliseconds since epoch.
    * field("milliseconds").unixMillisToTimestamp();
    * ```
    *
-   * @return A new {@code Expr} representing the timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
    */
   unixMillisToTimestamp(): FunctionExpression {
     return new FunctionExpression(
@@ -1561,15 +2442,15 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that converts this timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
+   * @example
    * ```typescript
    * // Convert the 'timestamp' field to milliseconds since epoch.
    * field("timestamp").timestampToUnixMillis();
    * ```
    *
-   * @return A new {@code Expr} representing the number of milliseconds since epoch.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of milliseconds since epoch.
    */
   timestampToUnixMillis(): FunctionExpression {
     return new FunctionExpression(
@@ -1580,16 +2461,16 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that interprets this expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
    * and returns a timestamp.
    *
+   * @example
    * ```typescript
    * // Interpret the 'seconds' field as seconds since epoch.
    * field("seconds").unixSecondsToTimestamp();
    * ```
    *
-   * @return A new {@code Expr} representing the timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
    */
   unixSecondsToTimestamp(): FunctionExpression {
     return new FunctionExpression(
@@ -1600,15 +2481,15 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that converts this timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
    *
+   * @example
    * ```typescript
    * // Convert the 'timestamp' field to seconds since epoch.
    * field("timestamp").timestampToUnixSeconds();
    * ```
    *
-   * @return A new {@code Expr} representing the number of seconds since epoch.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of seconds since epoch.
    */
   timestampToUnixSeconds(): FunctionExpression {
     return new FunctionExpression(
@@ -1619,46 +2500,36 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that adds a specified amount of time to this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
    * field("timestamp").timestampAdd(field("unit"), field("amount"));
    * ```
    *
-   * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
-   * @param amount The expression evaluates to amount of the unit.
-   * @return A new {@code Expr} representing the resulting timestamp.
+   * @param unit - The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+   * @param amount - The expression evaluates to amount of the unit.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
    */
   timestampAdd(unit: Expression, amount: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that adds a specified amount of time to this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Add 1 day to the 'timestamp' field.
    * field("timestamp").timestampAdd("day", 1);
    * ```
    *
-   * @param unit The unit of time to add (e.g., "day", "hour").
-   * @param amount The amount of time to add.
-   * @return A new {@code Expr} representing the resulting timestamp.
+   * @param unit - The unit of time to add (e.g., "day", "hour").
+   * @param amount - The amount of time to add.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
    */
+  timestampAdd(unit: TimeUnit, amount: number): FunctionExpression;
   timestampAdd(
-    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
-    amount: number
-  ): FunctionExpression;
-  timestampAdd(
-    unit:
-      | Expression
-      | 'microsecond'
-      | 'millisecond'
-      | 'second'
-      | 'minute'
-      | 'hour'
-      | 'day',
+    unit: Expression | TimeUnit,
     amount: Expression | number
   ): FunctionExpression {
     return new FunctionExpression(
@@ -1669,46 +2540,36 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
    * field("timestamp").timestampSubtract(field("unit"), field("amount"));
    * ```
    *
-   * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
-   * @param amount The expression evaluates to amount of the unit.
-   * @return A new {@code Expr} representing the resulting timestamp.
+   * @param unit - The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+   * @param amount - The expression evaluates to amount of the unit.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
    */
   timestampSubtract(unit: Expression, amount: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that subtracts a specified amount of time from this timestamp expression.
    *
+   * @example
    * ```typescript
    * // Subtract 1 day from the 'timestamp' field.
    * field("timestamp").timestampSubtract("day", 1);
    * ```
    *
-   * @param unit The unit of time to subtract (e.g., "day", "hour").
-   * @param amount The amount of time to subtract.
-   * @return A new {@code Expr} representing the resulting timestamp.
+   * @param unit - The unit of time to subtract (e.g., "day", "hour").
+   * @param amount - The amount of time to subtract.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
    */
+  timestampSubtract(unit: TimeUnit, amount: number): FunctionExpression;
   timestampSubtract(
-    unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
-    amount: number
-  ): FunctionExpression;
-  timestampSubtract(
-    unit:
-      | Expression
-      | 'microsecond'
-      | 'millisecond'
-      | 'second'
-      | 'minute'
-      | 'hour'
-      | 'day',
+    unit: Expression | TimeUnit,
     amount: Expression | number
   ): FunctionExpression {
     return new FunctionExpression(
@@ -1719,39 +2580,145 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Creates an expression that calculates the difference between this timestamp and another timestamp.
+   *
+   * @example
+   * ```typescript
+   * // Calculate the difference determined by fields 'startTime' and 'unit'.
+   * field("endTime").timestampDiff(field("startTime"), field("unit"));
+   * ```
+   *
+   * @param start - The expression evaluating to the starting timestamp.
+   * @param unit - The expression evaluates to a unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an integer.
+   */
+  timestampDiff(start: Expression, unit: Expression): FunctionExpression;
+
+  /**
+   * Creates an expression that calculates the difference between this timestamp and another timestamp.
+   *
+   * @example
+   * ```typescript
+   * // Calculate the difference in days between 'endTime' and 'startTime' fields.
+   * field("endTime").timestampDiff("startTime", "day");
+   * ```
+   *
+   * @param start - The field name of the starting timestamp.
+   * @param unit - The unit of time for the difference (e.g., "day", "hour").
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the difference as an integer.
+   */
+  timestampDiff(start: string | Expression, unit: TimeUnit): FunctionExpression;
+  timestampDiff(
+    start: string | Expression,
+    unit: TimeUnit | Expression
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'timestamp_diff',
+      [this, fieldOrExpression(start), valueToDefaultExpr(unit)],
+      'timestampDiff'
+    );
+  }
+
+  /**
+   * Creates an expression that extracts a specified part from this timestamp expression.
+   *
+   * @example
+   * ```typescript
+   * // Extract the year from the 'createdAt' field.
+   * field('createdAt').timestampExtract('year')
+   * ```
+   *
+   * @param part - The part to extract from the timestamp (e.g., "year", "month", "day").
+   * @param timezone - The timezone to use for extraction. Valid values are from
+   * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the extracted part as an integer.
+   */
+  timestampExtract(
+    part: TimePart,
+    timezone?: string | Expression
+  ): FunctionExpression;
+
+  /**
+   * Creates an expression that extracts a specified part from this timestamp expression.
+   *
+   * @example
+   * ```typescript
+   * // Extract the part specified by the field 'extractionPart' from 'createdAt'.
+   * field('createdAt').timestampExtract(field('extractionPart'))
+   * ```
+   *
+   * @param part - The expression evaluating to the part to extract.
+   * @param timezone - The timezone to use for extraction. Valid values are from
+   * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the extracted part as an integer.
+   */
+  timestampExtract(
+    part: Expression,
+    timezone?: string | Expression
+  ): FunctionExpression;
+  timestampExtract(
+    part: TimePart | Expression,
+    timezone?: string | Expression
+  ): FunctionExpression {
+    const args = [this, valueToDefaultExpr(part)];
+    if (timezone) {
+      args.push(valueToDefaultExpr(timezone));
+    }
+    return new FunctionExpression(
+      'timestamp_extract',
+      args,
+      'timestampExtract'
+    );
+  }
+
+  /**
    *
    * Creates an expression that returns the document ID from a path.
    *
+   * @example
    * ```typescript
    * // Get the document ID from a path.
    * field("__path__").documentId();
    * ```
    *
-   * @return A new {@code Expr} representing the documentId operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the documentId operation.
    */
   documentId(): FunctionExpression {
     return new FunctionExpression('document_id', [this], 'documentId');
   }
 
   /**
-   * @beta
+   *
+   * Creates an expression that returns the parent document reference of a document reference.
+   *
+   * @example
+   * ```typescript
+   * // Get the parent document reference of a document reference.
+   * field("__path__").parent();
+   * ```
+   *
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the parent operation.
+   */
+  parent(): FunctionExpression {
+    return new FunctionExpression('parent', [this], 'parent');
+  }
+
+  /**
    *
    * Creates an expression that returns a substring of the results of this expression.
    *
-   * @param position Index of the first character of the substring.
-   * @param length Length of the substring. If not provided, the substring will
+   * @param position - Index of the first character of the substring.
+   * @param length - Length of the substring. If not provided, the substring will
    * end at the end of the input.
    */
   substring(position: number, length?: number): FunctionExpression;
 
   /**
-   * @beta
    *
    * Creates an expression that returns a substring of the results of this expression.
    *
-   * @param position An expression returning the index of the first character of the substring.
-   * @param length An expression returning the length of the substring. If not provided the
+   * @param position - An expression returning the index of the first character of the substring.
+   * @param length - An expression returning the length of the substring. If not provided the
    * substring will end at the end of the input.
    */
   substring(position: Expression, length?: Expression): FunctionExpression;
@@ -1776,35 +2743,35 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that indexes into an array from the beginning or end
    * and returns the element. If the offset exceeds the array length, an error is
    * returned. A negative offset, starts from the end.
    *
+   * @example
    * ```typescript
    * // Return the value in the 'tags' field array at index `1`.
    * field('tags').arrayGet(1);
    * ```
    *
-   * @param offset The index of the element to return.
-   * @return A new Expr representing the 'arrayGet' operation.
+   * @param offset - The index of the element to return.
+   * @returns A new `Expression` representing the 'arrayGet' operation.
    */
   arrayGet(offset: number): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that indexes into an array from the beginning or end
    * and returns the element. If the offset exceeds the array length, an error is
    * returned. A negative offset, starts from the end.
    *
+   * @example
    * ```typescript
    * // Return the value in the tags field array at index specified by field
    * // 'favoriteTag'.
    * field('tags').arrayGet(field('favoriteTag'));
    * ```
    *
-   * @param offsetExpr An Expr evaluating to the index of the element to return.
-   * @return A new Expr representing the 'arrayGet' operation.
+   * @param offsetExpr - An `Expression` evaluating to the index of the element to return.
+   * @returns A new `Expression` representing the 'arrayGet' operation.
    */
   arrayGet(offsetExpr: Expression): FunctionExpression;
   arrayGet(offset: Expression | number): FunctionExpression {
@@ -1816,54 +2783,54 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    *
    * Creates an expression that checks if a given expression produces an error.
    *
+   * @example
    * ```typescript
    * // Check if the result of a calculation is an error
    * field("title").arrayContains(1).isError();
    * ```
    *
-   * @return A new {@code BooleanExpr} representing the 'isError' check.
+   * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the 'isError' check.
    */
   isError(): BooleanExpression {
     return new FunctionExpression('is_error', [this], 'isError').asBoolean();
   }
 
   /**
-   * @beta
    *
    * Creates an expression that returns the result of the `catchExpr` argument
    * if there is an error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // the entire title field if the array is empty or the field is another type.
    * field("title").arrayGet(0).ifError(field("title"));
    * ```
    *
-   * @param catchExpr The catch expression that will be evaluated and
+   * @param catchExpr - The catch expression that will be evaluated and
    * returned if this expression produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
    */
   ifError(catchExpr: Expression): FunctionExpression;
 
   /**
-   * @beta
    *
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Returns the first item in the title field arrays, or returns
    * // "Default Title"
    * field("title").arrayGet(0).ifError("Default Title");
    * ```
    *
-   * @param catchValue The value that will be returned if this expression
+   * @param catchValue - The value that will be returned if this expression
    * produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
    */
   ifError(catchValue: unknown): FunctionExpression;
   ifError(catchValue: unknown): FunctionExpression | BooleanExpression {
@@ -1879,48 +2846,49 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    *
    * Creates an expression that returns `true` if the result of this expression
    * is absent. Otherwise, returns `false` even if the value is `null`.
    *
+   * @example
    * ```typescript
    * // Check if the field `value` is absent.
    * field("value").isAbsent();
    * ```
    *
-   * @return A new {@code BooleanExpr} representing the 'isAbsent' check.
+   * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the 'isAbsent' check.
    */
   isAbsent(): BooleanExpression {
     return new FunctionExpression('is_absent', [this], 'isAbsent').asBoolean();
   }
 
   /**
-   * @beta
    *
    * Creates an expression that removes a key from the map produced by evaluating this expression.
    *
+   * @example
    * ```
    * // Removes the key 'baz' from the input map.
    * map({foo: 'bar', baz: true}).mapRemove('baz');
    * ```
    *
-   * @param key The name of the key to remove from the input map.
-   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
+   * @param key - The name of the key to remove from the input map.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'mapRemove' operation.
    */
   mapRemove(key: string): FunctionExpression;
   /**
-   * @beta
    *
    * Creates an expression that removes a key from the map produced by evaluating this expression.
    *
+   * @example
    * ```
    * // Removes the key 'baz' from the input map.
    * map({foo: 'bar', baz: true}).mapRemove(constant('baz'));
+   * @example
    * ```
    *
-   * @param keyExpr An expression that produces the name of the key to remove from the input map.
-   * @returns A new {@code FirestoreFunction} representing the 'mapRemove' operation.
+   * @param keyExpr - An expression that produces the name of the key to remove from the input map.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'mapRemove' operation.
    */
   mapRemove(keyExpr: Expression): FunctionExpression;
   mapRemove(stringExpr: Expression | string): FunctionExpression {
@@ -1932,22 +2900,22 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    *
    * Creates an expression that merges multiple map values.
    *
+   * @example
    * ```
    * // Merges the map in the settings field with, a map literal, and a map in
    * // that is conditionally returned by another expression
    * field('settings').mapMerge({ enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
    * ```
    *
-   * @param secondMap A required second map to merge. Represented as a literal or
+   * @param secondMap - A required second map to merge. Represented as a literal or
    * an expression that returns a map.
-   * @param otherMaps Optional additional maps to merge. Each map is represented
+   * @param otherMaps - Optional additional maps to merge. Each map is represented
    * as a literal or an expression that returns a map.
    *
-   * @returns A new {@code FirestoreFunction} representing the 'mapMerge' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'mapMerge' operation.
    */
   mapMerge(
     secondMap: Record<string, unknown> | Expression,
@@ -1963,30 +2931,30 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that returns the value of this expression raised to the power of another expression.
    *
+   * @example
    * ```typescript
    * // Raise the value of the 'base' field to the power of the 'exponent' field.
    * field("base").pow(field("exponent"));
    * ```
    *
-   * @param exponent The expression to raise this expression to the power of.
-   * @return A new `Expr` representing the power operation.
+   * @param exponent - The expression to raise this expression to the power of.
+   * @returns A new `Expression` representing the power operation.
    */
   pow(exponent: Expression): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that returns the value of this expression raised to the power of a constant value.
    *
+   * @example
    * ```typescript
    * // Raise the value of the 'base' field to the power of 2.
    * field("base").pow(2);
    * ```
    *
-   * @param exponent The constant value to raise this expression to the power of.
-   * @return A new `Expr` representing the power operation.
+   * @param exponent - The constant value to raise this expression to the power of.
+   * @returns A new `Expression` representing the power operation.
    */
   pow(exponent: number): FunctionExpression;
   pow(exponent: number | Expression): FunctionExpression {
@@ -1994,43 +2962,95 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Creates an expression that truncates the numeric value to an integer.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the 'rating' field
+   * field("rating").trunc();
+   * ```
+   *
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(): FunctionExpression;
+
+  /**
+   * Creates an expression that truncates a numeric value to the specified number of decimal places.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the value of the 'rating' field to two decimal places.
+   * field("rating").trunc(2);
+   * ```
+   *
+   * @param decimalPlaces - A constant specifying the truncation precision in decimal places.
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(decimalPlaces: number): FunctionExpression;
+
+  /**
+   * Creates an expression that truncates a numeric value to the specified number of decimal places.
+   *
+   * @example
+   * ```typescript
+   * // Truncate the value of the 'rating' field to two decimal places.
+   * field("rating").trunc(constant(2));
+   * ```
+   *
+   * @param decimalPlaces - An expression specifying the truncation precision in decimal places.
+   * @returns A new `Expression` representing the truncated value.
+   */
+  trunc(decimalPlaces: Expression): FunctionExpression;
+  trunc(decimalPlaces?: number | Expression): FunctionExpression {
+    if (decimalPlaces === undefined) {
+      return new FunctionExpression('trunc', [this]);
+    } else {
+      return new FunctionExpression(
+        'trunc',
+        [this, valueToDefaultExpr(decimalPlaces)],
+        'trunc'
+      );
+    }
+  }
+
+  /**
    * Creates an expression that rounds a numeric value to the nearest whole number.
    *
+   * @example
    * ```typescript
    * // Round the value of the 'price' field.
    * field("price").round();
    * ```
    *
-   * @return A new `Expr` representing the rounded value.
+   * @returns A new `Expression` representing the rounded value.
    */
   round(): FunctionExpression;
   /**
-   * @beta
    * Creates an expression that rounds a numeric value to the specified number of decimal places.
    *
+   * @example
    * ```typescript
    * // Round the value of the 'price' field to two decimal places.
    * field("price").round(2);
    * ```
    *
-   * @param decimalPlaces A constant specifying the rounding precision in decimal places.
+   * @param decimalPlaces - A constant specifying the rounding precision in decimal places.
    *
-   * @return A new `Expr` representing the rounded value.
+   * @returns A new `Expression` representing the rounded value.
    */
   round(decimalPlaces: number): FunctionExpression;
   /**
-   * @beta
    * Creates an expression that rounds a numeric value to the specified number of decimal places.
    *
+   * @example
    * ```typescript
    * // Round the value of the 'price' field to two decimal places.
    * field("price").round(constant(2));
    * ```
    *
-   * @param decimalPlaces An expression specifying the rounding precision in decimal places.
+   * @param decimalPlaces - An expression specifying the rounding precision in decimal places.
    *
-   * @return A new `Expr` representing the rounded value.
+   * @returns A new `Expression` representing the rounded value.
    */
   round(decimalPlaces: Expression): FunctionExpression;
   round(decimalPlaces?: number | Expression): FunctionExpression {
@@ -2046,24 +3066,24 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that returns the collection ID from a path.
    *
+   * @example
    * ```typescript
    * // Get the collection ID from a path.
    * field("__path__").collectionId();
    * ```
    *
-   * @return A new {@code Expr} representing the collectionId operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the collectionId operation.
    */
   collectionId(): FunctionExpression {
     return new FunctionExpression('collection_id', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
    *
+   * @example
    * ```typescript
    * // Get the length of the 'name' field.
    * field("name").length();
@@ -2072,86 +3092,86 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field("cart").length();
    * ```
    *
-   * @return A new `Expr` representing the length of the string, array, map, vector, or bytes.
+   * @returns A new `Expression` representing the length of the string, array, map, vector, or bytes.
    */
   length(): FunctionExpression {
     return new FunctionExpression('length', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that computes the natural logarithm of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the natural logarithm of the 'value' field.
    * field("value").ln();
    * ```
    *
-   * @return A new {@code Expr} representing the natural logarithm of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the natural logarithm of the numeric value.
    */
   ln(): FunctionExpression {
     return new FunctionExpression('ln', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that computes the square root of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the square root of the 'value' field.
    * field("value").sqrt();
    * ```
    *
-   * @return A new {@code Expr} representing the square root of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the square root of the numeric value.
    */
   sqrt(): FunctionExpression {
     return new FunctionExpression('sqrt', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that reverses a string.
    *
+   * @example
    * ```typescript
    * // Reverse the value of the 'myString' field.
    * field("myString").stringReverse();
    * ```
    *
-   * @return A new {@code Expr} representing the reversed string.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed string.
    */
   stringReverse(): FunctionExpression {
     return new FunctionExpression('string_reverse', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
-   * return the result of the this expression evaluation.
+   * return the result of this expression evaluation.
    *
+   * @example
    * ```typescript
    * // Returns the value of the optional field 'optional_field', or returns 'default_value'
    * // if the field is absent.
    * field("optional_field").ifAbsent("default_value")
    * ```
    *
-   * @param elseValue The value that will be returned if this Expression evaluates to an absent value.
-   * @return A new [Expression] representing the ifAbsent operation.
+   * @param elseValue - The value that will be returned if this Expression evaluates to an absent value.
+   * @returns A new [Expression] representing the ifAbsent operation.
    */
   ifAbsent(elseValue: unknown): Expression;
 
   /**
-   * @beta
    * Creates an expression that returns the `elseValue` argument if this expression results in an absent value, else
    * return the result of this expression evaluation.
    *
+   * @example
    * ```typescript
    * // Returns the value of the optional field 'optional_field', or if that is
-   * // absent, then returns the value of the field `
+   * // absent, then returns the value of the field `default_field`.
    * field("optional_field").ifAbsent(field('default_field'))
    * ```
    *
-   * @param elseExpression The Expression that will be evaluated if this Expression evaluates to an absent value.
-   * @return A new [Expression] representing the ifAbsent operation.
+   * @param elseExpression - The Expression that will be evaluated if this Expression evaluates to an absent value.
+   * @returns A new [Expression] representing the ifAbsent operation.
    */
   ifAbsent(elseExpression: unknown): Expression;
 
@@ -2164,30 +3184,105 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
+   * Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else
+   * return the result of this expression evaluation.
+   *
+   * @remarks
+   * This function provides a fallback for both absent and explicit null values. In contrast,
+   * `ifAbsent()` only triggers for missing fields.
+   *
+   * @example
+   * ```typescript
+   * // Returns the user's preferred name, or if that is null, returns their full name.
+   * field("preferredName").ifNull(field("fullName"))
+   * ```
+   *
+   * @param elseExpression - The Expression that will be evaluated if this Expression evaluates to null.
+   * @returns A new `Expression` representing the ifNull operation.
+   */
+  ifNull(elseExpression: Expression): FunctionExpression;
+
+  /**
+   * Creates an expression that returns the `elseValue` argument if this expression evaluates to null, else
+   * return the result of this expression evaluation.
+   *
+   * @remarks
+   * This function provides a fallback for both absent and explicit null values. In contrast,
+   * `ifAbsent()` only triggers for missing fields.
+   *
+   * @example
+   * ```typescript
+   * // Returns the user's display name, or returns "Anonymous" if the field is null.
+   * field("displayName").ifNull("Anonymous")
+   * ```
+   *
+   * @param elseValue - The value that will be returned if this Expression evaluates to null.
+   * @returns A new `Expression` representing the ifNull operation.
+   */
+  ifNull(elseValue: unknown): FunctionExpression;
+  ifNull(elseValueOrExpression: Expression | unknown): FunctionExpression {
+    return new FunctionExpression(
+      'if_null',
+      [this, valueToDefaultExpr(elseValueOrExpression)],
+      'ifNull'
+    );
+  }
+
+  /**
+   * Creates an expression that returns the first non-null, non-absent argument, without evaluating
+   * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+   *
+   * @example
+   * ```typescript
+   * // Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
+   * // or the last argument if all previous fields are null.
+   * field("preferredName").coalesce(field("fullName"), "Anonymous");
+   * ```
+   *
+   * @param replacement - The value to use if this expression evaluates to null.
+   * @param others - Optional additional values to check if previous values are null.
+   * @returns A new `Expression` representing the coalesce operation.
+   */
+  coalesce(
+    replacement: Expression | unknown,
+    ...others: Array<Expression | unknown>
+  ): FunctionExpression {
+    return new FunctionExpression(
+      'coalesce',
+      [
+        this,
+        valueToDefaultExpr(replacement),
+        ...others.map(valueToDefaultExpr)
+      ],
+      'coalesce'
+    );
+  }
+
+  /**
    * Creates an expression that joins the elements of an array into a string.
    *
+   * @example
    * ```typescript
    * // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
    * field("tags").join(field("separator"))
    * ```
    *
-   * @param delimiterExpression The expression that evaluates to the delimiter string.
-   * @return A new Expression representing the join operation.
+   * @param delimiterExpression - The expression that evaluates to the delimiter string.
+   * @returns A new Expression representing the join operation.
    */
   join(delimiterExpression: Expression): Expression;
 
   /**
-   * @beta
    * Creates an expression that joins the elements of an array field into a string.
    *
+   * @example
    * ```typescript
    * // Join the elements of the 'tags' field with a comma and space.
    * field("tags").join(", ")
    * ```
    *
-   * @param delimiter The string to use as a delimiter.
-   * @return A new Expression representing the join operation.
+   * @param delimiter - The string to use as a delimiter.
+   * @returns A new Expression representing the join operation.
    */
   join(delimiter: string): Expression;
 
@@ -2200,37 +3295,36 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Creates an expression that computes the base-10 logarithm of a numeric value.
    *
+   * @example
    * ```typescript
    * // Compute the base-10 logarithm of the 'value' field.
    * field("value").log10();
    * ```
    *
-   * @return A new {@code Expr} representing the base-10 logarithm of the numeric value.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the base-10 logarithm of the numeric value.
    */
   log10(): FunctionExpression {
     return new FunctionExpression('log10', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that computes the sum of the elements in an array.
    *
+   * @example
    * ```typescript
    * // Compute the sum of the elements in the 'scores' field.
    * field("scores").arraySum();
    * ```
    *
-   * @return A new {@code Expr} representing the sum of the elements in the array.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sum of the elements in the array.
    */
   arraySum(): FunctionExpression {
     return new FunctionExpression('sum', [this]);
   }
 
   /**
-   * @beta
    * Creates an expression that splits the result of this expression into an
    * array of substrings based on the provided delimiter.
    *
@@ -2240,22 +3334,21 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field('scoresCsv').split(',')
    * ```
    *
-   * @return A new {@code Expression} representing the split function.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
    */
   split(delimiter: string): FunctionExpression;
 
   /**
-   * @beta
    * Creates an expression that splits the result of this expression into an
    * array of substrings based on the provided delimiter.
    *
    * @example
    * ```typescript
    * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
-   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':'))
+   * field('scores').split(conditional(field('format').equal('csv'), constant(','), constant(':')))
    * ```
    *
-   * @return A new {@code Expression} representing the split function.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
    */
   split(delimiter: Expression): FunctionExpression;
   split(delimiter: string | Expression): FunctionExpression {
@@ -2274,10 +3367,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field('createdAt').timestampTruncate('day')
    * ```
    *
-   * @param granularity The granularity to truncate to.
-   * @param timezone The timezone to use for truncation. Valid values are from
+   * @param granularity - The granularity to truncate to.
+   * @param timezone - The timezone to use for truncation. Valid values are from
    * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
-   * @return A new {Expression} representing the truncated timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the truncated timestamp.
    */
   timestampTruncate(
     granularity: TimeGranularity,
@@ -2293,10 +3386,10 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
    * field('createdAt').timestampTruncate(field('granularity'))
    * ```
    *
-   * @param granularity The granularity to truncate to.
-   * @param timezone The timezone to use for truncation. Valid values are from
+   * @param granularity - The granularity to truncate to.
+   * @param timezone - The timezone to use for truncation. Valid values are from
    * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
-   * @return A new {Expression} representing the truncated timestamp.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the truncated timestamp.
    */
   timestampTruncate(
     granularity: Expression,
@@ -2306,82 +3399,141 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
     granularity: TimeGranularity | Expression,
     timezone?: string | Expression
   ): FunctionExpression {
-    const internalGranularity = isString(granularity)
-      ? granularity.toLowerCase()
-      : granularity;
-
-    const args = [this, valueToDefaultExpr(internalGranularity)];
+    const args = [this, valueToDefaultExpr(granularity)];
     if (timezone) {
       args.push(valueToDefaultExpr(timezone));
     }
     return new FunctionExpression('timestamp_trunc', args);
   }
 
-  /**
-   * @beta
-   * Creates an expression that returns the data type of this expression's result, as a string.
-   *
-   * @example
-   * ```typescript
-   * // Get the data type of the value in field 'title'
-   * field('title').type()
-   * ```
-   *
-   * @return A new {Expression} representing the data type.
-   */
-  type(): FunctionExpression {
-    return new FunctionExpression('type', [this]);
-  }
+  // TODO(search) enable with backend support
+  // /**
+  //  * Evaluates if the result of this `expression` is between
+  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+  //  *
+  //  * @example
+  //  * ```
+  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+  //  * field('tireWidth').between(constant(2.2), constant(2.4))
+  //  *
+  //  * // This is functionally equivalent to
+  //  * and(field('tireWidth').greaterThanOrEqual(contant(2.2)), field('tireWidth').lessThanOrEqual(constant(2.4)))
+  //  * ```
+  //  *
+  //  * @param lowerBound - Lower bound (inclusive) of the range.
+  //  * @param upperBound - Upper bound (inclusive) of the range.
+  //  */
+  // between(lowerBound: Expression, upperBound: Expression): BooleanExpression;
+  //
+  // /**
+  //  * Evaluates if the result of this `expression` is between
+  //  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+  //  *
+  //  * @example
+  //  * ```
+  //  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+  //  * field('tireWidth').between(2.2, 2.4)
+  //  *
+  //  * // This is functionally equivalent to
+  //  * and(field('tireWidth').greaterThanOrEqual(2.2), field('tireWidth').lessThanOrEqual(2.4))
+  //  * ```
+  //  *
+  //  * @param lowerBound - Lower bound (inclusive) of the range.
+  //  * @param upperBound - Upper bound (inclusive) of the range.
+  //  */
+  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression;
+  //
+  // between(lowerBound: unknown, upperBound: unknown): BooleanExpression {
+  //   return new FunctionExpression('between', [
+  //     this,
+  //     valueToDefaultExpr(lowerBound),
+  //     valueToDefaultExpr(upperBound)
+  //   ]).asBoolean();
+  // }
+
+  // TODO(search) enable with backend support
+  // /**
+  //  * Evaluates to an HTML-formatted text snippet that renders terms matching
+  //  * the search query in `<b>bold</b>`.
+  //  *
+  //  * @remarks This Expression can only be used within a `search` stage.
+  //  *
+  //  * @param rquery Define the search query using the search domain-specific language (DSL).
+  //  */
+  // snippet(rquery: string): Expression;
+  //
+  // /**
+  //  * Evaluates to an HTML-formatted text snippet that renders terms matching
+  //  * the search query in `<b>bold</b>`.
+  //  *
+  //  * @remarks This Expression can only be used within a `search` stage.
+  //  *
+  //  * @param options Define how snippeting behaves.
+  //  */
+  // snippet(options: SnippetOptions): Expression;
+  //
+  // snippet(queryOrOptions: string | SnippetOptions): Expression {
+  //   const options: SnippetOptions = isString(queryOrOptions)
+  //     ? { rquery: queryOrOptions }
+  //     : queryOrOptions;
+  //   const rquery = options.rquery;
+  //   const internalOptions = {
+  //     maxSnippetWidth: options.maxSnippetWidth,
+  //     maxSnippets: options.maxSnippets,
+  //     separator: options.separator
+  //   };
+  //   return new SnippetExpression([this, constant(rquery)], internalOptions);
+  // }
 
   // TODO(new-expression): Add new expression method definitions above this line
 
   /**
-   * @beta
-   * Creates an {@link Ordering} that sorts documents in ascending order based on this expression.
+   * Creates an {@link @firebase/firestore/pipelines#Ordering} that sorts documents in ascending order based on this expression.
    *
+   * @example
    * ```typescript
    * // Sort documents by the 'name' field in ascending order
-   * pipeline().collection("users")
+   * firestore.pipeline().collection("users")
    *   .sort(field("name").ascending());
    * ```
    *
-   * @return A new `Ordering` for ascending sorting.
+   * @returns A new `Ordering` for ascending sorting.
    */
   ascending(): Ordering {
     return ascending(this);
   }
 
   /**
-   * @beta
-   * Creates an {@link Ordering} that sorts documents in descending order based on this expression.
+   * Creates an {@link @firebase/firestore/pipelines#Ordering} that sorts documents in descending order based on this expression.
    *
+   * @example
    * ```typescript
    * // Sort documents by the 'createdAt' field in descending order
    * firestore.pipeline().collection("users")
    *   .sort(field("createdAt").descending());
    * ```
    *
-   * @return A new `Ordering` for descending sorting.
+   * @returns A new `Ordering` for descending sorting.
    */
   descending(): Ordering {
     return descending(this);
   }
 
   /**
-   * @beta
    * Assigns an alias to this expression.
    *
    * Aliases are useful for renaming fields in the output of a stage or for giving meaningful
    * names to calculated values.
    *
+   * @example
    * ```typescript
    * // Calculate the total price and assign it the alias "totalPrice" and add it to the output.
    * firestore.pipeline().collection("items")
    *   .addFields(field("price").multiply(field("quantity")).as("totalPrice"));
    * ```
    *
-   * @param name The alias to assign to this expression.
-   * @return A new {@link AliasedExpression} that wraps this
+   * @param name - The alias to assign to this expression.
+   * @returns A new {@link @firebase/firestore/pipelines#AliasedExpression} that wraps this
    *     expression and associates it with the provided alias.
    */
   as(name: string): AliasedExpression {
@@ -2389,13 +3541,22 @@ export abstract class Expression implements ProtoValueSerializable, UserData {
   }
 }
 
-export type TimeGranularity =
+/**
+ * Specify time units for expressions.
+ */
+export type TimeUnit =
   | 'microsecond'
   | 'millisecond'
   | 'second'
   | 'minute'
   | 'hour'
-  | 'day'
+  | 'day';
+
+/**
+ * Specify time granularity for expressions.
+ */
+export type TimeGranularity =
+  | TimeUnit
   | 'week'
   | 'week(monday)'
   | 'week(tuesday)'
@@ -2404,14 +3565,18 @@ export type TimeGranularity =
   | 'week(friday)'
   | 'week(saturday)'
   | 'week(sunday)'
-  | 'isoWeek'
+  | 'isoweek'
   | 'month'
   | 'quarter'
   | 'year'
-  | 'isoYear';
+  | 'isoyear';
 
 /**
- * @beta
+ * Specify time parts for `timestampExtract` expressions.
+ */
+export type TimePart = TimeGranularity | 'dayofweek' | 'dayofyear';
+
+/**
  *
  * An interface that represents a selectable expression.
  */
@@ -2430,7 +3595,6 @@ export interface Selectable {
 }
 
 /**
- * @beta
  *
  * A class that represents an aggregate function.
  */
@@ -2460,18 +3624,18 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
   }
 
   /**
-   * @beta
    * Assigns an alias to this AggregateFunction. The alias specifies the name that
    * the aggregated value will have in the output document.
    *
+   * @example
    * ```typescript
    * // Calculate the average price of all items and assign it the alias "averagePrice".
    * firestore.pipeline().collection("items")
    *   .aggregate(field("price").average().as("averagePrice"));
    * ```
    *
-   * @param name The alias to assign to this AggregateFunction.
-   * @return A new {@link AliasedAggregate} that wraps this
+   * @param name - The alias to assign to this AggregateFunction.
+   * @returns A new {@link @firebase/firestore/pipelines#AliasedAggregate} that wraps this
    *     AggregateFunction and associates it with the provided alias.
    */
   as(name: string): AliasedAggregate {
@@ -2508,7 +3672,6 @@ export class AggregateFunction implements ProtoValueSerializable, UserData {
 }
 
 /**
- * @beta
  *
  * An AggregateFunction with alias.
  */
@@ -2528,9 +3691,6 @@ export class AliasedAggregate implements UserData {
   }
 }
 
-/**
- * @beta
- */
 export class AliasedExpression implements Selectable, UserData {
   exprType: ExpressionType = 'AliasedExpression';
   selectable = true as const;
@@ -2551,14 +3711,13 @@ export class AliasedExpression implements Selectable, UserData {
 }
 
 /**
- * @private
  * @internal
  */
-export class ListOfExprs extends Expression implements UserData {
+class ListOfExprs extends Expression implements UserData {
   expressionType: ExpressionType = 'ListOfExpressions';
 
   constructor(
-    readonly exprs: Expression[],
+    private exprs: Expression[],
     readonly _methodName: string | undefined
   ) {
     super();
@@ -2586,15 +3745,15 @@ export class ListOfExprs extends Expression implements UserData {
 }
 
 /**
- * @beta
  *
- * Represents a reference to a field in a Firestore document, or outputs of a {@link Pipeline} stage.
+ * Represents a reference to a field in a Firestore document, or outputs of a {@link @firebase/firestore/pipelines#Pipeline} stage.
  *
  * <p>Field references are used to access document field values in expressions and to specify fields
  * for sorting, filtering, and projecting data in Firestore pipelines.
  *
- * <p>You can create a `Field` instance using the static {@link #of} method:
+ * <p>You can create a `Field` instance using the static {@link @firebase/firestore/pipelines#field} method:
  *
+ * @example
  * ```typescript
  * // Create a Field instance for the 'name' field
  * const nameField = field("name");
@@ -2610,16 +3769,18 @@ export class Field extends Expression implements Selectable {
   /**
    * @internal
    * @private
+   * @hideconstructor
+   * @param fieldPath
    */
   constructor(
-    readonly _fieldPath: InternalFieldPath,
+    private fieldPath: InternalFieldPath,
     readonly _methodName: string | undefined
   ) {
     super();
   }
 
   get fieldName(): string {
-    return this._fieldPath.canonicalString();
+    return this.fieldPath.canonicalString();
   }
 
   get alias(): string {
@@ -2630,13 +3791,46 @@ export class Field extends Expression implements Selectable {
     return this;
   }
 
+  // TODO(search) enable with backend support
+  // /**
+  //  * Perform a full-text search on this field.
+  //  *
+  //  * @remarks This Expression can only be used within a `search` stage.
+  //  *
+  //  * @param rquery Define the search query using the search domain-specific language (DSL).
+  //  */
+  // matches(rquery: string | Expression): BooleanExpression {
+  //   return new FunctionExpression(
+  //     'matches',
+  //     [this, valueToDefaultExpr(rquery)],
+  //     'matches'
+  //   ).asBoolean();
+  // }
+
+  /**
+   * @beta
+   * Evaluates to the distance in meters between the location specified
+   * by this field and the query location.
+   *
+   * @remarks This Expression can only be used within a `search` stage.
+   *
+   * @param location - Compute distance to this GeoPoint.
+   */
+  geoDistance(location: GeoPoint | Expression): Expression {
+    return new FunctionExpression(
+      'geo_distance',
+      [this, valueToDefaultExpr(location)],
+      'geoDistance'
+    );
+  }
+
   /**
    * @private
    * @internal
    */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
     return {
-      fieldReferenceValue: this._fieldPath.canonicalString()
+      fieldReferenceValue: this.fieldPath.canonicalString()
     };
   }
 
@@ -2648,12 +3842,12 @@ export class Field extends Expression implements Selectable {
 }
 
 /**
- * @beta
- * Creates a {@code Field} instance representing the field at the given path.
+ * Creates a {@link @firebase/firestore/pipelines#Field} instance representing the field at the given path.
  *
  * The path can be a simple field name (e.g., "name") or a dot-separated path to a nested field
  * (e.g., "address.city").
  *
+ * @example
  * ```typescript
  * // Create a Field instance for the 'title' field
  * const titleField = field("title");
@@ -2662,10 +3856,17 @@ export class Field extends Expression implements Selectable {
  * const authorFirstNameField = field("author.firstName");
  * ```
  *
- * @param name The path to the field.
- * @return A new {@code Field} instance representing the specified field.
+ * @param name - The path to the field.
+ * @returns A new {@link @firebase/firestore/pipelines#Field} instance representing the specified field.
  */
 export function field(name: string): Field;
+
+/**
+ * Creates a {@link @firebase/firestore/pipelines#Field} instance representing the field at the given path.
+ *
+ * @param path - A FieldPath specifying the field.
+ * @returns A new {@link @firebase/firestore/pipelines#Field} instance representing the specified field.
+ */
 export function field(path: FieldPath): Field;
 export function field(nameOrPath: string | FieldPath): Field {
   return _field(nameOrPath, 'field');
@@ -2690,8 +3891,9 @@ export function _field(
  *
  * Represents a constant value that can be used in a Firestore pipeline expression.
  *
- * You can create a `Constant` instance using the static {@link #of} method:
+ * You can create a `Constant` instance using the static {@link @firebase/firestore/pipelines#field} method:
  *
+ * @example
  * ```typescript
  * // Create a Constant instance for the number 10
  * const ten = constant(10);
@@ -2706,13 +3908,14 @@ export class Constant extends Expression {
   private _protoValue?: ProtoValue;
 
   /**
+   * @private
    * @internal
    * @hideconstructor
+   * @param value - The value of the constant.
    */
   constructor(
-    readonly value: unknown,
-    readonly _methodName: string | undefined,
-    private options?: { preferIntegers: boolean }
+    private value: unknown,
+    readonly _methodName: string | undefined
   ) {
     super();
   }
@@ -2751,101 +3954,80 @@ export class Constant extends Expression {
     if (isFirestoreValue(this._protoValue)) {
       return;
     } else {
-      this._protoValue = parseData(this.value, context, this.options)!;
+      this._protoValue = parseData(this.value, context)!;
     }
-  }
-
-  _getValue(): ProtoValue {
-    hardAssert(
-      this._protoValue !== undefined,
-      0x7a8f,
-      'Value of this constant has not been serialized to proto value'
-    );
-    return this._protoValue;
   }
 }
 
 /**
- * @beta
  * Creates a `Constant` instance for a number value.
  *
- * @param value The number value.
- * @return A new `Constant` instance.
+ * @param value - The number value.
+ * @returns A new `Constant` instance.
  */
-export function constant(
-  value: number,
-  options?: { preferIntegers: boolean }
-): Expression;
+export function constant(value: number): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a string value.
  *
- * @param value The string value.
- * @return A new `Constant` instance.
+ * @param value - The string value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: string): Expression;
 
 /**
- * @beta
  * Creates a `BooleanExpression` instance for a boolean value.
  *
- * @param value The boolean value.
- * @return A new `Constant` instance.
+ * @param value - The boolean value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: boolean): BooleanExpression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a null value.
  *
- * @param value The null value.
- * @return A new `Constant` instance.
+ * @param value - The null value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: null): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a GeoPoint value.
  *
- * @param value The GeoPoint value.
- * @return A new `Constant` instance.
+ * @param value - The GeoPoint value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: GeoPoint): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a Timestamp value.
  *
- * @param value The Timestamp value.
- * @return A new `Constant` instance.
+ * @param value - The Timestamp value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: Timestamp): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a Date value.
  *
- * @param value The Date value.
- * @return A new `Constant` instance.
+ * @param value - The Date value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: Date): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a Bytes value.
  *
- * @param value The Bytes value.
- * @return A new `Constant` instance.
+ * @param value - The Bytes value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: Bytes): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a DocumentReference value.
  *
- * @param value The DocumentReference value.
- * @return A new `Constant` instance.
+ * @param value - The DocumentReference value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: DocumentReference): Expression;
 
@@ -2854,25 +4036,21 @@ export function constant(value: DocumentReference): Expression;
  * For internal use only.
  * @private
  * @internal
- * @param value The Firestore proto value.
- * @return A new `Constant` instance.
+ * @param value - The Firestore proto value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: ProtoValue): Expression;
 
 /**
- * @beta
  * Creates a `Constant` instance for a VectorValue value.
  *
- * @param value The VectorValue value.
- * @return A new `Constant` instance.
+ * @param value - The VectorValue value.
+ * @returns A new `Constant` instance.
  */
 export function constant(value: VectorValue): Expression;
 
-export function constant(
-  value: unknown,
-  options?: { preferIntegers: boolean }
-): Expression | BooleanExpression {
-  return _constant(value, 'constant', options);
+export function constant(value: unknown): Expression | BooleanExpression {
+  return _constant(value, 'constant');
 }
 
 /**
@@ -2883,10 +4061,9 @@ export function constant(
  */
 export function _constant(
   value: unknown,
-  methodName: string | undefined,
-  options?: { preferIntegers: boolean }
+  methodName: string | undefined
 ): Constant | BooleanExpression {
-  const c = new Constant(value, methodName, options);
+  const c = new Constant(value, methodName);
   if (typeof value === 'boolean') {
     return new BooleanConstant(c);
   } else {
@@ -2924,42 +4101,92 @@ export class MapValue extends Expression {
 }
 
 /**
- * @beta
  *
- * This class defines the base class for Firestore {@link Pipeline} functions, which can be evaluated within pipeline
+ * This class defines the base class for Firestore {@link @firebase/firestore/pipelines#Pipeline} functions, which can be evaluated within pipeline
  * execution.
  *
- * Typically, you would not use this class or its children directly. Use either the functions like {@link and}, {@link equal},
- * or the methods on {@link Expression} ({@link Expression#equal}, {@link Expression#lessThan}, etc.) to construct new Function instances.
+ * Typically, you would not use this class or its children directly. Use either the functions like {@link @firebase/firestore/pipelines#and}, {@link @firebase/firestore/pipelines#(equal:1)},
+ * or the methods on {@link @firebase/firestore/pipelines#Expression} ({@link @firebase/firestore/pipelines#Expression.(equal:1)}, {@link @firebase/firestore/pipelines#Expression.(lessThan:1)}, etc.) to construct new Function instances.
  */
 export class FunctionExpression extends Expression {
   readonly expressionType: ExpressionType = 'Function';
 
   constructor(name: string, params: Expression[]);
+
+  /**
+   * @hideconstructor
+   */
   constructor(
     name: string,
     params: Expression[],
-    _methodName: string | undefined
+    _methodName?: string,
+    options?: {}
   );
+
+  /**
+   * @hideconstructor
+   */
   constructor(
-    readonly name: string,
-    readonly params: Expression[],
-    readonly _methodName?: string
+    private name: string,
+    private params: Expression[],
+    methodName?: string,
+    options?: {}
   ) {
     super();
+
+    if (methodName !== undefined) {
+      this._methodName = methodName;
+    }
+    if (options !== undefined) {
+      this._options = options;
+    }
   }
 
   /**
    * @private
    * @internal
    */
+  _methodName: string | undefined;
+
+  /**
+   * @private
+   * @internal
+   */
+  private _options: {} | undefined;
+
+  /**
+   * @private
+   * @internal
+   */
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({});
+  }
+
+  /**
+   * @private
+   * @internal
+   */
+  _optionsProto:
+    | ApiClientObjectMap<firestoreV1ApiClientInterfaces.Value>
+    | undefined = undefined;
+
+  /**
+   * @private
+   * @internal
+   */
   _toProto(serializer: JsonProtoSerializer): ProtoValue {
-    return {
+    const returnValue: ProtoValue = {
       functionValue: {
         name: this.name,
         args: this.params.map(p => p._toProto(serializer))
       }
     };
+
+    if (this._optionsProto) {
+      returnValue.functionValue!.options = this._optionsProto;
+    }
+
+    return returnValue;
   }
 
   /**
@@ -2973,11 +4200,16 @@ export class FunctionExpression extends Expression {
     this.params.forEach(expr => {
       return expr._readUserData(context);
     });
+    if (this._options) {
+      this._optionsProto = this._optionsUtil.getOptionsProto(
+        context,
+        this._options
+      );
+    }
   }
 }
 
 /**
- * @beta
  *
  * An interface that represents a filter condition.
  */
@@ -2989,50 +4221,50 @@ export abstract class BooleanExpression extends Expression {
   }
 
   /**
-   * @beta
    * Creates an aggregation that finds the count of input documents satisfying
    * this boolean expression.
    *
+   * @example
    * ```typescript
    * // Find the count of documents with a score greater than 90
    * field("score").greaterThan(90).countIf().as("highestScore");
    * ```
    *
-   * @return A new `AggregateFunction` representing the 'countIf' aggregation.
+   * @returns A new `AggregateFunction` representing the 'countIf' aggregation.
    */
   countIf(): AggregateFunction {
     return AggregateFunction._create('count_if', [this], 'countIf');
   }
 
   /**
-   * @beta
    * Creates an expression that negates this boolean expression.
    *
+   * @example
    * ```typescript
    * // Find documents where the 'tags' field does not contain 'completed'
    * field("tags").arrayContains("completed").not();
    * ```
    *
-   * @return A new {@code Expr} representing the negated filter condition.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the negated filter condition.
    */
   not(): BooleanExpression {
     return new FunctionExpression('not', [this], 'not').asBoolean();
   }
 
   /**
-   * @beta
    * Creates a conditional expression that evaluates to the 'then' expression
    * if `this` expression evaluates to `true`,
    * or evaluates to the 'else' expression if `this` expressions evaluates `false`.
    *
+   * @example
    * ```typescript
    * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
    * field("age").greaterThanOrEqual(18).conditional(constant("Adult"), constant("Minor"));
    * ```
    *
-   * @param thenExpr The expression to evaluate if the condition is true.
-   * @param elseExpr The expression to evaluate if the condition is false.
-   * @return A new {@code Expr} representing the conditional expression.
+   * @param thenExpr - The expression to evaluate if the condition is true.
+   * @param elseExpr - The expression to evaluate if the condition is false.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the conditional expression.
    */
   conditional(thenExpr: Expression, elseExpr: Expression): FunctionExpression {
     return new FunctionExpression(
@@ -3043,72 +4275,72 @@ export abstract class BooleanExpression extends Expression {
   }
 
   /**
-   * @beta
    *
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
-   * constant(50).divide('length').gt(1).ifError(constant(false));
+   * constant(50).divide(field('length')).greaterThan(1).ifError(constant(false));
    * ```
    *
-   * @param catchValue The value that will be returned if this expression
+   * @param catchValue - The value that will be returned if this expression
    * produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
    */
   ifError(catchValue: BooleanExpression): BooleanExpression;
 
   /**
-   * @beta
    *
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error
    * // but always returns a boolean expression.
-   * constant(50).divide('length').gt(1).ifError(false);
+   * constant(50).divide(field('length')).greaterThan(1).ifError(false);
    * ```
    *
-   * @param catchValue The value that will be returned if this expression
+   * @param catchValue - The value that will be returned if this expression
    * produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
    */
   ifError(catchValue: boolean): BooleanExpression;
 
   /**
-   * @beta
    *
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
-   * constant(50).divide('length').gt(1).ifError(constant(0));
+   * constant(50).divide(field('length')).greaterThan(1).ifError(constant(0));
    * ```
    *
-   * @param catchValue The value that will be returned if this expression
+   * @param catchValue - The value that will be returned if this expression
    * produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
    */
   ifError(catchValue: Expression): FunctionExpression;
 
   /**
-   * @beta
    *
    * Creates an expression that returns the `catch` argument if there is an
    * error, else return the result of this expression.
    *
+   * @example
    * ```typescript
    * // Create an expression that protects against a divide by zero error.
-   * constant(50).divide('length').gt(1).ifError(0);
+   * constant(50).divide(field('length')).greaterThan(1).ifError(0);
    * ```
    *
-   * @param catchValue The value that will be returned if this expression
+   * @param catchValue - The value that will be returned if this expression
    * produces an error.
-   * @return A new {@code Expr} representing the 'ifError' operation.
+   * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
    */
   ifError(catchValue: unknown): FunctionExpression;
   ifError(catchValue: unknown): unknown {
@@ -3163,10 +4395,41 @@ export class BooleanField extends BooleanExpression {
 }
 
 /**
- * @beta
+ * SnippetExpression extends from FunctionExpression because it
+ * supports options and requires the options util.
+ */
+export class SnippetExpression extends FunctionExpression {
+  /**
+   * @private
+   * @internal
+   */
+  get _optionsUtil(): OptionsUtil {
+    return new OptionsUtil({
+      maxSnippetWidth: {
+        serverName: 'max_snippet_width'
+      },
+      maxSnippets: {
+        serverName: 'max_snippets'
+      },
+      separator: {
+        serverName: 'separator'
+      }
+    });
+  }
+
+  /**
+   * @hideconstructor
+   */
+  constructor(params: Expression[], options?: {}) {
+    super('snippet', params, 'snippet', options);
+  }
+}
+
+/**
  * Creates an aggregation that counts the number of stage inputs where the provided
  * boolean expression evaluates to true.
  *
+ * @example
  * ```typescript
  * // Count the number of documents where 'is_active' field equals true
  * countIf(field("is_active").equal(true)).as("numActiveDocuments");
@@ -3180,19 +4443,19 @@ export function countIf(booleanExpr: BooleanExpression): AggregateFunction {
 }
 
 /**
- * @beta
  * Creates an expression that indexes into an array from the beginning or end
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index 1.
  * arrayGet('tags', 1);
  * ```
  *
- * @param arrayField The name of the array field.
- * @param offset The index of the element to return.
- * @return A new Expr representing the 'arrayGet' operation.
+ * @param arrayField - The name of the array field.
+ * @param offset - The index of the element to return.
+ * @returns A new `Expression` representing the 'arrayGet' operation.
  */
 export function arrayGet(
   arrayField: string,
@@ -3200,20 +4463,20 @@ export function arrayGet(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that indexes into an array from the beginning or end
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
  * arrayGet('tags', field('favoriteTag'));
  * ```
  *
- * @param arrayField The name of the array field.
- * @param offsetExpr An Expr evaluating to the index of the element to return.
- * @return A new Expr representing the 'arrayGet' operation.
+ * @param arrayField - The name of the array field.
+ * @param offsetExpr - An `Expression` evaluating to the index of the element to return.
+ * @returns A new `Expression` representing the 'arrayGet' operation.
  */
 export function arrayGet(
   arrayField: string,
@@ -3221,19 +4484,19 @@ export function arrayGet(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that indexes into an array from the beginning or end
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index 1.
  * arrayGet(field('tags'), 1);
  * ```
  *
- * @param arrayExpression An Expr evaluating to an array.
- * @param offset The index of the element to return.
- * @return A new Expr representing the 'arrayGet' operation.
+ * @param arrayExpression - An `Expression` evaluating to an array.
+ * @param offset - The index of the element to return.
+ * @returns A new `Expression` representing the 'arrayGet' operation.
  */
 export function arrayGet(
   arrayExpression: Expression,
@@ -3241,20 +4504,20 @@ export function arrayGet(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that indexes into an array from the beginning or end
  * and return the element. If the offset exceeds the array length, an error is
  * returned. A negative offset, starts from the end.
  *
+ * @example
  * ```typescript
  * // Return the value in the tags field array at index specified by field
  * // 'favoriteTag'.
  * arrayGet(field('tags'), field('favoriteTag'));
  * ```
  *
- * @param arrayExpression An Expr evaluating to an array.
- * @param offsetExpr An Expr evaluating to the index of the element to return.
- * @return A new Expr representing the 'arrayGet' operation.
+ * @param arrayExpression - An `Expression` evaluating to an array.
+ * @param offsetExpr - An `Expression` evaluating to the index of the element to return.
+ * @returns A new `Expression` representing the 'arrayGet' operation.
  */
 export function arrayGet(
   arrayExpression: Expression,
@@ -3268,40 +4531,40 @@ export function arrayGet(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if a given expression produces an error.
  *
+ * @example
  * ```typescript
  * // Check if the result of a calculation is an error
  * isError(field("title").arrayContains(1));
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isError' check.
+ * @param value - The expression to check.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'isError' check.
  */
 export function isError(value: Expression): BooleanExpression {
   return value.isError().asBoolean();
 }
 
 /**
- * @beta
  *
  * Creates an expression that returns the `catch` argument if there is an
  * error, else return the result of the `try` argument evaluation.
  *
  * This overload is useful when a BooleanExpression is required.
  *
+ * @example
  * ```typescript
  * // Create an expression that protects against a divide by zero error
  * // but always returns a boolean expression.
- * ifError(constant(50).divide('length').gt(1), constant(false));
+ * ifError(constant(50).divide(field('length')).greaterThan(1), constant(false));
  * ```
  *
- * @param tryExpr The try expression.
- * @param catchExpr The catch expression that will be evaluated and
+ * @param tryExpr - The try expression.
+ * @param catchExpr - The catch expression that will be evaluated and
  * returned if the tryExpr produces an error.
- * @return A new {@code Expr} representing the 'ifError' operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
  */
 export function ifError(
   tryExpr: BooleanExpression,
@@ -3309,21 +4572,21 @@ export function ifError(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns the `catch` argument if there is an
  * error, else return the result of the `try` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // the entire title field if the array is empty or the field is another type.
  * ifError(field("title").arrayGet(0), field("title"));
  * ```
  *
- * @param tryExpr The try expression.
- * @param catchExpr The catch expression that will be evaluated and
+ * @param tryExpr - The try expression.
+ * @param catchExpr - The catch expression that will be evaluated and
  * returned if the tryExpr produces an error.
- * @return A new {@code Expr} representing the 'ifError' operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
  */
 export function ifError(
   tryExpr: Expression,
@@ -3331,21 +4594,21 @@ export function ifError(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns the `catch` argument if there is an
  * error, else return the result of the `try` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the first item in the title field arrays, or returns
  * // "Default Title"
  * ifError(field("title").arrayGet(0), "Default Title");
  * ```
  *
- * @param tryExpr The try expression.
- * @param catchValue The value that will be returned if the tryExpr produces an
+ * @param tryExpr - The try expression.
+ * @param catchValue - The value that will be returned if the tryExpr produces an
  * error.
- * @return A new {@code Expr} representing the 'ifError' operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ifError' operation.
  */
 export function ifError(
   tryExpr: Expression,
@@ -3367,34 +4630,34 @@ export function ifError(
 }
 
 /**
- * @beta
  *
  * Creates an expression that returns `true` if a value is absent. Otherwise,
  * returns `false` even if the value is `null`.
  *
+ * @example
  * ```typescript
  * // Check if the field `value` is absent.
  * isAbsent(field("value"));
  * ```
  *
- * @param value The expression to check.
- * @return A new {@code Expr} representing the 'isAbsent' check.
+ * @param value - The expression to check.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'isAbsent' check.
  */
 export function isAbsent(value: Expression): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns `true` if a field is absent. Otherwise,
  * returns `false` even if the field value is `null`.
  *
+ * @example
  * ```typescript
  * // Check if the field `value` is absent.
  * isAbsent("value");
  * ```
  *
- * @param field The field to check.
- * @return A new {@code Expr} representing the 'isAbsent' check.
+ * @param field - The field to check.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'isAbsent' check.
  */
 export function isAbsent(field: string): BooleanExpression;
 export function isAbsent(value: Expression | string): BooleanExpression {
@@ -3402,62 +4665,64 @@ export function isAbsent(value: Expression | string): BooleanExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that removes a key from the map at the specified field name.
  *
+ * @example
  * ```
  * // Removes the key 'city' field from the map in the address field of the input document.
  * mapRemove('address', 'city');
  * ```
  *
- * @param mapField The name of a field containing a map value.
- * @param key The name of the key to remove from the input map.
+ * @param mapField - The name of a field containing a map value.
+ * @param key - The name of the key to remove from the input map.
  */
 export function mapRemove(mapField: string, key: string): FunctionExpression;
 /**
- * @beta
  *
  * Creates an expression that removes a key from the map produced by evaluating an expression.
  *
+ * @example
  * ```
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), 'baz');
+ * @example
  * ```
  *
- * @param mapExpr An expression return a map value.
- * @param key The name of the key to remove from the input map.
+ * @param mapExpr - An expression return a map value.
+ * @param key - The name of the key to remove from the input map.
  */
 export function mapRemove(mapExpr: Expression, key: string): FunctionExpression;
 /**
- * @beta
  *
  * Creates an expression that removes a key from the map at the specified field name.
  *
+ * @example
  * ```
  * // Removes the key 'city' field from the map in the address field of the input document.
  * mapRemove('address', constant('city'));
  * ```
  *
- * @param mapField The name of a field containing a map value.
- * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ * @param mapField - The name of a field containing a map value.
+ * @param keyExpr - An expression that produces the name of the key to remove from the input map.
  */
 export function mapRemove(
   mapField: string,
   keyExpr: Expression
 ): FunctionExpression;
 /**
- * @beta
  *
  * Creates an expression that removes a key from the map produced by evaluating an expression.
  *
+ * @example
  * ```
  * // Removes the key 'baz' from the input map.
  * mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
+ * @example
  * ```
  *
- * @param mapExpr An expression return a map value.
- * @param keyExpr An expression that produces the name of the key to remove from the input map.
+ * @param mapExpr - An expression return a map value.
+ * @param keyExpr - An expression that produces the name of the key to remove from the input map.
  */
 export function mapRemove(
   mapExpr: Expression,
@@ -3472,20 +4737,20 @@ export function mapRemove(
 }
 
 /**
- * @beta
  *
  * Creates an expression that merges multiple map values.
  *
+ * @example
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
  * mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
  * ```
  *
- * @param mapField Name of a field containing a map value that will be merged.
- * @param secondMap A required second map to merge. Represented as a literal or
+ * @param mapField - Name of a field containing a map value that will be merged.
+ * @param secondMap - A required second map to merge. Represented as a literal or
  * an expression that returns a map.
- * @param otherMaps Optional additional maps to merge. Each map is represented
+ * @param otherMaps - Optional additional maps to merge. Each map is represented
  * as a literal or an expression that returns a map.
  */
 export function mapMerge(
@@ -3495,20 +4760,20 @@ export function mapMerge(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that merges multiple map values.
  *
+ * @example
  * ```
  * // Merges the map in the settings field with, a map literal, and a map in
  * // that is conditionally returned by another expression
  * mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
  * ```
  *
- * @param firstMap An expression or literal map value that will be merged.
- * @param secondMap A required second map to merge. Represented as a literal or
+ * @param firstMap - An expression or literal map value that will be merged.
+ * @param secondMap - A required second map to merge. Represented as a literal or
  * an expression that returns a map.
- * @param otherMaps Optional additional maps to merge. Each map is represented
+ * @param otherMaps - Optional additional maps to merge. Each map is represented
  * as a literal or an expression that returns a map.
  */
 export function mapMerge(
@@ -3528,32 +4793,32 @@ export function mapMerge(
 }
 
 /**
- * @beta
  *
  * Creates an expression that returns the document ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the document ID from a path.
  * documentId(myDocumentReference);
  * ```
  *
- * @return A new {@code Expr} representing the documentId operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the documentId operation.
  */
 export function documentId(
   documentPath: string | DocumentReference
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns the document ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the document ID from a path.
  * documentId(field("__path__"));
  * ```
  *
- * @return A new {@code Expr} representing the documentId operation.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the documentId operation.
  */
 export function documentId(documentPathExpr: Expression): FunctionExpression;
 
@@ -3566,13 +4831,51 @@ export function documentId(
 }
 
 /**
- * @beta
+ *
+ * Creates an expression that returns the parent document reference of a document reference.
+ *
+ * @example
+ * ```typescript
+ * // Get the parent document reference of a document reference.
+ * parent(myDocumentReference);
+ * ```
+ *
+ * @param documentPath - A string path or DocumentReference to get the parent from.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the parent operation.
+ */
+export function parent(
+  documentPath: string | DocumentReference
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the parent document reference of a document reference.
+ *
+ * @example
+ * ```typescript
+ * // Get the parent document reference of a document reference.
+ * parent(field("__path__"));
+ * ```
+ *
+ * @param documentPathExpr - An Expression evaluating to a document reference.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the parent operation.
+ */
+export function parent(documentPathExpr: Expression): FunctionExpression;
+
+export function parent(
+  documentPath: Expression | string | DocumentReference
+): FunctionExpression {
+  const documentPathExpr = valueToDefaultExpr(documentPath);
+  return documentPathExpr.parent();
+}
+
+/**
  *
  * Creates an expression that returns a substring of a string or byte array.
  *
- * @param field The name of a field containing a string or byte array to compute the substring from.
- * @param position Index of the first character of the substring.
- * @param length Length of the substring.
+ * @param field - The name of a field containing a string or byte array to compute the substring from.
+ * @param position - Index of the first character of the substring.
+ * @param length - Length of the substring.
  */
 export function substring(
   field: string,
@@ -3581,13 +4884,12 @@ export function substring(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns a substring of a string or byte array.
  *
- * @param input An expression returning a string or byte array to compute the substring from.
- * @param position Index of the first character of the substring.
- * @param length Length of the substring.
+ * @param input - An expression returning a string or byte array to compute the substring from.
+ * @param position - Index of the first character of the substring.
+ * @param length - Length of the substring.
  */
 export function substring(
   input: Expression,
@@ -3596,13 +4898,12 @@ export function substring(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns a substring of a string or byte array.
  *
- * @param field The name of a field containing a string or byte array to compute the substring from.
- * @param position An expression that returns the index of the first character of the substring.
- * @param length An expression that returns the length of the substring.
+ * @param field - The name of a field containing a string or byte array to compute the substring from.
+ * @param position - An expression that returns the index of the first character of the substring.
+ * @param length - An expression that returns the length of the substring.
  */
 export function substring(
   field: string,
@@ -3611,13 +4912,12 @@ export function substring(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns a substring of a string or byte array.
  *
- * @param input An expression returning a string or byte array to compute the substring from.
- * @param position An expression that returns the index of the first character of the substring.
- * @param length An expression that returns the length of the substring.
+ * @param input - An expression returning a string or byte array to compute the substring from.
+ * @param position - An expression that returns the index of the first character of the substring.
+ * @param length - An expression that returns the length of the substring.
  */
 export function substring(
   input: Expression,
@@ -3638,19 +4938,19 @@ export function substring(
 }
 
 /**
- * @beta
  *
  * Creates an expression that adds two expressions together.
  *
+ * @example
  * ```typescript
  * // Add the value of the 'quantity' field and the 'reserve' field.
  * add(field("quantity"), field("reserve"));
  * ```
  *
- * @param first The first expression to add.
- * @param second The second expression or literal to add.
- * @param others Optional other expressions or literals to add.
- * @return A new {@code Expr} representing the addition operation.
+ * @param first - The first expression to add.
+ * @param second - The second expression or literal to add.
+ * @param others - Optional other expressions or literals to add.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the addition operation.
  */
 export function add(
   first: Expression,
@@ -3658,19 +4958,19 @@ export function add(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that adds a field's value to an expression.
  *
+ * @example
  * ```typescript
  * // Add the value of the 'quantity' field and the 'reserve' field.
  * add("quantity", field("reserve"));
  * ```
  *
- * @param fieldName The name of the field containing the value to add.
- * @param second The second expression or literal to add.
- * @param others Optional other expressions or literals to add.
- * @return A new {@code Expr} representing the addition operation.
+ * @param fieldName - The name of the field containing the value to add.
+ * @param second - The second expression or literal to add.
+ * @param others - Optional other expressions or literals to add.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the addition operation.
  */
 export function add(
   fieldName: string,
@@ -3685,18 +4985,18 @@ export function add(
 }
 
 /**
- * @beta
  *
  * Creates an expression that subtracts two expressions.
  *
+ * @example
  * ```typescript
  * // Subtract the 'discount' field from the 'price' field
  * subtract(field("price"), field("discount"));
  * ```
  *
- * @param left The expression to subtract from.
- * @param right The expression to subtract.
- * @return A new {@code Expr} representing the subtraction operation.
+ * @param left - The expression to subtract from.
+ * @param right - The expression to subtract.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the subtraction operation.
  */
 export function subtract(
   left: Expression,
@@ -3704,18 +5004,18 @@ export function subtract(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that subtracts a constant value from an expression.
  *
+ * @example
  * ```typescript
  * // Subtract the constant value 2 from the 'value' field
  * subtract(field("value"), 2);
  * ```
  *
- * @param expression The expression to subtract from.
- * @param value The constant value to subtract.
- * @return A new {@code Expr} representing the subtraction operation.
+ * @param expression - The expression to subtract from.
+ * @param value - The constant value to subtract.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the subtraction operation.
  */
 export function subtract(
   expression: Expression,
@@ -3723,18 +5023,18 @@ export function subtract(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that subtracts an expression from a field's value.
  *
+ * @example
  * ```typescript
  * // Subtract the 'discount' field from the 'price' field
  * subtract("price", field("discount"));
  * ```
  *
- * @param fieldName The field name to subtract from.
- * @param expression The expression to subtract.
- * @return A new {@code Expr} representing the subtraction operation.
+ * @param fieldName - The field name to subtract from.
+ * @param expression - The expression to subtract.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the subtraction operation.
  */
 export function subtract(
   fieldName: string,
@@ -3742,18 +5042,18 @@ export function subtract(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that subtracts a constant value from a field's value.
  *
+ * @example
  * ```typescript
  * // Subtract 20 from the value of the 'total' field
  * subtract("total", 20);
  * ```
  *
- * @param fieldName The field name to subtract from.
- * @param value The constant value to subtract.
- * @return A new {@code Expr} representing the subtraction operation.
+ * @param fieldName - The field name to subtract from.
+ * @param value - The constant value to subtract.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the subtraction operation.
  */
 export function subtract(fieldName: string, value: unknown): FunctionExpression;
 export function subtract(
@@ -3766,19 +5066,19 @@ export function subtract(
 }
 
 /**
- * @beta
  *
  * Creates an expression that multiplies two expressions together.
  *
+ * @example
  * ```typescript
  * // Multiply the 'quantity' field by the 'price' field
  * multiply(field("quantity"), field("price"));
  * ```
  *
- * @param first The first expression to multiply.
- * @param second The second expression or literal to multiply.
- * @param others Optional additional expressions or literals to multiply.
- * @return A new {@code Expr} representing the multiplication operation.
+ * @param first - The first expression to multiply.
+ * @param second - The second expression or literal to multiply.
+ * @param others - Optional additional expressions or literals to multiply.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the multiplication operation.
  */
 export function multiply(
   first: Expression,
@@ -3786,19 +5086,19 @@ export function multiply(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that multiplies a field's value by an expression.
  *
+ * @example
  * ```typescript
  * // Multiply the 'quantity' field by the 'price' field
  * multiply("quantity", field("price"));
  * ```
  *
- * @param fieldName The name of the field containing the value to add.
- * @param second The second expression or literal to add.
- * @param others Optional other expressions or literals to add.
- * @return A new {@code Expr} representing the multiplication operation.
+ * @param fieldName - The name of the field containing the value to add.
+ * @param second - The second expression or literal to add.
+ * @param others - Optional other expressions or literals to add.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the multiplication operation.
  */
 export function multiply(
   fieldName: string,
@@ -3813,34 +5113,34 @@ export function multiply(
 }
 
 /**
- * @beta
  *
  * Creates an expression that divides two expressions.
  *
+ * @example
  * ```typescript
  * // Divide the 'total' field by the 'count' field
  * divide(field("total"), field("count"));
  * ```
  *
- * @param left The expression to be divided.
- * @param right The expression to divide by.
- * @return A new {@code Expr} representing the division operation.
+ * @param left - The expression to be divided.
+ * @param right - The expression to divide by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the division operation.
  */
 export function divide(left: Expression, right: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that divides an expression by a constant value.
  *
+ * @example
  * ```typescript
  * // Divide the 'value' field by 10
  * divide(field("value"), 10);
  * ```
  *
- * @param expression The expression to be divided.
- * @param value The constant value to divide by.
- * @return A new {@code Expr} representing the division operation.
+ * @param expression - The expression to be divided.
+ * @param value - The constant value to divide by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the division operation.
  */
 export function divide(
   expression: Expression,
@@ -3848,18 +5148,18 @@ export function divide(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that divides a field's value by an expression.
  *
+ * @example
  * ```typescript
  * // Divide the 'total' field by the 'count' field
  * divide("total", field("count"));
  * ```
  *
- * @param fieldName The field name to be divided.
- * @param expressions The expression to divide by.
- * @return A new {@code Expr} representing the division operation.
+ * @param fieldName - The field name to be divided.
+ * @param expressions - The expression to divide by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the division operation.
  */
 export function divide(
   fieldName: string,
@@ -3867,18 +5167,18 @@ export function divide(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that divides a field's value by a constant value.
  *
+ * @example
  * ```typescript
  * // Divide the 'value' field by 10
  * divide("value", 10);
  * ```
  *
- * @param fieldName The field name to be divided.
- * @param value The constant value to divide by.
- * @return A new {@code Expr} representing the division operation.
+ * @param fieldName - The field name to be divided.
+ * @param value - The constant value to divide by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the division operation.
  */
 export function divide(fieldName: string, value: unknown): FunctionExpression;
 export function divide(
@@ -3891,50 +5191,50 @@ export function divide(
 }
 
 /**
- * @beta
  *
  * Creates an expression that calculates the modulo (remainder) of dividing two expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 'field2'.
  * mod(field("field1"), field("field2"));
  * ```
  *
- * @param left The dividend expression.
- * @param right The divisor expression.
- * @return A new {@code Expr} representing the modulo operation.
+ * @param left - The dividend expression.
+ * @param right - The divisor expression.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the modulo operation.
  */
 export function mod(left: Expression, right: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the modulo (remainder) of dividing an expression by a constant.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 5.
  * mod(field("field1"), 5);
  * ```
  *
- * @param expression The dividend expression.
- * @param value The divisor constant.
- * @return A new {@code Expr} representing the modulo operation.
+ * @param expression - The dividend expression.
+ * @param value - The divisor constant.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the modulo operation.
  */
 export function mod(expression: Expression, value: unknown): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the modulo (remainder) of dividing a field's value by an expression.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 'field2'.
  * mod("field1", field("field2"));
  * ```
  *
- * @param fieldName The dividend field name.
- * @param expression The divisor expression.
- * @return A new {@code Expr} representing the modulo operation.
+ * @param fieldName - The dividend field name.
+ * @param expression - The divisor expression.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the modulo operation.
  */
 export function mod(
   fieldName: string,
@@ -3942,18 +5242,18 @@ export function mod(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the modulo (remainder) of dividing a field's value by a constant.
  *
+ * @example
  * ```typescript
  * // Calculate the remainder of dividing 'field1' by 5.
  * mod("field1", 5);
  * ```
  *
- * @param fieldName The dividend field name.
- * @param value The divisor constant.
- * @return A new {@code Expr} representing the modulo operation.
+ * @param fieldName - The dividend field name.
+ * @param value - The divisor constant.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the modulo operation.
  */
 export function mod(fieldName: string, value: unknown): FunctionExpression;
 export function mod(
@@ -3966,17 +5266,17 @@ export function mod(
 }
 
 /**
- * @beta
  *
  * Creates an expression that creates a Firestore map value from an input object.
  *
+ * @example
  * ```typescript
  * // Create a map from the input object and reference the 'baz' field value from the input document.
- * map({foo: 'bar', baz: Field.of('baz')}).as('data');
+ * map({foo: 'bar', baz: field('baz')}).as('data');
  * ```
  *
- * @param elements The input map to evaluate in the expression.
- * @return A new {@code Expr} representing the map function.
+ * @param elements - The input map to evaluate in the expression.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the map function.
  */
 export function map(elements: Record<string, unknown>): FunctionExpression {
   return _map(elements, 'map');
@@ -4019,17 +5319,17 @@ export function _mapValue(plainObject: Record<string, unknown>): MapValue {
 }
 
 /**
- * @beta
  *
  * Creates an expression that creates a Firestore array value from an input array.
  *
+ * @example
  * ```typescript
  * // Create an array value from the input array and reference the 'baz' field value from the input document.
- * array(['bar', Field.of('baz')]).as('foo');
+ * array(['bar', field('baz')]).as('foo');
  * ```
  *
- * @param elements The input array to evaluate in the expression.
- * @return A new {@code Expr} representing the array function.
+ * @param elements - The input array to evaluate in the expression.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the array function.
  */
 export function array(elements: unknown[]): FunctionExpression {
   return _array(elements, 'array');
@@ -4046,34 +5346,34 @@ export function _array(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if two expressions are equal.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is equal to an expression
  * equal(field("age"), field("minAge").add(10));
  * ```
  *
- * @param left The first expression to compare.
- * @param right The second expression to compare.
- * @return A new `Expr` representing the equality comparison.
+ * @param left - The first expression to compare.
+ * @param right - The second expression to compare.
+ * @returns A new `Expression` representing the equality comparison.
  */
 export function equal(left: Expression, right: Expression): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is equal to 21
  * equal(field("age"), 21);
  * ```
  *
- * @param expression The expression to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the equality comparison.
+ * @param expression - The expression to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the equality comparison.
  */
 export function equal(
   expression: Expression,
@@ -4081,18 +5381,18 @@ export function equal(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is equal to the 'limit' field
  * equal("age", field("limit"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param expression The expression to compare to.
- * @return A new `Expr` representing the equality comparison.
+ * @param fieldName - The field name to compare.
+ * @param expression - The expression to compare to.
+ * @returns A new `Expression` representing the equality comparison.
  */
 export function equal(
   fieldName: string,
@@ -4100,18 +5400,18 @@ export function equal(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'city' field is equal to string constant "London"
  * equal("city", "London");
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the equality comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the equality comparison.
  */
 export function equal(fieldName: string, value: unknown): BooleanExpression;
 export function equal(
@@ -4124,18 +5424,18 @@ export function equal(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if two expressions are not equal.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to field 'finalState'
  * notEqual(field("status"), field("finalState"));
  * ```
  *
- * @param left The first expression to compare.
- * @param right The second expression to compare.
- * @return A new `Expr` representing the inequality comparison.
+ * @param left - The first expression to compare.
+ * @param right - The second expression to compare.
+ * @returns A new `Expression` representing the inequality comparison.
  */
 export function notEqual(
   left: Expression,
@@ -4143,18 +5443,18 @@ export function notEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is not equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to "completed"
  * notEqual(field("status"), "completed");
  * ```
  *
- * @param expression The expression to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the inequality comparison.
+ * @param expression - The expression to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the inequality comparison.
  */
 export function notEqual(
   expression: Expression,
@@ -4162,18 +5462,18 @@ export function notEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is not equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to the value of 'expectedStatus'
  * notEqual("status", field("expectedStatus"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param expression The expression to compare to.
- * @return A new `Expr` representing the inequality comparison.
+ * @param fieldName - The field name to compare.
+ * @param expression - The expression to compare to.
+ * @returns A new `Expression` representing the inequality comparison.
  */
 export function notEqual(
   fieldName: string,
@@ -4181,18 +5481,18 @@ export function notEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is not equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'country' field is not equal to "USA"
  * notEqual("country", "USA");
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the inequality comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the inequality comparison.
  */
 export function notEqual(fieldName: string, value: unknown): BooleanExpression;
 export function notEqual(
@@ -4205,18 +5505,18 @@ export function notEqual(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if the first expression is less than the second expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is less than 30
  * lessThan(field("age"), field("limit"));
  * ```
  *
- * @param left The first expression to compare.
- * @param right The second expression to compare.
- * @return A new `Expr` representing the less than comparison.
+ * @param left - The first expression to compare.
+ * @param right - The second expression to compare.
+ * @returns A new `Expression` representing the less than comparison.
  */
 export function lessThan(
   left: Expression,
@@ -4224,18 +5524,18 @@ export function lessThan(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is less than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is less than 30
  * lessThan(field("age"), 30);
  * ```
  *
- * @param expression The expression to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the less than comparison.
+ * @param expression - The expression to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the less than comparison.
  */
 export function lessThan(
   expression: Expression,
@@ -4243,18 +5543,18 @@ export function lessThan(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is less than an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is less than the 'limit' field
  * lessThan("age", field("limit"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param expression The expression to compare to.
- * @return A new `Expr` representing the less than comparison.
+ * @param fieldName - The field name to compare.
+ * @param expression - The expression to compare to.
+ * @returns A new `Expression` representing the less than comparison.
  */
 export function lessThan(
   fieldName: string,
@@ -4262,18 +5562,18 @@ export function lessThan(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is less than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'price' field is less than 50
  * lessThan("price", 50);
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the less than comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the less than comparison.
  */
 export function lessThan(fieldName: string, value: unknown): BooleanExpression;
 export function lessThan(
@@ -4286,19 +5586,19 @@ export function lessThan(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if the first expression is less than or equal to the second
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to 20
  * lessThan(field("quantity"), field("limit"));
  * ```
  *
- * @param left The first expression to compare.
- * @param right The second expression to compare.
- * @return A new `Expr` representing the less than or equal to comparison.
+ * @param left - The first expression to compare.
+ * @param right - The second expression to compare.
+ * @returns A new `Expression` representing the less than or equal to comparison.
  */
 export function lessThanOrEqual(
   left: Expression,
@@ -4306,18 +5606,18 @@ export function lessThanOrEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is less than or equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to 20
  * lessThan(field("quantity"), 20);
  * ```
  *
- * @param expression The expression to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the less than or equal to comparison.
+ * @param expression - The expression to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the less than or equal to comparison.
  */
 export function lessThanOrEqual(
   expression: Expression,
@@ -4325,17 +5625,17 @@ export function lessThanOrEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  * Creates an expression that checks if a field's value is less than or equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is less than or equal to the 'limit' field
  * lessThan("quantity", field("limit"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param expression The expression to compare to.
- * @return A new `Expr` representing the less than or equal to comparison.
+ * @param fieldName - The field name to compare.
+ * @param expression - The expression to compare to.
+ * @returns A new `Expression` representing the less than or equal to comparison.
  */
 export function lessThanOrEqual(
   fieldName: string,
@@ -4343,18 +5643,18 @@ export function lessThanOrEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is less than or equal to a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'score' field is less than or equal to 70
  * lessThan("score", 70);
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the less than or equal to comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the less than or equal to comparison.
  */
 export function lessThanOrEqual(
   fieldName: string,
@@ -4370,19 +5670,19 @@ export function lessThanOrEqual(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if the first expression is greater than the second
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18
- * greaterThan(field("age"), Constant(9).add(9));
+ * greaterThan(field("age"), constant(9).add(9));
  * ```
  *
- * @param left The first expression to compare.
- * @param right The second expression to compare.
- * @return A new `Expr` representing the greater than comparison.
+ * @param left - The first expression to compare.
+ * @param right - The second expression to compare.
+ * @returns A new `Expression` representing the greater than comparison.
  */
 export function greaterThan(
   left: Expression,
@@ -4390,18 +5690,18 @@ export function greaterThan(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is greater than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18
  * greaterThan(field("age"), 18);
  * ```
  *
- * @param expression The expression to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the greater than comparison.
+ * @param expression - The expression to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the greater than comparison.
  */
 export function greaterThan(
   expression: Expression,
@@ -4409,18 +5709,18 @@ export function greaterThan(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is greater than an expression.
  *
+ * @example
  * ```typescript
  * // Check if the value of field 'age' is greater than the value of field 'limit'
  * greaterThan("age", field("limit"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param expression The expression to compare to.
- * @return A new `Expr` representing the greater than comparison.
+ * @param fieldName - The field name to compare.
+ * @param expression - The expression to compare to.
+ * @returns A new `Expression` representing the greater than comparison.
  */
 export function greaterThan(
   fieldName: string,
@@ -4428,18 +5728,18 @@ export function greaterThan(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is greater than a constant value.
  *
+ * @example
  * ```typescript
  * // Check if the 'price' field is greater than 100
  * greaterThan("price", 100);
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the greater than comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the greater than comparison.
  */
 export function greaterThan(
   fieldName: string,
@@ -4455,19 +5755,19 @@ export function greaterThan(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if the first expression is greater than or equal to the
  * second expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is greater than or equal to the field "threshold"
  * greaterThanOrEqual(field("quantity"), field("threshold"));
  * ```
  *
- * @param left The first expression to compare.
- * @param right The second expression to compare.
- * @return A new `Expr` representing the greater than or equal to comparison.
+ * @param left - The first expression to compare.
+ * @param right - The second expression to compare.
+ * @returns A new `Expression` representing the greater than or equal to comparison.
  */
 export function greaterThanOrEqual(
   left: Expression,
@@ -4475,19 +5775,19 @@ export function greaterThanOrEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is greater than or equal to a constant
  * value.
  *
+ * @example
  * ```typescript
  * // Check if the 'quantity' field is greater than or equal to 10
  * greaterThanOrEqual(field("quantity"), 10);
  * ```
  *
- * @param expression The expression to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the greater than or equal to comparison.
+ * @param expression - The expression to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the greater than or equal to comparison.
  */
 export function greaterThanOrEqual(
   expression: Expression,
@@ -4495,18 +5795,18 @@ export function greaterThanOrEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is greater than or equal to an expression.
  *
+ * @example
  * ```typescript
  * // Check if the value of field 'age' is greater than or equal to the value of field 'limit'
  * greaterThanOrEqual("age", field("limit"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The expression to compare to.
- * @return A new `Expr` representing the greater than or equal to comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The expression to compare to.
+ * @returns A new `Expression` representing the greater than or equal to comparison.
  */
 export function greaterThanOrEqual(
   fieldName: string,
@@ -4514,19 +5814,19 @@ export function greaterThanOrEqual(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is greater than or equal to a constant
  * value.
  *
+ * @example
  * ```typescript
  * // Check if the 'score' field is greater than or equal to 80
  * greaterThanOrEqual("score", 80);
  * ```
  *
- * @param fieldName The field name to compare.
- * @param value The constant value to compare to.
- * @return A new `Expr` representing the greater than or equal to comparison.
+ * @param fieldName - The field name to compare.
+ * @param value - The constant value to compare to.
+ * @returns A new `Expression` representing the greater than or equal to comparison.
  */
 export function greaterThanOrEqual(
   fieldName: string,
@@ -4542,19 +5842,19 @@ export function greaterThanOrEqual(
 }
 
 /**
- * @beta
  *
  * Creates an expression that concatenates an array expression with other arrays.
  *
+ * @example
  * ```typescript
  * // Combine the 'items' array with two new item arrays
  * arrayConcat(field("items"), [field("newItems"), field("otherItems")]);
  * ```
  *
- * @param firstArray The first array expression to concatenate to.
- * @param secondArray The second array expression or array literal to concatenate to.
- * @param otherArrays Optional additional array expressions or array literals to concatenate.
- * @return A new {@code Expr} representing the concatenated array.
+ * @param firstArray - The first array expression to concatenate to.
+ * @param secondArray - The second array expression or array literal to concatenate to.
+ * @param otherArrays - Optional additional array expressions or array literals to concatenate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated array.
  */
 export function arrayConcat(
   firstArray: Expression,
@@ -4563,19 +5863,19 @@ export function arrayConcat(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that concatenates a field's array value with other arrays.
  *
+ * @example
  * ```typescript
  * // Combine the 'items' array with two new item arrays
  * arrayConcat("items", [field("newItems"), field("otherItems")]);
  * ```
  *
- * @param firstArrayField The first array to concatenate to.
- * @param secondArray The second array expression or array literal to concatenate to.
- * @param otherArrays Optional additional array expressions or array literals to concatenate.
- * @return A new {@code Expr} representing the concatenated array.
+ * @param firstArrayField - The first array to concatenate to.
+ * @param secondArray - The second array expression or array literal to concatenate to.
+ * @param otherArrays - Optional additional array expressions or array literals to concatenate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated array.
  */
 export function arrayConcat(
   firstArrayField: string,
@@ -4596,18 +5896,18 @@ export function arrayConcat(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if an array expression contains a specific element.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains the value of field 'selectedColor'
  * arrayContains(field("colors"), field("selectedColor"));
  * ```
  *
- * @param array The array expression to check.
- * @param element The element to search for in the array.
- * @return A new {@code Expr} representing the 'array_contains' comparison.
+ * @param array - The array expression to check.
+ * @param element - The element to search for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains' comparison.
  */
 export function arrayContains(
   array: Expression,
@@ -4615,18 +5915,18 @@ export function arrayContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an array expression contains a specific element.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains "red"
  * arrayContains(field("colors"), "red");
  * ```
  *
- * @param array The array expression to check.
- * @param element The element to search for in the array.
- * @return A new {@code Expr} representing the 'array_contains' comparison.
+ * @param array - The array expression to check.
+ * @param element - The element to search for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains' comparison.
  */
 export function arrayContains(
   array: Expression,
@@ -4634,18 +5934,18 @@ export function arrayContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's array value contains a specific element.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains the value of field 'selectedColor'
  * arrayContains("colors", field("selectedColor"));
  * ```
  *
- * @param fieldName The field name to check.
- * @param element The element to search for in the array.
- * @return A new {@code Expr} representing the 'array_contains' comparison.
+ * @param fieldName - The field name to check.
+ * @param element - The element to search for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains' comparison.
  */
 export function arrayContains(
   fieldName: string,
@@ -4653,18 +5953,18 @@ export function arrayContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's array value contains a specific value.
  *
+ * @example
  * ```typescript
  * // Check if the 'colors' array contains "red"
  * arrayContains("colors", "red");
  * ```
  *
- * @param fieldName The field name to check.
- * @param element The element to search for in the array.
- * @return A new {@code Expr} representing the 'array_contains' comparison.
+ * @param fieldName - The field name to check.
+ * @param element - The element to search for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains' comparison.
  */
 export function arrayContains(
   fieldName: string,
@@ -4680,19 +5980,19 @@ export function arrayContains(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if an array expression contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
  * arrayContainsAny(field("categories"), [field("cate1"), "Science"]);
  * ```
  *
- * @param array The array expression to check.
- * @param values The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_any' comparison.
+ * @param array - The array expression to check.
+ * @param values - The elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_any' comparison.
  */
 export function arrayContainsAny(
   array: Expression,
@@ -4700,20 +6000,20 @@ export function arrayContainsAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's array value contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
  * arrayContainsAny("categories", [field("cate1"), "Science"]);
  * ```
  *
- * @param fieldName The field name to check.
- * @param values The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_any' comparison.
+ * @param fieldName - The field name to check.
+ * @param values - The elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_any' comparison.
  */
 export function arrayContainsAny(
   fieldName: string,
@@ -4721,19 +6021,19 @@ export function arrayContainsAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an array expression contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'categories' array contains either values from field "cate1" or "Science"
  * arrayContainsAny(field("categories"), array([field("cate1"), "Science"]));
  * ```
  *
- * @param array The array expression to check.
- * @param values An expression that evaluates to an array, whose elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_any' comparison.
+ * @param array - The array expression to check.
+ * @param values - An expression that evaluates to an array, whose elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_any' comparison.
  */
 export function arrayContainsAny(
   array: Expression,
@@ -4741,20 +6041,20 @@ export function arrayContainsAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's array value contains any of the specified
  * elements.
  *
+ * @example
  * ```typescript
  * // Check if the 'groups' array contains either the value from the 'userGroup' field
  * // or the value "guest"
  * arrayContainsAny("categories", array([field("cate1"), "Science"]));
  * ```
  *
- * @param fieldName The field name to check.
- * @param values An expression that evaluates to an array, whose elements to check for in the array field.
- * @return A new {@code Expr} representing the 'array_contains_any' comparison.
+ * @param fieldName - The field name to check.
+ * @param values - An expression that evaluates to an array, whose elements to check for in the array field.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_any' comparison.
  */
 export function arrayContainsAny(
   fieldName: string,
@@ -4769,18 +6069,18 @@ export function arrayContainsAny(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if an array expression contains all the specified elements.
  *
+ * @example
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
  * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"]);
  * ```
  *
- * @param array The array expression to check.
- * @param values The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_all' comparison.
+ * @param array - The array expression to check.
+ * @param values - The elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_all' comparison.
  */
 export function arrayContainsAll(
   array: Expression,
@@ -4788,19 +6088,19 @@ export function arrayContainsAll(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's array value contains all the specified values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'tags' array contains both of the values from field 'tag1', the value "SciFi", and "Adventure"
  * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
  * ```
  *
- * @param fieldName The field name to check.
- * @param values The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_all' comparison.
+ * @param fieldName - The field name to check.
+ * @param values - The elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_all' comparison.
  */
 export function arrayContainsAll(
   fieldName: string,
@@ -4808,18 +6108,18 @@ export function arrayContainsAll(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an array expression contains all the specified elements.
  *
+ * @example
  * ```typescript
  * // Check if the "tags" array contains all of the values: "SciFi", "Adventure", and the value from field "tag1"
  * arrayContainsAll(field("tags"), [field("tag1"), constant("SciFi"), "Adventure"]);
  * ```
  *
- * @param array The array expression to check.
- * @param arrayExpression The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_all' comparison.
+ * @param array - The array expression to check.
+ * @param arrayExpression - The elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_all' comparison.
  */
 export function arrayContainsAll(
   array: Expression,
@@ -4827,19 +6127,19 @@ export function arrayContainsAll(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's array value contains all the specified values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'tags' array contains both of the values from field 'tag1', the value "SciFi", and "Adventure"
  * arrayContainsAll("tags", [field("tag1"), "SciFi", "Adventure"]);
  * ```
  *
- * @param fieldName The field name to check.
- * @param arrayExpression The elements to check for in the array.
- * @return A new {@code Expr} representing the 'array_contains_all' comparison.
+ * @param fieldName - The field name to check.
+ * @param arrayExpression - The elements to check for in the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'array_contains_all' comparison.
  */
 export function arrayContainsAll(
   fieldName: string,
@@ -4854,32 +6154,32 @@ export function arrayContainsAll(
 }
 
 /**
- * @beta
  *
  * Creates an expression that calculates the length of an array in a specified field.
  *
+ * @example
  * ```typescript
  * // Get the number of items in field 'cart'
  * arrayLength('cart');
  * ```
  *
- * @param fieldName The name of the field containing an array to calculate the length of.
- * @return A new {@code Expr} representing the length of the array.
+ * @param fieldName - The name of the field containing an array to calculate the length of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the array.
  */
 export function arrayLength(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the length of an array expression.
  *
+ * @example
  * ```typescript
  * // Get the number of items in the 'cart' array
  * arrayLength(field("cart"));
  * ```
  *
- * @param array The array expression to calculate the length of.
- * @return A new {@code Expr} representing the length of the array.
+ * @param array - The array expression to calculate the length of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the array.
  */
 export function arrayLength(array: Expression): FunctionExpression;
 export function arrayLength(array: Expression | string): FunctionExpression {
@@ -4887,19 +6187,19 @@ export function arrayLength(array: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression, when evaluated, is equal to any of the provided values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
  * equalAny(field("category"), [constant("Electronics"), field("primaryType")]);
  * ```
  *
- * @param expression The expression whose results to compare.
- * @param values The values to check against.
- * @return A new {@code Expr} representing the 'IN' comparison.
+ * @param expression - The expression whose results to compare.
+ * @param values - The values to check against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'IN' comparison.
  */
 export function equalAny(
   expression: Expression,
@@ -4907,18 +6207,18 @@ export function equalAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is equal to any of the provided values.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is set to a value in the disabledCategories field
  * equalAny(field("category"), field('disabledCategories'));
  * ```
  *
- * @param expression The expression whose results to compare.
- * @param arrayExpression An expression that evaluates to an array, whose elements to check for equality to the input.
- * @return A new {@code Expr} representing the 'IN' comparison.
+ * @param expression - The expression whose results to compare.
+ * @param arrayExpression - An expression that evaluates to an array, whose elements to check for equality to the input.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'IN' comparison.
  */
 export function equalAny(
   expression: Expression,
@@ -4926,19 +6226,19 @@ export function equalAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is equal to any of the provided values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
  * equalAny("category", [constant("Electronics"), field("primaryType")]);
  * ```
  *
- * @param fieldName The field to compare.
- * @param values The values to check against.
- * @return A new {@code Expr} representing the 'IN' comparison.
+ * @param fieldName - The field to compare.
+ * @param values - The values to check against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'IN' comparison.
  */
 export function equalAny(
   fieldName: string,
@@ -4946,19 +6246,19 @@ export function equalAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is equal to any of the provided values or
  * expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'category' field is either "Electronics" or value of field 'primaryType'
  * equalAny("category", ["Electronics", field("primaryType")]);
  * ```
  *
- * @param fieldName The field to compare.
- * @param arrayExpression An expression that evaluates to an array, whose elements to check for equality to the input field.
- * @return A new {@code Expr} representing the 'IN' comparison.
+ * @param fieldName - The field to compare.
+ * @param arrayExpression - An expression that evaluates to an array, whose elements to check for equality to the input field.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'IN' comparison.
  */
 export function equalAny(
   fieldName: string,
@@ -4973,19 +6273,19 @@ export function equalAny(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is not equal to any of the provided values
  * or expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
  * notEqualAny(field("status"), ["pending", field("rejectedStatus")]);
  * ```
  *
- * @param element The expression to compare.
- * @param values The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @param element - The expression to compare.
+ * @param values - The values to check against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'NOT IN' comparison.
  */
 export function notEqualAny(
   element: Expression,
@@ -4993,19 +6293,19 @@ export function notEqualAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is not equal to any of the provided values
  * or expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of 'rejectedStatus'
  * notEqualAny("status", [constant("pending"), field("rejectedStatus")]);
  * ```
  *
- * @param fieldName The field name to compare.
- * @param values The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @param fieldName - The field name to compare.
+ * @param values - The values to check against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'NOT IN' comparison.
  */
 export function notEqualAny(
   fieldName: string,
@@ -5013,19 +6313,19 @@ export function notEqualAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if an expression is not equal to any of the provided values
  * or expressions.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is neither "pending" nor the value of the field 'rejectedStatus'
  * notEqualAny(field("status"), ["pending", field("rejectedStatus")]);
  * ```
  *
- * @param element The expression to compare.
- * @param arrayExpression The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @param element - The expression to compare.
+ * @param arrayExpression - The values to check against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'NOT IN' comparison.
  */
 export function notEqualAny(
   element: Expression,
@@ -5033,18 +6333,18 @@ export function notEqualAny(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value is not equal to any of the values in the evaluated expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'status' field is not equal to any value in the field 'rejectedStatuses'
  * notEqualAny("status", field("rejectedStatuses"));
  * ```
  *
- * @param fieldName The field name to compare.
- * @param arrayExpression The values to check against.
- * @return A new {@code Expr} representing the 'NOT IN' comparison.
+ * @param fieldName - The field name to compare.
+ * @param arrayExpression - The values to check against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'NOT IN' comparison.
  */
 export function notEqualAny(
   fieldName: string,
@@ -5060,10 +6360,10 @@ export function notEqualAny(
 }
 
 /**
- * @beta
  *
  * Creates an expression that performs a logical 'XOR' (exclusive OR) operation on multiple BooleanExpressions.
  *
+ * @example
  * ```typescript
  * // Check if only one of the conditions is true: 'age' greater than 18, 'city' is "London",
  * // or 'status' is "active".
@@ -5073,10 +6373,10 @@ export function notEqualAny(
  *     equal("status", "active"));
  * ```
  *
- * @param first The first condition.
- * @param second The second condition.
- * @param additionalConditions Additional conditions to 'XOR' together.
- * @return A new {@code Expr} representing the logical 'XOR' operation.
+ * @param first - The first condition.
+ * @param second - The second condition.
+ * @param additionalConditions - Additional conditions to 'XOR' together.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical 'XOR' operation.
  */
 export function xor(
   first: BooleanExpression,
@@ -5091,21 +6391,21 @@ export function xor(
 }
 
 /**
- * @beta
  *
  * Creates a conditional expression that evaluates to a 'then' expression if a condition is true
  * and an 'else' expression if the condition is false.
  *
+ * @example
  * ```typescript
  * // If 'age' is greater than 18, return "Adult"; otherwise, return "Minor".
  * conditional(
  *     greaterThan("age", 18), constant("Adult"), constant("Minor"));
  * ```
  *
- * @param condition The condition to evaluate.
- * @param thenExpr The expression to evaluate if the condition is true.
- * @param elseExpr The expression to evaluate if the condition is false.
- * @return A new {@code Expr} representing the conditional expression.
+ * @param condition - The condition to evaluate.
+ * @param thenExpr - The expression to evaluate if the condition is true.
+ * @param elseExpr - The expression to evaluate if the condition is false.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the conditional expression.
  */
 export function conditional(
   condition: BooleanExpression,
@@ -5120,38 +6420,38 @@ export function conditional(
 }
 
 /**
- * @beta
  *
  * Creates an expression that negates a filter condition.
  *
+ * @example
  * ```typescript
  * // Find documents where the 'completed' field is NOT true
  * not(equal("completed", true));
  * ```
  *
- * @param booleanExpr The filter condition to negate.
- * @return A new {@code Expr} representing the negated filter condition.
+ * @param booleanExpr - The filter condition to negate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the negated filter condition.
  */
 export function not(booleanExpr: BooleanExpression): BooleanExpression {
   return booleanExpr.not();
 }
 
 /**
- * @beta
  *
  * Creates an expression that returns the largest value between multiple input
  * expressions or literal values. Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the largest value between the 'field1' field, the 'field2' field,
  * // and 1000
  * logicalMaximum(field("field1"), field("field2"), 1000);
  * ```
  *
- * @param first The first operand expression.
- * @param second The second expression or literal.
- * @param others Optional additional expressions or literals.
- * @return A new {@code Expr} representing the logical maximum operation.
+ * @param first - The first operand expression.
+ * @param second - The second expression or literal.
+ * @param others - Optional additional expressions or literals.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical maximum operation.
  */
 export function logicalMaximum(
   first: Expression,
@@ -5160,21 +6460,21 @@ export function logicalMaximum(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns the largest value between multiple input
  * expressions or literal values. Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the largest value between the 'field1' field, the 'field2' field,
  * // and 1000.
  * logicalMaximum("field1", field("field2"), 1000);
  * ```
  *
- * @param fieldName The first operand field name.
- * @param second The second expression or literal.
- * @param others Optional additional expressions or literals.
- * @return A new {@code Expr} representing the logical maximum operation.
+ * @param fieldName - The first operand field name.
+ * @param second - The second expression or literal.
+ * @param others - Optional additional expressions or literals.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical maximum operation.
  */
 export function logicalMaximum(
   fieldName: string,
@@ -5194,21 +6494,21 @@ export function logicalMaximum(
 }
 
 /**
- * @beta
  *
  * Creates an expression that returns the smallest value between multiple input
  * expressions and literal values. Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the smallest value between the 'field1' field, the 'field2' field,
  * // and 1000.
  * logicalMinimum(field("field1"), field("field2"), 1000);
  * ```
  *
- * @param first The first operand expression.
- * @param second The second expression or literal.
- * @param others Optional additional expressions or literals.
- * @return A new {@code Expr} representing the logical minimum operation.
+ * @param first - The first operand expression.
+ * @param second - The second expression or literal.
+ * @param others - Optional additional expressions or literals.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical minimum operation.
  */
 export function logicalMinimum(
   first: Expression,
@@ -5217,22 +6517,22 @@ export function logicalMinimum(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that returns the smallest value between a field's value
  * and other input expressions or literal values.
  * Based on Firestore's value type ordering.
  *
+ * @example
  * ```typescript
  * // Returns the smallest value between the 'field1' field, the 'field2' field,
  * // and 1000.
  * logicalMinimum("field1", field("field2"), 1000);
  * ```
  *
- * @param fieldName The first operand field name.
- * @param second The second expression or literal.
- * @param others Optional additional expressions or literals.
- * @return A new {@code Expr} representing the logical minimum operation.
+ * @param fieldName - The first operand field name.
+ * @param second - The second expression or literal.
+ * @param others - Optional additional expressions or literals.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical minimum operation.
  */
 export function logicalMinimum(
   fieldName: string,
@@ -5252,32 +6552,32 @@ export function logicalMinimum(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field exists.
  *
+ * @example
  * ```typescript
  * // Check if the document has a field named "phoneNumber"
  * exists(field("phoneNumber"));
  * ```
  *
- * @param value An expression evaluates to the name of the field to check.
- * @return A new {@code Expr} representing the 'exists' check.
+ * @param value - An expression evaluates to the name of the field to check.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'exists' check.
  */
 export function exists(value: Expression): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field exists.
  *
+ * @example
  * ```typescript
  * // Check if the document has a field named "phoneNumber"
  * exists("phoneNumber");
  * ```
  *
- * @param fieldName The field name to check.
- * @return A new {@code Expr} representing the 'exists' check.
+ * @param fieldName - The field name to check.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'exists' check.
  */
 export function exists(fieldName: string): BooleanExpression;
 export function exists(valueOrField: Expression | string): BooleanExpression {
@@ -5285,32 +6585,32 @@ export function exists(valueOrField: Expression | string): BooleanExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that reverses a string.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * reverse(field("myString"));
  * ```
  *
- * @param stringExpression An expression evaluating to a string value, which will be reversed.
- * @return A new {@code Expr} representing the reversed string.
+ * @param stringExpression - An expression evaluating to a string value, which will be reversed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed string.
  */
 export function reverse(stringExpression: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that reverses a string value in the specified field.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
  * reverse("myString");
  * ```
  *
- * @param field The name of the field representing the string to reverse.
- * @return A new {@code Expr} representing the reversed string.
+ * @param field - The name of the field representing the string to reverse.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed string.
  */
 export function reverse(field: string): FunctionExpression;
 export function reverse(expr: Expression | string): FunctionExpression {
@@ -5318,32 +6618,32 @@ export function reverse(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that calculates the byte length of a string in UTF-8, or just the length of a Blob.
  *
+ * @example
  * ```typescript
  * // Calculate the length of the 'myString' field in bytes.
  * byteLength(field("myString"));
  * ```
  *
- * @param expr The expression representing the string.
- * @return A new {@code Expr} representing the length of the string in bytes.
+ * @param expr - The expression representing the string.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the string in bytes.
  */
 export function byteLength(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the length of a string represented by a field in UTF-8 bytes, or just the length of a Blob.
  *
+ * @example
  * ```typescript
  * // Calculate the length of the 'myString' field in bytes.
  * byteLength("myString");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @return A new {@code Expr} representing the length of the string in bytes.
+ * @param fieldName - The name of the field containing the string.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the string in bytes.
  */
 export function byteLength(fieldName: string): FunctionExpression;
 export function byteLength(expr: Expression | string): FunctionExpression {
@@ -5352,30 +6652,30 @@ export function byteLength(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that reverses an array.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myArray' field.
  * arrayReverse("myArray");
  * ```
  *
- * @param fieldName The name of the field to reverse.
- * @return A new {@code Expr} representing the reversed array.
+ * @param fieldName - The name of the field to reverse.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed array.
  */
 export function arrayReverse(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that reverses an array.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myArray' field.
  * arrayReverse(field("myArray"));
  * ```
  *
- * @param arrayExpression An expression evaluating to an array value, which will be reversed.
- * @return A new {@code Expr} representing the reversed array.
+ * @param arrayExpression - An expression evaluating to an array value, which will be reversed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed array.
  */
 export function arrayReverse(arrayExpression: Expression): FunctionExpression;
 export function arrayReverse(expr: Expression | string): FunctionExpression {
@@ -5383,28 +6683,28 @@ export function arrayReverse(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that computes e to the power of the expression's result.
  *
+ * @example
  * ```typescript
  * // Compute e to the power of 2.
  * exp(constant(2));
  * ```
  *
- * @return A new {@code Expr} representing the exp of the numeric value.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the exp of the numeric value.
  */
 export function exp(expression: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes e to the power of the expression's result.
  *
+ * @example
  * ```typescript
  * // Compute e to the power of the 'value' field.
  * exp('value');
  * ```
  *
- * @return A new {@code Expr} representing the exp of the numeric value.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the exp of the numeric value.
  */
 export function exp(fieldName: string): FunctionExpression;
 
@@ -5415,30 +6715,30 @@ export function exp(
 }
 
 /**
- * @beta
  * Creates an expression that computes the ceiling of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the ceiling of the 'price' field.
  * ceil("price");
  * ```
  *
- * @param fieldName The name of the field to compute the ceiling of.
- * @return A new {@code Expr} representing the ceiling of the numeric value.
+ * @param fieldName - The name of the field to compute the ceiling of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ceiling of the numeric value.
  */
 export function ceil(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes the ceiling of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the ceiling of the 'price' field.
  * ceil(field("price"));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which the ceiling will be computed for.
- * @return A new {@code Expr} representing the ceiling of the numeric value.
+ * @param expression - An expression evaluating to a numeric value, which the ceiling will be computed for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ceiling of the numeric value.
  */
 export function ceil(expression: Expression): FunctionExpression;
 export function ceil(expr: Expression | string): FunctionExpression {
@@ -5446,20 +6746,18 @@ export function ceil(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that computes the floor of a numeric value.
  *
- * @param expr The expression to compute the floor of.
- * @return A new {@code Expr} representing the floor of the numeric value.
+ * @param expr - The expression to compute the floor of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the floor of the numeric value.
  */
 export function floor(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes the floor of a numeric value.
  *
- * @param fieldName The name of the field to compute the floor of.
- * @return A new {@code Expr} representing the floor of the numeric value.
+ * @param fieldName - The name of the field to compute the floor of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the floor of the numeric value.
  */
 export function floor(fieldName: string): FunctionExpression;
 export function floor(expr: Expression | string): FunctionExpression {
@@ -5467,43 +6765,42 @@ export function floor(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an aggregation that counts the number of distinct values of a field.
  *
- * @param expr The expression or field to count distinct values of.
- * @return A new `AggregateFunction` representing the 'count_distinct' aggregation.
+ * @param expr - The expression or field to count distinct values of.
+ * @returns A new `AggregateFunction` representing the 'count_distinct' aggregation.
  */
 export function countDistinct(expr: Expression | string): AggregateFunction {
   return fieldOrExpression(expr).countDistinct();
 }
 
 /**
- * @beta
  *
  * Creates an expression that calculates the character length of a string field in UTF8.
  *
+ * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength("name");
+ * charLength("name");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @return A new {@code Expr} representing the length of the string.
+ * @param fieldName - The name of the field containing the string.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the string.
  */
 export function charLength(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the character length of a string expression in UTF-8.
  *
+ * @example
  * ```typescript
  * // Get the character length of the 'name' field in UTF-8.
- * strLength(field("name"));
+ * charLength(field("name"));
  * ```
  *
- * @param stringExpression The expression representing the string to calculate the length of.
- * @return A new {@code Expr} representing the length of the string.
+ * @param stringExpression - The expression representing the string to calculate the length of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the string.
  */
 export function charLength(stringExpression: Expression): FunctionExpression;
 export function charLength(value: Expression | string): FunctionExpression {
@@ -5512,52 +6809,52 @@ export function charLength(value: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that performs a case-sensitive wildcard string comparison against a
  * field.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like("title", "%guide%");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param pattern The pattern to search for. You can use "%" as a wildcard character.
- * @return A new {@code Expr} representing the 'like' comparison.
+ * @param fieldName - The name of the field containing the string.
+ * @param pattern - The pattern to search for. You can use "%" as a wildcard character.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'like' comparison.
  */
 export function like(fieldName: string, pattern: string): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that performs a case-sensitive wildcard string comparison against a
  * field.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like("title", field("pattern"));
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param pattern The pattern to search for. You can use "%" as a wildcard character.
- * @return A new {@code Expr} representing the 'like' comparison.
+ * @param fieldName - The name of the field containing the string.
+ * @param pattern - The pattern to search for. You can use "%" as a wildcard character.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'like' comparison.
  */
 export function like(fieldName: string, pattern: Expression): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that performs a case-sensitive wildcard string comparison.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like(field("title"), "%guide%");
  * ```
  *
- * @param stringExpression The expression representing the string to perform the comparison on.
- * @param pattern The pattern to search for. You can use "%" as a wildcard character.
- * @return A new {@code Expr} representing the 'like' comparison.
+ * @param stringExpression - The expression representing the string to perform the comparison on.
+ * @param pattern - The pattern to search for. You can use "%" as a wildcard character.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'like' comparison.
  */
 export function like(
   stringExpression: Expression,
@@ -5565,18 +6862,18 @@ export function like(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that performs a case-sensitive wildcard string comparison.
  *
+ * @example
  * ```typescript
  * // Check if the 'title' field contains the string "guide"
  * like(field("title"), field("pattern"));
  * ```
  *
- * @param stringExpression The expression representing the string to perform the comparison on.
- * @param pattern The pattern to search for. You can use "%" as a wildcard character.
- * @return A new {@code Expr} representing the 'like' comparison.
+ * @param stringExpression - The expression representing the string to perform the comparison on.
+ * @param pattern - The pattern to search for. You can use "%" as a wildcard character.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'like' comparison.
  */
 export function like(
   stringExpression: Expression,
@@ -5592,19 +6889,19 @@ export function like(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string field contains a specified regular expression as
  * a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains("description", "(?i)example");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param pattern The regular expression to use for the search.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param fieldName - The name of the field containing the string.
+ * @param pattern - The regular expression to use for the search.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function regexContains(
   fieldName: string,
@@ -5612,19 +6909,19 @@ export function regexContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string field contains a specified regular expression as
  * a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains("description", field("pattern"));
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param pattern The regular expression to use for the search.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param fieldName - The name of the field containing the string.
+ * @param pattern - The regular expression to use for the search.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function regexContains(
   fieldName: string,
@@ -5632,19 +6929,19 @@ export function regexContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression contains a specified regular
  * expression as a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains(field("description"), "(?i)example");
  * ```
  *
- * @param stringExpression The expression representing the string to perform the comparison on.
- * @param pattern The regular expression to use for the search.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param stringExpression - The expression representing the string to perform the comparison on.
+ * @param pattern - The regular expression to use for the search.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function regexContains(
   stringExpression: Expression,
@@ -5652,19 +6949,19 @@ export function regexContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression contains a specified regular
  * expression as a substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example" (case-insensitive)
  * regexContains(field("description"), field("pattern"));
  * ```
  *
- * @param stringExpression The expression representing the string to perform the comparison on.
- * @param pattern The regular expression to use for the search.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param stringExpression - The expression representing the string to perform the comparison on.
+ * @param pattern - The regular expression to use for the search.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function regexContains(
   stringExpression: Expression,
@@ -5680,18 +6977,1030 @@ export function regexContains(
 }
 
 /**
- * @beta
+ *
+ * Creates an expression that filters an array using a provided alias and predicate expression.
+ *
+ * @example
+ * ```typescript
+ * // Get a filtered array of the 'scores' field containing only elements greater than 50.
+ * arrayFilter("scores", "score", greaterThan(variable("score"), 50));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param alias - The variable name to use for each element.
+ * @param filter - The predicate boolean expression to evaluate for each element.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  fieldName: string,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression;
+
+/**
+ * Creates an expression that filters an array using a provided alias and predicate expression.
+ *
+ * @example
+ * ```typescript
+ * // Filter "scores" to include only values greater than 50
+ * arrayFilter(field("scores"), "score", greaterThan(variable("score"), 50));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param alias - The variable name to use for each element.
+ * @param filter - The predicate boolean expression to filter by.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the filtered array.
+ */
+export function arrayFilter(
+  arrayExpression: Expression,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression;
+
+export function arrayFilter(
+  array: Expression | string,
+  alias: string,
+  filter: BooleanExpression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFilter(alias, filter);
+}
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by multiplying each score by 10
+ * arrayTransform(field("scores"), "score", multiply(variable("score"), 10));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param transform - The lambda expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransform(
+  arrayExpression: Expression,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by multiplying each score by 10
+ * arrayTransform("scores", "score", multiply(variable("score"), 10));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param transform - The expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransform(
+  fieldName: string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression;
+export function arrayTransform(
+  array: Expression | string,
+  elementAlias: string,
+  transform: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayTransform(elementAlias, transform);
+}
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by adding the index to each score
+ * arrayTransformWithIndex(field("scores"), "score", "i", add(variable("score"), variable("i")));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param indexAlias - The variable name to use for the current index.
+ * @param transform - The expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransformWithIndex(
+  arrayExpression: Expression,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that applies a provided transformation to each element in an array, providing the element's index to the transformation expression.
+ *
+ * @example
+ * ```typescript
+ * // Transform "scores" array by adding the index to each score
+ * arrayTransformWithIndex("scores", "score", "i", add(variable("score"), variable("i")));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param elementAlias - The variable name to use for each element.
+ * @param indexAlias - The variable name to use for the current index.
+ * @param transform - The lambda expression used to transform the elements.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the transformed array.
+ */
+export function arrayTransformWithIndex(
+  fieldName: string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression;
+export function arrayTransformWithIndex(
+  array: Expression | string,
+  elementAlias: string,
+  indexAlias: string,
+  transform: Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayTransformWithIndex(
+    elementAlias,
+    indexAlias,
+    transform
+  );
+}
+
+/**
+ * Creates an expression that returns a slice of an array from `offset` with `length` elements.
+ *
+ * @example
+ * ```typescript
+ * // Get 5 elements from the 'items' array field starting from index 2
+ * arraySlice("items", 2, 5);
+ *
+ * // Get n elements from the 'items' array field starting from index 2
+ * arraySlice("items", 2, field("length"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param offset - The starting offset.
+ * @param length - The optional length of the slice.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
+ */
+export function arraySlice(
+  fieldName: string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns a slice of an array from `offset` with `length` elements.
+ *
+ * @example
+ * ```typescript
+ * // Get 5 elements from an array expression starting from index 2
+ * arraySlice(field("items"), 2, 5);
+ *
+ * // Get n elements from an array expression starting from index 2
+ * arraySlice(field("items"), 2, field("length"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param offset - The starting offset.
+ * @param length - The optional length of the slice.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the sliced array.
+ */
+export function arraySlice(
+  arrayExpression: Expression,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression;
+export function arraySlice(
+  array: Expression | string,
+  offset: number | Expression,
+  length?: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arraySlice(offset, length);
+}
+
+/**
+ * Creates an expression that returns the first element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first tag from the 'tags' array field
+ * arrayFirst("tags");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+ */
+export function arrayFirst(fieldName: string): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first tag from the 'tags' array field
+ * arrayFirst(field("tags"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first element.
+ */
+export function arrayFirst(arrayExpression: Expression): FunctionExpression;
+export function arrayFirst(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayFirst();
+}
+
+/**
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 tags from the 'tags' array field
+ * arrayFirstN("tags", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first n tags from the 'tags' array field
+ * arrayFirstN("tags", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first 3 elements from an array expression
+ * arrayFirstN(field("tags"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the first n elements from an array expression
+ * arrayFirstN(field("tags"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the first `n` elements.
+ */
+export function arrayFirstN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayFirstN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayFirstN(valueToDefaultExpr(n));
+}
+
+/**
+ *
+ * Creates an expression that returns the last element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last tag from the 'tags' array field
+ * arrayLast("tags");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+ */
+export function arrayLast(fieldName: string): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the last element of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last tag from the 'tags' array field
+ * arrayLast(field("tags"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last element.
+ */
+export function arrayLast(arrayExpression: Expression): FunctionExpression;
+export function arrayLast(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayLast();
+}
+
+/**
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 tags from the 'tags' array field
+ * arrayLastN("tags", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last n tags from the 'tags' array field
+ * arrayLastN("tags", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last 3 elements from an array expression
+ * arrayLastN(field("tags"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the last `n` elements of an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the last n elements from an array expression
+ * arrayLastN(field("tags"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the last `n` elements.
+ */
+export function arrayLastN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayLastN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayLastN(valueToDefaultExpr(n));
+}
+
+/**
+ *
+ * Creates an expression that returns the maximum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the maximum value from the 'scores' array field
+ * arrayMaximum("scores");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+ */
+export function arrayMaximum(fieldName: string): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the maximum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the maximum value from the 'scores' array field
+ * arrayMaximum(field("scores"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the maximum value.
+ */
+export function arrayMaximum(arrayExpression: Expression): FunctionExpression;
+export function arrayMaximum(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayMaximum();
+}
+
+/**
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 scores from the 'scores' array field
+ * arrayMaximumN("scores", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top n scores from the 'scores' array field
+ * arrayMaximumN("scores", field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top 3 elements from an array expression
+ * arrayMaximumN(field("scores"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the largest `n` elements of an array.
+ *
+ * Note: Returns the n largest non-null elements in the array, in descending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the top n elements from an array expression
+ * arrayMaximumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the largest `n` elements.
+ */
+export function arrayMaximumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayMaximumN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayMaximumN(valueToDefaultExpr(n));
+}
+
+/**
+ *
+ * Creates an expression that returns the minimum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the minimum value from the 'scores' array field
+ * arrayMinimum("scores");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+ */
+export function arrayMinimum(fieldName: string): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the minimum value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get the minimum value from the 'scores' array field
+ * arrayMinimum(field("scores"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the minimum value.
+ */
+export function arrayMinimum(arrayExpression: Expression): FunctionExpression;
+export function arrayMinimum(array: Expression | string): FunctionExpression {
+  return fieldOrExpression(array).arrayMinimum();
+}
+
+/**
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom 3 scores from the 'scores' array field
+ * arrayMinimumN("scores", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(fieldName: string, n: number): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom n scores from the 'scores' array field
+ * arrayMinimumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(
+  fieldName: string,
+  n: Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom 3 scores from the 'scores' array field
+ * arrayMinimumN(field("scores"), 3);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - The number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(
+  arrayExpression: Expression,
+  n: number
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the smallest `n` elements of an array.
+ *
+ * Note: Returns the n smallest non-null elements in the array, in ascending
+ * order. This does not use a stable sort, meaning the order of equivalent
+ * elements is undefined.
+ *
+ * @example
+ * ```typescript
+ * // Get the bottom n scores from the 'scores' array field
+ * arrayMinimumN(field("scores"), field("count"));
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array.
+ * @param n - An expression evaluating to the number of elements to return.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the smallest `n` elements.
+ */
+export function arrayMinimumN(
+  arrayExpression: Expression,
+  n: Expression
+): FunctionExpression;
+export function arrayMinimumN(
+  array: Expression | string,
+  n: Expression | number
+): FunctionExpression {
+  return fieldOrExpression(array).arrayMinimumN(valueToDefaultExpr(n));
+}
+
+/**
+ *
+ * Creates an expression that returns the first index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the index of "politics" in the 'tags' array field
+ * arrayIndexOf("tags", "politics");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the index of "politics" in the 'tags' array field
+ * arrayIndexOf(field("tags"), "politics");
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayIndexOf(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayIndexOf(valueToDefaultExpr(search));
+}
+
+/**
+ *
+ * Creates an expression that returns the last index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the last index of "politics" in the 'tags' array field
+ * arrayLastIndexOf("tags", "politics");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayLastIndexOf(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the last index of the search value in an array.
+ * Returns -1 if the value is not found.
+ *
+ * @example
+ * ```typescript
+ * // Get the last index of "politics" in the 'tags' array field
+ * arrayLastIndexOf(field("tags"), "politics");
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index.
+ */
+export function arrayLastIndexOf(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayLastIndexOf(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayLastIndexOf(valueToDefaultExpr(search));
+}
+
+/**
+ *
+ * Creates an expression that returns all indices of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get all indices of 5 in the 'scores' array field
+ * arrayIndexOfAll("scores", 5);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+ */
+export function arrayIndexOfAll(
+  fieldName: string,
+  search: unknown | Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns all indices of the search value in an array.
+ *
+ * @example
+ * ```typescript
+ * // Get all indices of 5 in the 'scores' array field
+ * arrayIndexOfAll(field("scores"), 5);
+ * ```
+ *
+ * @param arrayExpression - The expression representing the array to search.
+ * @param search - The value to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the indices.
+ */
+export function arrayIndexOfAll(
+  arrayExpression: Expression,
+  search: unknown | Expression
+): FunctionExpression;
+export function arrayIndexOfAll(
+  array: Expression | string,
+  search: unknown | Expression
+): FunctionExpression {
+  return fieldOrExpression(array).arrayIndexOfAll(valueToDefaultExpr(search));
+}
+
+/**
+ *
+ * Creates an expression that returns the first substring of a string field that matches a
+ * specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract the domain name from an email field
+ * regexFind("email", "@[A-Za-z0-9.-]+");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  fieldName: string,
+  pattern: string
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first substring of a string field that matches a
+ * specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract a substring from 'email' based on a pattern stored in another field
+ * regexFind("email", field("pattern"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  fieldName: string,
+  pattern: Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first substring of a string expression that matches
+ * a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract the domain from a lower-cased email address
+ * regexFind(field("email"), "@[A-Za-z0-9.-]+");
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  stringExpression: Expression,
+  pattern: string
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that returns the first substring of a string expression that matches
+ * a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract a substring based on a dynamic pattern field
+ * regexFind(field("email"), field("pattern"));
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression find function.
+ */
+export function regexFind(
+  stringExpression: Expression,
+  pattern: Expression
+): FunctionExpression;
+export function regexFind(
+  left: Expression | string,
+  pattern: Expression | string
+): FunctionExpression {
+  const leftExpr = fieldOrExpression(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.regexFind(patternExpr);
+}
+
+/**
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string field that
+ * match a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract all hashtags from a post content field
+ * regexFindAll("content", "#[A-Za-z0-9_]+");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  fieldName: string,
+  pattern: string
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string field that
+ * match a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract all matches from 'content' based on a pattern stored in another field
+ * regexFindAll("content", field("pattern"));
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  fieldName: string,
+  pattern: Expression
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string expression
+ * that match a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract all mentions from a lower-cased comment
+ * regexFindAll(field("comment"), "@[A-Za-z0-9_]+");
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  stringExpression: Expression,
+  pattern: string
+): FunctionExpression;
+
+/**
+ *
+ * Creates an expression that evaluates to a list of all substrings in a string expression
+ * that match a specified regular expression.
+ *
+ * This expression uses the {@link https://github.com/google/re2/wiki/Syntax | RE2} regular expression syntax.
+ *
+ * @example
+ * ```typescript
+ * // Extract all matches based on a dynamic pattern expression
+ * regexFindAll(field("comment"), field("pattern"));
+ * ```
+ *
+ * @param stringExpression - The expression representing the string to search.
+ * @param pattern - The regular expression to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#FunctionExpression} that evaluates to an array of matched substrings.
+ */
+export function regexFindAll(
+  stringExpression: Expression,
+  pattern: Expression
+): FunctionExpression;
+export function regexFindAll(
+  left: Expression | string,
+  pattern: Expression | string
+): FunctionExpression {
+  const leftExpr = fieldOrExpression(left);
+  const patternExpr = valueToDefaultExpr(pattern);
+  return leftExpr.regexFindAll(patternExpr);
+}
+
+/**
  *
  * Creates an expression that checks if a string field matches a specified regular expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch("email", "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @param fieldName - The name of the field containing the string.
+ * @param pattern - The regular expression to use for the match.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression match.
  */
 export function regexMatch(
   fieldName: string,
@@ -5699,18 +8008,18 @@ export function regexMatch(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string field matches a specified regular expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch("email", field("pattern"));
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @param fieldName - The name of the field containing the string.
+ * @param pattern - The regular expression to use for the match.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression match.
  */
 export function regexMatch(
   fieldName: string,
@@ -5718,19 +8027,19 @@ export function regexMatch(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression matches a specified regular
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch(field("email"), "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
  * ```
  *
- * @param stringExpression The expression representing the string to match against.
- * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @param stringExpression - The expression representing the string to match against.
+ * @param pattern - The regular expression to use for the match.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression match.
  */
 export function regexMatch(
   stringExpression: Expression,
@@ -5738,19 +8047,19 @@ export function regexMatch(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression matches a specified regular
  * expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'email' field matches a valid email pattern
  * regexMatch(field("email"), field("pattern"));
  * ```
  *
- * @param stringExpression The expression representing the string to match against.
- * @param pattern The regular expression to use for the match.
- * @return A new {@code Expr} representing the regular expression match.
+ * @param stringExpression - The expression representing the string to match against.
+ * @param pattern - The regular expression to use for the match.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the regular expression match.
  */
 export function regexMatch(
   stringExpression: Expression,
@@ -5766,18 +8075,18 @@ export function regexMatch(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string field contains a specified substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example".
  * stringContains("description", "example");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param substring The substring to search for.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param fieldName - The name of the field containing the string.
+ * @param substring - The substring to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function stringContains(
   fieldName: string,
@@ -5785,18 +8094,18 @@ export function stringContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string field contains a substring specified by an expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains the value of the 'keyword' field.
  * stringContains("description", field("keyword"));
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @param substring The expression representing the substring to search for.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param fieldName - The name of the field containing the string.
+ * @param substring - The expression representing the substring to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function stringContains(
   fieldName: string,
@@ -5804,18 +8113,18 @@ export function stringContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression contains a specified substring.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains "example".
  * stringContains(field("description"), "example");
  * ```
  *
- * @param stringExpression The expression representing the string to perform the comparison on.
- * @param substring The substring to search for.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param stringExpression - The expression representing the string to perform the comparison on.
+ * @param substring - The substring to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function stringContains(
   stringExpression: Expression,
@@ -5823,18 +8132,18 @@ export function stringContains(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression contains a substring specified by another expression.
  *
+ * @example
  * ```typescript
  * // Check if the 'description' field contains the value of the 'keyword' field.
  * stringContains(field("description"), field("keyword"));
  * ```
  *
- * @param stringExpression The expression representing the string to perform the comparison on.
- * @param substring The expression representing the substring to search for.
- * @return A new {@code Expr} representing the 'contains' comparison.
+ * @param stringExpression - The expression representing the string to perform the comparison on.
+ * @param substring - The expression representing the substring to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'contains' comparison.
  */
 export function stringContains(
   stringExpression: Expression,
@@ -5850,18 +8159,18 @@ export function stringContains(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the 'name' field starts with "Mr."
  * startsWith("name", "Mr.");
  * ```
  *
- * @param fieldName The field name to check.
- * @param prefix The prefix to check for.
- * @return A new {@code Expr} representing the 'starts with' comparison.
+ * @param fieldName - The field name to check.
+ * @param prefix - The prefix to check for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'starts with' comparison.
  */
 export function startsWith(
   fieldName: string,
@@ -5869,18 +8178,18 @@ export function startsWith(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the 'fullName' field starts with the value of the 'firstName' field
  * startsWith("fullName", field("firstName"));
  * ```
  *
- * @param fieldName The field name to check.
- * @param prefix The expression representing the prefix.
- * @return A new {@code Expr} representing the 'starts with' comparison.
+ * @param fieldName - The field name to check.
+ * @param prefix - The expression representing the prefix.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'starts with' comparison.
  */
 export function startsWith(
   fieldName: string,
@@ -5888,18 +8197,18 @@ export function startsWith(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
  * startsWith(field("fullName"), "Mr.");
  * ```
  *
- * @param stringExpression The expression to check.
- * @param prefix The prefix to check for.
- * @return A new {@code Expr} representing the 'starts with' comparison.
+ * @param stringExpression - The expression to check.
+ * @param prefix - The prefix to check for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'starts with' comparison.
  */
 export function startsWith(
   stringExpression: Expression,
@@ -5907,18 +8216,18 @@ export function startsWith(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression starts with a given prefix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields starts with "Mr."
  * startsWith(field("fullName"), field("prefix"));
  * ```
  *
- * @param stringExpression The expression to check.
- * @param prefix The prefix to check for.
- * @return A new {@code Expr} representing the 'starts with' comparison.
+ * @param stringExpression - The expression to check.
+ * @param prefix - The prefix to check for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'starts with' comparison.
  */
 export function startsWith(
   stringExpression: Expression,
@@ -5932,34 +8241,34 @@ export function startsWith(
 }
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the 'filename' field ends with ".txt"
  * endsWith("filename", ".txt");
  * ```
  *
- * @param fieldName The field name to check.
- * @param suffix The postfix to check for.
- * @return A new {@code Expr} representing the 'ends with' comparison.
+ * @param fieldName - The field name to check.
+ * @param suffix - The postfix to check for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ends with' comparison.
  */
 export function endsWith(fieldName: string, suffix: string): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a field's value ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the 'url' field ends with the value of the 'extension' field
  * endsWith("url", field("extension"));
  * ```
  *
- * @param fieldName The field name to check.
- * @param suffix The expression representing the postfix.
- * @return A new {@code Expr} representing the 'ends with' comparison.
+ * @param fieldName - The field name to check.
+ * @param suffix - The expression representing the postfix.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ends with' comparison.
  */
 export function endsWith(
   fieldName: string,
@@ -5967,18 +8276,18 @@ export function endsWith(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
  * endsWith(field("fullName"), "Jr.");
  * ```
  *
- * @param stringExpression The expression to check.
- * @param suffix The postfix to check for.
- * @return A new {@code Expr} representing the 'ends with' comparison.
+ * @param stringExpression - The expression to check.
+ * @param suffix - The postfix to check for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ends with' comparison.
  */
 export function endsWith(
   stringExpression: Expression,
@@ -5986,18 +8295,18 @@ export function endsWith(
 ): BooleanExpression;
 
 /**
- * @beta
  *
  * Creates an expression that checks if a string expression ends with a given postfix.
  *
+ * @example
  * ```typescript
  * // Check if the result of concatenating 'firstName' and 'lastName' fields ends with "Jr."
  * endsWith(field("fullName"), constant("Jr."));
  * ```
  *
- * @param stringExpression The expression to check.
- * @param suffix The postfix to check for.
- * @return A new {@code Expr} representing the 'ends with' comparison.
+ * @param stringExpression - The expression to check.
+ * @param suffix - The postfix to check for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the 'ends with' comparison.
  */
 export function endsWith(
   stringExpression: Expression,
@@ -6011,32 +8320,32 @@ export function endsWith(
 }
 
 /**
- * @beta
  *
  * Creates an expression that converts a string field to lowercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'name' field to lowercase
  * toLower("name");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @return A new {@code Expr} representing the lowercase string.
+ * @param fieldName - The name of the field containing the string.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the lowercase string.
  */
 export function toLower(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that converts a string expression to lowercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'name' field to lowercase
  * toLower(field("name"));
  * ```
  *
- * @param stringExpression The expression representing the string to convert to lowercase.
- * @return A new {@code Expr} representing the lowercase string.
+ * @param stringExpression - The expression representing the string to convert to lowercase.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the lowercase string.
  */
 export function toLower(stringExpression: Expression): FunctionExpression;
 export function toLower(expr: Expression | string): FunctionExpression {
@@ -6044,32 +8353,32 @@ export function toLower(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that converts a string field to uppercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'title' field to uppercase
  * toUpper("title");
  * ```
  *
- * @param fieldName The name of the field containing the string.
- * @return A new {@code Expr} representing the uppercase string.
+ * @param fieldName - The name of the field containing the string.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the uppercase string.
  */
 export function toUpper(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that converts a string expression to uppercase.
  *
+ * @example
  * ```typescript
  * // Convert the 'title' field to uppercase
- * toUppercase(field("title"));
+ * toUpper(field("title"));
  * ```
  *
- * @param stringExpression The expression representing the string to convert to uppercase.
- * @return A new {@code Expr} representing the uppercase string.
+ * @param stringExpression - The expression representing the string to convert to uppercase.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the uppercase string.
  */
 export function toUpper(stringExpression: Expression): FunctionExpression;
 export function toUpper(expr: Expression | string): FunctionExpression {
@@ -6077,10 +8386,10 @@ export function toUpper(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that removes leading and trailing whitespace from a string or byte array.
  *
+ * @example
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim("userInput");
@@ -6089,10 +8398,10 @@ export function toUpper(expr: Expression | string): FunctionExpression {
  * trim("userInput", '"');
  * ```
  *
- * @param fieldName The name of the field containing the string or byte array.
- * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
  * trimmed from the input. If not specified, then whitespace will be trimmed.
- * @return A new {@code Expr} representing the trimmed string.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string.
  */
 export function trim(
   fieldName: string,
@@ -6100,10 +8409,10 @@ export function trim(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that removes leading and trailing characters from a string or byte array expression.
  *
+ * @example
  * ```typescript
  * // Trim whitespace from the 'userInput' field
  * trim(field("userInput"));
@@ -6112,10 +8421,10 @@ export function trim(
  * trim(field("userInput"), '"');
  * ```
  *
- * @param stringExpression The expression representing the string or byte array to trim.
- * @param valueToTrim Optional This parameter is treated as a set of characters or bytes that will be
+ * @param stringExpression - The expression representing the string or byte array to trim.
+ * @param valueToTrim - Optional This parameter is treated as a set of characters or bytes that will be
  * trimmed from the input. If not specified, then whitespace will be trimmed.
- * @return A new {@code Expr} representing the trimmed string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
  */
 export function trim(
   stringExpression: Expression,
@@ -6129,19 +8438,201 @@ export function trim(
 }
 
 /**
- * @beta
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * Trims whitespace or a specified set of characters/bytes from the beginning of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the beginning of the 'userInput' field
+ * ltrim(field("userInput"));
+ *
+ * // Trim quotes from the beginning of the 'userInput' field
+ * ltrim(field("userInput"), '"');
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function ltrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function ltrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).ltrim(valueToTrim);
+}
+
+/**
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  fieldName: string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * Trims whitespace or a specified set of characters/bytes from the end of a string or byte array.
+ *
+ * @example
+ * ```typescript
+ * // Trim whitespace from the end of the 'userInput' field
+ * rtrim(field("userInput"));
+ *
+ * // Trim quotes from the end of the 'userInput' field
+ * rtrim(field("userInput"), '"');
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param valueToTrim - Optional. A string or byte array containing the characters/bytes to trim.
+ * If not specified, whitespace will be trimmed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the trimmed string or byte array.
+ */
+export function rtrim(
+  expression: Expression,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression;
+export function rtrim(
+  expr: Expression | string,
+  valueToTrim?: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).rtrim(valueToTrim);
+}
+
+/**
+ * Creates an expression that returns the data type of the data in the specified field.
+ *
+ * @remarks
+ * String inputs passed iteratively to this global function act as `field()` path lookups.
+ * If you wish to pass a string literal value, it must be wrapped: `type(constant("my_string"))`.
+ *
+ * @example
+ * ```typescript
+ * // Get the data type of the value in field 'title'
+ * type('title')
+ * ```
+ *
+ * @returns A new `Expression` representing the data type.
+ */
+export function type(fieldName: string): FunctionExpression;
+/**
+ * Creates an expression that returns the data type of an expression's result.
+ *
+ * @example
+ * ```typescript
+ * // Get the data type of a conditional expression
+ * type(conditional(exists('foo'), constant(1), constant(true)))
+ * ```
+ *
+ * @returns A new `Expression` representing the data type.
+ */
+export function type(expression: Expression): FunctionExpression;
+export function type(
+  fieldNameOrExpression: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).type();
+}
+
+/**
+ * Creates an expression that checks if the value in the specified field is of the given type.
+ *
+ * @remarks Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+ * Supported values for `type` are:
+ * `'null'`, `'array'`, `'boolean'`, `'bytes'`, `'timestamp'`, `'geo_point'`, `'number'`,
+ * `'int32'`, `'int64'`, `'float64'`, `'decimal128'`, `'map'`, `'reference'`, `'string'`,
+ * `'vector'`, `'max_key'`, `'min_key'`, `'object_id'`, `'regex'`, `'request_timestamp'`.
+ *
+ * @example
+ * ```typescript
+ * // Check if the 'price' field is a floating point number (evaluating to true inside pipeline conditionals)
+ * isType('price', 'float64');
+ * ```
+ *
+ * @param fieldName - The name of the field to check.
+ * @param type - The type to check for.
+ * @returns A new `BooleanExpression` that evaluates to true if the field's value is of the given type, false otherwise.
+ */
+export function isType(fieldName: string, type: string): BooleanExpression;
+
+/**
+ * Creates an expression that checks if the result of an expression is of the given type.
+ *
+ * @remarks Null or undefined fields evaluate to skip/error. Use `ifAbsent()` / `isAbsent()` to evaluate missing data.
+ * Supported values for `type` are:
+ * `'null'`, `'array'`, `'boolean'`, `'bytes'`, `'timestamp'`, `'geo_point'`, `'number'`,
+ * `'int32'`, `'int64'`, `'float64'`, `'decimal128'`, `'map'`, `'reference'`, `'string'`,
+ * `'vector'`, `'max_key'`, `'min_key'`, `'object_id'`, `'regex'`, `'request_timestamp'`.
+ *
+ * @example
+ * ```typescript
+ * // Check if the result of a calculation is a number
+ * isType(add('count', 1), 'number')
+ * ```
+ *
+ * @param expression - The expression to check.
+ * @param type - The type to check for.
+ * @returns A new `BooleanExpression` that evaluates to true if the expression's result is of the given type, false otherwise.
+ */
+export function isType(expression: Expression, type: string): BooleanExpression;
+export function isType(
+  fieldNameOrExpression: string | Expression,
+  type: string
+): BooleanExpression {
+  return fieldOrExpression(fieldNameOrExpression).isType(type);
+}
+
+/**
  *
  * Creates an expression that concatenates string functions, fields or constants together.
  *
+ * @example
  * ```typescript
  * // Combine the 'firstName', " ", and 'lastName' fields into a single string
  * stringConcat("firstName", " ", field("lastName"));
  * ```
  *
- * @param fieldName The field name containing the initial string value.
- * @param secondString An expression or string literal to concatenate.
- * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
- * @return A new {@code Expr} representing the concatenated string.
+ * @param fieldName - The field name containing the initial string value.
+ * @param secondString - An expression or string literal to concatenate.
+ * @param otherStrings - Optional additional expressions or literals (typically strings) to concatenate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated string.
  */
 export function stringConcat(
   fieldName: string,
@@ -6150,18 +8641,18 @@ export function stringConcat(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that concatenates string expressions together.
  *
+ * @example
  * ```typescript
  * // Combine the 'firstName', " ", and 'lastName' fields into a single string
  * stringConcat(field("firstName"), " ", field("lastName"));
  * ```
  *
- * @param firstString The initial string expression to concatenate to.
- * @param secondString An expression or string literal to concatenate.
- * @param otherStrings Optional additional expressions or literals (typically strings) to concatenate.
- * @return A new {@code Expr} representing the concatenated string.
+ * @param firstString - The initial string expression to concatenate to.
+ * @param secondString - An expression or string literal to concatenate.
+ * @param otherStrings - Optional additional expressions or literals (typically strings) to concatenate.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the concatenated string.
  */
 export function stringConcat(
   firstString: Expression,
@@ -6180,34 +8671,212 @@ export function stringConcat(
 }
 
 /**
- * @beta
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf("text", "foo");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  fieldName: string,
+  search: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * Creates an expression that finds the index of the first occurrence of a substring or byte sequence.
+ *
+ * @example
+ * ```typescript
+ * // Find the index of "foo" in the 'text' field
+ * stringIndexOf(field("text"), "foo");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param search - The substring or byte sequence to search for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the index of the first occurrence.
+ */
+export function stringIndexOf(
+  expression: Expression,
+  search: string | Expression | Bytes
+): FunctionExpression;
+export function stringIndexOf(
+  expr: Expression | string,
+  search: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringIndexOf(search);
+}
+
+/**
+ * Creates an expression that repeats a string or byte array a specified number of times.
+ *
+ * @example
+ * ```typescript
+ * // Repeat the 'label' field 3 times
+ * stringRepeat("label", 3);
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param repetitions - The number of times to repeat the string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the repeated string or byte array.
+ */
+export function stringRepeat(
+  fieldName: string,
+  repetitions: number | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that repeats a string or byte array a specified number of times.
+ *
+ * @example
+ * ```typescript
+ * // Repeat the 'label' field 3 times
+ * stringRepeat(field("label"), 3);
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param repetitions - The number of times to repeat the string or byte array.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the repeated string or byte array.
+ */
+export function stringRepeat(
+  expression: Expression,
+  repetitions: number | Expression
+): FunctionExpression;
+export function stringRepeat(
+  expr: Expression | string,
+  repetitions: number | Expression
+): FunctionExpression {
+  return fieldOrExpression(expr).stringRepeat(repetitions);
+}
+
+/**
+ * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace all occurrences of "foo" with "bar" in the 'text' field
+ * stringReplaceAll("text", "foo", "bar");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with replacements.
+ */
+export function stringReplaceAll(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * Creates an expression that replaces all occurrences of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace all occurrences of "foo" with "bar" in the 'text' field
+ * stringReplaceAll(field("text"), "foo", "bar");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with replacements.
+ */
+export function stringReplaceAll(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+export function stringReplaceAll(
+  expr: Expression | string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringReplaceAll(find, replacement);
+}
+
+/**
+ * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+ * stringReplaceOne("text", "foo", "bar");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with the replacement.
+ */
+export function stringReplaceOne(
+  fieldName: string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+
+/**
+ * Creates an expression that replaces the first occurrence of a substring or byte sequence with a replacement.
+ *
+ * @example
+ * ```typescript
+ * // Replace the first occurrence of "foo" with "bar" in the 'text' field
+ * stringReplaceOne(field("text"), "foo", "bar");
+ * ```
+ *
+ * @param expression - The expression representing the string or byte array.
+ * @param find - The substring or byte sequence to search for.
+ * @param replacement - The replacement string or byte sequence.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the string or byte array with the replacement.
+ */
+export function stringReplaceOne(
+  expression: Expression,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression;
+export function stringReplaceOne(
+  expr: Expression | string,
+  find: string | Expression | Bytes,
+  replacement: string | Expression | Bytes
+): FunctionExpression {
+  return fieldOrExpression(expr).stringReplaceOne(find, replacement);
+}
+
+/**
  *
  * Accesses a value from a map (object) field using the provided key.
  *
+ * @example
  * ```typescript
  * // Get the 'city' value from the 'address' map field
  * mapGet("address", "city");
  * ```
  *
- * @param fieldName The field name of the map field.
- * @param subField The key to access in the map.
- * @return A new {@code Expr} representing the value associated with the given key in the map.
+ * @param fieldName - The field name of the map field.
+ * @param subField - The key to access in the map.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the value associated with the given key in the map.
  */
 export function mapGet(fieldName: string, subField: string): FunctionExpression;
 
 /**
- * @beta
  *
  * Accesses a value from a map (object) expression using the provided key.
  *
+ * @example
  * ```typescript
  * // Get the 'city' value from the 'address' map field
  * mapGet(field("address"), "city");
  * ```
  *
- * @param mapExpression The expression representing the map.
- * @param subField The key to access in the map.
- * @return A new {@code Expr} representing the value associated with the given key in the map.
+ * @param mapExpression - The expression representing the map.
+ * @param subField - The key to access in the map.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the value associated with the given key in the map.
  */
 export function mapGet(
   mapExpression: Expression,
@@ -6221,48 +8890,298 @@ export function mapGet(
 }
 
 /**
- * @beta
+ * Creates an expression that returns a new map with the specified entries added or updated.
  *
+ * @remarks
+ * This only performs shallow updates to the map. Setting a value to `null`
+ * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
+ *
+ * @example
+ * ```typescript
+ * // Set the 'city' to 'San Francisco' in the 'address' map field
+ * mapSet("address", "city", "San Francisco");
+ * ```
+ *
+ * @param mapField - The map field to set entries in.
+ * @param key - The key to set. Must be a string or a constant string expression.
+ * @param value - The value to set.
+ * @param moreKeyValues - Additional key-value pairs to set.
+ * @returns A new `Expression` representing the map with the entries set.
+ */
+export function mapSet(
+  mapField: string,
+  key: string | Expression,
+  value: unknown,
+  ...moreKeyValues: unknown[]
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns a new map with the specified entries added or updated.
+ *
+ * @remarks
+ * This only performs shallow updates to the map. Setting a value to `null`
+ * will retain the key with a `null` value. To remove a key entirely, use `mapRemove`.
+ *
+ * @example
+ * ```typescript
+ * // Set the 'city' to "San Francisco"
+ * mapSet(map({"state": "California"}), "city", "San Francisco");
+ * ```
+ *
+ * @param mapExpression - The expression representing the map.
+ * @param key - The key to set. Must be a string or a constant string expression.
+ * @param value - The value to set.
+ * @param moreKeyValues - Additional key-value pairs to set.
+ * @returns A new `Expression` representing the map with the entries set.
+ */
+export function mapSet(
+  mapExpression: Expression,
+  key: string | Expression,
+  value: unknown,
+  ...moreKeyValues: unknown[]
+): FunctionExpression;
+export function mapSet(
+  fieldOrExpr: string | Expression,
+  key: string | Expression,
+  value: unknown,
+  ...moreKeyValues: unknown[]
+): FunctionExpression {
+  return fieldOrExpression(fieldOrExpr).mapSet(key, value, ...moreKeyValues);
+}
+
+/**
+ * Creates an expression that returns the keys of a map.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
+ * @example
+ * ```typescript
+ * // Get the keys of the 'address' map field
+ * mapKeys("address");
+ * ```
+ *
+ * @param mapField - The map field to get the keys of.
+ * @returns A new `Expression` representing the keys of the map.
+ */
+export function mapKeys(mapField: string): FunctionExpression;
+
+/**
+ * Creates an expression that returns the keys of a map.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
+ * @example
+ * ```typescript
+ * // Get the keys of the map expression
+ * mapKeys(map({"city": "San Francisco"}));
+ * ```
+ *
+ * @param mapExpression - The expression representing the map to get the keys of.
+ * @returns A new `Expression` representing the keys of the map.
+ */
+export function mapKeys(mapExpression: Expression): FunctionExpression;
+export function mapKeys(fieldOrExpr: string | Expression): FunctionExpression {
+  return fieldOrExpression(fieldOrExpr).mapKeys();
+}
+
+/**
+ * Creates an expression that returns the values of a map.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
+ * @example
+ * ```typescript
+ * // Get the values of the 'address' map field
+ * mapValues("address");
+ * ```
+ *
+ * @param mapField - The map field to get the values of.
+ * @returns A new `Expression` representing the values of the map.
+ */
+export function mapValues(mapField: string): FunctionExpression;
+
+/**
+ * Creates an expression that returns the values of a map.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
+ * @example
+ * ```typescript
+ * // Get the values of the map expression
+ * mapValues(map({"city": "San Francisco"}));
+ * ```
+ *
+ * @param mapExpression - The expression representing the map to get the values of.
+ * @returns A new `Expression` representing the values of the map.
+ */
+export function mapValues(mapExpression: Expression): FunctionExpression;
+export function mapValues(
+  fieldOrExpr: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldOrExpr).mapValues();
+}
+
+/**
+ * Creates an expression that returns the entries of a map as an array of maps,
+ * where each map contains a `"k"` property for the key and a `"v"` property for the value.
+ * For example: `[{ k: "key1", v: "value1" }, ...]`.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
+ * @example
+ * ```typescript
+ * // Get the entries of the 'address' map field
+ * mapEntries("address");
+ * ```
+ *
+ * @param mapField - The map field to get the entries of.
+ * @returns A new `Expression` representing the entries of the map.
+ */
+export function mapEntries(mapField: string): FunctionExpression;
+
+/**
+ * Creates an expression that returns the entries of a map as an array of maps,
+ * where each map contains a `"k"` property for the key and a `"v"` property for the value.
+ * For example: `[{ k: "key1", v: "value1" }, ...]`.
+ *
+ * @remarks
+ * While the backend generally preserves insertion order, relying on the
+ * order of the output array is not guaranteed and should be avoided.
+ *
+ * @example
+ * ```typescript
+ * // Get the entries of the map expression
+ * mapEntries(map({"city": "San Francisco"}));
+ * ```
+ *
+ * @param mapExpression - The expression representing the map to get the entries of.
+ * @returns A new `Expression` representing the entries of the map.
+ */
+export function mapEntries(mapExpression: Expression): FunctionExpression;
+export function mapEntries(
+  fieldOrExpr: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldOrExpr).mapEntries();
+}
+
+/**
+ * @public
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField(field("address"), "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(expression: Expression, key: string): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from a document that results from the evaluation of the expression.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the key resulting from the "addressField" variable in the "address" document.
+ * getField(field("address", variable("addressField")),
+ * ```
+ *
+ * @param key The expression representing the key to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(
+  expression: Expression,
+  keyExpr: Expression
+): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", "city")
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, key: string): Expression;
+/**
+ * @public
+ * Creates an expression that returns the value of a field from the document with the given field name.
+ *
+ * @example
+ * ```typescript
+ * // Get the value of the "city" field in the "address" document.
+ * getField("address", variable("addressField"))
+ * ```
+ *
+ * @param key The field to access in the document.
+ * @returns A new `Expression` representing the value of the field in the document.
+ */
+export function getField(fieldName: string, keyExpr: Expression): Expression;
+export function getField(
+  fieldOrExpr: string | Expression,
+  keyOrExpr: string | Expression
+): Expression {
+  return fieldOrExpression(fieldOrExpr).getField(keyOrExpr);
+}
+
+/**
  * Creates an aggregation that counts the total number of stage inputs.
  *
+ * @example
  * ```typescript
  * // Count the total number of input documents
  * countAll().as("totalDocument");
  * ```
  *
- * @return A new {@code AggregateFunction} representing the 'countAll' aggregation.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'countAll' aggregation.
  */
 export function countAll(): AggregateFunction {
   return AggregateFunction._create('count', [], 'count');
 }
 
 /**
- * @beta
  *
  * Creates an aggregation that counts the number of stage inputs with valid evaluations of the
  * provided expression.
  *
+ * @example
  * ```typescript
  * // Count the number of items where the price is greater than 10
  * count(field("price").greaterThan(10)).as("expensiveItemCount");
  * ```
  *
- * @param expression The expression to count.
- * @return A new {@code AggregateFunction} representing the 'count' aggregation.
+ * @param expression - The expression to count.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'count' aggregation.
  */
 export function count(expression: Expression): AggregateFunction;
 
 /**
- * @beta
  * Creates an aggregation that counts the number of stage inputs where the input field exists.
  *
+ * @example
  * ```typescript
  * // Count the total number of products
  * count("productId").as("totalProducts");
  * ```
  *
- * @param fieldName The name of the field to count.
- * @return A new {@code AggregateFunction} representing the 'count' aggregation.
+ * @param fieldName - The name of the field to count.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'count' aggregation.
  */
 export function count(fieldName: string): AggregateFunction;
 export function count(value: Expression | string): AggregateFunction {
@@ -6270,34 +9189,34 @@ export function count(value: Expression | string): AggregateFunction {
 }
 
 /**
- * @beta
  *
  * Creates an aggregation that calculates the sum of values from an expression across multiple
  * stage inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the total revenue from a set of orders
  * sum(field("orderAmount")).as("totalRevenue");
  * ```
  *
- * @param expression The expression to sum up.
- * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
+ * @param expression - The expression to sum up.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'sum' aggregation.
  */
 export function sum(expression: Expression): AggregateFunction;
 
 /**
- * @beta
  *
  * Creates an aggregation that calculates the sum of a field's values across multiple stage
  * inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the total revenue from a set of orders
  * sum("orderAmount").as("totalRevenue");
  * ```
  *
- * @param fieldName The name of the field containing numeric values to sum up.
- * @return A new {@code AggregateFunction} representing the 'sum' aggregation.
+ * @param fieldName - The name of the field containing numeric values to sum up.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'sum' aggregation.
  */
 export function sum(fieldName: string): AggregateFunction;
 export function sum(value: Expression | string): AggregateFunction {
@@ -6305,34 +9224,34 @@ export function sum(value: Expression | string): AggregateFunction {
 }
 
 /**
- * @beta
  *
  * Creates an aggregation that calculates the average (mean) of values from an expression across
  * multiple stage inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the average age of users
  * average(field("age")).as("averageAge");
  * ```
  *
- * @param expression The expression representing the values to average.
- * @return A new {@code AggregateFunction} representing the 'average' aggregation.
+ * @param expression - The expression representing the values to average.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'average' aggregation.
  */
 export function average(expression: Expression): AggregateFunction;
 
 /**
- * @beta
  *
  * Creates an aggregation that calculates the average (mean) of a field's values across multiple
  * stage inputs.
  *
+ * @example
  * ```typescript
  * // Calculate the average age of users
  * average("age").as("averageAge");
  * ```
  *
- * @param fieldName The name of the field containing numeric values to average.
- * @return A new {@code AggregateFunction} representing the 'average' aggregation.
+ * @param fieldName - The name of the field containing numeric values to average.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'average' aggregation.
  */
 export function average(fieldName: string): AggregateFunction;
 export function average(value: Expression | string): AggregateFunction {
@@ -6340,33 +9259,33 @@ export function average(value: Expression | string): AggregateFunction {
 }
 
 /**
- * @beta
  *
  * Creates an aggregation that finds the minimum value of an expression across multiple stage
  * inputs.
  *
+ * @example
  * ```typescript
  * // Find the lowest price of all products
  * minimum(field("price")).as("lowestPrice");
  * ```
  *
- * @param expression The expression to find the minimum value of.
- * @return A new {@code AggregateFunction} representing the 'minimum' aggregation.
+ * @param expression - The expression to find the minimum value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'minimum' aggregation.
  */
 export function minimum(expression: Expression): AggregateFunction;
 
 /**
- * @beta
  *
  * Creates an aggregation that finds the minimum value of a field across multiple stage inputs.
  *
+ * @example
  * ```typescript
  * // Find the lowest price of all products
  * minimum("price").as("lowestPrice");
  * ```
  *
- * @param fieldName The name of the field to find the minimum value of.
- * @return A new {@code AggregateFunction} representing the 'minimum' aggregation.
+ * @param fieldName - The name of the field to find the minimum value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'minimum' aggregation.
  */
 export function minimum(fieldName: string): AggregateFunction;
 export function minimum(value: Expression | string): AggregateFunction {
@@ -6374,33 +9293,33 @@ export function minimum(value: Expression | string): AggregateFunction {
 }
 
 /**
- * @beta
  *
  * Creates an aggregation that finds the maximum value of an expression across multiple stage
  * inputs.
  *
+ * @example
  * ```typescript
  * // Find the highest score in a leaderboard
  * maximum(field("score")).as("highestScore");
  * ```
  *
- * @param expression The expression to find the maximum value of.
- * @return A new {@code AggregateFunction} representing the 'maximum' aggregation.
+ * @param expression - The expression to find the maximum value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'maximum' aggregation.
  */
 export function maximum(expression: Expression): AggregateFunction;
 
 /**
- * @beta
  *
  * Creates an aggregation that finds the maximum value of a field across multiple stage inputs.
  *
+ * @example
  * ```typescript
  * // Find the highest score in a leaderboard
  * maximum("score").as("highestScore");
  * ```
  *
- * @param fieldName The name of the field to find the maximum value of.
- * @return A new {@code AggregateFunction} representing the 'maximum' aggregation.
+ * @param fieldName - The name of the field to find the maximum value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'maximum' aggregation.
  */
 export function maximum(fieldName: string): AggregateFunction;
 export function maximum(value: Expression | string): AggregateFunction {
@@ -6408,18 +9327,166 @@ export function maximum(value: Expression | string): AggregateFunction {
 }
 
 /**
- * @beta
+ * Creates an aggregation that finds the first value of an expression across multiple stage
+ * inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the first value of the 'rating' field
+ * first(field("rating")).as("firstRating");
+ * ```
+ *
+ * @param expression - The expression to find the first value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'first' aggregation.
+ */
+export function first(expression: Expression): AggregateFunction;
+
+/**
+ * Creates an aggregation that finds the first value of a field across multiple stage inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the first value of the 'rating' field
+ * first("rating").as("firstRating");
+ * ```
+ *
+ * @param fieldName - The name of the field to find the first value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'first' aggregation.
+ */
+export function first(fieldName: string): AggregateFunction;
+export function first(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).first();
+}
+
+/**
+ * Creates an aggregation that finds the last value of an expression across multiple stage
+ * inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the last value of the 'rating' field
+ * last(field("rating")).as("lastRating");
+ * ```
+ *
+ * @param expression - The expression to find the last value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'last' aggregation.
+ */
+export function last(expression: Expression): AggregateFunction;
+
+/**
+ * Creates an aggregation that finds the last value of a field across multiple stage inputs.
+ *
+ * @example
+ * ```typescript
+ * // Find the last value of the 'rating' field
+ * last("rating").as("lastRating");
+ * ```
+ *
+ * @param fieldName - The name of the field to find the last value of.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'last' aggregation.
+ */
+export function last(fieldName: string): AggregateFunction;
+export function last(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).last();
+}
+
+/**
+ * Creates an aggregation that collects all values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all tags from books into an array
+ * arrayAgg(field("tags")).as("allTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg' aggregation.
+ */
+export function arrayAgg(expression: Expression): AggregateFunction;
+
+/**
+ * Creates an aggregation that collects all values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all tags from books into an array
+ * arrayAgg("tags").as("allTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg' aggregation.
+ */
+export function arrayAgg(fieldName: string): AggregateFunction;
+export function arrayAgg(value: Expression | string): AggregateFunction {
+  return fieldOrExpression(value).arrayAgg();
+}
+
+/**
+ * Creates an aggregation that collects all distinct values of an expression across multiple stage
+ * inputs into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct(field("tags")).as("allDistinctTags");
+ * ```
+ *
+ * @param expression - The expression to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(expression: Expression): AggregateFunction;
+
+/**
+ * Creates an aggregation that collects all distinct values of a field across multiple stage inputs
+ * into an array.
+ *
+ * @remarks
+ * If the expression resolves to an absent value, it is converted to `null`.
+ * The order of elements in the output array is not stable and shouldn't be relied upon.
+ *
+ * @example
+ * ```typescript
+ * // Collect all distinct tags from books into an array
+ * arrayAggDistinct("tags").as("allDistinctTags");
+ * ```
+ *
+ * @param fieldName - The name of the field to collect values from.
+ * @returns A new {@link @firebase/firestore/pipelines#AggregateFunction} representing the 'array_agg_distinct' aggregation.
+ */
+export function arrayAggDistinct(fieldName: string): AggregateFunction;
+export function arrayAggDistinct(
+  value: Expression | string
+): AggregateFunction {
+  return fieldOrExpression(value).arrayAggDistinct();
+}
+
+/**
  *
  * Calculates the Cosine distance between a field's vector value and a literal vector value.
  *
+ * @example
  * ```typescript
  * // Calculate the Cosine distance between the 'location' field and a target location
  * cosineDistance("location", [37.7749, -122.4194]);
  * ```
  *
- * @param fieldName The name of the field containing the first vector.
- * @param vector The other vector (as an array of doubles) or {@link VectorValue} to compare against.
- * @return A new {@code Expr} representing the Cosine distance between the two vectors.
+ * @param fieldName - The name of the field containing the first vector.
+ * @param vector - The other vector (as an array of doubles) or {@link VectorValue} to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the Cosine distance between the two vectors.
  */
 export function cosineDistance(
   fieldName: string,
@@ -6427,18 +9494,18 @@ export function cosineDistance(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the Cosine distance between a field's vector value and a vector expression.
  *
+ * @example
  * ```typescript
  * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
  * cosineDistance("userVector", field("itemVector"));
  * ```
  *
- * @param fieldName The name of the field containing the first vector.
- * @param vectorExpression The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the cosine distance between the two vectors.
+ * @param fieldName - The name of the field containing the first vector.
+ * @param vectorExpression - The other vector (represented as an `Expression`) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the cosine distance between the two vectors.
  */
 export function cosineDistance(
   fieldName: string,
@@ -6446,18 +9513,18 @@ export function cosineDistance(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the Cosine distance between a vector expression and a vector literal.
  *
+ * @example
  * ```typescript
  * // Calculate the cosine distance between the 'location' field and a target location
  * cosineDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
- * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
- * @return A new {@code Expr} representing the cosine distance between the two vectors.
+ * @param vectorExpression - The first vector (represented as an `Expression`) to compare against.
+ * @param vector - The other vector (as an array of doubles or VectorValue) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the cosine distance between the two vectors.
  */
 export function cosineDistance(
   vectorExpression: Expression,
@@ -6465,18 +9532,18 @@ export function cosineDistance(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the Cosine distance between two vector expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the cosine distance between the 'userVector' field and the 'itemVector' field
  * cosineDistance(field("userVector"), field("itemVector"));
  * ```
  *
- * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param otherVectorExpression The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the cosine distance between the two vectors.
+ * @param vectorExpression - The first vector (represented as an `Expression`) to compare against.
+ * @param otherVectorExpression - The other vector (represented as an `Expression`) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the cosine distance between the two vectors.
  */
 export function cosineDistance(
   vectorExpression: Expression,
@@ -6492,18 +9559,18 @@ export function cosineDistance(
 }
 
 /**
- * @beta
  *
  * Calculates the dot product between a field's vector value and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product distance between a feature vector and a target vector
  * dotProduct("features", [0.5, 0.8, 0.2]);
  * ```
  *
- * @param fieldName The name of the field containing the first vector.
- * @param vector The other vector (as an array of doubles or VectorValue) to calculate with.
- * @return A new {@code Expr} representing the dot product between the two vectors.
+ * @param fieldName - The name of the field containing the first vector.
+ * @param vector - The other vector (as an array of doubles or VectorValue) to calculate with.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the dot product between the two vectors.
  */
 export function dotProduct(
   fieldName: string,
@@ -6511,18 +9578,18 @@ export function dotProduct(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the dot product between a field's vector value and a vector expression.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product distance between two document vectors: 'docVector1' and 'docVector2'
  * dotProduct("docVector1", field("docVector2"));
  * ```
  *
- * @param fieldName The name of the field containing the first vector.
- * @param vectorExpression The other vector (represented as an Expr) to calculate with.
- * @return A new {@code Expr} representing the dot product between the two vectors.
+ * @param fieldName - The name of the field containing the first vector.
+ * @param vectorExpression - The other vector (represented as an `Expression`) to calculate with.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the dot product between the two vectors.
  */
 export function dotProduct(
   fieldName: string,
@@ -6530,18 +9597,18 @@ export function dotProduct(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the dot product between a vector expression and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product between a feature vector and a target vector
  * dotProduct(field("features"), [0.5, 0.8, 0.2]);
  * ```
  *
- * @param vectorExpression The first vector (represented as an Expr) to calculate with.
- * @param vector The other vector (as an array of doubles or VectorValue) to calculate with.
- * @return A new {@code Expr} representing the dot product between the two vectors.
+ * @param vectorExpression - The first vector (represented as an `Expression`) to calculate with.
+ * @param vector - The other vector (as an array of doubles or VectorValue) to calculate with.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the dot product between the two vectors.
  */
 export function dotProduct(
   vectorExpression: Expression,
@@ -6549,18 +9616,18 @@ export function dotProduct(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the dot product between two vector expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the dot product between two document vectors: 'docVector1' and 'docVector2'
  * dotProduct(field("docVector1"), field("docVector2"));
  * ```
  *
- * @param vectorExpression The first vector (represented as an Expr) to calculate with.
- * @param otherVectorExpression The other vector (represented as an Expr) to calculate with.
- * @return A new {@code Expr} representing the dot product between the two vectors.
+ * @param vectorExpression - The first vector (represented as an `Expression`) to calculate with.
+ * @param otherVectorExpression - The other vector (represented as an `Expression`) to calculate with.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the dot product between the two vectors.
  */
 export function dotProduct(
   vectorExpression: Expression,
@@ -6576,18 +9643,18 @@ export function dotProduct(
 }
 
 /**
- * @beta
  *
  * Calculates the Euclidean distance between a field's vector value and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between the 'location' field and a target location
  * euclideanDistance("location", [37.7749, -122.4194]);
  * ```
  *
- * @param fieldName The name of the field containing the first vector.
- * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
- * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
+ * @param fieldName - The name of the field containing the first vector.
+ * @param vector - The other vector (as an array of doubles or VectorValue) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the Euclidean distance between the two vectors.
  */
 export function euclideanDistance(
   fieldName: string,
@@ -6595,18 +9662,18 @@ export function euclideanDistance(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the Euclidean distance between a field's vector value and a vector expression.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
  * euclideanDistance("pointA", field("pointB"));
  * ```
  *
- * @param fieldName The name of the field containing the first vector.
- * @param vectorExpression The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
+ * @param fieldName - The name of the field containing the first vector.
+ * @param vectorExpression - The other vector (represented as an `Expression`) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the Euclidean distance between the two vectors.
  */
 export function euclideanDistance(
   fieldName: string,
@@ -6614,19 +9681,19 @@ export function euclideanDistance(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the Euclidean distance between a vector expression and a double array.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between the 'location' field and a target location
  *
  * euclideanDistance(field("location"), [37.7749, -122.4194]);
  * ```
  *
- * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param vector The other vector (as an array of doubles or VectorValue) to compare against.
- * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
+ * @param vectorExpression - The first vector (represented as an `Expression`) to compare against.
+ * @param vector - The other vector (as an array of doubles or VectorValue) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the Euclidean distance between the two vectors.
  */
 export function euclideanDistance(
   vectorExpression: Expression,
@@ -6634,18 +9701,18 @@ export function euclideanDistance(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Calculates the Euclidean distance between two vector expressions.
  *
+ * @example
  * ```typescript
  * // Calculate the Euclidean distance between two vector fields: 'pointA' and 'pointB'
  * euclideanDistance(field("pointA"), field("pointB"));
  * ```
  *
- * @param vectorExpression The first vector (represented as an Expr) to compare against.
- * @param otherVectorExpression The other vector (represented as an Expr) to compare against.
- * @return A new {@code Expr} representing the Euclidean distance between the two vectors.
+ * @param vectorExpression - The first vector (represented as an `Expression`) to compare against.
+ * @param otherVectorExpression - The other vector (represented as an `Expression`) to compare against.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the Euclidean distance between the two vectors.
  */
 export function euclideanDistance(
   vectorExpression: Expression,
@@ -6661,32 +9728,32 @@ export function euclideanDistance(
 }
 
 /**
- * @beta
  *
  * Creates an expression that calculates the length of a Firestore Vector.
  *
+ * @example
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
  * vectorLength(field("embedding"));
  * ```
  *
- * @param vectorExpression The expression representing the Firestore Vector.
- * @return A new {@code Expr} representing the length of the array.
+ * @param vectorExpression - The expression representing the Firestore Vector.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the array.
  */
 export function vectorLength(vectorExpression: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that calculates the length of a Firestore Vector represented by a field.
  *
+ * @example
  * ```typescript
  * // Get the vector length (dimension) of the field 'embedding'.
  * vectorLength("embedding");
  * ```
  *
- * @param fieldName The name of the field representing the Firestore Vector.
- * @return A new {@code Expr} representing the length of the array.
+ * @param fieldName - The name of the field representing the Firestore Vector.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the length of the array.
  */
 export function vectorLength(fieldName: string): FunctionExpression;
 export function vectorLength(expr: Expression | string): FunctionExpression {
@@ -6694,34 +9761,34 @@ export function vectorLength(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  *
  * Creates an expression that interprets an expression as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'microseconds' field as microseconds since epoch.
  * unixMicrosToTimestamp(field("microseconds"));
  * ```
  *
- * @param expr The expression representing the number of microseconds since epoch.
- * @return A new {@code Expr} representing the timestamp.
+ * @param expr - The expression representing the number of microseconds since epoch.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
  */
 export function unixMicrosToTimestamp(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that interprets a field's value as the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'microseconds' field as microseconds since epoch.
  * unixMicrosToTimestamp("microseconds");
  * ```
  *
- * @param fieldName The name of the field representing the number of microseconds since epoch.
- * @return A new {@code Expr} representing the timestamp.
+ * @param fieldName - The name of the field representing the number of microseconds since epoch.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
  */
 export function unixMicrosToTimestamp(fieldName: string): FunctionExpression;
 export function unixMicrosToTimestamp(
@@ -6731,32 +9798,32 @@ export function unixMicrosToTimestamp(
 }
 
 /**
- * @beta
  *
  * Creates an expression that converts a timestamp expression to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to microseconds since epoch.
  * timestampToUnixMicros(field("timestamp"));
  * ```
  *
- * @param expr The expression representing the timestamp.
- * @return A new {@code Expr} representing the number of microseconds since epoch.
+ * @param expr - The expression representing the timestamp.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of microseconds since epoch.
  */
 export function timestampToUnixMicros(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that converts a timestamp field to the number of microseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to microseconds since epoch.
  * timestampToUnixMicros("timestamp");
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
- * @return A new {@code Expr} representing the number of microseconds since epoch.
+ * @param fieldName - The name of the field representing the timestamp.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of microseconds since epoch.
  */
 export function timestampToUnixMicros(fieldName: string): FunctionExpression;
 export function timestampToUnixMicros(
@@ -6766,34 +9833,34 @@ export function timestampToUnixMicros(
 }
 
 /**
- * @beta
  *
  * Creates an expression that interprets an expression as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'milliseconds' field as milliseconds since epoch.
  * unixMillisToTimestamp(field("milliseconds"));
  * ```
  *
- * @param expr The expression representing the number of milliseconds since epoch.
- * @return A new {@code Expr} representing the timestamp.
+ * @param expr - The expression representing the number of milliseconds since epoch.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
  */
 export function unixMillisToTimestamp(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that interprets a field's value as the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'milliseconds' field as milliseconds since epoch.
  * unixMillisToTimestamp("milliseconds");
  * ```
  *
- * @param fieldName The name of the field representing the number of milliseconds since epoch.
- * @return A new {@code Expr} representing the timestamp.
+ * @param fieldName - The name of the field representing the number of milliseconds since epoch.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
  */
 export function unixMillisToTimestamp(fieldName: string): FunctionExpression;
 export function unixMillisToTimestamp(
@@ -6804,32 +9871,32 @@ export function unixMillisToTimestamp(
 }
 
 /**
- * @beta
  *
  * Creates an expression that converts a timestamp expression to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to milliseconds since epoch.
  * timestampToUnixMillis(field("timestamp"));
  * ```
  *
- * @param expr The expression representing the timestamp.
- * @return A new {@code Expr} representing the number of milliseconds since epoch.
+ * @param expr - The expression representing the timestamp.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of milliseconds since epoch.
  */
 export function timestampToUnixMillis(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that converts a timestamp field to the number of milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to milliseconds since epoch.
  * timestampToUnixMillis("timestamp");
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
- * @return A new {@code Expr} representing the number of milliseconds since epoch.
+ * @param fieldName - The name of the field representing the timestamp.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of milliseconds since epoch.
  */
 export function timestampToUnixMillis(fieldName: string): FunctionExpression;
 export function timestampToUnixMillis(
@@ -6840,34 +9907,34 @@ export function timestampToUnixMillis(
 }
 
 /**
- * @beta
  *
  * Creates an expression that interprets an expression as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'seconds' field as seconds since epoch.
  * unixSecondsToTimestamp(field("seconds"));
  * ```
  *
- * @param expr The expression representing the number of seconds since epoch.
- * @return A new {@code Expr} representing the timestamp.
+ * @param expr - The expression representing the number of seconds since epoch.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
  */
 export function unixSecondsToTimestamp(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that interprets a field's value as the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC)
  * and returns a timestamp.
  *
+ * @example
  * ```typescript
  * // Interpret the 'seconds' field as seconds since epoch.
  * unixSecondsToTimestamp("seconds");
  * ```
  *
- * @param fieldName The name of the field representing the number of seconds since epoch.
- * @return A new {@code Expr} representing the timestamp.
+ * @param fieldName - The name of the field representing the number of seconds since epoch.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the timestamp.
  */
 export function unixSecondsToTimestamp(fieldName: string): FunctionExpression;
 export function unixSecondsToTimestamp(
@@ -6878,32 +9945,32 @@ export function unixSecondsToTimestamp(
 }
 
 /**
- * @beta
  *
  * Creates an expression that converts a timestamp expression to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to seconds since epoch.
  * timestampToUnixSeconds(field("timestamp"));
  * ```
  *
- * @param expr The expression representing the timestamp.
- * @return A new {@code Expr} representing the number of seconds since epoch.
+ * @param expr - The expression representing the timestamp.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of seconds since epoch.
  */
 export function timestampToUnixSeconds(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that converts a timestamp field to the number of seconds since the Unix epoch (1970-01-01 00:00:00 UTC).
  *
+ * @example
  * ```typescript
  * // Convert the 'timestamp' field to seconds since epoch.
  * timestampToUnixSeconds("timestamp");
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
- * @return A new {@code Expr} representing the number of seconds since epoch.
+ * @param fieldName - The name of the field representing the timestamp.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the number of seconds since epoch.
  */
 export function timestampToUnixSeconds(fieldName: string): FunctionExpression;
 export function timestampToUnixSeconds(
@@ -6914,19 +9981,19 @@ export function timestampToUnixSeconds(
 }
 
 /**
- * @beta
  *
  * Creates an expression that adds a specified amount of time to a timestamp.
  *
+ * @example
  * ```typescript
  * // Add some duration determined by field 'unit' and 'amount' to the 'timestamp' field.
  * timestampAdd(field("timestamp"), field("unit"), field("amount"));
  * ```
  *
- * @param timestamp The expression representing the timestamp.
- * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
- * @param amount The expression evaluates to amount of the unit.
- * @return A new {@code Expr} representing the resulting timestamp.
+ * @param timestamp - The expression representing the timestamp.
+ * @param unit - The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+ * @param amount - The expression evaluates to amount of the unit.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
  */
 export function timestampAdd(
   timestamp: Expression,
@@ -6935,56 +10002,49 @@ export function timestampAdd(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that adds a specified amount of time to a timestamp.
  *
+ * @example
  * ```typescript
  * // Add 1 day to the 'timestamp' field.
  * timestampAdd(field("timestamp"), "day", 1);
  * ```
  *
- * @param timestamp The expression representing the timestamp.
- * @param unit The unit of time to add (e.g., "day", "hour").
- * @param amount The amount of time to add.
- * @return A new {@code Expr} representing the resulting timestamp.
+ * @param timestamp - The expression representing the timestamp.
+ * @param unit - The unit of time to add (e.g., "day", "hour").
+ * @param amount - The amount of time to add.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
  */
 export function timestampAdd(
   timestamp: Expression,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that adds a specified amount of time to a timestamp represented by a field.
  *
+ * @example
  * ```typescript
  * // Add 1 day to the 'timestamp' field.
  * timestampAdd("timestamp", "day", 1);
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
- * @param unit The unit of time to add (e.g., "day", "hour").
- * @param amount The amount of time to add.
- * @return A new {@code Expr} representing the resulting timestamp.
+ * @param fieldName - The name of the field representing the timestamp.
+ * @param unit - The unit of time to add (e.g., "day", "hour").
+ * @param amount - The amount of time to add.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
  */
 export function timestampAdd(
   fieldName: string,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 export function timestampAdd(
   timestamp: Expression | string,
-  unit:
-    | Expression
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day',
+  unit: TimeUnit | Expression,
   amount: Expression | number
 ): FunctionExpression {
   const normalizedTimestamp = fieldOrExpression(timestamp);
@@ -6994,19 +10054,19 @@ export function timestampAdd(
 }
 
 /**
- * @beta
  *
  * Creates an expression that subtracts a specified amount of time from a timestamp.
  *
+ * @example
  * ```typescript
  * // Subtract some duration determined by field 'unit' and 'amount' from the 'timestamp' field.
  * timestampSubtract(field("timestamp"), field("unit"), field("amount"));
  * ```
  *
- * @param timestamp The expression representing the timestamp.
- * @param unit The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
- * @param amount The expression evaluates to amount of the unit.
- * @return A new {@code Expr} representing the resulting timestamp.
+ * @param timestamp - The expression representing the timestamp.
+ * @param unit - The expression evaluates to unit of time, must be one of 'microsecond', 'millisecond', 'second', 'minute', 'hour', 'day'.
+ * @param amount - The expression evaluates to amount of the unit.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
  */
 export function timestampSubtract(
   timestamp: Expression,
@@ -7015,56 +10075,49 @@ export function timestampSubtract(
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that subtracts a specified amount of time from a timestamp.
  *
+ * @example
  * ```typescript
  * // Subtract 1 day from the 'timestamp' field.
  * timestampSubtract(field("timestamp"), "day", 1);
  * ```
  *
- * @param timestamp The expression representing the timestamp.
- * @param unit The unit of time to subtract (e.g., "day", "hour").
- * @param amount The amount of time to subtract.
- * @return A new {@code Expr} representing the resulting timestamp.
+ * @param timestamp - The expression representing the timestamp.
+ * @param unit - The unit of time to subtract (e.g., "day", "hour").
+ * @param amount - The amount of time to subtract.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
  */
 export function timestampSubtract(
   timestamp: Expression,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 
 /**
- * @beta
  *
  * Creates an expression that subtracts a specified amount of time from a timestamp represented by a field.
  *
+ * @example
  * ```typescript
  * // Subtract 1 day from the 'timestamp' field.
  * timestampSubtract("timestamp", "day", 1);
  * ```
  *
- * @param fieldName The name of the field representing the timestamp.
- * @param unit The unit of time to subtract (e.g., "day", "hour").
- * @param amount The amount of time to subtract.
- * @return A new {@code Expr} representing the resulting timestamp.
+ * @param fieldName - The name of the field representing the timestamp.
+ * @param unit - The unit of time to subtract (e.g., "day", "hour").
+ * @param amount - The amount of time to subtract.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the resulting timestamp.
  */
 export function timestampSubtract(
   fieldName: string,
-  unit: 'microsecond' | 'millisecond' | 'second' | 'minute' | 'hour' | 'day',
+  unit: TimeUnit,
   amount: number
 ): FunctionExpression;
 export function timestampSubtract(
   timestamp: Expression | string,
-  unit:
-    | Expression
-    | 'microsecond'
-    | 'millisecond'
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day',
+  unit: TimeUnit | Expression,
   amount: Expression | number
 ): FunctionExpression {
   const normalizedTimestamp = fieldOrExpression(timestamp);
@@ -7077,36 +10130,36 @@ export function timestampSubtract(
 }
 
 /**
- * @beta
  *
  * Creates an expression that evaluates to the current server timestamp.
  *
+ * @example
  * ```typescript
  * // Get the current server timestamp
  * currentTimestamp()
  * ```
  *
- * @return A new Expression representing the current server timestamp.
+ * @returns A new Expression representing the current server timestamp.
  */
 export function currentTimestamp(): FunctionExpression {
   return new FunctionExpression('current_timestamp', [], 'currentTimestamp');
 }
 
 /**
- * @beta
  *
  * Creates an expression that performs a logical 'AND' operation on multiple filter conditions.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18 AND the 'city' field is "London" AND
  * // the 'status' field is "active"
  * const condition = and(greaterThan("age", 18), equal("city", "London"), equal("status", "active"));
  * ```
  *
- * @param first The first filter condition.
- * @param second The second filter condition.
- * @param more Additional filter conditions to 'AND' together.
- * @return A new {@code Expr} representing the logical 'AND' operation.
+ * @param first - The first filter condition.
+ * @param second - The second filter condition.
+ * @param more - Additional filter conditions to 'AND' together.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical 'AND' operation.
  */
 export function and(
   first: BooleanExpression,
@@ -7121,20 +10174,20 @@ export function and(
 }
 
 /**
- * @beta
  *
  * Creates an expression that performs a logical 'OR' operation on multiple filter conditions.
  *
+ * @example
  * ```typescript
  * // Check if the 'age' field is greater than 18 OR the 'city' field is "London" OR
  * // the 'status' field is "active"
  * const condition = or(greaterThan("age", 18), equal("city", "London"), equal("status", "active"));
  * ```
  *
- * @param first The first filter condition.
- * @param second The second filter condition.
- * @param more Additional filter conditions to 'OR' together.
- * @return A new {@code Expr} representing the logical 'OR' operation.
+ * @param first - The first filter condition.
+ * @param second - The second filter condition.
+ * @param more - Additional filter conditions to 'OR' together.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logical 'OR' operation.
  */
 export function or(
   first: BooleanExpression,
@@ -7149,62 +10202,92 @@ export function or(
 }
 
 /**
- * @beta
+ *
+ * Creates an expression that performs a logical 'NOR' operation on multiple filter conditions.
+ *
+ * @example
+ * ```typescript
+ * // Check if neither the 'age' field is greater than 18 nor the 'city' field is "London"
+ * const condition = nor(
+ *   greaterThan("age", 18),
+ *   equal("city", "London")
+ * );
+ * ```
+ *
+ * @param first - The first filter condition.
+ * @param second - The second filter condition.
+ * @param more - Additional filter conditions to 'NOR' together.
+ * @returns A new {@link @firebase/firestore/pipelines#BooleanExpression} representing the logical 'NOR' operation.
+ */
+export function nor(
+  first: BooleanExpression,
+  second: BooleanExpression,
+  ...more: BooleanExpression[]
+): BooleanExpression {
+  return new FunctionExpression(
+    'nor',
+    [first, second, ...more],
+    'nor'
+  ).asBoolean();
+}
+
+/**
  * Creates an expression that returns the value of the base expression raised to the power of the exponent expression.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of the 'exponent' field.
  * pow(field("base"), field("exponent"));
  * ```
  *
- * @param base The expression to raise to the power of the exponent.
- * @param exponent The expression to raise the base to the power of.
- * @return A new `Expr` representing the power operation.
+ * @param base - The expression to raise to the power of the exponent.
+ * @param exponent - The expression to raise the base to the power of.
+ * @returns A new `Expression` representing the power operation.
  */
 export function pow(base: Expression, exponent: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that returns the value of the base expression raised to the power of the exponent.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of 2.
  * pow(field("base"), 2);
  * ```
  *
- * @param base The expression to raise to the power of the exponent.
- * @param exponent The constant value to raise the base to the power of.
- * @return A new `Expr` representing the power operation.
+ * @param base - The expression to raise to the power of the exponent.
+ * @param exponent - The constant value to raise the base to the power of.
+ * @returns A new `Expression` representing the power operation.
  */
 export function pow(base: Expression, exponent: number): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that returns the value of the base field raised to the power of the exponent expression.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of the 'exponent' field.
  * pow("base", field("exponent"));
  * ```
  *
- * @param base The name of the field to raise to the power of the exponent.
- * @param exponent The expression to raise the base to the power of.
- * @return A new `Expr` representing the power operation.
+ * @param base - The name of the field to raise to the power of the exponent.
+ * @param exponent - The expression to raise the base to the power of.
+ * @returns A new `Expression` representing the power operation.
  */
 export function pow(base: string, exponent: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that returns the value of the base field raised to the power of the exponent.
  *
+ * @example
  * ```typescript
  * // Raise the value of the 'base' field to the power of 2.
  * pow("base", 2);
  * ```
  *
- * @param base The name of the field to raise to the power of the exponent.
- * @param exponent The constant value to raise the base to the power of.
- * @return A new `Expr` representing the power operation.
+ * @param base - The name of the field to raise to the power of the exponent.
+ * @param exponent - The constant value to raise the base to the power of.
+ * @returns A new `Expression` representing the power operation.
  */
 export function pow(base: string, exponent: number): FunctionExpression;
 export function pow(
@@ -7215,45 +10298,61 @@ export function pow(
 }
 
 /**
- * @beta
+ *
+ * Creates an expression that generates a random number between 0.0 and 1.0 but not including 1.0.
+ *
+ * @example
+ * ```typescript
+ * // Generate a random number between 0.0 and 1.0.
+ * rand();
+ * ```
+ *
+ * @returns A new `Expression` representing the rand operation.
+ */
+export function rand(): FunctionExpression {
+  return new FunctionExpression('rand', [], 'rand');
+}
+
+/**
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field.
  * round("price");
  * ```
  *
- * @param fieldName The name of the field to round.
- * @return A new `Expr` representing the rounded value.
+ * @param fieldName - The name of the field to round.
+ * @returns A new `Expression` representing the rounded value.
  */
 export function round(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that rounds a numeric value to the nearest whole number.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field.
  * round(field("price"));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which will be rounded.
- * @return A new `Expr` representing the rounded value.
+ * @param expression - An expression evaluating to a numeric value, which will be rounded.
+ * @returns A new `Expression` representing the rounded value.
  */
 export function round(expression: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that rounds a numeric value to the specified number of decimal places.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field to two decimal places.
  * round("price", 2);
  * ```
  *
- * @param fieldName The name of the field to round.
- * @param decimalPlaces A constant or expression specifying the rounding precision in decimal places.
- * @return A new `Expr` representing the rounded value.
+ * @param fieldName - The name of the field to round.
+ * @param decimalPlaces - A constant or expression specifying the rounding precision in decimal places.
+ * @returns A new `Expression` representing the rounded value.
  */
 export function round(
   fieldName: string,
@@ -7261,17 +10360,17 @@ export function round(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that rounds a numeric value to the specified number of decimal places.
  *
+ * @example
  * ```typescript
  * // Round the value of the 'price' field to two decimal places.
  * round(field("price"), constant(2));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which will be rounded.
- * @param decimalPlaces A constant or expression specifying the rounding precision in decimal places.
- * @return A new `Expr` representing the rounded value.
+ * @param expression - An expression evaluating to a numeric value, which will be rounded.
+ * @param decimalPlaces - A constant or expression specifying the rounding precision in decimal places.
+ * @returns A new `Expression` representing the rounded value.
  */
 export function round(
   expression: Expression,
@@ -7289,30 +10388,104 @@ export function round(
 }
 
 /**
- * @beta
+ * Creates an expression that truncates the numeric value of a field to an integer.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field
+ * trunc("rating");
+ * ```
+ *
+ * @param fieldName - The name of the field containing the number to truncate.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(fieldName: string): FunctionExpression;
+
+/**
+ * Creates an expression that truncates the numeric value of an expression to an integer.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field.
+ * trunc(field("rating"));
+ * ```
+ *
+ * @param expression - An expression evaluating to a numeric value, which will be truncated.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(expression: Expression): FunctionExpression;
+
+/**
+ * Creates an expression that truncates a numeric expression to the specified number of decimal places.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field to two decimal places.
+ * trunc("rating", 2);
+ * ```
+ *
+ * @param fieldName - The name of the field to truncate.
+ * @param decimalPlaces - A constant or expression specifying the truncation precision in decimal places.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(
+  fieldName: string,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that truncates a numeric value to the specified number of decimal places.
+ *
+ * @example
+ * ```typescript
+ * // Truncate the value of the 'rating' field to two decimal places.
+ * trunc(field("rating"), constant(2));
+ * ```
+ *
+ * @param expression - An expression evaluating to a numeric value, which will be truncated.
+ * @param decimalPlaces - A constant or expression specifying the truncation precision in decimal places.
+ * @returns A new `Expression` representing the truncated value.
+ */
+export function trunc(
+  expression: Expression,
+  decimalPlaces: number | Expression
+): FunctionExpression;
+export function trunc(
+  expr: Expression | string,
+  decimalPlaces?: number | Expression
+): FunctionExpression {
+  if (decimalPlaces === undefined) {
+    return fieldOrExpression(expr).trunc();
+  } else {
+    return fieldOrExpression(expr).trunc(valueToDefaultExpr(decimalPlaces));
+  }
+}
+
+/**
  * Creates an expression that returns the collection ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the collection ID from a path.
  * collectionId("__name__");
  * ```
  *
- * @param fieldName The name of the field to get the collection ID from.
- * @return A new {@code Expr} representing the collectionId operation.
+ * @param fieldName - The name of the field to get the collection ID from.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the collectionId operation.
  */
 export function collectionId(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that returns the collection ID from a path.
  *
+ * @example
  * ```typescript
  * // Get the collection ID from a path.
  * collectionId(field("__name__"));
  * ```
  *
- * @param expression An expression evaluating to a path, which the collection ID will be extracted from.
- * @return A new {@code Expr} representing the collectionId operation.
+ * @param expression - An expression evaluating to a path, which the collection ID will be extracted from.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the collectionId operation.
  */
 export function collectionId(expression: Expression): FunctionExpression;
 export function collectionId(expr: Expression | string): FunctionExpression {
@@ -7320,9 +10493,9 @@ export function collectionId(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
  *
+ * @example
  * ```typescript
  * // Get the length of the 'name' field.
  * length("name");
@@ -7331,15 +10504,15 @@ export function collectionId(expr: Expression | string): FunctionExpression {
  * length("cart");
  * ```
  *
- * @param fieldName The name of the field to calculate the length of.
- * @return A new `Expr` representing the length of the string, array, map, vector, or bytes.
+ * @param fieldName - The name of the field to calculate the length of.
+ * @returns A new `Expression` representing the length of the string, array, map, vector, or bytes.
  */
 export function length(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that calculates the length of a string, array, map, vector, or bytes.
  *
+ * @example
  * ```typescript
  * // Get the length of the 'name' field.
  * length(field("name"));
@@ -7348,8 +10521,8 @@ export function length(fieldName: string): FunctionExpression;
  * length(field("cart"));
  * ```
  *
- * @param expression An expression evaluating to a string, array, map, vector, or bytes, which the length will be calculated for.
- * @return A new `Expr` representing the length of the string, array, map, vector, or bytes.
+ * @param expression - An expression evaluating to a string, array, map, vector, or bytes, which the length will be calculated for.
+ * @returns A new `Expression` representing the length of the string, array, map, vector, or bytes.
  */
 export function length(expression: Expression): FunctionExpression;
 export function length(expr: Expression | string): FunctionExpression {
@@ -7357,30 +10530,30 @@ export function length(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that computes the natural logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the natural logarithm of the 'value' field.
  * ln("value");
  * ```
  *
- * @param fieldName The name of the field to compute the natural logarithm of.
- * @return A new `Expr` representing the natural logarithm of the numeric value.
+ * @param fieldName - The name of the field to compute the natural logarithm of.
+ * @returns A new `Expression` representing the natural logarithm of the numeric value.
  */
 export function ln(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes the natural logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the natural logarithm of the 'value' field.
  * ln(field("value"));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which the natural logarithm will be computed for.
- * @return A new `Expr` representing the natural logarithm of the numeric value.
+ * @param expression - An expression evaluating to a numeric value, which the natural logarithm will be computed for.
+ * @returns A new `Expression` representing the natural logarithm of the numeric value.
  */
 export function ln(expression: Expression): FunctionExpression;
 export function ln(expr: Expression | string): FunctionExpression {
@@ -7388,62 +10561,62 @@ export function ln(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that computes the logarithm of an expression to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with base 10.
  * log(field("value"), 10);
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which the logarithm will be computed for.
- * @param base The base of the logarithm.
- * @return A new {@code Expr} representing the logarithm of the numeric value.
+ * @param expression - An expression evaluating to a numeric value, which the logarithm will be computed for.
+ * @param base - The base of the logarithm.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logarithm of the numeric value.
  */
 export function log(expression: Expression, base: number): FunctionExpression;
 /**
- * @beta
  * Creates an expression that computes the logarithm of an expression to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with the base in the 'base' field.
  * log(field("value"), field("base"));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which the logarithm will be computed for.
- * @param base The base of the logarithm.
- * @return A new {@code Expr} representing the logarithm of the numeric value.
+ * @param expression - An expression evaluating to a numeric value, which the logarithm will be computed for.
+ * @param base - The base of the logarithm.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logarithm of the numeric value.
  */
 export function log(
   expression: Expression,
   base: Expression
 ): FunctionExpression;
 /**
- * @beta
  * Creates an expression that computes the logarithm of a field to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with base 10.
  * log("value", 10);
  * ```
  *
- * @param fieldName The name of the field to compute the logarithm of.
- * @param base The base of the logarithm.
- * @return A new {@code Expr} representing the logarithm of the numeric value.
+ * @param fieldName - The name of the field to compute the logarithm of.
+ * @param base - The base of the logarithm.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logarithm of the numeric value.
  */
 export function log(fieldName: string, base: number): FunctionExpression;
 /**
- * @beta
  * Creates an expression that computes the logarithm of a field to a given base.
  *
+ * @example
  * ```typescript
  * // Compute the logarithm of the 'value' field with the base in the 'base' field.
  * log("value", field("base"));
  * ```
  *
- * @param fieldName The name of the field to compute the logarithm of.
- * @param base The base of the logarithm.
- * @return A new {@code Expr} representing the logarithm of the numeric value.
+ * @param fieldName - The name of the field to compute the logarithm of.
+ * @param base - The base of the logarithm.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the logarithm of the numeric value.
  */
 export function log(fieldName: string, base: Expression): FunctionExpression;
 export function log(
@@ -7457,29 +10630,29 @@ export function log(
 }
 
 /**
- * @beta
  * Creates an expression that computes the square root of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the square root of the 'value' field.
  * sqrt(field("value"));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which the square root will be computed for.
- * @return A new {@code Expr} representing the square root of the numeric value.
+ * @param expression - An expression evaluating to a numeric value, which the square root will be computed for.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the square root of the numeric value.
  */
 export function sqrt(expression: Expression): FunctionExpression;
 /**
- * @beta
  * Creates an expression that computes the square root of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the square root of the 'value' field.
  * sqrt("value");
  * ```
  *
- * @param fieldName The name of the field to compute the square root of.
- * @return A new {@code Expr} representing the square root of the numeric value.
+ * @param fieldName - The name of the field to compute the square root of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the square root of the numeric value.
  */
 export function sqrt(fieldName: string): FunctionExpression;
 export function sqrt(expr: Expression | string): FunctionExpression {
@@ -7487,30 +10660,30 @@ export function sqrt(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that reverses a string.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * strReverse(field("myString"));
+ * stringReverse(field("myString"));
  * ```
  *
- * @param stringExpression An expression evaluating to a string value, which will be reversed.
- * @return A new {@code Expr} representing the reversed string.
+ * @param stringExpression - An expression evaluating to a string value, which will be reversed.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed string.
  */
 export function stringReverse(stringExpression: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that reverses a string value in the specified field.
  *
+ * @example
  * ```typescript
  * // Reverse the value of the 'myString' field.
- * strReverse("myString");
+ * stringReverse("myString");
  * ```
  *
- * @param field The name of the field representing the string to reverse.
- * @return A new {@code Expr} representing the reversed string.
+ * @param field - The name of the field representing the string to reverse.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the reversed string.
  */
 export function stringReverse(field: string): FunctionExpression;
 export function stringReverse(expr: Expression | string): FunctionExpression {
@@ -7518,18 +10691,18 @@ export function stringReverse(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
  *
+ * @example
  * ```typescript
  * // Concatenate the 'firstName' and 'lastName' fields with a space in between.
  * concat(field("firstName"), " ", field("lastName"))
  * ```
  *
- * @param first The first expressions to concatenate.
- * @param second The second literal or expression to concatenate.
- * @param others Additional literals or expressions to concatenate.
- * @return A new `Expression` representing the concatenation.
+ * @param first - The first expressions to concatenate.
+ * @param second - The second literal or expression to concatenate.
+ * @param others - Additional literals or expressions to concatenate.
+ * @returns A new `Expression` representing the concatenation.
  */
 export function concat(
   first: Expression,
@@ -7538,18 +10711,18 @@ export function concat(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that concatenates strings, arrays, or blobs. Types cannot be mixed.
  *
+ * @example
  * ```typescript
  * // Concatenate a field with a literal string.
  * concat(field("firstName"), "Doe")
  * ```
  *
- * @param fieldName The name of a field to concatenate.
- * @param second The second literal or expression to concatenate.
- * @param others Additional literal or expressions to concatenate.
- * @return A new `Expression` representing the concatenation.
+ * @param fieldName - The name of a field to concatenate.
+ * @param second - The second literal or expression to concatenate.
+ * @param others - Additional literal or expressions to concatenate.
+ * @returns A new `Expression` representing the concatenation.
  */
 export function concat(
   fieldName: string,
@@ -7570,20 +10743,18 @@ export function concat(
 }
 
 /**
- * @beta
  * Creates an expression that computes the absolute value of a numeric value.
  *
- * @param expr The expression to compute the absolute value of.
- * @return A new {@code Expr} representing the absolute value of the numeric value.
+ * @param expr - The expression to compute the absolute value of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the absolute value of the numeric value.
  */
 export function abs(expr: Expression): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes the absolute value of a numeric value.
  *
- * @param fieldName The field to compute the absolute value of.
- * @return A new {@code Expr} representing the absolute value of the numeric value.
+ * @param fieldName - The field to compute the absolute value of.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the absolute value of the numeric value.
  */
 export function abs(fieldName: string): FunctionExpression;
 export function abs(expr: Expression | string): FunctionExpression {
@@ -7591,71 +10762,71 @@ export function abs(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that returns the `elseExpr` argument if `ifExpr` is absent, else return
  * the result of the `ifExpr` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns 'default_value'
  * // if the field is absent.
  * ifAbsent(field("optional_field"), constant("default_value"))
  * ```
  *
- * @param ifExpr The expression to check for absence.
- * @param elseExpr The expression that will be evaluated and returned if [ifExpr] is absent.
- * @return A new Expression representing the ifAbsent operation.
+ * @param ifExpr - The expression to check for absence.
+ * @param elseExpr - The expression that will be evaluated and returned if [ifExpr] is absent.
+ * @returns A new Expression representing the ifAbsent operation.
  */
 export function ifAbsent(ifExpr: Expression, elseExpr: Expression): Expression;
 
 /**
- * @beta
  * Creates an expression that returns the `elseValue` argument if `ifExpr` is absent, else
  * return the result of the `ifExpr` argument evaluation.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns 'default_value'
  * // if the field is absent.
  * ifAbsent(field("optional_field"), "default_value")
  * ```
  *
- * @param ifExpr The expression to check for absence.
- * @param elseValue The value that will be returned if `ifExpr` evaluates to an absent value.
- * @return A new [Expression] representing the ifAbsent operation.
+ * @param ifExpr - The expression to check for absence.
+ * @param elseValue - The value that will be returned if `ifExpr` evaluates to an absent value.
+ * @returns A new [Expression] representing the ifAbsent operation.
  */
 export function ifAbsent(ifExpr: Expression, elseValue: unknown): Expression;
 
 /**
- * @beta
  * Creates an expression that returns the `elseExpr` argument if `ifFieldName` is absent, else
  * return the value of the field.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns the value of
  * // 'default_field' if 'optional_field' is absent.
  * ifAbsent("optional_field", field("default_field"))
  * ```
  *
- * @param ifFieldName The field to check for absence.
- * @param elseExpr The expression that will be evaluated and returned if `ifFieldName` is
+ * @param ifFieldName - The field to check for absence.
+ * @param elseExpr - The expression that will be evaluated and returned if `ifFieldName` is
  * absent.
- * @return A new Expression representing the ifAbsent operation.
+ * @returns A new Expression representing the ifAbsent operation.
  */
 export function ifAbsent(ifFieldName: string, elseExpr: Expression): Expression;
 
 /**
- * @beta
  * Creates an expression that returns the `elseValue` argument if `ifFieldName` is absent, else
  * return the value of the field.
  *
+ * @example
  * ```typescript
  * // Returns the value of the optional field 'optional_field', or returns 'default_value'
  * // if the field is absent.
  * ifAbsent("optional_field", "default_value")
  * ```
  *
- * @param ifFieldName The field to check for absence.
- * @param elseValue The value that will be returned if [ifFieldName] is absent.
- * @return A new Expression representing the ifAbsent operation.
+ * @param ifFieldName - The field to check for absence.
+ * @param elseValue - The value that will be returned if [ifFieldName] is absent.
+ * @returns A new Expression representing the ifAbsent operation.
  */
 export function ifAbsent(
   ifFieldName: string | Expression,
@@ -7671,32 +10842,225 @@ export function ifAbsent(
 }
 
 /**
- * @beta
+ * Creates an expression that returns the `elseExpr` argument if `ifExpr` is null, else
+ * return the result of the `ifExpr` argument evaluation.
+ *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * `ifAbsent()` only triggers for missing fields.
+ *
+ * @example
+ * ```typescript
+ * // Returns the user's preferred name, or if that is null, returns their full name.
+ * ifNull(field("preferredName"), field("fullName"))
+ * ```
+ *
+ * @param ifExpr - The expression to check for null.
+ * @param elseExpr - The expression that will be evaluated and returned if `ifExpr` is null.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
+ */
+export function ifNull(
+  ifExpr: Expression,
+  elseExpr: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns the `elseValue` argument if `ifExpr` is null, else
+ * return the result of the `ifExpr` argument evaluation.
+ *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * `ifAbsent()` only triggers for missing fields.
+ *
+ * @example
+ * ```typescript
+ * // Returns the user's display name, or returns "Anonymous" if the field is null.
+ * ifNull(field("displayName"), "Anonymous")
+ * ```
+ *
+ * @param ifExpr - The expression to check for null.
+ * @param elseValue - The value that will be returned if `ifExpr` evaluates to null.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
+ */
+export function ifNull(
+  ifExpr: Expression,
+  elseValue: unknown
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns the `elseExpr` argument if `ifFieldName` field is null, else
+ * return the value of the field.
+ *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * `ifAbsent()` only triggers for missing fields.
+ *
+ * @example
+ * ```typescript
+ * // Returns the user's preferred name, or if that is null, returns their full name.
+ * ifNull("preferredName", field("fullName"))
+ * ```
+ *
+ * @param ifFieldName - The field to check for null.
+ * @param elseExpr - The expression that will be evaluated and returned if `ifFieldName` is null.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the ifNull operation.
+ */
+export function ifNull(
+  ifFieldName: string,
+  elseExpr: Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns the `elseValue` argument if `ifFieldName` field is null, else
+ * return the value of the field.
+ *
+ * @remarks
+ * This function provides a fallback for both absent and explicit null values. In contrast,
+ * `ifAbsent()` only triggers for missing fields.
+ *
+ * @example
+ * ```typescript
+ * // Returns the user's display name, or returns "Anonymous" if the field is null.
+ * ifNull("displayName", "Anonymous")
+ * ```
+ *
+ * @param ifFieldName - The field to check for null.
+ * @param elseValue - The value that will be returned if `ifFieldName` is null.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression}  representing the ifNull operation.
+ */
+export function ifNull(
+  ifFieldName: string,
+  elseValue: unknown
+): FunctionExpression;
+export function ifNull(
+  fieldNameOrExpression: string | Expression,
+  elseValue: Expression | unknown
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).ifNull(elseValue);
+}
+
+/**
+ * Creates an expression that returns the first non-null, non-absent argument, without evaluating
+ * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+ *
+ * @example
+ * ```typescript
+ * // Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
+ * // or the last argument if all previous fields are null.
+ * coalesce(field("preferredName"), field("fullName"), constant("Anonymous"))
+ * ```
+ *
+ * @param expression - The first expression to check for null.
+ * @param replacement - The fallback expression or value if the first one is null.
+ * @param others - Optional additional expressions to check if previous ones are null.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the coalesce operation.
+ */
+export function coalesce(
+  expression: Expression,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
+
+/**
+ * Creates an expression that returns the first non-null, non-absent argument, without evaluating
+ * the rest of the arguments. When all arguments are null or absent, returns the last argument.
+ *
+ * @example
+ * ```typescript
+ * // Returns the value of the first non-null, non-absent field among 'preferredName', 'fullName',
+ * // or the last argument if all previous fields are null.
+ * coalesce("preferredName", field("fullName"), constant("Anonymous"))
+ * ```
+ *
+ * @param fieldName - The name of the first field to check for null.
+ * @param replacement - The fallback expression or value if the first one is null.
+ * @param others - Optional additional expressions to check if previous ones are null.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the coalesce operation.
+ */
+export function coalesce(
+  fieldName: string,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression;
+export function coalesce(
+  fieldNameOrExpression: Expression | string,
+  replacement: Expression | unknown,
+  ...others: Array<Expression | unknown>
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).coalesce(
+    replacement,
+    ...others
+  );
+}
+
+/**
+ * Creates an expression that evaluates to the result corresponding to the first true condition.
+ *
+ * @remarks
+ * This function behaves like a `switch` statement. It accepts an alternating sequence of conditions
+ * and their corresponding results.
+ * If an odd number of arguments is provided, the final argument serves as a default fallback result.
+ * If no default is provided and no condition evaluates to true, it throws an error.
+ *
+ * @example
+ * ```typescript
+ * // Return "Active" if field "status" is 1, "Pending" if field "status" is 2,
+ * // and default to "Unknown" if none of the conditions are true.
+ * switchOn(
+ *   equal(field("status"), 1), constant("Active"),
+ *   equal(field("status"), 2), constant("Pending"),
+ *   constant("Unknown")
+ * )
+ * ```
+ *
+ * @param condition - The first condition to check.
+ * @param result - The result if the first condition is true.
+ * @param others - Additional conditions and results, and optionally a default value.
+ * @returns A new Expression representing the switch operation.
+ */
+export function switchOn(
+  condition: BooleanExpression,
+  result: Expression,
+  ...others: Array<BooleanExpression | Expression>
+): FunctionExpression {
+  return new FunctionExpression(
+    'switch_on',
+    [
+      valueToDefaultExpr(condition),
+      valueToDefaultExpr(result),
+      ...others.map(valueToDefaultExpr)
+    ],
+    'switchOn'
+  );
+}
+
+/**
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join the elements of the 'tags' field with a comma and space.
  * join("tags", ", ")
  * ```
  *
- * @param arrayFieldName The name of the field containing the array.
- * @param delimiter The string to use as a delimiter.
- * @return A new Expression representing the join operation.
+ * @param arrayFieldName - The name of the field containing the array.
+ * @param delimiter - The string to use as a delimiter.
+ * @returns A new Expression representing the join operation.
  */
 export function join(arrayFieldName: string, delimiter: string): Expression;
 
 /**
- * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join an array of string using the delimiter from the 'separator' field.
  * join(array(['foo', 'bar']), field("separator"))
  * ```
  *
- * @param arrayExpression An expression that evaluates to an array.
- * @param delimiterExpression The expression that evaluates to the delimiter string.
- * @return A new Expression representing the join operation.
+ * @param arrayExpression - An expression that evaluates to an array.
+ * @param delimiterExpression - The expression that evaluates to the delimiter string.
+ * @returns A new Expression representing the join operation.
  */
 export function join(
   arrayExpression: Expression,
@@ -7704,17 +11068,17 @@ export function join(
 ): Expression;
 
 /**
- * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join the elements of the 'tags' field with a comma and space.
  * join(field("tags"), ", ")
  * ```
  *
- * @param arrayExpression An expression that evaluates to an array.
- * @param delimiter The string to use as a delimiter.
- * @return A new Expression representing the join operation.
+ * @param arrayExpression - An expression that evaluates to an array.
+ * @param delimiter - The string to use as a delimiter.
+ * @returns A new Expression representing the join operation.
  */
 export function join(
   arrayExpression: Expression,
@@ -7722,17 +11086,17 @@ export function join(
 ): Expression;
 
 /**
- * @beta
  * Creates an expression that joins the elements of an array into a string.
  *
+ * @example
  * ```typescript
  * // Join the elements of the 'tags' field with the delimiter from the 'separator' field.
  * join('tags', field("separator"))
  * ```
  *
- * @param arrayFieldName The name of the field containing the array.
- * @param delimiterExpression The expression that evaluates to the delimiter string.
- * @return A new Expression representing the join operation.
+ * @param arrayFieldName - The name of the field containing the array.
+ * @param delimiterExpression - The expression that evaluates to the delimiter string.
+ * @returns A new Expression representing the join operation.
  */
 export function join(
   arrayFieldName: string,
@@ -7748,30 +11112,30 @@ export function join(
 }
 
 /**
- * @beta
  * Creates an expression that computes the base-10 logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the base-10 logarithm of the 'value' field.
  * log10("value");
  * ```
  *
- * @param fieldName The name of the field to compute the base-10 logarithm of.
- * @return A new `Expr` representing the base-10 logarithm of the numeric value.
+ * @param fieldName - The name of the field to compute the base-10 logarithm of.
+ * @returns A new `Expression` representing the base-10 logarithm of the numeric value.
  */
 export function log10(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes the base-10 logarithm of a numeric value.
  *
+ * @example
  * ```typescript
  * // Compute the base-10 logarithm of the 'value' field.
  * log10(field("value"));
  * ```
  *
- * @param expression An expression evaluating to a numeric value, which the base-10 logarithm will be computed for.
- * @return A new `Expr` representing the base-10 logarithm of the numeric value.
+ * @param expression - An expression evaluating to a numeric value, which the base-10 logarithm will be computed for.
+ * @returns A new `Expression` representing the base-10 logarithm of the numeric value.
  */
 export function log10(expression: Expression): FunctionExpression;
 export function log10(expr: Expression | string): FunctionExpression {
@@ -7779,30 +11143,30 @@ export function log10(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that computes the sum of the elements in an array.
  *
+ * @example
  * ```typescript
  * // Compute the sum of the elements in the 'scores' field.
  * arraySum("scores");
  * ```
  *
- * @param fieldName The name of the field to compute the sum of.
- * @return A new `Expr` representing the sum of the elements in the array.
+ * @param fieldName - The name of the field to compute the sum of.
+ * @returns A new `Expression` representing the sum of the elements in the array.
  */
 export function arraySum(fieldName: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that computes the sum of the elements in an array.
  *
+ * @example
  * ```typescript
  * // Compute the sum of the elements in the 'scores' field.
  * arraySum(field("scores"));
  * ```
  *
- * @param expression An expression evaluating to a numeric array, which the sum will be computed for.
- * @return A new `Expr` representing the sum of the elements in the array.
+ * @param expression - An expression evaluating to a numeric array, which the sum will be computed for.
+ * @returns A new `Expression` representing the sum of the elements in the array.
  */
 export function arraySum(expression: Expression): FunctionExpression;
 export function arraySum(expr: Expression | string): FunctionExpression {
@@ -7810,7 +11174,6 @@ export function arraySum(expr: Expression | string): FunctionExpression {
 }
 
 /**
- * @beta
  * Creates an expression that splits the value of a field on the provided delimiter.
  *
  * @example
@@ -7819,27 +11182,26 @@ export function arraySum(expr: Expression | string): FunctionExpression {
  * split('scoresCsv', ',')
  * ```
  *
- * @param fieldName Split the value in this field.
- * @param delimiter Split on this delimiter.
+ * @param fieldName - Split the value in this field.
+ * @param delimiter - Split on this delimiter.
  *
- * @return A new {@code Expression} representing the split function.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
  */
 export function split(fieldName: string, delimiter: string): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that splits the value of a field on the provided delimiter.
  *
  * @example
  * ```typescript
  * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
- * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * split('scores', conditional(field('format').equal('csv'), constant(','), constant(':')))
  * ```
  *
- * @param fieldName Split the value in this field.
- * @param delimiter Split on this delimiter returned by evaluating this expression.
+ * @param fieldName - Split the value in this field.
+ * @param delimiter - Split on this delimiter returned by evaluating this expression.
  *
- * @return A new {@code Expression} representing the split function.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
  */
 export function split(
   fieldName: string,
@@ -7847,7 +11209,6 @@ export function split(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that splits a string into an array of substrings based on the provided delimiter.
  *
  * @example
@@ -7856,10 +11217,10 @@ export function split(
  * split(field('scoresCsv'), ',')
  * ```
  *
- * @param expression Split the result of this expression.
- * @param delimiter Split on this delimiter.
+ * @param expression - Split the result of this expression.
+ * @param delimiter - Split on this delimiter.
  *
- * @return A new {@code Expression} representing the split function.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
  */
 export function split(
   expression: Expression,
@@ -7867,19 +11228,18 @@ export function split(
 ): FunctionExpression;
 
 /**
- * @beta
  * Creates an expression that splits a string into an array of substrings based on the provided delimiter.
  *
  * @example
  * ```typescript
  * // Split the 'scores' field on delimiter ',' or ':' depending on the stored format
- * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':'))
+ * split(field('scores'), conditional(field('format').equal('csv'), constant(','), constant(':')))
  * ```
  *
- * @param expression Split the result of this expression.
- * @param delimiter Split on this delimiter returned by evaluating this expression.
+ * @param expression - Split the result of this expression.
+ * @param delimiter - Split on this delimiter returned by evaluating this expression.
  *
- * @return A new {@code Expression} representing the split function.
+ * @returns A new {@link @firebase/firestore/pipelines#Expression} representing the split function.
  */
 export function split(
   expression: Expression,
@@ -7900,14 +11260,14 @@ export function split(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the beginning of the day.
- * field('createdAt').timestampTruncate('day')
+ * timestampTruncate('createdAt', 'day')
  * ```
  *
- * @param fieldName Truncate the timestamp value contained in this field.
- * @param granularity The granularity to truncate to.
- * @param timezone The timezone to use for truncation. Valid values are from
+ * @param fieldName - Truncate the timestamp value contained in this field.
+ * @param granularity - The granularity to truncate to.
+ * @param timezone - The timezone to use for truncation. Valid values are from
  * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
- * @return A new {Expression} representing the truncated timestamp.
+ * @returns A new `Expression` representing the truncated timestamp.
  */
 export function timestampTruncate(
   fieldName: string,
@@ -7921,14 +11281,14 @@ export function timestampTruncate(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
- * field('createdAt').timestampTruncate(field('granularity'))
+ * timestampTruncate('createdAt', field('granularity'))
  * ```
  *
- * @param fieldName Truncate the timestamp value contained in this field.
- * @param granularity The granularity to truncate to.
- * @param timezone The timezone to use for truncation. Valid values are from
+ * @param fieldName - Truncate the timestamp value contained in this field.
+ * @param granularity - The granularity to truncate to.
+ * @param timezone - The timezone to use for truncation. Valid values are from
  * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
- * @return A new {Expression} representing the truncated timestamp.
+ * @returns A new `Expression` representing the truncated timestamp.
  */
 export function timestampTruncate(
   fieldName: string,
@@ -7942,14 +11302,14 @@ export function timestampTruncate(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the beginning of the day.
- * field('createdAt').timestampTruncate('day')
+ * timestampTruncate(field('createdAt'), 'day')
  * ```
  *
- * @param timestampExpression Truncate the timestamp value that is returned by this expression.
- * @param granularity The granularity to truncate to.
- * @param timezone The timezone to use for truncation. Valid values are from
+ * @param timestampExpression - Truncate the timestamp value that is returned by this expression.
+ * @param granularity - The granularity to truncate to.
+ * @param timezone - The timezone to use for truncation. Valid values are from
  * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
- * @return A new {Expression} representing the truncated timestamp.
+ * @returns A new `Expression` representing the truncated timestamp.
  */
 export function timestampTruncate(
   timestampExpression: Expression,
@@ -7963,14 +11323,14 @@ export function timestampTruncate(
  * @example
  * ```typescript
  * // Truncate the 'createdAt' timestamp to the granularity specified in the field 'granularity'.
- * field('createdAt').timestampTruncate(field('granularity'))
+ * timestampTruncate(field('createdAt'), field('granularity'))
  * ```
  *
- * @param timestampExpression Truncate the timestamp value that is returned by this expression.
- * @param granularity The granularity to truncate to.
- * @param timezone The timezone to use for truncation. Valid values are from
+ * @param timestampExpression - Truncate the timestamp value that is returned by this expression.
+ * @param granularity - The granularity to truncate to.
+ * @param timezone - The timezone to use for truncation. Valid values are from
  * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1".
- * @return A new {Expression} representing the truncated timestamp.
+ * @returns A new `Expression` representing the truncated timestamp.
  */
 export function timestampTruncate(
   timestampExpression: Expression,
@@ -7983,7 +11343,7 @@ export function timestampTruncate(
   timezone?: string | Expression
 ): FunctionExpression {
   const internalGranularity = isString(granularity)
-    ? valueToDefaultExpr(granularity.toLowerCase())
+    ? valueToDefaultExpr(granularity)
     : granularity;
   return fieldOrExpression(fieldNameOrExpression).timestampTruncate(
     internalGranularity,
@@ -7992,68 +11352,599 @@ export function timestampTruncate(
 }
 
 /**
- * @beta
- * Creates an expression that returns the data type of the data in the specified field.
+ * @public
+ * Creates an expression that retrieves the value of a variable bound via `define()`.
  *
  * @example
  * ```typescript
- * // Get the data type of the value in field 'title'
- * type('title')
+ * db.pipeline().collection("products")
+ *   .define(
+ *     field("price").multiply(0.9).as("discountedPrice"),
+ *     field("stock").add(10).as("newStock")
+ *   )
+ *   .where(variable("discountedPrice").lessThan(100))
+ *   .select(field("name"), variable("newStock"));
  * ```
  *
- * @return A new {Expression} representing the data type.
+ * @param name - The name of the variable to retrieve.
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the variable's value.
  */
-export function type(fieldName: string): FunctionExpression;
+export function variable(name: string): Expression {
+  return new VariableExpression(name);
+}
+
+/**
+ * @internal
+ *
+ * Expression representing a variable reference. This evaluates to the value of a variable
+ * defined in a pipeline.
+ */
+export class VariableExpression extends Expression {
+  readonly _methodName?: string | undefined;
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly name: string) {
+    super();
+  }
+
+  expressionType: ExpressionType = 'Variable';
+
+  /**
+   * @internal
+   */
+  _toProto(_: JsonProtoSerializer): ProtoValue {
+    return {
+      variableReferenceValue: this.name
+    };
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(_: ParseContext): void {}
+}
+
+/**
+ * @public
+ * Creates an expression that represents the current document being processed.
+ *
+ * @example
+ * ```typescript
+ * // Define the current document as a variable "doc"
+ * firestore.pipeline().collection("books")
+ *     .define(currentDocument().as("doc"))
+ *     // Access a field from the defined document variable
+ *     .select(variable("doc").mapGet("title"));
+ * ```
+ *
+ * @returns An {@link @firebase/firestore/pipelines#Expression} representing the current document.
+ */
+export function currentDocument(): Expression {
+  return new FunctionExpression('current_document', []);
+}
+
+/**
+ * @internal
+ */
+export function pipelineValue(pipeline: Pipeline): PipelineValueExpression {
+  return new PipelineValueExpression(pipeline);
+}
+
+/**
+ * @internal
+ */
+class PipelineValueExpression extends Expression {
+  readonly _methodName?: string | undefined;
+  expressionType: ExpressionType = 'PipelineValue';
+
+  /**
+   * @hideconstructor
+   */
+  constructor(private readonly pipeline: Pipeline) {
+    super();
+  }
+
+  /**
+   * @internal
+   */
+  _toProto(jsonProtoSerializer: JsonProtoSerializer): ProtoValue {
+    return toPipelineValue(this.pipeline._toProto(jsonProtoSerializer));
+  }
+
+  /**
+   * @internal
+   */
+  _readUserData(context: ParseContext): void {
+    this.pipeline._readUserData(context);
+  }
+}
+
+/*
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between 'endTime' and 'startTime' fields.
+ * timestampDiff('endTime', 'startTime', 'day')
+ * ```
+ *
+ * @param endFieldName - The name of the field representing the ending timestamp.
+ * @param startFieldName - The name of the field representing the starting timestamp.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endFieldName: string,
+  startFieldName: string,
+  unit: TimeUnit | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between 'endTime' field and a starting timestamp expression.
+ * timestampDiff('endTime', field('startTime'), 'day')
+ * ```
+ *
+ * @param endFieldName - The name of the field representing the ending timestamp.
+ * @param startExpression - The starting timestamp for the difference calculation.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endFieldName: string,
+  startExpression: Expression,
+  unit: TimeUnit | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between an ending timestamp expression and 'startTime' field.
+ * timestampDiff(field('endTime'), 'startTime', 'day')
+ * ```
+ *
+ * @param endExpression - The ending timestamp for the difference calculation.
+ * @param startFieldName - The name of the field representing the starting timestamp.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endExpression: Expression,
+  startFieldName: string,
+  unit: TimeUnit | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that calculates the difference between two timestamps.
+ *
+ * @example
+ * ```typescript
+ * // Calculate the difference in days between two timestamp expressions.
+ * timestampDiff(field('endTime'), field('startTime'), 'day')
+ * ```
+ *
+ * @param endExpression - The ending timestamp for the difference calculation.
+ * @param startExpression - The starting timestamp for the difference calculation.
+ * @param unit - The unit of time for the difference (e.g., "day", "hour").
+ * @returns A new `Expression` representing the difference as an integer.
+ */
+export function timestampDiff(
+  endExpression: Expression,
+  startExpression: Expression,
+  unit: TimeUnit | Expression
+): FunctionExpression;
+export function timestampDiff(
+  endFieldNameOrExpression: string | Expression,
+  startFieldNameOrExpression: string | Expression,
+  unit: TimeUnit | Expression
+): FunctionExpression {
+  const normalizedEnd = fieldOrExpression(endFieldNameOrExpression);
+  const normalizedStart = fieldOrExpression(startFieldNameOrExpression);
+  const normalizedUnit = valueToDefaultExpr(unit);
+  return normalizedEnd.timestampDiff(normalizedStart, normalizedUnit);
+}
+
+/**
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the year from the 'createdAt' timestamp.
+ * timestampExtract('createdAt', 'year')
+ * ```
+ *
+ * @param fieldName - The name of the field representing the timestamp.
+ * @param part - The part to extract from the timestamp (e.g., "year", "month", "day").
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  fieldName: string,
+  part: TimePart,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the part specified by the field 'part' from 'createdAt'.
+ * timestampExtract('createdAt', field('part'))
+ * ```
+ *
+ * @param fieldName - The name of the field representing the timestamp.
+ * @param part - The expression evaluating to the part to extract.
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  fieldName: string,
+  part: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the year from the timestamp returned by the expression.
+ * timestampExtract(field('createdAt'), 'year')
+ * ```
+ *
+ * @param timestampExpression - The expression evaluating to the timestamp.
+ * @param part - The part to extract from the timestamp (e.g., "year", "month", "day").
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  timestampExpression: Expression,
+  part: TimePart,
+  timezone?: string | Expression
+): FunctionExpression;
+
+/**
+ * Creates an expression that extracts a specified part from a timestamp.
+ *
+ * @example
+ * ```typescript
+ * // Extract the part specified by the field 'part' from the timestamp.
+ * timestampExtract(field('createdAt'), field('part'))
+ * ```
+ *
+ * @param timestampExpression - The expression evaluating to the timestamp.
+ * @param part - The expression evaluating to the part to extract.
+ * @param timezone - The timezone to use for extraction. Valid values are from
+ * the TZ database (e.g., "America/Los_Angeles") or in the format "Etc/GMT-1."
+ * @returns A new `Expression` representing the extracted part as an integer.
+ */
+export function timestampExtract(
+  timestampExpression: Expression,
+  part: Expression,
+  timezone?: string | Expression
+): FunctionExpression;
+export function timestampExtract(
+  fieldNameOrExpression: string | Expression,
+  part: TimePart | Expression,
+  timezone?: string | Expression
+): FunctionExpression {
+  return fieldOrExpression(fieldNameOrExpression).timestampExtract(
+    valueToDefaultExpr(part),
+    timezone
+  );
+}
+
+// TODO(search) enable with backend support
+// /**
+//  * Perform a full-text search on the specified field.
+//  *
+//  * @remarks This Expression can only be used within a `search` stage.
+//  *
+//  * @example
+//  * ```typescript
+//  * db.pipeline().collection('restaurants').search({
+//  *   query: matches('menu', 'waffles')
+//  * })
+//  * ```
+//  *
+//  * @param searchField Search the specified field.
+//  * @param rquery Define the search query using the search domain-specific language (DSL).
+//  */
+// export function matches(
+//   searchField: string | Field,
+//   rquery: string | Expression
+// ): BooleanExpression {
+//   return toField(searchField).matches(rquery);
+// }
+
 /**
  * @beta
- * Creates an expression that returns the data type of an expression's result.
+ * Perform a full-text search on all indexed search fields in the document.
+ *
+ * @remarks This Expression can only be used within a `search` stage.
  *
  * @example
  * ```typescript
- * // Get the data type of a conditional expression
- * type(conditional(exists('foo'), constant(1), constant(true)))
+ * db.pipeline().collection('restaurants').search({
+ *   query: documentMatches('waffles OR pancakes')
+ * })
  * ```
  *
- * @return A new {Expression} representing the data type.
+ * @param rquery Define the search query using the search domain-specific language (DSL).
  */
-export function type(expression: Expression): FunctionExpression;
-export function type(
-  fieldNameOrExpression: string | Expression
-): FunctionExpression {
-  return fieldOrExpression(fieldNameOrExpression).type();
+export function documentMatches(
+  rquery: string | Expression
+): BooleanExpression {
+  return new FunctionExpression(
+    'document_matches',
+    [valueToDefaultExpr(rquery)],
+    'documentMatches'
+  ).asBoolean();
 }
+
+/**
+ * @beta
+ *
+ * Evaluates to the search score that reflects the topicality of the document
+ * to all of the text predicates (for example: `documentMatches`)
+ * in the search query. If `SearchOptions.query` is not set or does not contain
+ * any text predicates, then this topicality score will always be `0`.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   sort: score().descending()
+ * })
+ * ```
+ *
+ * @remarks This Expression can only be used within a `search` stage.
+ */
+export function score(): Expression {
+  return new FunctionExpression('score', [], 'score');
+}
+
+// TODO(search) enable with backend support
+// /**
+//  * Options defining how a snippet expression is evaluated.
+//  */
+// export interface SnippetOptions {
+//   /**
+//    * Define the search query using the search domain-specific language (DSL).
+//    */
+//   rquery: string;
+//
+//   /**
+//    * The maximum width of the string estimated for a variable width font. The
+//    * unit is tenths of ems. The default is `160`.
+//    */
+//   maxSnippetWidth?: number;
+//
+//   /**
+//    * The maximum number of non-contiguous pieces of text in the returned snippet.
+//    * The default is `1`.
+//    */
+//   maxSnippets?: number;
+//
+//   /**
+//    * The string to join the pieces. The default value is '\n'
+//    */
+//   separator?: string;
+// }
+//
+// /**
+//  * Evaluates to an HTML-formatted text snippet that highlights terms matching
+//  * the search query in `<b>bold</b>`.
+//  *
+//  * @remarks This Expression can only be used within a `search` stage.
+//  *
+//  * @example
+//  * ```typescript
+//  * db.pipeline().collection('restaurants').search({
+//  *   query: 'waffles',
+//  *   addFields: { snippet: snippet('menu', 'waffles') }
+//  * })
+//  * ```
+//  *
+//  * @param searchField Search the specified field for matching terms.
+//  * @param rquery Define the search query using the search domain-specific language (DSL).
+//  */
+// export function snippet(
+//   searchField: string | Field,
+//   rquery: string
+// ): Expression;
+//
+// /**
+//  * Evaluates to an HTML-formatted text snippet that highlights terms matching
+//  * the search query in `<b>bold</b>`.
+//  *
+//  * @remarks This Expression can only be used within a `search` stage.
+//  *
+//  * @param searchField Search the specified field for matching terms.
+//  * @param options Define the search query using the search domain-specific language (DSL).
+//  */
+// export function snippet(
+//   searchField: string | Field,
+//   options: SnippetOptions
+// ): Expression;
+// export function snippet(
+//   field: string | Field,
+//   queryOrOptions: string | SnippetOptions
+// ): Expression {
+//   return toField(field).snippet(
+//     isString(queryOrOptions) ? { rquery: queryOrOptions } : queryOrOptions
+//   );
+// }
+
+/**
+ * @beta
+ * Evaluates to the distance in meters between the location in the specified
+ * field and the query location.
+ *
+ * @remarks This Expression can only be used within a `search` stage.
+ *
+ * @example
+ * ```typescript
+ * db.pipeline().collection('restaurants').search({
+ *   query: 'waffles',
+ *   sort: geoDistance('location', new GeoPoint(37.0, -122.0)).ascending()
+ * })
+ * ```
+ *
+ * @param fieldName - Specifies the field in the document which contains
+ * the first GeoPoint for distance computation.
+ * @param location - Compute distance to this GeoPoint.
+ */
+export function geoDistance(
+  fieldName: string | Field,
+  location: GeoPoint | Expression
+): Expression {
+  return toField(fieldName).geoDistance(location);
+}
+
+// TODO(search) enable with backend support
+// /**
+//  * Evaluates if the value in the field specified by `fieldName` is between
+//  * the evaluated values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between('tireWidth', constant(2.2), constant(2.4))
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual('tireWidth', constant(2.2)), lessThanOrEqual('tireWidth', constant(2.4)))
+//  * ```
+//  *
+//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   fieldName: string,
+//   lowerBound: Expression,
+//   upperBound: Expression
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the value in the field specified by `fieldName` is between
+//  * the values for `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between('tireWidth', 2.2, 2.4)
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual('tireWidth', 2.2), lessThanOrEqual('tireWidth', 2.4))
+//  * ```
+//  *
+//  * @param fieldName - Evaluate if the value stored in this field is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   fieldName: string,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the result of the specified `expression` is between
+//  * the results of `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between(field('tireWidth'), constant(2.2), constant(2.4))
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual(field('tireWidth'), constant(2.2)), lessThanOrEqual(field('tireWidth'), constant(2.4)))
+//  * ```
+//  *
+//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   expression: Expression,
+//   lowerBound: Expression,
+//   upperBound: Expression
+// ): BooleanExpression;
+//
+// /**
+//  * Evaluates if the result of the specified `expression` is between
+//  * the `lowerBound` (inclusive) and `upperBound` (inclusive).
+//  *
+//  * @example
+//  * ```
+//  * // Evaluate if the 'tireWidth' is between 2.2 and 2.4
+//  * between(field('tireWidth'), 2.2, 2.4)
+//  *
+//  * // This is functionally equivalent to
+//  * and(greaterThanOrEqual(field('tireWidth'), 2.2), lessThanOrEqual(field('tireWidth'), 2.4))
+//  * ```
+//  *
+//  * @param expression - Evaluate if the result of this expression is between the lower and upper bounds.
+//  * @param lowerBound - Lower bound (inclusive) of the range.
+//  * @param upperBound - Upper bound (inclusive) of the range.
+//  */
+// export function between(
+//   expression: Expression,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression;
+//
+// export function between(
+//   expression: Expression | string,
+//   lowerBound: unknown,
+//   upperBound: unknown
+// ): BooleanExpression {
+//   return fieldOrExpression(expression).between(lowerBound, upperBound);
+// }
 
 // TODO(new-expression): Add new top-level expression function definitions above this line
 
 /**
- * @beta
  *
- * Creates an {@link Ordering} that sorts documents in ascending order based on an expression.
+ * Creates an {@link @firebase/firestore/pipelines#Ordering} that sorts documents in ascending order based on an expression.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in lowercase in ascending order
  * firestore.pipeline().collection("users")
  *   .sort(ascending(field("name").toLower()));
  * ```
  *
- * @param expr The expression to create an ascending ordering for.
- * @return A new `Ordering` for ascending sorting.
+ * @param expr - The expression to create an ascending ordering for.
+ * @returns A new `Ordering` for ascending sorting.
  */
 export function ascending(expr: Expression): Ordering;
 
 /**
- * @beta
  *
- * Creates an {@link Ordering} that sorts documents in ascending order based on a field.
+ * Creates an {@link @firebase/firestore/pipelines#Ordering} that sorts documents in ascending order based on a field.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in ascending order
  * firestore.pipeline().collection("users")
  *   .sort(ascending("name"));
  * ```
  *
- * @param fieldName The field to create an ascending ordering for.
- * @return A new `Ordering` for ascending sorting.
+ * @param fieldName - The field to create an ascending ordering for.
+ * @returns A new `Ordering` for ascending sorting.
  */
 export function ascending(fieldName: string): Ordering;
 export function ascending(field: Expression | string): Ordering {
@@ -8061,34 +11952,34 @@ export function ascending(field: Expression | string): Ordering {
 }
 
 /**
- * @beta
  *
- * Creates an {@link Ordering} that sorts documents in descending order based on an expression.
+ * Creates an {@link @firebase/firestore/pipelines#Ordering} that sorts documents in descending order based on an expression.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in lowercase in descending order
  * firestore.pipeline().collection("users")
  *   .sort(descending(field("name").toLower()));
  * ```
  *
- * @param expr The expression to create a descending ordering for.
- * @return A new `Ordering` for descending sorting.
+ * @param expr - The expression to create a descending ordering for.
+ * @returns A new `Ordering` for descending sorting.
  */
 export function descending(expr: Expression): Ordering;
 
 /**
- * @beta
  *
- * Creates an {@link Ordering} that sorts documents in descending order based on a field.
+ * Creates an {@link @firebase/firestore/pipelines#Ordering} that sorts documents in descending order based on a field.
  *
+ * @example
  * ```typescript
  * // Sort documents by the 'name' field in descending order
  * firestore.pipeline().collection("users")
  *   .sort(descending("name"));
  * ```
  *
- * @param fieldName The field to create a descending ordering for.
- * @return A new `Ordering` for descending sorting.
+ * @param fieldName - The field to create a descending ordering for.
+ * @returns A new `Ordering` for descending sorting.
  */
 export function descending(fieldName: string): Ordering;
 export function descending(field: Expression | string): Ordering {
@@ -8096,7 +11987,6 @@ export function descending(field: Expression | string): Ordering {
 }
 
 /**
- * @beta
  *
  * Represents an ordering criterion for sorting documents in a Firestore pipeline.
  *
@@ -8143,8 +12033,10 @@ export function isSelectable(val: unknown): val is Selectable {
 }
 
 export function isOrdering(val: unknown): val is Ordering {
-  const candidate = val as Ordering;
+  const candidate = val as Ordering | undefined;
   return (
+    candidate !== undefined &&
+    candidate !== null &&
     isExpr(candidate.expr) &&
     (candidate.direction === 'ascending' ||
       candidate.direction === 'descending')
@@ -8165,6 +12057,10 @@ export function isExpr(val: unknown): val is Expression {
 
 export function isBooleanExpr(val: unknown): val is BooleanExpression {
   return val instanceof BooleanExpression;
+}
+
+export function isAliasedExpr(val: unknown): val is AliasedExpression {
+  return val instanceof AliasedExpression;
 }
 
 export function isField(val: unknown): val is Field {

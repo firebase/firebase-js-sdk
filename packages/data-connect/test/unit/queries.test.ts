@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseAuthTokenData } from '@firebase/auth-interop-types';
+import { initializeApp } from '@firebase/app';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthTokenData
+} from '@firebase/auth-interop-types';
 import { expect } from 'chai';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -27,8 +31,8 @@ import {
   AuthTokenListener,
   AuthTokenProvider
 } from '../../src/core/FirebaseAuthProvider';
-import { initializeFetch } from '../../src/network/fetch';
-import { RESTTransport } from '../../src/network/transport/rest';
+import { DataConnectTransportManager } from '../../src/network/manager';
+import { initializeFetch, RESTTransport } from '../../src/network/rest';
 import { initDatabase } from '../util';
 chai.use(chaiAsPromised);
 chai.use(sinonChai);
@@ -40,6 +44,9 @@ const options: DataConnectOptions = {
 };
 const INITIAL_TOKEN = 'initial token';
 class FakeAuthProvider implements AuthTokenProvider {
+  getAuth(): FirebaseAuthInternal {
+    throw new Error('Method not implemented.');
+  }
   private token: string | null = INITIAL_TOKEN;
   addTokenChangeListener(listener: AuthTokenListener): void {}
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData | null> {
@@ -82,8 +89,20 @@ function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
   });
 }
 describe('Queries', () => {
+  beforeEach(() => {
+    initializeApp({
+      projectId: 'p'
+    });
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
+      .returns();
+  });
   afterEach(() => {
     fakeFetchImpl.resetHistory();
+    sinon.restore();
   });
   it('should call onComplete callback after subscribe is called', async () => {
     const taskListQuery = getPostsRef();

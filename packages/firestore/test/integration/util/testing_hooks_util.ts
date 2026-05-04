@@ -17,7 +17,9 @@
 
 import {
   DocumentReference,
+  // @ts-ignore internal API usage
   _TestingHooks as TestingHooks,
+  // @ts-ignore internal API usage
   _TestingHooksExistenceFilterMismatchInfo as ExistenceFilterMismatchInfoInternal
 } from './firebase_export';
 

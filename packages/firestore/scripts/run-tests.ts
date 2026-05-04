@@ -38,6 +38,21 @@ const argv = yargs
     },
     databaseId: {
       type: 'string'
+    },
+    firestoreEdition: {
+      type: 'string'
+    },
+    grep: {
+      type: 'string',
+      description: 'Filter tests by name (regex)'
+    },
+    targetBackend: {
+      type: 'string',
+      description: 'The backend to test against (emulator, prod, nightly)'
+    },
+    debug: {
+      type: 'boolean',
+      description: 'Run tests in debug mode (node --inspect-brk)'
     }
   })
   .parseSync();
@@ -50,6 +65,11 @@ const babel = resolve(__dirname, '../babel-register.js');
 process.env.NO_TS_NODE = 'true';
 process.env.TEST_PLATFORM = argv.platform;
 
+if (argv.targetBackend) {
+  process.env.FIRESTORE_TARGET_BACKEND = argv.targetBackend;
+}
+
+let executable = nyc;
 let args = [
   '--reporter',
   'lcovonly',
@@ -61,6 +81,22 @@ let args = [
   '--config',
   '../../config/mocharc.node.js'
 ];
+
+if (argv.debug) {
+  // Bypassing nyc for debug mode
+  executable = 'node';
+  args = [
+    '--inspect-brk',
+    mocha,
+    '--require',
+    babel,
+    '--require',
+    argv.main,
+    '--config',
+    '../../config/mocharc.node.js',
+    '--no-timeouts'
+  ];
+}
 
 if (argv.emulator) {
   process.env.FIRESTORE_TARGET_BACKEND = 'emulator';
@@ -75,12 +111,39 @@ if (argv.databaseId) {
   process.env.FIRESTORE_TARGET_DB_ID = argv.databaseId;
 }
 
+if (argv.firestoreEdition) {
+  if (argv.firestoreEdition.toLowerCase() === 'enterprise') {
+    process.env.RUN_ENTERPRISE_TESTS = 'true';
+  }
+}
+
+if (argv.grep) {
+  args.push('--grep', argv.grep);
+}
+
 args = args.concat(argv._ as string[]);
 
-const childProcess = spawn(nyc, args, {
+const spawnPromise = spawn(executable, args, {
   stdio: 'inherit',
   cwd: process.cwd()
-}).childProcess;
+});
+
+const childProcess = spawnPromise.childProcess;
+
+spawnPromise.catch(error => {
+  // When a test fails, there will be a non-zero error code. Simply exit this process,
+  // and don't print a stack trace.
+  // Note: error.code is the exit code of the spawned process.
+  if (typeof error.code === 'number' && error.code > 0) {
+    // If it's a standard test failure (mocha exit code), we don't need a runner stack trace.
+    process.exit(error.code);
+  } else {
+    // For other errors (spawn failed, runner crash, etc.), print the stack trace.
+    console.error('Test runner failed to execute:');
+    console.error(error);
+    process.exit(1);
+  }
+});
 
 process.once('exit', () => childProcess.kill());
 process.once('SIGINT', () => childProcess.kill('SIGINT'));

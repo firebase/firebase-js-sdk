@@ -43,7 +43,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { USE_EMULATOR } from '../util/settings';
 
 apiDescribe('Count queries', persistence => {
   it('can run count query getCountFromServer', () => {
@@ -162,6 +161,7 @@ apiDescribe('Count queries', persistence => {
         );
         // TODO(b/316359394) Remove the special logic for non-default databases
         // once cl/582465034 is rolled out to production.
+        // @ts-ignore internal API usage
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getCountFromServer(query_)
@@ -374,6 +374,7 @@ apiDescribe('Aggregation queries', persistence => {
         );
         // TODO(b/316359394) Remove the special logic for non-default databases
         // once cl/582465034 is rolled out to production.
+        // @ts-ignore internal API usage
         if (coll.firestore._databaseId.isDefaultDatabase) {
           await expect(
             getAggregateFromServer(query_, {
@@ -498,13 +499,9 @@ apiDescribe('Aggregation queries - sum / average', persistence => {
           countZ: count()
         });
 
-        if (USE_EMULATOR) {
-          await expect(promise).to.eventually.be.rejected;
-        } else {
-          await expect(promise).to.eventually.be.rejectedWith(
-            /maximum number of aggregations/
-          );
-        }
+        await expect(promise).to.eventually.be.rejectedWith(
+          /maximum number of aggregations/
+        );
       });
     }
   );

@@ -26,7 +26,7 @@ export let testingHooksSpi: TestingHooksSpi | null = null;
 
 /**
  * Sets the value of the `testingHooksSpi` object.
- * @param instance the instance to set.
+ * @param instance - the instance to set.
  */
 export function setTestingHooksSpi(instance: TestingHooksSpi): void {
   if (testingHooksSpi) {

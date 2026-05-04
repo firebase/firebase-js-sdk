@@ -24,7 +24,6 @@ import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
 import { describe } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise'; // Added import
-
 import {
   _AutoId,
   clearIndexedDbPersistence,
@@ -54,7 +53,12 @@ import {
   terminate,
   Unsubscribe,
   WriteBatch,
-  writeBatch
+   writeBatch,
+   Query,
+   getDocsFromServer,
+   getDocsFromCache,
+   // @ts-ignore internal API usage
+   _AutoId
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,

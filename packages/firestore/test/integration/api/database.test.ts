@@ -1901,6 +1901,7 @@ apiDescribe('Database', persistence => {
         const firestore2 = newTestFirestore(
           newTestApp(options.projectId!, name),
           DEFAULT_SETTINGS,
+          // @ts-ignore internal API usage
           firestore._databaseId.database
         );
         await enableIndexedDbPersistence(firestore2);
@@ -1946,6 +1947,7 @@ apiDescribe('Database', persistence => {
         const firestore2 = newTestFirestore(
           newTestApp(options.projectId!, name),
           undefined,
+          // @ts-ignore internal API usage
           docRef.firestore._databaseId.database
         );
         await enableIndexedDbPersistence(firestore2);
@@ -2110,6 +2112,7 @@ apiDescribe('Database', persistence => {
       const deferred: Deferred<FirestoreError> = new Deferred();
       const unsubscribe = onSnapshot(docRef, snapshot => {}, deferred.resolve);
 
+      // @ts-ignore internal API usage
       await firestore._restart();
 
       await expect(deferred.promise)

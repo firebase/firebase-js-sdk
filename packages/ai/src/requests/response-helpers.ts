@@ -184,8 +184,11 @@ export function getText(
  * Returns every {@link FunctionCall} associated with first candidate.
  */
 export function getFunctionCalls(
-  response: GenerateContentResponse
+  response?: GenerateContentResponse
 ): FunctionCall[] | undefined {
+  if (!response) {
+    return undefined;
+  }
   const functionCalls: FunctionCall[] = [];
   if (response.candidates?.[0].content?.parts) {
     for (const part of response.candidates?.[0].content?.parts) {
@@ -226,7 +229,24 @@ export function getInlineDataParts(
   }
 }
 
-const badFinishReasons = [FinishReason.RECITATION, FinishReason.SAFETY];
+const badFinishReasons = [
+  FinishReason.RECITATION,
+  FinishReason.SAFETY,
+  FinishReason.BLOCKLIST,
+  FinishReason.PROHIBITED_CONTENT,
+  FinishReason.SPII,
+  FinishReason.MALFORMED_FUNCTION_CALL,
+  FinishReason.IMAGE_SAFETY,
+  FinishReason.IMAGE_PROHIBITED_CONTENT,
+  FinishReason.IMAGE_OTHER,
+  FinishReason.NO_IMAGE,
+  FinishReason.IMAGE_RECITATION,
+  FinishReason.LANGUAGE,
+  FinishReason.UNEXPECTED_TOOL_CALL,
+  FinishReason.TOO_MANY_TOOL_CALLS,
+  FinishReason.MISSING_THOUGHT_SIGNATURE,
+  FinishReason.MALFORMED_RESPONSE
+];
 
 function hadBadFinishReason(candidate: GenerateContentCandidate): boolean {
   return (

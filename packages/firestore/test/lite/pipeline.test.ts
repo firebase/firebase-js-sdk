@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase -- use consistent field names for the search tests */
+
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
@@ -29,7 +31,10 @@ import {
 import { documentId as documentIdFieldPath } from '../../src/lite-api/field_path';
 import { vector } from '../../src/lite-api/field_value_impl';
 import { GeoPoint } from '../../src/lite-api/geo_point';
-import { PipelineSnapshot } from '../../src/lite-api/pipeline-result';
+import {
+  pipelineResultEqual,
+  PipelineSnapshot
+} from '../../src/lite-api/pipeline-result';
 import { execute } from '../../src/lite-api/pipeline_impl';
 import {
   DocumentData,
@@ -38,15 +43,26 @@ import {
   doc,
   DocumentReference
 } from '../../src/lite-api/reference';
-import { addDoc, setDoc, deleteDoc } from '../../src/lite-api/reference_impl';
+import {
+  addDoc,
+  setDoc,
+  deleteDoc,
+  getDocs
+} from '../../src/lite-api/reference_impl';
 import { FindNearestStageOptions } from '../../src/lite-api/stage_options';
 import { Timestamp } from '../../src/lite-api/timestamp';
 import { writeBatch } from '../../src/lite-api/write_batch';
+import { Code, FirestoreError } from '../../src/util/error';
+import {
+  getRunEnterpriseTests,
+  getTargetBackend,
+  TargetBackend
+} from '../integration/util/settings';
 import { addEqualityMatcher } from '../util/equality_matcher';
 import { describe } from '../util/mocha_extensions';
 import { Deferred } from '../util/promise';
 
-import { withTestCollection } from './helpers';
+import { withTestCollection, withTestDb } from './helpers';
 import {
   field,
   and,
@@ -58,14 +74,18 @@ import {
   average,
   substring,
   count,
+  mapMerge,
+  mapRemove,
   ifError,
   isAbsent,
   isError,
+  isType,
   or,
   map,
   length,
   mod,
   documentId,
+  parent,
   equal,
   notEqual,
   lessThan,
@@ -77,21 +97,34 @@ import {
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   logicalMaximum,
   logicalMinimum,
+  ltrim,
   exists,
   reverse,
   like,
   regexContains,
+  regexFind,
+  regexFindAll,
   regexMatch,
   stringContains,
   startsWith,
   endsWith,
   mapGet,
+  mapSet,
+  mapKeys,
+  mapValues,
+  mapEntries,
   countAll,
   minimum,
   maximum,
+  first,
+  last,
+  arrayAgg,
+  arrayAggDistinct,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -104,18 +137,28 @@ import {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampTruncate,
+  timestampDiff,
+  timestampExtract,
   ascending,
   descending,
   FunctionExpression,
   AggregateFunction,
-  stringConcat,
+  arrayContainsAll,
   arrayLength,
   charLength,
   divide,
   not,
+  rtrim,
+  stringConcat,
+  stringIndexOf,
+  stringRepeat,
+  stringReplaceAll,
+  stringReplaceOne,
   toLower,
   toUpper,
   trim,
+  type,
   byteLength,
   arrayGet,
   abs,
@@ -125,69 +168,97 @@ import {
   floor,
   exp,
   pow,
+  rand,
   round,
   collectionId,
   ln,
   log,
   sqrt,
+  trunc,
   stringReverse,
   log10,
   concat,
   currentTimestamp,
   ifAbsent,
+  coalesce,
   join,
-  arraySum
+  variable,
+  currentDocument,
+  arraySum,
+  arrayFirst,
+  arrayFirstN,
+  arrayFilter,
+  arrayTransform,
+  arrayTransformWithIndex,
+  arraySlice,
+  arrayLast,
+  arrayLastN,
+  arrayMaximum,
+  arrayMaximumN,
+  arrayMinimum,
+  arrayMinimumN,
+  arrayIndexOf,
+  arrayIndexOfAll,
+  arrayLastIndexOf,
+  subcollection,
+  ifNull,
+  documentMatches,
+  score
 } from './pipeline_export';
 
 use(chaiAsPromised);
+
+const timestampDeltaMS = 10000;
+
+let beginDocCreation: number = 0;
+let endDocCreation: number = 0;
+
+async function testCollectionWithDocs(
+  collection: CollectionReference,
+  docs: { [id: string]: DocumentData }
+): Promise<CollectionReference<DocumentData>> {
+  beginDocCreation = new Date().valueOf();
+  for (const id in docs) {
+    if (docs.hasOwnProperty(id)) {
+      const ref = doc(collection, id);
+      await setDoc(ref, docs[id]);
+    }
+  }
+  endDocCreation = new Date().valueOf();
+  return collection;
+}
+
+function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
+function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[]
+): void;
+
+function expectResults(
+  snapshot: PipelineSnapshot,
+  ...data: DocumentData[] | string[]
+): void {
+  const docs = snapshot.results;
+
+  expect(docs.length).to.equal(data.length);
+
+  if (data.length > 0) {
+    if (typeof data[0] === 'string') {
+      const actualIds = docs.map(doc => doc.id);
+      expect(actualIds).to.deep.equal(data);
+    } else {
+      docs.forEach(r => {
+        expect(r.data()).to.deep.equal(data.shift());
+      });
+    }
+  }
+}
 
 describe.skipClassic('Firestore Pipelines', () => {
   addEqualityMatcher();
 
   let firestore: Firestore;
   let randomCol: CollectionReference;
-  let beginDocCreation: number = 0;
-  let endDocCreation: number = 0;
-
-  async function testCollectionWithDocs(docs: {
-    [id: string]: DocumentData;
-  }): Promise<CollectionReference<DocumentData>> {
-    beginDocCreation = new Date().valueOf();
-    for (const id in docs) {
-      if (docs.hasOwnProperty(id)) {
-        const ref = doc(randomCol, id);
-        await setDoc(ref, docs[id]);
-      }
-    }
-    endDocCreation = new Date().valueOf();
-    return randomCol;
-  }
-
-  function expectResults(snapshot: PipelineSnapshot, ...docs: string[]): void;
-  function expectResults(
-    snapshot: PipelineSnapshot,
-    ...data: DocumentData[]
-  ): void;
-
-  function expectResults(
-    snapshot: PipelineSnapshot,
-    ...data: DocumentData[] | string[]
-  ): void {
-    const docs = snapshot.results;
-
-    expect(docs.length).to.equal(data.length);
-
-    if (data.length > 0) {
-      if (typeof data[0] === 'string') {
-        const actualIds = docs.map(doc => doc.id);
-        expect(actualIds).to.deep.equal(data);
-      } else {
-        docs.forEach(r => {
-          expect(r.data()).to.deep.equal(data.shift());
-        });
-      }
-    }
-  }
 
   async function setupBookDocs(): Promise<CollectionReference<DocumentData>> {
     const bookDocs: { [id: string]: DocumentData } = {
@@ -299,7 +370,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         embedding: vector([1, 1, 1, 1, 1, 1, 1, 1, 1, 10])
       }
     };
-    return testCollectionWithDocs(bookDocs);
+    return testCollectionWithDocs(randomCol, bookDocs);
   }
 
   let testDeferred: Deferred<void> | undefined;
@@ -355,6 +426,20 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
     });
 
+    it('result equals works', async () => {
+      const ppl = firestore
+        .pipeline()
+        .collection(randomCol.path)
+        .sort(ascending('title'))
+        .limit(1);
+      const snapshot1 = await execute(ppl);
+      const snapshot2 = await execute(ppl);
+      expect(snapshot1.results.length).to.equal(1);
+      expect(snapshot2.results.length).to.equal(1);
+      expect(pipelineResultEqual(snapshot1.results[0], snapshot2.results[0])).to
+        .be.true;
+    });
+
     it('returns execution time', async () => {
       const start = new Date().valueOf();
       const pipeline = firestore.pipeline().collection(randomCol.path);
@@ -364,7 +449,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
         (start + end) / 2,
-        end - start
+        timestampDeltaMS
       );
     });
 
@@ -379,7 +464,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
         (start + end) / 2,
-        end - start
+        timestampDeltaMS
       );
     });
 
@@ -394,11 +479,11 @@ describe.skipClassic('Firestore Pipelines', () => {
 
         expect(doc.createTime!.toDate().valueOf()).to.approximately(
           (beginDocCreation + endDocCreation) / 2,
-          endDocCreation - beginDocCreation
+          timestampDeltaMS
         );
         expect(doc.updateTime!.toDate().valueOf()).to.approximately(
           (beginDocCreation + endDocCreation) / 2,
-          endDocCreation - beginDocCreation
+          timestampDeltaMS
         );
         expect(doc.createTime?.valueOf()).to.equal(doc.updateTime?.valueOf());
       });
@@ -434,7 +519,7 @@ describe.skipClassic('Firestore Pipelines', () => {
 
       expect(snapshot.executionTime.toDate().valueOf()).to.approximately(
         (start + end) / 2,
-        end - start
+        timestampDeltaMS
       );
     });
 
@@ -538,7 +623,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    });
+    }).timeout(30_000); // Database-wide pipelines can be slow to execute.
 
     it('can create pipeline from a query', async () => {
       const snapshot = await execute(
@@ -664,32 +749,50 @@ describe.skipClassic('Firestore Pipelines', () => {
     });
 
     it('throws on undefined in a map', async () => {
-      expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(
-            map({
-              'number': 1,
-              'undefined': array([undefined])
-            }).as('foo')
-          );
-      }).to.throw(
-        'Function constant() called with invalid data. Unsupported field value: undefined'
-      );
+      try {
+        await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(
+              map({
+                'number': 1,
+                undefined
+              }).as('foo')
+            )
+        );
+        expect(true, 'should throw').to.be.false;
+      } catch (e: unknown) {
+        expect(e instanceof FirebaseError).to.be.true;
+        const err = e as FirebaseError;
+        expect(err['code']).to.equal('invalid-argument');
+        expect(typeof err['message']).to.equal('string');
+        expect(err['message']).to.equal(
+          'Function map() called with invalid data. Unsupported field value: undefined'
+        );
+      }
     });
 
     it('throws on undefined in an array', async () => {
-      expect(() => {
-        firestore
-          .pipeline()
-          .collection(randomCol.path)
-          .limit(1)
-          .select(array([1, undefined]).as('foo'));
-      }).to.throw(
-        'Function constant() called with invalid data. Unsupported field value: undefined'
-      );
+      try {
+        await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .select(array([1, undefined]).as('foo'))
+        );
+        expect(true, 'should throw').to.be.false;
+      } catch (e: unknown) {
+        expect(e instanceof FirebaseError).to.be.true;
+        const err = e as FirebaseError;
+        expect(err['code']).to.equal('invalid-argument');
+        expect(typeof err['message']).to.equal('string');
+        expect(err['message']).to.equal(
+          'Function array() called with invalid data. Unsupported field value: undefined'
+        );
+      }
     });
 
     it('converts arrays and plain objects to functionValues if the customer intent is unspecified', async () => {
@@ -831,32 +934,6 @@ describe.skipClassic('Firestore Pipelines', () => {
               sum('rating').as('sumRating')
             )
         );
-        expectResults(snapshot, { count: 2, avgRating: 4.4, maxRating: 4.6 });
-      });
-
-      it('supports aggregate options', async () => {
-        let snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .aggregate({
-              accumulators: [countAll().as('count')]
-            })
-        );
-        expectResults(snapshot, { count: 10 });
-
-        snapshot = await execute(
-          firestore
-            .pipeline()
-            .collection(randomCol.path)
-            .where(equal('genre', 'Science Fiction'))
-            .aggregate(
-              countAll().as('count'),
-              average('rating').as('avgRating'),
-              maximum('rating').as('maxRating'),
-              sum('rating').as('sumRating')
-            )
-        );
         expectResults(snapshot, {
           count: 2,
           avgRating: 4.4,
@@ -949,6 +1026,54 @@ describe.skipClassic('Firestore Pipelines', () => {
           count: 10,
           maxRating: 4.7,
           minPublished: 1813
+        });
+      });
+
+      it('returns first and last accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('published').ascending())
+            .aggregate(
+              first('rating').as('firstBookRating'),
+              first('title').as('firstBookTitle'),
+              last('rating').as('lastBookRating'),
+              last('title').as('lastBookTitle')
+            )
+        );
+        expectResults(snapshot, {
+          firstBookRating: 4.5,
+          firstBookTitle: 'Pride and Prejudice',
+          lastBookRating: 4.1,
+          lastBookTitle: "The Handmaid's Tale"
+        });
+      });
+
+      it('returns arrayAgg accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .sort(field('published').ascending())
+            .aggregate(arrayAgg('rating').as('allRatings'))
+        );
+        expectResults(snapshot, {
+          allRatings: [4.5, 4.3, 4.0, 4.2, 4.7, 4.2, 4.6, 4.3, 4.2, 4.1]
+        });
+      });
+
+      it('returns arrayAggDistinct accumulations', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .aggregate(arrayAggDistinct('rating').as('allDistinctRatings'))
+        );
+        const data = snapshot.results[0].data();
+        data['allDistinctRatings'].sort((a: number, b: number) => a - b);
+        expect(data).to.deep.equal({
+          allDistinctRatings: [4.0, 4.1, 4.2, 4.3, 4.5, 4.6, 4.7]
         });
       });
 
@@ -1399,14 +1524,15 @@ describe.skipClassic('Firestore Pipelines', () => {
                 equal('genre', 'Fantasy')
               )
             )
+            .sort(ascending('title'))
             .select('title')
         );
         expectResults(
           snapshot,
+          { title: '1984' },
           { title: 'Pride and Prejudice' },
-          { title: 'The Lord of the Rings' },
           { title: "The Handmaid's Tale" },
-          { title: '1984' }
+          { title: 'The Lord of the Rings' }
         );
       });
 
@@ -1430,6 +1556,28 @@ describe.skipClassic('Firestore Pipelines', () => {
           { title: 'Pride and Prejudice' },
           { title: 'The Lord of the Rings' },
           { title: "The Handmaid's Tale" }
+        );
+      });
+
+      it('where with nor', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              nor(
+                equal('genre', 'Romance'),
+                equal('genre', 'Dystopian'),
+                equal('genre', 'Fantasy'),
+                greaterThan('published', 1949)
+              )
+            )
+            .select('title')
+        );
+        expectResults(
+          snapshot,
+          { title: 'Crime and Punishment' },
+          { title: 'The Great Gatsby' }
         );
       });
 
@@ -1507,10 +1655,10 @@ describe.skipClassic('Firestore Pipelines', () => {
             .limit(1)
         );
         expectResults(snapshot, {
-          title: "The Hitchhiker's Guide to the Galaxy",
           metadata: {
-            author: 'Douglas Adams'
-          }
+            author: 'Frank Herbert'
+          },
+          title: 'Dune'
         });
       });
 
@@ -1773,6 +1921,35 @@ describe.skipClassic('Firestore Pipelines', () => {
           'book8',
           'book8',
           'book9',
+          'book9'
+        );
+      });
+
+      it('run pipeline with user data with union', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .union(
+              firestore
+                .pipeline()
+                .collection(randomCol.path)
+                .where(equal('title', "The Hitchhiker's Guide to the Galaxy"))
+            )
+            .sort(field(documentIdFieldPath()).ascending())
+        );
+        expectResults(
+          snapshot,
+          'book1',
+          'book1',
+          'book10',
+          'book2',
+          'book3',
+          'book4',
+          'book5',
+          'book6',
+          'book7',
+          'book8',
           'book9'
         );
       });
@@ -2186,7 +2363,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         expect(typeof err['message']).to.equal('string');
 
         expect(err['message']).to.match(
-          /Request failed with error: Expected value type of MAP_VALUE when parsing 'fields' but received FIELD_REFERENCE_VALUE instead/
+          /Request failed with error: Expected fields to be MAP_VALUE, but was FIELD_REFERENCE_VALUE./
         );
       }
     });
@@ -2201,7 +2378,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMaximum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2209,9 +2386,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1961 },
-        { title: 'Crime and Punishment', 'published-safe': 1961 },
-        { title: 'Dune', 'published-safe': 1965 }
+        { title: '1984', 'publishedSafe': 1961 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1961 },
+        { title: 'Dune', 'publishedSafe': 1965 }
       );
     });
 
@@ -2223,7 +2400,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(
             'title',
             logicalMinimum(constant(1960), field('published'), 1961).as(
-              'published-safe'
+              'publishedSafe'
             )
           )
           .sort(field('title').ascending())
@@ -2231,9 +2408,9 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1949 },
-        { title: 'Crime and Punishment', 'published-safe': 1866 },
-        { title: 'Dune', 'published-safe': 1960 }
+        { title: '1984', 'publishedSafe': 1949 },
+        { title: 'Crime and Punishment', 'publishedSafe': 1866 },
+        { title: 'Dune', 'publishedSafe': 1960 }
       );
     });
 
@@ -2248,7 +2425,7 @@ describe.skipClassic('Firestore Pipelines', () => {
               lessThan(field('published'), 1960),
               constant(1960),
               field('published')
-            ).as('published-safe'),
+            ).as('publishedSafe'),
             field('rating')
               .greaterThanOrEqual(4.5)
               .conditional(constant('great'), constant('good'))
@@ -2259,13 +2436,13 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(
         snapshot,
-        { title: '1984', 'published-safe': 1960, rating: 'good' },
+        { title: '1984', 'publishedSafe': 1960, rating: 'good' },
         {
           title: 'Crime and Punishment',
-          'published-safe': 1960,
+          'publishedSafe': 1960,
           rating: 'good'
         },
-        { title: 'Dune', 'published-safe': 1965, rating: 'great' }
+        { title: 'Dune', 'publishedSafe': 1965, rating: 'great' }
       );
     });
 
@@ -2320,6 +2497,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .pipeline()
           .collection(randomCol.path)
           .where(arrayContainsAny('tags', ['comedy', 'classic']))
+          .sort(descending('title'))
           .select('title')
       );
       expectResults(
@@ -2334,7 +2512,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         firestore
           .pipeline()
           .collection(randomCol.path)
-          .where(field('tags').arrayContainsAll(['adventure', 'magic']))
+          .where(arrayContainsAll('tags', ['adventure', 'magic']))
           .select('title')
       );
       expectResults(snapshot, { title: 'The Lord of the Rings' });
@@ -2356,6 +2534,7 @@ describe.skipClassic('Firestore Pipelines', () => {
         firestore
           .pipeline()
           .collection(randomCol.path)
+          .sort(ascending('author'))
           .select(
             field('author').stringConcat(' - ', field('title')).as('bookInfo')
           )
@@ -2471,6 +2650,42 @@ describe.skipClassic('Firestore Pipelines', () => {
       expect(snapshot.results.length).to.equal(5);
     });
 
+    it('testRegexFind', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(regexFind('title', '^\\w+').as('firstWordInTitle'))
+          .select('firstWordInTitle')
+          .sort(field('firstWordInTitle').ascending())
+          .limit(3)
+      );
+      expectResults(
+        snapshot,
+        { firstWordInTitle: '1984' },
+        { firstWordInTitle: 'Crime' },
+        { firstWordInTitle: 'Dune' }
+      );
+    });
+
+    it('testRegexFindAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(regexFindAll('title', '\\w+').as('wordsInTitle'))
+          .select('wordsInTitle')
+          .sort(field('wordsInTitle').ascending())
+          .limit(3)
+      );
+      expectResults(
+        snapshot,
+        { wordsInTitle: ['1984'] },
+        { wordsInTitle: ['Crime', 'and', 'Punishment'] },
+        { wordsInTitle: ['Dune'] }
+      );
+    });
+
     it('testRegexMatches', async () => {
       const snapshot = await execute(
         firestore
@@ -2500,7 +2715,7 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(snapshot, {
         ratingPlusOne: 5.2,
-        yearsSince1900: 79,
+        yearsSince1900: 60,
         ratingTimesTen: 42,
         ratingDividedByTwo: 2.1,
         ratingTimes20: 84,
@@ -2584,7 +2799,7 @@ describe.skipClassic('Firestore Pipelines', () => {
             notEqual('title', null).as('titleIsNotNull'),
             notEqual('cost', NaN).as('costIsNotNan'),
             exists('fooBarBaz').as('fooBarBazExists'),
-            field('title').as('titleExists')
+            field('title').exists().as('titleExists')
           )
       );
       expectResults(snapshot, {
@@ -2737,9 +2952,11 @@ describe.skipClassic('Firestore Pipelines', () => {
         snapshot,
         {
           title: "The Hitchhiker's Guide to the Galaxy",
-          'awards.hugo': true
+          awards: {
+            hugo: true
+          }
         },
-        { title: 'Dune', 'awards.hugo': true }
+        { title: 'Dune', awards: { hugo: true } }
       );
     });
 
@@ -2752,7 +2969,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .replaceWith(
             map({
               title: 'foo',
-              nested: {
+              nestedField: {
                 level: {
                   '1': 'bar'
                 },
@@ -2764,15 +2981,129 @@ describe.skipClassic('Firestore Pipelines', () => {
           )
           .select(
             'title',
-            field('nested.level.1'),
-            mapGet('nested', 'level.1').mapGet('level.2').as('nested')
+            field('nestedField.level.1'),
+            mapGet('nestedField', 'level.1').mapGet('level.2').as('nested')
           )
       );
       expectResults(snapshot, {
         title: 'foo',
-        'nested.level.`1`': 'bar',
+        nestedField: {
+          level: {
+            '1': 'bar'
+          }
+        },
         nested: 'baz'
       });
+    });
+
+    it('test mapSet', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapSet('existingField', 'bar', 2).as('modifiedField'),
+            mapSet(map({}), 'a', 1).as('simple'),
+            mapSet(map({ a: 1 }), 'b', 2).as('add'),
+            mapSet(map({ a: 1 }), 'a', 2).as('overwrite'),
+            mapSet(map({ a: 1, b: 2 }), 'a', 3, 'c', 4).as('multi'),
+            mapSet(map({ a: 1 }), 'a', field('non_existent')).as('remove'),
+            mapSet(map({ a: 1 }), 'b', null).as('setNull'),
+            mapSet(map({ a: { b: 1 } }), 'a.b', 2).as('setDotted'),
+            mapSet(map({}), '', 'empty').as('setEmptyKey'),
+            mapSet(map({ a: 1 }), 'b', add(constant(1), constant(2))).as(
+              'setExprVal'
+            ),
+            mapSet(map({}), 'obj', map({ hidden: true })).as('setNestedMap'),
+            mapSet(map({}), '~!@#$%^&*()_+', 'special').as('setSpecialChars')
+          )
+      );
+      expectResults(snapshot, {
+        existingField: { foo: 1 },
+        modifiedField: { foo: 1, bar: 2 },
+        simple: { a: 1 },
+        add: { a: 1, b: 2 },
+        overwrite: { a: 2 },
+        multi: { a: 3, b: 2, c: 4 },
+        remove: {},
+        setNull: { a: 1, b: null },
+        setDotted: { a: { b: 1 }, 'a.b': 2 },
+        setEmptyKey: { '': 'empty' },
+        setExprVal: { a: 1, b: 3 },
+        setNestedMap: { obj: { hidden: true } },
+        setSpecialChars: { '~!@#$%^&*()_+': 'special' }
+      });
+    });
+
+    it('test mapKeys', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapKeys('existingField').as('existingKeys'),
+            mapKeys(map({ a: 1, b: 2 })).as('keys'),
+            mapKeys(map({})).as('empty_keys'),
+            mapKeys(map({ a: { nested: true } })).as('nested_keys')
+          )
+      );
+
+      const res = snapshot.results[0].data();
+      expect(res.existingKeys).to.have.members(['foo']);
+      expect(res.keys).to.have.members(['a', 'b']);
+      expect(res.empty_keys).to.deep.equal([]);
+      expect(res.nested_keys).to.have.members(['a']);
+    });
+
+    it('test mapValues', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapValues('existingField').as('existingValues'),
+            mapValues(map({ a: 1, b: 2 })).as('values'),
+            mapValues(map({})).as('empty_values'),
+            mapValues(map({ a: { nested: true } })).as('nested_values')
+          )
+      );
+      const res = snapshot.results[0].data();
+      expect(res.existingValues).to.have.members([1]);
+      expect(res.values).to.have.members([1, 2]);
+      expect(res.empty_values).to.deep.equal([]);
+      expect(res.nested_values).to.deep.include.members([{ nested: true }]);
+    });
+
+    it('test mapEntries', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ existingField: map({ foo: 1 }) }))
+          .addFields(
+            mapEntries('existingField').as('existingEntries'),
+            mapEntries(map({ a: 1, b: 2 })).as('entries'),
+            mapEntries(map({})).as('empty_entries'),
+            mapEntries(map({ a: { nested: true } })).as('nested_entries')
+          )
+      );
+      const res = snapshot.results[0].data();
+      expect(res.existingEntries).to.deep.include.members([{ k: 'foo', v: 1 }]);
+      expect(res.entries).to.deep.include.members([
+        { k: 'a', v: 1 },
+        { k: 'b', v: 2 }
+      ]);
+      expect(res.empty_entries).to.deep.equal([]);
+      expect(res.nested_entries).to.deep.include.members([
+        { k: 'a', v: { nested: true } }
+      ]);
     });
 
     describe('rawFunction', () => {
@@ -2941,81 +3272,782 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, ...expectedResults);
     });
 
-    // it('supports Bit_left_shift', async () => {
-    //   let snapshot = await execute(
-    //     firestore
-    //       .pipeline()
-    //       .collection(randomCol.path)
-    //       .limit(1)
-    //       .select(
-    //         bitLeftShift(
-    //           constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-    //           2
-    //         ).as('result')
-    //       )
-    //   );
-    //   expectResults(snapshot, {
-    //     result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-    //   });
-    //   snapshot = await execute(
-    //     firestore
-    //       .pipeline()
-    //       .collection(randomCol.path)
-    //       .limit(1)
-    //       .select(
-    //         constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-    //           .bitLeftShift(2)
-    //           .as('result')
-    //       )
-    //   );
-    //   expectResults(snapshot, {
-    //     result: Bytes.fromUint8Array(Uint8Array.of(0x04))
-    //   });
-    // });
-    //
-    // it('supports Bit_right_shift', async () => {
-    //   let snapshot = await execute(
-    //     firestore
-    //       .pipeline()
-    //       .collection(randomCol.path)
-    //       .limit(1)
-    //       .select(
-    //         bitRightShift(
-    //           constant(Bytes.fromUint8Array(Uint8Array.of(0x02))),
-    //           2
-    //         ).as('result')
-    //       )
-    //   );
-    //   expectResults(snapshot, {
-    //     result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-    //   });
-    //   snapshot = await execute(
-    //     firestore
-    //       .pipeline()
-    //       .collection(randomCol.path)
-    //       .limit(1)
-    //       .select(
-    //         constant(Bytes.fromUint8Array(Uint8Array.of(0x02)))
-    //           .bitRightShift(2)
-    //           .as('result')
-    //       )
-    //   );
-    //   expectResults(snapshot, {
-    //     result: Bytes.fromUint8Array(Uint8Array.of(0x01))
-    //   });
-    // });
+    it('supports arrayFirst', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayFirst('tags').as('firstTag'))
+      );
+      const expectedResults = [
+        {
+          firstTag: 'adventure'
+        },
+        {
+          firstTag: 'politics'
+        },
+        {
+          firstTag: 'classic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
 
-    it('supports Document_id', async () => {
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayFirst().as('firstTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayFilter', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', 'The Lord of the Rings'))
+          .select(
+            arrayFilter('tags', 'tag', notEqual(variable('tag'), 'magic')).as(
+              'notMagicTags'
+            ),
+            field('tags')
+              .arrayFilter('tag', notEqual(variable('tag'), 'epic'))
+              .as('notEpicTags'),
+            field('tags')
+              .arrayFilter('tag', equal(variable('tag'), 'fantasy'))
+              .as('noMatchingTags')
+          )
+      );
+
+      expectResults(snapshot, {
+        notMagicTags: ['adventure', 'epic'],
+        notEpicTags: ['adventure', 'magic'],
+        noMatchingTags: []
+      });
+    });
+
+    it('supports arrayFilter with mixed types and nulls', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 'foo', null, 20.0, 'bar', 30, '40', null]
+            })
+          )
+          .select(
+            arrayFilter(
+              'arr',
+              'element',
+              greaterThan(variable('element'), 10)
+            ).as('filtered')
+          )
+      );
+
+      expectResults(snapshot, {
+        filtered: [20.0, 30]
+      });
+    });
+
+    it('supports arrayTransform and arrayTransformWithIndex', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(map({ arr: [10, 20, 30] }))
+          .select(
+            arrayTransform(
+              'arr',
+              'element',
+              multiply(variable('element'), 10)
+            ).as('staticTransform'),
+            field('arr')
+              .arrayTransform('element', multiply(variable('element'), 10))
+              .as('instanceTransform'),
+            arrayTransformWithIndex(
+              'arr',
+              'element',
+              'i',
+              add(variable('element'), variable('i'))
+            ).as('staticTransformWithIndex'),
+            field('arr')
+              .arrayTransformWithIndex(
+                'element',
+                'i',
+                add(variable('element'), variable('i'))
+              )
+              .as('instanceTransformWithIndex')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticTransform: [100, 200, 300],
+        instanceTransform: [100, 200, 300],
+        staticTransformWithIndex: [10, 21, 32],
+        instanceTransformWithIndex: [10, 21, 32]
+      });
+    });
+
+    it('supports arrayTransform with empty array and nulls', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3],
+              empty: []
+            })
+          )
+          .select(
+            field('arr')
+              .arrayTransform('element', add(variable('element'), 1))
+              .as('transformedWithNulls'),
+            field('empty')
+              .arrayTransform('element', add(variable('element'), 1))
+              .as('transformedEmpty'),
+            field('arr')
+              .arrayTransformWithIndex(
+                'element',
+                'idx',
+                add(variable('element'), variable('idx'))
+              )
+              .as('transformedWithIndex'),
+            field('empty')
+              .arrayTransformWithIndex(
+                'element',
+                'idx',
+                add(variable('element'), variable('idx'))
+              )
+              .as('transformedEmptyWithIndex')
+          )
+      );
+
+      expectResults(snapshot, {
+        transformedWithNulls: [2, null, 4],
+        transformedEmpty: [],
+        transformedWithIndex: [1, null, 5],
+        transformedEmptyWithIndex: []
+      });
+    });
+
+    it('supports arraySlice', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', 'The Lord of the Rings'))
+          .select(
+            arraySlice('tags', 1, 1).as('staticMethodSlice'),
+            arraySlice('tags', 1).as('staticMethodSliceToEnd'),
+            field('tags').arraySlice(1, 1).as('instanceMethodSlice'),
+            field('tags').arraySlice(1).as('instanceMethodSliceToEnd'),
+            field('tags').arraySlice(1, 10).as('overflowLength'),
+            field('tags').arraySlice(-1, 1).as('negativeOffset'),
+            field('tags').arraySlice(-1).as('negativeOffsetSliceToEnd'),
+            field('tags').arraySlice(10).as('overflowOffset'),
+            field('tags').arraySlice(-10).as('negativeOverflowOffset')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethodSlice: ['magic'],
+        staticMethodSliceToEnd: ['magic', 'epic'],
+        instanceMethodSlice: ['magic'],
+        instanceMethodSliceToEnd: ['magic', 'epic'],
+        overflowLength: ['magic', 'epic'],
+        overflowOffset: [],
+        negativeOffset: ['epic'],
+        negativeOffsetSliceToEnd: ['epic'],
+        negativeOverflowOffset: ['adventure', 'magic', 'epic']
+      });
+    });
+
+    it('arraySlice throws error for negative length', async () => {
+      await expect(
+        execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', 'The Lord of the Rings'))
+            .select(arraySlice('tags', 1, -1).as('negativeLengthSlice'))
+        )
+      ).to.be.rejectedWith(/length must be non-negative/);
+    });
+
+    it('supports arrayFirstN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayFirstN('tags', 2).as('firstTwoTags'))
+      );
+      const expectedResults = [
+        {
+          firstTwoTags: ['adventure', 'magic']
+        },
+        {
+          firstTwoTags: ['politics', 'desert']
+        },
+        {
+          firstTwoTags: ['classic', 'social commentary']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayFirstN(2).as('firstTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null
+            })
+          )
+          .select(
+            arrayFirstN('empty', 1).as('emptyResult'),
+            arrayFirstN('nullVal', 1).as('nullResult'),
+            arrayFirstN('nonExistent', 1).as('absentResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: [],
+        nullResult: null,
+        absentResult: null
+      });
+    });
+
+    it('supports arrayLast', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayLast('tags').as('lastTag'))
+      );
+      const expectedResults = [
+        {
+          lastTag: 'epic'
+        },
+        {
+          lastTag: 'ecology'
+        },
+        {
+          lastTag: 'love'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayLast().as('lastTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayLastN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(arrayLastN('tags', 2).as('lastTwoTags'))
+      );
+      const expectedResults = [
+        {
+          lastTwoTags: ['magic', 'epic']
+        },
+        {
+          lastTwoTags: ['desert', 'ecology']
+        },
+        {
+          lastTwoTags: ['social commentary', 'love']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(3)
+          .select(field('tags').arrayLastN(2).as('lastTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null
+            })
+          )
+          .select(
+            arrayLastN('empty', 1).as('emptyResult'),
+            arrayLastN('nullVal', 1).as('nullResult'),
+            arrayLastN('nonExistent', 1).as('absentResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: [],
+        nullResult: null,
+        absentResult: null
+      });
+    });
+
+    it('supports arrayMaximum', async () => {
       let snapshot = await execute(
         firestore
           .pipeline()
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
-          .select(documentId(field('__path__')).as('docId'))
+          .select(arrayMaximum('tags').as('maxTag'))
+      );
+      const expectedResults = [
+        {
+          maxTag: 'magic'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMaximum().as('maxTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent and mixed types
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null,
+              mixed: [1, '2', 3, '10'] // Strings > Numbers in Firestore
+            })
+          )
+          .select(
+            arrayMaximum('empty').as('emptyResult'),
+            arrayMaximum('nullVal').as('nullResult'),
+            arrayMaximum('nonExistent').as('absentResult'),
+            arrayMaximum('mixed').as('mixedResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: null,
+        nullResult: null,
+        absentResult: null,
+        mixedResult: '2' // "2" > "10" > 3 > 1
+      });
+    });
+
+    it('supports arrayMaximumN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMaximumN('tags', 2).as('maxTwoTags'))
+      );
+      const expectedResults = [
+        {
+          maxTwoTags: ['magic', 'epic']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMaximumN(2).as('maxTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayMinimum', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMinimum('tags').as('minTag'))
+      );
+      const expectedResults = [
+        {
+          minTag: 'adventure'
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMinimum().as('minTag'))
+      );
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with empty/null/non-existent and mixed types
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              empty: [],
+              nullVal: null,
+              mixed: [1, '2', 3, '10'] // Strings > Numbers in Firestore
+            })
+          )
+          .select(
+            arrayMinimum('empty').as('emptyResult'),
+            arrayMinimum('nullVal').as('nullResult'),
+            arrayMinimum('nonExistent').as('absentResult'),
+            arrayMinimum('mixed').as('mixedResult')
+          )
+      );
+
+      expectResults(snapshot, {
+        emptyResult: null,
+        nullResult: null,
+        absentResult: null,
+        mixedResult: 1 // 1 < 3 < "10" < "2"
+      });
+    });
+
+    it('supports arrayMinimumN', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(arrayMinimumN('tags', 2).as('minTwoTags'))
+      );
+      const expectedResults = [
+        {
+          minTwoTags: ['adventure', 'epic']
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('tags').arrayMinimumN(2).as('minTwoTags'))
+      );
+      expectResults(snapshot, ...expectedResults);
+    });
+
+    it('supports arrayIndexOf', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            arrayIndexOf('tags', 'adventure').as('indexFirst'),
+            arrayIndexOf(field('tags'), 'magic').as('indexSecond'),
+            field('tags').arrayIndexOf('adventure').as('indexFirst2'),
+            arrayIndexOf('tags', 'nonexistent').as('indexNone'),
+            arrayIndexOf('empty', 'anything').as('indexEmpty')
+          )
+      );
+
+      const expectedResults = [
+        {
+          indexFirst: 0,
+          indexSecond: 1,
+          indexFirst2: 0,
+          indexNone: -1,
+          indexEmpty: null
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with duplicate values
+      const snapshotDuplicates = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 2, 1]
+            })
+          )
+          .select(
+            arrayIndexOf('arr', 2).as('firstIndex'),
+            arrayLastIndexOf('arr', 2).as('lastIndex')
+          )
+      );
+
+      expectResults(snapshotDuplicates, {
+        firstIndex: 1,
+        lastIndex: 3
+      });
+
+      // Test with null values
+      const snapshotNulls = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3, 2, 1],
+              nullArr: null
+            })
+          )
+          .select(
+            arrayIndexOf('arr', null).as('firstIndex'),
+            arrayIndexOf('nullArr', null).as('firstIndexNull')
+          )
+      );
+
+      expectResults(snapshotNulls, {
+        firstIndex: 1,
+        firstIndexNull: null
+      });
+    });
+
+    it('supports arrayLastIndexOf', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            arrayLastIndexOf('tags', 'adventure').as('lastIndexFirst'),
+            arrayLastIndexOf(field('tags'), 'epic').as('lastIndexLast'),
+            field('tags').arrayLastIndexOf('adventure').as('lastIndexFirst2'),
+            arrayLastIndexOf('tags', 'nonexistent').as('lastIndexNone'),
+            arrayLastIndexOf('empty', 'anything').as('lastIndexEmpty')
+          )
+      );
+
+      const expectedResults = [
+        {
+          lastIndexFirst: 0,
+          lastIndexLast: 2,
+          lastIndexFirst2: 0,
+          lastIndexNone: -1,
+          lastIndexEmpty: null
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with duplicate values
+      const snapshotDuplicates = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 2, 1]
+            })
+          )
+          .select(
+            arrayIndexOf('arr', 2).as('firstIndex'),
+            arrayLastIndexOf('arr', 2).as('lastIndex')
+          )
+      );
+
+      expectResults(snapshotDuplicates, {
+        firstIndex: 1,
+        lastIndex: 3
+      });
+    });
+
+    it('supports arrayIndexOfAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            arrayIndexOfAll('tags', 'adventure').as('indicesFirst'),
+            arrayIndexOfAll(field('tags'), 'epic').as('indicesLast'),
+            field('tags').arrayIndexOfAll('nonexistent').as('indicesNone'),
+            arrayIndexOfAll('empty', 'anything').as('indicesEmpty')
+          )
+      );
+
+      const expectedResults = [
+        {
+          indicesFirst: [0],
+          indicesLast: [2],
+          indicesNone: [],
+          indicesEmpty: null
+        }
+      ];
+      expectResults(snapshot, ...expectedResults);
+
+      // Test with duplicate values
+      const snapshotDuplicates = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, 2, 3, 2, 1]
+            })
+          )
+          .select(
+            arrayIndexOfAll('arr', 1).as('indices1'),
+            arrayIndexOfAll('arr', 2).as('indices2')
+          )
+      );
+
+      expectResults(snapshotDuplicates, {
+        indices1: [0, 4],
+        indices2: [1, 3]
+      });
+
+      // Test with null values
+      const snapshotNulls = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              arr: [1, null, 3, null, 1],
+              nullArr: null
+            })
+          )
+          .select(
+            arrayIndexOfAll('arr', null).as('indices1'),
+            arrayIndexOfAll('nullArr', null).as('indicesNull')
+          )
+      );
+
+      expectResults(snapshotNulls, {
+        indices1: [1, 3],
+        indicesNull: null
+      });
+    });
+
+    it('supports map', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            map({
+              foo: 'bar'
+            }).as('metadata')
+          )
+      );
+
+      expect(snapshot.results.length).to.equal(1);
+      expectResults(snapshot, {
+        metadata: {
+          foo: 'bar'
+        }
+      });
+    });
+
+    it('evaluates expression in map', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(
+            map({
+              genre: field('genre'),
+              rating: field('rating').multiply(10)
+            }).as('metadata')
+          )
+      );
+
+      expect(snapshot.results.length).to.equal(1);
+      expectResults(snapshot, {
+        metadata: {
+          genre: 'Fantasy',
+          rating: 47
+        }
+      });
+    });
+
+    it('supports mapRemove', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(mapRemove('awards', 'hugo').as('awards'))
       );
       expectResults(snapshot, {
-        docId: 'book4'
+        awards: { nebula: false }
       });
       snapshot = await execute(
         firestore
@@ -3023,10 +4055,35 @@ describe.skipClassic('Firestore Pipelines', () => {
           .collection(randomCol.path)
           .sort(field('rating').descending())
           .limit(1)
-          .select(field('__path__').documentId().as('docId'))
+          .select(field('awards').mapRemove('hugo').as('awards'))
       );
       expectResults(snapshot, {
-        docId: 'book4'
+        awards: { nebula: false }
+      });
+    });
+
+    it('supports mapMerge', async () => {
+      let snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(mapMerge('awards', { fakeAward: true }).as('awards'))
+      );
+      expectResults(snapshot, {
+        awards: { nebula: false, hugo: false, fakeAward: true }
+      });
+      snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .sort(field('rating').descending())
+          .limit(1)
+          .select(field('awards').mapMerge({ fakeAward: true }).as('awards'))
+      );
+      expectResults(snapshot, {
+        awards: { nebula: false, hugo: false, fakeAward: true }
       });
     });
 
@@ -3106,6 +4163,127 @@ describe.skipClassic('Firestore Pipelines', () => {
         minus10seconds: new Timestamp(1741380225, 0),
         minus10micros: new Timestamp(1741380234, 999990000),
         minus10millis: new Timestamp(1741380234, 990000000)
+      });
+    }).timeout(10000);
+
+    it('supports timestamp truncation', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('timestamp')
+          )
+          .select(
+            timestampTruncate(field('timestamp'), 'year').as('truncYear'),
+            timestampTruncate(field('timestamp'), 'month').as('truncMonth'),
+            timestampTruncate(field('timestamp'), 'day').as('truncDay'),
+            timestampTruncate(field('timestamp'), 'hour').as('truncHour'),
+            timestampTruncate(field('timestamp'), 'minute').as('truncMinute'),
+            timestampTruncate(field('timestamp'), 'second').as('truncSecond'),
+            timestampTruncate(field('timestamp'), 'isoweek').as('truncIsoweek')
+          )
+      );
+
+      expectResults(snapshot, {
+        truncYear: new Timestamp(1735689600, 0),
+        truncMonth: new Timestamp(1740787200, 0),
+        truncDay: new Timestamp(1741392000, 0),
+        truncHour: new Timestamp(1741435200, 0),
+        truncMinute: new Timestamp(1741437240, 0),
+        truncSecond: new Timestamp(1741437296, 0),
+        truncIsoweek: new Timestamp(1740960000, 0)
+      });
+    }).timeout(10000);
+
+    it('supports timestamp truncation with timezone', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('timestamp')
+          )
+          .select(
+            timestampTruncate(
+              field('timestamp'),
+              'day',
+              'America/Los_Angeles'
+            ).as('truncDayLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        truncDayLa: new Timestamp(1741420800, 0)
+      });
+    }).timeout(10000);
+
+    it('supports timestamp difference', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(
+            constant(new Timestamp(1741437296, 123456789)).as('end'),
+            constant(new Timestamp(1741428000, 0)).as('start')
+          )
+          .select(
+            timestampDiff(field('end'), field('start'), 'hour').as('diffHour'),
+            field('end')
+              .timestampDiff(field('start'), 'minute')
+              .as('diffMinute'),
+            field('end')
+              .timestampDiff(field('start'), 'second')
+              .as('diffSecond'),
+            field('start').timestampDiff(field('end'), 'hour').as('diffHourNeg')
+          )
+      );
+
+      expectResults(snapshot, {
+        diffHour: 2,
+        diffMinute: 154,
+        diffSecond: 9296,
+        diffHourNeg: -2
+      });
+    }).timeout(10000);
+
+    it('supports timestamp extraction', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol)
+          .limit(1)
+          .select(constant(new Timestamp(1741437296, 123456789)).as('ts'))
+          .select(
+            timestampExtract(field('ts'), 'year').as('year'),
+            field('ts').timestampExtract('month').as('month'),
+            timestampExtract(field('ts'), 'day').as('day'),
+            field('ts').timestampExtract('hour').as('hour'),
+            timestampExtract(field('ts'), 'minute').as('minute'),
+            field('ts').timestampExtract('second').as('second'),
+            timestampExtract(field('ts'), 'millisecond').as('millis'),
+            field('ts').timestampExtract('microsecond').as('micros'),
+            timestampExtract(field('ts'), 'dayofyear').as('dayOfYear'),
+            field('ts')
+              .timestampExtract('hour', 'America/Los_Angeles')
+              .as('hourLa')
+          )
+      );
+
+      expectResults(snapshot, {
+        year: 2025,
+        month: 3,
+        day: 8,
+        hour: 12,
+        minute: 34,
+        second: 56,
+        millis: 123,
+        micros: 123456,
+        dayOfYear: 67,
+        hourLa: 4
       });
     }).timeout(10000);
 
@@ -3288,6 +4466,21 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
     });
 
+    it('testRand', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .select(rand().as('randomNumber'))
+          .limit(1)
+      );
+      expect(snapshot.results.length).to.equal(1);
+      const randomNumber = snapshot.results[0].data()['randomNumber'] as number;
+      expect(randomNumber).to.be.a('number');
+      expect(randomNumber).to.be.gte(0);
+      expect(randomNumber).to.be.lt(1);
+    });
+
     it('can round a numeric value', async () => {
       const snapshot = await execute(
         firestore
@@ -3358,17 +4551,71 @@ describe.skipClassic('Firestore Pipelines', () => {
             })
           )
           .select(
-            field('foo').round(0).as('0'),
-            round('foo', 1).as('1'),
-            round('foo', constant(2)).as('2'),
-            round(field('foo'), 4).as('4')
+            field('foo').round(0).as('roundedTo0'),
+            round('foo', 1).as('roundedTo1'),
+            round('foo', constant(2)).as('roundedTo2'),
+            round(field('foo'), 4).as('roundedTo4')
           )
       );
       expectResults(snapshot, {
-        '0': 4,
-        '1': 4.1,
-        '2': 4.12,
-        '4': 4.1235
+        roundedTo0: 4,
+        roundedTo1: 4.1,
+        roundedTo2: 4.12,
+        roundedTo4: 4.1235
+      });
+    });
+
+    it('can truncate a numeric value', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('Pride and Prejudice'))
+          .limit(1)
+          .select(field('rating').trunc().as('truncatedRating'))
+      );
+      expectResults(snapshot, {
+        truncatedRating: 4
+      });
+    });
+
+    it('can truncate a numeric value with the top-level function', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(field('title').equal('Pride and Prejudice'))
+          .limit(1)
+          .select(trunc('rating').as('truncatedRating'))
+      );
+      expectResults(snapshot, {
+        truncatedRating: 4
+      });
+    });
+
+    it('can truncate a numeric value to specified precision', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              foo: 4.123456
+            })
+          )
+          .select(
+            field('foo').trunc(0).as('truncatedTo0'),
+            trunc('foo', 1).as('truncatedTo1'),
+            trunc('foo', constant(2)).as('truncatedTo2'),
+            trunc(field('foo'), 4).as('truncatedTo4')
+          )
+      );
+      expectResults(snapshot, {
+        truncatedTo0: 4,
+        truncatedTo1: 4.1,
+        truncatedTo2: 4.12,
+        truncatedTo4: 4.1234
       });
     });
 
@@ -3658,8 +4905,6 @@ describe.skipClassic('Firestore Pipelines', () => {
             documentId(field('__path__')).as('noDocId')
           )
       );
-
-      expect(snapshot.results.length).to.equal(1);
       expectResults(snapshot, {
         docId: 'book4',
         noDocId: null
@@ -3677,6 +4922,31 @@ describe.skipClassic('Firestore Pipelines', () => {
       });
     });
 
+    it('supports parent', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .select(
+            parent(doc(randomCol, 'book4', 'reviews', 'review1')).as(
+              'parentRefStatic'
+            ),
+            constant(doc(randomCol, 'book4', 'reviews', 'review1'))
+              .parent()
+              .as('parentRefInstance')
+          )
+          .select(
+            field('parentRefStatic').documentId().as('parentIdStatic'),
+            field('parentRefInstance').documentId().as('parentIdInstance')
+          )
+      );
+      expectResults(snapshot, {
+        parentIdStatic: 'book4',
+        parentIdInstance: 'book4'
+      });
+    });
+
     it('supports substring', async () => {
       let snapshot = await execute(
         firestore
@@ -3687,7 +4957,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(substring('title', 9, 2).as('of'))
       );
       expectResults(snapshot, {
-        awards: { nebula: false }
+        of: 'of'
       });
       snapshot = await execute(
         firestore
@@ -3698,7 +4968,7 @@ describe.skipClassic('Firestore Pipelines', () => {
           .select(field('title').substring(9, 2).as('of'))
       );
       expectResults(snapshot, {
-        awards: { nebula: false }
+        of: 'of'
       });
     });
 
@@ -3770,6 +5040,318 @@ describe.skipClassic('Firestore Pipelines', () => {
       });
     });
 
+    it('testLTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
+          )
+          .select(
+            ltrim('spacedTitle').as('ltrimmedTitle'),
+            field('userNameWithQuotes').ltrim('"').as('userName'),
+            field('bytes')
+              .ltrim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        ltrimmedTitle: "The Hitchhiker's Guide to the Galaxy ",
+        userName: 'alice"',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x00, 0x00]))
+      });
+    });
+
+    it('testRTrim', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              spacedTitle: " The Hitchhiker's Guide to the Galaxy ",
+              userNameWithQuotes: '"alice"',
+              bytes: Bytes.fromUint8Array(
+                Uint8Array.from([0x00, 0x01, 0x02, 0x00, 0x00])
+              )
+            })
+          )
+          .select(
+            rtrim('spacedTitle').as('rtrimmedTitle'),
+            field('userNameWithQuotes').rtrim('"').as('userName'),
+            field('bytes')
+              .rtrim(Bytes.fromUint8Array(Uint8Array.from([0x00])))
+              .as('bytes')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        rtrimmedTitle: " The Hitchhiker's Guide to the Galaxy",
+        userName: '"alice',
+        bytes: Bytes.fromUint8Array(Uint8Array.from([0x00, 0x01, 0x02]))
+      });
+    });
+
+    it('testStringRepeat', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x03]))
+            })
+          )
+          .select(
+            stringRepeat(field('title'), 2).as('repeatedTitle'),
+            stringRepeat(field('bytes'), 2).as('repeatedBytes')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        repeatedTitle:
+          "The Hitchhiker's Guide to the GalaxyThe Hitchhiker's Guide to the Galaxy",
+        repeatedBytes: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x02, 0x03, 0x01, 0x02, 0x03])
+        )
+      });
+    });
+
+    it('testStringReplaceAll', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02]))
+            })
+          )
+          .select(
+            stringReplaceAll(field('title'), 'the', 'a').as('replacedAll'),
+            stringReplaceAll(toLower('title'), 'the', 'a').as(
+              'replacedAllLower'
+            ),
+            stringReplaceAll(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03, 0x03, 0x03]))
+            ).as('replacedEntireByteArray'),
+            stringReplaceAll(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03]))
+            ).as('replacedMultipleBytes')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        replacedAll: "The Hitchhiker's Guide to a Galaxy",
+        replacedAllLower: "a hitchhiker's guide to a galaxy",
+        replacedEntireByteArray: Bytes.fromUint8Array(
+          Uint8Array.from([0x03, 0x03, 0x03])
+        ),
+        replacedMultipleBytes: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x03, 0x03])
+        )
+      });
+    });
+
+    it('testStringReplaceOne', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x02]))
+            })
+          )
+          .select(
+            stringReplaceOne(field('title'), 'e', 'X').as('replacedOne'),
+            stringReplaceOne(
+              field('bytes'),
+              Bytes.fromUint8Array(Uint8Array.from([0x02])),
+              Bytes.fromUint8Array(Uint8Array.from([0x03]))
+            ).as('replacedOneByte')
+          )
+          .limit(1)
+      );
+      expectResults(snapshot, {
+        replacedOne: "ThX Hitchhiker's Guide to the Galaxy",
+        replacedOneByte: Bytes.fromUint8Array(
+          Uint8Array.from([0x01, 0x03, 0x02])
+        )
+      });
+    });
+
+    it('testStringIndexOf', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              title: "The Hitchhiker's Guide to the Galaxy",
+              bytes: Bytes.fromUint8Array(Uint8Array.from([0x01, 0x02, 0x03]))
+            })
+          )
+          .select(
+            stringIndexOf(field('title'), 'Guide').as('indexOfGuide'),
+            stringIndexOf(
+              field('bytes'),
+              constant(Bytes.fromUint8Array(Uint8Array.from([0x02])))
+            ).as('indexOfByte')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        indexOfGuide: 17,
+        indexOfByte: 1
+      });
+    });
+    it('testType', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(
+                Bytes.fromUint8Array(new Uint8Array([1, 2, 3, 4, 5, 6, 7, 0]))
+              ),
+              docRef: constant(doc(firestore, 'foo', 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                'number': 1,
+                'string': 'a string'
+              }),
+              list: array([1, '2', true])
+            })
+          )
+          .select(
+            type(field('int')).as('int'),
+            field('float').type().as('float'),
+            type('str').as('str'),
+            field('bool').type().as('bool'),
+            type('null').as('null'),
+            field('geoPoint').type().as('geoPoint'),
+            type('timestamp').as('timestamp'),
+            field('bytes').type().as('bytes'),
+            type('docRef').as('docRef'),
+            field('vector').type().as('vector'),
+            type('map').as('map'),
+            field('list').type().as('list')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        int: 'int64',
+        float: 'float64',
+        str: 'string',
+        bool: 'boolean',
+        null: 'null',
+        geoPoint: 'geo_point',
+        timestamp: 'timestamp',
+        bytes: 'bytes',
+        docRef: 'reference',
+        vector: 'vector',
+        map: 'map',
+        list: 'array'
+      });
+    });
+
+    it('testIsType', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .replaceWith(
+            map({
+              int: constant(1),
+              float: constant(1.1),
+              str: constant('a string'),
+              bool: constant(true),
+              null: constant(null),
+              geoPoint: constant(new GeoPoint(0.1, 0.2)),
+              timestamp: constant(new Timestamp(123456, 0)),
+              bytes: constant(Bytes.fromUint8Array(new Uint8Array([1, 2, 3]))),
+              docRef: constant(doc(firestore, randomCol.path, 'bar')),
+              vector: constant(vector([1, 2, 3])),
+              map: map({
+                numberK: 1,
+                stringK: 'a string'
+              }),
+              array: array([1, '2', true])
+            })
+          )
+          .select(
+            isType(field('int'), 'int64').as('isInt64'),
+            isType(field('int'), 'number').as('isInt64IsNumber'),
+            isType(field('int'), 'decimal128').as('isInt64IsDecimal128'),
+            field('float').isType('float64').as('isFloat64'),
+            field('float').isType('number').as('isFloat64IsNumber'),
+            field('float').isType('decimal128').as('isFloat64IsDecimal128'),
+            isType('str', 'string').as('isStr'),
+            isType('int', 'string').as('isNumStr'),
+            field('bool').isType('boolean').as('isBool'),
+            isType('null', 'null').as('isNull'),
+            field('geoPoint').isType('geo_point').as('isGeoPoint'),
+            isType('timestamp', 'timestamp').as('isTimestamp'),
+            field('bytes').isType('bytes').as('isBytes'),
+            isType('docRef', 'reference').as('isDocRef'),
+            field('vector').isType('vector').as('isVector'),
+            isType('map', 'map').as('isMap'),
+            field('array').isType('array').as('isArray'),
+            field('str').isType('int64').as('isStrNum')
+          )
+          .limit(1)
+      );
+
+      expectResults(snapshot, {
+        isInt64: true,
+        isInt64IsNumber: true,
+        isInt64IsDecimal128: false,
+        isFloat64: true,
+        isFloat64IsNumber: true,
+        isFloat64IsDecimal128: false,
+        isStr: true,
+        isNumStr: false,
+        isBool: true,
+        isNull: true,
+        isGeoPoint: true,
+        isTimestamp: true,
+        isBytes: true,
+        isDocRef: true,
+        isVector: true,
+        isMap: true,
+        isArray: true,
+        isStrNum: false
+      });
+    });
+
     it('test reverse', async () => {
       const snapshot = await execute(
         firestore
@@ -3794,15 +5376,15 @@ describe.skipClassic('Firestore Pipelines', () => {
             constant(1).as('pos1')
           )
           .select(
-            abs('neg10').as('10'),
-            abs(field('neg22')).as('22'),
-            field('pos1').as('1')
+            abs('neg10').as('abs10'),
+            abs(field('neg22')).as('abs22'),
+            field('pos1').as('abs1')
           )
       );
       expectResults(snapshot, {
-        '10': 10,
-        '22': 22.22,
-        '1': 1
+        'abs10': 10,
+        'abs22': 22.22,
+        'abs1': 1
       });
     });
 
@@ -3895,6 +5477,93 @@ describe.skipClassic('Firestore Pipelines', () => {
       });
     });
 
+    it('supports ifNull', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              title: 'foo',
+              name: null
+            })
+          )
+          .select(
+            ifNull('title', 'default title').as('staticMethod'),
+            field('title').ifNull('default title').as('instanceMethod'),
+            field('name').ifNull(field('title')).as('nameOrTitle'),
+            field('name').ifNull('default name').as('fieldIsNull'),
+            field('absent').ifNull('default name').as('fieldIsAbsent')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 'foo',
+        instanceMethod: 'foo',
+        nameOrTitle: 'foo',
+        fieldIsNull: 'default name',
+        fieldIsAbsent: 'default name'
+      });
+    });
+
+    it('supports coalesce', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              numberValue: 1,
+              stringValue: 'hello',
+              booleanValue: false,
+              nullValue: null,
+              nullValue2: null
+            })
+          )
+          .select(
+            coalesce(field('numberValue'), field('stringValue')).as(
+              'staticMethod'
+            ),
+            field('numberValue')
+              .coalesce(field('stringValue'))
+              .as('instanceMethod'),
+            coalesce(field('nullValue'), field('stringValue')).as(
+              'firstIsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              field('booleanValue')
+            ).as('lastIsNotNull'),
+            coalesce(field('nullValue'), field('nullValue2')).as(
+              'allFieldsNull'
+            ),
+            coalesce(
+              field('nullValue'),
+              field('nullValue2'),
+              constant('default')
+            ).as('allFieldsNullWithDefault'),
+            coalesce(
+              field('absentField'),
+              field('numberValue'),
+              constant('default')
+            ).as('withAbsentField')
+          )
+      );
+
+      expectResults(snapshot, {
+        staticMethod: 1,
+        instanceMethod: 1,
+        firstIsNull: 'hello',
+        lastIsNotNull: false,
+        allFieldsNull: null,
+        allFieldsNullWithDefault: 'default',
+        withAbsentField: 1
+      });
+    });
+
     it('supports join', async () => {
       const snapshot = await execute(
         firestore
@@ -3943,6 +5612,111 @@ describe.skipClassic('Firestore Pipelines', () => {
       );
       expectResults(snapshot, {
         totalSales: 350
+      });
+    });
+
+    it('supports nor', async () => {
+      const snapshot = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .limit(1)
+          .replaceWith(
+            map({
+              a: false,
+              b: false,
+              c: true,
+              d: null
+            })
+          )
+          .select(
+            nor(field('a').asBoolean(), field('b').asBoolean()).as(
+              'twoConditions'
+            ),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('c').asBoolean()
+            ).as('threeConditions'),
+            nor(
+              field('a').asBoolean(),
+              field('b').asBoolean(),
+              field('d').asBoolean()
+            ).as('threeConditionsWithNull')
+          )
+      );
+
+      expectResults(snapshot, {
+        twoConditions: true,
+        threeConditions: false,
+        threeConditionsWithNull: null
+      });
+    });
+
+    describe('switchOn', () => {
+      it('supports basic switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 1 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                constant('NA')
+              ).as('result1'),
+              switchOn(
+                equal(field('value'), 2),
+                constant('two'),
+                constant('NA')
+              ).as('result2')
+            )
+        );
+        expectResults(snapshot, { result1: 'one', result2: 'NA' });
+      });
+
+      it('supports multi-branch switch', async () => {
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .limit(1)
+            .replaceWith(map({ value: 2 }))
+            .select(
+              switchOn(
+                equal(field('value'), 1),
+                constant('one'),
+                equal(field('value'), 2),
+                constant('two'),
+                equal(field('value'), 3),
+                constant('three'),
+                constant('default')
+              ).as('result')
+            )
+        );
+        expectResults(snapshot, { result: 'two' });
+      });
+
+      it('throws if no match and no default', async () => {
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .limit(1)
+              .replaceWith(map({ value: 5 }))
+              .select(
+                switchOn(
+                  equal(field('value'), 1),
+                  constant('one'),
+                  equal(field('value'), 2),
+                  constant('two')
+                ).as('result')
+              )
+          )
+        ).to.be.rejectedWith(/all switch cases evaluate to false/);
       });
     });
 
@@ -4108,29 +5882,1488 @@ describe.skipClassic('Firestore Pipelines', () => {
 
   describe('stage options', () => {
     describe('forceIndex', () => {
-      // SKIP: requires pre-existing index
-      // eslint-disable-next-line no-restricted-properties
-      it.skip('Collection Stage', async () => {
+      it('Collection Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collection({
             collection: randomCol,
-            forceIndex: 'unknown'
+            forceIndex: 'primary'
           })
         );
+        expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshot as any)._pipeline.stages[0].optionsProto.force_index
+            .stringValue
+        ).equal('primary');
         expect(snapshot.results.length).to.equal(10);
       });
 
-      // SKIP: requires pre-existing index
-      // eslint-disable-next-line no-restricted-properties
-      it.skip('CollectionGroup Stage', async () => {
+      it('CollectionGroup Stage', async () => {
         const snapshot = await execute(
           firestore.pipeline().collectionGroup({
             collectionId: randomCol.id,
-            forceIndex: 'unknown'
+            forceIndex: 'primary'
           })
         );
+        expect(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (snapshot as any)._pipeline.stages[0].optionsProto.force_index
+            .stringValue
+        ).equal('primary');
         expect(snapshot.results.length).to.equal(10);
       });
     });
   });
+
+  describe('subquery', () => {
+    async function withSubqueryData<T>(
+      data: { [path: string]: DocumentData },
+      fn: () => Promise<T>
+    ): Promise<T> {
+      const refs: DocumentReference[] = [];
+      try {
+        await Promise.all(
+          Object.entries(data).map(async ([path, docData]) => {
+            const ref = doc(firestore, path);
+            await setDoc(ref, docData);
+            refs.push(ref);
+          })
+        );
+        return await fn();
+      } finally {
+        await Promise.all(refs.map(r => deleteDoc(r)));
+      }
+    }
+
+    it('zero result scalar returns null', async () => {
+      const testDocs = {
+        [`${randomCol.path}/book1`]: { title: 'A Book Title' }
+      };
+
+      await withSubqueryData(testDocs, async () => {
+        const emptyScalar = firestore
+          .pipeline()
+          .collection(`${randomCol.path}/book1/reviews`)
+          .where(equal('reviewer', 'Alice'))
+          .select(currentDocument().as('data'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .select(emptyScalar.toScalarExpression().as('firstReviewData'))
+            .limit(1)
+        );
+
+        expectResults(results, { firstReviewData: null });
+      });
+    });
+
+    it('array subquery join and empty result', async () => {
+      const reviewsCollName = `book_reviews_${Date.now()}`;
+      const reviewsDocs = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: "The Hitchhiker's Guide to the Galaxy",
+          reviewer: 'Alice'
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: "The Hitchhiker's Guide to the Galaxy",
+          reviewer: 'Bob'
+        }
+      };
+
+      await withSubqueryData(reviewsDocs, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .select(field('reviewer').as('reviewer'))
+          .sort(field('reviewer').ascending());
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              or(
+                equal('title', "The Hitchhiker's Guide to the Galaxy"),
+                equal('title', 'Pride and Prejudice')
+              )
+            )
+            .define(field('title').as('bookTitle'))
+            .addFields(reviewsSub.toArrayExpression().as('reviewsData'))
+            .select('title', 'reviewsData')
+            .sort(field('title').descending())
+        );
+
+        expectResults(
+          results,
+          {
+            title: "The Hitchhiker's Guide to the Galaxy",
+            reviewsData: ['Alice', 'Bob']
+          },
+          { title: 'Pride and Prejudice', reviewsData: [] }
+        );
+      });
+    });
+
+    it('multiple array subqueries', async () => {
+      const reviewsCollectionName = `reviews_multi_${Date.now()}`;
+      const authorsCollectionName = `authors_multi_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollectionName}/r1`]: {
+          bookTitle: '1984',
+          rating: 5
+        },
+        [`${authorsCollectionName}/a1`]: {
+          authorName: 'George Orwell',
+          nationality: 'British'
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollectionName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .select(field('rating').as('rating'));
+
+        const authorsSub = firestore
+          .pipeline()
+          .collection(authorsCollectionName)
+          .where(equal('authorName', variable('authorName')))
+          .select(field('nationality').as('nationality'));
+
+        const snapshot = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(
+              field('title').as('bookTitle'),
+              field('author').as('authorName')
+            )
+            .addFields(
+              reviewsSub.toArrayExpression().as('reviewsData'),
+              authorsSub.toArrayExpression().as('authorsData')
+            )
+            .select('title', 'reviewsData', 'authorsData')
+        );
+
+        expectResults(snapshot, {
+          title: '1984',
+          reviewsData: [5],
+          authorsData: ['British']
+        });
+      });
+    });
+
+    it('array subquery join multiple fields preserves map', async () => {
+      const reviewsCollName = `reviews_map_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: '1984',
+          reviewer: 'Alice',
+          rating: 5
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: '1984',
+          reviewer: 'Bob',
+          rating: 4
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .select(
+            field('reviewer').as('reviewer'),
+            field('rating').as('rating')
+          )
+          .sort(field('reviewer').ascending());
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('bookTitle'))
+            .addFields(reviewsSub.toArrayExpression().as('reviewsData'))
+            .select('title', 'reviewsData')
+        );
+
+        expectResults(results, {
+          title: '1984',
+          reviewsData: [
+            { reviewer: 'Alice', rating: 5 },
+            { reviewer: 'Bob', rating: 4 }
+          ]
+        });
+      });
+    });
+
+    it('array subquery in where stage on books', async () => {
+      const reviewsCollName = `reviews_where_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: 'Dune',
+          reviewer: 'Paul'
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: 'Foundation',
+          reviewer: 'Hari'
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .select(field('reviewer').as('reviewer'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(
+              or(equal('title', 'Dune'), equal('title', 'The Great Gatsby'))
+            )
+            .define(field('title').as('bookTitle'))
+            .where(reviewsSub.toArrayExpression().arrayContains('Paul'))
+            .select('title')
+        );
+
+        expectResults(results, { title: 'Dune' });
+      });
+    });
+
+    it('scalar subquery single aggregation unwrapping', async () => {
+      const reviewsCollName = `reviews_agg_single_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: { bookTitle: '1984', rating: 4 },
+        [`${reviewsCollName}/r2`]: { bookTitle: '1984', rating: 5 }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .aggregate(average('rating').as('val'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('bookTitle'))
+            .addFields(reviewsSub.toScalarExpression().as('averageRating'))
+            .select('title', 'averageRating')
+        );
+
+        expectResults(results, { title: '1984', averageRating: 4.5 });
+      });
+    });
+
+    it('scalar subquery multiple aggregations map wrapping', async () => {
+      const reviewsCollName = `reviews_agg_multi_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: { bookTitle: '1984', rating: 4 },
+        [`${reviewsCollName}/r2`]: { bookTitle: '1984', rating: 5 }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .aggregate(average('rating').as('avg'), countAll().as('count'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('bookTitle'))
+            .addFields(reviewsSub.toScalarExpression().as('stats'))
+            .select('title', 'stats')
+        );
+
+        expectResults(results, {
+          title: '1984',
+          stats: { avg: 4.5, count: 2 }
+        });
+      });
+    });
+
+    it('scalar subquery zero results', async () => {
+      const reviewsCollName = `reviews_zero_${Date.now()}`;
+
+      // No reviews for "1984"
+
+      const reviewsSub = firestore
+        .pipeline()
+        .collection(reviewsCollName)
+        .where(equal('bookTitle', variable('bookTitle')))
+        .aggregate(average('rating').as('avg'));
+
+      const results = await execute(
+        firestore
+          .pipeline()
+          .collection(randomCol.path)
+          .where(equal('title', '1984'))
+          .define(field('title').as('bookTitle'))
+          .addFields(reviewsSub.toScalarExpression().as('averageRating'))
+          .select('title', 'averageRating')
+      );
+
+      expectResults(results, { title: '1984', averageRating: null });
+    });
+
+    it('scalar subquery multiple results runtime error', async () => {
+      const reviewsCollName = `reviews_multiple_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: { bookTitle: '1984', rating: 4 },
+        [`${reviewsCollName}/r2`]: { bookTitle: '1984', rating: 5 }
+      };
+
+      await withSubqueryData(data, async () => {
+        // This subquery will return 2 documents, which is invalid for toScalarExpression()
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')));
+
+        await expect(
+          execute(
+            firestore
+              .pipeline()
+              .collection(randomCol.path)
+              .where(equal('title', '1984'))
+              .define(field('title').as('bookTitle'))
+              .addFields(reviewsSub.toScalarExpression().as('reviewData'))
+          )
+        ).to.be.rejectedWith(/Subpipeline returned multiple results/);
+      });
+    });
+
+    it('mixed scalar and array subqueries', async () => {
+      const reviewsCollName = `reviews_mixed_${Date.now()}`;
+
+      const data = {
+        [`${reviewsCollName}/r1`]: {
+          bookTitle: '1984',
+          reviewer: 'Alice',
+          rating: 4
+        },
+        [`${reviewsCollName}/r2`]: {
+          bookTitle: '1984',
+          reviewer: 'Bob',
+          rating: 5
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const arraySub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .select(field('reviewer').as('reviewer'))
+          .sort(field('reviewer').ascending());
+
+        const scalarSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookTitle', variable('bookTitle')))
+          .aggregate(average('rating').as('val'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(randomCol.path)
+            .where(equal('title', '1984'))
+            .define(field('title').as('bookTitle'))
+            .addFields(
+              arraySub.toArrayExpression().as('allReviewers'),
+              scalarSub.toScalarExpression().as('averageRating')
+            )
+            .select('title', 'allReviewers', 'averageRating')
+        );
+
+        expectResults(results, {
+          title: '1984',
+          allReviewers: ['Alice', 'Bob'],
+          averageRating: 4.5
+        });
+      });
+    });
+
+    it('single scope variable usage', async () => {
+      const collName = `single_scope_${Date.now()}`;
+
+      await withSubqueryData(
+        { [`${collName}/doc1`]: { price: 100 } },
+        async () => {
+          let results = await execute(
+            firestore
+              .pipeline()
+              .collection(collName)
+              .define(field('price').multiply(0.8).as('discount'))
+              .where(variable('discount').lessThan(50.0))
+              .select('price')
+          );
+
+          expect(results.results).to.be.empty;
+
+          const doc2Ref = doc(firestore, `${collName}/doc2`);
+          await setDoc(doc2Ref, { price: 50 });
+
+          try {
+            results = await execute(
+              firestore
+                .pipeline()
+                .collection(collName)
+                .define(field('price').multiply(0.8).as('discount'))
+                .where(variable('discount').lessThan(50.0))
+                .select('price')
+            );
+
+            expectResults(results, { price: 50 });
+          } finally {
+            await deleteDoc(doc2Ref);
+          }
+        }
+      );
+    });
+
+    it('explicit field binding scope bridging', async () => {
+      const outerCollName = `outer_scope_${Date.now()}`;
+      const reviewsCollName = `reviews_scope_${Date.now()}`;
+
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984', id: '1' },
+        [`${reviewsCollName}/r1`]: { bookId: '1', reviewer: 'Alice' }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('bookId', variable('rid')))
+          .select(field('reviewer').as('reviewer'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .define(field('id').as('rid'))
+            .addFields(reviewsSub.toArrayExpression().as('reviews'))
+            .select('title', 'reviews')
+        );
+
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
+      });
+    });
+
+    it('multiple variable bindings', async () => {
+      const outerCollName = `outer_multi_${Date.now()}`; // distinct from earlier test
+      const reviewsCollName = `reviews_multi_${Date.now()}`;
+
+      const data = {
+        [`${outerCollName}/doc1`]: {
+          title: '1984',
+          id: '1',
+          category: 'sci-fi'
+        },
+        [`${reviewsCollName}/r1`]: {
+          bookId: '1',
+          category: 'sci-fi',
+          reviewer: 'Alice'
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(
+            and(
+              equal('bookId', variable('rid')),
+              equal('category', variable('rcat'))
+            )
+          )
+          .select(field('reviewer').as('reviewer'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .define(field('id').as('rid'), field('category').as('rcat'))
+            .addFields(reviewsSub.toArrayExpression().as('reviews'))
+            .select('title', 'reviews')
+        );
+
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
+      });
+    });
+
+    it('current document binding', async () => {
+      const outerCollName = `outer_currentdoc_${Date.now()}`;
+      const reviewsCollName = `reviews_currentdoc_${Date.now()}`;
+
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984', author: 'George Orwell' },
+        [`${reviewsCollName}/r1`]: {
+          authorName: 'George Orwell',
+          reviewer: 'Alice'
+        }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(equal('authorName', variable('doc').getField('author')))
+          .select(field('reviewer').as('reviewer'));
+
+        const ppl = firestore
+          .pipeline()
+          .collection(outerCollName)
+          .where(equal('title', '1984'))
+          .define(currentDocument().as('doc'))
+          .addFields(reviewsSub.toArrayExpression().as('reviews'))
+          .select('title', 'reviews');
+
+        const results = await execute(ppl);
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
+      });
+    });
+
+    it('unbound variable corner case', async () => {
+      const outerCollName = `outer_unbound_${Date.now()}`;
+
+      try {
+        await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', variable('unknownVar')))
+        );
+        expect.fail('Should have thrown an error');
+      } catch (e: unknown) {
+        expect(e).to.be.an.instanceOf(FirebaseError);
+        const err = e as FirestoreError;
+        expect(err.code).to.equal(Code.FAILED_PRECONDITION);
+        expect(err.message).to.match(/unknown variable/i);
+      }
+    });
+
+    it('variable shadowing collision', async () => {
+      const outerCollName = `outer_shadow_${Date.now()}`;
+      const innerCollName = `inner_shadow_${Date.now()}`;
+
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984' },
+        [`${innerCollName}/i1`]: { id: 'test' }
+      };
+
+      await withSubqueryData(data, async () => {
+        // Inner subquery re-defines variable "x" to be "inner_val"
+        const sub = firestore
+          .pipeline()
+          .collection(innerCollName)
+          .define(constant('inner_val').as('x'))
+          .select(variable('x').as('val'));
+
+        // Outer pipeline defines variable "x" to be "outer_val"
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerCollName)
+            .where(equal('title', '1984'))
+            .limit(1)
+            .define(constant('outer_val').as('x'))
+            .addFields(sub.toArrayExpression().as('shadowed'))
+            .select('shadowed')
+        );
+
+        // Due to innermost scope winning, the result should use "inner_val"
+        expectResults(results, { shadowed: ['inner_val'] });
+      });
+    });
+
+    it('missing field on current document', async () => {
+      const outerCollName = `outer_missing_${Date.now()}`;
+      const reviewsCollName = `reviews_missing_${Date.now()}`;
+
+      const data = {
+        [`${outerCollName}/doc1`]: { title: '1984' },
+        [`${reviewsCollName}/r1`]: { bookId: '1', reviewer: 'Alice' }
+      };
+
+      await withSubqueryData(data, async () => {
+        // This references a non-existent field 'doesNotExist' on the current document 'doc'
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          // using mapGet explicitly or just field path if supported on maps
+          .where(equal('bookId', variable('doc').getField('doesNotExist')))
+          .select(field('reviewer').as('reviewer'));
+
+        const ppl = firestore
+          .pipeline()
+          .collection(outerCollName)
+          .where(equal('title', '1984'))
+          .define(currentDocument().as('doc'))
+          .addFields(reviewsSub.toArrayExpression().as('reviews'))
+          .select('title', 'reviews');
+
+        const results = await execute(ppl);
+        expectResults(results, { title: '1984', reviews: [] });
+      });
+    });
+
+    it('3 level deep join', async () => {
+      const publishersCollName = `publishers_${Date.now()}`;
+      const booksCollName = `books_${Date.now()}`;
+      const reviewsCollName = `reviews_${Date.now()}`;
+
+      const data = {
+        [`${publishersCollName}/p1`]: { publisherId: 'pub1', name: 'Penguin' },
+        [`${booksCollName}/b1`]: {
+          bookId: 'book1',
+          publisherId: 'pub1',
+          title: '1984'
+        },
+        [`${reviewsCollName}/r1`]: { bookId: 'book1', reviewer: 'Alice' }
+      };
+
+      await withSubqueryData(data, async () => {
+        const reviewsSub = firestore
+          .pipeline()
+          .collection(reviewsCollName)
+          .where(
+            and(
+              equal('bookId', variable('bookId')),
+              equal(variable('pubName'), 'Penguin')
+            )
+          )
+          .select(field('reviewer').as('reviewer'));
+
+        const booksSub = firestore
+          .pipeline()
+          .collection(booksCollName)
+          .where(equal('publisherId', variable('pubId')))
+          .define(field('bookId').as('bookId'))
+          .addFields(reviewsSub.toArrayExpression().as('reviews'))
+          .select('title', 'reviews');
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(publishersCollName)
+            .where(equal('publisherId', 'pub1'))
+            .define(
+              field('publisherId').as('pubId'),
+              field('name').as('pubName')
+            )
+            .addFields(booksSub.toArrayExpression().as('books'))
+            .select('name', 'books')
+        );
+
+        expectResults(results, {
+          name: 'Penguin',
+          books: [{ title: '1984', reviews: ['Alice'] }]
+        });
+      });
+    });
+
+    it('deep aggregation', async () => {
+      const outerColl = `outer_agg_${Date.now()}`;
+      const innerColl = `inner_agg_${Date.now()}`;
+
+      const data = {
+        [`${outerColl}/doc1`]: { id: '1' },
+        [`${outerColl}/doc2`]: { id: '2' },
+        [`${innerColl}/i1`]: { outerId: '1', score: 10 },
+        [`${innerColl}/i2`]: { outerId: '2', score: 20 },
+        [`${innerColl}/i3`]: { outerId: '1', score: 30 }
+      };
+
+      await withSubqueryData(data, async () => {
+        const innerSub = firestore
+          .pipeline()
+          .collection(innerColl)
+          .where(equal('outerId', variable('oid')))
+          .aggregate(average('score').as('s'));
+
+        const results = await execute(
+          firestore
+            .pipeline()
+            .collection(outerColl)
+            .define(field('id').as('oid'))
+            .addFields(innerSub.toScalarExpression().as('docScore'))
+            // Aggregate over calculated subquery results
+            .aggregate(sum('docScore').as('totalScore'))
+        );
+
+        expectResults(results, { totalScore: 40.0 });
+      });
+    });
+
+    // NOTE: We aren't able to created nested pipelines deeper than 9 layer
+    // because JSON is more verbose than gRPC format used on other platforms.
+    it('pipeline stage support 9 layers', async () => {
+      const collName = `depth_${Date.now()}`;
+
+      await withSubqueryData(
+        { [`${collName}/doc1`]: { val: 'hello' } },
+        async () => {
+          // Create a nested pipeline of depth 9
+          let currentSubquery = firestore
+            .pipeline()
+            .collection(collName)
+            .limit(1)
+            .select(field('val').as('val'));
+
+          for (let i = 0; i < 8; i++) {
+            currentSubquery = firestore
+              .pipeline()
+              .collection(collName)
+              .limit(1)
+              .addFields(currentSubquery.toArrayExpression().as(`nested_${i}`))
+              .select(`nested_${i}`);
+          }
+
+          const results = await execute(currentSubquery);
+          expect(results.results.length).to.be.greaterThan(0);
+        }
+      );
+    });
+
+    it('standard subcollection query', async () => {
+      const collName = `subcoll_test_${Date.now()}`;
+
+      const doc1Ref = doc(firestore, `${collName}/doc1`);
+      await setDoc(doc1Ref, { title: '1984' });
+
+      const r1Ref = doc(firestore, `${collName}/doc1/reviews/r1`);
+      await setDoc(r1Ref, { reviewer: 'Alice' });
+
+      // Assuming Pipeline.subcollection API exists or similar
+      const reviewsSub = subcollection('reviews').select(
+        field('reviewer').as('reviewer')
+      );
+
+      const results = await execute(
+        firestore
+          .pipeline()
+          .collection(collName)
+          .where(equal('title', '1984'))
+          .addFields(reviewsSub.toArrayExpression().as('reviews'))
+          .select('title', 'reviews')
+      );
+
+      expectResults(results, {
+        title: '1984',
+        reviews: ['Alice']
+      });
+
+      await Promise.all([deleteDoc(doc1Ref), deleteDoc(r1Ref)]);
+    });
+
+    it('missing subcollection', async () => {
+      const collName = `subcoll_missing_${Date.now()}`;
+      const doc1Ref = doc(firestore, `${collName}/doc1`);
+
+      await setDoc(doc1Ref, { id: 'no_subcollection_here' });
+
+      const missingSub = subcollection('doesNotExist').select(
+        variable('p').as('subP')
+      );
+
+      const results = await execute(
+        firestore
+          .pipeline()
+          .collection(collName)
+          .define(currentDocument().as('p'))
+          .select(missingSub.toArrayExpression().as('missingData'))
+          .limit(1)
+      );
+
+      expectResults(results, { missingData: [] });
+
+      await deleteDoc(doc1Ref);
+    });
+
+    it('direct execution of subcollection pipeline', async () => {
+      const sub = subcollection('reviews');
+
+      await expect(execute(sub)).to.be.rejectedWith(
+        /This pipeline was created without a database/
+      );
+    });
+  });
+});
+
+(getRunEnterpriseTests() && getTargetBackend() === TargetBackend.NIGHTLY
+  ? describe
+  : /* eslint-disable-next-line -- okay to skip tests */
+    describe.skip)('Pipeline search', () => {
+  addEqualityMatcher();
+  let firestore: Firestore;
+  let restaurantsCollection: CollectionReference;
+
+  const COLLECTION_NAME = 'TextSearchIntegrationTests';
+
+  async function setupRestaurantDocs(
+    collection: CollectionReference
+  ): Promise<CollectionReference<DocumentData>> {
+    const restaurantDocs: { [id: string]: DocumentData } = {
+      sunnySideUp: {
+        name: 'The Sunny Side Up',
+        description:
+          'A cozy neighborhood diner serving classic breakfast favorites all day long, from fluffy pancakes to savory omelets.',
+        location: new GeoPoint(39.7541, -105.0002),
+        menu: '<h3>Breakfast Classics</h3><ul><li>Denver Omelet - $12</li><li>Buttermilk Pancakes - $10</li><li>Steak and Eggs - $16</li></ul><h3>Sides</h3><ul><li>Hash Browns - $4</li><li>Thick-cut Bacon - $5</li><li>Drip Coffee - $2</li></ul>',
+        average_price_per_person: 15
+      },
+      goldenWaffle: {
+        name: 'The Golden Waffle',
+        description:
+          'Specializing exclusively in Belgian-style waffles. Open daily from 6:00 AM to 11:00 AM.',
+        location: new GeoPoint(39.7183, -104.9621),
+        menu: '<h3>Signature Waffles</h3><ul><li>Strawberry Delight - $11</li><li>Chicken and Waffles - $14</li><li>Chocolate Chip Crunch - $10</li></ul><h3>Drinks</h3><ul><li>Fresh OJ - $4</li><li>Artisan Coffee - $3</li></ul>',
+        average_price_per_person: 13
+      },
+      lotusBlossomThai: {
+        name: 'Lotus Blossom Thai',
+        description:
+          'Authentic Thai cuisine featuring hand-crushed spices and traditional family recipes from the Chiang Mai region.',
+        location: new GeoPoint(39.7315, -104.9847),
+        menu: '<h3>Appetizers</h3><ul><li>Spring Rolls - $7</li><li>Chicken Satay - $9</li></ul><h3>Main Course</h3><ul><li>Pad Thai - $15</li><li>Green Curry - $16</li><li>Drunken Noodles - $15</li></ul>',
+        average_price_per_person: 22
+      },
+      mileHighCatch: {
+        name: 'Mile High Catch',
+        description:
+          'Freshly sourced seafood offering a wide variety of Pacific fish and Atlantic shellfish in an upscale atmosphere.',
+        location: new GeoPoint(39.7401, -104.9903),
+        menu: '<h3>From the Raw Bar</h3><ul><li>Oysters (Half Dozen) - $18</li><li>Lobster Cocktail - $22</li></ul><h3>Entrees</h3><ul><li>Pan-Seared Salmon - $28</li><li>King Crab Legs - $45</li><li>Fish and Chips - $19</li></ul>',
+        average_price_per_person: 45
+      },
+      peakBurgers: {
+        name: 'Peak Burgers',
+        description:
+          'Casual burger joint focused on locally sourced Colorado beef and hand-cut fries.',
+        location: new GeoPoint(39.7622, -105.0125),
+        menu: '<h3>Burgers</h3><ul><li>The Peak Double - $12</li><li>Bison Burger - $15</li><li>Veggie Stack - $11</li></ul><h3>Sides</h3><ul><li>Truffle Fries - $6</li><li>Onion Rings - $5</li></ul>',
+        average_price_per_person: 18
+      },
+      solTacos: {
+        name: 'El Sol Tacos',
+        description:
+          'A vibrant street-side taco stand serving up quick, delicious, and traditional Mexican street food.',
+        location: new GeoPoint(39.6952, -105.0274),
+        menu: '<h3>Tacos ($3.50 each)</h3><ul><li>Al Pastor</li><li>Carne Asada</li><li>Pollo Asado</li><li>Nopales (Cactus)</li></ul><h3>Beverages</h3><ul><li>Horchata - $4</li><li>Mexican Coke - $3</li></ul>',
+        average_price_per_person: 12
+      },
+      eastsideTacos: {
+        name: 'Eastside Cantina',
+        description:
+          'Authentic street tacos and hand-shaken margaritas on the vibrant east side of the city.',
+        location: new GeoPoint(39.735, -104.885),
+        menu: '<h3>Tacos</h3><ul><li>Carnitas Tacos - $4</li><li>Barbacoa Tacos - $4.50</li><li>Shrimp Tacos - $5</li></ul><h3>Drinks</h3><ul><li>House Margarita - $9</li><li>Jarritos - $3</li></ul>',
+        average_price_per_person: 18
+      },
+      eastsideChicken: {
+        name: 'Eastside Chicken',
+        description: 'Fried chicken to go - next to Eastside Cantina.',
+        location: new GeoPoint(39.735, -104.885),
+        menu: '<h3>Fried Chicken</h3><ul><li>Drumstick - $4</li><li>Wings - $1</li><li>Sandwich - $9</li></ul><h3>Drinks</h3><ul><li>House Margarita - $9</li><li>Jarritos - $3</li></ul>',
+        average_price_per_person: 12
+      }
+    };
+
+    // TODO(search) - Migrate this over to IndexTestHelper when search supports the equal filter.
+    // Remove any restaurant docs not in the expected set - perhaps these were
+    // set by another dev or test suite. This has potential to cause flakes in another concurrent
+    // run of these tests, if they have added new test docs.
+    const collectionSnapshot = await getDocs(collection);
+    const expectedDocIds = Object.keys(restaurantDocs);
+    const deletes = collectionSnapshot.docs
+      .filter(ds => expectedDocIds.indexOf(ds.id) < 0)
+      .map(ds => deleteDoc(ds.ref));
+    await Promise.all(deletes);
+
+    // Add/overwrite all restaurant docs
+    return testCollectionWithDocs(collection, restaurantDocs);
+  }
+
+  // Resolves in `after` indicating the test suite has finished.
+  // The function passed to withTestDbsPromise will await this promise,
+  // meaning the firestore instance created by withTestDbsSettings will
+  // not be disposed until this is resolved (after the test suite finished).
+  let testSuiteDeferred: Deferred<void> | undefined;
+
+  // Resolves when withTestDbsPromise resolves, indicating that the
+  // resources this method created have been disposed and the next test suite
+  // can begin.
+  let withTestDbsPromise: Promise<unknown> | undefined;
+
+  // Search tests will use restaurant docs
+  before(async () => {
+    // TODO(search) - Migrate this over to IndexTestHelper when search supports the equal filter.
+    // Note: using a static collection of documents for every search test has an inherent risk
+    // of flakiness. Search requires an index on the collection, which is the reason we use a pre-defined
+    // collection. We cannot use the IndexTestHelper because that relies on an equality match to the testID
+    // field. Search currently does not support the equal expression.
+
+    const setupDeferred = new Deferred<void>();
+    testSuiteDeferred = new Deferred<void>();
+    withTestDbsPromise = withTestDb(async firestoreInstance => {
+      firestore = firestoreInstance;
+      restaurantsCollection = collection(firestore, 'SearchIntegrationTests');
+      await setupRestaurantDocs(restaurantsCollection);
+      setupDeferred.resolve();
+
+      return testSuiteDeferred?.promise;
+    });
+
+    await setupDeferred.promise;
+  });
+
+  after(async () => {
+    testSuiteDeferred?.resolve();
+    await withTestDbsPromise;
+  });
+
+  describe('search stage', () => {
+    describe('DISABLE query expansion', () => {
+      describe('query', () => {
+        // TODO(search) enable with backend support
+        // it('all search features', async () => {
+        //   const queryLocation = new GeoPoint(0, 0);
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         documentMatches('waffles'),
+        //         field('description').matches('breakfast'),
+        //         field('location').geoDistance(queryLocation).lessThan(1000),
+        //         field('avgPrice').between(10, 20)
+        //       ),
+        //       select: [
+        //         field('title'),
+        //         field('menu'),
+        //         field('description'),
+        //         field('location').geoDistance(queryLocation).as('distance')
+        //       ],
+        //       addFields: [score().as('searchScore')],
+        //       offset: 0,
+        //       retrievalDepth: 1000,
+        //       limit: 50,
+        //       sort: [field('location').geoDistance(queryLocation).ascending()],
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle');
+        // });
+
+        it('search full document', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('waffles')
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'goldenWaffle');
+        });
+
+        // TODO(search) enable with backend support
+        // it('search a specific field', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: field('menu').matches('waffles'),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle');
+        // });
+
+        it('geo near query', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: field('location')
+                .geoDistance(new GeoPoint(39.6985, -105.024))
+                .lessThanOrEqual(1000 /* m */)
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'solTacos');
+        });
+
+        // TODO(search) enable with backend support
+        // it('conjunction of text search predicates', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         field('menu').matches('waffles'),
+        //         field('description').matches('diner')
+        //       ),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+        // });
+
+        // TODO(search) enable with backend support
+        // it('conjunction of text search and geo near', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         field('menu').matches('tacos'),
+        //         field('location')
+        //           .geoDistance(new GeoPoint(39.6985, -105.024))
+        //           .lessThan(10_000 /* meters */)
+        //       ),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'solTacos');
+        // });
+
+        it('negate match', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('coffee -waffles')
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'sunnySideUp');
+        });
+
+        // TODO(search) enable with backend support
+        // it('rquery search the document with conjunction and disjunction', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: documentMatches('(waffles OR pancakes) AND coffee'),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+        // });
+
+        it('rquery as query param', async () => {
+          const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
+            query: 'chicken wings'
+            // queryEnhancement: 'disabled'
+          });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'eastsideChicken');
+        });
+
+        // TODO(search) enable with backend support
+        // it('rquery supports field paths', async () => {
+        //   const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
+        //     query:
+        //       'menu:(waffles OR pancakes) AND description:"breakfast all day"',
+        //     queryEnhancement: 'disabled'
+        //   });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'sunnySideUp');
+        // });
+
+        // TODO(search) enable with backend support
+        // it('conjunction of rquery and expression', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: and(
+        //         documentMatches('tacos'),
+        //         field('average_price_per_person').between(8, 15)
+        //       ),
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(snapshot, 'solTacos');
+        // });
+      });
+
+      describe('addFields', () => {
+        it('supports score', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('waffles'),
+              addFields: [score().as('searchScore')]
+              // queryEnhancement: 'disabled'
+            })
+            .select('name', 'searchScore');
+
+          const snapshot = await execute(ppl);
+          expect(snapshot.results.length).to.equal(1);
+          expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
+          expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+        });
+
+        // TODO(search) enable with backend support
+        // it('supports multiple fields', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: documentMatches('waffles'),
+        //       addFields: [
+        //         score().as('searchScore'),
+        //         field('menu').snippet('waffles').as('snippet')
+        //       ],
+        //       queryEnhancement: 'disabled'
+        //     })
+        //     .select('name', 'searchScore', 'snippet');
+        //
+        //   const snapshot = await execute(ppl);
+        //   expect(snapshot.results.length).to.equal(1);
+        //   expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
+        //   expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+        //   expect(snapshot.results[0].get('snippet')?.length).to.be.greaterThan(
+        //     0
+        //   );
+        // });
+      });
+
+      // TODO(search) enable with backend support
+      // describe('select', () => {
+      //   it('topicality score and snippet', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: field('menu').matches('waffles'),
+      //         select: [
+      //           field('name'),
+      //           'location',
+      //           score().as('searchScore'),
+      //           field('menu').snippet('waffles').as('snippet')
+      //         ],
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expect(snapshot.results.length).to.equal(1);
+      //     expect(snapshot.results[0].get('name')).to.equal('The Golden Waffle');
+      //     expect(snapshot.results[0].get('location')).to.equal(
+      //       new GeoPoint(39.7183, -104.9621)
+      //     );
+      //     expect(snapshot.results[0].get('searchScore')).to.be.greaterThan(0);
+      //     expect(snapshot.results[0].get('snippet')?.length).to.be.greaterThan(
+      //       0
+      //     );
+      //     expect(Object.keys(snapshot.results[0].data()).sort()).to.deep.equal([
+      //       'location',
+      //       'name',
+      //       'searchScore',
+      //       'snippet'
+      //     ]);
+      //   });
+      // });
+
+      describe('sort', () => {
+        it('by score', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches('tacos'),
+              sort: score().descending()
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'eastsideTacos', 'solTacos');
+        });
+
+        it('by distance', async () => {
+          const queryLocation = new GeoPoint(39.6985, -105.024);
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: field('location')
+                .geoDistance(queryLocation)
+                .lessThanOrEqual(5600),
+              sort: field('location').geoDistance(queryLocation).ascending()
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(
+            snapshot,
+            'solTacos',
+            'lotusBlossomThai',
+            'mileHighCatch'
+          );
+        });
+
+        // TODO(search) enable with backend support
+        // it('by multiple orderings', async () => {
+        //   const ppl = firestore
+        //     .pipeline()
+        //     .collection(COLLECTION_NAME)
+        //     .search({
+        //       query: field('menu').matches('tacos OR chicken'),
+        //       sort: [
+        //         field('location')
+        //           .geoDistance(new GeoPoint(39.6985, -105.024))
+        //           .ascending(),
+        //         score().descending()
+        //       ],
+        //       queryEnhancement: 'disabled'
+        //     });
+        //
+        //   const snapshot = await execute(ppl);
+        //   expectResults(
+        //     snapshot,
+        //     'solTacos',
+        //     'eastsideTacos',
+        //     'eastsideChicken'
+        //   );
+        // });
+      });
+
+      // TODO(search) enable with backend support
+      // describe('limit', () => {
+      //   it('limits the number of documents returned', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: constant(true),
+      //         sort: field('location')
+      //           .geoDistance(new GeoPoint(39.6985, -105.024))
+      //           .ascending(),
+      //         limit: 5,
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expectResults(
+      //       snapshot,
+      //       'solTacos',
+      //       'lotusBlossomThai',
+      //       'goldenWaffle'
+      //     );
+      //   });
+      //
+      //   it('limits the number of documents scored', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: field('menu').matches(
+      //           'chicken OR tacos OR fish OR waffles'
+      //         ),
+      //         retrievalDepth: 6,
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expectResults(
+      //       snapshot,
+      //       'eastsideChicken',
+      //       'eastsideTacos',
+      //       'solTacos',
+      //       'mileHighCatch'
+      //     );
+      //   });
+      // });
+
+      // TODO(search) enable with backend support
+      // describe('offset', () => {
+      //   it('skips N documents', async () => {
+      //     const ppl = firestore
+      //       .pipeline()
+      //       .collection(COLLECTION_NAME)
+      //       .search({
+      //         query: constant(true),
+      //         limit: 2,
+      //         offset: 2,
+      //         queryEnhancement: 'disabled'
+      //       });
+      //
+      //     const snapshot = await execute(ppl);
+      //     expectResults(snapshot, 'eastsideChicken', 'eastsideTacos');
+      //   });
+      // });
+    });
+
+    // TODO(search) enable with backend support
+    // describe('REQUIRE query expansion', () => {
+    //   it('search full document', async () => {
+    //     const ppl = firestore
+    //       .pipeline()
+    //       .collection(COLLECTION_NAME)
+    //       .search({
+    //         query: documentMatches('waffles'),
+    //         queryEnhancement: 'required'
+    //       });
+    //
+    //     const snapshot = await execute(ppl);
+    //     expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+    //   });
+    //
+    //   it('search a specific field', async () => {
+    //     const ppl = firestore
+    //       .pipeline()
+    //       .collection(COLLECTION_NAME)
+    //       .search({
+    //         query: field('menu').matches('waffles'),
+    //         queryEnhancement: 'required'
+    //       });
+    //
+    //     const snapshot = await execute(ppl);
+    //     expectResults(snapshot, 'goldenWaffle', 'sunnySideUp');
+    //   });
+    // });
+  });
+
+  // TODO(search) enable with backend support
+  // describe('snippet', () => {
+  //   it('snippet options', async () => {
+  //     const ppl1 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: field('menu').matches('waffles'),
+  //         addFields: [
+  //           field('menu')
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 10
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot1 = await execute(ppl1);
+  //     expect(snapshot1.results.length).to.equal(1);
+  //     expect(snapshot1.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot1.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     const ppl2 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: field('menu').matches('waffles'),
+  //         addFields: [
+  //           field('menu')
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 1000
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot2 = await execute(ppl2);
+  //     expect(snapshot2.results.length).to.equal(1);
+  //     expect(snapshot2.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+  //       snapshot2.results[0].get('snippet')?.length
+  //     );
+  //   });
+  //
+  //   it('snippet on multiple fields', async () => {
+  //     // Get snippet from 1 field
+  //     const ppl1 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: documentMatches('waffle'),
+  //         addFields: [
+  //           field('menu')
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 2000
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot1 = await execute(ppl1);
+  //     expect(snapshot1.results.length).to.equal(1);
+  //     expect(snapshot1.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot1.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     // Get snippet from 2 fields
+  //     const ppl2 = firestore
+  //       .pipeline()
+  //       .collection(COLLECTION_NAME)
+  //       .search({
+  //         query: documentMatches('waffle'),
+  //         addFields: [
+  //           concat(field('menu'), field('description'))
+  //             .snippet({
+  //               rquery: 'waffles',
+  //               maxSnippetWidth: 2000
+  //             })
+  //             .as('snippet')
+  //         ],
+  //         queryEnhancement: 'disabled'
+  //       });
+  //
+  //     const snapshot2 = await execute(ppl2);
+  //     expect(snapshot2.results.length).to.equal(1);
+  //     expect(snapshot2.results[0].get('name')).to.equal('The Golden Waffle');
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(0);
+  //
+  //     // Expect snippet from 2 fields to be longer than snippet from one field
+  //     expect(snapshot2.results[0].get('snippet')?.length).to.be.greaterThan(
+  //       snapshot2.results[0].get('snippet')?.length
+  //     );
+  //   });
+  // });
 });

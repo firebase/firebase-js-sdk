@@ -28,7 +28,7 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { Target } from '../../../src/core/target';
-import { TargetId } from '../../../src/core/types';
+import { RemoteTargetId, TargetId } from '../../../src/core/types';
 import { IndexBackfiller } from '../../../src/local/index_backfiller';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -302,7 +302,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
       query('coll', filter('a', '==', 1))
     );
     await test.applyRemoteEvent(
-      docUpdateRemoteEvent(doc('coll/a', 10, { a: 1 }), [targetId])
+      docUpdateRemoteEvent(doc('coll/a', 10, { a: 1 }), [
+        targetId
+      ] as RemoteTargetId[])
     );
 
     await test.backfillIndexes();
@@ -334,7 +336,9 @@ describe('LocalStore w/ IndexedDB Persistence (Non generic)', () => {
     test.assertQueryReturned('coll/a');
 
     await test.applyRemoteEvent(
-      docUpdateRemoteEvent(deletedDoc('coll/a', 0), [targetId])
+      docUpdateRemoteEvent(deletedDoc('coll/a', 0), [
+        targetId
+      ] as RemoteTargetId[])
     );
 
     // No backfill needed for deleted document.

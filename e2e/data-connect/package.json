@@ -16,6 +16,6 @@
     "typescript": "5.5.4"
   },
   "dependencies": {
-    "firebase": "11.8.1"
+    "firebase": "latest"
   }
 }

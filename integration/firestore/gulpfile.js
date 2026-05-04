@@ -48,7 +48,8 @@ function copyTests() {
         testBase + '/integration/util/settings.ts',
         testBase + '/integration/util/testing_hooks_util.ts',
         testBase + '/util/equality_matcher.ts',
-        testBase + '/util/promise.ts'
+        testBase + '/util/promise.ts',
+        testBase + '/util/mocha_extensions.ts'
       ],
       { base: '../../packages/firestore' }
     )

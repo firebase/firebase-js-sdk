@@ -11,12 +11,12 @@
 *       @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
-packages/database-compat @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
-packages/database-types @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database-compat @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
+packages/database-types @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
 
 # Data Connect Code
-packages/data-connect @maneesht @aashishpatil-g @firebase/jssdk-global-approvers
+packages/data-connect @stephenarosaj @dconeybe @aashishpatil-g @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers

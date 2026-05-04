@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,66 +15,97 @@
  * limitations under the License.
  */
 
-import { ErrorDetails, RequestOptions, AIErrorCode } from '../types';
+import { SingleRequestOptions, AIErrorCode, ErrorDetails } from '../types';
 import { AIError } from '../errors';
 import { ApiSettings } from '../types/internal';
 import {
-  DEFAULT_API_VERSION,
   DEFAULT_DOMAIN,
   DEFAULT_FETCH_TIMEOUT_MS,
+  HYBRID_TAG,
   LANGUAGE_TAG,
   PACKAGE_VERSION
 } from '../constants';
 import { logger } from '../logger';
-import { GoogleAIBackend, VertexAIBackend } from '../backend';
-import { BackendType } from '../public-types';
+import { BackendType, InferenceMode } from '../public-types';
 
-export enum Task {
+export const TIMEOUT_EXPIRED_MESSAGE = 'Timeout has expired.';
+export const ABORT_ERROR_NAME = 'AbortError';
+
+export const enum Task {
   GENERATE_CONTENT = 'generateContent',
   STREAM_GENERATE_CONTENT = 'streamGenerateContent',
   COUNT_TOKENS = 'countTokens',
   PREDICT = 'predict'
 }
 
-export class RequestUrl {
+export const enum ServerPromptTemplateTask {
+  TEMPLATE_GENERATE_CONTENT = 'templateGenerateContent',
+  TEMPLATE_STREAM_GENERATE_CONTENT = 'templateStreamGenerateContent',
+  TEMPLATE_PREDICT = 'templatePredict'
+}
+
+interface BaseRequestURLParams {
+  apiSettings: ApiSettings;
+  stream: boolean;
+  singleRequestOptions?: SingleRequestOptions;
+}
+
+/**
+ * Parameters used to construct the URL of a request to use a model.
+ */
+interface ModelRequestURLParams extends BaseRequestURLParams {
+  task: Task;
+  model: string;
+  templateId?: never;
+}
+
+/**
+ * Parameters used to construct the URL of a request to use server side prompt templates.
+ */
+interface TemplateRequestURLParams extends BaseRequestURLParams {
+  task: ServerPromptTemplateTask;
+  templateId: string;
+  model?: never;
+}
+
+export class RequestURL {
   constructor(
-    public model: string,
-    public task: Task,
-    public apiSettings: ApiSettings,
-    public stream: boolean,
-    public requestOptions?: RequestOptions
+    public readonly params: ModelRequestURLParams | TemplateRequestURLParams
   ) {}
+
   toString(): string {
     const url = new URL(this.baseUrl); // Throws if the URL is invalid
-    url.pathname = `/${this.apiVersion}/${this.modelPath}:${this.task}`;
+    url.pathname = this.pathname;
     url.search = this.queryParams.toString();
     return url.toString();
   }
 
-  private get baseUrl(): string {
-    return this.requestOptions?.baseUrl || `https://${DEFAULT_DOMAIN}`;
-  }
-
-  private get apiVersion(): string {
-    return DEFAULT_API_VERSION; // TODO: allow user-set options if that feature becomes available
-  }
-
-  private get modelPath(): string {
-    if (this.apiSettings.backend instanceof GoogleAIBackend) {
-      return `projects/${this.apiSettings.project}/${this.model}`;
-    } else if (this.apiSettings.backend instanceof VertexAIBackend) {
-      return `projects/${this.apiSettings.project}/locations/${this.apiSettings.backend.location}/${this.model}`;
+  private get pathname(): string {
+    // We need to construct a different URL if the request is for server side prompt templates,
+    // since the URL patterns are different. Server side prompt templates expect a templateId
+    // instead of a model name.
+    if (this.params.templateId) {
+      return `${this.params.apiSettings.backend._getTemplatePath(
+        this.params.apiSettings.project,
+        this.params.templateId
+      )}:${this.params.task}`;
     } else {
-      throw new AIError(
-        AIErrorCode.ERROR,
-        `Invalid backend: ${JSON.stringify(this.apiSettings.backend)}`
-      );
+      return `${this.params.apiSettings.backend._getModelPath(
+        this.params.apiSettings.project,
+        (this.params as ModelRequestURLParams).model
+      )}:${this.params.task}`;
     }
+  }
+
+  private get baseUrl(): string {
+    return (
+      this.params.singleRequestOptions?.baseUrl ?? `https://${DEFAULT_DOMAIN}`
+    );
   }
 
   private get queryParams(): URLSearchParams {
     const params = new URLSearchParams();
-    if (this.stream) {
+    if (this.params.stream) {
       params.set('alt', 'sse');
     }
 
@@ -107,23 +138,34 @@ export class WebSocketUrl {
 /**
  * Log language and "fire/version" to x-goog-api-client
  */
-function getClientHeaders(): string {
+function getClientHeaders(url: RequestURL): string {
   const loggingTags = [];
   loggingTags.push(`${LANGUAGE_TAG}/${PACKAGE_VERSION}`);
   loggingTags.push(`fire/${PACKAGE_VERSION}`);
+  /**
+   * No call would be made if ONLY_ON_DEVICE.
+   * ONLY_IN_CLOUD does not indicate an intention to use hybrid.
+   */
+  if (
+    url.params.apiSettings.inferenceMode === InferenceMode.PREFER_ON_DEVICE ||
+    url.params.apiSettings.inferenceMode === InferenceMode.PREFER_IN_CLOUD
+  ) {
+    // No version
+    loggingTags.push(HYBRID_TAG);
+  }
   return loggingTags.join(' ');
 }
 
-export async function getHeaders(url: RequestUrl): Promise<Headers> {
+export async function getHeaders(url: RequestURL): Promise<Headers> {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
-  headers.append('x-goog-api-client', getClientHeaders());
-  headers.append('x-goog-api-key', url.apiSettings.apiKey);
-  if (url.apiSettings.automaticDataCollectionEnabled) {
-    headers.append('X-Firebase-Appid', url.apiSettings.appId);
+  headers.append('x-goog-api-client', getClientHeaders(url));
+  headers.append('x-goog-api-key', url.params.apiSettings.apiKey);
+  if (url.params.apiSettings.automaticDataCollectionEnabled) {
+    headers.append('X-Firebase-Appid', url.params.apiSettings.appId);
   }
-  if (url.apiSettings.getAppCheckToken) {
-    const appCheckToken = await url.apiSettings.getAppCheckToken();
+  if (url.params.apiSettings.getAppCheckToken) {
+    const appCheckToken = await url.params.apiSettings.getAppCheckToken();
     if (appCheckToken) {
       headers.append('X-Firebase-AppCheck', appCheckToken.token);
       if (appCheckToken.error) {
@@ -134,8 +176,8 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
     }
   }
 
-  if (url.apiSettings.getAuthToken) {
-    const authToken = await url.apiSettings.getAuthToken();
+  if (url.params.apiSettings.getAuthToken) {
+    const authToken = await url.params.apiSettings.getAuthToken();
     if (authToken) {
       headers.append('Authorization', `Firebase ${authToken.accessToken}`);
     }
@@ -144,55 +186,55 @@ export async function getHeaders(url: RequestUrl): Promise<Headers> {
   return headers;
 }
 
-export async function constructRequest(
-  model: string,
-  task: Task,
-  apiSettings: ApiSettings,
-  stream: boolean,
-  body: string,
-  requestOptions?: RequestOptions
-): Promise<{ url: string; fetchOptions: RequestInit }> {
-  const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
-  return {
-    url: url.toString(),
-    fetchOptions: {
+export async function makeRequest(
+  requestUrlParams: TemplateRequestURLParams | ModelRequestURLParams,
+  body: string
+): Promise<Response> {
+  const url = new RequestURL(requestUrlParams);
+  let response;
+
+  const externalSignal = requestUrlParams.singleRequestOptions?.signal;
+  const timeoutMillis =
+    requestUrlParams.singleRequestOptions?.timeout != null &&
+    requestUrlParams.singleRequestOptions.timeout >= 0
+      ? requestUrlParams.singleRequestOptions.timeout
+      : DEFAULT_FETCH_TIMEOUT_MS;
+
+  const internalAbortController = new AbortController();
+  const fetchTimeoutId = setTimeout(() => {
+    internalAbortController.abort(
+      new DOMException(TIMEOUT_EXPIRED_MESSAGE, ABORT_ERROR_NAME)
+    );
+    logger.debug(
+      `Aborting request to ${url} due to timeout (${timeoutMillis}ms)`
+    );
+  }, timeoutMillis);
+
+  // Used to abort the fetch if either the user-defined `externalSignal` is aborted, or if the
+  // internal signal (triggered by timeouts) is aborted.
+  const combinedSignal = AbortSignal.any(
+    externalSignal
+      ? [externalSignal, internalAbortController.signal]
+      : [internalAbortController.signal]
+  );
+
+  if (externalSignal && externalSignal.aborted) {
+    clearTimeout(fetchTimeoutId);
+    throw new DOMException(
+      externalSignal.reason ?? 'Aborted externally before fetch',
+      ABORT_ERROR_NAME
+    );
+  }
+
+  try {
+    const fetchOptions: RequestInit = {
       method: 'POST',
       headers: await getHeaders(url),
+      signal: combinedSignal,
       body
-    }
-  };
-}
+    };
 
-export async function makeRequest(
-  model: string,
-  task: Task,
-  apiSettings: ApiSettings,
-  stream: boolean,
-  body: string,
-  requestOptions?: RequestOptions
-): Promise<Response> {
-  const url = new RequestUrl(model, task, apiSettings, stream, requestOptions);
-  let response;
-  let fetchTimeoutId: string | number | NodeJS.Timeout | undefined;
-  try {
-    const request = await constructRequest(
-      model,
-      task,
-      apiSettings,
-      stream,
-      body,
-      requestOptions
-    );
-    // Timeout is 180s by default
-    const timeoutMillis =
-      requestOptions?.timeout != null && requestOptions.timeout >= 0
-        ? requestOptions.timeout
-        : DEFAULT_FETCH_TIMEOUT_MS;
-    const abortController = new AbortController();
-    fetchTimeoutId = setTimeout(() => abortController.abort(), timeoutMillis);
-    request.fetchOptions.signal = abortController.signal;
-
-    response = await fetch(request.url, request.fetchOptions);
+    response = await fetch(url.toString(), fetchOptions);
     if (!response.ok) {
       let message = '';
       let errorDetails;
@@ -225,7 +267,7 @@ export async function makeRequest(
           `The Firebase AI SDK requires the Firebase AI ` +
             `API ('firebasevertexai.googleapis.com') to be enabled in your ` +
             `Firebase project. Enable this API by visiting the Firebase Console ` +
-            `at https://console.firebase.google.com/project/${url.apiSettings.project}/genai/ ` +
+            `at https://console.firebase.google.com/project/${url.params.apiSettings.project}/ailogic/ ` +
             `and clicking "Get started". If you enabled this API recently, ` +
             `wait a few minutes for the action to propagate to our systems and ` +
             `then retry.`,
@@ -251,7 +293,8 @@ export async function makeRequest(
     if (
       (e as AIError).code !== AIErrorCode.FETCH_ERROR &&
       (e as AIError).code !== AIErrorCode.API_NOT_ENABLED &&
-      e instanceof Error
+      e instanceof Error &&
+      (e as DOMException).name !== ABORT_ERROR_NAME
     ) {
       err = new AIError(
         AIErrorCode.ERROR,
@@ -262,9 +305,10 @@ export async function makeRequest(
 
     throw err;
   } finally {
-    if (fetchTimeoutId) {
-      clearTimeout(fetchTimeoutId);
-    }
+    // When doing streaming requests, this will clear the timeout once the stream begins.
+    // If a timeout it 3000ms, and the stream starts after 300ms and ends after 5000ms, the
+    // timeout will be cleared after 300ms, so it won't abort the request.
+    clearTimeout(fetchTimeoutId);
   }
   return response;
 }

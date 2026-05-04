@@ -419,7 +419,7 @@ export type PersistentSingleTabManagerSettings = {
 /**
  * Creates an instance of `PersistentSingleTabManager`.
  *
- * @param settings Configures the created tab manager.
+ * @param settings - Configures the created tab manager.
  */
 export function persistentSingleTabManager(
   settings: PersistentSingleTabManagerSettings | undefined

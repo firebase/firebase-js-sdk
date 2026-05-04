@@ -1,5 +1,35 @@
 # @firebase/auth
 
+## 1.13.0
+
+### Minor Changes
+
+- [`715c042`](https://github.com/firebase/firebase-js-sdk/commit/715c0424d656b1be2d423c31f12e9ffbaeea2dd5) [#9740](https://github.com/firebase/firebase-js-sdk/pull/9740) (fixes [#9739](https://github.com/firebase/firebase-js-sdk/issues/9739)) - Updated the peer dependency range for @react-native-async-storage/async-storage to support both v2 and v3
+
+## 1.12.2
+
+### Patch Changes
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 1.12.1
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 1.12.0
+
+### Minor Changes
+
+- [`1e406a2`](https://github.com/firebase/firebase-js-sdk/commit/1e406a2b7140b014edac26f0e5179878bb3d821f) [#9410](https://github.com/firebase/firebase-js-sdk/pull/9410) - Upgraded react-native-async-storage peerDependency to v2+.
+
 ## 1.11.1
 
 ### Patch Changes

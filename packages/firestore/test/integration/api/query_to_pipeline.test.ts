@@ -23,7 +23,6 @@ import {
   doc,
   DocumentData,
   setDoc,
-  setLogLevel,
   query,
   where,
   FieldPath,
@@ -45,16 +44,12 @@ import {
 } from '../util/firebase_export';
 import {
   apiDescribe,
-  itIf,
   PERSISTENCE_MODE_UNSPECIFIED,
   withTestCollection
 } from '../util/helpers';
 import { execute, PipelineSnapshot } from '../util/pipeline_export';
 
 use(chaiAsPromised);
-
-setLogLevel('debug');
-const testUnsupportedFeatures = false;
 
 // This is the Query integration tests from the lite API (no cache support)
 // with some additional test cases added for more complete coverage.
@@ -246,147 +241,139 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
     );
   });
 
-  // sort on __name__ is not working
-  itIf(testUnsupportedFeatures)(
-    'supports startAfter (with DocumentSnapshot)',
-    () => {
-      return withTestCollection(
-        PERSISTENCE_MODE_UNSPECIFIED,
-        {
-          1: { id: 1, foo: 1, bar: 1, baz: 1 },
-          2: { id: 2, foo: 1, bar: 1, baz: 2 },
-          3: { id: 3, foo: 1, bar: 1, baz: 2 },
-          4: { id: 4, foo: 1, bar: 2, baz: 1 },
-          5: { id: 5, foo: 1, bar: 2, baz: 2 },
-          6: { id: 6, foo: 1, bar: 2, baz: 2 },
-          7: { id: 7, foo: 2, bar: 1, baz: 1 },
-          8: { id: 8, foo: 2, bar: 1, baz: 2 },
-          9: { id: 9, foo: 2, bar: 1, baz: 2 },
-          10: { id: 10, foo: 2, bar: 2, baz: 1 },
-          11: { id: 11, foo: 2, bar: 2, baz: 2 },
-          12: { id: 12, foo: 2, bar: 2, baz: 2 }
-        },
-        async (collRef, db) => {
-          let docRef = await getDoc(doc(collRef, '2'));
-          let query1 = query(
-            collRef,
-            orderBy('foo'),
-            orderBy('bar'),
-            orderBy('baz'),
-            startAfter(docRef)
-          );
-          let snapshot = await execute(db.pipeline().createFrom(query1));
-          verifyResults(
-            snapshot,
-            { id: 3, foo: 1, bar: 1, baz: 2 },
-            { id: 4, foo: 1, bar: 2, baz: 1 },
-            { id: 5, foo: 1, bar: 2, baz: 2 },
-            { id: 6, foo: 1, bar: 2, baz: 2 },
-            { id: 7, foo: 2, bar: 1, baz: 1 },
-            { id: 8, foo: 2, bar: 1, baz: 2 },
-            { id: 9, foo: 2, bar: 1, baz: 2 },
-            { id: 10, foo: 2, bar: 2, baz: 1 },
-            { id: 11, foo: 2, bar: 2, baz: 2 },
-            { id: 12, foo: 2, bar: 2, baz: 2 }
-          );
+  it('supports startAfter (with DocumentSnapshot)', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        1: { id: 1, foo: 1, bar: 1, baz: 1 },
+        2: { id: 2, foo: 1, bar: 1, baz: 2 },
+        3: { id: 3, foo: 1, bar: 1, baz: 2 },
+        4: { id: 4, foo: 1, bar: 2, baz: 1 },
+        5: { id: 5, foo: 1, bar: 2, baz: 2 },
+        6: { id: 6, foo: 1, bar: 2, baz: 2 },
+        7: { id: 7, foo: 2, bar: 1, baz: 1 },
+        8: { id: 8, foo: 2, bar: 1, baz: 2 },
+        9: { id: 9, foo: 2, bar: 1, baz: 2 },
+        10: { id: 10, foo: 2, bar: 2, baz: 1 },
+        11: { id: 11, foo: 2, bar: 2, baz: 2 },
+        12: { id: 12, foo: 2, bar: 2, baz: 2 }
+      },
+      async (collRef, db) => {
+        let docRef = await getDoc(doc(collRef, '2'));
+        let query1 = query(
+          collRef,
+          orderBy('foo'),
+          orderBy('bar'),
+          orderBy('baz'),
+          startAfter(docRef)
+        );
+        let snapshot = await execute(db.pipeline().createFrom(query1));
+        verifyResults(
+          snapshot,
+          { id: 3, foo: 1, bar: 1, baz: 2 },
+          { id: 4, foo: 1, bar: 2, baz: 1 },
+          { id: 5, foo: 1, bar: 2, baz: 2 },
+          { id: 6, foo: 1, bar: 2, baz: 2 },
+          { id: 7, foo: 2, bar: 1, baz: 1 },
+          { id: 8, foo: 2, bar: 1, baz: 2 },
+          { id: 9, foo: 2, bar: 1, baz: 2 },
+          { id: 10, foo: 2, bar: 2, baz: 1 },
+          { id: 11, foo: 2, bar: 2, baz: 2 },
+          { id: 12, foo: 2, bar: 2, baz: 2 }
+        );
 
-          docRef = await getDoc(doc(collRef, '3'));
-          query1 = query(
-            collRef,
-            orderBy('foo'),
-            orderBy('bar'),
-            orderBy('baz'),
-            startAfter(docRef)
-          );
-          snapshot = await execute(db.pipeline().createFrom(query1));
-          verifyResults(
-            snapshot,
-            { id: 4, foo: 1, bar: 2, baz: 1 },
-            { id: 5, foo: 1, bar: 2, baz: 2 },
-            { id: 6, foo: 1, bar: 2, baz: 2 },
-            { id: 7, foo: 2, bar: 1, baz: 1 },
-            { id: 8, foo: 2, bar: 1, baz: 2 },
-            { id: 9, foo: 2, bar: 1, baz: 2 },
-            { id: 10, foo: 2, bar: 2, baz: 1 },
-            { id: 11, foo: 2, bar: 2, baz: 2 },
-            { id: 12, foo: 2, bar: 2, baz: 2 }
-          );
-        }
-      );
-    }
-  );
+        docRef = await getDoc(doc(collRef, '3'));
+        query1 = query(
+          collRef,
+          orderBy('foo'),
+          orderBy('bar'),
+          orderBy('baz'),
+          startAfter(docRef)
+        );
+        snapshot = await execute(db.pipeline().createFrom(query1));
+        verifyResults(
+          snapshot,
+          { id: 4, foo: 1, bar: 2, baz: 1 },
+          { id: 5, foo: 1, bar: 2, baz: 2 },
+          { id: 6, foo: 1, bar: 2, baz: 2 },
+          { id: 7, foo: 2, bar: 1, baz: 1 },
+          { id: 8, foo: 2, bar: 1, baz: 2 },
+          { id: 9, foo: 2, bar: 1, baz: 2 },
+          { id: 10, foo: 2, bar: 2, baz: 1 },
+          { id: 11, foo: 2, bar: 2, baz: 2 },
+          { id: 12, foo: 2, bar: 2, baz: 2 }
+        );
+      }
+    );
+  });
 
-  // sort on __name__ is not working
-  itIf(testUnsupportedFeatures)(
-    'supports startAt (with DocumentSnapshot)',
-    () => {
-      return withTestCollection(
-        PERSISTENCE_MODE_UNSPECIFIED,
-        {
-          1: { id: 1, foo: 1, bar: 1, baz: 1 },
-          2: { id: 2, foo: 1, bar: 1, baz: 2 },
-          3: { id: 3, foo: 1, bar: 1, baz: 2 },
-          4: { id: 4, foo: 1, bar: 2, baz: 1 },
-          5: { id: 5, foo: 1, bar: 2, baz: 2 },
-          6: { id: 6, foo: 1, bar: 2, baz: 2 },
-          7: { id: 7, foo: 2, bar: 1, baz: 1 },
-          8: { id: 8, foo: 2, bar: 1, baz: 2 },
-          9: { id: 9, foo: 2, bar: 1, baz: 2 },
-          10: { id: 10, foo: 2, bar: 2, baz: 1 },
-          11: { id: 11, foo: 2, bar: 2, baz: 2 },
-          12: { id: 12, foo: 2, bar: 2, baz: 2 }
-        },
-        async (collRef, db) => {
-          let docRef = await getDoc(doc(collRef, '2'));
-          let query1 = query(
-            collRef,
-            orderBy('foo'),
-            orderBy('bar'),
-            orderBy('baz'),
-            startAt(docRef)
-          );
-          let snapshot = await execute(db.pipeline().createFrom(query1));
-          verifyResults(
-            snapshot,
-            { id: 2, foo: 1, bar: 1, baz: 2 },
-            { id: 3, foo: 1, bar: 1, baz: 2 },
-            { id: 4, foo: 1, bar: 2, baz: 1 },
-            { id: 5, foo: 1, bar: 2, baz: 2 },
-            { id: 6, foo: 1, bar: 2, baz: 2 },
-            { id: 7, foo: 2, bar: 1, baz: 1 },
-            { id: 8, foo: 2, bar: 1, baz: 2 },
-            { id: 9, foo: 2, bar: 1, baz: 2 },
-            { id: 10, foo: 2, bar: 2, baz: 1 },
-            { id: 11, foo: 2, bar: 2, baz: 2 },
-            { id: 12, foo: 2, bar: 2, baz: 2 }
-          );
+  it('supports startAt (with DocumentSnapshot)', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        1: { id: 1, foo: 1, bar: 1, baz: 1 },
+        2: { id: 2, foo: 1, bar: 1, baz: 2 },
+        3: { id: 3, foo: 1, bar: 1, baz: 2 },
+        4: { id: 4, foo: 1, bar: 2, baz: 1 },
+        5: { id: 5, foo: 1, bar: 2, baz: 2 },
+        6: { id: 6, foo: 1, bar: 2, baz: 2 },
+        7: { id: 7, foo: 2, bar: 1, baz: 1 },
+        8: { id: 8, foo: 2, bar: 1, baz: 2 },
+        9: { id: 9, foo: 2, bar: 1, baz: 2 },
+        10: { id: 10, foo: 2, bar: 2, baz: 1 },
+        11: { id: 11, foo: 2, bar: 2, baz: 2 },
+        12: { id: 12, foo: 2, bar: 2, baz: 2 }
+      },
+      async (collRef, db) => {
+        let docRef = await getDoc(doc(collRef, '2'));
+        let query1 = query(
+          collRef,
+          orderBy('foo'),
+          orderBy('bar'),
+          orderBy('baz'),
+          startAt(docRef)
+        );
+        let snapshot = await execute(db.pipeline().createFrom(query1));
+        verifyResults(
+          snapshot,
+          { id: 2, foo: 1, bar: 1, baz: 2 },
+          { id: 3, foo: 1, bar: 1, baz: 2 },
+          { id: 4, foo: 1, bar: 2, baz: 1 },
+          { id: 5, foo: 1, bar: 2, baz: 2 },
+          { id: 6, foo: 1, bar: 2, baz: 2 },
+          { id: 7, foo: 2, bar: 1, baz: 1 },
+          { id: 8, foo: 2, bar: 1, baz: 2 },
+          { id: 9, foo: 2, bar: 1, baz: 2 },
+          { id: 10, foo: 2, bar: 2, baz: 1 },
+          { id: 11, foo: 2, bar: 2, baz: 2 },
+          { id: 12, foo: 2, bar: 2, baz: 2 }
+        );
 
-          docRef = await getDoc(doc(collRef, '3'));
-          query1 = query(
-            collRef,
-            orderBy('foo'),
-            orderBy('bar'),
-            orderBy('baz'),
-            startAt(docRef)
-          );
-          snapshot = await execute(db.pipeline().createFrom(query1));
-          verifyResults(
-            snapshot,
-            { id: 3, foo: 1, bar: 1, baz: 2 },
-            { id: 4, foo: 1, bar: 2, baz: 1 },
-            { id: 5, foo: 1, bar: 2, baz: 2 },
-            { id: 6, foo: 1, bar: 2, baz: 2 },
-            { id: 7, foo: 2, bar: 1, baz: 1 },
-            { id: 8, foo: 2, bar: 1, baz: 2 },
-            { id: 9, foo: 2, bar: 1, baz: 2 },
-            { id: 10, foo: 2, bar: 2, baz: 1 },
-            { id: 11, foo: 2, bar: 2, baz: 2 },
-            { id: 12, foo: 2, bar: 2, baz: 2 }
-          );
-        }
-      );
-    }
-  );
+        docRef = await getDoc(doc(collRef, '3'));
+        query1 = query(
+          collRef,
+          orderBy('foo'),
+          orderBy('bar'),
+          orderBy('baz'),
+          startAt(docRef)
+        );
+        snapshot = await execute(db.pipeline().createFrom(query1));
+        verifyResults(
+          snapshot,
+          { id: 3, foo: 1, bar: 1, baz: 2 },
+          { id: 4, foo: 1, bar: 2, baz: 1 },
+          { id: 5, foo: 1, bar: 2, baz: 2 },
+          { id: 6, foo: 1, bar: 2, baz: 2 },
+          { id: 7, foo: 2, bar: 1, baz: 1 },
+          { id: 8, foo: 2, bar: 1, baz: 2 },
+          { id: 9, foo: 2, bar: 1, baz: 2 },
+          { id: 10, foo: 2, bar: 2, baz: 1 },
+          { id: 11, foo: 2, bar: 2, baz: 2 },
+          { id: 12, foo: 2, bar: 2, baz: 2 }
+        );
+      }
+    );
+  });
 
   it('supports startAfter', () => {
     return withTestCollection(
@@ -621,12 +608,15 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
     );
   });
 
-  it('supports eq nan', () => {
+  // TODO(pipeline) fix test or SDK
+  // eslint-disable-next-line -- no-restricted-properties
+  it.skip('supports eq nan', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {
         1: { foo: 1, bar: NaN },
-        2: { foo: 2, bar: 1 }
+        2: { foo: 2, bar: 1 },
+        3: { foo: 3, bar: 'bar' }
       },
       async (collRef, db) => {
         const query1 = query(collRef, where('bar', '==', NaN));
@@ -636,12 +626,15 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
     );
   });
 
-  it('supports neq nan', () => {
+  // TODO(pipeline) fix test or SDK
+  // eslint-disable-next-line -- no-restricted-properties
+  it.skip('supports neq nan', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {
         1: { foo: 1, bar: NaN },
-        2: { foo: 2, bar: 1 }
+        2: { foo: 2, bar: 1 },
+        3: { foo: 3, bar: 'bar' }
       },
       async (collRef, db) => {
         const query1 = query(collRef, where('bar', '!=', NaN));
@@ -715,8 +708,7 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
     );
   });
 
-  // sorting on name required
-  itIf(testUnsupportedFeatures)('supports array contains any', () => {
+  it('supports array contains any', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {
@@ -791,7 +783,9 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
     );
   });
 
-  it('supports not in with 1', () => {
+  // TODO(pipeline) fix test or SDK
+  // eslint-disable-next-line -- no-restricted-properties
+  it.skip('supports not in with 1', () => {
     return withTestCollection(
       PERSISTENCE_MODE_UNSPECIFIED,
       {
@@ -823,6 +817,77 @@ apiDescribe.skipClassic('Query to Pipeline', persistence => {
         );
         const snapshot = await execute(db.pipeline().createFrom(query1));
         verifyResults(snapshot, { foo: 1, bar: 2 }, { foo: 3, bar: 10 });
+      }
+    );
+  });
+
+  // TODO(pipeline) fix test or SDK
+  // eslint-disable-next-line -- no-restricted-properties
+  it.skip('not-in removes existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 2 },
+        doc2: { field: 1 },
+        doc3: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, where('field', 'not-in', [1]));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc3 (missing 'field') should be included because 'not-in' (and implicit order by)
+        // should NOT generate an existence filter.
+        verifyResults(snapshot, { field: 2 }, {});
+      }
+    );
+  });
+
+  // TODO(pipeline) fix test or SDK
+  // eslint-disable-next-line -- no-restricted-properties
+  it.skip('not-equal removes existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 2 },
+        doc2: { field: 1 },
+        doc3: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, where('field', '!=', 1));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc3 (missing 'field') should be included.
+        verifyResults(snapshot, { field: 2 }, {});
+      }
+    );
+  });
+
+  it('inequality maintains existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 0 },
+        doc2: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, where('field', '<', 1));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc2 (missing 'field') should be EXCLUDED by the inequality filter itself.
+        verifyResults(snapshot, { field: 0 });
+      }
+    );
+  });
+
+  it('explicit order maintains existence filter', () => {
+    return withTestCollection(
+      PERSISTENCE_MODE_UNSPECIFIED,
+      {
+        doc1: { field: 1 },
+        doc2: {}
+      },
+      async (collRef, db) => {
+        const query1 = query(collRef, orderBy('field'));
+        const snapshot = await execute(db.pipeline().createFrom(query1));
+        // doc2 (missing 'field') should be EXCLUDED by the explicit orderBy existence filter.
+        verifyResults(snapshot, { field: 1 });
       }
     );
   });

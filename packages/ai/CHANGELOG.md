@@ -1,5 +1,92 @@
 # @firebase/ai
 
+## 2.11.1
+
+### Patch Changes
+
+- [`23ab5b9`](https://github.com/firebase/firebase-js-sdk/commit/23ab5b9dadb0451e855740a48f4cb12d29091a70) [#9817](https://github.com/firebase/firebase-js-sdk/pull/9817) - Update code execution and URL context features to reflect that they are generally available and no longer public preview.
+
+- [`6db5af4`](https://github.com/firebase/firebase-js-sdk/commit/6db5af46649382ee3ed73ab4e8f69abc5f9a33aa) [#9840](https://github.com/firebase/firebase-js-sdk/pull/9840) (fixes [#9832](https://github.com/firebase/firebase-js-sdk/issues/9832)) - Fix `TemplateChatSession` type so it does not error on TypeScript build. See Github issue #9832.
+
+## 2.11.0
+
+### Minor Changes
+
+- [`cccb6d0`](https://github.com/firebase/firebase-js-sdk/commit/cccb6d058cc2dac5495b797740697902ddfd4a93) [#9771](https://github.com/firebase/firebase-js-sdk/pull/9771) - [deprecated] All Imagen models are deprecated and will shut down as early as June 2026. As a replacement, you can [migrate your apps to use Gemini Image models (the "Nano Banana" models)](https://firebase.google.com/docs/ai-logic/imagen-models-migration).
+
+- [`6cbe865`](https://github.com/firebase/firebase-js-sdk/commit/6cbe86569cc49ed12e9e53173bb66e8624bc8d6e) [#9816](https://github.com/firebase/firebase-js-sdk/pull/9816) - Deprecate `topK` and `temperature` properties for hybrid inference mode.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add `startChat()` for `TemplateGenerativeModel`.
+
+- [`9c8e864`](https://github.com/firebase/firebase-js-sdk/commit/9c8e8640e5ba91f2a3b1aa9229059dc35d0c427e) [#9763](https://github.com/firebase/firebase-js-sdk/pull/9763) - Add automatic function calling and chat history for server prompt templates.
+
+### Patch Changes
+
+- [`f87c15e`](https://github.com/firebase/firebase-js-sdk/commit/f87c15e97af9913182ebaa1afb94a3fe802e04f4) [#9791](https://github.com/firebase/firebase-js-sdk/pull/9791) (fixes [#9792](https://github.com/firebase/firebase-js-sdk/issues/9792)) - Fixed a bug that causes the model to error if the user specifies `responseSchema` or `responseJsonSchema`.
+
+## 2.10.0
+
+### Minor Changes
+
+- [`843a8d7`](https://github.com/firebase/firebase-js-sdk/commit/843a8d7892beb27e6bb62bb6331fe03aef97c57e) [#9693](https://github.com/firebase/firebase-js-sdk/pull/9693) (fixes [#9625](https://github.com/firebase/firebase-js-sdk/issues/9625)) - Added `responseJsonSchema` to `GenerationConfig`.
+
+### Patch Changes
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 2.9.0
+
+### Minor Changes
+
+- [`47f8521`](https://github.com/firebase/firebase-js-sdk/commit/47f85219d570f05c196e0085f2892d1297308fed) [#9489](https://github.com/firebase/firebase-js-sdk/pull/9489) - Added automatic function calling capability when using `ChatSession`.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 2.8.0
+
+### Minor Changes
+
+- [`8123231`](https://github.com/firebase/firebase-js-sdk/commit/8123231a1e7030400ac362e13d4cafb8d40f5d4c) [#9461](https://github.com/firebase/firebase-js-sdk/pull/9461) - AI Logic: Extend the `LiveSession.receive()` return types to include a `LiveServiceGoingAwayNotice`
+  which signifies that the service will soon close the session.
+
+- [`f9254b6`](https://github.com/firebase/firebase-js-sdk/commit/f9254b6d28cc086a763d7fed42a59d6d2199aae8) [#9475](https://github.com/firebase/firebase-js-sdk/pull/9475) - Remove "preview" tags from code execution and URL context documentation.
+
+- [`2e74329`](https://github.com/firebase/firebase-js-sdk/commit/2e74329868f90e92ac8a32d131aa9dd9226ccb59) [#9462](https://github.com/firebase/firebase-js-sdk/pull/9462) - Add params on `UsageMetadata` that provide cache-related usage data when the implicit caching feature is used.
+
+### Patch Changes
+
+- [`691a506`](https://github.com/firebase/firebase-js-sdk/commit/691a506ecaa10ac3f0354313f5de5a47f4c85199) [#9469](https://github.com/firebase/firebase-js-sdk/pull/9469) - Internal: Add tag to log requests made to cloud while in hybrid mode.
+
+## 2.7.0
+
+### Minor Changes
+
+- [`2ecf78b`](https://github.com/firebase/firebase-js-sdk/commit/2ecf78b4f049b2e937cda911c00d549f25c628a8) [#8890](https://github.com/firebase/firebase-js-sdk/pull/8890) (fixes [#8859](https://github.com/firebase/firebase-js-sdk/issues/8859)) - Add support for `AbortSignal`, allowing requests to be aborted.
+
+- [`5579b38`](https://github.com/firebase/firebase-js-sdk/commit/5579b387ab697347ecd4a29ffed47c4cf808d544) [#9424](https://github.com/firebase/firebase-js-sdk/pull/9424) - Added ability to specify thinking levels in `thinkingConfig`.
+
+- [`f044045`](https://github.com/firebase/firebase-js-sdk/commit/f044045fcde44bf040d62c494712d5d24cdae4b9) [#9440](https://github.com/firebase/firebase-js-sdk/pull/9440) - Update default hybrid-in-cloud model to `gemini-2.5-flash-lite`.
+
+## 2.6.1
+
+### Patch Changes
+
+- [`bc2b2cd`](https://github.com/firebase/firebase-js-sdk/commit/bc2b2cdeae920ff22aca3414c2a1b79d4a3b1351) [#9399](https://github.com/firebase/firebase-js-sdk/pull/9399) - update the link /genai to /ailogic
+
+- [`5c7430d`](https://github.com/firebase/firebase-js-sdk/commit/5c7430deabb20ddce2a26ea9a565323d2a0f612e) [#9381](https://github.com/firebase/firebase-js-sdk/pull/9381) - Fix `generateContentStream` returning wrong `inferenceSource`.
+
+## 2.6.0
+
+### Minor Changes
+
+- [`f06cbf9`](https://github.com/firebase/firebase-js-sdk/commit/f06cbf99b91bdea8d44b18c8ae8fc14b327105cd) [#9351](https://github.com/firebase/firebase-js-sdk/pull/9351) - Add support for server prompt templates.
+
 ## 2.5.0
 
 ### Minor Changes

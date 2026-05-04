@@ -149,7 +149,6 @@ export class FirestoreClient {
      */
     public asyncQueue: AsyncQueue,
     /**
-     * @internal
      * Exposed for testing
      */
     public _databaseInfo: DatabaseInfo,

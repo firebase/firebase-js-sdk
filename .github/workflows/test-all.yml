@@ -14,7 +14,14 @@
 
 name: Test All Packages
 
-on: pull_request
+on: 
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 env:
   # make chromedriver detect installed Chrome version and download the corresponding driver
@@ -73,6 +80,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
+    - uses: actions/checkout@v4
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -98,11 +106,27 @@ jobs:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
       run: yarn ci:coverage
+    - name: Merge and fix coverage files for test-the-rest
+      run: |
+       # Clear out any existing master file just in case
+        > ./lcov-all.info 
+        
+        # Find all LCOV files across all packages
+        find ./packages -type f -name "lcov.info" | while read lcov_file; do
+          # lcov_file looks like: ./packages/analytics/coverage/lcov.info
+          # Extract the package name (the 3rd part of the path split by '/')
+          PKG_NAME=$(echo "$lcov_file" | cut -d'/' -f3)
+          
+          # Fix the path for this specific package and append it to the master file
+          sed "s|SF:src/|SF:packages/$PKG_NAME/src/|g" "$lcov_file" >> ./lcov-all.info
+        done
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ./lcov-all.info
+        flag-name: test-the-rest-coverage
+        parallel: true
       continue-on-error: true
 
   test-auth:
@@ -120,6 +144,7 @@ jobs:
         echo "::warning ::${CHROME_VERSION_MISMATCH_MESSAGE}"
         echo "::warning ::Previously validated version: ${CHROME_VALIDATED_VERSION} vs. Installed version: $chromeVersionString"
         fi
+    - uses: actions/checkout@v4
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -144,11 +169,20 @@ jobs:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
     - name: Generate coverage file
       run: yarn ci:coverage
+    - name: Merge and fix coverage files for test-auth
+      run: |
+        # 1. Smash all Node and Browser coverage files into one giant file
+        find ./packages/auth/coverage -type f -name "lcov.info" -exec cat {} + > ./lcov-all-auth.info
+        
+        # 2. Fix standard Node paths
+        sed -i 's|SF:src/|SF:packages/auth/src/|g' ./lcov-all-auth.info
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./lcov-all.info
+        path-to-lcov: ./lcov-all-auth.info
+        flag-name: test-auth-coverage
+        parallel: true
       continue-on-error: true
 
   test-firestore:
@@ -160,6 +194,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
+    - uses: actions/checkout@v4
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -184,11 +219,20 @@ jobs:
         EXPERIMENTAL_MODE: true
     - name: Generate coverage file
       run: yarn ci:coverage
+    - name: Merge and fix coverage files for test-firestore
+      run: |
+        # 1. Smash all Node and Browser coverage files into one giant file
+        find ./packages/firestore/coverage -type f -name "lcov.info" -exec cat {} + > ./lcov-all-firestore.info
+        
+        # 2. Fix standard Node paths
+        sed -i 's|SF:src/|SF:packages/firestore/src/|g' ./lcov-all-firestore.info
     - name: Run coverage
       uses: coverallsapp/github-action@master
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ./lcov-all.info
+        path-to-lcov: ./lcov-all-firestore.info
+        flag-name: test-firestore-coverage
+        parallel: true
       continue-on-error: true
   test-firestore-integration:
     strategy:
@@ -203,6 +247,7 @@ jobs:
     - name: install Chrome stable
       run: |
         npx @puppeteer/browsers install chrome@stable
+    - uses: actions/checkout@v4
     - name: Download build archive
       uses: actions/download-artifact@v4
       with:
@@ -221,3 +266,14 @@ jobs:
       working-directory: integration/firestore
       env:
         FIREBASE_TOKEN: ${{ secrets.FIREBASE_CLI_TOKEN }}
+
+  coveralls-finish:
+    name: Finalize Coveralls
+    needs: [test-the-rest, test-auth, test-firestore]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        parallel-finished: true

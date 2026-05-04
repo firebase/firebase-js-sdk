@@ -26,6 +26,7 @@ export interface FetchResponse
 |  --- | --- | --- |
 |  [config](./remote-config.fetchresponse.md#fetchresponseconfig) | [FirebaseRemoteConfigObject](./remote-config.firebaseremoteconfigobject.md#firebaseremoteconfigobject_interface) | Defines the map of parameters returned as "entries" in the fetch response body.<p>Only defined for 200 responses. |
 |  [eTag](./remote-config.fetchresponse.md#fetchresponseetag) | string | Defines the ETag response header value.<p>Only defined for 200 and 304 responses. |
+|  [experiments](./remote-config.fetchresponse.md#fetchresponseexperiments) | [FirebaseExperimentDescription](./remote-config.firebaseexperimentdescription.md#firebaseexperimentdescription_interface)<!-- -->\[\] | Metadata for A/B testing and Remote Config Rollout experiments. |
 |  [status](./remote-config.fetchresponse.md#fetchresponsestatus) | number | The HTTP status, which is useful for differentiating success responses with data from those without.<p>The Remote Config client is modeled after the native <code>Fetch</code> interface, so HTTP status is first-class.<p>Disambiguation: the fetch response returns a legacy "state" value that is redundant with the HTTP status code. The former is normalized into the latter. |
 |  [templateVersion](./remote-config.fetchresponse.md#fetchresponsetemplateversion) | number | The version number of the config template fetched from the server. |
 
@@ -51,6 +52,18 @@ Defines the ETag response header value.
 
 ```typescript
 eTag?: string;
+```
+
+## FetchResponse.experiments
+
+Metadata for A/B testing and Remote Config Rollout experiments.
+
+Only defined for 200 responses.
+
+<b>Signature:</b>
+
+```typescript
+experiments?: FirebaseExperimentDescription[];
 ```
 
 ## FetchResponse.status

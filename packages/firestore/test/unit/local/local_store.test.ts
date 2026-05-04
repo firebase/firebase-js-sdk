@@ -34,7 +34,8 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { BatchId, TargetId } from '../../../src/core/types';
+import { Target } from '../../../src/core/target';
+import { BatchId, RemoteTargetId, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';
 import {
@@ -61,6 +62,7 @@ import {
 } from '../../../src/local/local_store_impl';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
+import { TargetData } from '../../../src/local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -100,6 +102,7 @@ import {
   bundledDocuments,
   bundleMetadata,
   byteStringFromString,
+  castRemoteEvent,
   deletedDoc,
   deleteMutation,
   doc,
@@ -1373,17 +1376,24 @@ function genericLocalStoreTests(
     const resumeToken = byteStringFromString('abc');
     const watchChange = new WatchTargetChange(
       WatchTargetChangeState.Current,
-      [targetId],
+      // This test does not use remote_store mapping of target IDs,
+      // so treat the targetId from targetData as a remote target ID.
+      [targetId as RemoteTargetId],
       resumeToken
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getTargetDataForTarget: () => targetData,
+      getTargetDataForTarget: () => targetData as TargetData<RemoteTargetId>,
       getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
-    await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent);
+    // This test does not use remote_store mapping of remote events,
+    // so treat the remote event created by the aggregator as an SDK remote event
+    await localStoreApplyRemoteEventToLocalCache(
+      localStore,
+      castRemoteEvent<TargetId>(remoteEvent)
+    );
 
     // Stop listening so that the query should become inactive (but persistent)
     await localStoreReleaseTarget(
@@ -1409,7 +1419,7 @@ function genericLocalStoreTests(
         localStore,
         queryToTarget(query1)
       );
-      const targetId = targetData.targetId;
+      const targetId = targetData.targetId as RemoteTargetId;
       const resumeToken = byteStringFromString('abc');
 
       const watchChange1 = new WatchTargetChange(
@@ -1419,12 +1429,15 @@ function genericLocalStoreTests(
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData,
+        getTargetDataForTarget: () => targetData as TargetData<RemoteTargetId>,
         getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
-      await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent1);
+      await localStoreApplyRemoteEventToLocalCache(
+        localStore,
+        castRemoteEvent(remoteEvent1)
+      );
 
       const watchChange2 = new WatchTargetChange(
         WatchTargetChangeState.Current,
@@ -1433,12 +1446,15 @@ function genericLocalStoreTests(
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getTargetDataForTarget: () => targetData,
+        getTargetDataForTarget: () => targetData as TargetData<RemoteTargetId>,
         getDatabaseId: () => persistenceHelpers.TEST_DATABASE_ID
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
-      await localStoreApplyRemoteEventToLocalCache(localStore, remoteEvent2);
+      await localStoreApplyRemoteEventToLocalCache(
+        localStore,
+        castRemoteEvent(remoteEvent2)
+      );
 
       // Stop listening so that the query should become inactive (but persistent)
       await localStoreReleaseTarget(
@@ -2471,7 +2487,7 @@ function genericLocalStoreTests(
     await localStoreApplyRemoteEventToLocalCache(
       localStore,
       noChangeEvent(
-        /* targetId= */ targetData.targetId,
+        /* targetId= */ targetData.targetId as RemoteTargetId,
         /* snapshotVersion= */ 10,
         /* resumeToken= */ byteStringFromString('foo')
       )

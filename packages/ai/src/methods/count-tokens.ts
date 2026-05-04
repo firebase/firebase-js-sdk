@@ -19,11 +19,12 @@ import { AIError } from '../errors';
 import {
   CountTokensRequest,
   CountTokensResponse,
+  SingleRequestOptions,
   InferenceMode,
   RequestOptions,
   AIErrorCode
 } from '../types';
-import { Task, makeRequest } from '../requests/request';
+import { makeRequest, Task } from '../requests/request';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
 import { BackendType } from '../public-types';
@@ -33,7 +34,7 @@ export async function countTokensOnCloud(
   apiSettings: ApiSettings,
   model: string,
   params: CountTokensRequest,
-  requestOptions?: RequestOptions
+  singleRequestOptions?: SingleRequestOptions
 ): Promise<CountTokensResponse> {
   let body: string = '';
   if (apiSettings.backend.backendType === BackendType.GOOGLE_AI) {
@@ -43,12 +44,14 @@ export async function countTokensOnCloud(
     body = JSON.stringify(params);
   }
   const response = await makeRequest(
-    model,
-    Task.COUNT_TOKENS,
-    apiSettings,
-    false,
-    body,
-    requestOptions
+    {
+      model,
+      task: Task.COUNT_TOKENS,
+      apiSettings,
+      stream: false,
+      singleRequestOptions
+    },
+    body
   );
   return response.json();
 }

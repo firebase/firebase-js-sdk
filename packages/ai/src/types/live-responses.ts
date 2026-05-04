@@ -23,7 +23,9 @@ import {
 } from './content';
 import {
   AudioTranscriptionConfig,
+  ContextWindowCompressionConfig,
   LiveGenerationConfig,
+  SessionResumptionConfig,
   Tool,
   ToolConfig
 } from './requests';
@@ -88,6 +90,8 @@ export interface _LiveClientSetup {
     systemInstruction?: string | Part | Content;
     inputAudioTranscription?: AudioTranscriptionConfig;
     outputAudioTranscription?: AudioTranscriptionConfig;
+    sessionResumption?: SessionResumptionConfig;
+    contextWindowCompression?: ContextWindowCompressionConfig;
   };
 }
 

@@ -16,7 +16,7 @@
  */
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { RemoteTargetId, TargetId } from '../core/types';
 import { TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
@@ -33,7 +33,7 @@ import { SortedMap } from '../util/sorted_map';
  * state or the set of documents in our watched targets) and documentUpdates
  * (changes to the actual documents).
  */
-export class RemoteEvent {
+export class RemoteEvent<T extends TargetId | RemoteTargetId = TargetId> {
   constructor(
     /**
      * The snapshot version this event brings us up to, or MIN if not set.
@@ -42,13 +42,13 @@ export class RemoteEvent {
     /**
      * A map from target to changes to the target. See TargetChange.
      */
-    readonly targetChanges: Map<TargetId, TargetChange>,
+    readonly targetChanges: Map<T, TargetChange>,
     /**
      * A map of targets that is known to be inconsistent, and the purpose for
      * re-listening. Listens for these targets should be re-established without
      * resume tokens.
      */
-    readonly targetMismatches: SortedMap<TargetId, TargetPurpose>,
+    readonly targetMismatches: SortedMap<T, TargetPurpose>,
     /**
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
@@ -76,7 +76,7 @@ export class RemoteEvent {
     targetId: TargetId,
     current: boolean,
     resumeToken: ByteString
-  ): RemoteEvent {
+  ): RemoteEvent<TargetId> {
     const targetChanges = new Map<TargetId, TargetChange>();
     targetChanges.set(
       targetId,
@@ -86,7 +86,7 @@ export class RemoteEvent {
         resumeToken
       )
     );
-    return new RemoteEvent(
+    return new RemoteEvent<TargetId>(
       SnapshotVersion.min(),
       targetChanges,
       new SortedMap<TargetId, TargetPurpose>(primitiveComparator),

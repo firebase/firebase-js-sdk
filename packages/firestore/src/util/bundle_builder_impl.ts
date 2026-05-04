@@ -86,10 +86,10 @@ export class BundleBuilder {
   /**
    * Adds data from a DocumentSnapshot to the bundle.
    * @internal
-   * @param docBundleData A DocumentSnapshotBundleData containing information from the
+   * @param docBundleData - A DocumentSnapshotBundleData containing information from the
    * DocumentSnapshot. Note we cannot accept a DocumentSnapshot directly due to a circular
    * dependency error.
-   * @param queryName The name of the QuerySnapshot if this document is part of a Query.
+   * @param queryName - The name of the QuerySnapshot if this document is part of a Query.
    */
   addBundleDocument(
     docBundleData: DocumentSnapshotBundleData,
@@ -134,7 +134,7 @@ export class BundleBuilder {
   /**
    * Adds data from a QuerySnapshot to the bundle.
    * @internal
-   * @param docBundleData A QuerySnapshotBundleData containing information from the
+   * @param docBundleData - A QuerySnapshotBundleData containing information from the
    * QuerySnapshot. Note we cannot accept a QuerySnapshot directly due to a circular
    * dependency error.
    */
@@ -168,7 +168,7 @@ export class BundleBuilder {
    * Convert data from a DocumentSnapshot into the serialized form within a bundle.
    * @private
    * @internal
-   * @param docBundleData a DocumentSnapshotBundleData containing the data required to
+   * @param docBundleData - a DocumentSnapshotBundleData containing the data required to
    * serialize a document.
    */
   private toBundleDocument(
@@ -195,7 +195,7 @@ export class BundleBuilder {
    * of the element.
    * @private
    * @internal
-   * @param bundleElement A ProtoBundleElement that is expected to be Proto3 JSON compatible.
+   * @param bundleElement - A ProtoBundleElement that is expected to be Proto3 JSON compatible.
    */
   private lengthPrefixedString(bundleElement: ProtoBundleElement): string {
     const str = JSON.stringify(bundleElement);

@@ -38,13 +38,25 @@ import {
 } from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
-import { WebSocketHandlerImpl } from './websocket';
+import { TemplateGenerativeModel } from './models/template-generative-model';
+import { TemplateImagenModel } from './models/template-imagen-model';
+import { logger } from './logger';
 
+export { TemplateChatSession } from './public-types';
 export { ChatSession } from './methods/chat-session';
+export { ChatSessionBase } from './methods/chat-session-base';
 export { LiveSession } from './methods/live-session';
 export * from './requests/schema-builder';
 export { ImagenImageFormat } from './requests/imagen-image-format';
-export { AIModel, GenerativeModel, LiveGenerativeModel, ImagenModel, AIError };
+export {
+  AIModel,
+  GenerativeModel,
+  LiveGenerativeModel,
+  ImagenModel,
+  TemplateGenerativeModel,
+  TemplateImagenModel,
+  AIError
+};
 export { Backend, VertexAIBackend, GoogleAIBackend } from './backend';
 export {
   startAudioConversation,
@@ -107,6 +119,12 @@ export function getAI(app: FirebaseApp = getApp(), options?: AIOptions): AI {
   return aiInstance;
 }
 
+const hybridParamKeys: Array<keyof HybridParams> = [
+  'mode',
+  'onDeviceParams',
+  'inCloudParams'
+];
+
 /**
  * Returns a {@link GenerativeModel} class with methods for inference
  * and other functionality.
@@ -122,6 +140,18 @@ export function getGenerativeModel(
   const hybridParams = modelParams as HybridParams;
   let inCloudParams: ModelParams;
   if (hybridParams.mode) {
+    for (const param of Object.keys(modelParams)) {
+      if (!hybridParamKeys.includes(param as keyof HybridParams)) {
+        logger.warn(
+          `When a hybrid inference mode is specified (mode is currently set` +
+            ` to ${hybridParams.mode}), "${param}" cannot be ` +
+            `configured at the top level. Configuration for in-cloud and ` +
+            `on-device must be done separately in inCloudParams and onDeviceParams. ` +
+            `Configuration values set outside of inCloudParams and onDeviceParams will` +
+            ` be ignored.`
+        );
+      }
+    }
     inCloudParams = hybridParams.inCloudParams || {
       model: DEFAULT_HYBRID_IN_CLOUD_MODEL
     };
@@ -146,13 +176,26 @@ export function getGenerativeModel(
     hybridParams.onDeviceParams
   );
 
-  return new GenerativeModel(ai, inCloudParams, requestOptions, chromeAdapter);
+  const generativeModel = new GenerativeModel(
+    ai,
+    inCloudParams,
+    requestOptions,
+    chromeAdapter
+  );
+
+  generativeModel._apiSettings.inferenceMode = hybridParams.mode;
+  return generativeModel;
 }
 
 /**
  * Returns an {@link ImagenModel} class with methods for using Imagen.
  *
  * Only Imagen 3 models (named `imagen-3.0-*`) are supported.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
  *
  * @param ai - An {@link AI} instance.
  * @param modelParams - Parameters to use when making Imagen requests.
@@ -199,6 +242,40 @@ export function getLiveGenerativeModel(
       `Must provide a model name for getLiveGenerativeModel. Example: getLiveGenerativeModel(ai, { model: 'my-model-name' })`
     );
   }
-  const webSocketHandler = new WebSocketHandlerImpl();
-  return new LiveGenerativeModel(ai, modelParams, webSocketHandler);
+  return new LiveGenerativeModel(ai, modelParams);
+}
+
+/**
+ * Returns a {@link TemplateGenerativeModel} class for executing server-side
+ * templates.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param requestOptions - Additional options to use when making requests.
+ *
+ * @beta
+ */
+export function getTemplateGenerativeModel(
+  ai: AI,
+  requestOptions?: RequestOptions
+): TemplateGenerativeModel {
+  return new TemplateGenerativeModel(ai, requestOptions);
+}
+
+/**
+ * Returns a {@link TemplateImagenModel} class for executing server-side
+ * Imagen templates.
+ *
+ * @deprecated All Imagen models are deprecated and will shut down as
+ * early as June 2026. As a replacement, you can
+ * {@link https://firebase.google.com/docs/ai-logic/imagen-models-migration |
+ * migrate your apps to use Gemini Image models (the "Nano Banana" models)}.
+ *
+ * @param ai - An {@link AI} instance.
+ * @param requestOptions - Additional options to use when making requests.
+ */
+export function getTemplateImagenModel(
+  ai: AI,
+  requestOptions?: RequestOptions
+): TemplateImagenModel {
+  return new TemplateImagenModel(ai, requestOptions);
 }

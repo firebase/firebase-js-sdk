@@ -33,13 +33,16 @@ export function registerDataConnect(variant?: string): void {
   _registerComponent(
     new Component(
       'data-connect',
-      (container, { instanceIdentifier: settings, options }) => {
+      (container, { instanceIdentifier: connectorConfigStr, options }) => {
         const app = container.getProvider('app').getImmediate()!;
         const authProvider = container.getProvider('auth-internal');
         const appCheckProvider = container.getProvider('app-check-internal');
         let newOpts = options as ConnectorConfig;
-        if (settings) {
-          newOpts = JSON.parse(settings);
+        if (connectorConfigStr) {
+          newOpts = {
+            ...JSON.parse(connectorConfigStr),
+            ...newOpts
+          };
         }
         if (!app.options.projectId) {
           throw new DataConnectError(

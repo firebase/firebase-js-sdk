@@ -5,7 +5,7 @@
   "description": "Generated SDK For default",
   "license": "Apache-2.0",
   "engines": {
-    "node": " >=22.0.0"
+    "node": " >=18.0"
   },
   "typings": "index.d.ts",
   "module": "esm/index.esm.js",
@@ -20,6 +20,6 @@
     "./package.json": "./package.json"
   },
   "peerDependencies": {
-    "firebase": "^10.14.0 || ^11.3.0"
+    "firebase": "^10.14.0 || ^11.3.0 || ^12.0.0"
   }
 }

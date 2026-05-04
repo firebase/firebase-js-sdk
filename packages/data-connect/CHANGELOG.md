@@ -1,5 +1,45 @@
 ## Unreleased
 
+## 0.6.0
+
+### Minor Changes
+
+- [`34c63bf`](https://github.com/firebase/firebase-js-sdk/commit/34c63bf1eb353110d61d135a65e083d46e9a6007) [#9822](https://github.com/firebase/firebase-js-sdk/pull/9822) - Fix header names for auth and app check tokens over streaming
+
+- [`87d5cc1`](https://github.com/firebase/firebase-js-sdk/commit/87d5cc1ba0107cb9a7a07bc6033dcec360f78d28) [#9809](https://github.com/firebase/firebase-js-sdk/pull/9809) - Add streaming support for Firebase Data Connect.
+
+## 0.5.0
+
+### Minor Changes
+
+- [`9d33dd6`](https://github.com/firebase/firebase-js-sdk/commit/9d33dd6434dfc70cf835d603c1da09d9663885ec) [#9614](https://github.com/firebase/firebase-js-sdk/pull/9614) - Add validateArgsWithOptions() to Data Connect (internal change, no need to add to public release notes).
+
+### Patch Changes
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
+## 0.4.0
+
+### Minor Changes
+
+- [`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca) [#9439](https://github.com/firebase/firebase-js-sdk/pull/9439) - Add Memory-Based caching to Queries in Firebase Data Connect.
+
+### Patch Changes
+
+- Updated dependencies [[`eebba69`](https://github.com/firebase/firebase-js-sdk/commit/eebba69e912b59e5f097a896e479d139c03d62ca)]:
+  - @firebase/util@1.14.0
+  - @firebase/component@0.7.1
+
+## 0.3.12
+
+### Patch Changes
+
+- [`c47bd71`](https://github.com/firebase/firebase-js-sdk/commit/c47bd7175bf11fba1840ad789294238e0614e57d) [#9349](https://github.com/firebase/firebase-js-sdk/pull/9349) (fixes [#9348](https://github.com/firebase/firebase-js-sdk/issues/9348)) - Fixed issue where onComplete wasn't triggering when the user calls `unsubscribe` on a subscription.
+
 ## 0.3.11
 
 ### Patch Changes

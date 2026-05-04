@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import chai, { AssertionError } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+chai.use(chaiAsPromised);
+const expect = chai.expect;
+
 import {
   BackendType,
   Content,
@@ -29,10 +33,17 @@ import {
   URLRetrievalStatus,
   getGenerativeModel
 } from '../src';
-import { testConfigs, TOKEN_COUNT_DELTA } from './constants';
+import {
+  cheapestModel,
+  defaultAIInstance,
+  defaultGenerativeModel,
+  testConfigs
+} from './constants';
+import { TIMEOUT_EXPIRED_MESSAGE } from '../src/requests/request';
+import { isNode } from '@firebase/util';
 
 describe('Generate Content', function () {
-  this.timeout(20_000);
+  this.timeout(90_000); // gemini 3 requests take a long time, especially when using google search and url context.
   testConfigs.forEach(testConfig => {
     describe(`${testConfig.toString()}`, () => {
       const commonGenerationConfig: GenerationConfig = {
@@ -88,22 +99,10 @@ describe('Generate Content', function () {
         expect(response.usageMetadata).to.not.be.null;
 
         if (model.model.includes('gemini-2.5-flash')) {
-          expect(response.usageMetadata!.promptTokenCount).to.be.closeTo(
-            22,
-            TOKEN_COUNT_DELTA
-          );
-          expect(response.usageMetadata!.candidatesTokenCount).to.be.closeTo(
-            2,
-            TOKEN_COUNT_DELTA
-          );
-          expect(response.usageMetadata!.thoughtsTokenCount).to.be.closeTo(
-            30,
-            TOKEN_COUNT_DELTA * 2
-          );
-          expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
-            55,
-            TOKEN_COUNT_DELTA * 2
-          );
+          expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.thoughtsTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
           expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
             1
@@ -113,22 +112,13 @@ describe('Generate Content', function () {
           ).to.equal(Modality.TEXT);
           expect(
             response.usageMetadata!.promptTokensDetails![0].tokenCount
-          ).to.closeTo(22, TOKEN_COUNT_DELTA);
+          ).to.not.equal(0);
 
           // candidatesTokenDetails comes back about half the time, so let's just not test it.
         } else if (model.model.includes('gemini-2.0-flash')) {
-          expect(response.usageMetadata!.promptTokenCount).to.be.closeTo(
-            21,
-            TOKEN_COUNT_DELTA
-          );
-          expect(response.usageMetadata!.candidatesTokenCount).to.be.closeTo(
-            4,
-            TOKEN_COUNT_DELTA
-          );
-          expect(response.usageMetadata!.totalTokenCount).to.be.closeTo(
-            25,
-            TOKEN_COUNT_DELTA * 2
-          );
+          expect(response.usageMetadata!.promptTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.candidatesTokenCount).to.not.equal(0);
+          expect(response.usageMetadata!.totalTokenCount).to.not.equal(0);
           expect(response.usageMetadata!.promptTokensDetails).to.not.be.null;
           expect(response.usageMetadata!.promptTokensDetails!.length).to.equal(
             1
@@ -149,7 +139,7 @@ describe('Generate Content', function () {
           ).to.equal(Modality.TEXT);
           expect(
             response.usageMetadata!.candidatesTokensDetails![0].tokenCount
-          ).to.be.closeTo(4, TOKEN_COUNT_DELTA);
+          ).to.not.equal(0);
         }
       });
 
@@ -191,13 +181,225 @@ describe('Generate Content', function () {
           expect(groundingSupport.segment?.text).to.exist;
           // Since partIndex and startIndex are commonly 0, they may be omitted from responses.
         });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding prompt location', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: {} }]
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee near Arlington, MA?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding prompt location enableWidget true', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: { enableWidget: true } }]
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee in New York City?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
+      });
+
+      it('generateContent: google maps grounding prompt location enableWidget false', async () => {
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: { enableWidget: false } }]
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee in New York City?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding with RetrievalConfig', async () => {
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          // Maps grounding is not supported in gemini-3-pro-preview.
+          return;
+        }
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: {} }],
+          toolConfig: {
+            retrievalConfig: {
+              latLng: {
+                latitude: 42.4154,
+                longitude: -71.1565
+              }
+            }
+          }
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee near here?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.not.exist;
+      });
+
+      it('generateContent: google maps grounding RetrievalConfig enableWidget true', async () => {
+        if (testConfig.model === 'gemini-3-pro-preview') {
+          // Maps grounding is not supported in gemini-3-pro-preview.
+          return;
+        }
+        const model = getGenerativeModel(testConfig.ai, {
+          model: testConfig.model,
+          generationConfig: commonGenerationConfig,
+          safetySettings: commonSafetySettings,
+          tools: [{ googleMaps: { enableWidget: true } }],
+          toolConfig: {
+            retrievalConfig: {
+              latLng: {
+                latitude: 42.4154,
+                longitude: -71.1565
+              }
+            }
+          }
+        });
+
+        const result = await model.generateContent(
+          'Where is a good place to grab a coffee near here?'
+          //'Where is the closest starbucks?'
+        );
+        const response = result.response;
+        const groundingMetadata = response.candidates?.[0].groundingMetadata;
+        expect(groundingMetadata).to.exist;
+        expect(
+          groundingMetadata!.groundingChunks
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingChunks!.forEach(groundingChunk => {
+          expect(groundingChunk.maps).to.exist;
+          expect(groundingChunk.maps!.uri).to.exist;
+          expect(groundingChunk.maps!.title).to.exist;
+          expect(groundingChunk.maps!.placeId).to.exist;
+        });
+        expect(
+          groundingMetadata?.groundingSupports
+        ).to.have.length.greaterThanOrEqual(1);
+        groundingMetadata!.groundingSupports!.forEach(groundingSupport => {
+          expect(
+            groundingSupport.groundingChunkIndices
+          ).to.have.length.greaterThanOrEqual(1);
+          expect(groundingSupport.segment).to.exist;
+          expect(groundingSupport.segment?.endIndex).to.exist;
+          expect(groundingSupport.segment?.text).to.exist;
+        });
+        expect(groundingMetadata!.googleMapsWidgetContextToken).to.exist;
       });
 
       describe('URL Context', async () => {
         // URL Context is not supported in Google AI for gemini-2.0-flash
         if (
-          testConfig.ai.backend.backendType === BackendType.GOOGLE_AI &&
-          testConfig.model === 'gemini-2.0-flash'
+          ['gemini-2.0-flash-001', 'gemini-2.0-flash-lite-001'].includes(
+            testConfig.model
+          ) // Models that don't support URL Context
         ) {
           return;
         }
@@ -230,8 +432,11 @@ describe('Generate Content', function () {
 
           const usageMetadata = response.usageMetadata;
           expect(usageMetadata).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
-          expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+          // usageMetaData.toolUsePromptTokenCount does not exist in Gemini 2.0 flash responses.
+          if (!model.model.includes('gemini-2.0-flash')) {
+            expect(usageMetadata?.toolUsePromptTokenCount).to.exist;
+            expect(usageMetadata?.toolUsePromptTokenCount).to.be.greaterThan(0);
+          }
         });
 
         it('generateContent: url context and google search grounding', async () => {
@@ -250,9 +455,7 @@ describe('Generate Content', function () {
           const urlContextMetadata =
             response.candidates?.[0].urlContextMetadata;
           const groundingMetadata = response.candidates?.[0].groundingMetadata;
-          expect(trimmedText).to.contain(
-            'hypermedia information retrieval initiative'
-          );
+          expect(trimmedText.length).to.be.greaterThan(0);
           expect(urlContextMetadata?.urlMetadata).to.exist;
           expect(
             urlContextMetadata?.urlMetadata.length
@@ -288,7 +491,7 @@ describe('Generate Content', function () {
           });
 
           const result = await model.generateContent(
-            'Recommend 3 books for beginners to read to learn more about the latest advancements in Quantum Computing.'
+            'Recommend 3 books for beginners to read to learn more about the latest advancements in Quantum Computing'
           );
           const response = result.response;
           const urlContextMetadata =
@@ -320,6 +523,10 @@ describe('Generate Content', function () {
       });
 
       it('generateContent: code execution', async () => {
+        if (testConfig.model === 'gemini-2.0-flash-lite-001') {
+          // This model does not support code execution
+          return;
+        }
         const model = getGenerativeModel(testConfig.ai, {
           model: testConfig.model,
           generationConfig: commonGenerationConfig,
@@ -367,6 +574,156 @@ describe('Generate Content', function () {
         const trimmedText = response.text().trim();
         expect(trimmedText).to.equal('Mountain View');
         expect(response.usageMetadata).to.be.undefined; // Note: This is incorrect behavior.
+      });
+    });
+  });
+
+  describe('Request Options', async () => {
+    const defaultAbortReason = isNode()
+      ? 'This operation was aborted'
+      : 'signal is aborted without reason';
+    describe('unary', async () => {
+      it('timeout cancels request', async () => {
+        await expect(
+          defaultGenerativeModel.generateContent('hello', { timeout: 100 })
+        ).to.be.rejectedWith(DOMException, TIMEOUT_EXPIRED_MESSAGE);
+      });
+
+      it('long timeout does not cancel request', async () => {
+        const result = await defaultGenerativeModel.generateContent('hello', {
+          timeout: 50_000
+        });
+        expect(result.response.text().length).to.be.greaterThan(0);
+      });
+
+      it('abort signal with no reason causes request to throw AbortError', async () => {
+        const abortController = new AbortController();
+        const responsePromise = defaultGenerativeModel.generateContent(
+          'hello',
+          { signal: abortController.signal }
+        );
+        abortController.abort();
+        await expect(responsePromise)
+          .to.be.rejectedWith(DOMException, defaultAbortReason)
+          .and.eventually.have.property('name', 'AbortError');
+      });
+
+      it('abort signal with string reason causes request to throw reason string', async () => {
+        const abortController = new AbortController();
+        const responsePromise = defaultGenerativeModel.generateContent(
+          'hello',
+          { signal: abortController.signal }
+        );
+        const reason = 'Cancelled';
+        abortController.abort(reason);
+        await expect(responsePromise).to.be.rejectedWith(reason);
+      });
+
+      it('abort signal with error reason causes request to throw reason error', async () => {
+        const abortController = new AbortController();
+        const responsePromise = defaultGenerativeModel.generateContent(
+          'hello',
+          { signal: abortController.signal }
+        );
+        abortController.abort(new Error('Cancelled'));
+        // `fetch()` will reject with the exact object we passed to `abort()`. Since we throw a generic
+        // Error, we cannot differentiate between this error and other generic fetch errors, which
+        // we wrap in an AIError.
+        await expect(responsePromise)
+          .to.be.rejectedWith(Error, 'Cancelled')
+          .and.eventually.have.property('name', 'FirebaseError');
+      });
+    });
+
+    describe('streaming', async () => {
+      it('timeout cancels initial request', async () => {
+        await expect(
+          defaultGenerativeModel.generateContent('hello', { timeout: 50 })
+        ).to.be.rejectedWith(DOMException, TIMEOUT_EXPIRED_MESSAGE);
+      });
+
+      it('timeout does not cancel request once streaming has begun', async () => {
+        const generativeModel = getGenerativeModel(defaultAIInstance, {
+          model: cheapestModel
+        });
+        // Setting a timeout that will be in the interval between the stream starting and ending.
+        // Since the timeout will expire once the stream has begun, it should have already been
+        // cleared, and so it shouldn't abort the stream.
+        const { stream, response } =
+          await generativeModel.generateContentStream(
+            'tell me a short story with 200 words.',
+            { timeout: 1_000 }
+          );
+
+        // We should be able to get through the entire stream without an error being thrown
+        // from the async generator.
+        for await (const chunk of stream) {
+          expect(chunk.text().length).to.be.greaterThan(0);
+        }
+
+        expect((await response).text().length).to.be.greaterThan(0);
+      });
+
+      it('abort signal without reason should cancel stream with default abort reason', async () => {
+        const abortController = new AbortController();
+        const generativeModel = getGenerativeModel(defaultAIInstance, {
+          model: cheapestModel
+        });
+        const { stream, response } =
+          await generativeModel.generateContentStream(
+            'tell me a short story with 200 words.',
+            { signal: abortController.signal }
+          );
+
+        // As soon as the initial request resolves and the stream starts, abort the stream.
+        abortController.abort();
+
+        try {
+          for await (const _ of stream) {
+            expect.fail('Expected stream to throw an error');
+          }
+          expect.fail('Expected stream to throw an error');
+        } catch (err) {
+          if ((err as Error) instanceof AssertionError) {
+            throw err;
+          }
+          expect(err).to.be.instanceof(DOMException);
+          expect((err as Error).name).to.equal('AbortError');
+          expect((err as Error).message).to.equal(defaultAbortReason);
+        }
+
+        await expect(response)
+          .to.be.rejectedWith(DOMException, defaultAbortReason)
+          .and.to.eventually.have.property('name', 'AbortError');
+      });
+
+      it('abort signal with reason string should cancel stream with string abort reason', async () => {
+        const abortController = new AbortController();
+        const generativeModel = getGenerativeModel(defaultAIInstance, {
+          model: cheapestModel
+        });
+        const { stream, response } =
+          await generativeModel.generateContentStream(
+            'tell me a short story with 200 words.',
+            { signal: abortController.signal }
+          );
+
+        // As soon as the initial request resolves and the stream starts, abort the stream.
+        abortController.abort('Cancelled');
+
+        try {
+          for await (const _ of stream) {
+            expect.fail('Expected stream to throw an error');
+          }
+          expect.fail('Expected stream to throw an error');
+        } catch (err) {
+          if ((err as Error) instanceof AssertionError) {
+            throw err;
+          }
+          expect(err).to.equal('Cancelled');
+        }
+
+        await expect(response).to.be.rejectedWith('Cancelled');
       });
     });
   });

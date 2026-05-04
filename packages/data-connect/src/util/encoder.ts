@@ -15,9 +15,23 @@
  * limitations under the License.
  */
 
-export type HmacImpl = (obj: unknown) => string;
+export type HmacImpl = (obj: Record<string, unknown>) => string;
 export let encoderImpl: HmacImpl;
+export type DecodeHmacImpl = (s: string) => Record<string, unknown>;
+export let decoderImpl: DecodeHmacImpl;
 export function setEncoder(encoder: HmacImpl): void {
   encoderImpl = encoder;
 }
-setEncoder(o => JSON.stringify(o));
+export function setDecoder(decoder: DecodeHmacImpl): void {
+  decoderImpl = decoder;
+}
+function sortKeysForObj(o: Record<string, unknown>): Record<string, unknown> {
+  return Object.keys(o)
+    .sort()
+    .reduce((accumulator, currentKey) => {
+      accumulator[currentKey] = o[currentKey];
+      return accumulator;
+    }, {} as Record<string, unknown>);
+}
+setEncoder((o: Record<string, unknown>) => JSON.stringify(sortKeysForObj(o)));
+setDecoder(s => sortKeysForObj(JSON.parse(s)));

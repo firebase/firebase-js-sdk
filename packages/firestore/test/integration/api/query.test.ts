@@ -34,7 +34,6 @@ import {
   doc,
   DocumentChange,
   DocumentChangeType,
-  DocumentData,
   documentId,
   enableNetwork,
   endAt,
@@ -74,7 +73,6 @@ import {
   toChangesArray,
   toDataArray,
   withEmptyTestCollection,
-  withRetry,
   withTestCollection,
   withTestDb
 } from '../util/helpers';
@@ -83,8 +81,8 @@ import {
   PipelineResult,
   ResultChange
 } from '../util/pipeline_export';
-import { USE_EMULATOR } from '../util/settings';
-import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
+ import { USE_EMULATOR } from '../util/settings';
+ import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 function results(
   outputs: RealtimePipelineSnapshot | QuerySnapshot
@@ -815,6 +813,7 @@ apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
           err => {
             expect(err.code).to.equal('failed-precondition');
             expect(err.message).to.exist;
+            // @ts-ignore internal API usage
             if (coll.firestore._databaseId.isDefaultDatabase) {
               expect(err.message).to.match(
                 /index.*https:\/\/console\.firebase\.google\.com/

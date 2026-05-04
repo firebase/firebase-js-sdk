@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { DataConnectTransport } from '../network/transport';
+import { DataConnectTransportInterface } from '../network';
 
 import { DataConnect } from './DataConnect';
 import {
@@ -77,7 +77,7 @@ export function mutationRef<Data, Variables>(
  */
 export class MutationManager {
   private _inflight: Array<Promise<unknown>> = [];
-  constructor(private _transport: DataConnectTransport) {}
+  constructor(private _transport: DataConnectTransportInterface) {}
   executeMutation<Data, Variables>(
     mutationRef: MutationRef<Data, Variables>
   ): MutationPromise<Data, Variables> {

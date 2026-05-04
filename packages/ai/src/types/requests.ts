@@ -26,8 +26,11 @@ import {
   HarmBlockMethod,
   HarmBlockThreshold,
   HarmCategory,
+  ImageConfigAspectRatio,
+  ImageConfigImageSize,
   InferenceMode,
-  ResponseModality
+  ResponseModality,
+  ThinkingLevel
 } from './enums';
 import { ObjectSchemaRequest, SchemaRequest } from './schema';
 
@@ -74,6 +77,27 @@ export interface GenerateContentRequest extends BaseParams {
 }
 
 /**
+ * Request sent through {@link TemplateGenerativeModel.generateContent}
+ * @internal
+ */
+export interface TemplateGenerateContentRequest {
+  inputs?: Record<string, unknown>;
+  history?: Content[];
+  tools?: TemplateFunctionDeclarationsTool[];
+  toolConfig?: ToolConfig;
+  [key: string]: unknown;
+}
+
+/**
+ * Internal version of the template generate content request.
+ * @internal
+ */
+export interface TemplateRequestInternal
+  extends Omit<TemplateGenerateContentRequest, 'tools'> {
+  tools?: TemplateFunctionDeclarationsToolInternal[];
+}
+
+/**
  * Safety setting that can be sent as part of request parameters.
  * @public
  */
@@ -88,6 +112,21 @@ export interface SafetySetting {
    * thrown if this property is defined.
    */
   method?: HarmBlockMethod;
+}
+
+/**
+ * Configuration options for generating images with Gemini models.
+ * @public
+ */
+export interface ImageConfig {
+  /**
+   * The aspect ratio of generated images.
+   */
+  aspectRatio?: ImageConfigAspectRatio;
+  /**
+   * The size of the generated images.
+   */
+  imageSize?: ImageConfigImageSize;
 }
 
 /**
@@ -120,6 +159,14 @@ export interface GenerationConfig {
    */
   responseSchema?: TypedSchema | SchemaRequest;
   /**
+   * Output schema of the generated response. This is an alternative to
+   * `responseSchema` that accepts [JSON Schema](https://json-schema.org/).
+   *
+   * If set, `responseSchema` must be omitted, but `responseMimeType`
+   * is required and must be set to `application/json`.
+   */
+  responseJsonSchema?: { [key: string]: unknown };
+  /**
    * Generation modalities to be returned in generation responses.
    *
    * @remarks
@@ -133,6 +180,11 @@ export interface GenerationConfig {
    * Configuration for "thinking" behavior of compatible Gemini models.
    */
   thinkingConfig?: ThinkingConfig;
+  /**
+   * Configuration options for generating images with Gemini models.
+   * @public
+   */
+  imageConfig?: ImageConfig;
 }
 
 /**
@@ -202,6 +254,70 @@ export interface LiveGenerationConfig {
    * "How are you today?", the model may transcribe that output across three messages, broken up as "How a", "re yo", "u today?".
    */
   outputAudioTranscription?: AudioTranscriptionConfig;
+  /**
+   * The context window compression configuration.
+   *
+   * @beta
+   */
+  contextWindowCompression?: ContextWindowCompressionConfig;
+}
+
+/**
+ * Configures the sliding window context compression mechanism.
+ *
+ * @remarks
+ * The sliding window discards content at the beginning of the
+ * context window. The resulting context will always begin at
+ * the start of a `user` role turn. System instructions
+ * will always remain at the start of the result.
+ *
+ * @beta
+ */
+export interface SlidingWindow {
+  /**
+   * The session reduction target, for example, how many tokens the model
+   * should keep.
+   */
+  targetTokens?: number;
+}
+
+/**
+ * Enables context window compression to manage the model's context window.
+ *
+ * @remarks
+ * This mechanism prevents the context from exceeding a given length.
+ *
+ * @beta
+ */
+export interface ContextWindowCompressionConfig {
+  /**
+   * The number of tokens (before running a turn) that triggers the context
+   * window compression.
+   */
+  triggerTokens?: number;
+
+  /**
+   * The sliding window compression mechanism.
+   */
+  slidingWindow?: SlidingWindow;
+}
+
+/**
+ * Configuration for the session resumption mechanism.
+ *
+ * @remarks
+ * When included in the session setup, the server will send
+ * {@link LiveSessionResumptionUpdate} messages in the response stream.
+ *
+ * @beta
+ */
+export interface SessionResumptionConfig {
+  /**
+   * The session resumption handle of the previous session to restore.
+   *
+   * If not present, a new session will be started.
+   */
+  handle?: string;
 }
 
 /**
@@ -213,6 +329,23 @@ export interface StartChatParams extends BaseParams {
   tools?: Tool[];
   toolConfig?: ToolConfig;
   systemInstruction?: string | Part | Content;
+}
+
+/**
+ * Params for {@link TemplateGenerativeModel.startChat}.
+ * @beta
+ */
+export interface StartTemplateChatParams
+  extends Omit<StartChatParams, 'tools'> {
+  /**
+   * The ID of the server-side template to execute.
+   */
+  templateId: string;
+  /**
+   * A key-value map of variables to populate the template with.
+   */
+  templateVariables?: Record<string, unknown>;
+  tools?: TemplateTool[];
 }
 
 /**
@@ -251,6 +384,56 @@ export interface RequestOptions {
    * (used regardless of your chosen Gemini API provider).
    */
   baseUrl?: string;
+  /**
+   * Limits amount of sequential function calls the SDK can make during automatic
+   * function calling, in order to prevent infinite loops. If not specified,
+   * this value defaults to 10.
+   *
+   * When it reaches this limit, it will return the last response received
+   * from the model, whether it is a text response or further function calls.
+   */
+  maxSequentialFunctionCalls?: number;
+}
+
+/**
+ * Options that can be provided per-request.
+ * Extends the base {@link RequestOptions} (like `timeout` and `baseUrl`)
+ * with request-specific controls like cancellation via `AbortSignal`.
+ *
+ * Options specified here will override any default {@link RequestOptions}
+ * configured on a model (for example, {@link GenerativeModel}).
+ *
+ * @public
+ */
+export interface SingleRequestOptions extends RequestOptions {
+  /**
+   * An `AbortSignal` instance that allows cancelling ongoing requests (like `generateContent` or
+   * `generateImages`).
+   *
+   * If provided, calling `abort()` on the corresponding `AbortController`
+   * will attempt to cancel the underlying HTTP request. An `AbortError` will be thrown
+   * if cancellation is successful.
+   *
+   * Note that this will not cancel the request in the backend, so any applicable billing charges
+   * will still be applied despite cancellation.
+   *
+   * @example
+   * ```javascript
+   * const controller = new AbortController();
+   * const model = getGenerativeModel({
+   *   // ...
+   * });
+   * model.generateContent(
+   *   "Write a story about a magic backpack.",
+   *   { signal: controller.signal }
+   * );
+   *
+   * // To cancel request:
+   * controller.abort();
+   * ```
+   * @see https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -259,6 +442,7 @@ export interface RequestOptions {
  */
 export type Tool =
   | FunctionDeclarationsTool
+  | GoogleMapsTool
   | GoogleSearchTool
   | CodeExecutionTool
   | URLContextTool;
@@ -290,6 +474,12 @@ export interface FunctionDeclaration {
    * case-sensitive. For a function with no parameters, this can be left unset.
    */
   parameters?: ObjectSchema | ObjectSchemaRequest;
+  /**
+   * Reference to an actual function to call. Specifying this will cause the
+   * function to be called automatically when requested by the model.
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  functionReference?: Function;
 }
 
 /**
@@ -317,13 +507,35 @@ export interface GoogleSearchTool {
 }
 
 /**
+ * A tool that allows a Gemini model to connect to Google Maps to access and incorporate
+ * location-based information into its responses.
+ *
+ * Important: If using Grounding with Google Maps, you are required to comply with the
+ * "Grounding with Google Maps" usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+ * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+ * section within the Service Specific Terms).
+ *
+ * @public
+ */
+export interface GoogleMapsTool {
+  /**
+   * Specifies the Google Maps configuration.
+   *
+   * When using this feature, you are required to comply with the "Grounding with Google Maps"
+   * usage requirements for your chosen API provider: {@link https://ai.google.dev/gemini-api/terms#grounding-with-google-maps | Gemini Developer API}
+   * or Vertex AI Gemini API (see {@link https://cloud.google.com/terms/service-terms | Service Terms}
+   * section within the Service Specific Terms).
+   */
+  googleMaps: GoogleMaps;
+}
+
+/**
  * A tool that enables the model to use code execution.
  *
- * @beta
+ * @public
  */
 export interface CodeExecutionTool {
   /**
-   * Specifies the Google Search configuration.
    * Currently, this is an empty object, but it's reserved for future configuration options.
    */
   codeExecution: {};
@@ -339,11 +551,23 @@ export interface CodeExecutionTool {
 export interface GoogleSearch {}
 
 /**
+ * Specifies the Google Maps configuration.
+ *
+ * @public
+ */
+export interface GoogleMaps {
+  /*
+   *  If true, include the widget context token in the response.
+   */
+  enableWidget?: boolean;
+}
+
+/**
  * A tool that allows you to provide additional context to the models in the form of public web
  * URLs. By including URLs in your request, the Gemini model will access the content from those
  * pages to inform and enhance its response.
  *
- * @beta
+ * @public
  */
 export interface URLContextTool {
   /**
@@ -355,7 +579,7 @@ export interface URLContextTool {
 /**
  * Specifies the URL Context configuration.
  *
- * @beta
+ * @public
  */
 export interface URLContext {}
 
@@ -380,11 +604,110 @@ export interface FunctionDeclarationsTool {
 }
 
 /**
+ * An object that represents a latitude/longitude pair.
+ * @public
+ */
+export interface LatLng {
+  /**
+   * The latitude in degrees. It must be in the range `[-90.0, +90.0]`.
+   */
+  latitude?: number;
+
+  /**
+   * The longitude in degrees. It must be in the range `[-180.0, +180.0]`.
+   */
+  longitude?: number;
+}
+
+/**
+ * Structured representation of a template function declaration.
+ * Included in this declaration are the function name and parameters. This
+ * `TemplateFunctionDeclaration` is a representation of a block of code that can be used
+ * as a Tool by the model and executed by the client.
+ * Note: Template function declarations do not support description fields.
+ * @beta
+ */
+export interface TemplateFunctionDeclaration {
+  /**
+   * The name of the function to call. Must start with a letter or an
+   * underscore. Must be a-z, A-Z, 0-9, or contain underscores and dashes, with
+   * a max length of 64.
+   */
+  name: string;
+  /**
+   * Description is intentionally unsupported for template function declarations.
+   */
+  description?: never;
+  /**
+   * Optional. Describes the parameters to this function in JSON Schema Object
+   * format. Reflects the Open API 3.03 Parameter Object. Parameter names are
+   * case-sensitive. For a function with no parameters, this can be left unset.
+   */
+  parameters?: ObjectSchema | ObjectSchemaRequest;
+  /**
+   * Reference to an actual function to call. Specifying this will cause the
+   * function to be called automatically when requested by the model.
+   */
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  functionReference?: Function;
+}
+
+/**
+ * @internal
+ */
+export interface TemplateFunctionDeclarationInternal
+  extends Omit<TemplateFunctionDeclaration, 'parameters'> {
+  inputSchema?: ObjectSchema | ObjectSchemaRequest;
+}
+
+/**
+ * A piece of code that enables the system to interact with external systems.
+ * @beta
+ */
+export interface TemplateFunctionDeclarationsTool {
+  /**
+   * Optional. One or more function declarations
+   * to be passed to the server-side template execution.
+   */
+  functionDeclarations?: TemplateFunctionDeclaration[];
+}
+
+/**
+ * The modified interface for the tool that is sent to the backend.
+ * @internal
+ */
+export interface TemplateFunctionDeclarationsToolInternal {
+  /**
+   * Optional. One or more function declarations
+   * to be passed to the server-side template execution.
+   */
+  templateFunctions?: TemplateFunctionDeclarationInternal[];
+}
+
+/**
+ * Defines a tool that a {@link TemplateGenerativeModel} can call
+ * to access external knowledge.
+ * Only function declarations are currently supported for templates.
+ * @beta
+ */
+export type TemplateTool = TemplateFunctionDeclarationsTool;
+
+/**
  * Tool config. This config is shared for all tools provided in the request.
  * @public
  */
 export interface ToolConfig {
   functionCallingConfig?: FunctionCallingConfig;
+  retrievalConfig?: RetrievalConfig;
+}
+
+/**
+ * Tool configuration for `TemplateGenerativeModel`s.
+ * This config is shared for all tools provided in the server prompt template request.
+ * @public
+ */
+export interface TemplateToolConfig {
+  retrievalConfig?: RetrievalConfig;
 }
 
 /**
@@ -393,6 +716,22 @@ export interface ToolConfig {
 export interface FunctionCallingConfig {
   mode?: FunctionCallingMode;
   allowedFunctionNames?: string[];
+}
+
+/**
+ * Configuration options for data retrieval tools.
+ * @public
+ */
+export interface RetrievalConfig {
+  /**
+   * The location of the user.
+   */
+  latLng?: LatLng;
+
+  /**
+   * The language code of the user.
+   */
+  languageCode?: string;
 }
 
 /**
@@ -436,17 +775,43 @@ export interface ThinkingConfig {
   /**
    * The thinking budget, in tokens.
    *
+   * @remarks
    * This parameter sets an upper limit on the number of tokens the model can use for its internal
    * "thinking" process. A higher budget may result in higher quality responses for complex tasks
    * but can also increase latency and cost.
    *
-   * If you don't specify a budget, the model will determine the appropriate amount
-   * of thinking based on the complexity of the prompt.
+   * The range of supported thinking budget values depends on the model.
+   *
+   * <ul>
+   * <li>To use the default thinking budget for a model, leave
+   * this value undefined.</li>
+   *
+   * <li>To disable thinking, when supported by the model, set this value
+   * to `0`.</li>
+   *
+   * <li>To use dynamic thinking, which allows the model to decide on the thinking
+   * budget based on the task, set this value to `-1`.</li>
+   * </ul>
    *
    * An error will be thrown if you set a thinking budget for a model that does not support this
    * feature or if the specified budget is not within the model's supported range.
+   *
+   * The model will also error if `thinkingLevel` and `thinkingBudget` are
+   * both set.
    */
   thinkingBudget?: number;
+
+  /**
+   * If not specified, Gemini will use the model's default dynamic thinking level.
+   *
+   * @remarks
+   * Note: The model will error if `thinkingLevel` and `thinkingBudget` are
+   * both set.
+   *
+   * Important: Gemini 2.5 series models do not support thinking levels; use
+   * `thinkingBudget` to set a thinking budget instead.
+   */
+  thinkingLevel?: ThinkingLevel;
 
   /**
    * Whether to include "thought summaries" in the model's response.

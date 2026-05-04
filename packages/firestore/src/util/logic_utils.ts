@@ -77,8 +77,8 @@ export function computeInExpansion(filter: Filter): Filter {
  * with two elements: a composite filter that performs (A && C), and a composite filter that
  * performs (B && C).
  *
- * @param filter the composite filter to calculate DNF transform for.
- * @return the terms in the DNF transform.
+ * @param filter - the composite filter to calculate DNF transform for.
+ * @returns the terms in the DNF transform.
  */
 export function getDnfTerms(filter: CompositeFilter): Filter[] {
   if (filter.getFilters().length === 0) {

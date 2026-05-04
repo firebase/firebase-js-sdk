@@ -19,6 +19,7 @@ import { getModularInstance } from '@firebase/util';
 
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { firestoreV1ApiClientInterfaces } from '../protos/firestore_proto_api';
 import { arrayEquals } from '../util/misc';
 
 import { Firestore } from './database';
@@ -363,6 +364,23 @@ export class DocumentSnapshot<
         this._document.data.value
       ) as AppModelType;
     }
+  }
+
+  /**
+   * @internal
+   * @private
+   *
+   * Retrieves all fields in the document as a proto Value. Returns `undefined` if
+   * the document doesn't exist.
+   *
+   * @returns An `Object` containing all fields in the document or `undefined`
+   * if the document doesn't exist.
+   */
+  _fieldsProto():
+    | { [key: string]: firestoreV1ApiClientInterfaces.Value }
+    | undefined {
+    // Return a cloned value to prevent manipulation of the Snapshot's data
+    return this._document?.data.clone().value.mapValue.fields ?? undefined;
   }
 
   /**

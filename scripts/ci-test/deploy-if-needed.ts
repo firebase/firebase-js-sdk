@@ -30,6 +30,7 @@ interface DeployOptions {
   token: string;
   cwd: string;
   only?: string;
+  force: boolean;
 }
 
 /**
@@ -67,7 +68,8 @@ async function deployIfNeeded() {
   const deployOptions: DeployOptions = {
     project: config.projectId,
     token,
-    cwd: resolve(root, 'config')
+    cwd: resolve(root, 'config'),
+    force: true
   };
   if (flags.length === 0) {
     console.log(

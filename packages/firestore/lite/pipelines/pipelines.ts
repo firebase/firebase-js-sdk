@@ -8,7 +8,7 @@
  */
 /**
  * @license
- * Copyright 2024 Google LLC
+ * Copyright 2025 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,11 +46,13 @@ export type {
   Primitive,
   FieldValue,
   Bytes,
-  // TODO this should not be part of lite
   SnapshotMetadata
 } from '../index';
 
-export { PipelineSource } from '../../src/lite-api/pipeline-source';
+export {
+  PipelineSource,
+  subcollection
+} from '../../src/lite-api/pipeline-source';
 
 export { OneOf } from '../../src/util/types';
 
@@ -67,10 +69,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -82,14 +86,16 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from '../../src/lite-api/stage_options';
 
 export {
   Expression,
   field,
   and,
-  array,
   constant,
   add,
   subtract,
@@ -107,6 +113,7 @@ export {
   map,
   mod,
   documentId,
+  parent,
   equal,
   notEqual,
   lessThan,
@@ -114,14 +121,33 @@ export {
   lessThanOrEqual,
   greaterThan,
   greaterThanOrEqual,
+  array,
   arrayConcat,
   arrayContains,
   arrayContainsAny,
   arrayContainsAll,
+  arrayFilter,
+  arrayFirst,
+  arrayFirstN,
+  arrayTransform,
+  arrayTransformWithIndex,
+  arrayGet,
+  arraySlice,
+  arrayIndexOf,
+  arrayIndexOfAll,
+  arrayLast,
+  arrayLastIndexOf,
+  arrayLastN,
   arrayLength,
+  arrayMaximum,
+  arrayMaximumN,
+  arrayMinimum,
+  arrayMinimumN,
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -132,6 +158,8 @@ export {
   charLength,
   like,
   regexContains,
+  regexFind,
+  regexFindAll,
   regexMatch,
   stringContains,
   startsWith,
@@ -139,11 +167,27 @@ export {
   toLower,
   toUpper,
   trim,
+  ltrim,
+  rtrim,
+  type,
+  isType,
   stringConcat,
+  stringIndexOf,
+  stringRepeat,
+  stringReplaceAll,
+  stringReplaceOne,
   mapGet,
+  mapSet,
+  mapKeys,
+  mapValues,
+  mapEntries,
   countAll,
   minimum,
   maximum,
+  first,
+  last,
+  arrayAgg,
+  arrayAggDistinct,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -156,9 +200,9 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
-  arrayGet,
   abs,
   sum,
   countDistinct,
@@ -166,22 +210,34 @@ export {
   floor,
   exp,
   pow,
+  rand,
   round,
   collectionId,
   ln,
   log,
   sqrt,
+  trunc,
   stringReverse,
   log10,
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   length,
   arraySum,
   split,
   timestampTruncate,
-  type,
+  variable,
+  currentDocument,
+  timestampExtract,
+  // snippet,
+  // SnippetOptions,
+  score,
+  // matches,
+  documentMatches,
+  geoDistance,
   AliasedExpression,
   Field,
   Constant,
@@ -192,7 +248,9 @@ export {
   Selectable,
   BooleanExpression,
   AggregateFunction,
-  TimeGranularity
+  TimeGranularity,
+  TimePart,
+  TimeUnit
 } from '../../src/lite-api/expressions';
 
 export { Stage } from '../../src/lite-api/stage';

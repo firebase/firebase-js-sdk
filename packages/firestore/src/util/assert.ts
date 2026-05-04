@@ -27,7 +27,7 @@ import { logError } from './log';
  * @example
  * let futureVar = fail('not implemented yet');
  *
- * @param code generate a new unique value with `yarn assertion-id:generate`
+ * @param code - generate a new unique value with `yarn assertion-id:generate`
  * Search for an existing value using `yarn assertion-id:find X`
  */
 export function fail(
@@ -44,7 +44,7 @@ export function fail(
  * @example
  * let futureVar = fail('not implemented yet');
  *
- * @param id generate a new unique value with `yarn assertion-id:generate`
+ * @param id - generate a new unique value with `yarn assertion-id:generate`
  * Search for an existing value using `yarn assertion-id:find X`
  */
 export function fail(id: number, context?: Record<string, unknown>): never;
@@ -95,7 +95,7 @@ function _fail(
  *
  * Messages are stripped in production builds.
  *
- * @param id generate a new unique value with `yarn assertion-idgenerate`.
+ * @param id - generate a new unique value with `yarn assertion-idgenerate`.
  * Search for an existing value using `yarn assertion-id:find X`
  */
 export function hardAssert(
@@ -111,7 +111,7 @@ export function hardAssert(
  *
  * Messages are stripped in production builds.
  *
- * @param id generate a new unique value with `yarn assertion-id:generate`.
+ * @param id - generate a new unique value with `yarn assertion-id:generate`.
  * Search for an existing value using `yarn assertion-id:find X`
  */
 export function hardAssert(

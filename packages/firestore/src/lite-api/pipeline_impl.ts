@@ -20,6 +20,8 @@ import {
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
 import { invokeExecutePipeline } from '../remote/datastore';
+import { Code, FirestoreError } from '../util/error';
+import { cast } from '../util/input_validation';
 
 import { getDatastore } from './components';
 import { Firestore } from './database';
@@ -29,17 +31,12 @@ import { PipelineSource } from './pipeline-source';
 import { DocumentReference } from './reference';
 import { LiteUserDataWriter } from './reference_impl';
 import { Stage } from './stage';
-import {
-  newUserDataReader,
-  UserDataReader,
-  UserDataSource
-} from './user_data_reader';
+import { newUserDataReader, UserDataSource } from './user_data_reader';
 
 declare module './database' {
   interface Firestore {
     /**
-     * @beta
-     * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link Pipeline}.
+     * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
      *
      * @example
      * ```
@@ -51,29 +48,27 @@ declare module './database' {
 }
 
 /**
- * @beta
  * Executes this pipeline and returns a Promise to represent the asynchronous operation.
  *
  * The returned Promise can be used to track the progress of the pipeline execution
  * and retrieve the results (or handle any errors) asynchronously.
  *
- * The pipeline results are returned as a {@link PipelineSnapshot} that contains
- * a list of {@link PipelineResult} objects. Each {@link PipelineResult} typically
+ * The pipeline results are returned as a {@link @firebase/firestore/pipelines#PipelineSnapshot} that contains
+ * a list of {@link @firebase/firestore/pipelines#PipelineResult} objects. Each {@link @firebase/firestore/pipelines#PipelineResult} typically
  * represents a single key/value map that has passed through all the
  * stages of the pipeline, however this might differ depending on the stages involved in the
  * pipeline. For example:
  *
  * <ul>
- *   <li>If there are no stages or only transformation stages, each {@link PipelineResult}
+ *   <li>If there are no stages or only transformation stages, each {@link @firebase/firestore/pipelines#PipelineResult}
  *       represents a single document.</li>
- *   <li>If there is an aggregation, only a single {@link PipelineResult} is returned,
+ *   <li>If there is an aggregation, only a single {@link @firebase/firestore/pipelines#PipelineResult} is returned,
  *       representing the aggregated results over the entire dataset .</li>
- *   <li>If there is an aggregation stage with grouping, each {@link PipelineResult} represents a
+ *   <li>If there is an aggregation stage with grouping, each {@link @firebase/firestore/pipelines#PipelineResult} represents a
  *       distinct group and its associated aggregated values.</li>
  * </ul>
  *
- * <p>Example:
- *
+ * @example
  * ```typescript
  * const snapshot: PipelineSnapshot = await execute(firestore.pipeline().collection("books")
  *     .where(gt(field("rating"), 4.5))
@@ -82,17 +77,29 @@ declare module './database' {
  * const results: PipelineResults = snapshot.results;
  * ```
  *
- * @param pipeline The pipeline to execute.
- * @return A Promise representing the asynchronous pipeline execution.
+ * @param pipeline - The pipeline to execute.
+ * @returns A Promise representing the asynchronous pipeline execution.
  */
 export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
+  if (!pipeline._db) {
+    return Promise.reject(
+      new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'This pipeline was created without a database (e.g., as a subcollection pipeline) and cannot be executed directly. It can only be used as part of another pipeline.'
+      )
+    );
+  }
   const datastore = getDatastore(pipeline._db);
+  const firestore = cast(pipeline._db, Firestore);
 
-  const udr = new UserDataReader(
-    pipeline._db._databaseId,
-    /* ignoreUndefinedProperties */ true
+  const userDataReader = newUserDataReader(firestore);
+  const context = userDataReader.createContext(
+    UserDataSource.Argument,
+    'execute'
   );
-  const context = udr.createContext(UserDataSource.Argument, 'execute');
+
+  pipeline._readUserData(context);
+  const userDataWriter = new LiteUserDataWriter(firestore);
 
   const structuredPipelineOptions = new StructuredPipelineOptions({}, {});
   structuredPipelineOptions._readUserData(context);
@@ -116,11 +123,11 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
       .map(
         element =>
           new PipelineResult(
-            pipeline._userDataWriter,
+            userDataWriter,
+            element.fields!,
             element.key?.path
-              ? new DocumentReference(pipeline._db, null, element.key)
+              ? new DocumentReference(firestore, null, element.key)
               : undefined,
-            element.fields,
             element.createTime?.toTimestamp(),
             element.updateTime?.toTimestamp()
           )
@@ -131,8 +138,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
 }
 
 /**
- * @beta
- * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link Pipeline}.
+ * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example
  * ```

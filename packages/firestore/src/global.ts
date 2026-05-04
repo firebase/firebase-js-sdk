@@ -21,3 +21,9 @@
 import * as pipelines from './api_pipelines';
 export * from './api';
 export { pipelines };
+
+// Console specific exports
+export {
+  type firestoreV1ApiClientInterfaces,
+  type Timestamp as ProtoTimestamp
+} from './protos/firestore_proto_api';

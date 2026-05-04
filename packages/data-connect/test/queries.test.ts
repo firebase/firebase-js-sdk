@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 
 import {
   connectDataConnectEmulator,
@@ -34,6 +36,7 @@ import {
   subscribe,
   terminate
 } from '../src';
+import { DataConnectTransportManager } from '../src/network/manager';
 
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
@@ -85,14 +88,26 @@ interface PostVariables {
 }
 describe('DataConnect Tests', async () => {
   let dc: DataConnect;
+  let app: FirebaseApp;
   const TEST_ID = crypto.randomUUID();
   beforeEach(async () => {
+    app = initializeApp({
+      projectId: PROJECT_ID
+    });
     dc = initDatabase();
     await seedDatabase(dc, TEST_ID);
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
+      .returns();
   });
   afterEach(async () => {
     await deleteDatabase(dc);
+    await deleteApp(app);
     await terminate(dc);
+    sinon.restore();
   });
   function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
     return queryRef<PostListResponse, PostVariables>(dc, 'ListPosts', {
@@ -132,7 +147,7 @@ describe('DataConnect Tests', async () => {
     const taskListQuery = getPostsRef();
     const queryResult = await executeQuery(taskListQuery);
     const result = await waitForFirstEvent(taskListQuery);
-    expect(result.data).to.eq(queryResult.data);
+    expect(result.data).to.deep.eq(queryResult.data);
     expect(result.source).to.eq(SOURCE_CACHE);
   });
   it(`returns the proper JSON when calling .toJSON()`, async () => {

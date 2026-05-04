@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-export { PipelineSource } from './lite-api/pipeline-source';
+export { PipelineSource, subcollection } from './lite-api/pipeline-source';
 
 export { OneOf } from './util/types';
 
@@ -25,20 +25,7 @@ export {
   pipelineResultEqual
 } from './lite-api/pipeline-result';
 
-export { RealtimePipelineSnapshot, ResultChange } from './api/snapshot';
-
 export { Pipeline } from './api/pipeline';
-
-export { Stage } from './lite-api/stage';
-
-export { RealtimePipeline } from './api/realtime_pipeline';
-
-// Rename here because we want the exported name to be onSnapshot
-// internally the name has to be onPipelineSnapshot to avoid
-// name collisions.
-import { onPipelineSnapshot as onSnapshot } from './api/reference_impl';
-
-export { PipelineListenOptions } from './api/reference_impl';
 
 export { execute } from './api/pipeline_impl';
 
@@ -48,10 +35,12 @@ export {
   StageOptions,
   CollectionStageOptions,
   CollectionGroupStageOptions,
+  SubcollectionStageOptions,
   DatabaseStageOptions,
   DocumentsStageOptions,
   AddFieldsStageOptions,
   RemoveFieldsStageOptions,
+  DefineStageOptions,
   SelectStageOptions,
   WhereStageOptions,
   OffsetStageOptions,
@@ -63,16 +52,19 @@ export {
   SampleStageOptions,
   UnionStageOptions,
   UnnestStageOptions,
-  SortStageOptions
+  SortStageOptions,
+  SearchStageOptions
+  // TODO(search) export with backend support
+  // QueryEnhancement
 } from './lite-api/stage_options';
 
 export {
-  field,
   constant,
   add,
   subtract,
   multiply,
   divide,
+  field,
   mod,
   equal,
   notEqual,
@@ -80,14 +72,33 @@ export {
   lessThanOrEqual,
   greaterThan,
   greaterThanOrEqual,
+  array,
   arrayConcat,
   arrayContains,
   arrayContainsAny,
   arrayContainsAll,
+  arrayFilter,
+  arrayTransform,
+  arrayTransformWithIndex,
+  arrayFirst,
+  arrayFirstN,
+  arrayGet,
+  arraySlice,
+  arrayIndexOf,
+  arrayIndexOfAll,
+  arrayLast,
+  arrayLastIndexOf,
+  arrayLastN,
   arrayLength,
+  arrayMaximum,
+  arrayMaximumN,
+  arrayMinimum,
+  arrayMinimumN,
   equalAny,
   notEqualAny,
   xor,
+  nor,
+  switchOn,
   conditional,
   not,
   logicalMaximum,
@@ -98,6 +109,8 @@ export {
   charLength,
   like,
   regexContains,
+  regexFind,
+  regexFindAll,
   regexMatch,
   stringContains,
   startsWith,
@@ -105,8 +118,20 @@ export {
   toLower,
   toUpper,
   trim,
+  ltrim,
+  rtrim,
+  type,
+  isType,
   stringConcat,
+  stringIndexOf,
+  stringRepeat,
+  stringReplaceAll,
+  stringReplaceOne,
   mapGet,
+  mapSet,
+  mapKeys,
+  mapValues,
+  mapEntries,
   countAll,
   count,
   sum,
@@ -115,6 +140,10 @@ export {
   or,
   minimum,
   maximum,
+  first,
+  last,
+  arrayAgg,
+  arrayAggDistinct,
   cosineDistance,
   dotProduct,
   euclideanDistance,
@@ -127,11 +156,10 @@ export {
   timestampToUnixSeconds,
   timestampAdd,
   timestampSubtract,
+  timestampDiff,
   ascending,
   descending,
   countIf,
-  array,
-  arrayGet,
   isError,
   ifError,
   isAbsent,
@@ -139,29 +167,43 @@ export {
   mapRemove,
   mapMerge,
   documentId,
+  parent,
   substring,
   countDistinct,
   ceil,
   floor,
   exp,
   pow,
+  rand,
   round,
   collectionId,
   ln,
   log,
   sqrt,
+  trunc,
   stringReverse,
   length,
   abs,
   concat,
   currentTimestamp,
   ifAbsent,
+  ifNull,
+  coalesce,
   join,
   log10,
   arraySum,
   timestampTruncate,
+  timestampExtract,
   split,
-  type,
+  variable,
+  currentDocument,
+  score,
+  documentMatches,
+  geoDistance,
+  // TODO(search) add with backend support
+  // snippet,
+  // SnippetOptions,
+  // matches,
   Expression,
   AliasedExpression,
   Field,
@@ -172,9 +214,18 @@ export {
   ExpressionType,
   AliasedAggregate,
   Selectable,
-  TimeGranularity
+  TimeGranularity,
+  TimePart,
+  TimeUnit
 } from './lite-api/expressions';
 
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
 
+// Added from feature branch for realtime pipelines
+export { RealtimePipelineSnapshot, ResultChange } from './api/snapshot';
+export { RealtimePipeline } from './api/realtime_pipeline';
+export { Stage } from './lite-api/stage';
+export { PipelineListenOptions } from './api/reference_impl';
+
+import { onPipelineSnapshot as onSnapshot } from './api/reference_impl';
 export { onSnapshot };

@@ -21,19 +21,25 @@ import {
   GenerativeContentBlob,
   LiveResponseType,
   LiveServerContent,
+  LiveServerGoingAwayNotice,
   LiveServerToolCall,
   LiveServerToolCallCancellation,
-  Part
+  LiveSessionResumptionUpdate,
+  Part,
+  SessionResumptionConfig
 } from '../public-types';
 import { formatNewContent } from '../requests/request-helpers';
 import { AIError } from '../errors';
-import { WebSocketHandler } from '../websocket';
+import { WebSocketHandler, WebSocketHandlerImpl } from '../websocket';
 import { logger } from '../logger';
 import {
   _LiveClientContent,
   _LiveClientRealtimeInput,
+  _LiveClientSetup,
   _LiveClientToolResponse
 } from '../types/live-responses';
+import { WebSocketUrl } from '../requests/request';
+import { ApiSettings } from '../types/internal';
 
 /**
  * Represents an active, real-time, bidirectional conversation with the model.
@@ -55,14 +61,98 @@ export class LiveSession {
    * @beta
    */
   inConversation = false;
+  /**
+   * Allows external code to await the opening of the WebSocket connection.
+   */
+  connectionPromise: Promise<void>;
+  /**
+   * Generator yielding WebSocket messages from the server.
+   */
+  private _serverMessages: AsyncGenerator<unknown> | null = null;
+  /**
+   * WebSocket handler. Injectable for testing.
+   */
+  private _webSocketHandler: WebSocketHandler;
 
   /**
    * @internal
    */
   constructor(
-    private webSocketHandler: WebSocketHandler,
-    private serverMessages: AsyncGenerator<unknown>
-  ) {}
+    private _setupMessage: _LiveClientSetup,
+    private _apiSettings: ApiSettings,
+    private _sessionResumption?: SessionResumptionConfig,
+    webSocketHandler?: WebSocketHandler
+  ) {
+    this._webSocketHandler = webSocketHandler || new WebSocketHandlerImpl();
+    this.connectionPromise = this._connectSession(this._sessionResumption);
+  }
+
+  /**
+   * Initializes connection to the WebSocket. Should be called immediately
+   * after instantiation.
+   *
+   * @internal
+   */
+  private async _connectSession(
+    sessionResumption?: SessionResumptionConfig
+  ): Promise<void> {
+    const url = new WebSocketUrl(this._apiSettings);
+    await this._webSocketHandler.connect(url.toString());
+
+    try {
+      // Begin listening for server messages, and begin the handshake by sending the 'setupMessage'
+      this._serverMessages = this._webSocketHandler.listen();
+      const setupMessage = { ...this._setupMessage };
+      if (sessionResumption) {
+        setupMessage.setup.sessionResumption = sessionResumption;
+      }
+      this._webSocketHandler.send(JSON.stringify(setupMessage));
+
+      // Verify we received the handshake response 'setupComplete'
+      const firstMessage = (await this._serverMessages.next()).value;
+      if (
+        !firstMessage ||
+        !(typeof firstMessage === 'object') ||
+        !('setupComplete' in firstMessage)
+      ) {
+        await this._webSocketHandler.close(1011, 'Handshake failure');
+        throw new AIError(
+          AIErrorCode.RESPONSE_ERROR,
+          'Server connection handshake failed. The server did not respond with a setupComplete message.'
+        );
+      }
+      this.isClosed = false;
+    } catch (e) {
+      // Ensure connection is closed on any setup error
+      await this._webSocketHandler.close();
+      throw e;
+    }
+  }
+
+  /**
+   * Resumes an existing live session with the server.
+   *
+   * This closes the current WebSocket connection and establishes a new one using
+   * the same configuration (URI, headers, model, system instruction, tools, etc.)
+   * as the original session.
+   *
+   * @param sessionResumption - The configuration for session resumption, such as the handle to the previous session state to restore.
+   * @throws If the session resumption configuration is unsupported.
+   *
+   * @beta
+   */
+  async resumeSession(
+    sessionResumption?: SessionResumptionConfig
+  ): Promise<void> {
+    if (!this._sessionResumption) {
+      throw new AIError(
+        AIErrorCode.UNSUPPORTED,
+        'Cannot resume session: no sessionResumption config provided'
+      );
+    }
+    await this.close();
+    await this._connectSession(sessionResumption);
+  }
 
   /**
    * Sends content to the server.
@@ -92,7 +182,7 @@ export class LiveSession {
         turnComplete
       }
     };
-    this.webSocketHandler.send(JSON.stringify(message));
+    this._webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
@@ -121,7 +211,7 @@ export class LiveSession {
         text
       }
     };
-    this.webSocketHandler.send(JSON.stringify(message));
+    this._webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
@@ -155,7 +245,7 @@ export class LiveSession {
         audio: blob
       }
     };
-    this.webSocketHandler.send(JSON.stringify(message));
+    this._webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
@@ -188,7 +278,7 @@ export class LiveSession {
         video: blob
       }
     };
-    this.webSocketHandler.send(JSON.stringify(message));
+    this._webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
@@ -214,7 +304,7 @@ export class LiveSession {
         functionResponses
       }
     };
-    this.webSocketHandler.send(JSON.stringify(message));
+    this._webSocketHandler.send(JSON.stringify(message));
   }
 
   /**
@@ -227,7 +317,11 @@ export class LiveSession {
    * @beta
    */
   async *receive(): AsyncGenerator<
-    LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation
+    | LiveServerContent
+    | LiveServerToolCall
+    | LiveServerToolCallCancellation
+    | LiveServerGoingAwayNotice
+    | LiveSessionResumptionUpdate
   > {
     if (this.isClosed) {
       throw new AIError(
@@ -235,45 +329,69 @@ export class LiveSession {
         'Cannot read from a Live session that is closed. Try starting a new Live session.'
       );
     }
-    for await (const message of this.serverMessages) {
-      if (message && typeof message === 'object') {
-        if (LiveResponseType.SERVER_CONTENT in message) {
-          yield {
-            type: 'serverContent',
-            ...(message as { serverContent: Omit<LiveServerContent, 'type'> })
-              .serverContent
-          } as LiveServerContent;
-        } else if (LiveResponseType.TOOL_CALL in message) {
-          yield {
-            type: 'toolCall',
-            ...(message as { toolCall: Omit<LiveServerToolCall, 'type'> })
-              .toolCall
-          } as LiveServerToolCall;
-        } else if (LiveResponseType.TOOL_CALL_CANCELLATION in message) {
-          yield {
-            type: 'toolCallCancellation',
-            ...(
+    if (this._serverMessages) {
+      for await (const message of this._serverMessages) {
+        if (message && typeof message === 'object') {
+          if (LiveResponseType.SERVER_CONTENT in message) {
+            yield {
+              type: 'serverContent',
+              ...(message as { serverContent: Omit<LiveServerContent, 'type'> })
+                .serverContent
+            } as LiveServerContent;
+          } else if (LiveResponseType.TOOL_CALL in message) {
+            yield {
+              type: 'toolCall',
+              ...(message as { toolCall: Omit<LiveServerToolCall, 'type'> })
+                .toolCall
+            } as LiveServerToolCall;
+          } else if (LiveResponseType.TOOL_CALL_CANCELLATION in message) {
+            yield {
+              type: 'toolCallCancellation',
+              ...(
+                message as {
+                  toolCallCancellation: Omit<
+                    LiveServerToolCallCancellation,
+                    'type'
+                  >;
+                }
+              ).toolCallCancellation
+            } as LiveServerToolCallCancellation;
+          } else if ('goAway' in message) {
+            const notice = (
               message as {
-                toolCallCancellation: Omit<
-                  LiveServerToolCallCancellation,
-                  'type'
-                >;
+                goAway: { timeLeft: string };
               }
-            ).toolCallCancellation
-          } as LiveServerToolCallCancellation;
+            ).goAway;
+            yield {
+              type: LiveResponseType.GOING_AWAY_NOTICE,
+              timeLeft: parseDuration(notice.timeLeft)
+            } as LiveServerGoingAwayNotice;
+          } else if (LiveResponseType.SESSION_RESUMPTION_UPDATE in message) {
+            yield {
+              type: LiveResponseType.SESSION_RESUMPTION_UPDATE,
+              ...(
+                message as {
+                  sessionResumptionUpdate: Omit<
+                    LiveSessionResumptionUpdate,
+                    'type'
+                  >;
+                }
+              ).sessionResumptionUpdate
+            } as LiveSessionResumptionUpdate;
+          } else {
+            logger.warn(
+              `Received an unknown message type from the server: ${JSON.stringify(
+                message
+              )}`
+            );
+          }
         } else {
           logger.warn(
-            `Received an unknown message type from the server: ${JSON.stringify(
+            `Received an invalid message from the server: ${JSON.stringify(
               message
             )}`
           );
         }
-      } else {
-        logger.warn(
-          `Received an invalid message from the server: ${JSON.stringify(
-            message
-          )}`
-        );
       }
     }
   }
@@ -287,7 +405,7 @@ export class LiveSession {
   async close(): Promise<void> {
     if (!this.isClosed) {
       this.isClosed = true;
-      await this.webSocketHandler.close(1000, 'Client closed session.');
+      await this._webSocketHandler.close(1000, 'Client closed session.');
     }
   }
 
@@ -315,7 +433,7 @@ export class LiveSession {
       const message: _LiveClientRealtimeInput = {
         realtimeInput: { mediaChunks: [mediaChunk] }
       };
-      this.webSocketHandler.send(JSON.stringify(message));
+      this._webSocketHandler.send(JSON.stringify(message));
     });
   }
 
@@ -359,4 +477,17 @@ export class LiveSession {
       }
     }
   }
+}
+
+/**
+ * Parses a duration string (e.g. "3.000000001s") into a number of seconds.
+ *
+ * @param duration - The duration string to parse.
+ * @returns The duration in seconds.
+ */
+function parseDuration(duration: string | undefined): number {
+  if (!duration || !duration.endsWith('s')) {
+    return 0;
+  }
+  return Number(duration.slice(0, -1)); // slice removes the trailing 's'.
 }

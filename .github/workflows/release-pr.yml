@@ -22,6 +22,7 @@ on:
 
 jobs:
   release:
+    environment: release
     name: Create Release PR
     runs-on: ubuntu-latest
     permissions:

@@ -55,7 +55,7 @@ export {
  * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query The query whose result set size is calculated.
+ * @param query - The query whose result set size is calculated.
  * @returns A Promise that will be resolved with the count; the count can be
  * retrieved from `snapshot.data().count`, where `snapshot` is the
  * `AggregateQuerySnapshot` to which the returned Promise resolves.
@@ -95,8 +95,8 @@ export function getCountFromServer<
  * used. Every invocation of this function necessarily involves a round trip to
  * the server.
  *
- * @param query The query whose result set is aggregated over.
- * @param aggregateSpec An `AggregateSpec` object that specifies the aggregates
+ * @param query - The query whose result set is aggregated over.
+ * @param aggregateSpec - An `AggregateSpec` object that specifies the aggregates
  * to perform over the result set. The AggregateSpec specifies aliases for each
  * aggregate, which can be used to retrieve the aggregate result.
  * @example
@@ -147,7 +147,7 @@ export function getAggregateFromServer<
  * Converts the core aggregation result to an `AggregateQuerySnapshot`
  * that can be returned to the consumer.
  * @param query
- * @param aggregateResult Core aggregation result
+ * @param aggregateResult - Core aggregation result
  * @internal
  */
 function convertToAggregateQuerySnapshot<

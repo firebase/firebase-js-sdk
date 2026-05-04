@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect } from 'chai';
 
 import { queryRef } from '../../src';
@@ -24,8 +25,16 @@ import {
   connectDataConnectEmulator,
   getDataConnect
 } from '../../src/api/DataConnect';
-import { app } from '../util';
 describe('Transport Options', () => {
+  let app: FirebaseApp;
+  beforeEach(() => {
+    app = initializeApp({
+      projectId: 'p'
+    });
+  });
+  afterEach(async () => {
+    await deleteApp(app);
+  });
   it('should return false if transport options are not equal', () => {
     const transportOptions1: TransportOptions = {
       host: 'h',

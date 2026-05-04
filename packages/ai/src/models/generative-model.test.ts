@@ -15,13 +15,16 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { GenerativeModel } from './generative-model';
+import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,
   AI,
   InferenceMode,
   AIErrorCode,
-  ChromeAdapter
+  ChromeAdapter,
+  ThinkingLevel,
+  ImageConfigAspectRatio,
+  ImageConfigImageSize
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -30,6 +33,8 @@ import {
   getMockResponseStreaming
 } from '../../test-utils/mock-response';
 import sinonChai from 'sinon-chai';
+import * as generateContentMethods from '../methods/generate-content';
+import * as countTokens from '../methods/count-tokens';
 import { VertexAIBackend } from '../backend';
 import { AIError } from '../errors';
 import chaiAsPromised from 'chai-as-promised';
@@ -53,6 +58,23 @@ const fakeAI: AI = {
 };
 
 describe('GenerativeModel', () => {
+  afterEach(() => {
+    restore();
+  });
+  it('throws if generationConfig is invalid', () => {
+    expect(
+      () =>
+        new GenerativeModel(fakeAI, {
+          model: 'my-model',
+          generationConfig: {
+            thinkingConfig: {
+              thinkingBudget: 1000,
+              thinkingLevel: ThinkingLevel.LOW
+            }
+          }
+        })
+    ).to.throw(AIErrorCode.UNSUPPORTED);
+  });
   it('passes params through to generateContent', async () => {
     const genModel = new GenerativeModel(
       fakeAI,
@@ -92,10 +114,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('myfunc') &&
@@ -104,8 +129,7 @@ describe('GenerativeModel', () => {
           value.includes(FunctionCallingMode.NONE) &&
           value.includes('be friendly')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -129,14 +153,16 @@ describe('GenerativeModel', () => {
     );
     await genModel.generateContent('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return value.includes('be friendly');
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -190,10 +216,13 @@ describe('GenerativeModel', () => {
       systemInstruction: { role: 'system', parts: [{ text: 'be formal' }] }
     });
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
@@ -202,10 +231,37 @@ describe('GenerativeModel', () => {
           value.includes(FunctionCallingMode.AUTO) &&
           value.includes('be formal')
         );
-      }),
-      {}
+      })
     );
     restore();
+  });
+  it('generateContent singleRequestOptions overrides requestOptions', async () => {
+    const generateContentStub = stub(
+      generateContentMethods,
+      'generateContent'
+    ).rejects('generateContent failed'); // not important
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const genModel = new GenerativeModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.generateContent('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(generateContentStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: singleRequestOptions.timeout
+      })
+    );
   });
   it('passes base model params through to ChatSession when there are no startChatParams', async () => {
     const genModel = new GenerativeModel(
@@ -225,18 +281,72 @@ describe('GenerativeModel', () => {
     });
     restore();
   });
-  it('overrides base model params with startChatParams', () => {
+  it('generateContent singleRequestOptions is merged with requestOptions', async () => {
+    const generateContentStub = stub(
+      generateContentMethods,
+      'generateContent'
+    ).rejects('generateContent failed'); // not important
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
     const genModel = new GenerativeModel(
       fakeAI,
-      {
-        model: 'my-model',
-        generationConfig: {
-          topK: 1
-        }
-      },
-      {},
-      fakeChromeAdapter
+      { model: 'my-model' },
+      requestOptions
     );
+    await expect(genModel.generateContent('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(generateContentStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: requestOptions.timeout,
+        signal: singleRequestOptions.signal
+      })
+    );
+  });
+  it('passes base model params through to ChatSession when there are no startChatParams', async () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      generationConfig: {
+        topK: 1
+      }
+    });
+    const chatSession = genModel.startChat();
+    expect(chatSession.params?.generationConfig).to.deep.equal({
+      topK: 1
+    });
+    restore();
+  });
+  it('passes imageConfig through to ChatSession', () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      generationConfig: {
+        imageConfig: {
+          aspectRatio: ImageConfigAspectRatio.SQUARE_1x1,
+          imageSize: ImageConfigImageSize.SIZE_512
+        }
+      }
+    });
+    const chatSession = genModel.startChat();
+    expect(chatSession.params?.generationConfig?.imageConfig).to.deep.equal({
+      aspectRatio: '1:1',
+      imageSize: '512'
+    });
+  });
+  it('overrides base model params with startChatParams', () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      generationConfig: {
+        topK: 1
+      }
+    });
     const chatSession = genModel.startChat({
       generationConfig: {
         topK: 2
@@ -281,10 +391,13 @@ describe('GenerativeModel', () => {
     );
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('myfunc') &&
@@ -294,8 +407,7 @@ describe('GenerativeModel', () => {
           value.includes('be friendly') &&
           value.includes('topK')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -319,14 +431,16 @@ describe('GenerativeModel', () => {
     );
     await genModel.startChat().sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return value.includes('be friendly');
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -336,7 +450,9 @@ describe('GenerativeModel', () => {
       {
         model: 'my-model',
         tools: [
-          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+          { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] },
+          { googleSearch: {} },
+          { urlContext: {} }
         ],
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.NONE }
@@ -349,6 +465,80 @@ describe('GenerativeModel', () => {
       {},
       fakeChromeAdapter
     );
+    expect(genModel.tools?.length).to.equal(3);
+    expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
+      FunctionCallingMode.NONE
+    );
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
+      match((value: string) => {
+        return (
+          value.includes('myfunc') &&
+          value.includes(FunctionCallingMode.NONE) &&
+          value.includes('be friendly')
+          // value.includes('topK')
+        );
+      })
+    );
+    restore();
+  });
+  it('passes text-only systemInstruction through to chat.sendMessage', async () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      systemInstruction: 'be friendly'
+    });
+    expect(genModel.systemInstruction?.parts[0].text).to.equal('be friendly');
+    const mockResponse = getMockResponse(
+      'vertexAI',
+      'unary-success-basic-reply-short.json'
+    );
+    const makeRequestStub = stub(request, 'makeRequest').resolves(
+      mockResponse as Response
+    );
+    await genModel.startChat().sendMessage('hello');
+    expect(makeRequestStub).to.be.calledWith(
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
+      match((value: string) => {
+        return value.includes('be friendly');
+      })
+    );
+    restore();
+  });
+  it('startChat overrides model values', async () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      tools: [
+        { functionDeclarations: [{ name: 'myfunc', description: 'mydesc' }] }
+      ],
+      toolConfig: {
+        functionCallingConfig: { mode: FunctionCallingMode.NONE }
+      },
+      systemInstruction: { role: 'system', parts: [{ text: 'be friendly' }] },
+      generationConfig: {
+        responseMimeType: 'image/jpeg'
+      }
+    });
     expect(genModel.tools?.length).to.equal(1);
     expect(genModel.toolConfig?.functionCallingConfig?.mode).to.equal(
       FunctionCallingMode.NONE
@@ -368,9 +558,7 @@ describe('GenerativeModel', () => {
             functionDeclarations: [
               { name: 'otherfunc', description: 'otherdesc' }
             ]
-          },
-          { googleSearch: {} },
-          { codeExecution: {} }
+          }
         ],
         toolConfig: {
           functionCallingConfig: { mode: FunctionCallingMode.AUTO }
@@ -382,22 +570,22 @@ describe('GenerativeModel', () => {
       })
       .sendMessage('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.GENERATE_CONTENT,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.GENERATE_CONTENT,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return (
           value.includes('otherfunc') &&
-          value.includes('googleSearch') &&
-          value.includes('codeExecution') &&
           value.includes(FunctionCallingMode.AUTO) &&
           value.includes('be formal') &&
           value.includes('image/png') &&
           !value.includes('image/jpeg')
         );
-      }),
-      {}
+      })
     );
     restore();
   });
@@ -417,15 +605,74 @@ describe('GenerativeModel', () => {
     );
     await genModel.countTokens('hello');
     expect(makeRequestStub).to.be.calledWith(
-      'publishers/google/models/my-model',
-      request.Task.COUNT_TOKENS,
-      match.any,
-      false,
+      {
+        model: 'publishers/google/models/my-model',
+        task: request.Task.COUNT_TOKENS,
+        apiSettings: match.any,
+        stream: false,
+        singleRequestOptions: {}
+      },
       match((value: string) => {
         return value.includes('hello');
       })
     );
     restore();
+  });
+  it('countTokens singleRequestOptions overrides requestOptions', async () => {
+    const countTokensStub = stub(countTokens, 'countTokens').rejects(
+      'countTokens failed'
+    );
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      timeout: 2000
+    };
+    const genModel = new GenerativeModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(countTokensStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: singleRequestOptions.timeout
+      })
+    );
+  });
+  it('countTokens singleRequestOptions is merged with requestOptions', async () => {
+    const countTokensStub = stub(countTokens, 'countTokens').rejects(
+      'countTokens failed'
+    );
+    const abortController = new AbortController();
+    const requestOptions = {
+      timeout: 1000
+    };
+    const singleRequestOptions = {
+      signal: abortController.signal
+    };
+    const genModel = new GenerativeModel(
+      fakeAI,
+      { model: 'my-model' },
+      requestOptions
+    );
+    await expect(genModel.countTokens('hello', singleRequestOptions)).to.be
+      .rejected;
+    expect(countTokensStub).to.be.calledWith(
+      match.any,
+      match.any,
+      match.any,
+      match.any,
+      match({
+        timeout: requestOptions.timeout,
+        signal: singleRequestOptions.signal
+      })
+    );
   });
 });
 
@@ -438,7 +685,7 @@ describe('GenerativeModel dispatch logic', () => {
       makeRequestStub = stub(request, 'makeRequest').resolves(
         getMockResponseStreaming(
           'vertexAI',
-          'unary-success-basic-reply-short.json'
+          'streaming-success-basic-reply-short.txt'
         ) as Response
       );
     } else {
@@ -457,7 +704,10 @@ describe('GenerativeModel dispatch logic', () => {
       isAvailable: stub(),
       generateContent: stub().resolves(new Response(JSON.stringify({}))),
       generateContentStream: stub().resolves(
-        new Response(new ReadableStream())
+        getMockResponseStreaming(
+          'vertexAI',
+          'streaming-success-basic-reply-short.txt'
+        ) as Response
       ),
       countTokens: stub().resolves(new Response(JSON.stringify({}))),
       mode: InferenceMode.PREFER_ON_DEVICE
@@ -723,4 +973,74 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.have.been.calledOnce;
     });
   });
+});
+
+describe('validateGenerationConfig', () => {
+  it('does not allow setting both thinkingBudget and thinkingLevel', () => {
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingBudget: 200
+        }
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.LOW
+        }
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingBudget: 200,
+          thinkingLevel: ThinkingLevel.LOW
+        }
+      });
+    }).to.throw();
+  });
+  it('does not allow setting both responseSchema and responseJsonSchema', () => {
+    expect(() => {
+      validateGenerationConfig({
+        responseSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        responseJsonSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        responseSchema: {},
+        responseJsonSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.throw();
+  });
+  it(
+    'throws if responseSchema or responseJsonSchema are set' +
+      ' and responseMimeType is not "application/json"',
+    () => {
+      expect(() => {
+        validateGenerationConfig({
+          responseSchema: {}
+        });
+      }).to.throw();
+      expect(() => {
+        validateGenerationConfig({
+          responseJsonSchema: {}
+        });
+      }).to.throw();
+      expect(() => {
+        validateGenerationConfig({
+          responseJsonSchema: {},
+          responseMimeType: 'text/plain'
+        });
+      }).to.throw();
+    }
+  );
 });

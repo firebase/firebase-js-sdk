@@ -16,13 +16,21 @@
  */
 
 import { expect, use } from 'chai';
-import { match, restore, stub } from 'sinon';
+import Sinon, { match, restore, stub, useFakeTimers } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
-import { RequestUrl, Task, getHeaders, makeRequest } from './request';
+import {
+  ABORT_ERROR_NAME,
+  RequestURL,
+  ServerPromptTemplateTask,
+  TIMEOUT_EXPIRED_MESSAGE,
+  Task,
+  getHeaders,
+  makeRequest
+} from './request';
 import { ApiSettings } from '../types/internal';
 import { DEFAULT_API_VERSION } from '../constants';
-import { AIErrorCode } from '../types';
+import { AIErrorCode, InferenceMode } from '../types';
 import { AIError } from '../errors';
 import { getMockResponse } from '../../test-utils/mock-response';
 import { VertexAIBackend } from '../backend';
@@ -42,64 +50,76 @@ describe('request methods', () => {
   afterEach(() => {
     restore();
   });
-  describe('RequestUrl', () => {
+  describe('RequestURL', () => {
     it('stream', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        true,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        singleRequestOptions: undefined
+      });
       expect(url.toString()).to.include('models/model-name:generateContent');
-      expect(url.toString()).to.not.include(fakeApiSettings);
       expect(url.toString()).to.include('alt=sse');
     });
     it('non-stream', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      });
       expect(url.toString()).to.include('models/model-name:generateContent');
       expect(url.toString()).to.not.include(fakeApiSettings);
       expect(url.toString()).to.not.include('alt=sse');
     });
     it('default apiVersion', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      });
       expect(url.toString()).to.include(DEFAULT_API_VERSION);
     });
     it('custom baseUrl', async () => {
-      const url = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        { baseUrl: 'https://my.special.endpoint' }
-      );
+      const url = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: { baseUrl: 'https://my.special.endpoint' }
+      });
       expect(url.toString()).to.include('https://my.special.endpoint');
     });
     it('non-stream - tunedModels/', async () => {
-      const url = new RequestUrl(
-        'tunedModels/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
-        {}
-      );
+      const url = new RequestURL({
+        model: 'tunedModels/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      });
       expect(url.toString()).to.include(
         'tunedModels/model-name:generateContent'
       );
       expect(url.toString()).to.not.include(fakeApiSettings);
       expect(url.toString()).to.not.include('alt=sse');
+    });
+    it('prompt server template', async () => {
+      const url = new RequestURL({
+        templateId: 'my-template',
+        task: ServerPromptTemplateTask.TEMPLATE_GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: false,
+        singleRequestOptions: undefined
+      });
+      expect(url.toString()).to.include(
+        'templates/my-template:templateGenerateContent'
+      );
+      expect(url.toString()).to.not.include(fakeApiSettings);
     });
   });
   describe('getHeaders', () => {
@@ -112,17 +132,33 @@ describe('request methods', () => {
       getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
       getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
     };
-    const fakeUrl = new RequestUrl(
-      'models/model-name',
-      Task.GENERATE_CONTENT,
-      fakeApiSettings,
-      true,
-      {}
-    );
-    it('adds client headers', async () => {
+    const fakeUrl = new RequestURL({
+      model: 'models/model-name',
+      task: Task.GENERATE_CONTENT,
+      apiSettings: fakeApiSettings,
+      stream: true,
+      singleRequestOptions: undefined
+    });
+    it('adds client headers (no hybrid)', async () => {
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('x-goog-api-client')).to.match(
-        /gl-js\/[0-9\.]+ fire\/[0-9\.]+/
+        /gl-js\/[0-9\.]+ fire\/[0-9\.]+$/
+      );
+    });
+    it('adds client headers (if hybrid)', async () => {
+      const fakeUrlWithHybrid = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
+          ...fakeApiSettings,
+          inferenceMode: InferenceMode.PREFER_ON_DEVICE
+        },
+        stream: true,
+        singleRequestOptions: undefined
+      });
+      const headers = await getHeaders(fakeUrlWithHybrid);
+      expect(headers.get('x-goog-api-client')).to.match(
+        /gl-js\/[0-9\.]+ fire\/[0-9\.]+ hybrid$/
       );
     });
     it('adds api key', async () => {
@@ -140,13 +176,13 @@ describe('request methods', () => {
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
       };
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        true,
-        {}
-      );
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-Appid')).to.equal('my-appid');
     });
@@ -165,13 +201,13 @@ describe('request methods', () => {
         getAuthToken: () => Promise.resolve({ accessToken: 'authtoken' }),
         getAppCheckToken: () => Promise.resolve({ token: 'appchecktoken' })
       };
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        true,
-        {}
-      );
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: fakeApiSettings,
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-Appid')).to.be.null;
     });
@@ -180,44 +216,44 @@ describe('request methods', () => {
       expect(headers.get('X-Firebase-AppCheck')).to.equal('appchecktoken');
     });
     it('ignores app check token header if no appcheck service', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
           backend: new VertexAIBackend()
         },
-        true,
-        {}
-      );
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('X-Firebase-AppCheck')).to.be.false;
     });
     it('ignores app check token header if returned token was undefined', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
-        true,
-        {}
-      );
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('X-Firebase-AppCheck')).to.be.false;
     });
     it('ignores app check token header if returned token had error', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
@@ -226,9 +262,9 @@ describe('request methods', () => {
           getAppCheckToken: () =>
             Promise.resolve({ token: 'dummytoken', error: Error('oops') })
         },
-        true,
-        {}
-      );
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const warnStub = stub(console, 'warn');
       const headers = await getHeaders(fakeUrl);
       expect(headers.get('X-Firebase-AppCheck')).to.equal('dummytoken');
@@ -242,78 +278,112 @@ describe('request methods', () => {
       expect(headers.get('Authorization')).to.equal('Firebase authtoken');
     });
     it('ignores auth token header if no auth service', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           appId: 'my-appid',
           location: 'moon',
           backend: new VertexAIBackend()
         },
-        true,
-        {}
-      );
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('Authorization')).to.be.false;
     });
     it('ignores auth token header if returned token was undefined', async () => {
-      const fakeUrl = new RequestUrl(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        {
+      const fakeUrl = new RequestURL({
+        model: 'models/model-name',
+        task: Task.GENERATE_CONTENT,
+        apiSettings: {
           apiKey: 'key',
           project: 'myproject',
           location: 'moon',
           //@ts-ignore
           getAppCheckToken: () => Promise.resolve()
         },
-        true,
-        {}
-      );
+        stream: true,
+        singleRequestOptions: undefined
+      });
       const headers = await getHeaders(fakeUrl);
       expect(headers.has('Authorization')).to.be.false;
     });
   });
   describe('makeRequest', () => {
+    let fetchStub: Sinon.SinonStub;
+    let clock: Sinon.SinonFakeTimers;
+    const fetchAborter = (
+      _url: string,
+      options?: RequestInit
+    ): Promise<unknown> => {
+      expect(options).to.not.be.undefined;
+      expect(options!.signal).to.not.be.undefined;
+      const signal = options!.signal;
+      return new Promise((_resolve, reject): void => {
+        const abortListener = (): void => {
+          reject(
+            new DOMException(signal?.reason || 'Aborted', ABORT_ERROR_NAME)
+          );
+        };
+
+        signal?.addEventListener('abort', abortListener, { once: true });
+      });
+    };
+
+    beforeEach(() => {
+      fetchStub = stub(globalThis, 'fetch');
+      clock = useFakeTimers();
+    });
+
+    afterEach(() => {
+      restore();
+      clock.restore();
+    });
+
     it('no error', async () => {
-      const fetchStub = stub(globalThis, 'fetch').resolves({
+      fetchStub.resolves({
         ok: true
       } as Response);
       const response = await makeRequest(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false
+        },
         ''
       );
       expect(fetchStub).to.be.calledOnce;
       expect(response.ok).to.be.true;
     });
     it('error with timeout', async () => {
-      const fetchStub = stub(globalThis, 'fetch').resolves({
+      fetchStub.resolves({
         ok: false,
         status: 500,
-        statusText: 'AbortError'
+        statusText: ABORT_ERROR_NAME
       } as Response);
 
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
-          '',
           {
-            timeout: 180000
-          }
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false,
+            singleRequestOptions: {
+              timeout: 180000
+            }
+          },
+          ''
         );
       } catch (e) {
         expect((e as AIError).code).to.equal(AIErrorCode.FETCH_ERROR);
         expect((e as AIError).customErrorData?.status).to.equal(500);
         expect((e as AIError).customErrorData?.statusText).to.equal(
-          'AbortError'
+          ABORT_ERROR_NAME
         );
         expect((e as AIError).message).to.include('500 AbortError');
       }
@@ -321,17 +391,19 @@ describe('request methods', () => {
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, no response.json()', async () => {
-      const fetchStub = stub(globalThis, 'fetch').resolves({
+      fetchStub.resolves({
         ok: false,
         status: 500,
         statusText: 'Server Error'
       } as Response);
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
           ''
         );
       } catch (e) {
@@ -345,7 +417,7 @@ describe('request methods', () => {
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json()', async () => {
-      const fetchStub = stub(globalThis, 'fetch').resolves({
+      fetchStub.resolves({
         ok: false,
         status: 500,
         statusText: 'Server Error',
@@ -353,10 +425,12 @@ describe('request methods', () => {
       } as Response);
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
           ''
         );
       } catch (e) {
@@ -371,7 +445,7 @@ describe('request methods', () => {
       expect(fetchStub).to.be.calledOnce;
     });
     it('Network error, includes response.json() and details', async () => {
-      const fetchStub = stub(globalThis, 'fetch').resolves({
+      fetchStub.resolves({
         ok: false,
         status: 500,
         statusText: 'Server Error',
@@ -391,10 +465,12 @@ describe('request methods', () => {
       } as Response);
       try {
         await makeRequest(
-          'models/model-name',
-          Task.GENERATE_CONTENT,
-          fakeApiSettings,
-          false,
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
           ''
         );
       } catch (e) {
@@ -409,28 +485,271 @@ describe('request methods', () => {
       }
       expect(fetchStub).to.be.calledOnce;
     });
-  });
-  it('Network error, API not enabled', async () => {
-    const mockResponse = getMockResponse(
-      'vertexAI',
-      'unary-failure-firebasevertexai-api-not-enabled.json'
-    );
-    const fetchStub = stub(globalThis, 'fetch').resolves(
-      mockResponse as Response
-    );
-    try {
+    it('Network error, API not enabled', async () => {
+      const mockResponse = getMockResponse(
+        'vertexAI',
+        'unary-failure-firebasevertexai-api-not-enabled.json'
+      );
+      fetchStub.resolves(mockResponse as Response);
+      try {
+        await makeRequest(
+          {
+            model: 'models/model-name',
+            task: Task.GENERATE_CONTENT,
+            apiSettings: fakeApiSettings,
+            stream: false
+          },
+          ''
+        );
+      } catch (e) {
+        expect((e as AIError).code).to.equal(AIErrorCode.API_NOT_ENABLED);
+        expect((e as AIError).message).to.include('my-project');
+        expect((e as AIError).message).to.include('googleapis.com');
+      }
+      expect(fetchStub).to.be.calledOnce;
+    });
+
+    it('should throw DOMException if external signal is already aborted', async () => {
+      const controller = new AbortController();
+      const abortReason = 'Aborted before request';
+      controller.abort(abortReason);
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        abortReason
+      );
+
+      expect(fetchStub).not.to.have.been.called;
+    });
+    it('should throw DOMException if external signal aborts during request', async () => {
+      fetchStub.callsFake(fetchAborter);
+      const controller = new AbortController();
+      const abortReason = 'Aborted during request';
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      await clock.tickAsync(0);
+      controller.abort(abortReason);
+
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        abortReason
+      );
+    });
+
+    it('should abort fetch if timeout expires during request', async () => {
+      const timeoutDuration = 100;
+      fetchStub.callsFake(fetchAborter);
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { timeout: timeoutDuration }
+        },
+        '{}'
+      );
+
+      await clock.tickAsync(timeoutDuration + 100);
+
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        TIMEOUT_EXPIRED_MESSAGE
+      );
+
+      expect(fetchStub).to.have.been.calledOnce;
+      const fetchOptions = fetchStub.firstCall.args[1] as RequestInit;
+      const internalSignal = fetchOptions.signal;
+
+      expect(internalSignal?.aborted).to.be.true;
+      expect((internalSignal?.reason as Error).name).to.equal(ABORT_ERROR_NAME);
+      expect((internalSignal?.reason as Error).message).to.equal(
+        'Timeout has expired.'
+      );
+    });
+
+    it('should succeed and clear timeout if fetch completes before timeout', async () => {
+      const mockResponse = new Response('{}', {
+        status: 200,
+        statusText: 'OK'
+      });
+      const fetchPromise = Promise.resolve(mockResponse);
+      fetchStub.resolves(fetchPromise);
+      const clearTimeoutStub = stub(globalThis, 'clearTimeout');
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { timeout: 5000 } // Generous timeout
+        },
+        '{}'
+      );
+
+      // Advance time slightly, well within timeout
+      await clock.tickAsync(10);
+
+      const response = await requestPromise;
+      expect(response.ok).to.be.true;
+      expect(clearTimeoutStub).to.have.been.calledOnce;
+      expect(fetchStub).to.have.been.calledOnce;
+    });
+
+    it('should use external signal abort reason if it occurs before timeout', async () => {
+      const controller = new AbortController();
+      const abortReason = 'External Abort Wins';
+      const timeoutDuration = 500;
+      fetchStub.callsFake(fetchAborter);
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: {
+            signal: controller.signal,
+            timeout: timeoutDuration
+          }
+        },
+        '{}'
+      );
+
+      // Advance time, but less than the timeout
+      await clock.tickAsync(timeoutDuration / 2);
+      controller.abort(abortReason);
+
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        abortReason
+      );
+    });
+
+    it('should use timeout reason if it occurs before external signal abort', async () => {
+      const controller = new AbortController();
+      const abortReason = 'External Abort Loses';
+      const timeoutDuration = 100;
+      fetchStub.callsFake(fetchAborter);
+
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: {
+            signal: controller.signal,
+            timeout: timeoutDuration
+          }
+        },
+        '{}'
+      );
+
+      // Schedule external abort after timeout
+      setTimeout(() => controller.abort(abortReason), timeoutDuration * 2);
+
+      // Advance time past the timeout
+      await clock.tickAsync(timeoutDuration + 1);
+
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        TIMEOUT_EXPIRED_MESSAGE
+      );
+    });
+
+    it('should pass internal signal to fetch options', async () => {
+      const mockResponse = new Response('{}', {
+        status: 200,
+        statusText: 'OK'
+      });
+      fetchStub.resolves(mockResponse);
+
       await makeRequest(
-        'models/model-name',
-        Task.GENERATE_CONTENT,
-        fakeApiSettings,
-        false,
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false
+        },
         ''
       );
-    } catch (e) {
-      expect((e as AIError).code).to.equal(AIErrorCode.API_NOT_ENABLED);
-      expect((e as AIError).message).to.include('my-project');
-      expect((e as AIError).message).to.include('googleapis.com');
-    }
-    expect(fetchStub).to.be.calledOnce;
+
+      expect(fetchStub).to.have.been.calledOnce;
+      const fetchOptions = fetchStub.firstCall.args[1] as RequestInit;
+      expect(fetchOptions.signal).to.exist;
+      expect(fetchOptions.signal).to.be.instanceOf(AbortSignal);
+      expect(fetchOptions.signal?.aborted).to.be.false;
+    });
+
+    it('should abort immediately if timeout is 0', async () => {
+      fetchStub.callsFake(fetchAborter);
+      const requestPromise = makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { timeout: 0 }
+        },
+        '{}'
+      );
+
+      // Tick the clock just enough to trigger a timeout(0)
+      await clock.tickAsync(1);
+
+      await expect(requestPromise).to.be.rejectedWith(
+        DOMException,
+        TIMEOUT_EXPIRED_MESSAGE
+      );
+    });
+
+    it('should not error if signal is aborted after completion', async () => {
+      const controller = new AbortController();
+      const mockResponse = new Response('{}', {
+        status: 200,
+        statusText: 'OK'
+      });
+      fetchStub.resolves(mockResponse);
+
+      const response = await makeRequest(
+        {
+          model: 'models/model-name',
+          task: Task.GENERATE_CONTENT,
+          apiSettings: fakeApiSettings,
+          stream: false,
+          singleRequestOptions: { signal: controller.signal }
+        },
+        '{}'
+      );
+
+      // Listener should be removed, so this abort should do nothing.
+      controller.abort('Too late');
+
+      expect(response.ok).to.be.true;
+    });
   });
 });

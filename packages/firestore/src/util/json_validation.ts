@@ -103,8 +103,8 @@ export function property<T extends JsonTypeDesc>(
  * @private
  * @internal
  *
- * @param json A JSON object to validate.
- * @param scheme a {@link JsonSchema} that defines the properties to validate.
+ * @param json - A JSON object to validate.
+ * @param scheme - a {@link JsonSchema} that defines the properties to validate.
  * @returns true if the JSON schema exists within the object. Throws a FirestoreError otherwise.
  */
 export function validateJSON<S extends JsonSchema>(
