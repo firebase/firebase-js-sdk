@@ -44,6 +44,7 @@ export class MessagingService implements _FirebaseService {
 
   logEvents: LogEvent[] = [];
   isLogServiceStarted: boolean = false;
+  logQueueTimerId?: ReturnType<typeof setTimeout>;
 
   constructor(
     app: FirebaseApp,
@@ -61,6 +62,10 @@ export class MessagingService implements _FirebaseService {
   }
 
   _delete(): Promise<void> {
+    if (this.logQueueTimerId !== undefined) {
+      clearTimeout(this.logQueueTimerId);
+      this.logQueueTimerId = undefined;
+    }
     return Promise.resolve();
   }
 }

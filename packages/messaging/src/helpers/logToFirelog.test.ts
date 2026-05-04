@@ -63,6 +63,10 @@ describe('logToFirelog', () => {
   });
 
   describe('_dispatchLogEvents', () => {
+    beforeEach(() => {
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+    });
+
     it('dispatches queue successfully ', async () => {
       // set up
       fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
@@ -222,6 +226,18 @@ describe('logToFirelog', () => {
   });
 
   describe('startLoggingService', () => {
+    it('does not start when the queue is empty (avoids idle timer blocking later stageLog)', async () => {
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+      messaging.logEvents = [];
+
+      LogModule.startLoggingService(messaging);
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.not.have.been.called;
+      expect(messaging.isLogServiceStarted).to.be.false;
+    });
+
     it('dispatches first queued batch promptly', async () => {
       fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
       messaging.deliveryMetricsExportedToBigQueryEnabled = true;
@@ -287,6 +303,55 @@ describe('logToFirelog', () => {
       expect(fetchStub).to.have.been.called;
       expect(messaging.logEvents).to.be.empty;
       expect(messaging.deliveryMetricsExportedToBigQueryEnabled).to.be.true;
+    });
+
+    it('clears queued events immediately when disabling export without waiting LOG_INTERVAL_IN_MS', async () => {
+      const clock = useFakeTimers();
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+      messaging.logEvents.push(getFakeLogEvent());
+
+      LogModule.startLoggingService(messaging);
+      await clock.tickAsync(INITIAL_FLUSH_FAKE_TICK_MS);
+      expect(fetchStub).to.have.been.calledOnce;
+      expect(messaging.logEvents).to.be.empty;
+
+      messaging.logEvents.push(getFakeLogEvent());
+      _setDeliveryMetricsExportedToBigQueryEnabled(messaging, false);
+
+      expect(messaging.logEvents).to.be.empty;
+      expect(messaging.isLogServiceStarted).to.be.false;
+
+      await clock.tickAsync(LOG_INTERVAL_IN_MS);
+      expect(fetchStub).to.have.been.calledOnce;
+
+      clock.restore();
+    });
+
+    it('does not arm idle polling when enabling export with an empty queue; stageLog still flushes', async () => {
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      messaging.logEvents = [];
+      messaging.deliveryMetricsExportedToBigQueryEnabled = false;
+
+      _setDeliveryMetricsExportedToBigQueryEnabled(messaging, true);
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.not.have.been.called;
+      expect(messaging.isLogServiceStarted).to.be.false;
+
+      const internalPayload: MessagePayloadInternal = {
+        from: '1234567890',
+        fcmMessageId: 'mid',
+        productId: 0,
+        notification: { title: 't' },
+        collapse_key: ''
+      };
+
+      await LogModule.stageLog(messaging, internalPayload);
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.have.been.called;
+      expect(messaging.logEvents).to.be.empty;
     });
   });
 });

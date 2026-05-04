@@ -47,10 +47,25 @@ const FCM_TRANSPORT_KEY = _mergeStrings(
 );
 
 export function startLoggingService(messaging: MessagingService): void {
-  if (!messaging.isLogServiceStarted) {
+  if (
+    !messaging.isLogServiceStarted &&
+    messaging.logEvents.length > 0
+  ) {
     _processQueue(messaging, INITIAL_LOG_FLUSH_DELAY_MS);
     messaging.isLogServiceStarted = true;
   }
+}
+
+/** Clears queued Firelog events, cancels any pending flush timer, and stops the logging loop. */
+export function stopLoggingServiceAndClearQueue(
+  messaging: MessagingService
+): void {
+  if (messaging.logQueueTimerId !== undefined) {
+    clearTimeout(messaging.logQueueTimerId);
+    messaging.logQueueTimerId = undefined;
+  }
+  messaging.logEvents = [];
+  messaging.isLogServiceStarted = false;
 }
 
 /**
@@ -62,7 +77,12 @@ export function _processQueue(
   messaging: MessagingService,
   offsetInMs: number
 ): void {
-  setTimeout(async () => {
+  if (messaging.logQueueTimerId !== undefined) {
+    clearTimeout(messaging.logQueueTimerId);
+    messaging.logQueueTimerId = undefined;
+  }
+  messaging.logQueueTimerId = setTimeout(async () => {
+    messaging.logQueueTimerId = undefined;
     if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
       // flush events and terminate logging service
       messaging.logEvents = [];
@@ -87,9 +107,21 @@ export async function _dispatchLogEvents(
     i < n;
     i += MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
   ) {
-    const logRequest = _createLogRequest(
-      messaging.logEvents.slice(i, i + MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST)
+    if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
+      messaging.logEvents = [];
+      messaging.isLogServiceStarted = false;
+      return;
+    }
+
+    const batch = messaging.logEvents.slice(
+      i,
+      i + MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
     );
+    if (!batch.length) {
+      break;
+    }
+
+    const logRequest = _createLogRequest(batch);
 
     let retryCount = 0,
       response = {} as Response;
@@ -140,7 +172,11 @@ export async function _dispatchLogEvents(
 
   messaging.logEvents = [];
   // schedule for next logging
-  _processQueue(messaging, LOG_INTERVAL_IN_MS);
+  if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
+    _processQueue(messaging, LOG_INTERVAL_IN_MS);
+  } else {
+    messaging.isLogServiceStarted = false;
+  }
 }
 
 function isRetriableError(response: Response): boolean {
