@@ -36,7 +36,7 @@ import {
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { targetIsDocumentTarget, Target } from '../core/target';
-import { TargetId } from '../core/types';
+import { RemoteTargetId } from '../core/types';
 import { Bytes } from '../lite-api/bytes';
 import { GeoPoint } from '../lite-api/geo_point';
 import { Timestamp } from '../lite-api/timestamp';
@@ -94,7 +94,7 @@ import {
   Value as ProtoValue,
   MapValue as ProtoMapValue,
   ExecutePipelineResponse as ProtoExecutePipelineResponse,
-  Pipeline
+  Pipeline as ProtoPipeline
 } from '../protos/firestore_proto_api';
 import { debugAssert, fail, hardAssert } from '../util/assert';
 import { ByteString } from '../util/byte_string';
@@ -558,7 +558,8 @@ export function fromWatchChange(
     const state = fromWatchTargetChangeState(
       change.targetChange.targetChangeType || 'NO_CHANGE'
     );
-    const targetIds: TargetId[] = change.targetChange.targetIds || [];
+    const targetIds: RemoteTargetId[] = (change.targetChange.targetIds ||
+      []) as RemoteTargetId[];
 
     const resumeToken = fromBytes(serializer, change.targetChange.resumeToken);
     const causeProto = change.targetChange!.cause;
@@ -592,8 +593,9 @@ export function fromWatchChange(
       createTime,
       data
     );
-    const updatedTargetIds = entityChange.targetIds || [];
-    const removedTargetIds = entityChange.removedTargetIds || [];
+    const updatedTargetIds = (entityChange.targetIds || []) as RemoteTargetId[];
+    const removedTargetIds = (entityChange.removedTargetIds ||
+      []) as RemoteTargetId[];
     watchChange = new DocumentWatchChange(
       updatedTargetIds,
       removedTargetIds,
@@ -609,14 +611,16 @@ export function fromWatchChange(
       ? fromVersion(docDelete.readTime)
       : SnapshotVersion.min();
     const doc = MutableDocument.newNoDocument(key, version);
-    const removedTargetIds = docDelete.removedTargetIds || [];
+    const removedTargetIds = (docDelete.removedTargetIds ||
+      []) as RemoteTargetId[];
     watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
   } else if ('documentRemove' in change) {
     assertPresent(change.documentRemove, 'documentRemove');
     const docRemove = change.documentRemove;
     assertPresent(docRemove.document, 'documentRemove');
     const key = fromName(serializer, docRemove.document);
-    const removedTargetIds = docRemove.removedTargetIds || [];
+    const removedTargetIds = (docRemove.removedTargetIds ||
+      []) as RemoteTargetId[];
     watchChange = new DocumentWatchChange([], removedTargetIds, key, null);
   } else if ('filter' in change) {
     // TODO(dimond): implement existence filter parsing with strategy.
@@ -625,7 +629,7 @@ export function fromWatchChange(
     assertPresent(filter.targetId, 'filter.targetId');
     const { count = 0, unchangedNames } = filter;
     const existenceFilter = new ExistenceFilter(count, unchangedNames);
-    const targetId = filter.targetId;
+    const targetId = filter.targetId as RemoteTargetId;
     watchChange = new ExistenceFilterChange(targetId, existenceFilter);
   } else {
     return fail(0x2d51, 'Unknown change type', { change });
@@ -1084,7 +1088,7 @@ export function fromQueryTarget(target: ProtoQueryTarget): Target {
 
 export function toListenRequestLabels(
   serializer: JsonProtoSerializer,
-  targetData: TargetData
+  targetData: TargetData<number>
 ): ProtoApiClientObjectMap<string> | null {
   const value = toLabel(targetData.purpose);
   if (value == null) {
@@ -1113,7 +1117,7 @@ export function toLabel(purpose: TargetPurpose): string | null {
 
 export function toTarget(
   serializer: JsonProtoSerializer,
-  targetData: TargetData
+  targetData: TargetData<number>
 ): ProtoTarget {
   let result: ProtoTarget;
   const target = targetData.target;
@@ -1502,7 +1506,7 @@ export function toStringValue(value: string): ProtoValue {
   return { stringValue: value };
 }
 
-export function toPipelineValue(value: Pipeline): ProtoValue {
+export function toPipelineValue(value: ProtoPipeline): ProtoValue {
   return { pipelineValue: value };
 }
 

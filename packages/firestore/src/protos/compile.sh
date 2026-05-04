@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2017 Google Inc.
+# Copyright 2026 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 set -euo pipefail
 
-# Variables
-PROTOS_DIR="."
-PBJS="../../node_modules/.bin/pbjs"
-PBTS="../../node_modules/.bin/pbts"
+# Verify dependencies
+for cmd in npx find; do
+  if ! command -v "$cmd" &> /dev/null; then
+    echo "Error: $cmd is required but not installed." >&2
+    exit 1
+  fi
+done
 
-"${PBJS}" --path=. --target=json -o protos.json \
-  -r firestore/v1 "${PROTOS_DIR}/google/firestore/v1/*.proto" \
-  "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
-  "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"
+PROTOS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROTO_FILES=$(find "${PROTOS_DIR}/google" -name "*.proto")
 
-"${PBJS}" --path="${PROTOS_DIR}" --target=static -o temp.js \
-  -r firestore/v1 "${PROTOS_DIR}/google/firestore/v1/*.proto" \
-  "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
-  "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto"
+# Generate JSON representation
+npx pbjs --path="${PROTOS_DIR}" --target=json -o "${PROTOS_DIR}/protos.json" \
+  -r firestore/v1 $PROTO_FILES
 
-"${PBTS}" -o temp.d.ts --no-comments temp.js
+rm -f "${PROTOS_DIR}/temp.d.ts"

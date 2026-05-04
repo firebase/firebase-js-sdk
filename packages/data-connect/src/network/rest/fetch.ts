@@ -18,25 +18,32 @@
 import { isCloudWorkstation } from '@firebase/util';
 
 import {
+  CallerSdkType,
+  CallerSdkTypeEnum,
+  DataConnectResponse,
+  Extensions
+} from '..';
+import {
   Code,
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
-} from '../core/error';
-import { SDK_VERSION } from '../core/version';
-import { logError } from '../logger';
+} from '../../core/error';
+import { SDK_VERSION } from '../../core/version';
+import { logError } from '../../logger';
 
-import {
-  CallerSdkType,
-  CallerSdkTypeEnum,
-  Extensions,
-  DataConnectResponse
-} from './transport';
-
+/** The fetch implementation to be used by the {@link RESTTransport}. */
 let connectFetch: typeof fetch | null = globalThis.fetch;
+
+/**
+ * This function is ONLY used for testing and for ensuring compatability in environments which may
+ * be using a poyfill and/or bundlers. It should not be called by users of the Firebase JS SDK.
+ * @internal
+ */
 export function initializeFetch(fetchImpl: typeof fetch): void {
   connectFetch = fetchImpl;
 }
+
 function getGoogApiClientValue(
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType
@@ -52,14 +59,14 @@ function getGoogApiClientValue(
   }
   return str;
 }
-export interface DataConnectFetchBody<T> {
+export interface DataConnectFetchBody<Variables> {
   name: string;
   operationName: string;
-  variables: T;
+  variables: Variables;
 }
-export async function dcFetch<T, U>(
+export async function dcFetch<Data, Variables>(
   url: string,
-  body: DataConnectFetchBody<U>,
+  body: DataConnectFetchBody<Variables>,
   { signal }: AbortController,
   appId: string | null | undefined,
   accessToken: string | null,
@@ -67,7 +74,7 @@ export async function dcFetch<T, U>(
   _isUsingGen: boolean,
   _callerSdkType: CallerSdkType,
   _isUsingEmulator: boolean
-): Promise<DataConnectResponse<T>> {
+): Promise<DataConnectResponse<Data>> {
   if (!connectFetch) {
     throw new DataConnectError(Code.OTHER, 'No Fetch Implementation detected!');
   }
@@ -99,16 +106,24 @@ export async function dcFetch<T, U>(
   try {
     response = await connectFetch(url, fetchOptions);
   } catch (err) {
-    throw new DataConnectError(
-      Code.OTHER,
-      'Failed to fetch: ' + JSON.stringify(err)
-    );
+    const message =
+      err && typeof err === 'object' && 'message' in err
+        ? (err as unknown as Record<string, unknown>)['message']
+        : String(err);
+    throw new DataConnectError(Code.OTHER, 'Failed to fetch: ' + message);
   }
-  let jsonResponse: JsonResponse<T>;
+  let jsonResponse: JsonResponse<Data>;
   try {
     jsonResponse = await response.json();
   } catch (e) {
-    throw new DataConnectError(Code.OTHER, JSON.stringify(e));
+    const message =
+      e && typeof e === 'object' && 'message' in e
+        ? (e as unknown as Record<string, unknown>)['message']
+        : String(e);
+    throw new DataConnectError(
+      Code.OTHER,
+      'Failed to parse JSON response: ' + message
+    );
   }
   const message = getErrorMessage(jsonResponse);
   if (response.status >= 400) {
@@ -134,12 +149,12 @@ export async function dcFetch<T, U>(
       dataConnect: []
     };
   }
-  return jsonResponse as DataConnectResponse<T>;
+  return jsonResponse as DataConnectResponse<Data>;
 }
-interface JsonResponse<T> {
+interface JsonResponse<Data> {
   message?: string;
   errors: [];
-  data: Record<string, unknown> | T | null;
+  data: Record<string, unknown> | Data | null;
   extensions?: Extensions;
 }
 function getErrorMessage(obj: JsonResponse<unknown>): string {

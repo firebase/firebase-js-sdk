@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PipelineSource class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.
 
 Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents.
@@ -27,20 +24,17 @@ export declare class PipelineSource<PipelineType>
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [collection(collection)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection) |  | <b><i>(Public Preview)</i></b> Returns all documents from the entire collection. The collection can be nested. |
-|  [collection(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection) |  | <b><i>(Public Preview)</i></b> Returns all documents from the entire collection. The collection can be nested. |
-|  [collectionGroup(collectionId)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) |  | <b><i>(Public Preview)</i></b> Returns all documents from a collection ID regardless of the parent. |
-|  [collectionGroup(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) |  | <b><i>(Public Preview)</i></b> Returns all documents from a collection ID regardless of the parent. |
-|  [createFrom(query)](./firestore_pipelines.pipelinesource.md#pipelinesourcecreatefrom) |  | <b><i>(Public Preview)</i></b> Convert the given Query into an equivalent Pipeline. |
-|  [database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | <b><i>(Public Preview)</i></b> Returns all documents from the entire database. |
-|  [database(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | <b><i>(Public Preview)</i></b> Returns all documents from the entire database. |
-|  [documents(docs)](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | <b><i>(Public Preview)</i></b> Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
-|  [documents(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | <b><i>(Public Preview)</i></b> Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
+|  [collection(collection)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection) |  | Returns all documents from the entire collection. The collection can be nested. |
+|  [collection(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection) |  | Returns all documents from the entire collection. The collection can be nested. |
+|  [collectionGroup(collectionId)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) |  | Returns all documents from a collection ID regardless of the parent. |
+|  [collectionGroup(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup) |  | Returns all documents from a collection ID regardless of the parent. |
+|  [createFrom(query)](./firestore_pipelines.pipelinesource.md#pipelinesourcecreatefrom) |  | Convert the given Query into an equivalent Pipeline. |
+|  [database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | Returns all documents from the entire database. |
+|  [database(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase) |  | Returns all documents from the entire database. |
+|  [documents(docs)](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
+|  [documents(options)](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments) |  | Set the pipeline's source to the documents specified by the given paths and DocumentReferences. |
 
 ## PipelineSource.collection()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns all documents from the entire collection. The collection can be nested.
 
@@ -62,9 +56,6 @@ PipelineType
 
 ## PipelineSource.collection()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns all documents from the entire collection. The collection can be nested.
 
 <b>Signature:</b>
@@ -84,9 +75,6 @@ collection(options: CollectionStageOptions): PipelineType;
 PipelineType
 
 ## PipelineSource.collectionGroup()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns all documents from a collection ID regardless of the parent.
 
@@ -108,9 +96,6 @@ PipelineType
 
 ## PipelineSource.collectionGroup()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns all documents from a collection ID regardless of the parent.
 
 <b>Signature:</b>
@@ -130,9 +115,6 @@ collectionGroup(options: CollectionGroupStageOptions): PipelineType;
 PipelineType
 
 ## PipelineSource.createFrom()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Convert the given Query into an equivalent Pipeline.
 
@@ -158,9 +140,6 @@ createFrom(query: Query): Pipeline;
 
 ## PipelineSource.database()
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Returns all documents from the entire database.
 
 <b>Signature:</b>
@@ -173,9 +152,6 @@ database(): PipelineType;
 PipelineType
 
 ## PipelineSource.database()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Returns all documents from the entire database.
 
@@ -196,9 +172,6 @@ database(options: DatabaseStageOptions): PipelineType;
 PipelineType
 
 ## PipelineSource.documents()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Set the pipeline's source to the documents specified by the given paths and DocumentReferences.
 
@@ -223,9 +196,6 @@ PipelineType
 `FirestoreError` Thrown if any of the provided DocumentReferences target a different project or database than the pipeline.
 
 ## PipelineSource.documents()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Set the pipeline's source to the documents specified by the given paths and DocumentReferences.
 

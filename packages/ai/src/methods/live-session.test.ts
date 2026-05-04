@@ -16,7 +16,7 @@
  */
 
 import { expect, use } from 'chai';
-import { spy, stub } from 'sinon';
+import { match, spy, stub } from 'sinon';
 import sinonChai from 'sinon-chai';
 import chaiAsPromised from 'chai-as-promised';
 import {
@@ -25,15 +25,25 @@ import {
   LiveServerContent,
   LiveServerGoingAwayNotice,
   LiveServerToolCall,
-  LiveServerToolCallCancellation
+  LiveServerToolCallCancellation,
+  LiveSessionResumptionUpdate
 } from '../types';
 import { LiveSession } from './live-session';
 import { WebSocketHandler } from '../websocket';
 import { AIError } from '../errors';
 import { logger } from '../logger';
+import { GoogleAIBackend } from '../backend';
 
 use(sinonChai);
 use(chaiAsPromised);
+
+const fakeApiSettings = {
+  apiKey: 'MY_KEY',
+  project: 'my-project',
+  appId: 'id',
+  location: 'here',
+  backend: new GoogleAIBackend()
+};
 
 class MockWebSocketHandler implements WebSocketHandler {
   connect = stub().resolves();
@@ -78,12 +88,20 @@ class MockWebSocketHandler implements WebSocketHandler {
 describe('LiveSession', () => {
   let mockHandler: MockWebSocketHandler;
   let session: LiveSession;
-  let serverMessagesGenerator: AsyncGenerator<unknown>;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockHandler = new MockWebSocketHandler();
-    serverMessagesGenerator = mockHandler.listen();
-    session = new LiveSession(mockHandler, serverMessagesGenerator);
+    session = new LiveSession(
+      { setup: { model: 'my-model' } },
+      fakeApiSettings,
+      {},
+      mockHandler
+    );
+    mockHandler.simulateServerMessage({
+      setupComplete: true
+    });
+    await session.connectionPromise;
+    mockHandler.send.resetHistory();
   });
 
   describe('send()', () => {
@@ -220,6 +238,34 @@ describe('LiveSession', () => {
     });
   });
 
+  describe('resumeSession()', () => {
+    it('should close existing session and start a new one using handle.send', async () => {
+      expect(session.isClosed).to.be.false;
+
+      mockHandler.simulateServerMessage({
+        setupComplete: true
+      });
+      await session.resumeSession({ handle: 'testHandle' });
+
+      expect(mockHandler.close).to.have.been.calledOnce;
+      expect(mockHandler.send).to.have.been.calledWith(match('testHandle'));
+      expect(session.isClosed).to.be.false;
+    });
+
+    it('should throw if sessionResumption is not provided', async () => {
+      const basicSession = new LiveSession(
+        { setup: { model: 'my-model' } },
+        fakeApiSettings,
+        undefined,
+        mockHandler
+      );
+      await expect(basicSession.resumeSession()).to.be.rejectedWith(
+        AIError,
+        /Cannot resume session/
+      );
+    });
+  });
+
   describe('receive()', () => {
     it('should correctly parse and transform all server message types', async () => {
       const receivePromise = (async () => {
@@ -229,7 +275,6 @@ describe('LiveSession', () => {
         }
         return responses;
       })();
-
       mockHandler.simulateServerMessage({
         serverContent: { modelTurn: { parts: [{ text: 'response 1' }] } }
       });
@@ -243,13 +288,21 @@ describe('LiveSession', () => {
         goAway: { timeLeft: '30s' }
       });
       mockHandler.simulateServerMessage({
+        sessionResumptionUpdate: {
+          newHandle: 'test',
+          resumable: true,
+          lastConsumedClientMessageIndex: 5
+        }
+      });
+      mockHandler.simulateServerMessage({
         serverContent: { turnComplete: true }
       });
+
       await new Promise<void>(r => setTimeout(() => r(), 10)); // Wait for the listener to process messages
       mockHandler.endStream();
 
       const responses = await receivePromise;
-      expect(responses).to.have.lengthOf(5);
+      expect(responses).to.have.lengthOf(6);
       expect(responses[0]).to.deep.equal({
         type: LiveResponseType.SERVER_CONTENT,
         modelTurn: { parts: [{ text: 'response 1' }] }
@@ -267,6 +320,12 @@ describe('LiveSession', () => {
         timeLeft: 30
       } as LiveServerGoingAwayNotice);
       expect(responses[4]).to.deep.equal({
+        type: LiveResponseType.SESSION_RESUMPTION_UPDATE,
+        newHandle: 'test',
+        resumable: true,
+        lastConsumedClientMessageIndex: 5
+      } as LiveSessionResumptionUpdate);
+      expect(responses[5]).to.deep.equal({
         type: LiveResponseType.SERVER_CONTENT,
         turnComplete: true
       } as LiveServerContent);

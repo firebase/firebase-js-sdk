@@ -1,5 +1,15 @@
 # @firebase/functions
 
+## 0.13.3
+
+### Patch Changes
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
 ## 0.13.2
 
 ### Patch Changes

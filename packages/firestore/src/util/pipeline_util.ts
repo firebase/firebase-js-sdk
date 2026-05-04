@@ -27,8 +27,10 @@ import {
   field,
   Field,
   map,
-  Selectable
+  Selectable,
+  pipelineValue
 } from '../lite-api/expressions';
+import type { Pipeline } from '../lite-api/pipeline';
 import { VectorValue } from '../lite-api/vector_value';
 
 import { fail } from './assert';
@@ -36,10 +38,20 @@ import { isPlainObject } from './input_validation';
 import { isFirestoreValue } from './proto';
 import { isString } from './types';
 
+/**
+ * @deprecated use selectablesToObject instead
+ * @param selectables
+ */
 export function selectablesToMap(
   selectables: Array<Selectable | string>
 ): Map<string, Expression> {
-  const result = new Map<string, Expression>();
+  return new Map(Object.entries(selectablesToObject(selectables)));
+}
+
+export function selectablesToObject(
+  selectables: Array<Selectable | string>
+): Record<string, Expression> {
+  const result: Record<string, Expression> = {};
   for (const selectable of selectables) {
     let alias: string;
     let expression: Expression;
@@ -56,14 +68,14 @@ export function selectablesToMap(
       fail(0x5319, '`selectable` has an unsupported type', { selectable });
     }
 
-    if (result.get(alias) !== undefined) {
+    if (result[alias] !== undefined) {
       throw new FirestoreError(
         'invalid-argument',
         `Duplicate alias or field '${alias}'`
       );
     }
 
-    result.set(alias, expression);
+    result[alias] = expression;
   }
   return result;
 }
@@ -148,9 +160,24 @@ export function valueToDefaultExpr(value: unknown): Expression {
     result = map(value as Record<string, unknown>);
   } else if (value instanceof Array) {
     result = array(value);
+  } else if (isPipeline(value)) {
+    result = pipelineValue(value);
   } else {
     result = _constant(value, undefined);
   }
 
   return result;
+}
+
+/**
+ * Checks if a value is a Pipeline object.
+ *
+ * We use duck typing here to avoid a circular dependency between pipeline.ts and pipeline_util.ts.
+ */
+function isPipeline(value: unknown): value is Pipeline {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as Pipeline).toArrayExpression === 'function'
+  );
 }

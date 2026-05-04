@@ -17,7 +17,10 @@
 
 /* eslint-disable no-restricted-properties */
 
-import { USE_EMULATOR } from '../integration/util/settings';
+import {
+  USE_EMULATOR,
+  getRunEnterpriseTests
+} from '../integration/util/settings';
 
 // Helper to make a type itselt (T) and optionally union that with (T['skip'])
 type tOrSkipT<T> = T | (T extends { skip: unknown } ? T['skip'] : T);
@@ -41,6 +44,10 @@ declare module 'mocha' {
 
 // Define helpers
 export function mixinSkipImplementations(obj: unknown): void {
+  if (Object.getOwnPropertyDescriptor(obj, 'skipEmulator')) {
+    return;
+  }
+
   Object.defineProperty(obj, 'skipEmulator', {
     get(): unknown {
       if (this === it.skip) {
@@ -64,7 +71,7 @@ export function mixinSkipImplementations(obj: unknown): void {
       if (this === describe.skip) {
         return this;
       }
-      if (process.env.RUN_ENTERPRISE_TESTS) {
+      if (getRunEnterpriseTests()) {
         return this.skip;
       }
       return this;
@@ -79,7 +86,7 @@ export function mixinSkipImplementations(obj: unknown): void {
       if (this === describe.skip) {
         return this;
       }
-      if (!process.env.RUN_ENTERPRISE_TESTS) {
+      if (!getRunEnterpriseTests()) {
         return this.skip;
       }
       return this;

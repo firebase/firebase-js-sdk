@@ -39,7 +39,7 @@ export declare class LiveGenerativeModel extends AIModel
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [connect()](./ai.livegenerativemodel.md#livegenerativemodelconnect) |  | <b><i>(Public Preview)</i></b> Starts a [LiveSession](./ai.livesession.md#livesession_class)<!-- -->. |
+|  [connect(sessionResumption)](./ai.livegenerativemodel.md#livegenerativemodelconnect) |  | <b><i>(Public Preview)</i></b> Starts a [LiveSession](./ai.livesession.md#livesession_class)<!-- -->. |
 
 ## LiveGenerativeModel.generationConfig
 
@@ -95,8 +95,15 @@ Starts a [LiveSession](./ai.livesession.md#livesession_class)<!-- -->.
 <b>Signature:</b>
 
 ```typescript
-connect(): Promise<LiveSession>;
+connect(sessionResumption?: SessionResumptionConfig): Promise<LiveSession>;
 ```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  sessionResumption | [SessionResumptionConfig](./ai.sessionresumptionconfig.md#sessionresumptionconfig_interface) |  |
+
 <b>Returns:</b>
 
 Promise&lt;[LiveSession](./ai.livesession.md#livesession_class)<!-- -->&gt;

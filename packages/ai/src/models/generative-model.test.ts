@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 import { use, expect } from 'chai';
-import { GenerativeModel } from './generative-model';
+import { GenerativeModel, validateGenerationConfig } from './generative-model';
 import {
   FunctionCallingMode,
   AI,
   InferenceMode,
   AIErrorCode,
   ChromeAdapter,
-  ThinkingLevel
+  ThinkingLevel,
+  ImageConfigAspectRatio,
+  ImageConfigImageSize
 } from '../public-types';
 import * as request from '../requests/request';
 import { SinonStub, match, restore, stub } from 'sinon';
@@ -321,6 +323,22 @@ describe('GenerativeModel', () => {
       topK: 1
     });
     restore();
+  });
+  it('passes imageConfig through to ChatSession', () => {
+    const genModel = new GenerativeModel(fakeAI, {
+      model: 'my-model',
+      generationConfig: {
+        imageConfig: {
+          aspectRatio: ImageConfigAspectRatio.SQUARE_1x1,
+          imageSize: ImageConfigImageSize.SIZE_512
+        }
+      }
+    });
+    const chatSession = genModel.startChat();
+    expect(chatSession.params?.generationConfig?.imageConfig).to.deep.equal({
+      aspectRatio: '1:1',
+      imageSize: '512'
+    });
   });
   it('overrides base model params with startChatParams', () => {
     const genModel = new GenerativeModel(fakeAI, {
@@ -955,4 +973,74 @@ describe('GenerativeModel dispatch logic', () => {
       expect(makeRequestStub).to.have.been.calledOnce;
     });
   });
+});
+
+describe('validateGenerationConfig', () => {
+  it('does not allow setting both thinkingBudget and thinkingLevel', () => {
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingBudget: 200
+        }
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingLevel: ThinkingLevel.LOW
+        }
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        thinkingConfig: {
+          thinkingBudget: 200,
+          thinkingLevel: ThinkingLevel.LOW
+        }
+      });
+    }).to.throw();
+  });
+  it('does not allow setting both responseSchema and responseJsonSchema', () => {
+    expect(() => {
+      validateGenerationConfig({
+        responseSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        responseJsonSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.not.throw();
+    expect(() => {
+      validateGenerationConfig({
+        responseSchema: {},
+        responseJsonSchema: {},
+        responseMimeType: 'application/json'
+      });
+    }).to.throw();
+  });
+  it(
+    'throws if responseSchema or responseJsonSchema are set' +
+      ' and responseMimeType is not "application/json"',
+    () => {
+      expect(() => {
+        validateGenerationConfig({
+          responseSchema: {}
+        });
+      }).to.throw();
+      expect(() => {
+        validateGenerationConfig({
+          responseJsonSchema: {}
+        });
+      }).to.throw();
+      expect(() => {
+        validateGenerationConfig({
+          responseJsonSchema: {},
+          responseMimeType: 'text/plain'
+        });
+      }).to.throw();
+    }
+  );
 });

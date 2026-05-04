@@ -18,6 +18,7 @@
 import { deleteApp, initializeApp, FirebaseApp } from '@firebase/app';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
+import * as sinon from 'sinon';
 
 import {
   connectDataConnectEmulator,
@@ -35,6 +36,7 @@ import {
   subscribe,
   terminate
 } from '../src';
+import { DataConnectTransportManager } from '../src/network/manager';
 
 import { getConnectionConfig, initDatabase, PROJECT_ID } from './util';
 
@@ -94,11 +96,18 @@ describe('DataConnect Tests', async () => {
     });
     dc = initDatabase();
     await seedDatabase(dc, TEST_ID);
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeSubscribe')
+      .returns();
+    sinon
+      .stub(DataConnectTransportManager.prototype, 'invokeUnsubscribe')
+      .returns();
   });
   afterEach(async () => {
     await deleteDatabase(dc);
     await deleteApp(app);
     await terminate(dc);
+    sinon.restore();
   });
   function getPostsRef(): QueryRef<PostListResponse, PostVariables> {
     return queryRef<PostListResponse, PostVariables>(dc, 'ListPosts', {

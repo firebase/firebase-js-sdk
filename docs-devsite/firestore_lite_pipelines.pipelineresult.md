@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # PipelineResult class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 A PipelineResult contains data read from a Firestore Pipeline. The data can be extracted with the [PipelineResult.data()](./firestore_pipelines.pipelineresult.md#pipelineresultdata) or [PipelineResult.get()](./firestore_pipelines.pipelineresult.md#pipelineresultget) methods.
 
 <p>If the PipelineResult represents a non-document result, `ref` will return a undefined value.
@@ -27,22 +24,19 @@ export declare class PipelineResult<AppModelType = DocumentData>
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [createTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was created. Undefined if this result is not a document. |
-|  [id](./firestore_lite_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | <b><i>(Public Preview)</i></b> The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. |
-|  [ref](./firestore_lite_pipelines.pipelineresult.md#pipelineresultref) |  | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) \| undefined | <b><i>(Public Preview)</i></b> The reference of the document, if it is a document; otherwise <code>undefined</code>. |
-|  [updateTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | <b><i>(Public Preview)</i></b> The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. |
+|  [createTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultcreatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | The time the document was created. Undefined if this result is not a document. |
+|  [id](./firestore_lite_pipelines.pipelineresult.md#pipelineresultid) |  | string \| undefined | The ID of the document for which this PipelineResult contains data, if it is a document; otherwise <code>undefined</code>. |
+|  [ref](./firestore_lite_pipelines.pipelineresult.md#pipelineresultref) |  | [DocumentReference](./firestore_lite.documentreference.md#documentreference_class) \| undefined | The reference of the document, if it is a document; otherwise <code>undefined</code>. |
+|  [updateTime](./firestore_lite_pipelines.pipelineresult.md#pipelineresultupdatetime) |  | [Timestamp](./firestore_lite.timestamp.md#timestamp_class) \| undefined | The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document. |
 
 ## Methods
 
 |  Method | Modifiers | Description |
 |  --- | --- | --- |
-|  [data()](./firestore_lite_pipelines.pipelineresult.md#pipelineresultdata) |  | <b><i>(Public Preview)</i></b> Retrieves all fields in the result as an object. |
-|  [get(fieldPath)](./firestore_lite_pipelines.pipelineresult.md#pipelineresultget) |  | <b><i>(Public Preview)</i></b> Retrieves the field specified by <code>field</code>. |
+|  [data()](./firestore_lite_pipelines.pipelineresult.md#pipelineresultdata) |  | Retrieves all fields in the result as an object. |
+|  [get(fieldPath)](./firestore_lite_pipelines.pipelineresult.md#pipelineresultget) |  | Retrieves the field specified by <code>field</code>. |
 
 ## PipelineResult.createTime
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The time the document was created. Undefined if this result is not a document.
 
@@ -54,9 +48,6 @@ get createTime(): Timestamp | undefined;
 
 ## PipelineResult.id
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The ID of the document for which this PipelineResult contains data, if it is a document; otherwise `undefined`<!-- -->.
 
 <b>Signature:</b>
@@ -66,9 +57,6 @@ get id(): string | undefined;
 ```
 
 ## PipelineResult.ref
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 The reference of the document, if it is a document; otherwise `undefined`<!-- -->.
 
@@ -80,9 +68,6 @@ get ref(): DocumentReference | undefined;
 
 ## PipelineResult.updateTime
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 The time the document was last updated (at the time the snapshot was generated). Undefined if this result is not a document.
 
 <b>Signature:</b>
@@ -92,9 +77,6 @@ get updateTime(): Timestamp | undefined;
 ```
 
 ## PipelineResult.data()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Retrieves all fields in the result as an object.
 
@@ -123,9 +105,6 @@ p.execute().then(results => {
 ```
 
 ## PipelineResult.get()
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Retrieves the field specified by `field`<!-- -->.
 

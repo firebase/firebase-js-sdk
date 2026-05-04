@@ -1,5 +1,49 @@
 # @firebase/firestore
 
+## 4.14.0
+
+### Minor Changes
+
+- [`44c234c`](https://github.com/firebase/firebase-js-sdk/commit/44c234c2ba5f8ba18a2f2c99fe63df7692010bf3) [#9773](https://github.com/firebase/firebase-js-sdk/pull/9773) - Add support for the parent expression
+
+- [`5cd6509`](https://github.com/firebase/firebase-js-sdk/commit/5cd6509bdb1eedc9a37ed6ce7677450f574a7e9d) [#9728](https://github.com/firebase/firebase-js-sdk/pull/9728) - Add support for timestamp_trunc, timestamp_diff and timestamp_extract expressions
+
+- [`31bddcd`](https://github.com/firebase/firebase-js-sdk/commit/31bddcdd6200642f836c1eca7c9068470ca840bd) [#9734](https://github.com/firebase/firebase-js-sdk/pull/9734) - Added public preview support for full-text and geo search in Pipelines.
+
+- [`44ad4cc`](https://github.com/firebase/firebase-js-sdk/commit/44ad4cc2e54c6720d34fff4c2773f8887473b935) [#9702](https://github.com/firebase/firebase-js-sdk/pull/9702) - Add support for logical expressions `nor` and `switchOn`.
+
+- [`e8f14eb`](https://github.com/firebase/firebase-js-sdk/commit/e8f14eb499f10246b96759f58479905ab8f02e4c) [#9753](https://github.com/firebase/firebase-js-sdk/pull/9753) - Add support for pipeline expressions `ifNull` and `coalesce`.
+
+- [`cecd028`](https://github.com/firebase/firebase-js-sdk/commit/cecd028de503302319a389a3331c5b94452daf95) [#9720](https://github.com/firebase/firebase-js-sdk/pull/9720) - Add subquery support to Pipelines.
+
+- [`0e343c8`](https://github.com/firebase/firebase-js-sdk/commit/0e343c8706d2c1683fd802cadff8fa87f826698d) [#9725](https://github.com/firebase/firebase-js-sdk/pull/9725) - **Beta API Breaking Change**: Change `Type` string union to be a raw string.
+
+### Patch Changes
+
+- [`dd10ed7`](https://github.com/firebase/firebase-js-sdk/commit/dd10ed777b7bb4790c89225aa0a5be0a9d59e9a6) [#9750](https://github.com/firebase/firebase-js-sdk/pull/9750) - Refactor the parameters for timestamp expressions and change all timegranularity value to lowercase
+
+- [`4e99d4b`](https://github.com/firebase/firebase-js-sdk/commit/4e99d4ba66a9a28558cd504826ae04fd07251c1b) [#9752](https://github.com/firebase/firebase-js-sdk/pull/9752) - Read user data when using internal pipeline proto serialization.
+
+- [`334b266`](https://github.com/firebase/firebase-js-sdk/commit/334b266fec0fe63466dbb59bebe4d092bc3a924e) [#9765](https://github.com/firebase/firebase-js-sdk/pull/9765) - Read user data from pipeline in union stage. Fixes [GitHub Issue #9764](https://github.com/firebase/firebase-js-sdk/issues/9764)
+
+## 4.13.0
+
+### Minor Changes
+
+- [`78384d3`](https://github.com/firebase/firebase-js-sdk/commit/78384d32c5352bd25cdc3d12fc8f2f4b5d48a440) [#9492](https://github.com/firebase/firebase-js-sdk/pull/9492) - Add support for array expressions `arrayFirst`, `arrayFirstN`,`arrayLast`,`arrayLastN`,`arrayMinimum`,`arrayMinimumN`,`arrayMaximum`,`arrayMaximumN`,`arrayIndexOf`, `arrayLastIndexOf` and `arrayIndexOfAll`
+
+### Patch Changes
+
+- [`54ff05e`](https://github.com/firebase/firebase-js-sdk/commit/54ff05ef922016fee2e9e6f4b8aea30120170da7) [#9715](https://github.com/firebase/firebase-js-sdk/pull/9715) - **Beta API Breaking change**: Defer pipeline user data validation from initialization to `execute()`. This breaking change is allowed in a non-major release since the Firestore Pipelines API is currently in Public Preview.
+
+- [`a383770`](https://github.com/firebase/firebase-js-sdk/commit/a3837700877822acd1bad82431a051d64f479508) [#9622](https://github.com/firebase/firebase-js-sdk/pull/9622) - Fixed X is not a function issues observed in server side rendering APIs.
+
+- [`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752) [#9608](https://github.com/firebase/firebase-js-sdk/pull/9608) - Remove `updateEmulatorBanner()`. (No release note needed.)
+
+- Updated dependencies [[`2f7f426`](https://github.com/firebase/firebase-js-sdk/commit/2f7f426dec37efd75bad8dcc87cdd769ed4f7752)]:
+  - @firebase/util@1.15.0
+  - @firebase/component@0.7.2
+
 ## 4.12.0
 
 ### Minor Changes

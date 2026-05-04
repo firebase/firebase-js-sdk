@@ -31,7 +31,7 @@ import { createEnhancedContentResponse } from '../requests/response-helpers';
 import { processStream } from '../requests/stream-reader';
 import { ApiSettings } from '../types/internal';
 import * as GoogleAIMapper from '../googleai-mappers';
-import { BackendType } from '../public-types';
+import { BackendType, TemplateRequestInternal } from '../public-types';
 import { ChromeAdapter } from '../types/chrome-adapter';
 import { callCloudOrDevice } from '../requests/hybrid-helpers';
 
@@ -108,7 +108,7 @@ async function generateContentOnCloud(
 export async function templateGenerateContent(
   apiSettings: ApiSettings,
   templateId: string,
-  templateParams: object,
+  templateParams: TemplateRequestInternal,
   singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentResult> {
   const response = await makeRequest(
@@ -136,7 +136,7 @@ export async function templateGenerateContent(
 export async function templateGenerateContentStream(
   apiSettings: ApiSettings,
   templateId: string,
-  templateParams: object,
+  templateParams: TemplateRequestInternal,
   singleRequestOptions?: SingleRequestOptions
 ): Promise<GenerateContentStreamResult> {
   const response = await makeRequest(

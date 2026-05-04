@@ -39,7 +39,7 @@ export * from './Reference';
 export * from './Mutation';
 export * from './query';
 export { setLogLevel } from '../logger';
-export { validateArgs } from '../util/validateArgs';
+export { validateArgs, validateArgsWithOptions } from '../util/validateArgs';
 export {
   DataConnectErrorCode,
   Code,

@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Selectable interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 An interface that represents a selectable expression.
 
 <b>Signature:</b>
@@ -25,12 +22,9 @@ export declare interface Selectable
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [selectable](./firestore_pipelines.selectable.md#selectableselectable) | true | <b><i>(Public Preview)</i></b> |
+|  [selectable](./firestore_pipelines.selectable.md#selectableselectable) | true |  |
 
 ## Selectable.selectable
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

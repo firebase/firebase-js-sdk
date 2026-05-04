@@ -38,7 +38,8 @@
         "--timeout",
         "5000",
         "integration/**/*.test.ts",
-        "--grep", "${input:grepString}",
+        "--grep",
+        "${input:grepString}"
       ],
       "env": {
         "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}"
@@ -166,6 +167,29 @@
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
         "FIRESTORE_TARGET_BACKEND": "emulator"
+      },
+      "sourceMaps": true
+    },
+    {
+      "name": "Firestore Enterprise Lite Tests",
+      "type": "node",
+      "request": "launch",
+      "runtimeArgs": ["-r", "ts-node/register"],
+      "cwd": "${workspaceRoot}/packages/firestore",
+      "program": "${workspaceRoot}/packages/firestore/scripts/run-tests.ts",
+      "args": [
+        "--platform",
+        "node_lite",
+        "--main=lite/index.ts",
+        "test/lite/**/*.test.ts",
+        "--grep",
+        "${input:grepString}"
+      ],
+      "env": {
+        "TS_NODE_COMPILER_OPTIONS": "{\"module\":\"commonjs\"}",
+        "FIRESTORE_TARGET_BACKEND": "nightly",
+        "FIRESTORE_TARGET_DB_ID": "enterprise",
+        "RUN_ENTERPRISE_TESTS": "true"
       },
       "sourceMaps": true
     },

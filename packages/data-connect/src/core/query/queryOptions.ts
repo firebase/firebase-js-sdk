@@ -23,11 +23,13 @@ export const QueryFetchPolicy = {
 
 /*
  * Represents policy for how executeQuery fetches data
- *
  */
 export type QueryFetchPolicy =
   (typeof QueryFetchPolicy)[keyof typeof QueryFetchPolicy];
 
+/**
+ * Options for executing a query.
+ */
 export interface ExecuteQueryOptions {
   fetchPolicy: QueryFetchPolicy;
 }

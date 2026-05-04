@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # Ordering class
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Represents an ordering criterion for sorting documents in a Firestore pipeline.
 
 You create `Ordering` instances using the `ascending` and `descending` helper functions.
@@ -27,19 +24,16 @@ export declare class Ordering
 
 |  Constructor | Modifiers | Description |
 |  --- | --- | --- |
-|  [(constructor)(expr, direction, \_methodName)](./firestore_lite_pipelines.ordering.md#orderingconstructor) |  | <b><i>(Public Preview)</i></b> Constructs a new instance of the <code>Ordering</code> class |
+|  [(constructor)(expr, direction, \_methodName)](./firestore_lite_pipelines.ordering.md#orderingconstructor) |  | Constructs a new instance of the <code>Ordering</code> class |
 
 ## Properties
 
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
-|  [direction](./firestore_lite_pipelines.ordering.md#orderingdirection) |  | 'ascending' \| 'descending' | <b><i>(Public Preview)</i></b> |
-|  [expr](./firestore_lite_pipelines.ordering.md#orderingexpr) |  | [Expression](./firestore_lite_pipelines.expression.md#expression_class) | <b><i>(Public Preview)</i></b> |
+|  [direction](./firestore_lite_pipelines.ordering.md#orderingdirection) |  | 'ascending' \| 'descending' |  |
+|  [expr](./firestore_lite_pipelines.ordering.md#orderingexpr) |  | [Expression](./firestore_lite_pipelines.expression.md#expression_class) |  |
 
 ## Ordering.(constructor)
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 Constructs a new instance of the `Ordering` class
 
@@ -59,9 +53,6 @@ constructor(expr: Expression, direction: 'ascending' | 'descending', _methodName
 
 ## Ordering.direction
 
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 <b>Signature:</b>
 
 ```typescript
@@ -69,9 +60,6 @@ readonly direction: 'ascending' | 'descending';
 ```
 
 ## Ordering.expr
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 

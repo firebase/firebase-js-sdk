@@ -18,7 +18,6 @@
 import { CredentialsProvider, Token } from '../api/credentials';
 import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
 import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import {
@@ -679,7 +678,7 @@ export class PersistentListenStream extends PersistentStream<
    * affect the target will be streamed back as WatchChange messages that
    * reference the targetId.
    */
-  watch(targetData: TargetData): void {
+  watch(targetData: TargetData<number>): void {
     const request: ListenRequest = {};
     request.database = getEncodedDatabaseId(this.serializer);
     request.addTarget = toTarget(this.serializer, targetData);
@@ -696,7 +695,7 @@ export class PersistentListenStream extends PersistentStream<
    * Unregisters interest in the results of the target associated with the
    * given targetId.
    */
-  unwatch(targetId: TargetId): void {
+  unwatch(targetId: number): void {
     const request: ListenRequest = {};
     request.database = getEncodedDatabaseId(this.serializer);
     request.removeTarget = targetId;

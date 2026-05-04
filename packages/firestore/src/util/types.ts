@@ -75,7 +75,6 @@ export interface DocumentLike {
 }
 
 /**
- * @beta
  * Utility type to create an type that only allows one
  * property of the Type param T to be set.
  *
