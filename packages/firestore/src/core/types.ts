@@ -22,10 +22,16 @@
 export type BatchId = number;
 
 /**
+ * A locally-assigned ID used to refer to a target being tracked in the local
+ * store.
+ */
+export type TargetId = number & { readonly __brand?: 'sdk' };
+
+/**
  * A locally-assigned ID used to refer to a target being watched via the
  * Watch service.
  */
-export type TargetId = number;
+export type RemoteTargetId = number & { readonly __brand?: 'remote' };
 
 export type ListenSequenceNumber = number;
 
