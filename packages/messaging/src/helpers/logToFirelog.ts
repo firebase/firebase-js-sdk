@@ -47,10 +47,7 @@ const FCM_TRANSPORT_KEY = _mergeStrings(
 );
 
 export function startLoggingService(messaging: MessagingService): void {
-  if (
-    !messaging.isLogServiceStarted &&
-    messaging.logEvents.length > 0
-  ) {
+  if (!messaging.isLogServiceStarted && messaging.logEvents.length > 0) {
     _processQueue(messaging, INITIAL_LOG_FLUSH_DELAY_MS);
     messaging.isLogServiceStarted = true;
   }

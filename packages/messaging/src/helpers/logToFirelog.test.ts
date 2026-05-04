@@ -344,7 +344,9 @@ describe('logToFirelog', () => {
         fcmMessageId: 'mid',
         productId: 0,
         notification: { title: 't' },
+        /* eslint-disable camelcase */
         collapse_key: ''
+        /* eslint-enable camelcase */
       };
 
       await LogModule.stageLog(messaging, internalPayload);
