@@ -220,19 +220,19 @@ describe('API', () => {
       expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
     });
 
-    it('returns responseFid when the success body includes a legacy plain FID in name', async () => {
+    it('rejects when name is not a valid registration resource name (no slash)', async () => {
       fetchStub.resolves(
-        new Response(JSON.stringify({ name: 'installation-fid-legacy' }), {
+        new Response(JSON.stringify({ name: 'installation-fid-invalid' }), {
           status: 200
         })
       );
 
-      const result = await requestCreateRegistration(
-        firebaseDependencies,
-        tokenDetails.subscriptionOptions!
-      );
-
-      expect(result).to.deep.equal({ responseFid: 'installation-fid-legacy' });
+      await expect(
+        requestCreateRegistration(
+          firebaseDependencies,
+          tokenDetails.subscriptionOptions!
+        )
+      ).to.be.rejectedWith('messaging/fid-registration-failed');
     });
 
     it('rejects when the success body is empty', async () => {
