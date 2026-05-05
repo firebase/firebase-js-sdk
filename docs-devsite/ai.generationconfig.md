@@ -24,6 +24,7 @@ export interface GenerationConfig
 |  --- | --- | --- |
 |  [candidateCount](./ai.generationconfig.md#generationconfigcandidatecount) | number |  |
 |  [frequencyPenalty](./ai.generationconfig.md#generationconfigfrequencypenalty) | number |  |
+|  [imageConfig](./ai.generationconfig.md#generationconfigimageconfig) | [ImageConfig](./ai.imageconfig.md#imageconfig_interface) | Configuration options for generating images with Gemini models. |
 |  [maxOutputTokens](./ai.generationconfig.md#generationconfigmaxoutputtokens) | number |  |
 |  [presencePenalty](./ai.generationconfig.md#generationconfigpresencepenalty) | number |  |
 |  [responseJsonSchema](./ai.generationconfig.md#generationconfigresponsejsonschema) | { \[key: string\]: unknown; } | Output schema of the generated response. This is an alternative to <code>responseSchema</code> that accepts \[JSON Schema\](https://json-schema.org/).<!-- -->If set, <code>responseSchema</code> must be omitted, but <code>responseMimeType</code> is required and must be set to <code>application/json</code>. |
@@ -50,6 +51,16 @@ candidateCount?: number;
 
 ```typescript
 frequencyPenalty?: number;
+```
+
+## GenerationConfig.imageConfig
+
+Configuration options for generating images with Gemini models.
+
+<b>Signature:</b>
+
+```typescript
+imageConfig?: ImageConfig;
 ```
 
 ## GenerationConfig.maxOutputTokens
