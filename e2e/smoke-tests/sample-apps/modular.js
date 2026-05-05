@@ -142,7 +142,7 @@ async function callFunctions(app) {
   }
   callTest = httpsCallableFromURL(
     functions,
-    `https://us-central-${app.options.projectId}.cloudfunctions.net/callTestv2`
+    `https://us-central1-${app.options.projectId}.cloudfunctions.net/callTestv2`
   );
   try {
     const result = await callTest({ data: 'blah' });
