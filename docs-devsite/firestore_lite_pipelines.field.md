@@ -88,7 +88,7 @@ selectable: true;
 
 Evaluates to the distance in meters between the location specified by this field and the query location.
 
-This Expression can only be used within a `Search` stage.
+This Expression can only be used within a `search` stage.
 
 <b>Signature:</b>
 
