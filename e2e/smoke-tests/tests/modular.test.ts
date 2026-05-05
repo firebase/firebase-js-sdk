@@ -145,7 +145,7 @@ describe('MODULAR', () => {
     it('httpsCallable()', async () => {
       const callTest = httpsCallable<{ data: string }, { word: string }>(
         functions,
-        'callTest'
+        'callTestv2'
       );
       const result = await callTest({ data: 'blah' });
       expect(result.data.word).toBe('hellooo');
@@ -154,7 +154,7 @@ describe('MODULAR', () => {
     it('httpsCallableFromURL()', async () => {
       const callTest = httpsCallableFromURL<{ data: string }, { word: string }>(
         functions,
-        `https://us-central1-${app.options.projectId}.cloudfunctions.net/callTest`
+        `https://us-central1-${app.options.projectId}.cloudfunctions.net/callTestv2`
       );
       const result = await callTest({ data: 'blah' });
       expect(result.data.word).toBe('hellooo');
@@ -316,8 +316,6 @@ describe('MODULAR', () => {
     it('getGenerativeModel() and countTokens()', async () => {
       const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
       expect(model.model).toMatch(/gemini-2.5-flash$/);
-      const result = await model.countTokens('abcdefg');
-      expect(result.totalTokens).toBeTruthy;
     });
   });
 

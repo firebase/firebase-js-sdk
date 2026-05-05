@@ -74,7 +74,7 @@ describe('COMPAT', () => {
       functions = firebase.functions();
     });
     it('httpsCallable()', async () => {
-      const callTest = functions.httpsCallable('callTest');
+      const callTest = functions.httpsCallable('callTestv2');
       const result = await callTest({ data: 'blah' });
       expect(result.data.word).toBe('hellooo');
     });

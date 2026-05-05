@@ -126,7 +126,7 @@ async function authLogout(app) {
 async function callFunctions(app) {
   console.log('[FUNCTIONS] start');
   const functions = getFunctions(app);
-  let callTest = httpsCallable(functions, 'callTest');
+  let callTest = httpsCallable(functions, 'callTestv2');
   try {
     const result = await callTest({ data: 'blah' });
     console.log('[FUNCTIONS] result (by name):', result.data);
@@ -142,7 +142,7 @@ async function callFunctions(app) {
   }
   callTest = httpsCallableFromURL(
     functions,
-    `https://us-central-${app.options.projectId}.cloudfunctions.net/callTest`
+    `https://us-central-${app.options.projectId}.cloudfunctions.net/callTestv2`
   );
   try {
     const result = await callTest({ data: 'blah' });
