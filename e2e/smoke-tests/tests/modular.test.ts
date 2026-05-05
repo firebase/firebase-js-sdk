@@ -313,7 +313,7 @@ describe('MODULAR', () => {
     it('getVertexAI()', () => {
       ai = getAI(app, { backend: new VertexAIBackend() });
     });
-    it('getGenerativeModel() and countTokens()', async () => {
+    it('getGenerativeModel()', async () => {
       const model = getGenerativeModel(ai, { model: 'gemini-2.5-flash' });
       expect(model.model).toMatch(/gemini-2.5-flash$/);
     });
