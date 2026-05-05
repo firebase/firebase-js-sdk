@@ -173,7 +173,7 @@ function evaluateOffset(
   stage: Offset,
   input: PipelineInputOutput[]
 ): PipelineInputOutput[] {
-  return input.slice(stage.offset);
+  return input.slice((stage as any).offset);
 }
 
 function evaluateSort(

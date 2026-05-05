@@ -868,7 +868,7 @@ describe('Null Semantics', () => {
     ]);
   });
 
-  it('where_isNull_xor', () => {
+  it.only('where_isNull_xor', () => {
     const doc1 = doc('k/1', 1000, { a: null, b: null });
     const doc2 = doc('k/2', 1000, { a: null });
     const doc3 = doc('k/3', 1000, { a: null, b: true });

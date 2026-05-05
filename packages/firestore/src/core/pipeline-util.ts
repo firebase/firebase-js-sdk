@@ -29,11 +29,11 @@ import {
   lessThan,
   greaterThan,
   field,
-  FunctionExpression,
-  ListOfExprs
+  FunctionExpression
 } from '../lite-api/expressions';
 import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
 import { doc, DocumentReference } from '../lite-api/reference';
+import { UserDataSource } from '../lite-api/user_data_reader';
 import {
   AddFields,
   Aggregate,
@@ -334,8 +334,8 @@ export function canonifyExpr(expr: Expression): string {
   if (expr instanceof FunctionExpression) {
     return `fn(${expr.name},[${expr.params.map(canonifyExpr).join(',')}])`;
   }
-  if (expr instanceof ListOfExprs) {
-    return `list([${expr.exprs.map(canonifyExpr).join(',')}])`;
+  if ((expr as any).expressionType === 'ListOfExpressions') {
+    return `list([${(expr as any).exprs.map(canonifyExpr).join(',')}])`;
   }
   throw new Error(`Unrecognized expr ${JSON.stringify(expr, null, 2)}`);
 }
@@ -552,9 +552,17 @@ export function toCorePipeline(
   p: ApiPipeline | RealtimePipeline,
   listenOptions?: ListenOptions
 ): CorePipeline {
+  const newStages = rewriteStages(p.stages);
+  if (p.userDataReader) {
+    const context = p.userDataReader.createContext(
+      UserDataSource.Argument,
+      'toCorePipeline'
+    );
+    newStages.forEach(stage => stage._readUserData(context));
+  }
   return new CorePipeline(
-    p.userDataReader.serializer,
-    rewriteStages(p.stages),
+    p.userDataReader!.serializer,
+    newStages,
     listenOptions
   );
 }

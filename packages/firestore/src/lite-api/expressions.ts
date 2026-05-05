@@ -3713,11 +3713,11 @@ export class AliasedExpression implements Selectable, UserData {
 /**
  * @internal
  */
-class ListOfExprs extends Expression implements UserData {
+export class ListOfExprs extends Expression implements UserData {
   expressionType: ExpressionType = 'ListOfExpressions';
 
   constructor(
-    private exprs: Expression[],
+    public readonly exprs: Expression[],
     readonly _methodName: string | undefined
   ) {
     super();
@@ -3777,6 +3777,10 @@ export class Field extends Expression implements Selectable {
     readonly _methodName: string | undefined
   ) {
     super();
+  }
+
+  get _fieldPath(): InternalFieldPath {
+    return this.fieldPath;
   }
 
   get fieldName(): string {
@@ -3914,7 +3918,7 @@ export class Constant extends Expression {
    * @param value - The value of the constant.
    */
   constructor(
-    private value: unknown,
+    public readonly value: unknown,
     readonly _methodName: string | undefined
   ) {
     super();
@@ -3943,6 +3947,10 @@ export class Constant extends Expression {
     return this._protoValue;
   }
 
+  _getValue(): ProtoValue {
+    return this._protoValue!;
+  }
+
   /**
    * @private
    * @internal
@@ -3965,7 +3973,7 @@ export class Constant extends Expression {
  * @param value - The number value.
  * @returns A new `Constant` instance.
  */
-export function constant(value: number): Expression;
+export function constant(value: number, options?: { preferIntegers?: boolean }): Expression;
 
 /**
  * Creates a `Constant` instance for a string value.
@@ -4049,7 +4057,7 @@ export function constant(value: ProtoValue): Expression;
  */
 export function constant(value: VectorValue): Expression;
 
-export function constant(value: unknown): Expression | BooleanExpression {
+export function constant(value: unknown, options?: { preferIntegers?: boolean }): Expression | BooleanExpression {
   return _constant(value, 'constant');
 }
 
@@ -4127,8 +4135,8 @@ export class FunctionExpression extends Expression {
    * @hideconstructor
    */
   constructor(
-    private name: string,
-    private params: Expression[],
+    public readonly name: string,
+    public readonly params: Expression[],
     methodName?: string,
     options?: {}
   ) {

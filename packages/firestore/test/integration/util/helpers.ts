@@ -53,12 +53,7 @@ import {
   terminate,
   Unsubscribe,
   WriteBatch,
-   writeBatch,
-   Query,
-   getDocsFromServer,
-   getDocsFromCache,
-   // @ts-ignore internal API usage
-   _AutoId
+   writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -767,9 +762,9 @@ export function getDocs(
         .createFrom(queryOrPipeline);
       return getDocsFromPipeline(
         new RealtimePipeline(
-          ppl._db,
-          ppl.userDataReader,
-          ppl._userDataWriter,
+          ppl._db!,
+          ppl.userDataReader!,
+          ppl._userDataWriter!,
           ppl.stages
         )
       );
@@ -812,9 +807,9 @@ export function onSnapshot(
         .createFrom(queryOrPipeline);
       return onPipelineSnapshot(
         new RealtimePipeline(
-          ppl._db,
-          ppl.userDataReader,
-          ppl._userDataWriter,
+          ppl._db!,
+          ppl.userDataReader!,
+          ppl._userDataWriter!,
           ppl.stages
         ),
         options as SnapshotListenOptions,

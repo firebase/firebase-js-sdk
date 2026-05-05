@@ -118,7 +118,6 @@ import {
   remoteStoreDisableNetwork,
   remoteStoreEnableNetwork,
   remoteStoreHandleCredentialChange,
-  outstandingWrites,
   remoteStoreGetRemoteTargetId,
   remoteStoreShutdown
 } from '../../../src/remote/remote_store';

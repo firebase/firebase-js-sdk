@@ -5,6 +5,7 @@
 ```ts
 
 import { FirebaseApp } from '@firebase/app';
+import { FirebaseError } from '@firebase/util';
 
 // @public
 export function abs(expr: Expression): FunctionExpression;
@@ -332,7 +333,9 @@ export function concat(fieldName: string, second: Expression | unknown, ...other
 export function conditional(condition: BooleanExpression, thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
 // @public
-export function constant(value: number): Expression;
+export function constant(value: number, options?: {
+    preferIntegers?: boolean;
+}): Expression;
 
 // @public
 export function constant(value: string): Expression;
@@ -922,7 +925,11 @@ export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[]);
     // (undocumented)
     readonly expressionType: ExpressionType;
-    }
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly params: Expression[];
+}
 
 // @beta
 export function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
@@ -1231,6 +1238,34 @@ export type OneOf<T> = {
     };
 }[keyof T];
 
+// Warning: (ae-incompatible-release-tags) The symbol "onSnapshot" is marked as @public, but its signature references "RealtimePipeline" which is marked as @beta
+//
+// @public (undocumented)
+export function onSnapshot(query: RealtimePipeline, observer: {
+    next?: (snapshot: RealtimePipelineSnapshot) => void;
+    error?: (error: FirebaseError) => void;
+    complete?: () => void;
+}): Unsubscribe;
+
+// Warning: (ae-incompatible-release-tags) The symbol "onSnapshot" is marked as @public, but its signature references "RealtimePipeline" which is marked as @beta
+//
+// @public (undocumented)
+export function onSnapshot(query: RealtimePipeline, options: PipelineListenOptions, observer: {
+    next?: (snapshot: RealtimePipelineSnapshot) => void;
+    error?: (error: FirebaseError) => void;
+    complete?: () => void;
+}): Unsubscribe;
+
+// Warning: (ae-incompatible-release-tags) The symbol "onSnapshot" is marked as @public, but its signature references "RealtimePipeline" which is marked as @beta
+//
+// @public (undocumented)
+export function onSnapshot(query: RealtimePipeline, onNext: (snapshot: RealtimePipelineSnapshot) => void, onError?: (error: FirebaseError) => void, onCompletion?: () => void): Unsubscribe;
+
+// Warning: (ae-incompatible-release-tags) The symbol "onSnapshot" is marked as @public, but its signature references "RealtimePipeline" which is marked as @beta
+//
+// @public (undocumented)
+export function onSnapshot(query: RealtimePipeline, options: PipelineListenOptions, onNext: (snapshot: RealtimePipelineSnapshot) => void, onError?: (error: FirebaseError) => void, onCompletion?: () => void): Unsubscribe;
+
 // @public
 export function or(first: BooleanExpression, second: BooleanExpression, ...more: BooleanExpression[]): BooleanExpression;
 
@@ -1314,11 +1349,20 @@ export interface PipelineExecuteOptions {
     };
 }
 
+// @public (undocumented)
+export interface PipelineListenOptions {
+    readonly includeMetadataChanges?: boolean;
+    // (undocumented)
+    readonly serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
+    readonly source?: ListenSource;
+}
+
 // @public
 export class PipelineResult<AppModelType = DocumentData> {
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get createTime(): Timestamp | undefined;
     data(): AppModelType;
     get(fieldPath: string | FieldPath | Field): any;
@@ -1340,31 +1384,15 @@ export class PipelineSnapshot {
 // @public
 export class PipelineSource<PipelineType> {
     collection(collection: string | Query): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collection(options: CollectionStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collectionGroup(collectionId: string): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
-    createFrom(query: Query): Pipeline;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
+    createFrom(query: Query): PipelineType;
     database(): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     database(options: DatabaseStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     documents(docs: Array<string | DocumentReference>): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     documents(options: DocumentsStageOptions): PipelineType;
-}
+    }
 
 // @public
 export function pow(base: Expression, exponent: Expression): FunctionExpression;
@@ -1380,6 +1408,45 @@ export function pow(base: string, exponent: number): FunctionExpression;
 
 // @public
 export function rand(): FunctionExpression;
+
+// @beta
+export class RealtimePipeline {
+    /* Excluded from this release type: _db */
+    /* Excluded from this release type: userDataReader */
+    /* Excluded from this release type: _userDataWriter */
+    // (undocumented)
+    limit(limit: number): RealtimePipeline;
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: readUserData */
+    // (undocumented)
+    sort(...orderings: Ordering[]): RealtimePipeline;
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: readUserData */
+    // (undocumented)
+    sort(options: {
+        orderings: Ordering[];
+    }): RealtimePipeline;
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: readUserData */
+    // (undocumented)
+    readonly stages: Stage[];
+    /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: readUserData */
+    // (undocumented)
+    where(condition: BooleanExpression): RealtimePipeline;
+}
+
+// @public (undocumented)
+export class RealtimePipelineSnapshot {
+    readonly metadata: SnapshotMetadata;
+    // Warning: (ae-incompatible-release-tags) The symbol "pipeline" is marked as @public, but its signature references "RealtimePipeline" which is marked as @beta
+    readonly pipeline: RealtimePipeline;
+    // (undocumented)
+    resultChanges(options?: SnapshotListenOptions): ResultChange[];
+    get results(): PipelineResult[];
+    // (undocumented)
+    get size(): number;
+}
 
 // @public
 export function regexContains(fieldName: string, pattern: string): BooleanExpression;
@@ -1438,6 +1505,14 @@ export type RemoveFieldsStageOptions = StageOptions & {
 export type ReplaceWithStageOptions = StageOptions & {
     map: Expression | string;
 };
+
+// @public (undocumented)
+export interface ResultChange {
+    readonly newIndex: number;
+    readonly oldIndex: number;
+    readonly result: PipelineResult;
+    readonly type: DocumentChangeType;
+}
 
 // @public
 export function reverse(stringExpression: Expression): FunctionExpression;
@@ -1516,6 +1591,16 @@ export function sqrt(expression: Expression): FunctionExpression;
 
 // @public
 export function sqrt(fieldName: string): FunctionExpression;
+
+// @public (undocumented)
+export abstract class Stage {
+    /* Excluded from this release type: optionsProto */
+    constructor(options: Record<string, unknown> & StageOptions);
+    // (undocumented)
+    protected knownOptions: Record<string, unknown>;
+    // (undocumented)
+    protected rawOptions?: Record<string, unknown>;
+}
 
 // @public
 export type StageOptions = {

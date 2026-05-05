@@ -252,15 +252,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     // Convert user land convenience types to internal types
     const normalizedFields: Map<string, Expression> = selectablesToMap(fields);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'addFields'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new AddFields(normalizedFields, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -327,13 +320,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       isString(f) ? field(f) : (f as Field)
     );
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      stage._readUserData(
-        this.userDataReader.createContext(UserDataSource.Argument, 'removeFields')
-      );
-    }
+    // Create stage object
+    const stage = new RemoveFields(convertedFields, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -414,15 +402,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     const convertedExpressions: Map<string, Expression> =
       selectablesToMap(aliasedExpressions);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'define'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Define(convertedExpressions, options);
 
     return this._addStage(stage);
   }
@@ -649,15 +630,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     const normalizedSelections: Map<string, Expression> =
       selectablesToMap(selections);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'select'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Select(normalizedSelections, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -736,15 +710,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       ? conditionOrOptions
       : conditionOrOptions.condition;
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'where'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Where(condition, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -806,15 +773,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       offset = offsetOrOptions.offset;
     }
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'offset'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Offset(offset, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -881,15 +841,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       ? limitOrOptions
       : limitOrOptions.limit;
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'limit'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Limit(limit, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -972,15 +925,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     // Convert user land convenience types to internal types
     const convertedGroups: Map<string, Expression> = selectablesToMap(groups);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'distinct'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Distinct(convertedGroups, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1069,15 +1015,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       aliasedAggregateToMap(accumulators);
     const convertedGroups: Map<string, Expression> = selectablesToMap(groups);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'aggregate'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Aggregate(
+      convertedGroups,
+      convertedAccumulators,
+      options
+    );
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1122,15 +1065,12 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     };
 
     // Create stage object
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'findNearest'
-      );
-      stage._readUserData(parseContext);
-    }
+    const stage = new FindNearest(
+      vectorValue,
+      field,
+      options.distanceMeasure,
+      internalOptions
+    );
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1203,15 +1143,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       sort
     };
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'search'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Search(internalOptions);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1280,15 +1213,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       ? [orderingOrOptions, ...additionalOrderings]
       : orderingOrOptions.orderings;
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'sort'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Sort(orderings, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1417,15 +1343,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
     // Convert user land convenience types to internal types
     const mapExpr = fieldOrExpression(fieldNameOrExpr);
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'replaceWith'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Replace(mapExpr, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1546,15 +1465,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       ({ other: otherPipeline, ...options } = otherOrOptions);
     }
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'union'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Union(otherPipeline, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1654,15 +1566,8 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
       options.indexField = _field(indexFieldName, 'unnest');
     }
 
-    // User data must be read in the context of the API method to
-    // provide contextual errors
-    if (this.userDataReader) {
-      const parseContext = this.userDataReader.createContext(
-        UserDataSource.Argument,
-        'unnest'
-      );
-      stage._readUserData(parseContext);
-    }
+    // Create stage object
+    const stage = new Unnest(alias, expr, options);
 
     // Add stage to the pipeline
     return this._addStage(stage);
@@ -1742,7 +1647,7 @@ export class Pipeline implements ProtoSerializable<ProtoPipeline>, UserData {
    * @protected
    */
   protected newPipeline(db: Firestore | undefined, stages: Stage[]): Pipeline {
-    return new Pipeline(db, stages);
+    return new Pipeline(db, this.userDataReader, this._userDataWriter, stages);
   }
 }
 

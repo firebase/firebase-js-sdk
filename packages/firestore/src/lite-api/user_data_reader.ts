@@ -713,11 +713,6 @@ export function parseData(
   // from firestore-exp.
   input = getModularInstance(input);
 
-  // Workaround for circular dependency
-  if ((input as Constant)?.expressionType === 'Constant') {
-    return (input as Constant)._getValue();
-  }
-
   if (looksLikeJsonObject(input)) {
     validatePlainObject('Unsupported field value:', context, input);
     return parseObject(input, context);

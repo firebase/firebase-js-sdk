@@ -38,7 +38,7 @@ const nodePlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
@@ -52,7 +52,7 @@ const browserPlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
@@ -154,7 +154,7 @@ const allBuilds = [
           }
         },
         include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
+        cacheDir: tmp.dirSync().name
       }),
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
