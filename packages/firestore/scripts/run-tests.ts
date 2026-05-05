@@ -46,6 +46,14 @@ const argv = yargs
       type: 'string',
       description: 'Filter tests by name (regex)'
     },
+    targetBackend: {
+      type: 'string',
+      description: 'The backend to test against (emulator, prod, nightly)'
+    },
+    debug: {
+      type: 'boolean',
+      description: 'Run tests in debug mode (node --inspect-brk)'
+    }
   })
   .parseSync();
 
@@ -57,6 +65,11 @@ const babel = resolve(__dirname, '../babel-register.js');
 process.env.NO_TS_NODE = 'true';
 process.env.TEST_PLATFORM = argv.platform;
 
+if (argv.targetBackend) {
+  process.env.FIRESTORE_TARGET_BACKEND = argv.targetBackend;
+}
+
+let executable = nyc;
 let args = [
   '--reporter',
   'lcovonly',
@@ -68,6 +81,22 @@ let args = [
   '--config',
   '../../config/mocharc.node.js'
 ];
+
+if (argv.debug) {
+  // Bypassing nyc for debug mode
+  executable = 'node';
+  args = [
+    '--inspect-brk',
+    mocha,
+    '--require',
+    babel,
+    '--require',
+    argv.main,
+    '--config',
+    '../../config/mocharc.node.js',
+    '--no-timeouts'
+  ];
+}
 
 if (argv.emulator) {
   process.env.FIRESTORE_TARGET_BACKEND = 'emulator';
@@ -94,7 +123,7 @@ if (argv.grep) {
 
 args = args.concat(argv._ as string[]);
 
-const spawnPromise = spawn(nyc, args, {
+const spawnPromise = spawn(executable, args, {
   stdio: 'inherit',
   cwd: process.cwd()
 });
@@ -104,11 +133,13 @@ const childProcess = spawnPromise.childProcess;
 spawnPromise.catch(error => {
   // When a test fails, there will be a non-zero error code. Simply exit this process,
   // and don't print a stack trace.
-  if (typeof error.code === 'number') {
+  // Note: error.code is the exit code of the spawned process.
+  if (typeof error.code === 'number' && error.code > 0) {
+    // If it's a standard test failure (mocha exit code), we don't need a runner stack trace.
     process.exit(error.code);
   } else {
-    // The error code will not be a number for a real crash (e.g., spawn
-    // failed to start), so print the entire stack trace for debugging.
+    // For other errors (spawn failed, runner crash, etc.), print the stack trace.
+    console.error('Test runner failed to execute:');
     console.error(error);
     process.exit(1);
   }

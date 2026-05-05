@@ -73,7 +73,7 @@ describe('Firebase Functions > Call', () => {
       null: null
     };
 
-    const func = functions.httpsCallable('dataTest');
+    const func = functions.httpsCallable('dataTestv2');
     const result = await func(data);
 
     expect(result.data).to.deep.equal({
@@ -85,14 +85,14 @@ describe('Firebase Functions > Call', () => {
 
   it('scalars', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('scalarTest');
+    const func = functions.httpsCallable('scalarTestv2');
     const result = await func(17);
     expect(result.data).to.equal(76);
   });
 
   it('null', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('nullTest');
+    const func = functions.httpsCallable('nullTestv2');
     let result = await func(null);
     expect(result.data).to.be.null;
 
@@ -103,7 +103,7 @@ describe('Firebase Functions > Call', () => {
 
   it('missing result', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('missingResultTest');
+    const func = functions.httpsCallable('missingResultTestv2');
     await expectError(
       func(),
       'functions/internal',
@@ -113,19 +113,19 @@ describe('Firebase Functions > Call', () => {
 
   it('unhandled error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('unhandledErrorTest');
+    const func = functions.httpsCallable('unhandledErrorTestv2');
     await expectError(func(), 'functions/internal', 'internal');
   });
 
   it('unknown error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('unknownErrorTest');
+    const func = functions.httpsCallable('unknownErrorTestv2');
     await expectError(func(), 'functions/internal', 'internal');
   });
 
   it('explicit error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('explicitErrorTest');
+    const func = functions.httpsCallable('explicitErrorTestv2');
     await expectError(func(), 'functions/out-of-range', 'explicit nope', {
       start: 10,
       end: 20,
@@ -135,13 +135,13 @@ describe('Firebase Functions > Call', () => {
 
   it('http error', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('httpErrorTest');
+    const func = functions.httpsCallable('httpErrorTestv2');
     await expectError(func(), 'functions/invalid-argument', 'invalid-argument');
   });
 
   it('timeout', async () => {
     const functions = createTestService(app, region);
-    const func = functions.httpsCallable('timeoutTest', { timeout: 10 });
+    const func = functions.httpsCallable('timeoutTestv2', { timeout: 10 });
     await expectError(
       func(),
       'functions/deadline-exceeded',

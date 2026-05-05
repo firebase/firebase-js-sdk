@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { TargetId } from './types';
+import { RemoteTargetId, TargetId } from './types';
 
 /** Offset to ensure non-overlapping target ids. */
 const OFFSET = 2;
@@ -34,12 +34,12 @@ const OFFSET = 2;
  * generate in-memory target IDs that are transient and can be reused after a
  * restart.
  */
-export class TargetIdGenerator {
+export class TargetIdGenerator<T extends TargetId | RemoteTargetId = TargetId> {
   constructor(private lastId: number) {}
 
-  next(): TargetId {
+  next(): T {
     this.lastId += OFFSET;
-    return this.lastId;
+    return this.lastId as T;
   }
 
   static forTargetCache(): TargetIdGenerator {

@@ -24,7 +24,6 @@ import { FirebaseError } from '@firebase/util';
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { logWarn } from '../../../src/util/log';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import {
@@ -624,7 +623,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .sort(ascending('order'))
       );
       expectResults(snapshot, doc1.id, doc2.id);
-    });
+    }).timeout(30_000);
   });
 
   describe('supported data types', () => {
@@ -6573,39 +6572,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .addFields(reviewsSub.toArrayExpression().as('reviews'))
           .select('title', 'reviews');
 
-        // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
-        const host = firestore._getSettings().host;
-        const isProd = host === 'firestore.googleapis.com';
-        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
-
-        if (isProd) {
-          // The execution of this pipeline is expected to result in a network error
-          // from the backend until the breaking change to rename the 'field' expression to
-          // 'get_field' has rolled out to prod.
-          try {
-            const results = await execute(ppl);
-
-            // If this is reached, the execution of the pipeline didn't throw an error, so the
-            // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
-            logWarn(
-              "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
-            );
-            expectResults(results, { title: '1984', reviews: ['Alice'] });
-          } catch (err: unknown) {
-            const error: Error = err as Error;
-            expect(error.message).to.equals(
-              "The function 'get_field' does not exist, did you mean 'field'?"
-            );
-          }
-        } else if (isNightly) {
-          const results = await execute(ppl);
-          expectResults(results, { title: '1984', reviews: ['Alice'] });
-        } else {
-          expect(false).to.equal(
-            true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
-          );
-        }
+        const results = await execute(ppl);
+        expectResults(results, { title: '1984', reviews: ['Alice'] });
       });
     });
 
@@ -6687,39 +6655,8 @@ apiDescribe.skipClassic('Pipelines', persistence => {
           .addFields(reviewsSub.toArrayExpression().as('reviews'))
           .select('title', 'reviews');
 
-        // TODO(dlarocque): Remove these target backend conditionals once the 'get_field' rename has rolled out to prod.
-        const host = firestore._getSettings().host;
-        const isProd = host === 'firestore.googleapis.com';
-        const isNightly = host === 'test-firestore.sandbox.googleapis.com';
-
-        if (isProd) {
-          // The execution of this pipeline is expected to result in a network error
-          // from the backend until the breaking change to rename the 'field' expression to
-          // 'get_field' has rolled out to prod.
-          try {
-            const results = await execute(ppl);
-
-            // If this is reached, the execution of the pipeline didn't throw an error, so the
-            // breaking change must have rolled out to prod. We can assert the newly expected behaviour.
-            logWarn(
-              "The 'get_field' expression rename has rolled out to the prod backend. Remove the target backend conditionals in this test."
-            );
-            expectResults(results, { title: '1984', reviews: [] });
-          } catch (err: unknown) {
-            const error: Error = err as Error;
-            expect(error.message).to.equals(
-              "The function 'get_field' does not exist, did you mean 'field'?"
-            );
-          }
-        } else if (isNightly) {
-          const results = await execute(ppl);
-          expectResults(results, { title: '1984', reviews: [] });
-        } else {
-          expect(false).to.equal(
-            true,
-            `This test is only expected to run against firestore.googleapis.com or test-firestore.sandbox.googleapis.com, but it instead ran against ${host}`
-          );
-        }
+        const results = await execute(ppl);
+        expectResults(results, { title: '1984', reviews: [] });
       });
     });
 
@@ -7025,7 +6962,7 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       1,
       async firestoreInstance => {
         firestore = firestoreInstance[0];
-        restaurantsCollection = collection(firestore, 'SearchIntegrationTests');
+        restaurantsCollection = collection(firestore, COLLECTION_NAME);
         await setupRestaurantDocs(restaurantsCollection);
         setupDeferred.resolve();
 
@@ -7362,70 +7299,102 @@ apiDescribe.skipClassic('Pipelines', persistence => {
         // });
       });
 
-      // TODO(search) enable with backend support
-      // describe('limit', () => {
-      //   it('limits the number of documents returned', async () => {
-      //     const ppl = firestore
-      //       .pipeline()
-      //       .collection(COLLECTION_NAME)
-      //       .search({
-      //         query: constant(true),
-      //         sort: field('location')
-      //           .geoDistance(new GeoPoint(39.6985, -105.024))
-      //           .ascending(),
-      //         limit: 5,
-      //         queryEnhancement: 'disabled'
-      //       });
-      //
-      //     const snapshot = await execute(ppl);
-      //     expectResults(
-      //       snapshot,
-      //       'solTacos',
-      //       'lotusBlossomThai',
-      //       'goldenWaffle'
-      //     );
-      //   });
-      //
-      //   it('limits the number of documents scored', async () => {
-      //     const ppl = firestore
-      //       .pipeline()
-      //       .collection(COLLECTION_NAME)
-      //       .search({
-      //         query: field('menu').matches(
-      //           'chicken OR tacos OR fish OR waffles'
-      //         ),
-      //         retrievalDepth: 6,
-      //         queryEnhancement: 'disabled'
-      //       });
-      //
-      //     const snapshot = await execute(ppl);
-      //     expectResults(
-      //       snapshot,
-      //       'eastsideChicken',
-      //       'eastsideTacos',
-      //       'solTacos',
-      //       'mileHighCatch'
-      //     );
-      //   });
-      // });
+      describe('languageCode', () => {
+        const rquery = 'al pastor';
+        it('en', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches(rquery),
+              sort: score().descending(),
+              languageCode: 'en'
+              // queryEnhancement: 'disabled'
+            });
 
-      // TODO(search) enable with backend support
-      // describe('offset', () => {
-      //   it('skips N documents', async () => {
-      //     const ppl = firestore
-      //       .pipeline()
-      //       .collection(COLLECTION_NAME)
-      //       .search({
-      //         query: constant(true),
-      //         limit: 2,
-      //         offset: 2,
-      //         queryEnhancement: 'disabled'
-      //       });
-      //
-      //     const snapshot = await execute(ppl);
-      //     expectResults(snapshot, 'eastsideChicken', 'eastsideTacos');
-      //   });
-      // });
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'solTacos');
+        });
+
+        it('unknown', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: documentMatches(rquery),
+              sort: score().descending(),
+              languageCode: 'unknown'
+              // queryEnhancement: 'disabled'
+            });
+
+          await expect(execute(ppl)).to.be.rejectedWith(/3 INVALID_ARGUMENT.*/);
+        });
+      });
+
+      describe('limit', () => {
+        it('limits the number of documents returned', async () => {
+          const ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({
+              query: field('location')
+                .geoDistance(new GeoPoint(39.6985, -105.024))
+                .lessThanOrEqual(100000000),
+              sort: field('location')
+                .geoDistance(new GeoPoint(39.6985, -105.024))
+                .ascending(),
+              limit: 3
+              // queryEnhancement: 'disabled'
+            });
+
+          const snapshot = await execute(ppl);
+          expectResults(
+            snapshot,
+            'solTacos',
+            'lotusBlossomThai',
+            'mileHighCatch'
+          );
+        });
+
+        it('limits the number of documents scored via retrievalDepth', async () => {
+          const commonSearchParams = {
+            query: documentMatches('taco'),
+            addFields: [score().as('score')],
+            sort: score().descending()
+            // queryEnhancement: 'disabled' as QueryEnhancement
+          };
+
+          let ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({ ...commonSearchParams, retrievalDepth: 2 });
+
+          let snapshot = await execute(ppl);
+          expectResults(snapshot, 'solTacos', 'eastsideTacos');
+
+          ppl = firestore
+            .pipeline()
+            .collection(COLLECTION_NAME)
+            .search({ ...commonSearchParams, retrievalDepth: 1 });
+
+          snapshot = await execute(ppl);
+          expectResults(snapshot, 'eastsideTacos');
+        });
+      });
+
+      describe('offset', () => {
+        it('skips N documents', async () => {
+          const ppl = firestore.pipeline().collection(COLLECTION_NAME).search({
+            query: 'chicken',
+            limit: 2,
+            offset: 2
+            // queryEnhancement: 'disabled'
+          });
+
+          const snapshot = await execute(ppl);
+          expectResults(snapshot, 'goldenWaffle');
+        });
+      });
     });
 
     // TODO(search) enable with backend support

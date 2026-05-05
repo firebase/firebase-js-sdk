@@ -22,7 +22,18 @@ export interface GroundingChunk
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [maps](./ai.groundingchunk.md#groundingchunkmaps) | [GoogleMapsGroundingChunk](./ai.googlemapsgroundingchunk.md#googlemapsgroundingchunk_interface) | Contains details if the grounding chunk is from a Google Maps source. |
 |  [web](./ai.groundingchunk.md#groundingchunkweb) | [WebGroundingChunk](./ai.webgroundingchunk.md#webgroundingchunk_interface) | Contains details if the grounding chunk is from a web source. |
+
+## GroundingChunk.maps
+
+Contains details if the grounding chunk is from a Google Maps source.
+
+<b>Signature:</b>
+
+```typescript
+maps?: GoogleMapsGroundingChunk;
+```
 
 ## GroundingChunk.web
 

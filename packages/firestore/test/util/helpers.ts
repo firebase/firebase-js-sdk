@@ -37,7 +37,7 @@ import {
   queryWithAddedOrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
-import { TargetId } from '../../src/core/types';
+import { RemoteTargetId, TargetId } from '../../src/core/types';
 import {
   AddedLimboDocument,
   LimboDocumentChange,
@@ -401,11 +401,11 @@ export function query(
   return q;
 }
 
-export function targetData(
-  targetId: TargetId,
+export function targetData<T extends TargetId | RemoteTargetId>(
+  targetId: T,
   queryPurpose: TargetPurpose,
   path: string
-): TargetData {
+): TargetData<T> {
   // Arbitrary value.
   const sequenceNumber = 0;
   return new TargetData(
@@ -417,10 +417,10 @@ export function targetData(
 }
 
 export function noChangeEvent(
-  targetId: number,
+  targetId: RemoteTargetId,
   snapshotVersion: number,
   resumeToken: ByteString = ByteString.EMPTY_BYTE_STRING
-): RemoteEvent {
+): RemoteEvent<TargetId> {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getTargetDataForTarget: targetId =>
@@ -434,16 +434,18 @@ export function noChangeEvent(
       resumeToken
     )
   );
-  return aggregator.createRemoteEvent(version(snapshotVersion));
+  return castRemoteEvent(
+    aggregator.createRemoteEvent(version(snapshotVersion))
+  );
 }
 
 export function existenceFilterEvent(
-  targetId: number,
+  targetId: RemoteTargetId,
   syncedKeys: DocumentKeySet,
   remoteCount: number,
   snapshotVersion: number,
   bloomFilter?: api.BloomFilter
-): RemoteEvent {
+): RemoteEvent<TargetId> {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => syncedKeys,
     getTargetDataForTarget: targetId =>
@@ -456,14 +458,16 @@ export function existenceFilterEvent(
       new ExistenceFilter(remoteCount, bloomFilter)
     )
   );
-  return aggregator.createRemoteEvent(version(snapshotVersion));
+  return castRemoteEvent(
+    aggregator.createRemoteEvent(version(snapshotVersion))
+  );
 }
 
 export function docAddedRemoteEvent(
   docOrDocs: MutableDocument | MutableDocument[],
-  updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[],
-  activeTargets?: TargetId[]
+  updatedInTargets?: RemoteTargetId[] | TargetId[],
+  removedFromTargets?: RemoteTargetId[] | TargetId[],
+  activeTargets?: RemoteTargetId[] | TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
   debugAssert(docs.length !== 0, 'Cannot pass empty docs array');
@@ -497,8 +501,8 @@ export function docAddedRemoteEvent(
       "Docs from remote updates shouldn't have local changes."
     );
     const docChange = new DocumentWatchChange(
-      updatedInTargets || [],
-      removedFromTargets || [],
+      castTargetIds(updatedInTargets || []),
+      castTargetIds(removedFromTargets || []),
       doc.key,
       doc
     );
@@ -506,22 +510,22 @@ export function docAddedRemoteEvent(
     version = doc.version.compareTo(version) > 0 ? doc.version : version;
   }
 
-  return aggregator.createRemoteEvent(version);
+  return castRemoteEvent(aggregator.createRemoteEvent(version));
 }
 
 export function docUpdateRemoteEvent(
   doc: MutableDocument,
-  updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[],
-  limboTargets?: TargetId[]
+  updatedInTargets?: RemoteTargetId[],
+  removedFromTargets?: RemoteTargetId[],
+  limboTargets?: RemoteTargetId[]
 ): RemoteEvent {
   debugAssert(
     !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
   const docChange = new DocumentWatchChange(
-    updatedInTargets || [],
-    removedFromTargets || [],
+    castTargetIds(updatedInTargets || []),
+    castTargetIds(removedFromTargets || []),
     doc.key,
     doc
   );
@@ -537,7 +541,19 @@ export function docUpdateRemoteEvent(
     getDatabaseId: () => TEST_DATABASE_ID
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+  return castRemoteEvent(aggregator.createRemoteEvent(doc.version));
+}
+
+export function castRemoteEvent<T extends TargetId | RemoteTargetId>(
+  src: unknown
+): RemoteEvent<T> {
+  return src as RemoteEvent<T>;
+}
+
+export function castTargetIds<T extends TargetId | RemoteTargetId>(
+  src: unknown
+): T[] {
+  return src as T[];
 }
 
 export class TestBundledDocuments {

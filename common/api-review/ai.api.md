@@ -264,6 +264,12 @@ export interface Content {
     role: Role;
 }
 
+// @beta
+export interface ContextWindowCompressionConfig {
+    slidingWindow?: SlidingWindow;
+    triggerTokens?: number;
+}
+
 // @public
 export interface CountTokensRequest {
     // (undocumented)
@@ -390,6 +396,16 @@ export const FinishReason: {
     readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
     readonly SPII: "SPII";
     readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
+    readonly IMAGE_SAFETY: "IMAGE_SAFETY";
+    readonly IMAGE_PROHIBITED_CONTENT: "IMAGE_PROHIBITED_CONTENT";
+    readonly IMAGE_OTHER: "IMAGE_OTHER";
+    readonly NO_IMAGE: "NO_IMAGE";
+    readonly IMAGE_RECITATION: "IMAGE_RECITATION";
+    readonly LANGUAGE: "LANGUAGE";
+    readonly UNEXPECTED_TOOL_CALL: "UNEXPECTED_TOOL_CALL";
+    readonly TOO_MANY_TOOL_CALLS: "TOO_MANY_TOOL_CALLS";
+    readonly MISSING_THOUGHT_SIGNATURE: "MISSING_THOUGHT_SIGNATURE";
+    readonly MALFORMED_RESPONSE: "MALFORMED_RESPONSE";
 };
 
 // @public
@@ -548,6 +564,7 @@ export interface GenerationConfig {
     candidateCount?: number;
     // (undocumented)
     frequencyPenalty?: number;
+    imageConfig?: ImageConfig;
     // (undocumented)
     maxOutputTokens?: number;
     // (undocumented)
@@ -685,6 +702,25 @@ export interface GoogleAIGenerateContentResponse {
 }
 
 // @public
+export interface GoogleMaps {
+    // (undocumented)
+    enableWidget?: boolean;
+}
+
+// @public
+export interface GoogleMapsGroundingChunk {
+    placeId?: string;
+    text?: string;
+    title?: string;
+    uri?: string;
+}
+
+// @public
+export interface GoogleMapsTool {
+    googleMaps: GoogleMaps;
+}
+
+// @public
 export interface GoogleSearch {
 }
 
@@ -695,11 +731,13 @@ export interface GoogleSearchTool {
 
 // @public
 export interface GroundingChunk {
+    maps?: GoogleMapsGroundingChunk;
     web?: WebGroundingChunk;
 }
 
 // @public
 export interface GroundingMetadata {
+    googleMapsWidgetContextToken?: string;
     groundingChunks?: GroundingChunk[];
     groundingSupports?: GroundingSupport[];
     // @deprecated (undocumented)
@@ -775,6 +813,44 @@ export interface HybridParams {
     mode: InferenceMode;
     onDeviceParams?: OnDeviceParams;
 }
+
+// @public
+export interface ImageConfig {
+    aspectRatio?: ImageConfigAspectRatio;
+    imageSize?: ImageConfigImageSize;
+}
+
+// @public
+export const ImageConfigAspectRatio: {
+    readonly SQUARE_1x1: "1:1";
+    readonly PORTRAIT_9x16: "9:16";
+    readonly LANDSCAPE_16x9: "16:9";
+    readonly PORTRAIT_3x4: "3:4";
+    readonly LANDSCAPE_4x3: "4:3";
+    readonly PORTRAIT_2x3: "2:3";
+    readonly LANDSCAPE_3x2: "3:2";
+    readonly PORTRAIT_4x5: "4:5";
+    readonly LANDSCAPE_5x4: "5:4";
+    readonly PORTRAIT_1x4: "1:4";
+    readonly LANDSCAPE_4x1: "4:1";
+    readonly PORTRAIT_1x8: "1:8";
+    readonly LANDSCAPE_8x1: "8:1";
+    readonly ULTRAWIDE_21x9: "21:9";
+};
+
+// @public
+export type ImageConfigAspectRatio = (typeof ImageConfigAspectRatio)[keyof typeof ImageConfigAspectRatio];
+
+// @public
+export const ImageConfigImageSize: {
+    readonly SIZE_512: "512";
+    readonly SIZE_1K: "1K";
+    readonly SIZE_2K: "2K";
+    readonly SIZE_4K: "4K";
+};
+
+// @public
+export type ImageConfigImageSize = (typeof ImageConfigImageSize)[keyof typeof ImageConfigImageSize];
 
 // @public @deprecated
 export const ImagenAspectRatio: {
@@ -981,8 +1057,15 @@ export interface LanguageModelPromptOptions {
     responseConstraint?: object;
 }
 
+// @public
+export interface LatLng {
+    latitude?: number;
+    longitude?: number;
+}
+
 // @beta
 export interface LiveGenerationConfig {
+    contextWindowCompression?: ContextWindowCompressionConfig;
     frequencyPenalty?: number;
     inputAudioTranscription?: AudioTranscriptionConfig;
     maxOutputTokens?: number;
@@ -1001,8 +1084,8 @@ export class LiveGenerativeModel extends AIModel {
     //
     // @internal
     constructor(ai: AI, modelParams: LiveModelParams,
-    _webSocketHandler: WebSocketHandler);
-    connect(): Promise<LiveSession>;
+    _webSocketHandler?: WebSocketHandler | undefined);
+    connect(sessionResumption?: SessionResumptionConfig): Promise<LiveSession>;
     // (undocumented)
     generationConfig: LiveGenerationConfig;
     // (undocumented)
@@ -1033,6 +1116,7 @@ export const LiveResponseType: {
     TOOL_CALL: string;
     TOOL_CALL_CANCELLATION: string;
     GOING_AWAY_NOTICE: string;
+    SESSION_RESUMPTION_UPDATE: string;
 };
 
 // @beta
@@ -1072,12 +1156,16 @@ export interface LiveServerToolCallCancellation {
 
 // @beta
 export class LiveSession {
+    // Warning: (ae-forgotten-export) The symbol "_LiveClientSetup" needs to be exported by the entry point index.d.ts
+    //
     // @internal
-    constructor(webSocketHandler: WebSocketHandler, serverMessages: AsyncGenerator<unknown>);
+    constructor(_setupMessage: _LiveClientSetup, _apiSettings: ApiSettings, _sessionResumption?: SessionResumptionConfig | undefined, webSocketHandler?: WebSocketHandler);
     close(): Promise<void>;
+    connectionPromise: Promise<void>;
     inConversation: boolean;
     isClosed: boolean;
-    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice>;
+    receive(): AsyncGenerator<LiveServerContent | LiveServerToolCall | LiveServerToolCallCancellation | LiveServerGoingAwayNotice | LiveSessionResumptionUpdate>;
+    resumeSession(sessionResumption?: SessionResumptionConfig): Promise<void>;
     send(request: string | Array<string | Part>, turnComplete?: boolean): Promise<void>;
     sendAudioRealtime(blob: GenerativeContentBlob): Promise<void>;
     sendFunctionResponses(functionResponses: FunctionResponse[]): Promise<void>;
@@ -1088,6 +1176,15 @@ export class LiveSession {
     sendTextRealtime(text: string): Promise<void>;
     sendVideoRealtime(blob: GenerativeContentBlob): Promise<void>;
     }
+
+// @beta
+export interface LiveSessionResumptionUpdate {
+    lastConsumedClientMessageIndex?: number;
+    newHandle?: string;
+    resumable?: boolean;
+    // (undocumented)
+    type: 'sessionResumptionUpdate';
+}
 
 // @public
 export const Modality: {
@@ -1202,6 +1299,12 @@ export const ResponseModality: {
 
 // @beta
 export type ResponseModality = (typeof ResponseModality)[keyof typeof ResponseModality];
+
+// @public
+export interface RetrievalConfig {
+    languageCode?: string;
+    latLng?: LatLng;
+}
 
 // @public (undocumented)
 export interface RetrievedContextAttribution {
@@ -1342,9 +1445,19 @@ export interface Segment {
     text: string;
 }
 
+// @beta
+export interface SessionResumptionConfig {
+    handle?: string;
+}
+
 // @public
 export interface SingleRequestOptions extends RequestOptions {
     signal?: AbortSignal;
+}
+
+// @beta
+export interface SlidingWindow {
+    targetTokens?: number;
 }
 
 // @beta
@@ -1449,8 +1562,8 @@ export class TemplateGenerativeModel {
     constructor(ai: AI, requestOptions?: RequestOptions);
     // @internal (undocumented)
     _apiSettings: ApiSettings;
-    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
-    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
+    generateContent(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentResult>;
+    generateContentStream(templateId: string, templateVariables: Record<string, unknown>, singleRequestOptions?: SingleRequestOptions, templateToolConfig?: TemplateToolConfig): Promise<GenerateContentStreamResult>;
     requestOptions?: RequestOptions;
     startChat(params: StartTemplateChatParams): TemplateChatSession;
 }
@@ -1475,6 +1588,12 @@ export interface TemplateRequestInternal extends Omit<TemplateGenerateContentReq
 
 // @beta
 export type TemplateTool = TemplateFunctionDeclarationsTool;
+
+// @public
+export interface TemplateToolConfig {
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
+}
 
 // @public
 export interface TextPart {
@@ -1515,12 +1634,14 @@ export const ThinkingLevel: {
 export type ThinkingLevel = (typeof ThinkingLevel)[keyof typeof ThinkingLevel];
 
 // @public
-export type Tool = FunctionDeclarationsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
+export type Tool = FunctionDeclarationsTool | GoogleMapsTool | GoogleSearchTool | CodeExecutionTool | URLContextTool;
 
 // @public
 export interface ToolConfig {
     // (undocumented)
     functionCallingConfig?: FunctionCallingConfig;
+    // (undocumented)
+    retrievalConfig?: RetrievalConfig;
 }
 
 // @beta

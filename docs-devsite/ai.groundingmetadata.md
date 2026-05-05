@@ -12,9 +12,11 @@ https://github.com/firebase/firebase-js-sdk
 # GroundingMetadata interface
 Metadata returned when grounding is enabled.
 
-Currently, only Grounding with Google Search is supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface)<!-- -->).
+Currently, only Grounding with Google Search and Grounding with Google Maps are supported (see [GoogleSearchTool](./ai.googlesearchtool.md#googlesearchtool_interface) and [GoogleMapsTool](./ai.googlemapstool.md#googlemapstool_interface)<!-- -->, respectively).
 
 Important: If using Grounding with Google Search, you are required to comply with the "Grounding with Google Search" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-search) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
+
+Important: If using Grounding with Google Maps, you are required to comply with the "Grounding with Google Maps" usage requirements for your chosen API provider: [Gemini Developer API](https://ai.google.dev/gemini-api/terms#grounding-with-google-maps) or Vertex AI Gemini API (see [Service Terms](https://cloud.google.com/terms/service-terms) section within the Service Specific Terms).
 
 <b>Signature:</b>
 
@@ -26,11 +28,22 @@ export interface GroundingMetadata
 
 |  Property | Type | Description |
 |  --- | --- | --- |
+|  [googleMapsWidgetContextToken](./ai.groundingmetadata.md#groundingmetadatagooglemapswidgetcontexttoken) | string | Resource name of the Google Maps widget context token that can be used with the <code>PlacesContextElement</code> widget in order to render contextual data. Only populated in the case that grounding with Google Maps is enabled. |
 |  [groundingChunks](./ai.groundingmetadata.md#groundingmetadatagroundingchunks) | [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface)<!-- -->\[\] | A list of [GroundingChunk](./ai.groundingchunk.md#groundingchunk_interface) objects. Each chunk represents a piece of retrieved content (for example, from a web page). that the model used to ground its response. |
 |  [groundingSupports](./ai.groundingmetadata.md#groundingmetadatagroundingsupports) | [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface)<!-- -->\[\] | A list of [GroundingSupport](./ai.groundingsupport.md#groundingsupport_interface) objects. Each object details how specific segments of the model's response are supported by the <code>groundingChunks</code>. |
 |  [retrievalQueries](./ai.groundingmetadata.md#groundingmetadataretrievalqueries) | string\[\] |  |
 |  [searchEntryPoint](./ai.groundingmetadata.md#groundingmetadatasearchentrypoint) | [SearchEntrypoint](./ai.searchentrypoint.md#searchentrypoint_interface) | Google Search entry point for web searches. This contains an HTML/CSS snippet that must be embedded in an app to display a Google Search entry point for follow-up web searches related to a model's "Grounded Response". |
 |  [webSearchQueries](./ai.groundingmetadata.md#groundingmetadatawebsearchqueries) | string\[\] | A list of web search queries that the model performed to gather the grounding information. These can be used to allow users to explore the search results themselves. |
+
+## GroundingMetadata.googleMapsWidgetContextToken
+
+Resource name of the Google Maps widget context token that can be used with the `PlacesContextElement` widget in order to render contextual data. Only populated in the case that grounding with Google Maps is enabled.
+
+<b>Signature:</b>
+
+```typescript
+googleMapsWidgetContextToken?: string;
+```
 
 ## GroundingMetadata.groundingChunks
 

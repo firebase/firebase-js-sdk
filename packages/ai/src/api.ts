@@ -38,7 +38,6 @@ import {
 } from './models';
 import { encodeInstanceIdentifier } from './helpers';
 import { GoogleAIBackend } from './backend';
-import { WebSocketHandlerImpl } from './websocket';
 import { TemplateGenerativeModel } from './models/template-generative-model';
 import { TemplateImagenModel } from './models/template-imagen-model';
 import { logger } from './logger';
@@ -243,8 +242,7 @@ export function getLiveGenerativeModel(
       `Must provide a model name for getLiveGenerativeModel. Example: getLiveGenerativeModel(ai, { model: 'my-model-name' })`
     );
   }
-  const webSocketHandler = new WebSocketHandlerImpl();
-  return new LiveGenerativeModel(ai, modelParams, webSocketHandler);
+  return new LiveGenerativeModel(ai, modelParams);
 }
 
 /**
