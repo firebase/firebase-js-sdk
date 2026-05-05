@@ -265,6 +265,16 @@ export class SpecBuilder {
     return this;
   }
 
+  /**
+   * By default the spec test runner does not allow removal of a non-active target,
+   * but this scenario is possible in the real world due to a client / server race,
+   * and therefore must be allowed for some spec tests.
+   */
+  allowUnlistedTargetRemoval(): this {
+    this.config.allowUnlistedTargetRemoval = true;
+    return this;
+  }
+
   withMaxConcurrentLimboResolutions(value?: number): this {
     this.config.maxConcurrentLimboResolutions = value;
     return this;
@@ -782,7 +792,55 @@ export class SpecBuilder {
       watchRemove: { targetIds: [this.getTargetId(query)], cause }
     };
     if (cause) {
-      delete this.activeTargets[this.getTargetId(query)];
+      if (!this.config.allowUnlistedTargetRemoval) {
+        delete this.activeTargets[this.getTargetId(query)];
+      }
+      this.currentStep.expectedState = {
+        activeTargets: { ...this.activeTargets }
+      };
+    }
+    return this;
+  }
+
+  /**
+   * After setting the remote target index, for any watch* step following
+   * this step, the simulated watch message will use the Nth remote target ID
+   * that was associated with this query
+   *
+   * .userListens(q1) // remote target id: 1002, index: 0
+   * .userUnlistens(q1))
+   * .userListens(q1) // remote target id: 1004, index: 1
+   * .userUnlistens(q1))
+   * .watchUsesTargetIndex(0)
+   * .watchAcks(q1) //will ack 1002
+   * .watchUsesTargetIndex(1)
+   * .watchAcks(q1) //will ack 1004
+   */
+  watchUsesTargetIndex(remoteTargetIndex: number | 'latest' | 'last'): this {
+    this.nextStep();
+    this.currentStep = {
+      watchUsesTargetIndex:
+        remoteTargetIndex === 'last' ? 'latest' : remoteTargetIndex
+    };
+    return this;
+  }
+
+  private watchRemovesWithTargetIndex(
+    query: Query,
+    remoteTargetIndex: number | undefined,
+    cause?: RpcError
+  ): this {
+    this.nextStep();
+    this.currentStep = {
+      watchRemove: {
+        targetIds: [this.getTargetId(query)],
+        cause
+      }
+    };
+    if (cause) {
+      if (!this.config.allowUnlistedTargetRemoval) {
+        delete this.activeTargets[this.getTargetId(query)];
+      }
       this.currentStep.expectedState = {
         activeTargets: { ...this.activeTargets }
       };

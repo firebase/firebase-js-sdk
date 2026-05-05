@@ -17,7 +17,7 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
-import { ListenSequenceNumber, TargetId } from '../core/types';
+import { ListenSequenceNumber, RemoteTargetId, TargetId } from '../core/types';
 import { ByteString } from '../util/byte_string';
 
 /** An enumeration of the different purposes we have for targets. */
@@ -44,7 +44,7 @@ export const enum TargetPurpose {
 /**
  * An immutable set of metadata that the local store tracks for each target.
  */
-export class TargetData {
+export class TargetData<T extends TargetId | RemoteTargetId = TargetId> {
   constructor(
     /** The target being listened to. */
     readonly target: Target,
@@ -52,7 +52,7 @@ export class TargetData {
      * The target ID to which the target corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
-    readonly targetId: TargetId,
+    readonly targetId: T,
     /** The purpose of the target. */
     readonly purpose: TargetPurpose,
     /**
@@ -83,7 +83,7 @@ export class TargetData {
   ) {}
 
   /** Creates a new target data instance with an updated sequence number. */
-  withSequenceNumber(sequenceNumber: number): TargetData {
+  withSequenceNumber(sequenceNumber: number): TargetData<T> {
     return new TargetData(
       this.target,
       this.targetId,
@@ -103,7 +103,7 @@ export class TargetData {
   withResumeToken(
     resumeToken: ByteString,
     snapshotVersion: SnapshotVersion
-  ): TargetData {
+  ): TargetData<T> {
     return new TargetData(
       this.target,
       this.targetId,
@@ -119,7 +119,7 @@ export class TargetData {
   /**
    * Creates a new target data instance with an updated expected count.
    */
-  withExpectedCount(expectedCount: number): TargetData {
+  withExpectedCount(expectedCount: number): TargetData<T> {
     return new TargetData(
       this.target,
       this.targetId,
@@ -138,7 +138,7 @@ export class TargetData {
    */
   withLastLimboFreeSnapshotVersion(
     lastLimboFreeSnapshotVersion: SnapshotVersion
-  ): TargetData {
+  ): TargetData<T> {
     return new TargetData(
       this.target,
       this.targetId,
