@@ -47,9 +47,12 @@ const FCM_TRANSPORT_KEY = _mergeStrings(
 );
 
 export function startLoggingService(messaging: MessagingService): void {
-  if (!messaging.isLogServiceStarted && messaging.logEvents.length > 0) {
+  // Start only if not already scheduled/in-flight and there is work to do.
+  if (
+    messaging.logQueue.state === 'stopped' &&
+    messaging.logEvents.length > 0
+  ) {
     _processQueue(messaging, INITIAL_LOG_FLUSH_DELAY_MS);
-    messaging.isLogServiceStarted = true;
   }
 }
 
@@ -57,12 +60,11 @@ export function startLoggingService(messaging: MessagingService): void {
 export function stopLoggingServiceAndClearQueue(
   messaging: MessagingService
 ): void {
-  if (messaging.logQueueTimerId !== undefined) {
-    clearTimeout(messaging.logQueueTimerId);
-    messaging.logQueueTimerId = undefined;
+  if (messaging.logQueue.state === 'scheduled') {
+    clearTimeout(messaging.logQueue.timerId);
   }
+  messaging.logQueue = { state: 'stopped' };
   messaging.logEvents = [];
-  messaging.isLogServiceStarted = false;
 }
 
 /**
@@ -74,26 +76,29 @@ export function _processQueue(
   messaging: MessagingService,
   offsetInMs: number
 ): void {
-  if (messaging.logQueueTimerId !== undefined) {
-    clearTimeout(messaging.logQueueTimerId);
-    messaging.logQueueTimerId = undefined;
+  if (messaging.logQueue.state === 'scheduled') {
+    clearTimeout(messaging.logQueue.timerId);
   }
-  messaging.logQueueTimerId = setTimeout(async () => {
-    messaging.logQueueTimerId = undefined;
-    if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
-      // flush events and terminate logging service
-      messaging.logEvents = [];
-      messaging.isLogServiceStarted = false;
+  messaging.logQueue = { state: 'stopped' };
 
-      return;
-    }
+  if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
+    messaging.logEvents = [];
+    return;
+  }
 
-    if (!messaging.logEvents.length) {
-      return _processQueue(messaging, LOG_INTERVAL_IN_MS);
-    }
+  messaging.logQueue = {
+    state: 'scheduled',
+    timerId: setTimeout(async () => {
+      // Mark in-flight so stageLog/startLoggingService won't schedule duplicates mid-dispatch.
+      messaging.logQueue = { state: 'flushing' };
 
-    await _dispatchLogEvents(messaging);
-  }, offsetInMs);
+      if (!messaging.logEvents.length) {
+        return _processQueue(messaging, LOG_INTERVAL_IN_MS);
+      }
+
+      await _dispatchLogEvents(messaging);
+    }, offsetInMs)
+  };
 }
 
 export async function _dispatchLogEvents(
@@ -104,12 +109,6 @@ export async function _dispatchLogEvents(
     i < n;
     i += MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
   ) {
-    if (!messaging.deliveryMetricsExportedToBigQueryEnabled) {
-      messaging.logEvents = [];
-      messaging.isLogServiceStarted = false;
-      return;
-    }
-
     const batch = messaging.logEvents.slice(
       i,
       i + MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
@@ -171,8 +170,6 @@ export async function _dispatchLogEvents(
   // schedule for next logging
   if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
     _processQueue(messaging, LOG_INTERVAL_IN_MS);
-  } else {
-    messaging.isLogServiceStarted = false;
   }
 }
 

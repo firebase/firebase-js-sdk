@@ -43,8 +43,13 @@ export class MessagingService implements _FirebaseService {
     null;
 
   logEvents: LogEvent[] = [];
-  isLogServiceStarted: boolean = false;
-  logQueueTimerId?: ReturnType<typeof setTimeout>;
+  /**
+   * Single source of truth for the logging loop lifecycle.
+   *
+   * `scheduled` holds the active timer id; `flushing` indicates an async dispatch
+   * is in progress (prevents duplicate starts); `stopped` means idle.
+   */
+  logQueue: LogQueueState = { state: 'stopped' };
 
   constructor(
     app: FirebaseApp,
@@ -62,10 +67,15 @@ export class MessagingService implements _FirebaseService {
   }
 
   _delete(): Promise<void> {
-    if (this.logQueueTimerId !== undefined) {
-      clearTimeout(this.logQueueTimerId);
-      this.logQueueTimerId = undefined;
+    if (this.logQueue.state === 'scheduled') {
+      clearTimeout(this.logQueue.timerId);
     }
+    this.logQueue = { state: 'stopped' };
     return Promise.resolve();
   }
 }
+
+export type LogQueueState =
+  | { state: 'stopped' }
+  | { state: 'scheduled'; timerId: ReturnType<typeof setTimeout> }
+  | { state: 'flushing' };

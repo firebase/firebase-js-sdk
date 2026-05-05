@@ -202,7 +202,7 @@ describe('logToFirelog', () => {
       // assert
       setTimeout(() => {
         expect(messaging.logEvents.length).to.equal(0);
-        expect(messaging.isLogServiceStarted).to.be.false;
+        expect(messaging.logQueue.state).to.equal('stopped');
         done();
       }, 1000);
     });
@@ -235,7 +235,7 @@ describe('logToFirelog', () => {
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
       expect(fetchStub).to.not.have.been.called;
-      expect(messaging.isLogServiceStarted).to.be.false;
+      expect(messaging.logQueue.state).to.equal('stopped');
     });
 
     it('dispatches first queued batch promptly', async () => {
@@ -320,7 +320,7 @@ describe('logToFirelog', () => {
       _setDeliveryMetricsExportedToBigQueryEnabled(messaging, false);
 
       expect(messaging.logEvents).to.be.empty;
-      expect(messaging.isLogServiceStarted).to.be.false;
+      expect(messaging.logQueue.state).to.equal('stopped');
 
       await clock.tickAsync(LOG_INTERVAL_IN_MS);
       expect(fetchStub).to.have.been.calledOnce;
@@ -337,7 +337,7 @@ describe('logToFirelog', () => {
 
       await new Promise<void>(resolve => setTimeout(resolve, 50));
       expect(fetchStub).to.not.have.been.called;
-      expect(messaging.isLogServiceStarted).to.be.false;
+      expect(messaging.logQueue.state).to.equal('stopped');
 
       const internalPayload: MessagePayloadInternal = {
         from: '1234567890',
