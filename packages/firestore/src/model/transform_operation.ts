@@ -57,15 +57,13 @@ export function applyTransformOperationToLocalView(
       transform,
       previousValue
     );
-  } else {
-    debugAssert(
-      transform instanceof NumericMaximumTransformOperation,
-      'Expected NumericMaximumTransformOperation but was: ' + transform
-    );
+  } else if (transform instanceof NumericMaximumTransformOperation) {
     return applyNumericMaximumTransformOperationToLocalView(
       transform,
       previousValue
     );
+  } else {
+    debugAssert(false, 'Unsupported transform: ' + transform);
   }
 }
 
@@ -238,38 +236,44 @@ export function applyNumericIncrementTransformOperationToLocalView(
   }
 }
 
-export function applyNumericMinimumTransformOperationToLocalView(
-  transform: NumericMinimumTransformOperation,
-  previousValue: ProtoValue | null
+export function applyNumericTransformOperationToLocalView(
+  operation: NumericTransformOperation,
+  previousValue: ProtoValue | null,
+  transform: (x: number, y: number) => number
 ): ProtoValue {
   if (!isNumber(previousValue)) {
-    return transform.operand;
+    return operation.operand;
   }
   const prev = asNumber(previousValue);
-  const oper = asNumber(transform.operand);
-  const min = Math.min(prev, oper);
-  if (isInteger(previousValue) && isInteger(transform.operand)) {
+  const oper = asNumber(operation.operand);
+  const min = transform(prev, oper);
+  if (isInteger(previousValue) && isInteger(operation.operand)) {
     return toInteger(min);
   } else {
-    return toDouble(transform.serializer, min);
+    return toDouble(operation.serializer, min);
   }
 }
 
-export function applyNumericMaximumTransformOperationToLocalView(
-  transform: NumericMaximumTransformOperation,
+export function applyNumericMinimumTransformOperationToLocalView(
+  operation: NumericMinimumTransformOperation,
   previousValue: ProtoValue | null
 ): ProtoValue {
-  if (!isNumber(previousValue)) {
-    return transform.operand;
-  }
-  const prev = asNumber(previousValue);
-  const oper = asNumber(transform.operand);
-  const max = Math.max(prev, oper);
-  if (isInteger(previousValue) && isInteger(transform.operand)) {
-    return toInteger(max);
-  } else {
-    return toDouble(transform.serializer, max);
-  }
+  return applyNumericTransformOperationToLocalView(
+    operation,
+    previousValue,
+    Math.min
+  );
+}
+
+export function applyNumericMaximumTransformOperationToLocalView(
+  operation: NumericMaximumTransformOperation,
+  previousValue: ProtoValue | null
+): ProtoValue {
+  return applyNumericTransformOperationToLocalView(
+    operation,
+    previousValue,
+    Math.max
+  );
 }
 
 function asNumber(value: ProtoValue): number {

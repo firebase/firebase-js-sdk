@@ -917,12 +917,12 @@ describe('FieldValue', () => {
     expect(arrayRemove('a', 'b').isEqual(arrayRemove('b', 'a'))).to.be.false;
     expect(increment(1).isEqual(increment(1))).to.be.true;
     expect(increment(1).isEqual(increment(2))).to.be.false;
-    
+
     expect(minimum(1).isEqual(minimum(1))).to.be.true;
     expect(minimum(1).isEqual(minimum(2))).to.be.false;
     expect(maximum(1).isEqual(maximum(1))).to.be.true;
     expect(maximum(1).isEqual(maximum(2))).to.be.false;
-    
+
     // Test NaN equality
     expect(minimum(NaN).isEqual(minimum(NaN))).to.be.true;
     expect(maximum(NaN).isEqual(maximum(NaN))).to.be.true;

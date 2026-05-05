@@ -34,13 +34,13 @@ describe('FieldValue', () => {
     expectEqual(deleteField(), deleteField());
     expectEqual(serverTimestamp(), serverTimestamp());
     expectNotEqual(deleteField(), serverTimestamp());
-    
+
     expectEqual(minimum(1), minimum(1));
     expectNotEqual(minimum(1), minimum(2));
     expectEqual(maximum(1), maximum(1));
     expectNotEqual(maximum(1), maximum(2));
     expectNotEqual(minimum(1), maximum(1));
-    
+
     // Test NaN equality
     expectEqual(minimum(NaN), minimum(NaN));
     expectEqual(maximum(NaN), maximum(NaN));
