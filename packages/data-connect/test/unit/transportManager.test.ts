@@ -38,6 +38,7 @@ use(sinonChai);
 /** Interface that exposes private fields of stream transport for testing purposes. */
 interface StreamTransportWithInternals {
   onStreamClose(code: number, reason: string): void;
+  rejectAllRequests(code: string, reason: string): void;
 }
 
 /** Interface that exposes private fields of TransportManager for testing purposes. */
@@ -504,9 +505,13 @@ describe('DataConnectTransportManager', () => {
       };
       transportWithInternals.subscribeObservers = new Map([['1', observer]]);
 
+      // rejectAllRequests simulates a disconnect without reconnects!
       (
         streamTransport as unknown as StreamTransportWithInternals
-      ).onStreamClose(1006, 'Abnormal Closure');
+      ).rejectAllRequests(
+        Code.OTHER,
+        'Stream disconnected with code 1006: Abnormal Closure'
+      );
 
       expect(observer.onDisconnect).to.have.been.calledOnceWith(
         Code.OTHER,
