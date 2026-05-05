@@ -396,6 +396,16 @@ export const FinishReason: {
     readonly PROHIBITED_CONTENT: "PROHIBITED_CONTENT";
     readonly SPII: "SPII";
     readonly MALFORMED_FUNCTION_CALL: "MALFORMED_FUNCTION_CALL";
+    readonly IMAGE_SAFETY: "IMAGE_SAFETY";
+    readonly IMAGE_PROHIBITED_CONTENT: "IMAGE_PROHIBITED_CONTENT";
+    readonly IMAGE_OTHER: "IMAGE_OTHER";
+    readonly NO_IMAGE: "NO_IMAGE";
+    readonly IMAGE_RECITATION: "IMAGE_RECITATION";
+    readonly LANGUAGE: "LANGUAGE";
+    readonly UNEXPECTED_TOOL_CALL: "UNEXPECTED_TOOL_CALL";
+    readonly TOO_MANY_TOOL_CALLS: "TOO_MANY_TOOL_CALLS";
+    readonly MISSING_THOUGHT_SIGNATURE: "MISSING_THOUGHT_SIGNATURE";
+    readonly MALFORMED_RESPONSE: "MALFORMED_RESPONSE";
 };
 
 // @public
@@ -554,6 +564,7 @@ export interface GenerationConfig {
     candidateCount?: number;
     // (undocumented)
     frequencyPenalty?: number;
+    imageConfig?: ImageConfig;
     // (undocumented)
     maxOutputTokens?: number;
     // (undocumented)
@@ -802,6 +813,44 @@ export interface HybridParams {
     mode: InferenceMode;
     onDeviceParams?: OnDeviceParams;
 }
+
+// @public
+export interface ImageConfig {
+    aspectRatio?: ImageConfigAspectRatio;
+    imageSize?: ImageConfigImageSize;
+}
+
+// @public
+export const ImageConfigAspectRatio: {
+    readonly SQUARE_1x1: "1:1";
+    readonly PORTRAIT_9x16: "9:16";
+    readonly LANDSCAPE_16x9: "16:9";
+    readonly PORTRAIT_3x4: "3:4";
+    readonly LANDSCAPE_4x3: "4:3";
+    readonly PORTRAIT_2x3: "2:3";
+    readonly LANDSCAPE_3x2: "3:2";
+    readonly PORTRAIT_4x5: "4:5";
+    readonly LANDSCAPE_5x4: "5:4";
+    readonly PORTRAIT_1x4: "1:4";
+    readonly LANDSCAPE_4x1: "4:1";
+    readonly PORTRAIT_1x8: "1:8";
+    readonly LANDSCAPE_8x1: "8:1";
+    readonly ULTRAWIDE_21x9: "21:9";
+};
+
+// @public
+export type ImageConfigAspectRatio = (typeof ImageConfigAspectRatio)[keyof typeof ImageConfigAspectRatio];
+
+// @public
+export const ImageConfigImageSize: {
+    readonly SIZE_512: "512";
+    readonly SIZE_1K: "1K";
+    readonly SIZE_2K: "2K";
+    readonly SIZE_4K: "4K";
+};
+
+// @public
+export type ImageConfigImageSize = (typeof ImageConfigImageSize)[keyof typeof ImageConfigImageSize];
 
 // @public @deprecated
 export const ImagenAspectRatio: {
