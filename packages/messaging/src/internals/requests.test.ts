@@ -23,6 +23,7 @@ import {
   FID_REGISTRATION_FETCH_MAX_ATTEMPTS,
   getRegistrationOrigin,
   requestCreateRegistration,
+  requestDeleteRegistration,
   requestDeleteToken,
   requestGetToken,
   requestUpdateToken
@@ -427,6 +428,50 @@ describe('API', () => {
       await expect(
         requestDeleteToken(firebaseDependencies, tokenDetails.token)
       ).to.be.rejectedWith('messaging/token-unsubscribe-failed');
+    });
+  });
+
+  describe('deleteRegistration (FID)', () => {
+    it('calls the deleteRegistration server API with correct parameters', async () => {
+      fetchStub.resolves(new Response(JSON.stringify({})));
+
+      const response = await requestDeleteRegistration(
+        firebaseDependencies,
+        'fid-value'
+      );
+
+      const expectedHeaders = new Headers({
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'x-goog-api-key': 'apiKey',
+        'x-goog-firebase-installations-auth': `FIS authToken`
+      });
+      const expectedRequest: RequestInit = {
+        method: 'DELETE',
+        headers: expectedHeaders
+      };
+      const expectedEndpoint = `${ENDPOINT}/projects/projectId/registrations/fid-value`;
+
+      expect(response).to.be.undefined;
+      expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchStub.lastCall.lastArg.headers;
+      compareHeaders(expectedHeaders, actualHeaders);
+    });
+
+    it('throws if fetch fails or backend returns an error', async () => {
+      fetchStub.rejects(new Error('Fetch failed'));
+      await expect(
+        requestDeleteRegistration(firebaseDependencies, 'fid-value')
+      ).to.be.rejectedWith('messaging/fid-unregister-failed');
+
+      fetchStub.resolves(
+        new Response(JSON.stringify({ error: { message: 'error message' } }), {
+          status: 400
+        })
+      );
+      await expect(
+        requestDeleteRegistration(firebaseDependencies, 'fid-value')
+      ).to.be.rejectedWith('messaging/fid-unregister-failed');
     });
   });
 });

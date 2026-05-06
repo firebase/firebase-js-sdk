@@ -39,6 +39,7 @@ import { onMessage as _onMessage } from './api/onMessage';
 import { onRegistered as _onRegistered } from './api/onRegistered';
 import { onUnregistered as _onUnregistered } from './api/onUnregistered';
 import { register as _register } from './api/register';
+import { unregister as _unregister } from './api/unregister';
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
 
 /**
@@ -200,6 +201,19 @@ export async function register(
 ): Promise<void> {
   messaging = getModularInstance(messaging);
   return _register(messaging as MessagingService, options);
+}
+
+/**
+ * Unregisters the app instance from FCM by deleting its FID-based registration.
+ * On success, triggers {@link onUnregistered} (if registered) with the unregistered FID.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ *
+ * @public
+ */
+export async function unregister(messaging: Messaging): Promise<void> {
+  messaging = getModularInstance(messaging);
+  return _unregister(messaging as MessagingService);
 }
 
 /**
