@@ -106,7 +106,6 @@ describe('Unary Function Input Mirroring', () => {
 
   unaryFunctionBuilders.forEach(builder => {
     const funcName = builder(constant('dummy')).name;
-
     it(`mirrors input for ${funcName}()`, () => {
       testCases.forEach(testCase => {
         let exprToEvaluate;
@@ -299,10 +298,37 @@ describe('Binary Function Input Mirroring', () => {
             `${funcName}(${testCase.description}) should evaluate to ERROR (undefined)`
           ).to.deep.equal(EvaluateResult.newError());
         } else if (testCase.expected === NULL_INPUT) {
-          expect(
-            actualResult,
-            `${funcName}(${testCase.description}) should evaluate to NULL`
-          ).to.deep.equal(EvaluateResult.newNull());
+          if (testCase.description === 'NULL, NULL -> NULL') {
+            if (
+              funcName === 'equal' ||
+              funcName === 'greater_than_or_equal' ||
+              funcName === 'less_than_or_equal'
+            ) {
+              expect(
+                actualResult,
+                `${funcName}(${testCase.description}) should evaluate to TRUE`
+              ).to.deep.equal(EvaluateResult.newValue({ booleanValue: true }));
+            } else if (
+              funcName === 'greater_than' ||
+              funcName === 'less_than' ||
+              funcName === 'not_equal'
+            ) {
+              expect(
+                actualResult,
+                `${funcName}(${testCase.description}) should evaluate to FALSE`
+              ).to.deep.equal(EvaluateResult.newValue({ booleanValue: false }));
+            } else {
+              expect(
+                actualResult,
+                `${funcName}(${testCase.description}) should evaluate to NULL`
+              ).to.deep.equal(EvaluateResult.newNull());
+            }
+          } else {
+            expect(
+              actualResult,
+              `${funcName}(${testCase.description}) should evaluate to NULL`
+            ).to.deep.equal(EvaluateResult.newNull());
+          }
         } else {
           // This case shouldn't be hit by current test definitions
           expect(

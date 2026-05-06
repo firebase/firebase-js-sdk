@@ -3973,7 +3973,10 @@ export class Constant extends Expression {
  * @param value - The number value.
  * @returns A new `Constant` instance.
  */
-export function constant(value: number, options?: { preferIntegers?: boolean }): Expression;
+export function constant(
+  value: number,
+  options?: { preferIntegers?: boolean }
+): Expression;
 
 /**
  * Creates a `Constant` instance for a string value.
@@ -4057,7 +4060,10 @@ export function constant(value: ProtoValue): Expression;
  */
 export function constant(value: VectorValue): Expression;
 
-export function constant(value: unknown, options?: { preferIntegers?: boolean }): Expression | BooleanExpression {
+export function constant(
+  value: unknown,
+  options?: { preferIntegers?: boolean }
+): Expression | BooleanExpression {
   return _constant(value, 'constant');
 }
 
@@ -4392,6 +4398,10 @@ export class BooleanConstant extends BooleanExpression {
   readonly expressionType: ExpressionType = 'Constant';
   constructor(readonly _expr: Constant) {
     super();
+  }
+
+  _getValue(): any {
+    return this._expr._getValue();
   }
 }
 

@@ -453,13 +453,13 @@ describe('Logical Functions', () => {
   }); // end describe('eqAny')
 
   describe('isNaN', () => {
-    it('nan_returnsTrue', () => {
+    it('nan_returnsFalse', () => {
       expect(
         evaluateToValue(equal(constant(NaN), constant(NaN)))
-      ).to.deep.equal(TRUE_VALUE);
+      ).to.deep.equal(FALSE_VALUE);
       expect(
         evaluateToValue(equal(field('nanValue'), constant(NaN)))
-      ).to.deep.equal(TRUE_VALUE);
+      ).to.deep.equal(FALSE_VALUE);
     });
 
     it('notNan_returnsFalse', () => {
@@ -480,11 +480,11 @@ describe('Logical Functions', () => {
       );
     });
 
-    it('otherNanRepresentations_returnsTrue', () => {
+    it('otherNanRepresentations_returnsFalse', () => {
       const v1 = NaN; // In JS, any operation with NaN results in NaN
       expect(Number.isNaN(v1)).to.be.true;
       expect(evaluateToValue(equal(constant(v1), NaN))).to.deep.equal(
-        TRUE_VALUE
+        FALSE_VALUE
       );
 
       expect(
@@ -497,17 +497,20 @@ describe('Logical Functions', () => {
             constant(NaN)
           )
         )
-      ).to.deep.equal(TRUE_VALUE);
+      ).to.deep.equal(FALSE_VALUE);
 
       expect(
         evaluateToValue(equal(add(constant(NaN), constant(1)), constant(NaN)))
-      ).to.deep.equal(TRUE_VALUE);
+      ).to.deep.equal(FALSE_VALUE);
     });
 
     it('nonNumeric_returnsError', () => {
-      expect(evaluateToValue(equal(constant(true), constant(NaN)))).to.be
-        .undefined;
-      expect(evaluateToValue(equal(constant('abc'), NaN))).to.be.undefined;
+      expect(
+        evaluateToValue(equal(constant(true), constant(NaN)))
+      ).to.deep.equal(FALSE_VALUE);
+      expect(evaluateToValue(equal(constant('abc'), NaN))).to.deep.equal(
+        FALSE_VALUE
+      );
     });
   }); // end describe('isNaN')
 

@@ -31,6 +31,12 @@ import {
 
 import { evaluateToValue, expectEqualToConstant } from './utils';
 
+function constantInt(valueStr: string): any {
+  const c = constant(0);
+  (c as any)._protoValue = { integerValue: valueStr };
+  return c;
+}
+
 describe('Timestamp Functions', () => {
   describe('UnixMicrosToTimestamp', () => {
     it('stringType_returnsError', () => {
@@ -74,11 +80,7 @@ describe('Timestamp Functions', () => {
 
     it('longType_negative_overflow_returnsError', () => {
       const result1 = evaluateToValue(
-        unixMicrosToTimestamp(
-          constant(-62135596800000000, {
-            preferIntegers: true
-          })
-        )
+        unixMicrosToTimestamp(constantInt('-62135596800000000'))
       );
       expect(result1?.timestampValue).to.deep.equal({
         seconds: -62135596800,
@@ -87,10 +89,7 @@ describe('Timestamp Functions', () => {
 
       const result2 = evaluateToValue(
         unixMicrosToTimestamp(
-          subtract(
-            constant(-62135596800000000, { preferIntegers: true }),
-            constant(1)
-          )
+          subtract(constantInt('-62135596800000000'), constant(1))
         )
       );
       expect(result2).to.deep.equal(undefined);
@@ -99,10 +98,7 @@ describe('Timestamp Functions', () => {
     it('longType_positive_overflow_returnsError', () => {
       const result1 = evaluateToValue(
         unixMicrosToTimestamp(
-          subtract(
-            constant(253402300800000000, { preferIntegers: true }),
-            constant(1)
-          )
+          subtract(constantInt('253402300800000000'), constant(1))
         )
       );
       expect(result1?.timestampValue).to.deep.equal({
@@ -111,11 +107,7 @@ describe('Timestamp Functions', () => {
       });
 
       const result2 = evaluateToValue(
-        unixMicrosToTimestamp(
-          constant(253402300800000000, {
-            preferIntegers: true
-          })
-        )
+        unixMicrosToTimestamp(constantInt('253402300800000000'))
       );
       expect(result2).to.deep.equal(undefined);
     });

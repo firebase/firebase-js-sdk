@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import { RE2JS } from 're2js';
+import { ByteString } from '../util/byte_string';
 
 import {
   Field,
@@ -544,8 +545,20 @@ abstract class BigIntOrDoubleArithmetics implements EvaluableExpr {
   }
 }
 
-type Equality = 'NULL' | 'EQ' | 'NOT_EQ';
+type Equality = 'NULL' | 'EQ' | 'NOT_EQ' | 'TYPE_MISMATCH';
 function strictValueEquals(left: Value, right: Value): Equality {
+  if (typeOrder(left) !== typeOrder(right)) {
+    return 'TYPE_MISMATCH';
+  }
+
+  if (isNanValue(left) || isNanValue(right)) {
+    return 'NOT_EQ';
+  }
+
+  if (isNullValue(left) && isNullValue(right)) {
+    return 'EQ';
+  }
+
   if (isNullValue(left) || isNullValue(right)) {
     return 'NULL';
   }
@@ -573,7 +586,11 @@ function strictArrayValueEquals(left: ArrayValue, right: ArrayValue): Equality {
     const leftValue = left.values![index];
     const rightValue = right.values![index];
     switch (strictValueEquals(leftValue, rightValue)) {
-      case 'NOT_EQ': {
+      case 'EQ': {
+        break;
+      }
+      case 'NOT_EQ':
+      case 'TYPE_MISMATCH': {
         return 'NOT_EQ';
       }
       case 'NULL': {
@@ -608,12 +625,15 @@ function strictObjectValueEquals(left: MapValue, right: MapValue): Equality {
         return 'NOT_EQ';
       }
 
-      switch (strictValueEquals(leftMap[key], rightMap[key])) {
-        case 'NOT_EQ': {
+      const equalityResult = strictValueEquals(leftMap[key], rightMap[key]);
+      switch (equalityResult) {
+        case 'NOT_EQ':
+        case 'TYPE_MISMATCH': {
           return 'NOT_EQ';
         }
         case 'NULL': {
           foundNull = true;
+          break;
         }
         default:
           break;
@@ -1017,14 +1037,22 @@ export class CoreEqAny implements EvaluableExpr {
     }
 
     for (const candidate of arrayValue.value?.arrayValue?.values ?? []) {
-      switch (strictValueEquals(searchValue.value!, candidate)) {
+      const isBothNull =
+        isNullValue(searchValue.value!) && isNullValue(candidate);
+      const equalityResult = isBothNull
+        ? 'EQ'
+        : strictValueEquals(searchValue.value!, candidate);
+      switch (equalityResult) {
         case 'EQ':
           return EvaluateResult.newValue(TRUE_VALUE);
-        case 'NOT_EQ': {
+        case 'NOT_EQ':
+        case 'TYPE_MISMATCH': {
           break;
         }
-        case 'NULL':
+        case 'NULL': {
           foundNull = true;
+          break;
+        }
         default:
           fail(0xae40, { value: searchValue.value, candidate });
           break;
@@ -1340,10 +1368,6 @@ abstract class ComparisonBase implements EvaluableExpr {
         break;
     }
 
-    if (left.isNull() || right.isNull()) {
-      return EvaluateResult.newNull();
-    }
-
     return this.compareToResult(left, right);
   }
 }
@@ -1354,10 +1378,17 @@ export class CoreEq extends ComparisonBase {
   }
 
   compareToResult(left: EvaluateResult, right: EvaluateResult): EvaluateResult {
-    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
+    if (left.isNull() && right.isNull()) {
+      return EvaluateResult.newValue(TRUE_VALUE);
+    }
+    if (left.isNull() || right.isNull()) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
     if (isNanValue(left.value) || isNanValue(right.value)) {
+      return EvaluateResult.newValue(FALSE_VALUE);
+    }
+
+    if (typeOrder(left.value!) !== typeOrder(right.value!)) {
       return EvaluateResult.newValue(FALSE_VALUE);
     }
 
@@ -1385,6 +1416,8 @@ export class CoreNeq extends ComparisonBase {
       case 'EQ':
         return EvaluateResult.newValue(FALSE_VALUE);
       case 'NOT_EQ':
+        return EvaluateResult.newValue(TRUE_VALUE);
+      case 'TYPE_MISMATCH':
         return EvaluateResult.newValue(TRUE_VALUE);
       case 'NULL':
         return EvaluateResult.newNull();
@@ -1591,22 +1624,26 @@ export class CoreArrayContainsAll implements EvaluableExpr {
 
     const searchValues = elementsToFind.value?.arrayValue?.values ?? [];
     const arrayValues = arrayToSearch.value?.arrayValue?.values ?? [];
-    let foundNullAtLeastOnce = false;
     for (const search of searchValues) {
       let found = false;
       foundNull = false;
       for (const value of arrayValues) {
-        switch (strictValueEquals(search, value)) {
+        const isBothNull = isNullValue(search) && isNullValue(value);
+        const equalityResult = isBothNull
+          ? 'EQ'
+          : strictValueEquals(search, value);
+        switch (equalityResult) {
           case 'EQ': {
             found = true;
             break;
           }
-          case 'NOT_EQ': {
+          case 'NOT_EQ':
+          case 'TYPE_MISMATCH': {
             break;
           }
           case 'NULL': {
             foundNull = true;
-            foundNullAtLeastOnce = true;
+            break;
           }
           default:
             fail(0xae45, { value, search });
@@ -1619,20 +1656,10 @@ export class CoreArrayContainsAll implements EvaluableExpr {
         }
       }
 
-      if (found) {
-        // true case - do nothing, we found a match, make sure all other values are also found
-      } else {
+      if (!found) {
         // false case - we didn't find a match, short circuit
-        if (!foundNull) {
-          return EvaluateResult.newValue(FALSE_VALUE);
-        }
-
-        // null case - do nothing, we found at least one null value, keep going
+        return EvaluateResult.newValue(FALSE_VALUE);
       }
-    }
-
-    if (foundNullAtLeastOnce) {
-      return EvaluateResult.newNull();
     }
 
     return EvaluateResult.newValue(TRUE_VALUE);
@@ -1696,15 +1723,22 @@ export class CoreArrayContainsAny implements EvaluableExpr {
 
     for (const value of arrayValues) {
       for (const search of searchValues) {
-        switch (strictValueEquals(value, search)) {
+        const isBothNull = isNullValue(value) && isNullValue(search);
+        const equalityResult = isBothNull
+          ? 'EQ'
+          : strictValueEquals(value, search);
+        switch (equalityResult) {
           case 'EQ': {
             return EvaluateResult.newValue(TRUE_VALUE);
           }
-          case 'NOT_EQ': {
+          case 'NOT_EQ':
+          case 'TYPE_MISMATCH': {
             break;
           }
-          case 'NULL':
+          case 'NULL': {
             foundNull = true;
+            break;
+          }
           default:
             fail(0xae40, { value, search });
             break;
@@ -1778,11 +1812,11 @@ export class CoreReverse implements EvaluableExpr {
       case 'BYTES': {
         const value = evaluated.value?.bytesValue!;
         if (typeof value === 'string') {
-          const encoder = new TextEncoder();
-          // encode the string to a Uint8Array
-          const byteArray = encoder.encode(value);
+          const byteString = ByteString.fromBase64String(value);
+          const byteArray = byteString.toUint8Array();
+          byteArray.reverse();
           return EvaluateResult.newValue({
-            bytesValue: byteArray.reverse()
+            bytesValue: ByteString.fromUint8Array(byteArray).toBase64()
           });
         } else {
           return EvaluateResult.newValue({
@@ -1969,9 +2003,17 @@ export class CoreByteLength implements EvaluableExpr {
     const evaluated = toEvaluable(this.expr.params[0]).evaluate(context, input);
     switch (evaluated.type) {
       case 'BYTES': {
-        return EvaluateResult.newValue({
-          integerValue: evaluated.value?.bytesValue?.length
-        });
+        const value = evaluated.value?.bytesValue!;
+        if (typeof value === 'string') {
+          return EvaluateResult.newValue({
+            integerValue:
+              ByteString.fromBase64String(value).toUint8Array().length
+          });
+        } else {
+          return EvaluateResult.newValue({
+            integerValue: new Uint8Array(value).length
+          });
+        }
       }
       case 'STRING': {
         // return the number of bytes in the string

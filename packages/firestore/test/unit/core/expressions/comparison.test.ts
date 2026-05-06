@@ -60,23 +60,23 @@ describe('Comparison Expressions', () => {
       });
     });
 
-    it('null_any_returnsNull', () => {
+    it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
           evaluateToResult(constant(null).equal(v)),
           `eq(null, ${canonifyExpr(v)})`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
         expect(
           evaluateToResult(v.equal(constant(null))),
           `eq(${canonifyExpr(v)}, null)`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       });
     });
 
-    it('null_null_returnsNull', () => {
+    it('null_null_returnsTrue', () => {
       expect(
         evaluateToResult(constant(null).equal(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('Null and missing evaluates to undefined (error)', () => {
@@ -93,7 +93,7 @@ describe('Comparison Expressions', () => {
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
         evaluateToResult(constantArray([null]).equal(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       expect(
         evaluateToValue(constantArray([null]).equal(constant(NaN)))
       ).to.be.deep.equal(FALSE_VALUE);
@@ -102,10 +102,10 @@ describe('Comparison Expressions', () => {
       ).to.be.deep.equal(FALSE_VALUE);
       expect(
         evaluateToResult(constantArray([null]).equal(constantArray([NaN])))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       expect(
         evaluateToResult(constantArray([null]).equal(constantArray([null])))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('nullInMap_equality_returnsNull', () => {
@@ -113,7 +113,7 @@ describe('Comparison Expressions', () => {
         evaluateToResult(
           constantMap({ foo: null }).equal(constantMap({ foo: null }))
         )
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('null_missingInMap_equality_returnsFalse', () => {
@@ -247,23 +247,23 @@ describe('Comparison Expressions', () => {
       });
     });
 
-    it('null_any_returnsNull', () => {
+    it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
           evaluateToResult(constant(null).greaterThanOrEqual(v)),
           `gte(null, ${canonifyExpr(v)})`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
         expect(
           evaluateToResult(v.greaterThanOrEqual(constant(null))),
           `gte(${canonifyExpr(v)}, null)`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       });
     });
 
     it('null_null_returnsTrue', () => {
       expect(
         evaluateToResult(constant(null).greaterThanOrEqual(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('nan_number_returnsFalse', () => {
@@ -338,23 +338,23 @@ describe('Comparison Expressions', () => {
       });
     });
 
-    it('null_any_returnsNull', () => {
+    it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
           evaluateToResult(constant(null).greaterThan(v)),
           `gt(null, ${canonifyExpr(v)})`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
         expect(
           evaluateToResult(v.greaterThan(constant(null))),
           `gt(${canonifyExpr(v)}, null)`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       });
     });
 
     it('null_null_returnsFalse', () => {
       expect(
         evaluateToResult(constant(null).greaterThan(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
     });
 
     it('nan_number_returnsFalse', () => {
@@ -415,23 +415,23 @@ describe('Comparison Expressions', () => {
       });
     });
 
-    it('null_any_returnsNull', () => {
+    it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
           evaluateToResult(constant(null).lessThanOrEqual(v)),
           `lte(null, ${canonifyExpr(v)})`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
         expect(
           evaluateToResult(v.lessThanOrEqual(constant(null))),
           `lte(${canonifyExpr(v)}, null)`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       });
     });
 
-    it('null_null_returnsNull', () => {
+    it('null_null_returnsTrue', () => {
       expect(
         evaluateToResult(constant(null).lessThanOrEqual(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('nan_number_returnsFalse', () => {
@@ -503,23 +503,23 @@ describe('Comparison Expressions', () => {
       });
     });
 
-    it('null_any_returnsNull', () => {
+    it('null_any_returnsFalse', () => {
       ComparisonValueTestData.ALL_SUPPORTED_COMPARABLE_VALUES.forEach(v => {
         expect(
           evaluateToResult(constant(null).lessThan(v)),
           `lt(null, ${canonifyExpr(v)})`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
         expect(
           evaluateToResult(v.lessThan(constant(null))),
           `lt(${canonifyExpr(v)}, null)`
-        ).to.be.deep.equal(EvaluateResult.newNull());
+        ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
       });
     });
 
-    it('null_null_returnsNull', () => {
+    it('null_null_returnsFalse', () => {
       expect(
         evaluateToResult(constant(null).lessThan(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
     });
 
     it('nan_number_returnsFalse', () => {
@@ -580,22 +580,22 @@ describe('Comparison Expressions', () => {
       });
     });
 
-    it('null_any_returnsNull', () => {
+    it('null_any_returnsTrue', () => {
       expect(
         evaluateToResult(constant(null).notEqual(constant(42)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
       expect(
         evaluateToResult(constant(null).notEqual(constant('matang')))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
       expect(
         evaluateToResult(constant(null).notEqual(constant(true)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
-    it('null_null_returnsNull', () => {
+    it('null_null_returnsFalse', () => {
       expect(
         evaluateToResult(constant(null).notEqual(constant(null)))
-      ).to.be.deep.equal(EvaluateResult.newNull());
+      ).to.be.deep.equal(EvaluateResult.newValue(FALSE_VALUE));
     });
 
     it('nan_number_returnsTrue', () => {

@@ -83,8 +83,8 @@ import {
   PipelineResult,
   ResultChange
 } from '../util/pipeline_export';
- import { USE_EMULATOR } from '../util/settings';
- import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
+import { USE_EMULATOR } from '../util/settings';
+import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
 function results(
   outputs: RealtimePipelineSnapshot | QuerySnapshot

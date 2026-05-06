@@ -32,6 +32,12 @@ import {
   Expression,
   field
 } from '../../../../src/lite-api/expressions';
+
+export function constantInt(valueStr: string): any {
+  const c = constant(0);
+  (c as any)._protoValue = { integerValue: valueStr };
+  return c;
+}
 import {
   newUserDataReader,
   UserDataSource

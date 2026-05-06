@@ -53,7 +53,7 @@ import {
   terminate,
   Unsubscribe,
   WriteBatch,
-   writeBatch
+  writeBatch
 } from './firebase_export';
 import {
   ALT_PROJECT_ID,

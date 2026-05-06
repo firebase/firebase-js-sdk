@@ -88,7 +88,10 @@ export class AddFields extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly fields: Map<string, Expression>, options: StageOptions) {
+  constructor(
+    public readonly fields: Map<string, Expression>,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -218,7 +221,10 @@ export class Distinct extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly groups: Map<string, Expression>, options: StageOptions) {
+  constructor(
+    public readonly groups: Map<string, Expression>,
+    options: StageOptions
+  ) {
     super(options);
   }
 
@@ -408,7 +414,10 @@ export class Where extends Stage {
     return new OptionsUtil({});
   }
 
-  constructor(public readonly condition: BooleanExpression, options: StageOptions) {
+  constructor(
+    public readonly condition: BooleanExpression,
+    options: StageOptions
+  ) {
     super(options);
   }
 

@@ -30,7 +30,8 @@ import {
 import {
   evaluateToResult,
   evaluateToValue,
-  expectEqualToConstant
+  expectEqualToConstant,
+  constantInt
 } from './utils';
 
 describe('Arithmetic Expressions', () => {
@@ -117,28 +118,13 @@ describe('Arithmetic Expressions', () => {
     // the number will be converted to double by UserDataReader first.
     it('longAddition_overflow', () => {
       expect(
-        evaluateToValue(
-          add(
-            constant(0x7fffffffffffffff, { preferIntegers: true }),
-            constant(1)
-          )
-        )
+        evaluateToValue(add(constantInt('9223372036854775807'), constant(1)))
       ).to.be.undefined;
       expect(
-        evaluateToValue(
-          add(
-            constant(0x8000000000000000, { preferIntegers: true }),
-            constant(-1)
-          )
-        )
+        evaluateToValue(add(constantInt('-9223372036854775808'), constant(-1)))
       ).to.be.undefined;
       expect(
-        evaluateToValue(
-          add(
-            constant(1),
-            constant(0x7fffffffffffffff, { preferIntegers: true })
-          )
-        )
+        evaluateToValue(add(constant(1), constantInt('9223372036854775807')))
       ).to.be.undefined;
     });
 
@@ -271,18 +257,12 @@ describe('Arithmetic Expressions', () => {
     it('longSubtraction_overflow', () => {
       expect(
         evaluateToValue(
-          subtract(
-            constant(0x8000000000000000, { preferIntegers: true }),
-            constant(-1)
-          )
+          subtract(constantInt('-9223372036854775808'), constant(1))
         )
       ).to.be.undefined;
       expect(
         evaluateToValue(
-          subtract(
-            constant(-0x7fffffffffffffff, { preferIntegers: true }),
-            constant(1)
-          )
+          subtract(constantInt('-9223372036854775807'), constant(2))
         )
       ).to.be.undefined;
     });
@@ -472,34 +452,22 @@ describe('Arithmetic Expressions', () => {
     it('longMultiplication_overflow', () => {
       expect(
         evaluateToValue(
-          multiply(
-            constant(9223372036854775807, { preferIntegers: true }),
-            constant(10)
-          )
+          multiply(constantInt('9223372036854775807'), constant(10))
         )
       ).to.be.undefined;
       expect(
         evaluateToValue(
-          multiply(
-            constant(0x8000000000000000, { preferIntegers: true }),
-            constant(10)
-          )
+          multiply(constantInt('-9223372036854775808'), constant(10))
         )
       ).to.be.undefined;
       expect(
         evaluateToValue(
-          multiply(
-            constant(-10),
-            constant(9223372036854775807, { preferIntegers: true })
-          )
+          multiply(constant(-10), constantInt('9223372036854775807'))
         )
       ).to.be.undefined;
       expect(
         evaluateToValue(
-          multiply(
-            constant(-10),
-            constant(0x8000000000000000, { preferIntegers: true })
-          )
+          multiply(constant(-10), constantInt('-9223372036854775808'))
         )
       ).to.be.undefined;
     });

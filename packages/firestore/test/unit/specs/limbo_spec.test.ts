@@ -461,7 +461,7 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest(
     'Limbo documents survive primary state transitions',
-    ['multi-client'],
+    ['multi-client', 'no-pipeline-conversion'],
     () => {
       const query1 = query('collection');
       const docA = doc('collection/a', 1000, { key: 'a' });

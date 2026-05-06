@@ -599,6 +599,8 @@ describe('Disjunctive Queries', () => {
       );
 
     expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.deep.equal([
+      doc1,
+      doc2,
       doc3
     ]);
   });
@@ -1164,10 +1166,7 @@ describe('Disjunctive Queries', () => {
       .collection('/users')
       .where(or(equal(field('a'), null), equal(field('a'), NaN)));
 
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([
-      doc1,
-      doc2
-    ]);
+    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.deep.equal([doc1]);
   });
 
   it('or_isNullAndIsNaNOnDifferentField', () => {
@@ -1185,7 +1184,7 @@ describe('Disjunctive Queries', () => {
 
     expect(
       runPipeline(pipeline, [doc1, doc2, doc3, doc4, doc5, doc6])
-    ).to.deep.equal([doc1, doc5]);
+    ).to.deep.equal([doc1]);
   });
 
   it('basicNotEqAny', () => {

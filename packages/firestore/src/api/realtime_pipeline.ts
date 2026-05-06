@@ -1,7 +1,12 @@
 import { Firestore } from '../lite-api/database';
 import { BooleanExpression, Ordering } from '../lite-api/expressions';
 import { Limit, Sort, Stage, Where } from '../lite-api/stage';
-import { UserDataReader, UserDataSource, UserData, isUserData } from '../lite-api/user_data_reader';
+import {
+  UserDataReader,
+  UserDataSource,
+  UserData,
+  isUserData
+} from '../lite-api/user_data_reader';
 import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 import {
   Stage as ProtoStage,
@@ -81,10 +86,7 @@ export class RealtimePipeline {
    * @internal
    */
   protected readUserData<
-    T extends
-      | Map<string, UserData>
-      | UserData[]
-      | UserData
+    T extends Map<string, UserData> | UserData[] | UserData
   >(name: string, expressionMap: T): T {
     const context = this.userDataReader.createContext(
       UserDataSource.Argument,

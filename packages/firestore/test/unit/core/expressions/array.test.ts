@@ -177,7 +177,7 @@ describe('Array Expressions', () => {
             constant(null)
           ])
         )
-      ).to.deep.equal(EvaluateResult.newNull());
+      ).to.deep.equal(EvaluateResult.newValue(TRUE_VALUE));
     });
 
     it('array_isNotArrayType_returnsError', () => {
