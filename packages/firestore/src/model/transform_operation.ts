@@ -246,11 +246,11 @@ export function applyNumericTransformOperationToLocalView(
   }
   const prev = asNumber(previousValue);
   const oper = asNumber(operation.operand);
-  const min = transform(prev, oper);
+  const result = transform(prev, oper);
   if (isInteger(previousValue) && isInteger(operation.operand)) {
-    return toInteger(min);
+    return toInteger(result);
   } else {
-    return toDouble(operation.serializer, min);
+    return toDouble(operation.serializer, result);
   }
 }
 
