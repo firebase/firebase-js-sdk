@@ -66,7 +66,6 @@ import { Dict, forEach, isEmpty } from '../util/obj';
 
 import { Bytes } from './bytes';
 import { Firestore } from './database';
-import type { Constant } from './expressions';
 import { FieldPath } from './field_path';
 import { FieldValue } from './field_value';
 import { GeoPoint } from './geo_point';

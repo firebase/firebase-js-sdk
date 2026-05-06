@@ -258,7 +258,7 @@ export class CollectionSource extends Stage {
     });
   }
 
-  public readonly formattedCollectionPath: string;
+  readonly formattedCollectionPath: string;
 
   constructor(collection: string, options: StageOptions) {
     super(options);
@@ -379,7 +379,7 @@ export class DocumentsSource extends Stage {
     return new OptionsUtil({});
   }
 
-  public readonly formattedPaths: string[];
+  readonly formattedPaths: string[];
 
   constructor(docPaths: string[], options: StageOptions) {
     super(options);

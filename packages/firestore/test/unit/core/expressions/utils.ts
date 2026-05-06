@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+// eslint-disable-next-line import/order
 import {
   Bytes,
   doc as docRef,
@@ -24,7 +25,9 @@ import {
   Timestamp,
   VectorValue
 } from '../../../../src';
+
 import { EvaluateResult, toEvaluable } from '../../../../src/core/expressions';
+// eslint-disable-next-line import/order
 import {
   BooleanExpression,
   Constant,
@@ -33,9 +36,11 @@ import {
   field
 } from '../../../../src/lite-api/expressions';
 
-export function constantInt(valueStr: string): any {
+export function constantInt(valueStr: string): Expression {
   const c = constant(0);
-  (c as any)._protoValue = { integerValue: valueStr };
+  (c as unknown as { _protoValue: { integerValue: string } })._protoValue = {
+    integerValue: valueStr
+  };
   return c;
 }
 import {

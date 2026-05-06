@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 
+import { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
@@ -86,6 +87,7 @@ apiPipelineDescribe(
               await getDoc(docRef); // Populate the cache.
 
               if (pipelineMode === 'query-to-pipeline') {
+                _enableRealtimePipeline(docRef.firestore as Firestore);
                 const storeEvent =
                   new EventsAccumulator<RealtimePipelineSnapshot>();
                 const unsubscribe = onSnapshot(

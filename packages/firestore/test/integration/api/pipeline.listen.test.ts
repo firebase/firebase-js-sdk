@@ -1,3 +1,4 @@
+// Copyright 2024 Google LLC* @license
 // Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,6 +27,7 @@ import {
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
+import { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
 import {
   CollectionReference,
   deleteDoc,
@@ -41,10 +43,14 @@ import {
   updateDoc
 } from '../util/firebase_export';
 import { apiDescribe, toDataArray, withTestCollection } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 use(chaiAsPromised);
 
 apiDescribe('RealtimePipelines', persistence => {
+  if (!USE_EMULATOR) {
+    return;
+  }
   addEqualityMatcher();
   let firestore: Firestore;
   let randomCol: CollectionReference;
@@ -173,6 +179,7 @@ apiDescribe('RealtimePipelines', persistence => {
       persistence,
       {},
       async (collectionRef, firestoreInstance) => {
+        _enableRealtimePipeline(firestoreInstance);
         randomCol = collectionRef;
         firestore = firestoreInstance;
         await setupBookDocs();

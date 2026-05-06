@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import { Timestamp } from '../../../../src';
 import {
   constant,
+  Expression,
   subtract,
   timestampToUnixMicros,
   timestampToUnixMillis,
@@ -31,9 +32,11 @@ import {
 
 import { evaluateToValue, expectEqualToConstant } from './utils';
 
-function constantInt(valueStr: string): any {
+function constantInt(valueStr: string): Expression {
   const c = constant(0);
-  (c as any)._protoValue = { integerValue: valueStr };
+  (c as unknown as { _protoValue: { integerValue: string } })._protoValue = {
+    integerValue: valueStr
+  };
   return c;
 }
 

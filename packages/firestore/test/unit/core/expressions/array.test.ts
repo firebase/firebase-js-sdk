@@ -159,16 +159,16 @@ describe('Array Expressions', () => {
 
     // TODO(pipeline): Nested arrays are not supported in documents. We need to
     // support creating nested arrays as expressions however.
-    it.skip('bothInputTypeIsArray', () => {
-      expect(
-        evaluateToValue(
-          arrayContainsAny(constantArray([1, 2, 3], [4, 5, 6], [7, 8, 9]), [
-            constantArray(1, 2, 3),
-            constantArray(4, 5, 6)
-          ])
-        )
-      ).to.deep.equal(TRUE_VALUE);
-    });
+    // it.skip('bothInputTypeIsArray', () => {
+    //   expect(
+    //     evaluateToValue(
+    //       arrayContainsAny(constantArray([1, 2, 3], [4, 5, 6], [7, 8, 9]), [
+    //         constantArray(1, 2, 3),
+    //         constantArray(4, 5, 6)
+    //       ])
+    //     )
+    //   ).to.deep.equal(TRUE_VALUE);
+    // });
 
     it('search_isNull_returnsNull', () => {
       expect(
@@ -238,16 +238,16 @@ describe('Array Expressions', () => {
 
     // TODO(pipeline): Nested arrays are not supported in documents. We need to
     // support creating nested arrays as expressions however.
-    it.skip('bothInputTypeIsArray', () => {
-      expect(
-        evaluateToValue(
-          arrayContains(
-            constantArray([1, 2, 3], [4, 5, 6], [7, 8, 9]),
-            constantArray(1, 2, 3)
-          )
-        )
-      ).to.deep.equal(TRUE_VALUE);
-    });
+    // it.skip('bothInputTypeIsArray', () => {
+    //   expect(
+    //     evaluateToValue(
+    //       arrayContains(
+    //         constantArray([1, 2, 3], [4, 5, 6], [7, 8, 9]),
+    //         constantArray(1, 2, 3)
+    //       )
+    //     )
+    //   ).to.deep.equal(TRUE_VALUE);
+    // });
 
     it('searchValue_isNull_returnsNull', () => {
       expect(

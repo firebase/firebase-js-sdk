@@ -1,3 +1,4 @@
+// Copyright 2024 Google LLC* @license
 // Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -168,13 +169,13 @@ function evaluateLimit(
   return input.slice(0, stage.limit);
 }
 
-function evaluateOffset(
-  context: EvaluationContext,
-  stage: Offset,
-  input: PipelineInputOutput[]
-): PipelineInputOutput[] {
-  return input.slice((stage as any).offset);
-}
+// function evaluateOffset(
+//   context: EvaluationContext,
+//   stage: Offset,
+//   input: PipelineInputOutput[]
+// ): PipelineInputOutput[] {
+//   return input.slice((stage as any).offset);
+// }
 
 function evaluateSort(
   context: EvaluationContext,

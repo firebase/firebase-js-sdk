@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirestoreError } from '../api';
+import { FirestoreError } from '../util/error';
 import { ParseContext } from '../api/parse_context';
 import { OptionsUtil } from '../core/options_util';
 import {
@@ -4400,7 +4400,7 @@ export class BooleanConstant extends BooleanExpression {
     super();
   }
 
-  _getValue(): any {
+  _getValue(): unknown {
     return this._expr._getValue();
   }
 }

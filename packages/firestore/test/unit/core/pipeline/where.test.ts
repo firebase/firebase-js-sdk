@@ -22,8 +22,6 @@ import {
   arrayContainsAny,
   constant,
   field,
-  divide,
-  BooleanExpression as BooleanExpr,
   exists
 } from '../../../../lite/pipelines/pipelines';
 import { newTestFirestore } from '../../../util/api_helpers';
@@ -539,18 +537,18 @@ describe('Where Stage', () => {
 
   // Skipping because pipeline construction fails before running it, due to type
   // constraints
-  it.skip('whereExpressionIsNotBooleanYielding', () => {
-    const doc1 = doc('users/a', 1000, { name: 'alice', age: true });
-    const doc2 = doc('users/b', 1000, { name: 'bob', age: '42' });
-    const doc3 = doc('users/c', 1000, { name: 'charlie', age: 0 });
-
-    const pipeline = db
-      .pipeline()
-      .database()
-      .where(divide(constant('100'), constant('50')) as unknown as BooleanExpr);
-
-    expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
-  });
+  // it.skip('whereExpressionIsNotBooleanYielding', () => {
+  //   const doc1 = doc('users/a', 1000, { name: 'alice', age: true });
+  //   const doc2 = doc('users/b', 1000, { name: 'bob', age: '42' });
+  //   const doc3 = doc('users/c', 1000, { name: 'charlie', age: 0 });
+  //
+  //   const pipeline = db
+  //     .pipeline()
+  //     .database()
+  //     .where(divide(constant('100'), constant('50')) as unknown as BooleanExpr);
+  //
+  //   expect(runPipeline(pipeline, [doc1, doc2, doc3])).to.be.empty;
+  // });
 
   it('andExpression_logicallyEquivalent_toSeparatedStages', () => {
     const doc1 = doc('users/a', 1000, { a: 1, b: 1 });

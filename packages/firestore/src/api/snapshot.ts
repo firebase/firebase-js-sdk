@@ -1148,6 +1148,9 @@ export interface ResultChange {
   readonly newIndex: number;
 }
 
+/**
+ * @internal
+ */
 export function resultChangesFromSnapshot(
   querySnapshot: RealtimePipelineSnapshot,
   includeMetadataChanges: boolean
@@ -1231,6 +1234,9 @@ export function resultChangesFromSnapshot(
   }
 }
 
+/**
+ * @internal
+ */
 export class RealtimePipelineSnapshot {
   /**
    * The query on which you called `get` or `onSnapshot` in order to get this

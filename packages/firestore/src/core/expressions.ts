@@ -1,3 +1,4 @@
+// Copyright 2024 Google LLC* @license
 // Copyright 2024 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +14,6 @@
 // limitations under the License.
 
 import { RE2JS } from 're2js';
-import { ByteString } from '../util/byte_string';
 
 import {
   Field,
@@ -61,6 +61,7 @@ import {
 import { ArrayValue, Value, MapValue } from '../protos/firestore_proto_api';
 import { fromTimestamp, toName, toVersion } from '../remote/serializer';
 import { fail, hardAssert } from '../util/assert';
+import { ByteString } from '../util/byte_string';
 import { logWarn } from '../util/log';
 import { objectSize } from '../util/obj';
 import { isNegativeZero } from '../util/types';

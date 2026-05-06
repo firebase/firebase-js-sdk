@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { VectorValue } from '../api';
+import { VectorValue } from '../lite-api/vector_value';
 import { RealtimePipeline } from '../api/realtime_pipeline';
 import { Firestore } from '../lite-api/database';
 import {
@@ -33,7 +33,6 @@ import {
 } from '../lite-api/expressions';
 import { Pipeline, Pipeline as ApiPipeline } from '../lite-api/pipeline';
 import { doc, DocumentReference } from '../lite-api/reference';
-import { UserDataSource } from '../lite-api/user_data_reader';
 import {
   AddFields,
   Aggregate,
@@ -48,12 +47,8 @@ import {
   Stage,
   Where
 } from '../lite-api/stage';
-import {
-  CREATE_TIME_NAME,
-  DOCUMENT_KEY_NAME,
-  ResourcePath,
-  UPDATE_TIME_NAME
-} from '../model/path';
+import { UserDataSource } from '../lite-api/user_data_reader';
+import { DOCUMENT_KEY_NAME, ResourcePath } from '../model/path';
 import { fail } from '../util/assert';
 
 import { Bound } from './bound';
@@ -538,15 +533,15 @@ function rewriteStages(stages: Stage[]): Stage[] {
   return newStages;
 }
 
-function addSystemFields(
-  fields: Map<string, Expression>
-): Map<string, Expression> {
-  const newFields = new Map<string, Expression>(fields);
-  newFields.set(DOCUMENT_KEY_NAME, field(DOCUMENT_KEY_NAME));
-  newFields.set(CREATE_TIME_NAME, field(CREATE_TIME_NAME));
-  newFields.set(UPDATE_TIME_NAME, field(UPDATE_TIME_NAME));
-  return newFields;
-}
+// function addSystemFields(
+//   fields: Map<string, Expression>
+// ): Map<string, Expression> {
+//   const newFields = new Map<string, Expression>(fields);
+//   newFields.set(DOCUMENT_KEY_NAME, field(DOCUMENT_KEY_NAME));
+//   newFields.set(CREATE_TIME_NAME, field(CREATE_TIME_NAME));
+//   newFields.set(UPDATE_TIME_NAME, field(UPDATE_TIME_NAME));
+//   return newFields;
+// }
 
 export function toCorePipeline(
   p: ApiPipeline | RealtimePipeline,

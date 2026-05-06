@@ -17,7 +17,6 @@
 
 import { TargetOrPipeline } from '../core/pipeline-util';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Target } from '../core/target';
 import { ListenSequenceNumber, RemoteTargetId, TargetId } from '../core/types';
 import { ByteString } from '../util/byte_string';
 

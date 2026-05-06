@@ -17,8 +17,6 @@
 
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { Stage } from '../lite-api/stage';
-import { UserDataReader } from '../lite-api/user_data_reader';
-import { AbstractUserDataWriter } from '../lite-api/user_data_writer';
 
 import { Firestore } from './database';
 

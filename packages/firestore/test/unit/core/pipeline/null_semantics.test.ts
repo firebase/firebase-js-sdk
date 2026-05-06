@@ -356,19 +356,19 @@ describe('Null Semantics', () => {
   });
 
   // TODO(pipeline): Support constructing nested array constants
-  it.skip('where_eqAny_null_inArray', () => {
-    const doc1 = doc('k/1', 1000, { foo: null });
-    const doc2 = doc('k/2', 1000, { foo: [null] });
-    const doc3 = doc('k/3', 1000, { foo: [1.0, null] });
-    const doc4 = doc('k/4', 1000, { foo: [null, NaN] });
-
-    const pipeline = db
-      .pipeline()
-      .database()
-      .where(equalAny(field('foo'), constantArray([[null]])));
-
-    expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.be.empty;
-  });
+  // it.skip('where_eqAny_null_inArray', () => {
+  //   const doc1 = doc('k/1', 1000, { foo: null });
+  //   const doc2 = doc('k/2', 1000, { foo: [null] });
+  //   const doc3 = doc('k/3', 1000, { foo: [1.0, null] });
+  //   const doc4 = doc('k/4', 1000, { foo: [null, NaN] });
+  //
+  //   const pipeline = db
+  //     .pipeline()
+  //     .database()
+  //     .where(equalAny(field('foo'), constantArray([[null]])));
+  //
+  //   expect(runPipeline(pipeline, [doc1, doc2, doc3, doc4])).to.be.empty;
+  // });
 
   it('where_eqAny_partialNull', () => {
     const doc1 = doc('users/1', 1000, { score: null });

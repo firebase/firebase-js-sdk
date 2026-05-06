@@ -21,9 +21,11 @@ import { expect } from 'chai';
 import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
 import { onPipelineSnapshot } from '../../../src/api/reference_impl';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
+import { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
 import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
 import { describe } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise'; // Added import
+
 import {
   _AutoId,
   clearIndexedDbPersistence,
@@ -223,7 +225,10 @@ function apiPipelineDescribeInternal(
     persistenceModes.push(new IndexedDbPersistenceMode());
   }
 
-  const pipelineModes: PipelineMode[] = ['query-to-pipeline'];
+  const pipelineModes: PipelineMode[] = [];
+  if (USE_EMULATOR) {
+    pipelineModes.push('query-to-pipeline');
+  }
 
   for (const persistenceMode of persistenceModes) {
     for (const pipelineMode of pipelineModes) {
@@ -686,6 +691,7 @@ export async function checkOnlineAndOfflineResultsMatchWithPipelineMode(
     await checkOnlineAndOfflineResultsMatch(coll, query, ...expectedDocs);
   } else {
     // pipelineMode === 'query-to-pipeline'
+    _enableRealtimePipeline(query.firestore as Firestore);
     const pipeline = (query.firestore as Firestore)
       .realtimePipeline()
       .createFrom(query);

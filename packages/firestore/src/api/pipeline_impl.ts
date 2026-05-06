@@ -68,6 +68,7 @@ declare module './database' {
    */
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
+    /** @internal */
     realtimePipeline(): PipelineSource<RealtimePipeline>;
   }
 }
@@ -243,8 +244,9 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
   );
 };
 
-Firestore.prototype.realtimePipeline =
-  function (): PipelineSource<RealtimePipeline> {
+/** @internal */
+export function _enableRealtimePipeline(firestore: Firestore): void {
+  (firestore as any).realtimePipeline = function (): PipelineSource<RealtimePipeline> {
     const userDataReader = newUserDataReader(this);
     return new PipelineSource<RealtimePipeline>(
       this._databaseId,
@@ -259,6 +261,7 @@ Firestore.prototype.realtimePipeline =
       }
     );
   };
+}
 
 /**
  * @internal
@@ -306,6 +309,7 @@ export function _onRealtimePipelineSnapshot(
   onError?: (error: FirestoreError) => void,
   onComplete?: () => void
 ): Unsubscribe;
+/** @internal */
 export function _onRealtimePipelineSnapshot(
   pipeline: RealtimePipeline,
   ...args: unknown[]

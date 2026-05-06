@@ -18,10 +18,10 @@
 import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
+import { DocumentData } from '../../../src/lite-api/reference';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { it } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise';
-import { DocumentData } from '../../../src/lite-api/reference';
 import { EventsAccumulator } from '../util/events_accumulator';
 import {
   addDoc,

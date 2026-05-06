@@ -224,18 +224,18 @@ describe('Arithmetic Expressions', () => {
     });
 
     // TODO(pipeline): Overflow behavior is different in Javascript than backend.
-    it.skip('doubleLongSubtraction_overflow', () => {
-      expectEqualToConstant(
-        evaluateToValue(subtract(constant(0x8000000000000000), constant(1.0))),
-        constant(-9.223372036854776e18),
-        `subtract(Long.MIN_VALUE, 1.0)`
-      );
-      expectEqualToConstant(
-        evaluateToValue(subtract(constant(0x8000000000000000), constant(100))),
-        constant(-9.223372036854776e18),
-        `subtract(Long.MIN_VALUE, 100)`
-      );
-    });
+    // it.skip('doubleLongSubtraction_overflow', () => {
+    //   expectEqualToConstant(
+    //     evaluateToValue(subtract(constant(0x8000000000000000), constant(1.0))),
+    //     constant(-9.223372036854776e18),
+    //     `subtract(Long.MIN_VALUE, 1.0)`
+    //   );
+    //   expectEqualToConstant(
+    //     evaluateToValue(subtract(constant(0x8000000000000000), constant(100))),
+    //     constant(-9.223372036854776e18),
+    //     `subtract(Long.MIN_VALUE, 100)`
+    //   );
+    // });
 
     it('doubleSubtraction_overflow', () => {
       expectEqualToConstant(

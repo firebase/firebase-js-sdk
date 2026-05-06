@@ -1179,6 +1179,7 @@ export interface PipelineListenOptions {
   readonly serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
 }
 
+/** @internal */
 export function onPipelineSnapshot(
   query: RealtimePipeline,
   observer: {
@@ -1187,6 +1188,7 @@ export function onPipelineSnapshot(
     complete?: () => void;
   }
 ): Unsubscribe;
+/** @internal */
 export function onPipelineSnapshot(
   query: RealtimePipeline,
   options: PipelineListenOptions,
@@ -1196,12 +1198,14 @@ export function onPipelineSnapshot(
     complete?: () => void;
   }
 ): Unsubscribe;
+/** @internal */
 export function onPipelineSnapshot(
   query: RealtimePipeline,
   onNext: (snapshot: RealtimePipelineSnapshot) => void,
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+/** @internal */
 export function onPipelineSnapshot(
   query: RealtimePipeline,
   options: PipelineListenOptions,
@@ -1209,6 +1213,7 @@ export function onPipelineSnapshot(
   onError?: (error: FirestoreError) => void,
   onCompletion?: () => void
 ): Unsubscribe;
+/** @internal */
 export function onPipelineSnapshot(
   reference: RealtimePipeline,
   ...args: unknown[]

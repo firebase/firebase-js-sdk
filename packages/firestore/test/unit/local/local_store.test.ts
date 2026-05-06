@@ -34,7 +34,6 @@ import {
   queryWithLimit
 } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { Target } from '../../../src/core/target';
 import { BatchId, RemoteTargetId, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore } from '../../../src/local/local_store';

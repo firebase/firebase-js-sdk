@@ -95,7 +95,7 @@ import {
   UnnestStageOptions,
   WhereStageOptions
 } from './stage_options';
-import { UserDataReader, UserDataSource, UserData } from './user_data_reader';
+import { UserDataReader, UserData } from './user_data_reader';
 import { AbstractUserDataWriter } from './user_data_writer';
 
 /**
