@@ -79,7 +79,11 @@ export async function onPush(
     return;
   }
 
-  // Log to Firelog if the user opted in.
+  /*
+   * Log to Firelog based on user consent. Rather than calling startLoggingService once when
+   * deliveryMetricsExportedToBigQueryEnabled is toggled, we now call stageLog for every received push.
+   * This ensures the first telemetry event is uploaded immediately upon enabling the flag, simplifying debugging.
+   */
   if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
     await stageLog(messaging, internalPayload);
   }
