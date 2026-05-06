@@ -238,10 +238,14 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('a string error');
-      expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+      expect(log.attributes!['error.type']).to.equal('Error');
+      expect(log.attributes!['error.stack']).to.be.a('string');
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
+        'unset'
+      );
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        MOCK_SESSION_ID
+      );
     });
 
     it('should capture an unknown error type correctly', () => {
@@ -251,10 +255,14 @@ describe('Top level API', () => {
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
       expect(log.body).to.equal('Unknown error type: number');
-      expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+      expect(log.attributes!['error.type']).to.equal('Error');
+      expect(log.attributes!['error.stack']).to.be.a('string');
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
+        'unset'
+      );
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        MOCK_SESSION_ID
+      );
     });
 
     it('should propagate trace context', async () => {
@@ -331,10 +339,14 @@ describe('Top level API', () => {
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.0.0',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+      expect(log.attributes!['error.type']).to.equal('Error');
+      expect(log.attributes!['error.stack']).to.be.a('string');
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
+        '1.0.0'
+      );
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        MOCK_SESSION_ID
+      );
     });
 
     it('should use auto constants if available', () => {
@@ -344,10 +356,14 @@ describe('Top level API', () => {
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
-      expect(log.attributes).to.deep.equal({
-        [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: '1.2.3',
-        [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
-      });
+      expect(log.attributes!['error.type']).to.equal('Error');
+      expect(log.attributes!['error.stack']).to.be.a('string');
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
+        '1.2.3'
+      );
+      expect(log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        MOCK_SESSION_ID
+      );
     });
 
     it('should retrieve framework-specific attributes', () => {

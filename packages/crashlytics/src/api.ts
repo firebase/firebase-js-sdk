@@ -135,29 +135,24 @@ export function recordError(
     Object.assign(customAttributes, attributes);
   }
 
+  let errorObject: Error;
   if (error instanceof Error) {
-    logger.emit({
-      severityNumber: SeverityNumber.ERROR,
-      body: error.message,
-      attributes: {
-        'error.type': error.name || 'Error',
-        'error.stack': error.stack || 'No stack trace available',
-        ...customAttributes
-      }
-    });
+    errorObject = error;
   } else if (typeof error === 'string') {
-    logger.emit({
-      severityNumber: SeverityNumber.ERROR,
-      body: error,
-      attributes: customAttributes
-    });
+    errorObject = new Error(error);
   } else {
-    logger.emit({
-      severityNumber: SeverityNumber.ERROR,
-      body: `Unknown error type: ${typeof error}`,
-      attributes: customAttributes
-    });
+    errorObject = new Error(`Unknown error type: ${typeof error}`);
   }
+
+  logger.emit({
+    severityNumber: SeverityNumber.ERROR,
+    body: errorObject.message,
+    attributes: {
+      'error.type': errorObject.name || 'Error',
+      'error.stack': errorObject.stack || 'No stack trace available',
+      ...customAttributes
+    }
+  });
 }
 
 export { flush };
