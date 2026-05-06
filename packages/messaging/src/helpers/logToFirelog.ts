@@ -104,12 +104,16 @@ export function _processQueue(
 export async function _dispatchLogEvents(
   messaging: MessagingService
 ): Promise<void> {
+  // Swap the queue to avoid losing events added during an in-flight dispatch.
+  const eventsToSend = messaging.logEvents;
+  messaging.logEvents = [];
+
   for (
-    let i = 0, n = messaging.logEvents.length;
+    let i = 0, n = eventsToSend.length;
     i < n;
     i += MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
   ) {
-    const batch = messaging.logEvents.slice(
+    const batch = eventsToSend.slice(
       i,
       i + MAX_NUMBER_OF_EVENTS_PER_LOG_REQUEST
     );
@@ -166,11 +170,11 @@ export async function _dispatchLogEvents(
     } while (retryCount < MAX_RETRIES);
   }
 
-  messaging.logEvents = [];
-  // schedule for next logging
-  if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
-    _processQueue(messaging, LOG_INTERVAL_IN_MS);
-  }
+  // Schedule next flush. If new events arrived during this dispatch, flush ASAP.
+  _processQueue(
+    messaging,
+    messaging.logEvents.length ? INITIAL_LOG_FLUSH_DELAY_MS : LOG_INTERVAL_IN_MS
+  );
 }
 
 function isRetriableError(response: Response): boolean {

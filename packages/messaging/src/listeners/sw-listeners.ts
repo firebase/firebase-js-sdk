@@ -79,7 +79,7 @@ export async function onPush(
     return;
   }
 
-  // log to Firelog with user consent
+  // Log to Firelog if the user opted in.
   if (messaging.deliveryMetricsExportedToBigQueryEnabled) {
     await stageLog(messaging, internalPayload);
   }

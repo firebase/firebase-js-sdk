@@ -86,6 +86,42 @@ describe('logToFirelog', () => {
       expect(messaging.logEvents).to.be.empty;
     });
 
+    it('does not lose events enqueued during an in-flight dispatch', async () => {
+      const clock = useFakeTimers();
+
+      let resolveFetch: ((value: Response) => void) | undefined;
+      fetchStub.callsFake(() => {
+        return new Promise<Response>(resolve => {
+          resolveFetch = resolve;
+        });
+      });
+
+      const initialEvent = getFakeLogEvent();
+      const lateEvent = getFakeLogEvent();
+      messaging.logEvents.push(initialEvent);
+
+      const dispatchPromise = LogModule._dispatchLogEvents(messaging);
+
+      // Enqueue while dispatch is in-flight.
+      messaging.logEvents.push(lateEvent);
+
+      resolveFetch?.(new Response(JSON.stringify(getSuccessResponse())));
+      await dispatchPromise;
+
+      // First request drains only the swapped queue; the late event remains queued.
+      expect(fetchStub).to.have.been.calledOnce;
+      expect(messaging.logEvents).to.have.length(1);
+
+      // The follow-up flush should be scheduled ASAP (0ms).
+      fetchStub.resolves(new Response(JSON.stringify(getSuccessResponse())));
+      await clock.tickAsync(INITIAL_FLUSH_FAKE_TICK_MS);
+
+      expect(fetchStub).to.have.been.calledTwice;
+      expect(messaging.logEvents).to.be.empty;
+
+      clock.restore();
+    });
+
     it('Retries at most max retries times', async () => {
       // set up
       fetchStub.rejects(new Error('err'));
