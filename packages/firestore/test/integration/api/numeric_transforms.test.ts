@@ -312,4 +312,40 @@ apiDescribe('Numeric Transforms:', persistence => {
       expect(snap.get('sum')).to.equal(2);
     });
   });
+
+  it('minimum with NaN', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: NaN });
+      await updateDoc(docRef, 'sum', minimum(5));
+      let snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('sum')).to.be.NaN;
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('sum')).to.be.NaN;
+
+      await writeInitialData({ sum: 5 });
+      await updateDoc(docRef, 'sum', minimum(NaN));
+      snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('sum')).to.be.NaN;
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('sum')).to.be.NaN;
+    });
+  });
+
+  it('maximum with NaN', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: NaN });
+      await updateDoc(docRef, 'sum', maximum(5));
+      let snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('sum')).to.be.NaN;
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('sum')).to.be.NaN;
+
+      await writeInitialData({ sum: 5 });
+      await updateDoc(docRef, 'sum', maximum(NaN));
+      snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('sum')).to.be.NaN;
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('sum')).to.be.NaN;
+    });
+  });
 });
