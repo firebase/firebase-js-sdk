@@ -9,7 +9,7 @@ import { NextFn } from '@firebase/util';
 import { Observer } from '@firebase/util';
 import { Unsubscribe } from '@firebase/util';
 
-// @public
+// @public @deprecated
 export function deleteToken(messaging: Messaging): Promise<boolean>;
 
 // @public
@@ -21,7 +21,7 @@ export interface FcmOptions {
 // @public
 export function getMessaging(app?: FirebaseApp): Messaging;
 
-// @public
+// @public @deprecated
 export function getToken(messaging: Messaging, options?: GetTokenOptions): Promise<string>;
 
 // @public

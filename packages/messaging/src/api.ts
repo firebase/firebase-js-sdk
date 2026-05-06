@@ -108,7 +108,7 @@ export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
  *
  * @returns The promise resolves with an FCM registration token.
  *
- * @deprecated Prefer {@link register} together with {@link onRegistered} for Firebase
+ * @deprecated Use {@link register} together with {@link onRegistered} for Firebase
  * Installation ID-based messaging instead of retrieving an FCM registration token with this API.
  *
  * @public
@@ -129,7 +129,7 @@ export async function getToken(
  *
  * @returns The promise resolves when the token has been successfully deleted.
  *
- * @deprecated Prefer {@link onUnregistered} to observe when the client is no longer
+ * @deprecated Use {@link onUnregistered} to observe when the client is no longer
  * registered and update your backend accordingly, instead of explicitly deleting the
  * registration token with this API.
  *
