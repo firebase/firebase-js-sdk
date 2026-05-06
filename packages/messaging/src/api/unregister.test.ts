@@ -173,4 +173,3 @@ describe('unregister', () => {
     expect(dbRemoveStub).to.not.have.been.called;
   });
 });
-

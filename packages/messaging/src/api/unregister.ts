@@ -36,9 +36,9 @@ export async function unregister(messaging: MessagingService): Promise<void> {
   }
 
   // Prefer the last successfully registered FID from local metadata when available.
-  const stored = await dbGetFidRegistration(messaging.firebaseDependencies).catch(
-    () => undefined
-  );
+  const stored = await dbGetFidRegistration(
+    messaging.firebaseDependencies
+  ).catch(() => undefined);
   const fid =
     stored?.fid ?? (await messaging.firebaseDependencies.installations.getId());
 
@@ -66,4 +66,3 @@ export async function unregister(messaging: MessagingService): Promise<void> {
     handler.next(fid);
   }
 }
-

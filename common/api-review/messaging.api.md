@@ -80,6 +80,9 @@ export interface RegisterOptions {
     vapidKey?: string;
 }
 
+// @public
+export function unregister(messaging: Messaging): Promise<void>;
+
 export { Unsubscribe }
 
 

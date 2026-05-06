@@ -24,6 +24,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [onRegistered(messaging, nextOrObserver)](./messaging_.md#onregistered_f8a466e) | Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID). Use the FID passed to the callback to upload it to your application server. When you receive an FID (e.g. after calling [register()](./messaging_.md#register_795bb8a)<!-- -->), instruct your backend to remove any legacy token for this instance. |
 |  [onUnregistered(messaging, nextOrObserver)](./messaging_.md#onunregistered_f8a466e) | Subscribes to an event that the app instance is unregistered from FCM (FID no longer active). Use this to notify your backend to remove this FID to prevent 404 errors on send. |
 |  [register(messaging, options)](./messaging_.md#register_795bb8a) | Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is delivered via the [onRegistered()](./messaging_.md#onregistered_f8a466e) callback, not as a return value. Call this to establish an FID-based identity; once [onRegistered()](./messaging_.md#onregistered_f8a466e) provides an FID, instruct your backend to remove any legacy token previously associated with this instance. The backend send API supports FID as a target. |
+|  [unregister(messaging)](./messaging_.md#unregister_3fae4b1) | Unregisters the app instance from FCM by deleting its FID-based registration. On success, triggers [onUnregistered()](./messaging_.md#onunregistered_f8a466e) (if registered) with the unregistered FID. |
 |  <b>function()</b> |
 |  [isSupported()](./messaging_.md#issupported) | Checks if all required APIs exist in the browser. |
 
@@ -212,6 +213,26 @@ export declare function register(messaging: Messaging, options?: RegisterOptions
 Promise&lt;void&gt;
 
 Promise that resolves when registration has been initiated; FID is delivered via onRegistered.
+
+### unregister(messaging) {:#unregister_3fae4b1}
+
+Unregisters the app instance from FCM by deleting its FID-based registration. On success, triggers [onUnregistered()](./messaging_.md#onunregistered_f8a466e) (if registered) with the unregistered FID.
+
+<b>Signature:</b>
+
+```typescript
+export declare function unregister(messaging: Messaging): Promise<void>;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  messaging | [Messaging](./messaging_.messaging.md#messaging_interface) | The [Messaging](./messaging_.messaging.md#messaging_interface) instance. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
 
 ## function()
 
