@@ -24,6 +24,7 @@ export interface CrashlyticsOptions
 |  --- | --- | --- |
 |  [appVersion](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
 |  [endpointUrl](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
+|  [region](./crashlytics_react.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
 
 ## CrashlyticsOptions.appVersion
 
@@ -43,4 +44,18 @@ The URL for the endpoint to which Crashlytics data should be sent, in the OpenTe
 
 ```typescript
 endpointUrl?: string;
+```
+
+## CrashlyticsOptions.region
+
+The Google Cloud region where the Crashlytics data should be sent.
+
+By default, data will be sent to the "global" region.
+
+Refer to https://cloud.google.com/logging/docs/regions for the list of available regions.
+
+<b>Signature:</b>
+
+```typescript
+region?: string;
 ```

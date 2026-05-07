@@ -34,6 +34,7 @@ import { DynamicHeaderProvider, DynamicAttributeProvider } from '../types';
 import { FirebaseApp } from '@firebase/app';
 import { ExportResult } from '@opentelemetry/core';
 import { CrashlyticsOptions } from '../public-types';
+import { DEFAULT_TELEMETRY_REGION } from '../constants';
 
 /**
  * Create a logger provider for the current execution environment.
@@ -56,8 +57,8 @@ export function createLoggerProvider(
     endpointUrl = endpointUrl.slice(0, -1);
   }
   const { projectId, appId, apiKey } = app.options;
-  // TODO(abarone): Wire in location as optional parameter.
-  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/global/logs`;
+  const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
+  const otlpEndpoint = `${endpointUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/logs`;
   const logExporter = new OTLPLogExporter(
     {
       url: otlpEndpoint,
