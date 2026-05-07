@@ -115,7 +115,25 @@ describe('unregister', () => {
     await unregister(messaging);
   });
 
-  it('does not delete legacy FCM token stored via getToken()', async () => {
+  it('always clears lastNotifiedFid after successful unregister', async () => {
+    const fid = 'FID_STORED';
+    messaging.onUnregisteredHandler = stub();
+    messaging.lastNotifiedFid = 'SOME_OTHER_FID';
+
+    stub(idbManager, 'dbGetFidRegistration').resolves({
+      fid,
+      lastRegisterTime: Date.now()
+    });
+    stub(idbManager, 'dbRemoveFidRegistration').resolves();
+    stub(idbManager, 'dbRemove').resolves();
+    stub(requestsModule, 'requestDeleteRegistration').resolves();
+
+    await unregister(messaging);
+
+    expect(messaging.lastNotifiedFid).to.equal(null);
+  });
+
+  it('cleans up legacy FCM token stored via getToken() without touching legacy delete token request', async () => {
     const fid = 'FID_STORED';
     const onUnregisteredSpy = stub();
     messaging.onUnregisteredHandler = onUnregisteredSpy;
@@ -130,13 +148,9 @@ describe('unregister', () => {
       'requestDeleteRegistration'
     ).resolves();
 
-    // Guard rails: unregister() must not touch legacy token APIs/storage.
-    const legacyDbGetStub = stub(idbManager, 'dbGet').throws(
-      new Error('unexpected legacy token dbGet()')
-    );
-    const legacyDbRemoveStub = stub(idbManager, 'dbRemove').throws(
-      new Error('unexpected legacy token dbRemove()')
-    );
+    // Guard rails: unregister() should clean up legacy token DB, but must not call legacy
+    // requestDeleteToken(). The DB cleanup is best-effort.
+    const legacyDbRemoveStub = stub(idbManager, 'dbRemove').resolves();
     const legacyDeleteTokenReqStub = stub(
       requestsModule,
       'requestDeleteToken'
@@ -149,8 +163,9 @@ describe('unregister', () => {
       fid
     );
     expect(onUnregisteredSpy).to.have.been.calledOnceWith(fid);
-    expect(legacyDbGetStub).to.not.have.been.called;
-    expect(legacyDbRemoveStub).to.not.have.been.called;
+    expect(legacyDbRemoveStub).to.have.been.calledOnceWith(
+      messaging.firebaseDependencies
+    );
     expect(legacyDeleteTokenReqStub).to.not.have.been.called;
   });
 

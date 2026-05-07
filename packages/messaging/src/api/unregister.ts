@@ -18,6 +18,7 @@
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { MessagingService } from '../messaging-service';
 import {
+  dbRemove,
   dbGetFidRegistration,
   dbRemoveFidRegistration
 } from '../internals/idb-manager';
@@ -26,7 +27,7 @@ import { requestDeleteRegistration } from '../internals/requests';
 /**
  * Unregisters the app instance from FCM by deleting its FID-based registration.
  *
- * On success, triggers the `onUnregistered` callback (if registered) with the unregistered FID.
+ * On success, triggers the `onUnregistered` callback (if set) with the unregistered FID.
  *
  * @param messaging - The MessagingService instance.
  */
@@ -51,9 +52,16 @@ export async function unregister(messaging: MessagingService): Promise<void> {
     // Ignore.
   }
 
-  if (messaging.lastNotifiedFid === fid) {
-    messaging.lastNotifiedFid = null;
+  // Best-effort cleanup of legacy token details created via getToken().
+  try {
+    await dbRemove(messaging.firebaseDependencies);
+  } catch {
+    // Ignore.
   }
+
+  // Unregister success means the app should not treat any previously-notified FID
+  // as active for messaging registration state within this instance.
+  messaging.lastNotifiedFid = null;
 
   const handler = messaging.onUnregisteredHandler;
   if (!handler) {
