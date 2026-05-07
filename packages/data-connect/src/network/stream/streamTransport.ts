@@ -15,15 +15,22 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
+
+import { DataConnectOptions, TransportOptions } from '../../api/DataConnect';
+import { AppCheckTokenProvider } from '../../core/AppCheckTokenProvider';
 import {
   Code,
   DataConnectError,
   DataConnectOperationError,
   DataConnectOperationFailureResponse
 } from '../../core/error';
-import { logError } from '../../logger';
+import { AuthTokenProvider } from '../../core/FirebaseAuthProvider';
+import { logError, logDebug } from '../../logger';
 import {
   AbstractDataConnectTransport,
+  CallerSdkType,
+  CallerSdkTypeEnum,
   DataConnectResponse,
   SubscribeObserver,
   getGoogApiClientValue
@@ -38,55 +45,136 @@ import {
   SubscribeStreamRequest
 } from './wire';
 
-/** The request id of the first request over the stream */
+/** The Request ID of the first request over the stream */
 const FIRST_REQUEST_ID = 1;
 
-/** Time to wait before closing an idle connection (no active subscriptions) */
+/** Time to wait before closing an idle connection (no active subscriptions). */
 const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
 
+/** Initial reconnect delay in ms */
+const INITIAL_RECONNECT_DELAY_MS = 1000;
+/** Max reconnect delay in ms */
+const MAX_RECONNECT_DELAY_MS = 30000;
+/** Max random jitter to add to reconnect delay in ms */
+const MAX_RECONNECT_JITTER_MS = 500;
+/** Factor to multiply delay by on failure */
+const RECONNECT_BACKOFF_FACTOR = 1.3;
+/** Max number of reconnection attempts before giving up */
+const MAX_RECONNECT_ATTEMPTS = 10;
+
 /**
- * A promise that is settled for a request is received, and the functions that resolve or reject it.
+ * A promise returned to the user when invoking an operation via {@linkcode AbstractDataConnectStreamTransport.invokeQuery | invokeQuery}
+ * or {@linkcode AbstractDataConnectStreamTransport.invokeMutation | invokeMutation} and the functions
+ * that resolve/reject it.
+ * @internal
  */
-interface TrackedExecuteRequestPromise<Data> {
+export interface InvokeOperationPromise<Data> {
   responsePromise: Promise<DataConnectResponse<Data>>;
+  resolveFn: (response: DataConnectResponse<Data>) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resolveFn: (data: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rejectFn: (err: any) => void;
+  rejectFn: (reason: any) => void;
 }
 
 /**
- * The base class for all {@link DataConnectStreamTransport | Stream Transport} implementations.
- * Handles management of logical streams (requests), authentication, data routing to query layer, etc.
+ * The base class for all Stream Transport implementations.
+ * Handles management of logical streams (requests), authentication, data routing to query layer,
+ * request optimizations, etc.
  * @internal
  */
 export abstract class AbstractDataConnectStreamTransport extends AbstractDataConnectTransport {
-  /** Optional callback invoked when the stream closes gracefully. */
-  onGracefulStreamClose?: () => void;
+  /** Optional callback invoked when the stream closes (gracefully or fatally). */
+  onCloseCallback?: () => void;
 
   /** True if the physical stream connection is fully open and ready to transmit data. */
   abstract get streamIsReady(): boolean;
 
   /** Is the stream currently waiting to close connection? */
   get isPendingClose(): boolean {
-    return this.pendingClose;
+    return !!this.idleTimeout;
   }
-  private pendingClose = false;
 
   /** True if the transport is unable to connect to the server */
   isUnableToConnect = false;
 
   /** True if there are active subscriptions on the stream */
   get hasActiveSubscriptions(): boolean {
-    return this.activeSubscribeRequests.size > 0;
+    return this.activeInvokeSubscribeRequests.size > 0;
   }
 
   /** True if there are active execute or mutation requests on the stream */
   get hasActiveExecuteRequests(): boolean {
     return (
-      this.activeQueryExecuteRequests.size > 0 ||
-      this.activeMutationExecuteRequests.size > 0
+      this.activeInvokeQueryRequests.size > 0 ||
+      this.activeInvokeMutationRequests.size > 0
     );
+  }
+
+  constructor(
+    options: DataConnectOptions,
+    protected apiKey?: string | undefined,
+    protected appId?: string | null,
+    protected authProvider?: AuthTokenProvider | undefined,
+    protected appCheckProvider?: AppCheckTokenProvider | undefined,
+    transportOptions?: TransportOptions | undefined,
+    protected _isUsingGen = false,
+    protected _callerSdkType: CallerSdkType = CallerSdkTypeEnum.Base
+  ) {
+    super(
+      options,
+      apiKey,
+      appId,
+      authProvider,
+      appCheckProvider,
+      transportOptions,
+      _isUsingGen,
+      _callerSdkType
+    );
+
+    this.registerBrowserEventListeners();
+  }
+
+  /**
+   * Register event listeners for browser-specific events like online/offline and visibility changes.
+   */
+  private registerBrowserEventListeners(): void {
+    if ('addEventListener' in globalThis) {
+      const listener = this.onOnlineEventListener;
+      globalThis.addEventListener('online', listener);
+      this.removeOnlineEventListener = () =>
+        globalThis.removeEventListener('online', listener);
+    }
+
+    const doc = globalThis.document;
+    if (doc && 'addEventListener' in doc) {
+      const listener = this.onVisibilityChangeEventListener;
+      doc.addEventListener('visibilitychange', listener);
+      this.removeVisibilityChangeEventListener = () =>
+        doc.removeEventListener('visibilitychange', listener);
+    }
+  }
+
+  /**
+   * Remove event listeners registered by {@linkcode AbstractDataConnectStreamTransport.registerBrowserEventListeners | registerBrowserEventListeners()}
+   * for browser-specific events like online/offline and visibility changes.
+   */
+  private cleanupBrowserEventListeners(): void {
+    this.removeVisibilityChangeEventListener?.();
+    this.removeVisibilityChangeEventListener = null;
+    this.removeOnlineEventListener?.();
+    this.removeOnlineEventListener = null;
+  }
+
+  /**
+   * Disposes of the transport instance, cleaning up event listeners and timers,
+   * and closing the connection.
+   */
+  async cleanupAndTerminate(code?: Code, reason?: string): Promise<void> {
+    this.cleanupBrowserEventListeners();
+    this.cancelReconnect();
+    this.cancelClose();
+    this.rejectAllRequests(code ?? Code.OTHER, reason ?? 'Stream disposed.');
+    await this.closeConnection();
+    this.onCloseCallback?.();
   }
 
   /**
@@ -97,14 +185,13 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
 
   /**
    * Close the physical connection with the server. Handles no cleanup - simply closes the
-   * implementation-specific connection.
+   * implementation-specific connection. On failure to close, the connection is still considered closed.
    * @returns a promise which resolves when the connection is closed, or rejects if it fails to close.
-   * On failure to close, the connection is still considered closed.
    */
   protected abstract closeConnection(): Promise<void>;
 
   /**
-   * Queue a message to be sent over the stream.
+   * Queue a {@linkcode DataConnectStreamRequest} to be sent over the stream.
    * @param requestBody The body of the message to be sent.
    * @throws DataConnectError if sending fails.
    */
@@ -119,177 +206,175 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   protected abstract ensureConnection(): Promise<void>;
 
-  /** The request ID of the next message to be sent. Monotonically increasing sequence number. */
+  /** The Request ID of the next message to be sent. Monotonically increasing sequence number starting at {@linkcode FIRST_REQUEST_ID}. */
   private requestNumber = FIRST_REQUEST_ID;
   /**
-   * Generates and returns the next request ID.
+   * Generates and returns the next Request ID. Starts at {@linkcode FIRST_REQUEST_ID} and increments
+   * for each request sent.
    */
   private nextRequestId(): string {
     return (this.requestNumber++).toString();
   }
 
   /**
-   * Map of query/variables to their active execute/resume request bodies.
+   * Map of query/variables to their active {@linkcode ExecuteStreamRequest} or {@linkcode ResumeStreamRequest}
+   * request bodies. These requests are de-duplicated by query/variables so that there is only one active
+   * request for each query/variables combination.
    */
-  private activeQueryExecuteRequests = new Map<
+  private activeInvokeQueryRequests = new Map<
     string,
     ExecuteStreamRequest<unknown> | ResumeStreamRequest
   >();
 
   /**
-   * Map of mutation/variables to their active execute request bodies.
+   * Map of query/variables to the promises returned to the user, for invokeQuery requests which are
+   * queued and waiting for active request to resolve.
    */
-  private activeMutationExecuteRequests = new Map<
+  private queuedInvokeQueryRequests = new Map<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    InvokeOperationPromise<any>
+  >();
+
+  /**
+   * Map of mutation/variables to their active {@linkcode ExecuteStreamRequest} request bodies. Mutations
+   * can have more than one active request at a time as they are not idempotent, and therefore should
+   * not be de-duplicated.
+   */
+  private activeInvokeMutationRequests = new Map<
     string,
     Array<ExecuteStreamRequest<unknown>>
   >();
 
   /**
-   * Map of query/variables to their active subscribe request bodies.
+   * Map of query/variables to their active {@linkcode SubscribeStreamRequest} request bodies. There
+   * may only be one active request for each query/variables combination.
    */
-  private activeSubscribeRequests = new Map<
+  private activeInvokeSubscribeRequests = new Map<
     string,
     SubscribeStreamRequest<unknown>
   >();
 
   /**
-   * Map of active execution RequestIds and their corresponding Promises and resolvers.
+   * Map of active {@linkcode ExecuteStreamRequest} RequestIds from {@linkcode invokeQuery} and {@linkcode invokeMutation},
+   * and their corresponding {@linkcode InvokeOperationPromise}.
    */
   private executeRequestPromises = new Map<
     string,
-    TrackedExecuteRequestPromise<unknown>
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    InvokeOperationPromise<any>
   >();
 
   /**
-   * Map of active subscription RequestIds and their corresponding observers.
+   * Map of active {@linkcode ResumeStreamRequest} RequestIds from {@linkcode invokeQuery}, and their
+   * corresponding {@linkcode InvokeOperationPromise}.
+   */
+  private resumeRequestPromises = new Map<
+    string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    InvokeOperationPromise<any>
+  >();
+
+  /**
+   * Map of active {@linkcode invokeSubscribe} RequestIds and their corresponding {@linkcode SubscribeObserver}.
    */
   private subscribeObservers = new Map<string, SubscribeObserver<unknown>>();
 
-  /** current close timeout from setTimeout(), if any */
-  private closeTimeout: NodeJS.Timeout | null = null;
-  /** has the close timeout finished? */
-  private closeTimeoutFinished = false;
+  /**
+   * Map of subscribe RequestIds to deferred unsubscription requests. Used when a client unsubscribes
+   * while a resume request is actively pending.
+   */
+  private pendingCancellations = new Map<
+    string,
+    { operationName: string; variables: unknown }
+  >();
+
+  /** current idle timeout, if any */
+  private idleTimeout: ReturnType<typeof setTimeout> | null = null;
+
   /** current auth uid. used to detect if a different user logs in */
   private authUid: string | null | undefined;
   /** Flag to ensure we wait for the initial auth state once per connection attempt. */
   private hasWaitedForInitialAuth = false;
 
   /**
-   * Tracks a query execution request, storing the request body and creating and storing a promise that
-   * will be resolved when the response is received.
-   * @returns The reject function and the response promise.
+   * Tracks an {@linkcode invokeMutation} request, storing the request body and creating and storing a
+   * response promise that will be resolved when the response is received.
+   * @returns The tracked {@linkcode InvokeOperationPromise}.
    *
    * @remarks
    * This method returns a promise, but is synchronous.
    */
-  private trackQueryExecuteRequest<Data>(
+  private trackInvokeMutationRequest<Data>(
     requestId: string,
     mapKey: string,
     executeBody: ExecuteStreamRequest<unknown>
-  ): TrackedExecuteRequestPromise<Data> {
+  ): InvokeOperationPromise<Data> {
+    let resolveFn: (response: DataConnectResponse<Data>) => void;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
+    let rejectFn: (reason: any) => void;
     const responsePromise = new Promise<DataConnectResponse<Data>>(
       (resolve, reject) => {
         resolveFn = resolve;
         rejectFn = reject;
       }
     );
-    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
+    const executeRequestPromise: InvokeOperationPromise<Data> = {
       responsePromise,
       resolveFn: resolveFn!,
       rejectFn: rejectFn!
     };
 
-    this.activeQueryExecuteRequests.set(mapKey, executeBody);
-    this.executeRequestPromises.set(requestId, executeRequestPromise);
-
-    return executeRequestPromise;
-  }
-
-  /**
-   * Tracks a mutation execution request, storing the request body and creating and storing a promise
-   * that will be resolved when the response is received.
-   * @returns The reject function and the response promise.
-   *
-   * @remarks
-   * This method returns a promise, but is synchronous.
-   */
-  private trackMutationExecuteRequest<Data>(
-    requestId: string,
-    mapKey: string,
-    executeBody: ExecuteStreamRequest<unknown>
-  ): TrackedExecuteRequestPromise<Data> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let resolveFn: (data: any) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rejectFn: (err: any) => void;
-    const responsePromise = new Promise<DataConnectResponse<Data>>(
-      (resolve, reject) => {
-        resolveFn = resolve;
-        rejectFn = reject;
-      }
-    );
-    const executeRequestPromise: TrackedExecuteRequestPromise<Data> = {
-      responsePromise,
-      resolveFn: resolveFn!,
-      rejectFn: rejectFn!
-    };
-
-    const activeRequests = this.activeMutationExecuteRequests.get(mapKey) || [];
+    const activeRequests = this.activeInvokeMutationRequests.get(mapKey) || [];
     activeRequests.push(executeBody);
-    this.activeMutationExecuteRequests.set(mapKey, activeRequests);
+    this.activeInvokeMutationRequests.set(mapKey, activeRequests);
     this.executeRequestPromises.set(requestId, executeRequestPromise);
 
     return executeRequestPromise;
   }
 
   /**
-   * Tracks a subscribe request, storing the request body and the notification observer.
+   * Tracks an {@linkcode invokeSubscribe} request, storing the request body and the {@linkcode SubscribeObserver}.
    * @remarks
    * This method is synchronous.
    */
-  private trackSubscribeRequest<Data>(
+  private trackInvokeSubscribeRequest<Data>(
     requestId: string,
     mapKey: string,
     subscribeBody: SubscribeStreamRequest<unknown>,
     observer: SubscribeObserver<Data>
   ): void {
-    this.activeSubscribeRequests.set(mapKey, subscribeBody);
-    this.subscribeObservers.set(
-      requestId,
-      observer as SubscribeObserver<unknown>
-    );
+    this.activeInvokeSubscribeRequests.set(mapKey, subscribeBody);
+    this.subscribeObservers.set(requestId, observer);
   }
 
   /**
    * Cleans up the query execute request tracking data structures, deleting the tracked request and
    * it's associated promise.
    */
-  private cleanupQueryExecuteRequest(requestId: string, mapKey: string): void {
-    this.activeQueryExecuteRequests.delete(mapKey);
+  private cleanupInvokeQueryRequest(requestId: string, mapKey: string): void {
+    this.activeInvokeQueryRequests.delete(mapKey);
     this.executeRequestPromises.delete(requestId);
+    this.resumeRequestPromises.delete(requestId);
   }
 
   /**
    * Cleans up the mutation execute request tracking data structures, deleting the tracked request and
    * it's associated promise.
    */
-  private cleanupMutationExecuteRequest(
+  private cleanupInvokeMutationRequest(
     requestId: string,
     mapKey: string
   ): void {
-    const executeRequests = this.activeMutationExecuteRequests.get(mapKey);
+    const executeRequests = this.activeInvokeMutationRequests.get(mapKey);
     if (executeRequests) {
       const updatedRequests = executeRequests.filter(
-        req => req.requestId !== requestId
+        request => request.requestId !== requestId
       );
       if (updatedRequests.length > 0) {
-        this.activeMutationExecuteRequests.set(mapKey, updatedRequests);
+        this.activeInvokeMutationRequests.set(mapKey, updatedRequests);
       } else {
-        this.activeMutationExecuteRequests.delete(mapKey);
+        this.activeInvokeMutationRequests.delete(mapKey);
       }
     }
     this.executeRequestPromises.delete(requestId);
@@ -299,20 +384,136 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Cleans up the subscribe request tracking data structures, deleting the tracked request and
    * it's associated promise.
    */
-  private cleanupSubscribeRequest(requestId: string, mapKey: string): void {
-    this.activeSubscribeRequests.delete(mapKey);
+  private cleanupInvokeSubscribeRequest(
+    requestId: string,
+    mapKey: string
+  ): void {
+    this.activeInvokeSubscribeRequests.delete(mapKey);
     this.subscribeObservers.delete(requestId);
+  }
+
+  /** Delay for next reconnection attempt in ms */
+  private reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
+  /** Timer for reconnection */
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Number of consecutive reconnection attempts */
+  private reconnectAttempts = 0;
+
+  /** Callback to remove online event listener */
+  private removeOnlineEventListener: (() => void) | null = null;
+  /** Callback to remove visibility change event listener */
+  private removeVisibilityChangeEventListener: (() => void) | null = null;
+
+  /**
+   * Short-circuit a reconnection attempt, if one is pending. Triggered when an online event is
+   * dispatched.
+   */
+  onOnlineEventListener = (): void => {
+    if (this.reconnectTimer) {
+      this.cancelReconnect();
+      void this.attemptReconnect();
+    }
+  };
+
+  /**
+   * Short-circuit a reconnection attempt, if one is pending. Triggered when a visibility change
+   * event is dispatched.
+   */
+  onVisibilityChangeEventListener = (): void => {
+    const doc = globalThis.document;
+    if (doc && doc.visibilityState === 'visible' && this.reconnectTimer) {
+      this.cancelReconnect();
+      void this.attemptReconnect();
+    }
+  };
+
+  /**
+   * Cancel reconnecting.
+   */
+  private cancelReconnect(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+  }
+
+  /**
+   * Starts the backoff timer for reconnection attempts. We use an exponential backoff with randomized
+   * jitter to prevent overwhelming the backend with connection attempts.
+   */
+  private startReconnectBackoff(): void {
+    if (this.reconnectTimer) {
+      return;
+    }
+    if (this.reconnectAttempts++ >= MAX_RECONNECT_ATTEMPTS) {
+      const errorString =
+        'Stream disconnected and could not reconnect - max stream reconnection attempts reached.';
+      logError(errorString);
+      void this.cleanupAndTerminate(Code.OTHER, errorString);
+      return;
+    }
+    const delay = this.reconnectDelayMs;
+    this.reconnectDelayMs = Math.min(
+      this.reconnectDelayMs * RECONNECT_BACKOFF_FACTOR,
+      MAX_RECONNECT_DELAY_MS
+    );
+    const jitter = Math.random() * MAX_RECONNECT_JITTER_MS;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      void this.attemptReconnect();
+    }, delay + jitter);
+  }
+
+  private async attemptReconnect(): Promise<void> {
+    try {
+      await this.ensureConnection();
+      // reset on success
+      this.reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
+      this.reconnectAttempts = 0;
+      await this.retriggerActiveRequests();
+    } catch (e) {
+      if (e instanceof FirebaseError) {
+        logDebug(
+          `Reconnect attempt #${this.reconnectAttempts} failed with Firebase error: ${e.message}. Retrying...`
+        );
+        this.startReconnectBackoff();
+      } else {
+        logError(
+          `Unexpected error during reconnect attempt #${this.reconnectAttempts}: ${e}`
+        );
+        void this.cleanupAndTerminate(
+          Code.OTHER,
+          `Unexpected error during reconnect attempt #${this.reconnectAttempts}: ${e}`
+        );
+      }
+    }
+  }
+
+  /**
+   * Retriggers all active requests on the stream connection - first subscribes, then query executions,
+   * and skip mutations. Used after a successful reconnection.
+   */
+  private async retriggerActiveRequests(): Promise<void> {
+    for (const [_, subscribeBody] of this.activeInvokeSubscribeRequests) {
+      await this.sendRequestMessage(subscribeBody);
+    }
+    for (const [_, requestBody] of this.activeInvokeQueryRequests) {
+      await this.sendRequestMessage(requestBody);
+    }
   }
 
   /**
    * Tracks if the next message to be sent is the first message of the stream.
    */
   private isFirstStreamMessage = true;
+
   /**
    * Tracks the last auth token sent to the server.
    * Used to detect if the token has changed and needs to be resent.
    */
   private lastSentAuthToken: string | null = null;
+
   /**
    * Indicates whether we should include the auth token in the next message.
    * Only true if there is an auth token and it is different from the last sent auth token, or this
@@ -335,32 +536,25 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Attempt to close the connection. Will only close if there are no active requests preventing it
-   * from doing so.
+   * Begin closing the connection. Waits for {@linkcode IDLE_CONNECTION_TIMEOUT_MS} without cleaning up
+   * any requests (meaning it will not close after the timeout unless the requests are closed first).
+   * This is a graceful close - it will be called when there are no more active subscriptions, so
+   * there's no need to cleanup.
    */
-  private async attemptClose(): Promise<void> {
-    if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+  private startIdleCloseTimeout(): void {
+    if (this.idleTimeout) {
       return;
     }
-    this.cancelClose();
-    await this.closeConnection();
-    this.onGracefulStreamClose?.();
-  }
-
-  /**
-   * Begin closing the connection. Waits for and cleans up all active requests, and waits for
-   * {@link IDLE_CONNECTION_TIMEOUT_MS}. This is a graceful close - it will be called when there are
-   * no more active subscriptions, so there's no need to cleanup.
-   */
-  private prepareToCloseGracefully(): void {
-    if (this.pendingClose) {
-      return;
-    }
-    this.pendingClose = true;
-    this.closeTimeoutFinished = false;
-    this.closeTimeout = setTimeout(() => {
-      this.closeTimeoutFinished = true;
-      void this.attemptClose();
+    this.idleTimeout = setTimeout(() => {
+      this.idleTimeout = null;
+      // Safety check: Don't close if new requests arrived during the timeout!
+      if (this.hasActiveSubscriptions || this.hasActiveExecuteRequests) {
+        return;
+      }
+      void this.cleanupAndTerminate(
+        Code.OTHER,
+        'Stream closed due to idleness.'
+      );
     }, IDLE_CONNECTION_TIMEOUT_MS);
   }
 
@@ -368,42 +562,81 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    * Cancel closing the connection.
    */
   private cancelClose(): void {
-    if (this.closeTimeout) {
-      clearTimeout(this.closeTimeout);
+    if (this.idleTimeout) {
+      clearTimeout(this.idleTimeout);
+      this.idleTimeout = null;
     }
-    this.pendingClose = false;
-    this.closeTimeoutFinished = false;
   }
 
   /**
    * Reject all active execute promises and notify all subscribe observers with the given error.
    * Clear active request tracking maps without cancelling or re-invoking any requests.
    */
-  private rejectAllActiveRequests(code: Code, reason: string): void {
-    this.activeQueryExecuteRequests.clear();
-    this.activeMutationExecuteRequests.clear();
-    this.activeSubscribeRequests.clear();
+  private rejectAllRequests(code: Code, reason: string): void {
+    this.activeInvokeQueryRequests.clear();
+    this.activeInvokeMutationRequests.clear();
+    this.activeInvokeSubscribeRequests.clear();
 
     const error = new DataConnectError(code, reason);
+    for (const [mapKey, { rejectFn }] of this.queuedInvokeQueryRequests) {
+      this.queuedInvokeQueryRequests.delete(mapKey);
+      rejectFn(error);
+    }
     for (const [requestId, { rejectFn }] of this.executeRequestPromises) {
       this.executeRequestPromises.delete(requestId);
       rejectFn(error);
     }
-
+    for (const [requestId, { rejectFn }] of this.resumeRequestPromises) {
+      this.resumeRequestPromises.delete(requestId);
+      rejectFn(error);
+    }
     for (const [requestId, observer] of this.subscribeObservers) {
       this.subscribeObservers.delete(requestId);
       observer.onDisconnect(code, reason);
     }
+    this.pendingCancellations.clear();
+    this.cancelReconnect();
+  }
+
+  /**
+   * Reject all mutation execute promises.
+   * Clear active request tracking maps without cancelling or re-invoking any requests.
+   */
+  private rejectAllMutationsOnReconnect(): void {
+    const error = new DataConnectError(
+      Code.OTHER,
+      'Mutation aborted due to stream disconnect.'
+    );
+    for (const [_, requests] of this.activeInvokeMutationRequests) {
+      for (const request of requests) {
+        const promise = this.executeRequestPromises.get(request.requestId);
+        if (promise) {
+          promise.rejectFn(error);
+          this.executeRequestPromises.delete(request.requestId);
+        }
+      }
+    }
+    this.activeInvokeMutationRequests.clear();
   }
 
   /**
    * Called by concrete implementations when the stream is successfully closed, gracefully or otherwise.
    */
   protected onStreamClose(code: number, reason: string): void {
-    this.rejectAllActiveRequests(
-      Code.OTHER,
-      `Stream disconnected with code ${code}: ${reason}`
+    this.cancelClose();
+    if (!this.hasActiveSubscriptions) {
+      // skip reconnection if there are no active subscriptions
+      void this.cleanupAndTerminate(
+        Code.OTHER,
+        `Stream disconnected while idle with code ${code}: ${reason}`
+      );
+      return;
+    }
+    logDebug(
+      `Stream disconnected with code ${code}: ${reason}. Attempting reconnect...`
     );
+    this.rejectAllMutationsOnReconnect();
+    this.startReconnectBackoff();
   }
 
   /**
@@ -443,7 +676,6 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     return preparedRequestBody;
   }
 
-  // TODO(stephenarosaj): just make this async
   /**
    * Sends a request message to the server via the concrete implementation.
    * Ensures the connection is ready and prepares the message before sending.
@@ -467,7 +699,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
   }
 
   /**
-   * Helper to generate a consistent string key for the tracking maps.
+   * Helper to generate a consistent string key for the request tracking maps.
    */
   private getMapKey(operationName: string, variables?: unknown): string {
     const sortedVariables = this.sortObjectKeys(variables);
@@ -503,35 +735,156 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables?: Variables
   ): Promise<DataConnectResponse<Data>> {
-    const requestId = this.nextRequestId();
-    const activeRequestKey = { operationName: queryName, variables };
     const mapKey = this.getMapKey(queryName, variables);
-    const executeBody: ExecuteStreamRequest<Variables> = {
-      requestId,
-      execute: activeRequestKey
-    };
 
-    let { responsePromise, rejectFn } = this.trackQueryExecuteRequest<Data>(
-      requestId,
-      mapKey,
-      executeBody
-    );
-    responsePromise = responsePromise.finally(() => {
-      this.cleanupQueryExecuteRequest(requestId, mapKey);
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
+    if (this.activeInvokeQueryRequests.has(mapKey)) {
+      return this.queueInvokeQueryRequest(mapKey);
+    }
+
+    return this.executeOrResumeQuery(queryName, variables, mapKey);
+  }
+
+  /**
+   * Queue a new query execute request to be executed after the currently active query execute
+   * request resolves, and track + return a promise associated with the queued request. If there is
+   * already a queued request for this mapKey, return the existing queued request's promise instead.
+   */
+  private queueInvokeQueryRequest<Data>(
+    mapKey: string
+  ): Promise<DataConnectResponse<Data>> {
+    const existingQueued = this.queuedInvokeQueryRequests.get(mapKey);
+    if (existingQueued) {
+      // only queue one request per mapKey - return existing queued request promise
+      return existingQueued.responsePromise;
+    }
+
+    let resolveFn: (response: DataConnectResponse<Data>) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (reason: any) => void;
+    const responsePromise = new Promise<DataConnectResponse<Data>>(
+      (resolve, reject) => {
+        resolveFn = resolve;
+        rejectFn = reject;
       }
+    );
+
+    this.queuedInvokeQueryRequests.set(mapKey, {
+      responsePromise,
+      resolveFn: resolveFn!,
+      rejectFn: rejectFn!
     });
 
-    // asynchronous, fire and forget
-    this.sendRequestMessage<Variables>(executeBody).catch(err => {
+    return responsePromise;
+  }
+
+  /**
+   * Executes or resumes a query. Does not check for any active requests which may be overwritten by
+   * this request - this should be handled by the caller.
+   */
+  private executeOrResumeQuery<Data, Variables>(
+    queryName: string,
+    variables: Variables | undefined,
+    mapKey: string,
+    queuedInvokeOperationPromise?: InvokeOperationPromise<Data>
+  ): Promise<DataConnectResponse<Data>> {
+    const activeSubscription = this.activeInvokeSubscribeRequests.get(mapKey);
+
+    let resolveFn: (response: DataConnectResponse<Data>) => void;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rejectFn: (reason: any) => void;
+    let responsePromise: Promise<DataConnectResponse<Data>>;
+
+    // track the existing queued promise if one exists - otherwise create a new one
+    if (queuedInvokeOperationPromise) {
+      resolveFn = queuedInvokeOperationPromise.resolveFn;
+      rejectFn = queuedInvokeOperationPromise.rejectFn;
+      responsePromise = queuedInvokeOperationPromise.responsePromise;
+    } else {
+      responsePromise = new Promise<DataConnectResponse<Data>>(
+        (resolve, reject) => {
+          resolveFn = resolve;
+          rejectFn = reject;
+        }
+      );
+    }
+
+    let requestId: string;
+    let requestBody: ExecuteStreamRequest<Variables> | ResumeStreamRequest;
+
+    if (activeSubscription) {
+      // resume!
+      requestId = activeSubscription.requestId;
+      requestBody = { requestId, resume: {} };
+      this.resumeRequestPromises.set(requestId, {
+        responsePromise,
+        resolveFn: resolveFn!,
+        rejectFn: rejectFn!
+      });
+    } else {
+      // execute!
+      requestId = this.nextRequestId();
+      requestBody = {
+        requestId,
+        execute: { operationName: queryName, variables }
+      };
+      this.executeRequestPromises.set(requestId, {
+        responsePromise,
+        resolveFn: resolveFn!,
+        rejectFn: rejectFn!
+      });
+    }
+
+    this.activeInvokeQueryRequests.set(mapKey, requestBody);
+
+    responsePromise = responsePromise.finally(() => {
+      this.onInvokeQueryRequestFulfilled(
+        queryName,
+        variables,
+        mapKey,
+        requestId
+      );
+    });
+
+    this.sendRequestMessage(requestBody).catch(err => {
       rejectFn(err);
     });
     return responsePromise;
+  }
+
+  /**
+   * When a query invoke request is fulfilled, clean up and trigger the next queued
+   * request if one exists.
+   */
+  private onInvokeQueryRequestFulfilled(
+    queryName: string,
+    variables: unknown,
+    mapKey: string,
+    requestId: string
+  ): void {
+    this.cleanupInvokeQueryRequest(requestId, mapKey);
+
+    const deferredCancel = this.pendingCancellations.get(requestId);
+    if (deferredCancel) {
+      this.pendingCancellations.delete(requestId);
+      this.cancelSubscription(requestId, mapKey);
+    }
+
+    const queuedRequestPromise = this.queuedInvokeQueryRequests.get(mapKey);
+    if (!queuedRequestPromise) {
+      if (!this.hasActiveSubscriptions && !this.hasActiveExecuteRequests) {
+        this.startIdleCloseTimeout();
+      }
+      return;
+    }
+
+    this.queuedInvokeQueryRequests.delete(mapKey);
+
+    void this.executeOrResumeQuery(
+      queryName,
+      variables,
+      mapKey,
+      queuedRequestPromise
+    );
   }
 
   /**
@@ -553,19 +906,15 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       execute: activeRequestKey
     };
 
-    let { responsePromise, rejectFn } = this.trackMutationExecuteRequest<Data>(
+    let { responsePromise, rejectFn } = this.trackInvokeMutationRequest<Data>(
       requestId,
       mapKey,
       executeBody
     );
     responsePromise = responsePromise.finally(() => {
-      this.cleanupMutationExecuteRequest(requestId, mapKey);
-      if (
-        !this.hasActiveSubscriptions &&
-        !this.hasActiveExecuteRequests &&
-        this.closeTimeoutFinished
-      ) {
-        void this.attemptClose();
+      this.cleanupInvokeMutationRequest(requestId, mapKey);
+      if (!this.hasActiveSubscriptions && !this.hasActiveExecuteRequests) {
+        this.startIdleCloseTimeout();
       }
     });
 
@@ -589,32 +938,42 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     queryName: string,
     variables: Variables
   ): void {
+    const mapKey = this.getMapKey(queryName, variables);
+    const existingSubscribe = this.activeInvokeSubscribeRequests.get(mapKey);
+
+    // if this query is pending cancellation, cancel the cancellation!
+    if (existingSubscribe) {
+      const requestId = existingSubscribe.requestId;
+      if (this.pendingCancellations.has(requestId)) {
+        this.pendingCancellations.delete(requestId);
+        this.subscribeObservers.set(requestId, observer);
+      }
+    } else {
+      const requestId = this.nextRequestId();
+      const activeRequestKey = { operationName: queryName, variables };
+      const subscribeBody: SubscribeStreamRequest<Variables> = {
+        requestId,
+        subscribe: activeRequestKey
+      };
+
+      this.trackInvokeSubscribeRequest<Data>(
+        requestId,
+        mapKey,
+        subscribeBody,
+        observer
+      );
+
+      // asynchronous, fire and forget
+      this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
+        observer.onError(err instanceof Error ? err : new Error(String(err)));
+        this.cleanupInvokeSubscribeRequest(requestId, mapKey);
+        if (!this.hasActiveSubscriptions) {
+          this.startIdleCloseTimeout();
+        }
+      });
+    }
     // if we are waiting to close the stream, cancel closing!
     this.cancelClose();
-
-    const requestId = this.nextRequestId();
-    const activeRequestKey = { operationName: queryName, variables };
-    const mapKey = this.getMapKey(queryName, variables);
-    const subscribeBody: SubscribeStreamRequest<Variables> = {
-      requestId,
-      subscribe: activeRequestKey
-    };
-
-    this.trackSubscribeRequest<Data>(
-      requestId,
-      mapKey,
-      subscribeBody,
-      observer
-    );
-
-    // asynchronous, fire and forget
-    this.sendRequestMessage<Variables>(subscribeBody).catch(err => {
-      observer.onError(err instanceof Error ? err : new Error(String(err)));
-      this.cleanupSubscribeRequest(requestId, mapKey);
-      if (!this.hasActiveSubscriptions) {
-        this.prepareToCloseGracefully();
-      }
-    });
   }
 
   /**
@@ -626,17 +985,34 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
    */
   invokeUnsubscribe<Variables>(queryName: string, variables: Variables): void {
     const mapKey = this.getMapKey(queryName, variables);
-    const subscribeRequest = this.activeSubscribeRequests.get(mapKey);
+    const subscribeRequest = this.activeInvokeSubscribeRequests.get(mapKey);
     if (!subscribeRequest) {
       return;
     }
     const requestId = subscribeRequest.requestId;
+
+    this.subscribeObservers.delete(requestId);
+    const resumePromise = this.resumeRequestPromises.get(requestId);
+    if (resumePromise) {
+      this.pendingCancellations.set(requestId, {
+        operationName: queryName,
+        variables
+      });
+      return;
+    }
+    this.cancelSubscription(requestId, mapKey);
+  }
+
+  /**
+   * Cancels a subscription, cleans up the request tracking data structures, and checks to see if we
+   * should close the stream due to inactivity.
+   */
+  private cancelSubscription(requestId: string, mapKey: string): void {
+    this.cleanupInvokeSubscribeRequest(requestId, mapKey);
     const cancelBody: CancelStreamRequest = {
       requestId,
       cancel: {}
     };
-
-    this.cleanupSubscribeRequest(requestId, mapKey);
 
     // asynchronous, fire and forget
     this.sendRequestMessage(cancelBody).catch(err => {
@@ -644,7 +1020,7 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     });
 
     if (!this.hasActiveSubscriptions) {
-      this.prepareToCloseGracefully();
+      this.startIdleCloseTimeout();
     }
   }
 
@@ -668,18 +1044,17 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
       (!oldAuthUid && newAuthUid) || // user logged in
       (oldAuthUid && newAuthUid !== oldAuthUid) // logged in user changed
     ) {
-      this.rejectAllActiveRequests(
+      void this.cleanupAndTerminate(
         Code.UNAUTHORIZED,
         'Stream disconnected due to auth change.'
       );
-      void this.attemptClose();
     }
   }
 
   /**
    * Handle a response message from the server. Called by the connection-specific implementation after
-   * it's transformed a message from the server into a {@link DataConnectResponse}.
-   * @param requestId the requestId associated with this response.
+   * it's transformed a message from the server into a {@linkcode DataConnectResponse}.
+   * @param requestId the Request ID associated with this response.
    * @param response the response from the server.
    */
   protected async handleResponse<Data>(
@@ -687,32 +1062,60 @@ export abstract class AbstractDataConnectStreamTransport extends AbstractDataCon
     response: DataConnectResponse<Data>
   ): Promise<void> {
     if (this.executeRequestPromises.has(requestId)) {
-      // don't clean up the tracking maps here, they're handled automatically when the execute promise settles
       const { resolveFn, rejectFn } =
         this.executeRequestPromises.get(requestId)!;
-      if (response.errors && response.errors.length) {
-        const failureResponse: DataConnectOperationFailureResponse = {
-          errors: response.errors as [],
-          data: response.data as Record<string, unknown>
-        };
-        const stringified = JSON.stringify(response.errors);
-        rejectFn(
-          new DataConnectOperationError(
-            'DataConnect error while performing request: ' + stringified,
-            failureResponse
-          )
-        );
-      } else {
-        resolveFn(response);
+      this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
+    } else if (
+      this.subscribeObservers.has(requestId) ||
+      this.resumeRequestPromises.has(requestId)
+    ) {
+      const observer = this.subscribeObservers.get(requestId);
+      const resumePromise = this.resumeRequestPromises.get(requestId);
+
+      if (resumePromise) {
+        this.resumeRequestPromises.delete(requestId);
+        const { resolveFn, rejectFn } = resumePromise;
+        this.handleInvokeOperationResponse(resolveFn, rejectFn, response);
       }
-    } else if (this.subscribeObservers.has(requestId)) {
-      const observer = this.subscribeObservers.get(requestId)!;
-      await observer.onData(response);
+
+      if (observer) {
+        try {
+          await observer.onData(response);
+        } catch (e) {
+          logError(`Error in observer callback: ${e}`);
+        }
+      }
     } else {
-      throw new DataConnectError(
-        Code.OTHER,
+      logError(
         `Stream response contained unrecognized requestId '${requestId}'`
       );
+    }
+  }
+
+  /**
+   * Handles an invoke operation response, resolving or rejecting the promise returned to the user
+   * Does not handle any cleanup for requests - this should be handled by the caller or the promise's
+   * finally() block.
+   */
+  private handleInvokeOperationResponse<Data>(
+    resolveFn: (value: DataConnectResponse<Data>) => void,
+    rejectFn: (reason: unknown) => void,
+    response: DataConnectResponse<Data>
+  ): void {
+    if (response.errors && response.errors.length) {
+      const failureResponse: DataConnectOperationFailureResponse = {
+        errors: response.errors as [],
+        data: response.data as Record<string, unknown>
+      };
+      const stringified = JSON.stringify(response.errors);
+      rejectFn(
+        new DataConnectOperationError(
+          'DataConnect error while performing request: ' + stringified,
+          failureResponse
+        )
+      );
+    } else {
+      resolveFn(response);
     }
   }
 }
