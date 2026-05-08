@@ -222,10 +222,10 @@ export {
 export { _internalPipelineToExecutePipelineRequestProto } from './remote/internal_serializer';
 
 // Added from feature branch for realtime pipelines
-export { RealtimePipelineSnapshot, ResultChange } from './api/snapshot';
-export { RealtimePipeline } from './api/realtime_pipeline';
+// export { RealtimePipelineSnapshot, ResultChange } from './api/snapshot';
+// export { RealtimePipeline } from './api/realtime_pipeline';
 export { Stage } from './lite-api/stage';
-export { PipelineListenOptions } from './api/reference_impl';
+// export { PipelineListenOptions } from './api/reference_impl';
 
-import { onPipelineSnapshot as onSnapshot } from './api/reference_impl';
-export { onSnapshot };
+// import { onPipelineSnapshot as onSnapshot } from './api/reference_impl';
+// export { onSnapshot };

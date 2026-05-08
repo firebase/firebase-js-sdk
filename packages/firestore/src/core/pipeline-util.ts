@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { VectorValue } from '../lite-api/vector_value';
 import { RealtimePipeline } from '../api/realtime_pipeline';
 import { Firestore } from '../lite-api/database';
 import {
@@ -48,6 +47,7 @@ import {
   Where
 } from '../lite-api/stage';
 import { UserDataSource } from '../lite-api/user_data_reader';
+import { VectorValue } from '../lite-api/vector_value';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../model/path';
 import { fail } from '../util/assert';
 

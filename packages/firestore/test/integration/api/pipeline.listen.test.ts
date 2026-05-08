@@ -16,7 +16,7 @@
 import { expect, use } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 
-import { _onRealtimePipelineSnapshot } from '../../../src/api/pipeline_impl';
+import { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
 import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import {
   constant,
@@ -25,9 +25,9 @@ import {
   greaterThanOrEqual
 } from '../../../src/lite-api/expressions';
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { _onRealtimePipelineSnapshot } from '../../util/pipelines';
 import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
-import { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
 import {
   CollectionReference,
   deleteDoc,
@@ -47,7 +47,7 @@ import { USE_EMULATOR } from '../util/settings';
 
 use(chaiAsPromised);
 
-apiDescribe('RealtimePipelines', persistence => {
+apiDescribe.skipClassic('RealtimePipelines', persistence => {
   if (!USE_EMULATOR) {
     return;
   }

@@ -15,25 +15,12 @@
  * limitations under the License.
  */
 
-import {
-  CompleteFn,
-  ErrorFn,
-  isPartialObserver,
-  NextFn,
-  PartialObserver
-} from '../api/observer';
 import { Pipeline } from '../api/pipeline';
-import { ListenerDataSource } from '../core/event_manager';
-import {
-  firestoreClientExecutePipeline,
-  firestoreClientListen
-} from '../core/firestore_client';
-import { toCorePipeline } from '../core/pipeline-util';
+import { firestoreClientExecutePipeline } from '../core/firestore_client';
 import {
   StructuredPipeline,
   StructuredPipelineOptions
 } from '../core/structured_pipeline';
-import { ViewSnapshot } from '../core/view_snapshot';
 import { Pipeline as LitePipeline } from '../lite-api/pipeline';
 import { PipelineResult, PipelineSnapshot } from '../lite-api/pipeline-result';
 import { PipelineSource } from '../lite-api/pipeline-source';
@@ -49,12 +36,6 @@ import { cast } from '../util/input_validation';
 import { ensureFirestoreConfigured, Firestore } from './database';
 import { RealtimePipeline } from './realtime_pipeline';
 import { DocumentReference } from './reference';
-import {
-  PipelineListenOptions,
-  SnapshotListenOptions,
-  Unsubscribe
-} from './reference_impl';
-import { RealtimePipelineSnapshot } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
 
 declare module './database' {
@@ -246,119 +227,21 @@ Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
 
 /** @internal */
 export function _enableRealtimePipeline(firestore: Firestore): void {
-  (firestore as any).realtimePipeline = function (): PipelineSource<RealtimePipeline> {
-    const userDataReader = newUserDataReader(this);
-    return new PipelineSource<RealtimePipeline>(
-      this._databaseId,
-      userDataReader,
-      (stages: Stage[]) => {
-        return new RealtimePipeline(
-          this,
-          newUserDataReader(this),
-          new ExpUserDataWriter(this),
-          stages
-        );
-      }
-    );
-  };
-}
-
-/**
- * @internal
- * @private
- */
-export function _onRealtimePipelineSnapshot(
-  pipeline: RealtimePipeline,
-  observer: {
-    next?: (snapshot: RealtimePipelineSnapshot) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-/**
- * @internal
- * @private
- */
-export function _onRealtimePipelineSnapshot(
-  pipeline: RealtimePipeline,
-  options: PipelineListenOptions,
-  observer: {
-    next?: (snapshot: RealtimePipelineSnapshot) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-/**
- * @internal
- * @private
- */
-export function _onRealtimePipelineSnapshot(
-  pipeline: RealtimePipeline,
-  onNext: (snapshot: RealtimePipelineSnapshot) => void,
-  onError?: (error: FirestoreError) => void,
-  onComplete?: () => void
-): Unsubscribe;
-/**
- * @internal
- * @private
- */
-export function _onRealtimePipelineSnapshot(
-  pipeline: RealtimePipeline,
-  options: PipelineListenOptions,
-  onNext: (snapshot: RealtimePipelineSnapshot) => void,
-  onError?: (error: FirestoreError) => void,
-  onComplete?: () => void
-): Unsubscribe;
-/** @internal */
-export function _onRealtimePipelineSnapshot(
-  pipeline: RealtimePipeline,
-  ...args: unknown[]
-): Unsubscribe {
-  let options: PipelineListenOptions = {
-    includeMetadataChanges: false,
-    source: 'default',
-    serverTimestampBehavior: 'none'
-  };
-  let currArg = 0;
-  if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
-    options = args[currArg] as SnapshotListenOptions;
-    currArg++;
-  }
-
-  const internalOptions = {
-    includeMetadataChanges: options.includeMetadataChanges,
-    source: options.source as ListenerDataSource,
-    serverTimestampBehavior: options.serverTimestampBehavior
-  };
-
-  let userObserver: PartialObserver<RealtimePipelineSnapshot>;
-  if (isPartialObserver(args[currArg])) {
-    userObserver = args[currArg] as PartialObserver<RealtimePipelineSnapshot>;
-  } else {
-    userObserver = {
-      next: args[currArg] as NextFn<RealtimePipelineSnapshot>,
-      error: args[currArg + 1] as ErrorFn,
-      complete: args[currArg + 2] as CompleteFn
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (firestore as any).realtimePipeline =
+    function (): PipelineSource<RealtimePipeline> {
+      const userDataReader = newUserDataReader(this);
+      return new PipelineSource<RealtimePipeline>(
+        this._databaseId,
+        userDataReader,
+        (stages: Stage[]) => {
+          return new RealtimePipeline(
+            this,
+            newUserDataReader(this),
+            new ExpUserDataWriter(this),
+            stages
+          );
+        }
+      );
     };
-  }
-
-  const client = ensureFirestoreConfigured(pipeline._db as Firestore);
-  const observer = {
-    next: (snapshot: ViewSnapshot) => {
-      if (userObserver.next) {
-        userObserver.next(
-          new RealtimePipelineSnapshot(pipeline, snapshot, internalOptions)
-        );
-      }
-    },
-    error: userObserver.error,
-    complete: userObserver.complete
-  };
-
-  return firestoreClientListen(
-    client,
-    toCorePipeline(pipeline, internalOptions),
-    internalOptions, // Pass parsed options here
-    observer
-  );
 }

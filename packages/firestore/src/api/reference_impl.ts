@@ -35,7 +35,6 @@ import {
   firestoreClientListen,
   firestoreClientWrite
 } from '../core/firestore_client';
-import { toCorePipeline } from '../core/pipeline-util';
 import { Query as InternalQuery, newQueryForPath } from '../core/query';
 import { ViewSnapshot } from '../core/view_snapshot';
 import { FieldPath } from '../lite-api/field_path';
@@ -66,12 +65,10 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
-import { RealtimePipeline } from './realtime_pipeline';
 import {
   DocumentSnapshot,
   FirestoreDataConverter,
   QuerySnapshot,
-  RealtimePipelineSnapshot,
   SnapshotMetadata
 } from './snapshot';
 import { ExpUserDataWriter } from './user_data_writer';
@@ -1177,101 +1174,6 @@ export interface PipelineListenOptions {
    */
   readonly source?: ListenSource;
   readonly serverTimestampBehavior?: 'estimate' | 'previous' | 'none';
-}
-
-/** @internal */
-export function onPipelineSnapshot(
-  query: RealtimePipeline,
-  observer: {
-    next?: (snapshot: RealtimePipelineSnapshot) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-/** @internal */
-export function onPipelineSnapshot(
-  query: RealtimePipeline,
-  options: PipelineListenOptions,
-  observer: {
-    next?: (snapshot: RealtimePipelineSnapshot) => void;
-    error?: (error: FirestoreError) => void;
-    complete?: () => void;
-  }
-): Unsubscribe;
-/** @internal */
-export function onPipelineSnapshot(
-  query: RealtimePipeline,
-  onNext: (snapshot: RealtimePipelineSnapshot) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-/** @internal */
-export function onPipelineSnapshot(
-  query: RealtimePipeline,
-  options: PipelineListenOptions,
-  onNext: (snapshot: RealtimePipelineSnapshot) => void,
-  onError?: (error: FirestoreError) => void,
-  onCompletion?: () => void
-): Unsubscribe;
-/** @internal */
-export function onPipelineSnapshot(
-  reference: RealtimePipeline,
-  ...args: unknown[]
-): Unsubscribe {
-  reference = getModularInstance(reference);
-
-  let options: PipelineListenOptions = {
-    includeMetadataChanges: false,
-    source: 'default',
-    serverTimestampBehavior: 'none'
-  };
-  let currArg = 0;
-  if (typeof args[currArg] === 'object' && !isPartialObserver(args[currArg])) {
-    options = args[currArg] as SnapshotListenOptions;
-    currArg++;
-  }
-
-  const internalOptions = {
-    includeMetadataChanges: options.includeMetadataChanges,
-    source: options.source as ListenerDataSource,
-    serverTimestampBehavior: options.serverTimestampBehavior
-  };
-
-  if (isPartialObserver(args[currArg])) {
-    const userObserver = args[
-      currArg
-    ] as PartialObserver<RealtimePipelineSnapshot>;
-    args[currArg] = userObserver.next?.bind(userObserver);
-    args[currArg + 1] = userObserver.error?.bind(userObserver);
-    args[currArg + 2] = userObserver.complete?.bind(userObserver);
-  }
-
-  // RealtimePipeline
-  const firestore = cast(reference._db, Firestore);
-  const internalQuery = toCorePipeline(reference, internalOptions);
-  const observer = {
-    next: (snapshot: ViewSnapshot) => {
-      if (args[currArg]) {
-        (args[currArg] as NextFn<RealtimePipelineSnapshot>)(
-          new RealtimePipelineSnapshot(
-            reference as RealtimePipeline,
-            snapshot,
-            internalOptions
-          )
-        );
-      }
-    },
-    error: args[currArg + 1] as ErrorFn,
-    complete: args[currArg + 2] as CompleteFn
-  };
-
-  const client = ensureFirestoreConfigured(firestore);
-  return firestoreClientListen(
-    client,
-    internalQuery,
-    internalOptions,
-    observer
-  );
 }
 
 // TODO(firestorexp): Make sure these overloads are tested via the Firestore

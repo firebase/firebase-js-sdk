@@ -18,12 +18,12 @@
 import { isIndexedDBAvailable } from '@firebase/util';
 import { expect } from 'chai';
 
-import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
-import { onPipelineSnapshot } from '../../../src/api/reference_impl';
-import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { _enableRealtimePipeline } from '../../../src/api/pipeline_impl';
+import { RealtimePipeline } from '../../../src/api/realtime_pipeline';
+import { RealtimePipelineSnapshot } from '../../../src/api/snapshot';
 import { PipelineResult } from '../../../src/lite-api/pipeline-result'; // Added import
 import { describe } from '../../util/mocha_extensions';
+import { onPipelineSnapshot } from '../../util/pipelines';
 import { Deferred } from '../../util/promise'; // Added import
 
 import {

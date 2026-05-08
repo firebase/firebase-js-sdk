@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirestoreError } from '../util/error';
 import { ParseContext } from '../api/parse_context';
 import { OptionsUtil } from '../core/options_util';
 import {
@@ -35,6 +34,7 @@ import {
   toStringValue
 } from '../remote/serializer';
 import { hardAssert } from '../util/assert';
+import { FirestoreError } from '../util/error';
 import { isPlainObject } from '../util/input_validation';
 import { isFirestoreValue } from '../util/proto';
 import { isString } from '../util/types';
