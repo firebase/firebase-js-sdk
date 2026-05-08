@@ -324,9 +324,7 @@ describe('ChromeAdapter', () => {
         availability: () => Promise.resolve(Availability.DOWNLOADABLE),
         create: () => Promise.resolve({})
       } as LanguageModel;
-      stub(languageModelProvider, 'create').resolves(
-        {} as LanguageModel
-      );
+      stub(languageModelProvider, 'create').resolves({} as LanguageModel);
       const createOptions = {
         expectedInputs: [{ type: 'image' }]
       } as LanguageModelCreateOptions;
