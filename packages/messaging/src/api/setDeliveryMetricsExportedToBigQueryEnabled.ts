@@ -15,6 +15,10 @@
  * limitations under the License.
  */
 
+import {
+  startLoggingService,
+  stopLoggingServiceAndClearQueue
+} from '../helpers/logToFirelog';
 import { Messaging } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 
@@ -22,6 +26,11 @@ export function _setDeliveryMetricsExportedToBigQueryEnabled(
   messaging: Messaging,
   enable: boolean
 ): void {
-  (messaging as MessagingService).deliveryMetricsExportedToBigQueryEnabled =
-    enable;
+  const messagingService = messaging as MessagingService;
+  messagingService.deliveryMetricsExportedToBigQueryEnabled = enable;
+  if (enable) {
+    startLoggingService(messagingService);
+  } else {
+    stopLoggingServiceAndClearQueue(messagingService);
+  }
 }
