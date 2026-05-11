@@ -23,6 +23,7 @@ import { RegisterOptions } from '../interfaces/public-types';
 import { registerFcmRegistrationWithFid } from '../internals/register-fid';
 import {
   dbGetFidRegistration,
+  dbRemove,
   dbSetFidRegistration
 } from '../internals/idb-manager';
 
@@ -69,6 +70,14 @@ export async function register(
 
   const prev = messaging._registerNotifyChain;
   messaging._registerNotifyChain = prev.then(async () => {
+    // Best-effort cleanup of legacy token details, since apps may switch from
+    // getToken() to the FID-based register() API over time.
+    try {
+      await dbRemove(messaging.firebaseDependencies);
+    } catch {
+      // Ignore.
+    }
+
     const fid = await messaging.firebaseDependencies.installations.getId();
 
     const stored = await dbGetFidRegistration(messaging.firebaseDependencies);

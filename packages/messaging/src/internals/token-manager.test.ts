@@ -20,7 +20,7 @@ import '../testing/setup';
 import { unregister } from '../api/unregister';
 import * as apiModule from './requests';
 
-import { dbGet, dbSet } from './idb-manager';
+import { dbGet, dbGetFidRegistration, dbSet, dbSetFidRegistration } from './idb-manager';
 import * as idbManager from './idb-manager';
 import { deleteTokenInternal, getTokenInternal } from './token-manager';
 import {
@@ -131,6 +131,21 @@ describe('Token Manager', () => {
       expect(requestGetTokenStub).to.have.been.calledTwice;
       expect(requestUpdateTokenStub).not.to.have.been.called;
       expect(requestDeleteTokenStub).not.to.have.been.called;
+    });
+
+    it('cleans up stored FID registration metadata without calling FID unregister', async () => {
+      await dbSetFidRegistration(messaging.firebaseDependencies, {
+        fid: 'FID',
+        lastRegisterTime: Date.now()
+      });
+
+      const token = await getTokenInternal(messaging);
+
+      expect(token).to.equal('token-value');
+      expect(requestGetTokenStub).to.have.been.calledOnce;
+      expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
+        .undefined;
+      expect(requestDeleteRegistrationStub).not.to.have.been.called;
     });
 
     it('update the token if it was last updated more than a week ago', async () => {

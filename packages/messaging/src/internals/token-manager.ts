@@ -52,6 +52,14 @@ export async function getTokenInternal(
     p256dh: arrayToBase64(pushSubscription.getKey('p256dh')!)
   };
 
+  // Best-effort cleanup of FID-based registration metadata, since apps may
+  // switch from register()/unregister() back to the legacy getToken() API.
+  try {
+    await dbRemoveFidRegistration(messaging.firebaseDependencies);
+  } catch {
+    // Ignore.
+  }
+
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (!tokenDetails) {
     // No token, get a new one.
@@ -175,7 +183,7 @@ async function getPushSubscription(
     userVisibleOnly: true,
     // Chrome <= 75 doesn't support base64-encoded VAPID key. For backward compatibility, VAPID key
     // submitted to pushManager#subscribe must be of type Uint8Array.
-    applicationServerKey: base64ToArray(vapidKey)
+    applicationServerKey: base64ToArray(vapidKey) as unknown as BufferSource
   });
 }
 
