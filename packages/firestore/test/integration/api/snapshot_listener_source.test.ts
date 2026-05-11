@@ -44,12 +44,14 @@ import {
   getDocs,
   onSnapshot,
   withTestCollection,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  PersistenceMode,
+  PipelineMode
 } from '../util/helpers';
 
 apiPipelineDescribe(
   'Snapshot Listener source options ',
-  (persistence, pipelineMode) => {
+  (persistence: PersistenceMode, pipelineMode: PipelineMode) => {
     // eslint-disable-next-line no-restricted-properties
     (persistence.gc === 'lru' ? describe : describe.skip)(
       'listen to persistence cache',

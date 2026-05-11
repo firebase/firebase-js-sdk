@@ -77,14 +77,7 @@ if (typeof process === 'undefined') {
          * integration tests.
          */
         /\s+from '\.(\.\/util)?\/pipeline_export';/,
-        ` from '${resolve(__dirname, './pipeline_export')}';
-        
-if (typeof process === 'undefined') {
-  process = { env: { INCLUDE_FIRESTORE_PERSISTENCE: '${isPersistenceEnabled()}' } } as any;
-} else {
-  process.env.INCLUDE_FIRESTORE_PERSISTENCE = '${isPersistenceEnabled()}';
-}
-`
+        ` from '${resolve(__dirname, './pipeline_export')}';`
       )
     )
     .pipe(

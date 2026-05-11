@@ -58,6 +58,7 @@ import {
   writeBatch
 } from './firebase_export';
 import {
+  getRunEnterpriseTests,
   ALT_PROJECT_ID,
   DEFAULT_PROJECT_ID,
   DEFAULT_SETTINGS,
@@ -226,7 +227,7 @@ function apiPipelineDescribeInternal(
   }
 
   const pipelineModes: PipelineMode[] = [];
-  if (USE_EMULATOR) {
+  if (getRunEnterpriseTests()) {
     pipelineModes.push('query-to-pipeline');
   }
 

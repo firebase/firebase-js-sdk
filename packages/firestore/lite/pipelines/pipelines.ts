@@ -45,8 +45,7 @@ export type {
   QueryDocumentSnapshot,
   Primitive,
   FieldValue,
-  Bytes,
-  SnapshotMetadata
+  Bytes
 } from '../index';
 
 export {

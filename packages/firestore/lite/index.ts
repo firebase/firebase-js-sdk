@@ -27,9 +27,6 @@
 import { registerFirestore } from './register';
 registerFirestore();
 
-// TODO this should not be part of lite
-export { SnapshotMetadata } from '../src/api/snapshot';
-
 export {
   aggregateQuerySnapshotEqual,
   getCount,
