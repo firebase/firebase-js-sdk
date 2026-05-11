@@ -39,8 +39,7 @@ import {
 
 // Defaults to English text. This can be overriden by user config.
 export const defaultExpectedInputs: LanguageModelExpected[] = [
-  { type: 'text', languages: ['en'] },
-  { type: 'image' }
+  { type: 'text', languages: ['en'] }
 ];
 // Defaults to English text. This can be overriden by user config.
 export const defaultExpectedOutputs: LanguageModelExpected[] =
