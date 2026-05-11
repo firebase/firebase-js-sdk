@@ -44,7 +44,6 @@ describe('unregister', () => {
     const fid = 'FID_STORED';
     const onUnregisteredSpy = stub();
     messaging.onUnregisteredHandler = onUnregisteredSpy;
-    messaging.lastNotifiedFid = fid;
 
     const dbGetStub = stub(idbManager, 'dbGetFidRegistration').resolves({
       fid,
@@ -70,7 +69,6 @@ describe('unregister', () => {
     expect(dbRemoveStub).to.have.been.calledOnce;
     expect(getIdStub).to.not.have.been.called;
     expect(onUnregisteredSpy).to.have.been.calledOnceWith(fid);
-    expect(messaging.lastNotifiedFid).to.equal(null);
   });
 
   it('falls back to installations.getId() when no stored FID registration exists', async () => {
@@ -113,24 +111,6 @@ describe('unregister', () => {
     stub(requestsModule, 'requestDeleteRegistration').resolves();
 
     await unregister(messaging);
-  });
-
-  it('always clears lastNotifiedFid after successful unregister', async () => {
-    const fid = 'FID_STORED';
-    messaging.onUnregisteredHandler = stub();
-    messaging.lastNotifiedFid = 'SOME_OTHER_FID';
-
-    stub(idbManager, 'dbGetFidRegistration').resolves({
-      fid,
-      lastRegisterTime: Date.now()
-    });
-    stub(idbManager, 'dbRemoveFidRegistration').resolves();
-    stub(idbManager, 'dbRemove').resolves();
-    stub(requestsModule, 'requestDeleteRegistration').resolves();
-
-    await unregister(messaging);
-
-    expect(messaging.lastNotifiedFid).to.equal(null);
   });
 
   it('cleans up legacy FCM token stored via getToken() without touching legacy delete token request', async () => {

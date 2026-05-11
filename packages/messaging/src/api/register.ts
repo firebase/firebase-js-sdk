@@ -94,7 +94,6 @@ export async function register(
       return;
     }
 
-    messaging.lastNotifiedFid = fid;
     if (typeof handler === 'function') {
       handler(fid);
     } else {

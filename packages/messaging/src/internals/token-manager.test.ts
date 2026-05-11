@@ -17,6 +17,7 @@
 
 import '../testing/setup';
 
+import { unregister } from '../api/unregister';
 import * as apiModule from './requests';
 
 import { dbGet, dbSet } from './idb-manager';
@@ -43,6 +44,9 @@ describe('Token Manager', () => {
   let requestGetTokenStub: Stub<(typeof apiModule)['requestGetToken']>;
   let requestUpdateTokenStub: Stub<(typeof apiModule)['requestUpdateToken']>;
   let requestDeleteTokenStub: Stub<(typeof apiModule)['requestDeleteToken']>;
+  let requestDeleteRegistrationStub: Stub<
+    (typeof apiModule)['requestDeleteRegistration']
+  >;
 
   beforeEach(() => {
     tokenDetails = getFakeTokenDetails();
@@ -62,6 +66,10 @@ describe('Token Manager', () => {
       tokenDetails.token // same as current token.
     );
     requestDeleteTokenStub = stub(apiModule, 'requestDeleteToken').resolves();
+    requestDeleteRegistrationStub = stub(
+      apiModule,
+      'requestDeleteRegistration'
+    ).resolves();
     useFakeTimers({ now: 1234567890 });
   });
 
@@ -102,6 +110,27 @@ describe('Token Manager', () => {
 
       const tokenFromDb = await dbGet(messaging.firebaseDependencies);
       expect(tokenFromDb).to.deep.equal(tokenDetails);
+    });
+
+    it('gets a fresh token after unregister clears the stored token details', async () => {
+      const firstToken = await getTokenInternal(messaging);
+
+      expect(firstToken).to.equal('token-value');
+      expect(requestGetTokenStub).to.have.been.calledOnce;
+
+      await unregister(messaging);
+
+      expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+        messaging.firebaseDependencies,
+        'FID'
+      );
+
+      const secondToken = await getTokenInternal(messaging);
+
+      expect(secondToken).to.equal('token-value');
+      expect(requestGetTokenStub).to.have.been.calledTwice;
+      expect(requestUpdateTokenStub).not.to.have.been.called;
+      expect(requestDeleteTokenStub).not.to.have.been.called;
     });
 
     it('update the token if it was last updated more than a week ago', async () => {
@@ -184,26 +213,16 @@ describe('Token Manager', () => {
     });
 
     it('also cleans up stored FID registration metadata', async () => {
-      const dbGetFidStub = stub(idbManager, 'dbGetFidRegistration').resolves({
-        fid: 'FID_STORED',
-        lastRegisterTime: Date.now()
-      });
       const dbRemoveFidStub = stub(
         idbManager,
         'dbRemoveFidRegistration'
       ).resolves();
 
-      messaging.lastNotifiedFid = 'FID_STORED';
-
       await deleteTokenInternal(messaging);
 
-      expect(dbGetFidStub).to.have.been.calledOnceWith(
-        messaging.firebaseDependencies
-      );
       expect(dbRemoveFidStub).to.have.been.calledOnceWith(
         messaging.firebaseDependencies
       );
-      expect(messaging.lastNotifiedFid).to.equal(null);
     });
   });
 });
