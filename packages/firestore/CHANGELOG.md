@@ -1,5 +1,21 @@
 # @firebase/firestore
 
+## 4.14.1
+
+### Patch Changes
+
+- [`96e81ff`](https://github.com/firebase/firebase-js-sdk/commit/96e81ffe9a6efd557685eea7db9d78e5594f43aa) [#9884](https://github.com/firebase/firebase-js-sdk/pull/9884) - Added search stage support for languageCode, offset, limit, and retrievalDepth
+
+- [`402b1f0`](https://github.com/firebase/firebase-js-sdk/commit/402b1f01e67441c51701153031b6e645b71d4875) [#9842](https://github.com/firebase/firebase-js-sdk/pull/9842) - fix(firestore): Assertion ID: ca9 (pendingResponses less than 0) caused by target creation race condition
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/component@0.7.3
+  - @firebase/logger@0.5.1
+  - @firebase/util@1.15.1
+  - @firebase/webchannel-wrapper@1.0.6
+
 ## 4.14.0
 
 ### Minor Changes
