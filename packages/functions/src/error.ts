@@ -72,16 +72,11 @@ export class FunctionsError extends FirebaseError {
     readonly details?: unknown,
     url?: string
   ) {
-    super(`${FUNCTIONS_TYPE}/${code}`, message || '');
-    if (url || details) {
-      this.customData = {};
-      if (url) {
-        this.customData.url = url;
-      }
-      if (details) {
-        this.customData.details = details;
-      }
-    }
+    super(
+      `${FUNCTIONS_TYPE}/${code}`,
+      message || '',
+      url || details ? { url, details } : undefined
+    );
 
     // Since the FirebaseError constructor sets the prototype of `this` to FirebaseError.prototype,
     // we also have to do it in all subclasses to allow for correct `instanceof` checks.
