@@ -21,6 +21,9 @@ export const CRASHLYTICS_TYPE = 'crashlytics';
 /** The name of the tracer for Firebase Crashlytics. */
 export const CRASHLYTICS_TRACER_NAME = 'firebase.crashlytics';
 
+/** Default region for telemetry data. */
+export const DEFAULT_TELEMETRY_REGION = 'global';
+
 /** Key for storing the session ID in sessionStorage. */
 export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 

@@ -87,7 +87,7 @@ async function authLogout() {
 async function callFunctions() {
   console.log('[FUNCTIONS] start');
   const functions = firebase.functions();
-  const callTest = functions.httpsCallable('callTest');
+  const callTest = functions.httpsCallable('callTestv2');
   try {
     const result = await callTest({ data: 'blah' });
     console.log('[FUNCTIONS] result:', result.data);

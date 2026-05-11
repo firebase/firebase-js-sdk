@@ -18,6 +18,7 @@ export interface Crashlytics {
 export interface CrashlyticsOptions {
     appVersion?: string;
     endpointUrl?: string;
+    region?: string;
     tracingUrl?: string;
 }
 

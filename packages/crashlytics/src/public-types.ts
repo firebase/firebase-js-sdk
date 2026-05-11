@@ -50,6 +50,15 @@ export interface CrashlyticsOptions {
   tracingUrl?: string;
 
   /**
+   * The Google Cloud region where the Crashlytics data should be sent.
+   *
+   * By default, data will be sent to the "global" region.
+   *
+   * Refer to https://cloud.google.com/logging/docs/regions for the list of available regions.
+   */
+  region?: string;
+
+  /**
    * The version of the application. This should be a unique string that identifies the snapshot of
    * code to be deployed, such as "1.0.2". If not specified, other default locations will be checked
    * for an identifier. Setting a value here takes precedence over any other values.
