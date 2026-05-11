@@ -127,6 +127,22 @@ export function startNewTrace(
 }
 
 /**
+ * Creates a log for view boundary on navigation event
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ */
+export function logViewBoundary(crashlytics: Crashlytics) {
+  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('view-boundary-logger');
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body: 'View boundary navigation event',
+    attributes: {}
+  });
+}
+
+/**
  * Registers event listeners to flush logs when the page is hidden. In some cases multiple listeners
  * may trigger at the same time, but flushing only occurs once per batch.
  */

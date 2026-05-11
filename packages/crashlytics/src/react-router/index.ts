@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics, startNewTrace } from '../api';
+import { recordError, getCrashlytics, logViewBoundary } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import React from 'react';
 import {
@@ -111,7 +111,7 @@ export function CrashlyticsRoutes({
   };
 
   React.useEffect(() => {
-    startNewTrace(crashlytics, pattern, location.key);
+    logViewBoundary(crashlytics);
   }, [location]);
 
   return React.createElement(CrashlyticsErrorBoundary, {
