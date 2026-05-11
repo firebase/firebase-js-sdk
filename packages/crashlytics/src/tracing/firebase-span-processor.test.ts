@@ -75,4 +75,20 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
     ).to.be.undefined;
   });
+
+  it('should add region to resource name if present in options', () => {
+    processor = new FirebaseSpanProcessor({ region: 'us-central1' }, { projectId: 'my-project' });
+    processor.onStart(mockSpan as Span, {} as any);
+    expect(
+      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
+    ).to.equal('//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/');
+  });
+
+  it('should use default region if not present in options', () => {
+    processor = new FirebaseSpanProcessor({}, { projectId: 'my-project' });
+    processor.onStart(mockSpan as Span, {} as any);
+    expect(
+      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
+    ).to.equal('//firebasetelemetry.googleapis.com/projects/my-project/locations/global/');
+  });
 });

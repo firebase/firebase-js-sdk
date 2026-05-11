@@ -44,7 +44,7 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import type { RootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
-import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
+import { RESOURCE_ATTRIBUTE_KEYS, DEFAULT_TELEMETRY_REGION } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
 /**
@@ -67,9 +67,10 @@ export function createTracingProvider(
   let tracingUrl = crashlyticsOptions.tracingUrl || 'http://localhost';
 
   const { projectId, appId, apiKey } = app.options;
+  const region = crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
 
   const resource = resourceFromAttributes({
-    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/global/`,
+    [RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]: `//firebasetelemetry.googleapis.com/projects/${projectId}/locations/${region}/`,
     [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_ID]: appId,
     [RESOURCE_ATTRIBUTE_KEYS.GCP_FIREBASE_DOMAIN]: window.location.hostname,
     [RESOURCE_ATTRIBUTE_KEYS.SERVICE_NAMESPACE]: `//firebasetelemetry.googleapis.com/projects/${projectId}`,
@@ -91,7 +92,7 @@ export function createTracingProvider(
       }
     });
   } else {
-    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/locations/global/traces`;
+    otlpEndpoint = `${tracingUrl}/v1/projects/${projectId}/apps/${appId}/locations/${region}/traces`;
     traceExporter = new OTLPTraceExporter(
       {
         url: otlpEndpoint,

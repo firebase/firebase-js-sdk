@@ -18,7 +18,7 @@
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { getAppVersion, getSessionId } from '../helpers';
-import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
+import { COMMON_SPAN_ATTRIBUTE_KEYS, DEFAULT_TELEMETRY_REGION } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
 
@@ -36,9 +36,10 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
+    const region = this.crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
     span.setAttribute(
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
-      `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/global/`
+      `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/${region}/`
     );
     const sessionId = getSessionId();
     if (sessionId) {
