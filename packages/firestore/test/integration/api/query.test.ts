@@ -107,6 +107,11 @@ function getChanges(
 }
 
 apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
+  // Pipeline is not supported for realtime yet, unless it is emulator.
+  if (pipelineMode === 'query-to-pipeline' && !USE_EMULATOR) {
+    return;
+  }
+
   addEqualityMatcher();
 
   it('QuerySnapshot.toJSON bundle getDocFromCache', async () => {

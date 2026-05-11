@@ -48,12 +48,19 @@ import {
   PersistenceMode,
   PipelineMode
 } from '../util/helpers';
+import { USE_EMULATOR } from '../util/settings';
 
 apiPipelineDescribe(
   'Snapshot Listener source options ',
   (persistence: PersistenceMode, pipelineMode: PipelineMode) => {
+    // Pipeline is not supported for realtime yet, unless it is emulator.
+    const runPipelineAgainstEmulator =
+      pipelineMode === 'query-to-pipeline' && USE_EMULATOR;
+    const runQuery = pipelineMode !== 'query-to-pipeline';
+    const shouldRun = runQuery || runPipelineAgainstEmulator;
+
     // eslint-disable-next-line no-restricted-properties
-    (persistence.gc === 'lru' ? describe : describe.skip)(
+    (persistence.gc === 'lru' && shouldRun ? describe : describe.skip)(
       'listen to persistence cache',
       () => {
         it('can raise snapshot from cache for Query', () => {
