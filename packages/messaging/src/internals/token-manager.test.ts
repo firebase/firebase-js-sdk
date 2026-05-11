@@ -20,6 +20,7 @@ import '../testing/setup';
 import * as apiModule from './requests';
 
 import { dbGet, dbSet } from './idb-manager';
+import * as idbManager from './idb-manager';
 import { deleteTokenInternal, getTokenInternal } from './token-manager';
 import {
   getFakeAnalyticsProvider,
@@ -180,6 +181,29 @@ describe('Token Manager', () => {
         tokenDetails
       );
       expect(unsubscribeSpy).to.have.been.called;
+    });
+
+    it('also cleans up stored FID registration metadata', async () => {
+      const dbGetFidStub = stub(idbManager, 'dbGetFidRegistration').resolves({
+        fid: 'FID_STORED',
+        lastRegisterTime: Date.now()
+      });
+      const dbRemoveFidStub = stub(
+        idbManager,
+        'dbRemoveFidRegistration'
+      ).resolves();
+
+      messaging.lastNotifiedFid = 'FID_STORED';
+
+      await deleteTokenInternal(messaging);
+
+      expect(dbGetFidStub).to.have.been.calledOnceWith(
+        messaging.firebaseDependencies
+      );
+      expect(dbRemoveFidStub).to.have.been.calledOnceWith(
+        messaging.firebaseDependencies
+      );
+      expect(messaging.lastNotifiedFid).to.equal(null);
     });
   });
 });

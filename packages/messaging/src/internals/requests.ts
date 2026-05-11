@@ -167,6 +167,52 @@ export async function requestCreateRegistration(
 }
 
 /**
+ * Deletes an FCM Web registration via DeleteRegistration using the Firebase Installation ID (FID).
+ */
+export async function requestDeleteRegistration(
+  firebaseDependencies: FirebaseInternalDependencies,
+  fid: string
+): Promise<void> {
+  const headers = await getHeaders(firebaseDependencies);
+
+  const options: RequestInit = {
+    method: 'DELETE',
+    headers
+  };
+
+  let response: Response;
+  try {
+    response = await fetch(
+      `${getEndpoint(firebaseDependencies.appConfig)}/${fid}`,
+      options
+    );
+  } catch (err) {
+    throw ERROR_FACTORY.create(ErrorCode.FID_UNREGISTER_FAILED, {
+      errorInfo: (err as Error)?.toString()
+    });
+  }
+
+  if (response.ok) {
+    return;
+  }
+
+  // Best-effort parse error details; surface uniform error code.
+  try {
+    const responseData = (await response.json()) as ApiResponse;
+    const message = responseData.error?.message ?? response.statusText;
+    throw message;
+  } catch (err) {
+    // If parsing failed, fall back to status text.
+    throw ERROR_FACTORY.create(ErrorCode.FID_UNREGISTER_FAILED, {
+      errorInfo:
+        (typeof err === 'string' && err) ||
+        response.statusText ||
+        (err as Error)?.toString()
+    });
+  }
+}
+
+/**
  * Parses a successful CreateRegistration body. The backend must return JSON with a non-empty
  * string `name`: a resource name `projects/{projectId}/registrations/{fid}`
  */

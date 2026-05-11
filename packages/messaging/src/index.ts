@@ -31,6 +31,7 @@ export {
   getToken,
   deleteToken,
   register,
+  unregister,
   onMessage,
   onRegistered,
   onUnregistered,

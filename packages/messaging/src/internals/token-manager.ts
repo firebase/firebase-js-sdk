@@ -23,7 +23,13 @@ import {
   arrayToBase64,
   base64ToArray
 } from '../helpers/array-base64-translator';
-import { dbGet, dbRemove, dbSet } from './idb-manager';
+import {
+  dbGet,
+  dbGetFidRegistration,
+  dbRemove,
+  dbRemoveFidRegistration,
+  dbSet
+} from './idb-manager';
 import {
   requestDeleteToken,
   requestGetToken,
@@ -98,6 +104,23 @@ export async function deleteTokenInternal(
       tokenDetails.token
     );
     await dbRemove(messaging.firebaseDependencies);
+  }
+
+  // Best-effort cleanup of FID-based registration metadata, since apps may use both
+  // legacy getToken() and FID-based register()/unregister() APIs over time.
+  try {
+    const storedFidRegistration = await dbGetFidRegistration(
+      messaging.firebaseDependencies
+    );
+    if (
+      storedFidRegistration &&
+      messaging.lastNotifiedFid === storedFidRegistration.fid
+    ) {
+      messaging.lastNotifiedFid = null;
+    }
+    await dbRemoveFidRegistration(messaging.firebaseDependencies);
+  } catch {
+    // Ignore.
   }
 
   // Unsubscribe from the push subscription.

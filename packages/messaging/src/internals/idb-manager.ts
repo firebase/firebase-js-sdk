@@ -218,6 +218,17 @@ export async function dbSetFidRegistration(
   return details;
 }
 
+export async function dbRemoveFidRegistration(
+  firebaseDependencies: FirebaseInternalDependencies
+): Promise<void> {
+  const key = getKey(firebaseDependencies);
+  const db = await getDbPromise();
+  assertFidRegistrationObjectStore(db);
+  const tx = db.transaction(FID_REGISTRATION_OBJECT_STORE_NAME, 'readwrite');
+  await tx.objectStore(FID_REGISTRATION_OBJECT_STORE_NAME).delete(key);
+  await tx.done;
+}
+
 /** Deletes the DB. Useful for tests. */
 export async function dbDelete(): Promise<void> {
   const promise = dbPromise;
