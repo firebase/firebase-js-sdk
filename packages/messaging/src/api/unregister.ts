@@ -59,10 +59,6 @@ export async function unregister(messaging: MessagingService): Promise<void> {
     // Ignore.
   }
 
-  // Unregister success means the app should not treat any previously-notified FID
-  // as active for messaging registration state within this instance.
-  messaging.lastNotifiedFid = null;
-
   const handler = messaging.onUnregisteredHandler;
   if (!handler) {
     return;

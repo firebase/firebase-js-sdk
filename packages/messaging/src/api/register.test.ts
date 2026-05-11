@@ -17,6 +17,7 @@
 
 import '../testing/setup';
 
+import { deleteToken } from './deleteToken';
 import { register } from './register';
 import { MessagingService } from '../messaging-service';
 import {
@@ -219,6 +220,23 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
+  it('calls backend again after deleteToken clears stored FID registration', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+
+    await deleteToken(messaging);
+
+    await register(messaging);
+
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+  });
+
   it('refreshes registration weekly even when FID unchanged and notifies onRegisteredHandler again', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
@@ -267,7 +285,6 @@ describe('register', () => {
     expect(getIdStub).to.have.been.calledTwice;
     expect(onRegisteredSpy).to.have.been.calledTwice;
     expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID_NEW');
-    expect(messaging.lastNotifiedFid).to.equal('FID_NEW');
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
@@ -307,7 +324,6 @@ describe('register', () => {
     await register(messaging);
     expect(getIdStub).to.have.been.calledThrice;
     expect(onRegisteredSpy).to.have.been.calledTwice;
-    expect(messaging.lastNotifiedFid).to.equal('FID_B');
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 });

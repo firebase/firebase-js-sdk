@@ -90,7 +90,6 @@ describe('subscribeFidChangeRegistration', () => {
   it('runs real register when Installations invokes the FID change callback and delivers the new FID via onRegistered', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
-    messaging.lastNotifiedFid = 'fid-before-rotation';
 
     subscribeFidChangeRegistration(messaging, installations);
 
@@ -129,7 +128,6 @@ describe('subscribeFidChangeRegistration', () => {
     );
     expect(unsubscribe).to.equal(unsubscribeStub);
 
-    messaging.lastNotifiedFid = 'a';
     currentFid = 'b';
     fidChangeCallback!('b');
     currentFid = 'c';
