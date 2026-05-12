@@ -56,7 +56,8 @@ import { Code, FirestoreError } from '../../src/util/error';
 import {
   getRunEnterpriseTests,
   getTargetBackend,
-  TargetBackend
+  TargetBackend,
+  USE_EMULATOR
 } from '../integration/util/settings';
 import { addEqualityMatcher } from '../util/equality_matcher';
 import { describe } from '../util/mocha_extensions';
@@ -605,7 +606,10 @@ describe.skipClassic('Firestore Pipelines', () => {
       expectResults(snapshot, doc1.id, doc2.id);
     });
 
-    it('supports database as source', async () => {
+    it('supports database as source', async function () {
+      if (!USE_EMULATOR) {
+        this.skip();
+      }
       const randomId = Math.random().toString(16).slice(2);
       const doc1 = await addDoc(collection(randomCol, 'book1', 'sub'), {
         order: 1,
