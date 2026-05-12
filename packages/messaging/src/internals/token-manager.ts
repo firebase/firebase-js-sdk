@@ -183,7 +183,7 @@ async function getPushSubscription(
     userVisibleOnly: true,
     // Chrome <= 75 doesn't support base64-encoded VAPID key. For backward compatibility, VAPID key
     // submitted to pushManager#subscribe must be of type Uint8Array.
-    applicationServerKey: base64ToArray(vapidKey) as unknown as BufferSource
+    applicationServerKey: base64ToArray(vapidKey)
   });
 }
 

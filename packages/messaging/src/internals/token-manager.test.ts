@@ -20,7 +20,12 @@ import '../testing/setup';
 import { unregister } from '../api/unregister';
 import * as apiModule from './requests';
 
-import { dbGet, dbGetFidRegistration, dbSet, dbSetFidRegistration } from './idb-manager';
+import {
+  dbGet,
+  dbGetFidRegistration,
+  dbSet,
+  dbSetFidRegistration
+} from './idb-manager';
 import * as idbManager from './idb-manager';
 import { deleteTokenInternal, getTokenInternal } from './token-manager';
 import {

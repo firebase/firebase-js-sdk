@@ -21,6 +21,7 @@ import { deleteToken } from './deleteToken';
 import { getToken } from './getToken';
 import { register } from './register';
 import { dbGet, dbGetFidRegistration } from '../internals/idb-manager';
+import * as idbManager from '../internals/idb-manager';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
@@ -226,6 +227,39 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
+  it('does not clean up legacy token details when FID is unchanged within refresh window', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+
+    const legacyDbRemoveStub = stub(idbManager, 'dbRemove').resolves();
+    await register(messaging);
+
+    expect(legacyDbRemoveStub).to.not.have.been.called;
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+  });
+
+  it('allows a later register call to retry after a previous register failure', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .rejects(new Error('temporary network error'))
+      .onSecondCall()
+      .resolves({ responseFid: 'FID' });
+
+    await expect(register(messaging)).to.be.rejectedWith(
+      'temporary network error'
+    );
+    await register(messaging);
+
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+  });
+
   it('calls backend again after deleteToken clears stored FID registration', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
@@ -288,11 +322,11 @@ describe('register', () => {
     expect(
       (await dbGetFidRegistration(messaging.firebaseDependencies))?.fid
     ).to.equal('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
 
     const token = await getToken(messaging);
 
     expect(token).to.equal('legacy-token');
-    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
     expect(requestGetTokenStub).to.have.been.calledOnce;
     expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
       .undefined;

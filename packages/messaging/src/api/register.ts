@@ -68,16 +68,9 @@ export async function register(
   await updateVapidKey(messaging, options?.vapidKey);
   await updateSwReg(messaging, options?.serviceWorkerRegistration);
 
-  const prev = messaging._registerNotifyChain;
+  // Keep the queue alive after a failed register() so future calls can retry.
+  const prev = messaging._registerNotifyChain.catch(() => {});
   messaging._registerNotifyChain = prev.then(async () => {
-    // Best-effort cleanup of legacy token details, since apps may switch from
-    // getToken() to the FID-based register() API over time.
-    try {
-      await dbRemove(messaging.firebaseDependencies);
-    } catch {
-      // Ignore.
-    }
-
     const fid = await messaging.firebaseDependencies.installations.getId();
 
     const stored = await dbGetFidRegistration(messaging.firebaseDependencies);
@@ -90,6 +83,14 @@ export async function register(
     if (!shouldRefresh) {
       // Nothing to do: same FID and within refresh window.
       return;
+    }
+
+    // Best-effort cleanup of legacy token details, since apps may switch from
+    // getToken() to the FID-based register() API over time.
+    try {
+      await dbRemove(messaging.firebaseDependencies);
+    } catch {
+      // Ignore.
     }
 
     await registerFcmRegistrationWithFid(messaging, fid);
