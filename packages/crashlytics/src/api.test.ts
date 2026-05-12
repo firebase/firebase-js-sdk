@@ -188,6 +188,14 @@ describe('Top level API', () => {
         });
       }).to.throw('getCrashlytics() cannot be called with different options');
       expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          tracingUrl: 'http://endpoint2',
+          region: 'us-central1',
+          appVersion: '1.2.4'
+        });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+      expect(() => {
         getCrashlytics(app, {});
       }).to.throw('getCrashlytics() cannot be called with different options');
     });
