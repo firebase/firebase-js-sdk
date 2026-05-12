@@ -38,12 +38,19 @@ import {
 } from '../types/language-model';
 
 // Defaults to English text. This can be overriden by user config.
+const defaultExpectedText: LanguageModelExpected = {
+  type: 'text',
+  languages: ['en']
+};
+
 export const defaultExpectedInputs: LanguageModelExpected[] = [
-  { type: 'text', languages: ['en'] }
+  defaultExpectedText,
+  { type: 'image' }
 ];
-// Defaults to English text. This can be overriden by user config.
-export const defaultExpectedOutputs: LanguageModelExpected[] =
-  defaultExpectedInputs;
+
+export const defaultExpectedOutputs: LanguageModelExpected[] = [
+  defaultExpectedText
+];
 
 /**
  * Defines an inference "backend" that uses Chrome's on-device model,

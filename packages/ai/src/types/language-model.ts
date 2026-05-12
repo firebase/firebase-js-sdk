@@ -62,7 +62,14 @@ export interface LanguageModelCreateCoreOptions {
    * @deprecated
    */
   temperature?: number;
+  /**
+   * Defaults to image input and English text input
+   * if not overriden.
+   */
   expectedInputs?: LanguageModelExpected[];
+  /**
+   * Defaults to English text output if not overriden.
+   */
   expectedOutputs?: LanguageModelExpected[];
   /**
    * The native download monitor provided by the Chrome API.

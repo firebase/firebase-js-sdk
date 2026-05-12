@@ -954,9 +954,7 @@ export type Language = (typeof Language)[keyof typeof Language];
 
 // @beta
 export interface LanguageModelCreateCoreOptions {
-    // (undocumented)
     expectedInputs?: LanguageModelExpected[];
-    // (undocumented)
     expectedOutputs?: LanguageModelExpected[];
     monitor?: (monitor: LanguageModelDownloadMonitor) => void;
     // @deprecated (undocumented)
