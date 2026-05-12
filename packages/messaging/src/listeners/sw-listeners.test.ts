@@ -24,6 +24,7 @@ import {
   CONSOLE_CAMPAIGN_ID,
   CONSOLE_CAMPAIGN_NAME,
   CONSOLE_CAMPAIGN_TIME,
+  FCM_LOG_SOURCE,
   FCM_MSG
 } from '../util/constants';
 import { DeepPartial, ValueOf, Writable } from 'ts-essentials';
@@ -33,6 +34,7 @@ import {
   mockServiceWorker,
   restoreServiceWorker
 } from '../testing/fakes/service-worker';
+import { getSuccessResponse } from '../testing/fakes/logging-object';
 import {
   MessagePayloadInternal,
   MessageType
@@ -52,11 +54,18 @@ import {
 import { onNotificationClick, onPush, onSubChange } from './sw-listeners';
 import { spy, stub } from 'sinon';
 
+import * as LogToFirelog from '../helpers/logToFirelog';
+
 import { MessagingService } from '../messaging-service';
 import { Stub } from '../testing/sinon-types';
 import { expect } from 'chai';
 
 const LOCAL_HOST = self.location.host;
+const FIRELOG_ENDPOINT = 'https://play.google.com/log?format=json_proto3';
+const FCM_TRANSPORT_KEY = LogToFirelog._mergeStrings(
+  'AzSCbw63g1R0nCw85jG8',
+  'Iaya3yLKwmgvh7cF0q4'
+);
 const TEST_LINK = 'https://' + LOCAL_HOST + '/test-link.org';
 const TEST_CLICK_ACTION = 'https://' + LOCAL_HOST + '/test-click-action.org';
 
@@ -264,6 +273,52 @@ describe('SwController', () => {
       expect(warnStub).to.have.been.calledOnceWith(
         'This browser only supports 1 actions. The remaining actions will not be displayed.'
       );
+    });
+
+    it('POSTs Firelog delivery metrics after onPush when BigQuery export is enabled', async () => {
+      const fetchStub = stub(window, 'fetch').resolves(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
+      messaging.deliveryMetricsExportedToBigQueryEnabled = true;
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => DISPLAY_MESSAGE
+          }
+        })
+      );
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+
+      expect(fetchStub).to.have.been.calledOnce;
+      const [url, init] = fetchStub.getCall(0).args;
+      expect(url).to.equal(FIRELOG_ENDPOINT.concat('&key=', FCM_TRANSPORT_KEY));
+      expect(init).to.deep.include({ method: 'POST' });
+      const body = JSON.parse((init as RequestInit).body as string) as {
+        log_source: string;
+        log_event: unknown[];
+      };
+      expect(body.log_source).to.equal(FCM_LOG_SOURCE.toString());
+      expect(body.log_event).to.have.length(1);
+    });
+
+    it('does not POST to Firelog from onPush when BigQuery export is disabled', async () => {
+      const fetchStub = stub(window, 'fetch').resolves(
+        new Response(JSON.stringify(getSuccessResponse()))
+      );
+      messaging.deliveryMetricsExportedToBigQueryEnabled = false;
+
+      await callEventListener(
+        makeEvent('push', {
+          data: {
+            json: () => DISPLAY_MESSAGE
+          }
+        })
+      );
+
+      await new Promise<void>(resolve => setTimeout(resolve, 50));
+      expect(fetchStub).to.not.have.been.called;
     });
   });
 
