@@ -70,12 +70,15 @@ export class FunctionsError extends FirebaseError {
      * Additional details to be converted to JSON and included in the error response.
      */
     readonly details?: unknown,
+    /**
+     * Optional. Url in the request that resulted in the error, if applicable.
+     */
     url?: string
   ) {
     super(
       `${FUNCTIONS_TYPE}/${code}`,
       message || '',
-      url || details ? { url, details } : undefined
+      url ? { url } : undefined
     );
 
     // Since the FirebaseError constructor sets the prototype of `this` to FirebaseError.prototype,

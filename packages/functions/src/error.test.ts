@@ -28,7 +28,6 @@ describe('Error handling', () => {
       expect(err?.message).to.equal('not-found [404]');
       expect(err?.code).to.equal('functions/not-found');
       expect(err?.customData?.url).to.equal('http://wrong-url.com');
-      expect(err?.customData?.details).to.be.undefined;
     });
     it('returns internal error and httpStatus if 0', () => {
       const err = _errorForResponse(0, null, 'http://wrong-url.com');
@@ -125,7 +124,7 @@ describe('Error handling', () => {
       expect(err?.message).to.equal('Backend error status: NOT_FOUND [404]');
       expect(err?.code).to.equal('functions/not-found');
       expect(err?.customData?.url).to.equal('http://wrong-url.com');
-      expect(err?.customData?.details).to.equal(4);
+      expect(err?.details).to.equal(4);
     });
     it('processes details correctly (no url)', () => {
       const err = _errorForResponse(404, {
@@ -140,7 +139,7 @@ describe('Error handling', () => {
       expect(err?.message).to.equal('Backend error status: NOT_FOUND [404]');
       expect(err?.code).to.equal('functions/not-found');
       expect(err?.customData?.url).to.be.undefined;
-      expect(err?.customData?.details).to.equal(4);
+      expect(err?.details).to.equal(4);
     });
     it('processes corectly when there are no details and no url', () => {
       const err = _errorForResponse(404, null);

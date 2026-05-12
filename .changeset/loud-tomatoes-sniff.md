@@ -1,5 +1,6 @@
 ---
 '@firebase/functions': minor
+'@firebase/functions-compat': minor
 'firebase': minor
 ---
 
