@@ -128,18 +128,15 @@ describe('Error handling', () => {
       expect(err?.customData?.details).to.equal(4);
     });
     it('processes details correctly (no url)', () => {
-      const err = _errorForResponse(
-        404,
-        {
-          error: {
-            status: 'NOT_FOUND',
-            details: {
-              '@type': 'type.googleapis.com/google.protobuf.Int64Value',
-              value: 4
-            }
+      const err = _errorForResponse(404, {
+        error: {
+          status: 'NOT_FOUND',
+          details: {
+            '@type': 'type.googleapis.com/google.protobuf.Int64Value',
+            value: 4
           }
         }
-      );
+      });
       expect(err?.message).to.equal('Backend error status: NOT_FOUND [404]');
       expect(err?.code).to.equal('functions/not-found');
       expect(err?.customData?.url).to.be.undefined;
