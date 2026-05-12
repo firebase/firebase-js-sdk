@@ -1633,7 +1633,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       clock.restore();
     });
 
-    it('should close connection after 60 seconds of idle (no active subscriptions)', async () => {
+    it('should close connection immediately when idle (no active subscriptions)', async () => {
       const closeSpy = sinon.spy(transport, 'closeConnection');
       sinon.stub(transport, 'sendMessage').resolves();
       const observer = {
@@ -1645,10 +1645,9 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await clock.tickAsync(1000 * 59);
       expect(closeSpy).to.not.have.been.called;
 
-      await clock.tickAsync(1000 * 2);
+      await clock.tickAsync(0);
       expect(closeSpy).to.have.been.calledOnce;
     });
 
@@ -1664,12 +1663,11 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await clock.tickAsync(1000 * 30);
       expect(closeSpy).to.not.have.been.called;
 
       await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      await clock.tickAsync(1000 * 65);
+      await clock.tickAsync(0);
       expect(closeSpy).to.not.have.been.called;
     });
 
@@ -1686,16 +1684,13 @@ describe('AbstractDataConnectStreamTransport', () => {
       await transport.invokeSubscribe(observer, queryName1, variables1);
       await transport.invokeUnsubscribe(queryName1, variables1);
 
-      await clock.tickAsync(1000 * 30);
-      expect(closeSpy).to.not.have.been.called;
-
       sendMessageStub.rejects();
       await transport.invokeSubscribe(observer, queryName2, variables2);
 
-      await clock.tickAsync(1000 * 30);
+      await Promise.resolve(); // let microtasks run
       expect(closeSpy).to.not.have.been.called;
 
-      await clock.tickAsync(1000 * 35);
+      await clock.tickAsync(0);
       expect(closeSpy).to.have.been.calledOnce;
     });
 
@@ -1713,7 +1708,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       void transport.invokeQuery(queryName2, variables2);
 
-      await clock.tickAsync(1000 * 65);
+      await clock.tickAsync(0);
       expect(closeSpy).to.not.have.been.called;
     });
 
@@ -1731,7 +1726,7 @@ describe('AbstractDataConnectStreamTransport', () => {
 
       const queryPromise = transport.invokeQuery(queryName2, variables2);
 
-      await clock.tickAsync(1000 * 65);
+      await clock.tickAsync(0);
       expect(closeSpy).to.not.have.been.called;
 
       const expectedKey = transport.getMapKey(queryName2, variables2);
@@ -1747,7 +1742,7 @@ describe('AbstractDataConnectStreamTransport', () => {
       await queryPromise;
 
       // fast forward time again because the new idle timeout started when the query completed
-      await clock.tickAsync(1000 * 65);
+      await clock.tickAsync(0);
 
       expect(closeSpy).to.have.been.calledOnce;
     });

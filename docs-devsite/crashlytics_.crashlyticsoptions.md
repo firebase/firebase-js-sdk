@@ -24,8 +24,8 @@ export interface CrashlyticsOptions
 |  --- | --- | --- |
 |  [appVersion](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsappversion) | string | The version of the application. This should be a unique string that identifies the snapshot of code to be deployed, such as "1.0.2". If not specified, other default locations will be checked for an identifier. Setting a value here takes precedence over any other values. |
 |  [endpointUrl](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsendpointurl) | string | The URL for the endpoint to which Crashlytics data should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
-|  [tracingUrl](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionstracingurl) | string | The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 |  [region](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionsregion) | string | The Google Cloud region where the Crashlytics data should be sent.<!-- -->By default, data will be sent to the "global" region.<!-- -->Refer to https://cloud.google.com/logging/docs/regions for the list of available regions. |
+|  [tracingUrl](./crashlytics_.crashlyticsoptions.md#crashlyticsoptionstracingurl) | string | The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase. |
 
 ## CrashlyticsOptions.appVersion
 
@@ -47,16 +47,6 @@ The URL for the endpoint to which Crashlytics data should be sent, in the OpenTe
 endpointUrl?: string;
 ```
 
-## CrashlyticsOptions.tracingUrl
-
-The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase.
-
-<b>Signature:</b>
-
-```typescript
-tracingUrl?: string;
-```
-
 ## CrashlyticsOptions.region
 
 The Google Cloud region where the Crashlytics data should be sent.
@@ -69,4 +59,14 @@ Refer to https://cloud.google.com/logging/docs/regions for the list of available
 
 ```typescript
 region?: string;
+```
+
+## CrashlyticsOptions.tracingUrl
+
+The URL for the endpoint to which Crashlytics traces should be sent, in the OpenTelemetry format. By default, data will be sent to Firebase.
+
+<b>Signature:</b>
+
+```typescript
+tracingUrl?: string;
 ```
