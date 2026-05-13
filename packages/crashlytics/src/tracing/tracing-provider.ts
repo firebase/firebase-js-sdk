@@ -44,7 +44,10 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import type { RootSpanContextManager } from './root-span-context-manager';
 import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
-import { RESOURCE_ATTRIBUTE_KEYS, DEFAULT_TELEMETRY_REGION } from '../constants';
+import {
+  RESOURCE_ATTRIBUTE_KEYS,
+  DEFAULT_TELEMETRY_REGION
+} from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
 /**
