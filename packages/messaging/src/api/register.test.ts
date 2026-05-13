@@ -18,7 +18,10 @@
 import '../testing/setup';
 
 import { deleteToken } from './deleteToken';
+import { getToken } from './getToken';
 import { register } from './register';
+import { dbGet, dbGetFidRegistration } from '../internals/idb-manager';
+import * as idbManager from '../internals/idb-manager';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
@@ -32,6 +35,10 @@ import * as updateVapidKeyModule from '../helpers/updateVapidKey';
 import * as updateSwRegModule from '../helpers/updateSwReg';
 import { Stub } from '../testing/sinon-types';
 import * as requestsModule from '../internals/requests';
+
+function makeSwRegistration(): ServiceWorkerRegistration {
+  return new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
+}
 
 describe('register', () => {
   let messaging: MessagingService;
@@ -54,7 +61,7 @@ describe('register', () => {
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.swRegistration = makeSwRegistration();
 
     updateVapidKeyStub = stub(
       updateVapidKeyModule,
@@ -91,7 +98,7 @@ describe('register', () => {
 
   it('passes options to updateVapidKey and updateSwReg when provided', async () => {
     messaging.onRegisteredHandler = stub();
-    const swReg = new FakeServiceWorkerRegistration();
+    const swReg = makeSwRegistration();
     const options = {
       vapidKey: 'custom-vapid',
       serviceWorkerRegistration: swReg
@@ -140,7 +147,7 @@ describe('register', () => {
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.swRegistration = makeSwRegistration();
     messaging.onRegisteredHandler = stub();
 
     requestCreateRegistrationStub
@@ -166,7 +173,7 @@ describe('register', () => {
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.swRegistration = makeSwRegistration();
     messaging.onRegisteredHandler = stub();
 
     let createRegistrationCalls = 0;
@@ -197,7 +204,7 @@ describe('register', () => {
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.swRegistration = makeSwRegistration();
 
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
@@ -220,6 +227,39 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
+  it('does not clean up legacy token details when FID is unchanged within refresh window', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+
+    const legacyDbRemoveStub = stub(idbManager, 'dbRemove').resolves();
+    await register(messaging);
+
+    expect(legacyDbRemoveStub).to.not.have.been.called;
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+  });
+
+  it('allows a later register call to retry after a previous register failure', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    requestCreateRegistrationStub
+      .onFirstCall()
+      .rejects(new Error('temporary network error'))
+      .onSecondCall()
+      .resolves({ responseFid: 'FID' });
+
+    await expect(register(messaging)).to.be.rejectedWith(
+      'temporary network error'
+    );
+    await register(messaging);
+
+    expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+  });
+
   it('calls backend again after deleteToken clears stored FID registration', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
@@ -235,6 +275,62 @@ describe('register', () => {
     expect(onRegisteredSpy).to.have.been.calledTwice;
     expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
+  });
+
+  it('deletes stored token for getToken -> register', async () => {
+    const onRegisteredSpy = stub();
+    const requestGetTokenStub = stub(
+      requestsModule,
+      'requestGetToken'
+    ).resolves('legacy-token');
+    const requestDeleteTokenStub = stub(
+      requestsModule,
+      'requestDeleteToken'
+    ).throws(new Error('unexpected requestDeleteToken()'));
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await getToken(messaging);
+
+    expect(requestGetTokenStub).to.have.been.calledOnce;
+    expect((await dbGet(messaging.firebaseDependencies))?.token).to.equal(
+      'legacy-token'
+    );
+
+    await register(messaging);
+
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(await dbGet(messaging.firebaseDependencies)).to.be.undefined;
+    expect(requestDeleteTokenStub).to.not.have.been.called;
+  });
+
+  it('deletes stored fid for register -> getToken', async () => {
+    const onRegisteredSpy = stub();
+    const requestGetTokenStub = stub(
+      requestsModule,
+      'requestGetToken'
+    ).resolves('legacy-token');
+    const requestDeleteRegistrationStub = stub(
+      requestsModule,
+      'requestDeleteRegistration'
+    ).throws(new Error('unexpected requestDeleteRegistration()'));
+    messaging.onRegisteredHandler = onRegisteredSpy;
+
+    await register(messaging);
+
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(
+      (await dbGetFidRegistration(messaging.firebaseDependencies))?.fid
+    ).to.equal('FID');
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+
+    const token = await getToken(messaging);
+
+    expect(token).to.equal('legacy-token');
+    expect(requestGetTokenStub).to.have.been.calledOnce;
+    expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
+      .undefined;
+    expect(requestDeleteRegistrationStub).to.not.have.been.called;
   });
 
   it('refreshes registration weekly even when FID unchanged and notifies onRegisteredHandler again', async () => {
@@ -267,7 +363,7 @@ describe('register', () => {
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.swRegistration = makeSwRegistration();
 
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
@@ -303,7 +399,7 @@ describe('register', () => {
       getFakeAnalyticsProvider()
     );
     messaging.vapidKey = 'dmFwaWQta2V5LXZhbHVl';
-    messaging.swRegistration = new FakeServiceWorkerRegistration();
+    messaging.swRegistration = makeSwRegistration();
 
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
