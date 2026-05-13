@@ -111,8 +111,8 @@ export function CrashlyticsRoutes({
   };
 
   React.useEffect(() => {
-    logViewBoundary(crashlytics);
-  }, [location]);
+    logViewBoundary(crashlytics, pattern);
+  }, [location.key]);
 
   return React.createElement(CrashlyticsErrorBoundary, {
     onError,
