@@ -18,7 +18,10 @@
 import { Context, Span } from '@opentelemetry/api';
 import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { getAppVersion, getSessionId } from '../helpers';
-import { COMMON_SPAN_ATTRIBUTE_KEYS, DEFAULT_TELEMETRY_REGION } from '../constants';
+import {
+  COMMON_SPAN_ATTRIBUTE_KEYS,
+  DEFAULT_TELEMETRY_REGION
+} from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
 

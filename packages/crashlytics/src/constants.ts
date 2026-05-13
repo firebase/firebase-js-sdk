@@ -29,9 +29,9 @@ export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
 /** Label keys that we write in all telemetry signal entries. */
 export const CRASHLYTICS_ATTRIBUTE_KEYS = {
-  APP_VERSION: 'app_version',
-  SESSION_ID: 'session_id',
-  USER_ID: 'user_id',
+  APP_VERSION: 'app.build_id',
+  SESSION_ID: 'session.id',
+  INSTALLATION_ID: 'app.installation.id',
   TRACE_ID: 'logging.googleapis.com/trace',
   SPAN_ID: 'logging.googleapis.com/spanId'
 };

@@ -46,7 +46,7 @@ export class InstallationIdProvider implements DynamicAttributeProvider {
       return null;
     }
     if (this._iid) {
-      return [CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID, this._iid];
+      return [CRASHLYTICS_ATTRIBUTE_KEYS.INSTALLATION_ID, this._iid];
     }
 
     const iid = await this.installations.getId();
@@ -55,6 +55,6 @@ export class InstallationIdProvider implements DynamicAttributeProvider {
     }
 
     this._iid = iid;
-    return [CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID, iid];
+    return [CRASHLYTICS_ATTRIBUTE_KEYS.INSTALLATION_ID, iid];
   }
 }
