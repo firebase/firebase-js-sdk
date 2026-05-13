@@ -31,7 +31,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     private rootSpanContextManager: RootSpanContextManager,
     private crashlyticsOptions: CrashlyticsOptions = {},
     private firebaseOptions: FirebaseOptions = {}
-  ) {}
+  ) { }
 
   forceFlush(): Promise<void> {
     return Promise.resolve();

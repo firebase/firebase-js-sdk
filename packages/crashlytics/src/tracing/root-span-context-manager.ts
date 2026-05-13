@@ -30,6 +30,7 @@ export class RootSpan {
   private quiescenceTimerId: number | null;
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
+  private isInterrupted = false;
 
   constructor(span: Span, manager: RootSpanContextManager) {
     this.span = span;
@@ -48,6 +49,9 @@ export class RootSpan {
   }
 
   recordNetworkActivityStart() {
+    if (this.isInterrupted) {
+      return;
+    }
     this.lastActiveTimeMs = Date.now();
     this.activeNetworkRequests++;
   }
@@ -55,10 +59,29 @@ export class RootSpan {
   recordNetworkActivityEnd() {
     this.lastActiveTimeMs = Date.now();
     this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
+
+    // If this is an interrupted span and all its network calls have finished, end it immediately.
+    if (this.activeNetworkRequests === 0 && this.isInterrupted) {
+      this.endRootSpan();
+    }
   }
 
   recordDomActivity() {
-    this.lastActiveTimeMs = Date.now();
+    if (!this.isInterrupted) {
+      this.lastActiveTimeMs = Date.now();
+    }
+  }
+
+  interrupt() {
+    this.isInterrupted = true;
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
+    this.lastActiveTimeMs = Math.max(this.lastActiveTimeMs, Date.now());
+    if (this.activeNetworkRequests === 0) {
+      this.endRootSpan();
+    }
   }
 
   /**
@@ -80,7 +103,7 @@ export class RootSpan {
       return;
     }
 
-    if (this.mutationObserver) {
+    if (!this.isInterrupted) {
       const timeSinceLastActivity = Date.now() - this.lastActiveTimeMs;
       if (timeSinceLastActivity < QUIESCENCE_WINDOW_MS) {
         this.quiesce(); // Keep waiting, the DOM is not yet stable
@@ -92,9 +115,9 @@ export class RootSpan {
   }
 
   private endRootSpan() {
+    this.manager.removeRootSpanFromContext(this);
     // End the span backdated to the exact millisecond work actually stopped
     this.span.end(this.lastActiveTimeMs);
-    this.manager.clearActiveRootSpan();
 
     // Clean up the DOM observer to prevent memory leaks
     if (this.mutationObserver) {
@@ -113,14 +136,17 @@ export class RootSpan {
  */
 export class RootSpanContextManager extends ZoneContextManager {
   private _activeRootSpan: RootSpan | undefined;
+  private _interruptedRootSpans: RootSpan[] = [];
 
   startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
     if (this._activeRootSpan) {
+      this._interruptedRootSpans.push(this._activeRootSpan);
+      this._activeRootSpan.interrupt();
       this.clearActiveRootSpan();
     }
     // Ensure the new root span is actually a root span (no parent), even if started from 
     // within an existing root span's context.
-    const span = tracer.startSpan(rootSpanName, {}, this.active());
+    const span = tracer.startSpan(rootSpanName, {}, trace.deleteSpan(this.active()));
 
     this._activeRootSpan = new RootSpan(span, this);
     this._activeRootSpan.quiesce();
@@ -131,8 +157,28 @@ export class RootSpanContextManager extends ZoneContextManager {
     return this._activeRootSpan;
   }
 
+  getInterruptedRootSpan(traceId: string): RootSpan | undefined {
+    return this._interruptedRootSpans.find(rs => (rs.span as any).spanContext().traceId == traceId);
+  }
+
+  getRootSpanByTraceId(traceId: string): RootSpan | undefined {
+    if (this._activeRootSpan && (this._activeRootSpan.span as any).spanContext().traceId == traceId) {
+      return this._activeRootSpan;
+    } else {
+      return this.getInterruptedRootSpan(traceId);
+    }
+  }
+
   clearActiveRootSpan(): void {
     this._activeRootSpan = undefined;
+  }
+
+  removeRootSpanFromContext(rootSpan: RootSpan): void {
+    if (this._activeRootSpan == rootSpan) {
+      this.clearActiveRootSpan();
+    } else if (this._interruptedRootSpans.includes(rootSpan)) {
+      this._interruptedRootSpans = this._interruptedRootSpans.filter(rs => rs != rootSpan);
+    }
   }
 
   override active(): Context {
