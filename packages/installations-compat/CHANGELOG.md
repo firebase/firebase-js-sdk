@@ -1,5 +1,17 @@
 # @firebase/installations-compat
 
+## 0.2.22
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/component@0.7.3
+  - @firebase/installations@0.6.22
+  - @firebase/installations-types@0.5.4
+  - @firebase/util@1.15.1
+
 ## 0.2.21
 
 ### Patch Changes

@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { TargetId } from '../../../src/core/types';
+import { RemoteTargetId, TargetId } from '../../../src/core/types';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
@@ -104,7 +104,7 @@ describe('RemoteEvent', () => {
     existingKeys?: DocumentKeySet;
     changes?: Array<DocumentWatchChange | WatchTargetChange>;
   }): WatchChangeAggregator {
-    const targetIds: TargetId[] = [];
+    const targetIds: RemoteTargetId[] = [];
 
     if (options.targets) {
       forEachNumber(options.targets, targetId => {
@@ -114,7 +114,9 @@ describe('RemoteEvent', () => {
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
       getTargetDataForTarget: targetId =>
-        options.targets ? options.targets[targetId] : null,
+        (options.targets
+          ? options.targets[targetId]
+          : null) as TargetData<RemoteTargetId> | null,
       getDatabaseId: () => TEST_DATABASE_ID
     });
 
@@ -151,7 +153,7 @@ describe('RemoteEvent', () => {
     outstandingResponses?: PendingTargetResponses;
     existingKeys?: DocumentKeySet;
     changes?: Array<DocumentWatchChange | WatchTargetChange>;
-  }): RemoteEvent {
+  }): RemoteEvent<RemoteTargetId> {
     return createAggregator(options).createRemoteEvent(
       version(options.snapshotVersion)
     );

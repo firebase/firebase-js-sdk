@@ -1,5 +1,11 @@
 # @firebase/analytics-interop-types
 
+## 0.3.5
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
 ## 0.3.4
 
 ### Patch Changes
