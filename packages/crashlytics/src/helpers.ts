@@ -130,6 +130,7 @@ export function startNewTrace(
  * Creates a log for view boundary on navigation event
  *
  * @param crashlytics - The {@link Crashlytics} instance.
+ * @param newPathNavigation - The new URL pattern being navigated to.
  */
 export function logViewBoundary(
   crashlytics: Crashlytics,
