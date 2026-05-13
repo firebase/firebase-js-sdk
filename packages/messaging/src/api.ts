@@ -126,6 +126,10 @@ export async function getToken(
  * Deletes the registration token associated with this {@link Messaging} instance and unsubscribes
  * the {@link Messaging} instance from the push subscription.
  *
+ * If there is no legacy registration token but the client has FID-based registration metadata
+ * (from {@link register}), this deletes that registration on the server, clears local metadata, and
+ * invokes {@link onUnregistered} with the removed FID when successful.
+ *
  * @param messaging - The {@link Messaging} instance.
  *
  * @returns The promise resolves when the token has been successfully deleted.

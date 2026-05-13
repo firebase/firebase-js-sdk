@@ -211,6 +211,62 @@ describe('Token Manager', () => {
       expect(requestGetTokenStub).not.to.have.been.called;
       expect(requestUpdateTokenStub).not.to.have.been.called;
       expect(requestDeleteTokenStub).not.to.have.been.called;
+      expect(requestDeleteRegistrationStub).not.to.have.been.called;
+    });
+
+    it('calls requestDeleteRegistration and onUnregistered when only FID metadata exists', async () => {
+      const fid = 'FID_IN_DB';
+      await dbSetFidRegistration(messaging.firebaseDependencies, {
+        fid,
+        lastRegisterTime: Date.now()
+      });
+      const onUnregisteredSpy = stub();
+      messaging.onUnregisteredHandler = onUnregisteredSpy;
+
+      await deleteTokenInternal(messaging);
+
+      expect(requestDeleteTokenStub).not.to.have.been.called;
+      expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+        messaging.firebaseDependencies,
+        fid
+      );
+      expect(await dbGetFidRegistration(messaging.firebaseDependencies)).to.be
+        .undefined;
+      expect(onUnregisteredSpy).to.have.been.calledOnceWith(fid);
+    });
+
+    it('does not remove FID metadata or notify onUnregistered when requestDeleteRegistration fails', async () => {
+      const fid = 'FID_IN_DB';
+      await dbSetFidRegistration(messaging.firebaseDependencies, {
+        fid,
+        lastRegisterTime: Date.now()
+      });
+      requestDeleteRegistrationStub.rejects(new Error('network'));
+      const onUnregisteredSpy = stub();
+      messaging.onUnregisteredHandler = onUnregisteredSpy;
+
+      await expect(deleteTokenInternal(messaging)).to.be.rejectedWith('network');
+
+      expect(
+        (await dbGetFidRegistration(messaging.firebaseDependencies))?.fid
+      ).to.equal(fid);
+      expect(onUnregisteredSpy).not.to.have.been.called;
+    });
+
+    it('does not throw when only FID metadata exists and onUnregisteredHandler is unset', async () => {
+      const fid = 'FID_IN_DB';
+      await dbSetFidRegistration(messaging.firebaseDependencies, {
+        fid,
+        lastRegisterTime: Date.now()
+      });
+      messaging.onUnregisteredHandler = null;
+
+      await deleteTokenInternal(messaging);
+
+      expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+        messaging.firebaseDependencies,
+        fid
+      );
     });
 
     it('removes token from the db, calls requestDeleteToken and unsubscribes the push subscription', async () => {
@@ -225,9 +281,9 @@ describe('Token Manager', () => {
       expect(await dbGet(messaging.firebaseDependencies)).to.be.undefined;
       expect(requestGetTokenStub).not.to.have.been.called;
       expect(requestUpdateTokenStub).not.to.have.been.called;
-      expect(requestDeleteTokenStub).not.to.have.been.calledOnceWith(
+      expect(requestDeleteTokenStub).to.have.been.calledOnceWith(
         messaging.firebaseDependencies,
-        tokenDetails
+        tokenDetails.token
       );
       expect(unsubscribeSpy).to.have.been.called;
     });
