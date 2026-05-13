@@ -46,7 +46,7 @@ describe('helpers', () => {
         emit: (logRecord: LogRecord) => {
           const rootSpan = fakeContextManager.getRootSpan();
           if (rootSpan) {
-            const spanContext = rootSpan.spanContext();
+            const spanContext = rootSpan.span.spanContext();
             logRecord.attributes = {
               ...logRecord.attributes,
               [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: spanContext.traceId,
@@ -87,7 +87,9 @@ describe('helpers', () => {
 
   const fakeContextManager = {
     getRootSpan: () => ({
-      spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      span: {
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      }
     }),
     setRootSpan: () => {}
   } as unknown as RootSpanContextManager;

@@ -15,37 +15,131 @@
  * limitations under the License.
  */
 
-import { Context, Span, trace } from '@opentelemetry/api';
+import { Context, Span, type Tracer, trace } from '@opentelemetry/api';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
+
+const QUIESCENCE_WINDOW_MS = 150;
+/**
+ * Wrapper around the OpenTelemetry Span that tracks activity and quiescence for a client-side
+ * root span.
+ */
+export class RootSpan {
+  span: Span;
+  private activeNetworkRequests: number;
+  private lastActiveTimeMs: number;
+  private quiescenceTimerId: number | null;
+  private mutationObserver: MutationObserver | null;
+  private manager: RootSpanContextManager;
+
+  constructor(span: Span, manager: RootSpanContextManager) {
+    this.span = span;
+    this.manager = manager;
+    this.lastActiveTimeMs = Date.now();
+    this.quiescenceTimerId = null;
+    this.activeNetworkRequests = 0;
+    this.mutationObserver = new MutationObserver(() => {
+      this.recordDomActivity();
+    });
+    this.mutationObserver.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true,
+    });
+  }
+
+  recordNetworkActivityStart() {
+    this.lastActiveTimeMs = Date.now();
+    this.activeNetworkRequests++;
+  }
+
+  recordNetworkActivityEnd() {
+    this.lastActiveTimeMs = Date.now();
+    this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
+  }
+
+  recordDomActivity() {
+    this.lastActiveTimeMs = Date.now();
+  }
+
+  /**
+   * Triggers the closing of the root span after a quiescence window.
+   */
+  quiesce() {
+    if (this.quiescenceTimerId) {
+      window.clearTimeout(this.quiescenceTimerId);
+    }
+
+    this.quiescenceTimerId = window.setTimeout(() => {
+      this.endRootSpanIfStable();
+    }, QUIESCENCE_WINDOW_MS);
+  }
+
+  private endRootSpanIfStable() {
+    if (this.activeNetworkRequests > 0) {
+      this.quiesce(); // Keep waiting, there are active network requests
+      return;
+    }
+
+    if (this.mutationObserver) {
+      const timeSinceLastActivity = Date.now() - this.lastActiveTimeMs;
+      if (timeSinceLastActivity < QUIESCENCE_WINDOW_MS) {
+        this.quiesce(); // Keep waiting, the DOM is not yet stable
+        return;
+      }
+    }
+
+    this.endRootSpan();
+  }
+
+  private endRootSpan() {
+    // End the span backdated to the exact millisecond work actually stopped
+    this.span.end(this.lastActiveTimeMs);
+    this.manager.clearActiveRootSpan();
+
+    // Clean up the DOM observer to prevent memory leaks
+    if (this.mutationObserver) {
+      this.mutationObserver.disconnect();
+      this.mutationObserver = null;
+    }
+
+    if (this.quiescenceTimerId) {
+      clearTimeout(this.quiescenceTimerId);
+    }
+  }
+}
 
 /**
  * A custom ContextManager that ensures the latest active root span is the default parent.
  */
 export class RootSpanContextManager extends ZoneContextManager {
-  private _rootSpan: Span | undefined;
-  private _locationKey: string | undefined;
+  private _activeRootSpan: RootSpan | undefined;
 
-  setRootSpan(span: Span | undefined): void {
-    this._rootSpan = span;
+  startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
+    if (this._activeRootSpan) {
+      this.clearActiveRootSpan();
+    }
+    // Ensure the new root span is actually a root span (no parent), even if started from 
+    // within an existing root span's context.
+    const span = tracer.startSpan(rootSpanName, {}, this.active());
+
+    this._activeRootSpan = new RootSpan(span, this);
+    this._activeRootSpan.quiesce();
+    return this._activeRootSpan;
   }
 
-  getRootSpan(): Span | undefined {
-    return this._rootSpan;
+  getActiveRootSpan(): RootSpan | undefined {
+    return this._activeRootSpan;
   }
 
-  setLocationKey(locationKey: string | undefined): void {
-    this._locationKey = locationKey;
-  }
-
-  getLocationKey(): string | undefined {
-    return this._locationKey;
+  clearActiveRootSpan(): void {
+    this._activeRootSpan = undefined;
   }
 
   override active(): Context {
     const context = super.active();
     // If the root span is set and there isn't already an active span in context
-    if (this._rootSpan && !trace.getSpan(context)) {
-      return trace.setSpan(context, this._rootSpan);
+    if (this._activeRootSpan && !trace.getSpan(context)) {
+      return trace.setSpan(context, this._activeRootSpan.span);
     }
     return context;
   }

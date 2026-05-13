@@ -21,12 +21,14 @@ import { getAppVersion, getSessionId } from '../helpers';
 import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
+import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
 
 /**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
   constructor(
+    private rootSpanContextManager: RootSpanContextManager,
     private crashlyticsOptions: CrashlyticsOptions = {},
     private firebaseOptions: FirebaseOptions = {}
   ) {}
@@ -36,6 +38,17 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
+    const rootSpan = this.rootSpanContextManager.getActiveRootSpan();
+    if (rootSpan && rootSpan.span.spanContext().traceId === span.spanContext().traceId) {
+      const scopeName = (span as any).instrumentationScope.name;
+      if (
+        scopeName === '@opentelemetry/instrumentation-fetch' ||
+        scopeName === '@opentelemetry/instrumentation-xml-http-request'
+      ) {
+        rootSpan.recordNetworkActivityStart();
+      }
+    }
+
     span.setAttribute(
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
       `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/global/`
@@ -53,7 +66,18 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     );
   }
 
-  onEnd(_span: ReadableSpan): void {}
+  onEnd(span: ReadableSpan): void {
+    const rootSpan = this.rootSpanContextManager.getActiveRootSpan();
+    if (rootSpan && rootSpan.span.spanContext().traceId === span.spanContext().traceId) {
+      const scopeName = span.instrumentationScope.name;
+      if (
+        scopeName === '@opentelemetry/instrumentation-fetch' ||
+        scopeName === '@opentelemetry/instrumentation-xml-http-request'
+      ) {
+        rootSpan.recordNetworkActivityEnd();
+      }
+    }
+  }
 
   shutdown(): Promise<void> {
     return Promise.resolve();

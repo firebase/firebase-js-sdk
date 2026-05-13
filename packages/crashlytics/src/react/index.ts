@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics } from '../api';
+import { recordError, getCrashlytics, startUserInteractionTrace } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import { useEffect } from 'react';
 
@@ -91,9 +91,19 @@ export function FirebaseCrashlytics({
       recordError(crashlytics, event.reason, {});
     };
 
+    const clickListener = (event: MouseEvent): void => {
+      const target = event.target;
+      if (!target || !(target instanceof Element)) return;
+      const targetElement = target.closest('button, a, [role="button"], input[type="submit"], input[type="button"]');
+      if (!targetElement) return;
+      const spanName = generateClickSpanName(targetElement);
+      startUserInteractionTrace(crashlytics, spanName);
+    };
+
     try {
       window.addEventListener('error', errorListener);
       window.addEventListener('unhandledrejection', unhandledRejectionListener);
+      window.addEventListener('click', clickListener, { capture: true });
     } catch (error) {
       // Log the error here, but don't die.
       console.warn(`Firebase Crashlytics was not initialized:\n`, error);
@@ -104,8 +114,37 @@ export function FirebaseCrashlytics({
         'unhandledrejection',
         unhandledRejectionListener
       );
+      window.removeEventListener('click', clickListener, { capture: true });
     };
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;
+}
+
+/**
+ * Generates a clean, scannable name for the APM span based on the HTML element properties.
+ */
+function generateClickSpanName(element: Element): string {
+  const tagName = element.tagName.toLowerCase();
+
+  // Strategy 1: Use explicit id if available
+  if (element.id) {
+    return `click:${tagName}#${element.id}`;
+  }
+
+  // Strategy 2: Use custom tracking attributes if your app uses them (e.g., data-testid)
+  const testId = element.getAttribute('data-testid') || element.getAttribute('data-analytics-id');
+  if (testId) {
+    return `click:${tagName}[${testId}]`;
+  }
+
+  // Strategy 3: Fall back to element text snippet for contextual clarity
+  if (element.textContent) {
+    const cleanText = element.textContent.trim().substring(0, 20).replace(/\s+/g, '_');
+    if (cleanText) {
+      return `click:${tagName}:${cleanText}`;
+    }
+  }
+
+  return `click:${tagName}`;
 }
