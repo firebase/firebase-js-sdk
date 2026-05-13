@@ -38,8 +38,8 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
-    const rootSpan = this.rootSpanContextManager.getActiveRootSpan();
-    if (rootSpan && rootSpan.span.spanContext().traceId === span.spanContext().traceId) {
+    const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(span.spanContext().traceId);
+    if (rootSpan) {
       const scopeName = (span as any).instrumentationScope.name;
       if (
         scopeName === '@opentelemetry/instrumentation-fetch' ||
@@ -67,8 +67,8 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onEnd(span: ReadableSpan): void {
-    const rootSpan = this.rootSpanContextManager.getActiveRootSpan();
-    if (rootSpan && rootSpan.span.spanContext().traceId === span.spanContext().traceId) {
+    const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId((span as any).spanContext().traceId);
+    if (rootSpan) {
       const scopeName = span.instrumentationScope.name;
       if (
         scopeName === '@opentelemetry/instrumentation-fetch' ||
