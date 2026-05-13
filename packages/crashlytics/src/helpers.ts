@@ -131,15 +131,18 @@ export function startNewTrace(
  *
  * @param crashlytics - The {@link Crashlytics} instance.
  */
-export function logViewBoundary(crashlytics: Crashlytics, newPathNavigation: string) {
+export function logViewBoundary(
+  crashlytics: Crashlytics,
+  newPathNavigation: string
+) {
   const { loggerProvider } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
 
   logger.emit({
     severityNumber: SeverityNumber.INFO,
-    body: "View boundary navigation event",
+    body: 'View boundary navigation event',
     attributes: {
-      "url.template": newPathNavigation,
+      'url.template': newPathNavigation
     }
   });
 }
