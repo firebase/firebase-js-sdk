@@ -47,6 +47,9 @@ describe('register', () => {
   let requestCreateRegistrationStub: Stub<
     typeof requestsModule.requestCreateRegistration
   >;
+  let requestDeleteRegistrationStub: Stub<
+    typeof requestsModule.requestDeleteRegistration
+  >;
   let clock: ReturnType<typeof useFakeTimers>;
 
   beforeEach(() => {
@@ -75,6 +78,11 @@ describe('register', () => {
       requestsModule,
       'requestCreateRegistration'
     ).resolves({ responseFid: 'FID' });
+
+    requestDeleteRegistrationStub = stub(
+      requestsModule,
+      'requestDeleteRegistration'
+    ).resolves();
   });
 
   afterEach(() => {
@@ -270,6 +278,11 @@ describe('register', () => {
 
     await deleteToken(messaging);
 
+    expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
+      messaging.firebaseDependencies,
+      'FID'
+    );
+
     await register(messaging);
 
     expect(onRegisteredSpy).to.have.been.calledTwice;
@@ -310,10 +323,9 @@ describe('register', () => {
       requestsModule,
       'requestGetToken'
     ).resolves('legacy-token');
-    const requestDeleteRegistrationStub = stub(
-      requestsModule,
-      'requestDeleteRegistration'
-    ).throws(new Error('unexpected requestDeleteRegistration()'));
+    requestDeleteRegistrationStub.throws(
+      new Error('unexpected requestDeleteRegistration()')
+    );
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
