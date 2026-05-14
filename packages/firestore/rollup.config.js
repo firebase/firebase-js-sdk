@@ -38,7 +38,7 @@ const nodePlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertTransformer]
   }),
@@ -52,7 +52,7 @@ const browserPlugins = [
   typescriptPlugin({
     typescript,
     exclude: [...tsconfig.exclude, '**/*.test.ts'],
-    cacheDir: tmp.dirSync(),
+    cacheDir: tmp.dirSync().name,
     abortOnError: true,
     transformers: [util.removeAssertAndPrefixInternalTransformer]
   }),
@@ -60,6 +60,35 @@ const browserPlugins = [
   terser(util.manglePrivatePropertiesOptions),
   util.cleanupNameCache(util.manglePrivatePropertiesOptions.nameCache)
 ];
+
+// TODO - update the implementation to match all content in the declare module block.
+function declareModuleReplacePlugin() {
+  // The regex we created earlier
+  const moduleToReplace =
+    /declare module '\.\/\S+' \{\s+interface Firestore \{\s+pipeline\(\): PipelineSource<Pipeline>;\s+}\s*}/gm;
+
+  // What to replace it with (an empty string to remove it)
+  const replacement =
+    'interface Firestore {pipeline(): PipelineSource<Pipeline>;}';
+
+  return {
+    name: 'declare-module-replace',
+    generateBundle(options, bundle) {
+      const outputFileName = 'global_index.d.ts';
+      if (!bundle[outputFileName]) {
+        console.warn(
+          `[regexReplacePlugin] File not found in bundle: ${outputFileName}`
+        );
+        return;
+      }
+
+      const chunk = bundle[outputFileName];
+      if (chunk.type === 'chunk') {
+        chunk.code = chunk.code.replace(moduleToReplace, replacement);
+      }
+    }
+  };
+}
 
 const allBuilds = [
   // Workaround for https://github.com/rollup/plugins/issues/1970
@@ -125,7 +154,7 @@ const allBuilds = [
           }
         },
         include: ['dist/**/*.js'],
-        cacheDir: tmp.dirSync()
+        cacheDir: tmp.dirSync().name
       }),
       sourcemaps(),
       replace(generateBuildTargetReplaceConfig('cjs', 2020))
@@ -250,6 +279,7 @@ const allBuilds = [
       dts({
         respectExternal: true
       }),
+      declareModuleReplacePlugin(),
 
       // The global.d.ts input file will include
       // a `declare module './database' { ... }` block. This block

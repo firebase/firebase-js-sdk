@@ -332,7 +332,9 @@ export function concat(fieldName: string, second: Expression | unknown, ...other
 export function conditional(condition: BooleanExpression, thenExpr: Expression, elseExpr: Expression): FunctionExpression;
 
 // @public
-export function constant(value: number): Expression;
+export function constant(value: number, options?: {
+    preferIntegers?: boolean;
+}): Expression;
 
 // @public
 export function constant(value: string): Expression;
@@ -922,7 +924,11 @@ export class FunctionExpression extends Expression {
     constructor(name: string, params: Expression[]);
     // (undocumented)
     readonly expressionType: ExpressionType;
-    }
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly params: Expression[];
+}
 
 // @beta
 export function geoDistance(fieldName: string | Field, location: GeoPoint | Expression): Expression;
@@ -1319,6 +1325,7 @@ export class PipelineResult<AppModelType = DocumentData> {
     /* Excluded from this release type: _ref */
     /* Excluded from this release type: _fields */
     /* Excluded from this release type: __constructor */
+    /* Excluded from this release type: fromDocument */
     get createTime(): Timestamp | undefined;
     data(): AppModelType;
     get(fieldPath: string | FieldPath | Field): any;
@@ -1340,31 +1347,15 @@ export class PipelineSnapshot {
 // @public
 export class PipelineSource<PipelineType> {
     collection(collection: string | Query): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collection(options: CollectionStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collectionGroup(collectionId: string): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     collectionGroup(options: CollectionGroupStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
-    createFrom(query: Query): Pipeline;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
+    createFrom(query: Query): PipelineType;
     database(): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     database(options: DatabaseStageOptions): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     documents(docs: Array<string | DocumentReference>): PipelineType;
-    /* Excluded from this release type: _createPipeline */
-    /* Excluded from this release type: __constructor */
     documents(options: DocumentsStageOptions): PipelineType;
-}
+    }
 
 // @public
 export function pow(base: Expression, exponent: Expression): FunctionExpression;
@@ -1516,6 +1507,16 @@ export function sqrt(expression: Expression): FunctionExpression;
 
 // @public
 export function sqrt(fieldName: string): FunctionExpression;
+
+// @public (undocumented)
+export abstract class Stage {
+    /* Excluded from this release type: optionsProto */
+    constructor(options: Record<string, unknown> & StageOptions);
+    // (undocumented)
+    protected knownOptions: Record<string, unknown>;
+    // (undocumented)
+    protected rawOptions?: Record<string, unknown>;
+}
 
 // @public
 export type StageOptions = {

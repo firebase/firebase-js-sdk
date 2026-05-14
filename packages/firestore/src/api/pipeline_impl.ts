@@ -34,6 +34,7 @@ import { Code, FirestoreError } from '../util/error';
 import { cast } from '../util/input_validation';
 
 import { ensureFirestoreConfigured, Firestore } from './database';
+import { RealtimePipeline } from './realtime_pipeline';
 import { DocumentReference } from './reference';
 import { ExpUserDataWriter } from './user_data_writer';
 
@@ -48,6 +49,8 @@ declare module './database' {
    */
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
+    /** @internal */
+    realtimePipeline(): PipelineSource<RealtimePipeline>;
   }
 }
 
@@ -197,6 +200,7 @@ export function execute(
 }
 
 /**
+ * @beta
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example
@@ -206,7 +210,38 @@ export function execute(
  */
 // Augment the Firestore class with the pipeline() factory method
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
-    return new Pipeline(this, stages);
-  });
+  const userDataReader = newUserDataReader(this);
+  return new PipelineSource<Pipeline>(
+    this._databaseId,
+    userDataReader,
+    (stages: Stage[]) => {
+      return new Pipeline(
+        this,
+        userDataReader,
+        new ExpUserDataWriter(this),
+        stages
+      );
+    }
+  );
 };
+
+/** @internal */
+export function _enableRealtimePipeline(firestore: Firestore): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (firestore as any).realtimePipeline =
+    function (): PipelineSource<RealtimePipeline> {
+      const userDataReader = newUserDataReader(this);
+      return new PipelineSource<RealtimePipeline>(
+        this._databaseId,
+        userDataReader,
+        (stages: Stage[]) => {
+          return new RealtimePipeline(
+            this,
+            newUserDataReader(this),
+            new ExpUserDataWriter(this),
+            stages
+          );
+        }
+      );
+    };
+}

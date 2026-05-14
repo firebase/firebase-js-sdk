@@ -251,3 +251,5 @@ export {
   TimePart,
   TimeUnit
 } from '../../src/lite-api/expressions';
+
+export { Stage } from '../../src/lite-api/stage';

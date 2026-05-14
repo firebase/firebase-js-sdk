@@ -198,7 +198,8 @@ import {
 import {
   getRunEnterpriseTests,
   getTargetBackend,
-  TargetBackend
+  TargetBackend,
+  USE_EMULATOR
 } from '../util/settings';
 
 use(chaiAsPromised);
@@ -605,7 +606,10 @@ apiDescribe.skipClassic('Pipelines', persistence => {
       expectResults(snapshot, doc1.id, doc2.id);
     });
 
-    it('supports database as source', async () => {
+    it('supports database as source', async function () {
+      if (!USE_EMULATOR) {
+        this.skip();
+      }
       const randomId = Math.random().toString(16).slice(2);
       const doc1 = await addDoc(collection(randomCol, 'book1', 'sub'), {
         order: 1,

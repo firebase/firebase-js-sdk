@@ -144,6 +144,7 @@
     "prettier": "2.8.8",
     "protobufjs-cli": "^1.1.3",
     "protractor": "5.4.2",
+    "protobufjs-cli": "^1.1.3",
     "request": "2.88.2",
     "semver": "7.7.1",
     "simple-git": "3.32.3",

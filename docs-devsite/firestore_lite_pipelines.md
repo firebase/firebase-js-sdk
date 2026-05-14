@@ -397,7 +397,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [ifError(tryExpr, catchExpr)](./firestore_lite_pipelines.md#iferror_756c12e) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  [ifError(tryExpr, catchValue)](./firestore_lite_pipelines.md#iferror_dc532f9) | Creates an expression that returns the <code>catch</code> argument if there is an error, else return the result of the <code>try</code> argument evaluation. |
 |  <b>function(value, ...)</b> |
-|  [constant(value)](./firestore_lite_pipelines.md#constant_0c00f91) | Creates a <code>Constant</code> instance for a number value. |
+|  [constant(value, options)](./firestore_lite_pipelines.md#constant_6ea0dde) | Creates a <code>Constant</code> instance for a number value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_6dac335) | Creates a <code>Constant</code> instance for a VectorValue value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_7c807cd) | Creates a <code>Constant</code> instance for a string value. |
 |  [constant(value)](./firestore_lite_pipelines.md#constant_b2e4f8d) | Creates a <code>BooleanExpression</code> instance for a boolean value. |
@@ -445,6 +445,7 @@ https://github.com/firebase/firebase-js-sdk
 |  [PipelineSource](./firestore_lite_pipelines.pipelinesource.md#pipelinesource_class) | Provides the entry point for defining the data source of a Firestore [Pipeline](./firestore_pipelines.pipeline.md#pipeline_class)<!-- -->.<!-- -->Use the methods of this class (e.g., [PipelineSource.collection()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollection)<!-- -->, [PipelineSource.collectionGroup()](./firestore_pipelines.pipelinesource.md#pipelinesourcecollectiongroup)<!-- -->, [PipelineSource.database()](./firestore_pipelines.pipelinesource.md#pipelinesourcedatabase)<!-- -->, or [PipelineSource.documents()](./firestore_pipelines.pipelinesource.md#pipelinesourcedocuments)<!-- -->) to specify the initial data for your pipeline, such as a collection, a collection group, the entire database, or a set of specific documents. |
 |  [Query](./firestore_lite_pipelines.query.md#query_class) | A <code>Query</code> refers to a query which you can read or listen to. You can also construct refined <code>Query</code> objects by adding filters and ordering. |
 |  [QueryDocumentSnapshot](./firestore_lite_pipelines.querydocumentsnapshot.md#querydocumentsnapshot_class) | A <code>QueryDocumentSnapshot</code> contains data read from a document in your Firestore database as part of a query. The document is guaranteed to exist and its data can be extracted with <code>.data()</code> or <code>.get(&lt;field&gt;)</code> to get a specific field.<!-- -->A <code>QueryDocumentSnapshot</code> offers the same API surface as a <code>DocumentSnapshot</code>. Since query results contain only existing documents, the <code>exists</code> property will always be true and <code>data()</code> will never return 'undefined'. |
+|  [Stage](./firestore_lite_pipelines.stage.md#stage_class) |  |
 |  [Timestamp](./firestore_lite_pipelines.timestamp.md#timestamp_class) | A <code>Timestamp</code> represents a point in time independent of any time zone or calendar, represented as seconds and fractions of seconds at nanosecond resolution in UTC Epoch time.<!-- -->It is encoded using the Proleptic Gregorian Calendar which extends the Gregorian calendar backwards to year one. It is encoded assuming all minutes are 60 seconds long, i.e. leap seconds are "smeared" so that no leap second table is needed for interpretation. Range is from 0001-01-01T00:00:00Z to 9999-12-31T23:59:59.999999999Z.<!-- -->For examples and further specifications, refer to the [Timestamp definition](https://github.com/google/protobuf/blob/master/src/google/protobuf/timestamp.proto)<!-- -->. |
 |  [VectorValue](./firestore_lite_pipelines.vectorvalue.md#vectorvalue_class) | Represents a vector type in Firestore documents. Create an instance with <code>[vector()](./firestore_.md#vector_0dbdaf2)</code>. |
 
@@ -11464,14 +11465,16 @@ ifError(field("title").arrayGet(0), "Default Title");
 
 ## function(value, ...)
 
-### constant(value) {:#constant_0c00f91}
+### constant(value, options) {:#constant_6ea0dde}
 
 Creates a `Constant` instance for a number value.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function constant(value: number): Expression;
+export declare function constant(value: number, options?: {
+    preferIntegers?: boolean;
+}): Expression;
 ```
 
 #### Parameters
@@ -11479,6 +11482,7 @@ export declare function constant(value: number): Expression;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  value | number | The number value. |
+|  options | { preferIntegers?: boolean; } |  |
 
 <b>Returns:</b>
 

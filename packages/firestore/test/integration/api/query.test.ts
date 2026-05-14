@@ -18,6 +18,7 @@
 import { isNode } from '@firebase/util';
 import { expect } from 'chai';
 
+import { DocumentData } from '../../../src/lite-api/reference';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { it } from '../../util/mocha_extensions';
 import { Deferred } from '../../util/promise';
@@ -28,6 +29,7 @@ import {
   Bytes,
   collection,
   collectionGroup,
+  CollectionReference,
   deleteDoc,
   disableNetwork,
   doc,
@@ -37,39 +39,79 @@ import {
   enableNetwork,
   endAt,
   endBefore,
+  Firestore,
   GeoPoint,
   getDocFromCache,
-  getDocs,
+  getDocs as getDocsProd,
   limit,
   limitToLast,
   loadBundle,
-  onSnapshot,
+  onSnapshot as onSnapshotProd,
   or,
   orderBy,
   query,
   QuerySnapshot,
   setDoc,
+  setLogLevel,
   startAfter,
   startAt,
   Timestamp,
   updateDoc,
   where,
   writeBatch,
-  CollectionReference,
   WriteBatch,
-  Firestore
+  QueryDocumentSnapshot
 } from '../util/firebase_export';
 import {
   apiDescribe,
+  apiPipelineDescribe,
+  checkOnlineAndOfflineResultsMatch,
+  checkOnlineAndOfflineResultsMatchWithPipelineMode,
+  getDocs,
+  onSnapshot,
+  PERSISTENCE_MODE_UNSPECIFIED,
+  RetryError,
+  withRetry,
   toChangesArray,
   toDataArray,
   withEmptyTestCollection,
   withTestCollection,
-  withTestDb,
-  checkOnlineAndOfflineResultsMatch
+  withTestDb
 } from '../util/helpers';
+import {
+  RealtimePipelineSnapshot,
+  PipelineResult,
+  ResultChange
+} from '../util/pipeline_export';
+import { USE_EMULATOR } from '../util/settings';
+import { captureExistenceFilterMismatches } from '../util/testing_hooks_util';
 
-apiDescribe('Queries', persistence => {
+function results(
+  outputs: RealtimePipelineSnapshot | QuerySnapshot
+): PipelineResult[] | Array<QueryDocumentSnapshot<DocumentData, DocumentData>> {
+  if (outputs instanceof RealtimePipelineSnapshot) {
+    return outputs.results;
+  } else {
+    return outputs.docs;
+  }
+}
+
+function getChanges(
+  outputs: RealtimePipelineSnapshot | QuerySnapshot
+): ResultChange[] | Array<DocumentChange<DocumentData, DocumentData>> {
+  if (outputs instanceof RealtimePipelineSnapshot) {
+    return outputs.resultChanges();
+  } else {
+    return outputs.docChanges();
+  }
+}
+
+apiPipelineDescribe('Queries', (persistence, pipelineMode) => {
+  // Pipeline is not supported for realtime yet, unless it is emulator.
+  if (pipelineMode === 'query-to-pipeline' && !USE_EMULATOR) {
+    return;
+  }
+
   addEqualityMatcher();
 
   it('QuerySnapshot.toJSON bundle getDocFromCache', async () => {
@@ -83,7 +125,7 @@ apiDescribe('Queries', persistence => {
       };
       // Write an initial document in an isolated Firestore instance so it's not stored in the cache.
       await withTestCollection(persistence, testDocs, async collection => {
-        await getDocs(query(collection)).then(querySnapshot => {
+        await getDocsProd(query(collection)).then(querySnapshot => {
           expect(querySnapshot.docs.length).to.equal(3);
           // Find the path to a known doc.
           querySnapshot.docs.forEach(docSnapshot => {
@@ -120,7 +162,7 @@ apiDescribe('Queries', persistence => {
       c: { k: 'c' }
     };
     return withTestCollection(persistence, testDocs, collection => {
-      return getDocs(query(collection, limit(2))).then(docs => {
+      return getDocs(pipelineMode, query(collection, limit(2))).then(docs => {
         expect(toDataArray(docs)).to.deep.equal([{ k: 'a' }, { k: 'b' }]);
       });
     });
@@ -130,9 +172,9 @@ apiDescribe('Queries', persistence => {
     return withTestCollection(persistence, {}, async collection => {
       const expectedError =
         'limitToLast() queries require specifying at least one orderBy() clause';
-      expect(() => getDocs(query(collection, limitToLast(2)))).to.throw(
-        expectedError
-      );
+      expect(() =>
+        getDocs(pipelineMode, query(collection, limitToLast(2)))
+      ).to.throw(expectedError);
     });
   });
 
@@ -144,14 +186,15 @@ apiDescribe('Queries', persistence => {
       d: { k: 'd', sort: 2 }
     };
     return withTestCollection(persistence, testDocs, collection => {
-      return getDocs(query(collection, orderBy('sort', 'desc'), limit(2))).then(
-        docs => {
-          expect(toDataArray(docs)).to.deep.equal([
-            { k: 'd', sort: 2 },
-            { k: 'c', sort: 1 }
-          ]);
-        }
-      );
+      return getDocs(
+        pipelineMode,
+        query(collection, orderBy('sort', 'desc'), limit(2))
+      ).then(docs => {
+        expect(toDataArray(docs)).to.deep.equal([
+          { k: 'd', sort: 2 },
+          { k: 'c', sort: 1 }
+        ]);
+      });
     });
   });
 
@@ -164,6 +207,7 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, collection => {
       return getDocs(
+        pipelineMode,
         query(collection, orderBy('sort', 'desc'), limitToLast(2))
       ).then(docs => {
         expect(toDataArray(docs)).to.deep.equal([
@@ -183,7 +227,12 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, async collection => {
       const storeEvent = new EventsAccumulator<QuerySnapshot>();
+      // onSnapshotProd(
+      //   query(collection, orderBy('sort', 'desc'), limitToLast(2)),
+      //   storeEvent.storeEvent
+      // );
       onSnapshot(
+        pipelineMode,
         query(collection, orderBy('sort', 'desc'), limitToLast(2)),
         storeEvent.storeEvent
       );
@@ -220,6 +269,7 @@ apiDescribe('Queries', persistence => {
       // Setup `limit` query
       const storeLimitEvent = new EventsAccumulator<QuerySnapshot>();
       const limitUnlisten = onSnapshot(
+        pipelineMode,
         query(collection, orderBy('sort', 'asc'), limit(2)),
         storeLimitEvent.storeEvent
       );
@@ -227,6 +277,7 @@ apiDescribe('Queries', persistence => {
       // Setup mirroring `limitToLast` query
       const storeLimitToLastEvent = new EventsAccumulator<QuerySnapshot>();
       const limitToLastUnlisten = onSnapshot(
+        pipelineMode,
         query(collection, orderBy('sort', 'desc'), limitToLast(2)),
         storeLimitToLastEvent.storeEvent
       );
@@ -246,6 +297,7 @@ apiDescribe('Queries', persistence => {
       // Unlisten then relisten limit query.
       limitUnlisten();
       onSnapshot(
+        pipelineMode,
         query(collection, orderBy('sort', 'asc'), limit(2)),
         storeLimitEvent.storeEvent
       );
@@ -276,6 +328,7 @@ apiDescribe('Queries', persistence => {
       limitToLastUnlisten();
       await updateDoc(doc(collection, 'a'), { k: 'a', sort: -2 });
       onSnapshot(
+        pipelineMode,
         query(collection, orderBy('sort', 'desc'), limitToLast(2)),
         storeLimitToLastEvent.storeEvent
       );
@@ -303,6 +356,7 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, async collection => {
       let docs = await getDocs(
+        pipelineMode,
         query(collection, orderBy('sort'), endBefore(2), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
@@ -312,6 +366,7 @@ apiDescribe('Queries', persistence => {
       ]);
 
       docs = await getDocs(
+        pipelineMode,
         query(collection, orderBy('sort'), endAt(1), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
@@ -321,11 +376,13 @@ apiDescribe('Queries', persistence => {
       ]);
 
       docs = await getDocs(
+        pipelineMode,
         query(collection, orderBy('sort'), startAt(2), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([{ k: 'd', sort: 2 }]);
 
       docs = await getDocs(
+        pipelineMode,
         query(collection, orderBy('sort'), startAfter(0), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
@@ -335,6 +392,7 @@ apiDescribe('Queries', persistence => {
       ]);
 
       docs = await getDocs(
+        pipelineMode,
         query(collection, orderBy('sort'), startAfter(-1), limitToLast(3))
       );
       expect(toDataArray(docs)).to.deep.equal([
@@ -371,9 +429,10 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(
+        pipelineMode,
         query(coll, where('foo', '>', 21.0), orderBy('foo', 'desc'))
       ).then(docs => {
-        expect(docs.docs.map(d => d.id)).to.deep.equal([
+        expect(results(docs).map(d => d.id)).to.deep.equal([
           'g',
           'f',
           'c',
@@ -385,6 +444,7 @@ apiDescribe('Queries', persistence => {
   });
 
   it('can use unary filters', () => {
+    setLogLevel('debug');
     const testDocs = {
       a: { null: null, nan: NaN },
       b: { null: null, nan: 0 },
@@ -392,6 +452,7 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, coll => {
       return getDocs(
+        pipelineMode,
         query(coll, where('null', '==', null), where('nan', '==', NaN))
       ).then(docs => {
         expect(toDataArray(docs)).to.deep.equal([{ null: null, nan: NaN }]);
@@ -405,7 +466,10 @@ apiDescribe('Queries', persistence => {
       b: { inf: -Infinity }
     };
     return withTestCollection(persistence, testDocs, coll => {
-      return getDocs(query(coll, where('inf', '==', Infinity))).then(docs => {
+      return getDocs(
+        pipelineMode,
+        query(coll, where('inf', '==', Infinity))
+      ).then(docs => {
         expect(toDataArray(docs)).to.deep.equal([{ inf: Infinity }]);
       });
     });
@@ -421,7 +485,7 @@ apiDescribe('Queries', persistence => {
         setDoc(doc(coll, 'b'), { v: 'b' })
       ])
         .then(() => {
-          unlisten = onSnapshot(coll, storeEvent.storeEvent);
+          unlisten = onSnapshot(pipelineMode, coll, storeEvent.storeEvent);
           return storeEvent.awaitEvent();
         })
         .then(querySnap => {
@@ -450,15 +514,18 @@ apiDescribe('Queries', persistence => {
       'c': { 'order': 3 }
     };
     await withTestCollection(persistence, testDocs, async coll => {
-      const accumulator = new EventsAccumulator<QuerySnapshot>();
+      const accumulator = new EventsAccumulator<
+        QuerySnapshot | RealtimePipelineSnapshot
+      >();
       const unlisten = onSnapshot(
+        pipelineMode,
         query(coll, orderBy('order')),
         accumulator.storeEvent
       );
       await accumulator
         .awaitEvent()
         .then(querySnapshot => {
-          const changes = querySnapshot.docChanges();
+          const changes = getChanges(querySnapshot);
           expect(changes.length).to.equal(3);
           verifyDocumentChange(changes[0], 'a', -1, 0, 'added');
           verifyDocumentChange(changes[1], 'b', -1, 1, 'added');
@@ -467,14 +534,14 @@ apiDescribe('Queries', persistence => {
         .then(() => setDoc(doc(coll, 'b'), { order: 4 }))
         .then(() => accumulator.awaitEvent())
         .then(querySnapshot => {
-          const changes = querySnapshot.docChanges();
+          const changes = getChanges(querySnapshot);
           expect(changes.length).to.equal(1);
           verifyDocumentChange(changes[0], 'b', 1, 2, 'modified');
         })
         .then(() => deleteDoc(doc(coll, 'c')))
         .then(() => accumulator.awaitEvent())
         .then(querySnapshot => {
-          const changes = querySnapshot.docChanges();
+          const changes = getChanges(querySnapshot);
           expect(changes.length).to.equal(1);
           verifyDocumentChange(changes[0], 'c', 1, -1, 'removed');
         });
@@ -490,10 +557,15 @@ apiDescribe('Queries', persistence => {
   it.skip('can listen for the same query with different options', () => {
     const testDocs = { a: { v: 'a' }, b: { v: 'b' } };
     return withTestCollection(persistence, testDocs, coll => {
-      const storeEvent = new EventsAccumulator<QuerySnapshot>();
-      const storeEventFull = new EventsAccumulator<QuerySnapshot>();
-      const unlisten1 = onSnapshot(coll, storeEvent.storeEvent);
+      const storeEvent = new EventsAccumulator<
+        QuerySnapshot | RealtimePipelineSnapshot
+      >();
+      const storeEventFull = new EventsAccumulator<
+        QuerySnapshot | RealtimePipelineSnapshot
+      >();
+      const unlisten1 = onSnapshot(pipelineMode, coll, storeEvent.storeEvent);
       const unlisten2 = onSnapshot(
+        pipelineMode,
         coll,
         { includeMetadataChanges: true },
         storeEventFull.storeEvent
@@ -534,11 +606,12 @@ apiDescribe('Queries', persistence => {
             { v: 'a1' },
             { v: 'b' }
           ]);
-          const localResult = events[0].docs;
-          expect(localResult[0].metadata.hasPendingWrites).to.equal(true);
-          const syncedResults = events[1].docs;
-          expect(syncedResults[0].metadata.hasPendingWrites).to.equal(false);
-
+          if (pipelineMode !== 'query-to-pipeline') {
+            const localResult = (events[0] as QuerySnapshot).docs;
+            expect(localResult[0].metadata.hasPendingWrites).to.equal(true);
+            const syncedResults = (events[1] as QuerySnapshot).docs;
+            expect(syncedResults[0].metadata.hasPendingWrites).to.equal(false);
+          }
           return storeEvent.awaitEvent();
         })
         .then(querySnap => {
@@ -574,11 +647,13 @@ apiDescribe('Queries', persistence => {
             { v: 'a1' },
             { v: 'b1' }
           ]);
-          const localResults = events[0].docs;
-          expect(localResults[1].metadata.hasPendingWrites).to.equal(true);
-          const syncedResults = events[1].docs;
-          expect(syncedResults[1].metadata.hasPendingWrites).to.equal(false);
-          return storeEvent.assertNoAdditionalEvents();
+          if (pipelineMode !== 'query-to-pipeline') {
+            const localResults = (events[0] as QuerySnapshot).docs;
+            expect(localResults[1].metadata.hasPendingWrites).to.equal(true);
+            const syncedResults = (events[1] as QuerySnapshot).docs;
+            expect(syncedResults[1].metadata.hasPendingWrites).to.equal(false);
+            return storeEvent.assertNoAdditionalEvents();
+          }
         })
         .then(() => {
           return storeEventFull.assertNoAdditionalEvents();
@@ -605,8 +680,14 @@ apiDescribe('Queries', persistence => {
     };
     return withTestCollection(persistence, testDocs, coll => {
       // Make sure to issue the queries in parallel
-      const docs1Promise = getDocs(query(coll, where('date', '>', date1)));
-      const docs2Promise = getDocs(query(coll, where('date', '>', date2)));
+      const docs1Promise = getDocs(
+        pipelineMode,
+        query(coll, where('date', '>', date1))
+      );
+      const docs2Promise = getDocs(
+        pipelineMode,
+        query(coll, where('date', '>', date2))
+      );
 
       return Promise.all([docs1Promise, docs2Promise]).then(results => {
         const docs1 = results[0];
@@ -634,21 +715,30 @@ apiDescribe('Queries', persistence => {
       const query1 = query(coll, where('key', '<', '4'));
       const accum = new EventsAccumulator<QuerySnapshot>();
       let unlisten2: () => void;
-      const unlisten1 = onSnapshot(query1, result => {
-        expect(toDataArray(result)).to.deep.equal([
-          testDocs[1],
-          testDocs[2],
-          testDocs[3]
-        ]);
-        const query2 = query(coll, where('filter', '==', true));
-        unlisten2 = onSnapshot(
-          query2,
-          {
-            includeMetadataChanges: true
-          },
-          accum.storeEvent
-        );
-      });
+      const unlisten1 = onSnapshot(
+        pipelineMode,
+        query1,
+        (
+          result:
+            | QuerySnapshot<DocumentData, DocumentData>
+            | RealtimePipelineSnapshot
+        ) => {
+          expect(toDataArray(result)).to.deep.equal([
+            testDocs[1],
+            testDocs[2],
+            testDocs[3]
+          ]);
+          const query2 = query(coll, where('filter', '==', true));
+          unlisten2 = onSnapshot(
+            pipelineMode,
+            query2,
+            {
+              includeMetadataChanges: true
+            },
+            accum.storeEvent
+          );
+        }
+      );
       return accum.awaitEvents(2).then(events => {
         const results1 = events[0];
         const results2 = events[1];
@@ -676,6 +766,7 @@ apiDescribe('Queries', persistence => {
     return withTestCollection(persistence, initialDoc, async coll => {
       const accum = new EventsAccumulator<QuerySnapshot>();
       const unlisten = onSnapshot(
+        pipelineMode,
         coll,
         { includeMetadataChanges: true },
         accum.storeEvent
@@ -709,6 +800,10 @@ apiDescribe('Queries', persistence => {
   it.skipEmulator.skipEnterprise(
     'can catch error message for missing index with error handler',
     () => {
+      if (pipelineMode === 'query-to-pipeline') {
+        return;
+      }
+
       return withEmptyTestCollection(persistence, async coll => {
         const query_ = query(
           coll,
@@ -717,7 +812,7 @@ apiDescribe('Queries', persistence => {
         );
         const deferred = new Deferred<void>();
 
-        const unsubscribe = onSnapshot(
+        const unsubscribe = onSnapshotProd(
           query_,
           () => {
             deferred.reject();
@@ -749,13 +844,15 @@ apiDescribe('Queries', persistence => {
     return withTestCollection(persistence, testDocs, coll => {
       // Ideally this would be descending to validate it's different than
       // the default, but that requires an extra index
-      return getDocs(query(coll, orderBy(documentId()))).then(docs => {
-        expect(toDataArray(docs)).to.deep.equal([
-          testDocs['a'],
-          testDocs['b'],
-          testDocs['c']
-        ]);
-      });
+      return getDocs(pipelineMode, query(coll, orderBy(documentId()))).then(
+        docs => {
+          expect(toDataArray(docs)).to.deep.equal([
+            testDocs['a'],
+            testDocs['b'],
+            testDocs['c']
+          ]);
+        }
+      );
     });
   });
 
@@ -766,24 +863,21 @@ apiDescribe('Queries', persistence => {
       ba: { key: 'ba' },
       bb: { key: 'bb' }
     };
-    return withTestCollection(persistence, testDocs, coll => {
-      return getDocs(query(coll, where(documentId(), '==', 'ab')))
-        .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
-          return getDocs(
-            query(
-              coll,
-              where(documentId(), '>', 'aa'),
-              where(documentId(), '<=', 'ba')
-            )
-          );
-        })
-        .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
-            testDocs['ab'],
-            testDocs['ba']
-          ]);
-        });
+    return withTestCollection(persistence, testDocs, async coll => {
+      let docs = await getDocs(
+        pipelineMode,
+        query(coll, where(documentId(), '==', 'ab'))
+      );
+      expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
+      docs = await getDocs(
+        pipelineMode,
+        query(
+          coll,
+          where(documentId(), '>', 'aa'),
+          where(documentId(), '<=', 'ba')
+        )
+      );
+      expect(toDataArray(docs)).to.deep.equal([testDocs['ab'], testDocs['ba']]);
     });
   });
 
@@ -794,24 +888,20 @@ apiDescribe('Queries', persistence => {
       ba: { key: 'ba' },
       bb: { key: 'bb' }
     };
-    return withTestCollection(persistence, testDocs, coll => {
-      return getDocs(query(coll, where(documentId(), '==', doc(coll, 'ab'))))
-        .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([testDocs['ab']]);
-          return getDocs(
-            query(
-              coll,
-              where(documentId(), '>', doc(coll, 'aa')),
-              where(documentId(), '<=', doc(coll, 'ba'))
-            )
-          );
-        })
-        .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([
-            testDocs['ab'],
-            testDocs['ba']
-          ]);
-        });
+    return withTestCollection(persistence, testDocs, async coll => {
+      let docs = await getDocs(
+        pipelineMode,
+        query(coll, where(documentId(), '==', doc(coll, 'ab')))
+      );
+      docs = await getDocs(
+        pipelineMode,
+        query(
+          coll,
+          where(documentId(), '>', doc(coll, 'aa')),
+          where(documentId(), '<=', doc(coll, 'ba'))
+        )
+      );
+      expect(toDataArray(docs)).to.deep.equal([testDocs['ab'], testDocs['ba']]);
     });
   });
 
@@ -820,9 +910,10 @@ apiDescribe('Queries', persistence => {
       const deferred = new Deferred<void>();
 
       const unregister = onSnapshot(
+        pipelineMode,
         coll,
         { includeMetadataChanges: true },
-        snapshot => {
+        (snapshot: { empty: boolean; metadata: { fromCache: boolean } }) => {
           if (!snapshot.empty && !snapshot.metadata.fromCache) {
             deferred.resolve();
           }
@@ -839,8 +930,11 @@ apiDescribe('Queries', persistence => {
 
   it('trigger with isFromCache=true when offline', () => {
     return withTestCollection(persistence, { a: { foo: 1 } }, (coll, db) => {
-      const accum = new EventsAccumulator<QuerySnapshot>();
+      const accum = new EventsAccumulator<
+        QuerySnapshot | RealtimePipelineSnapshot
+      >();
       const unregister = onSnapshot(
+        pipelineMode,
         coll,
         { includeMetadataChanges: true },
         accum.storeEvent
@@ -850,7 +944,7 @@ apiDescribe('Queries', persistence => {
         .awaitEvent()
         .then(querySnap => {
           // initial event
-          expect(querySnap.docs.map(doc => doc.data())).to.deep.equal([
+          expect(results(querySnap).map(doc => doc.data())).to.deep.equal([
             { foo: 1 }
           ]);
           expect(querySnap.metadata.fromCache).to.be.false;
@@ -893,11 +987,15 @@ apiDescribe('Queries', persistence => {
       delete expected.c;
       delete expected.i;
       delete expected.j;
-      const snapshot = await getDocs(query(coll, where('zip', '!=', 98101)));
+      const snapshot = await getDocs(
+        pipelineMode,
+        query(coll, where('zip', '!=', 98101))
+      );
       expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
 
       // With objects.
       const snapshot2 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', '!=', { code: 500 }))
       );
       expected = { ...testDocs };
@@ -907,21 +1005,36 @@ apiDescribe('Queries', persistence => {
       expect(toDataArray(snapshot2)).to.deep.equal(Object.values(expected));
 
       // With null.
-      const snapshot3 = await getDocs(query(coll, where('zip', '!=', null)));
+      const snapshot3 = await getDocs(
+        pipelineMode,
+        query(coll, where('zip', '!=', null))
+      );
       expected = { ...testDocs };
       delete expected.i;
       delete expected.j;
       expect(toDataArray(snapshot3)).to.deep.equal(Object.values(expected));
 
       // With NaN.
-      const snapshot4 = await getDocs(
-        query(coll, where('zip', '!=', Number.NaN))
-      );
-      expected = { ...testDocs };
-      delete expected.a;
-      delete expected.i;
-      delete expected.j;
-      expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
+      if (pipelineMode === 'no-pipeline-conversion') {
+        const snapshot4 = await getDocs(
+          pipelineMode,
+          query(coll, where('zip', '!=', Number.NaN))
+        );
+        expected = { ...testDocs };
+        delete expected.a;
+        delete expected.i;
+        delete expected.j;
+        expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
+      } else {
+        // TODO(pipelines): Unfortunately where('zip', '!=', Number.NaN) is not just
+        // an equivalent to isNotNan('zip'), it is more like (isNotNumber('zip') || isNotNan('zip')).
+        const snapshot4 = await getDocs(
+          pipelineMode,
+          query(coll, where('zip', '!=', Number.NaN))
+        );
+        expected = { b: testDocs.b, c: testDocs.c };
+        expect(toDataArray(snapshot4)).to.deep.equal(Object.values(expected));
+      }
     });
   });
 
@@ -934,6 +1047,7 @@ apiDescribe('Queries', persistence => {
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where(documentId(), '!=', 'aa'))
       );
 
@@ -958,6 +1072,7 @@ apiDescribe('Queries', persistence => {
     await withTestCollection(persistence, testDocs, async coll => {
       // Search for 42
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains', 42))
       );
       expect(toDataArray(snapshot)).to.deep.equal([
@@ -970,12 +1085,14 @@ apiDescribe('Queries', persistence => {
       // arrays, so there isn't much of anything else interesting to test.
       // With null.
       const snapshot3 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'array-contains', null))
       );
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
       // With NaN.
       const snapshot4 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'array-contains', Number.NaN))
       );
       expect(toDataArray(snapshot4)).to.deep.equal([]);
@@ -997,6 +1114,7 @@ apiDescribe('Queries', persistence => {
 
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'in', [98101, 98103, [98101, 98102]]))
       );
       expect(toDataArray(snapshot)).to.deep.equal([
@@ -1007,28 +1125,35 @@ apiDescribe('Queries', persistence => {
 
       // With objects.
       const snapshot2 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'in', [{ code: 500 }]))
       );
       expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
 
       // With null.
-      const snapshot3 = await getDocs(query(coll, where('zip', 'in', [null])));
+      const snapshot3 = await getDocs(
+        pipelineMode,
+        query(coll, where('zip', 'in', [null]))
+      );
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
       // With null and a value.
       const snapshot4 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'in', [98101, null]))
       );
       expect(toDataArray(snapshot4)).to.deep.equal([{ zip: 98101 }]);
 
       // With NaN.
       const snapshot5 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'in', [Number.NaN]))
       );
       expect(toDataArray(snapshot5)).to.deep.equal([]);
 
       // With NaN and a value.
       const snapshot6 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'in', [98101, Number.NaN]))
       );
       expect(toDataArray(snapshot6)).to.deep.equal([{ zip: 98101 }]);
@@ -1044,6 +1169,7 @@ apiDescribe('Queries', persistence => {
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where(documentId(), 'in', ['aa', 'ab']))
       );
 
@@ -1079,12 +1205,14 @@ apiDescribe('Queries', persistence => {
       delete expected.i;
       delete expected.j;
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'not-in', [98101, 98103, [98101, 98102]]))
       );
       expect(toDataArray(snapshot)).to.deep.equal(Object.values(expected));
 
       // With objects.
       const snapshot2 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'not-in', [{ code: 500 }]))
       );
       expected = { ...testDocs };
@@ -1095,12 +1223,14 @@ apiDescribe('Queries', persistence => {
 
       // With null.
       const snapshot3 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'not-in', [null]))
       );
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
       // With NaN.
       const snapshot4 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'not-in', [Number.NaN]))
       );
       expected = { ...testDocs };
@@ -1111,6 +1241,7 @@ apiDescribe('Queries', persistence => {
 
       // With NaN and a number.
       const snapshot5 = await getDocs(
+        pipelineMode,
         query(coll, where('zip', 'not-in', [Number.NaN, 98101]))
       );
       expected = { ...testDocs };
@@ -1131,6 +1262,7 @@ apiDescribe('Queries', persistence => {
     };
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where(documentId(), 'not-in', ['aa', 'ab']))
       );
 
@@ -1156,6 +1288,7 @@ apiDescribe('Queries', persistence => {
 
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains-any', [42, 43]))
       );
       expect(toDataArray(snapshot)).to.deep.equal([
@@ -1167,30 +1300,35 @@ apiDescribe('Queries', persistence => {
 
       // With objects.
       const snapshot2 = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains-any', [{ a: 42 }]))
       );
       expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
 
       // With null.
       const snapshot3 = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains-any', [null]))
       );
       expect(toDataArray(snapshot3)).to.deep.equal([]);
 
       // With null and a value.
       const snapshot4 = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains-any', [43, null]))
       );
       expect(toDataArray(snapshot4)).to.deep.equal([{ array: [43] }]);
 
       // With NaN.
       const snapshot5 = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains-any', [Number.NaN]))
       );
       expect(toDataArray(snapshot5)).to.deep.equal([]);
 
       // With NaN and a value.
       const snapshot6 = await getDocs(
+        pipelineMode,
         query(coll, where('array', 'array-contains-any', [43, Number.NaN]))
       );
       expect(toDataArray(snapshot6)).to.deep.equal([{ array: [43] }]);
@@ -1222,8 +1360,11 @@ apiDescribe('Queries', persistence => {
       }
       await batch.commit();
 
-      const querySnapshot = await getDocs(collectionGroup(db, cg));
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+      const querySnapshot = await getDocs(
+        pipelineMode,
+        collectionGroup(db, cg)
+      );
+      expect(results(querySnapshot).map(d => d.id)).to.deep.equal([
         'cg-doc1',
         'cg-doc2',
         'cg-doc3',
@@ -1255,6 +1396,7 @@ apiDescribe('Queries', persistence => {
       await batch.commit();
 
       let querySnapshot = await getDocs(
+        pipelineMode,
         query(
           collectionGroup(db, cg),
           orderBy(documentId()),
@@ -1262,13 +1404,14 @@ apiDescribe('Queries', persistence => {
           endAt('a/b0')
         )
       );
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+      expect(results(querySnapshot).map(d => d.id)).to.deep.equal([
         'cg-doc2',
         'cg-doc3',
         'cg-doc4'
       ]);
 
       querySnapshot = await getDocs(
+        pipelineMode,
         query(
           collectionGroup(db, cg),
           orderBy(documentId()),
@@ -1276,7 +1419,7 @@ apiDescribe('Queries', persistence => {
           endBefore(`a/b/${cg}/cg-doc3`)
         )
       );
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+      expect(results(querySnapshot).map(d => d.id)).to.deep.equal(['cg-doc2']);
     });
   });
 
@@ -1302,26 +1445,28 @@ apiDescribe('Queries', persistence => {
       await batch.commit();
 
       let querySnapshot = await getDocs(
+        pipelineMode,
         query(
           collectionGroup(db, cg),
           where(documentId(), '>=', `a/b`),
           where(documentId(), '<=', 'a/b0')
         )
       );
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+      expect(results(querySnapshot).map(d => d.id)).to.deep.equal([
         'cg-doc2',
         'cg-doc3',
         'cg-doc4'
       ]);
 
       querySnapshot = await getDocs(
+        pipelineMode,
         query(
           collectionGroup(db, cg),
           where(documentId(), '>', `a/b`),
           where(documentId(), '<', `a/b/${cg}/cg-doc3`)
         )
       );
-      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+      expect(results(querySnapshot).map(d => d.id)).to.deep.equal(['cg-doc2']);
     });
   });
 
@@ -1352,10 +1497,14 @@ apiDescribe('Queries', persistence => {
 
       for (let i = 0; i < 2; ++i) {
         const deferred = new Deferred<void>();
-        const unsubscribe = onSnapshot(query1, snapshot => {
-          expect(snapshot.size).to.equal(1);
-          deferred.resolve();
-        });
+        const unsubscribe = onSnapshot(
+          pipelineMode,
+          query1,
+          (snapshot: { size: number }) => {
+            expect(snapshot.size).to.equal(1);
+            deferred.resolve();
+          }
+        );
         await deferred.promise;
         unsubscribe();
       }
@@ -1372,8 +1521,9 @@ apiDescribe('Queries', persistence => {
     };
 
     return withTestCollection(persistence, testDocs, async coll => {
-      await getDocs(query(coll)); // Populate the cache.
+      await getDocs(pipelineMode, query(coll)); // Populate the cache.
       const snapshot = await getDocs(
+        pipelineMode,
         query(coll, where('map.nested', '==', 'foo'))
       );
       expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
@@ -1396,7 +1546,8 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // a == 1
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, where('a', '==', 1)),
           'doc1',
@@ -1405,21 +1556,24 @@ apiDescribe('Queries', persistence => {
         );
 
         // Implicit AND: a == 1 && b == 3
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, where('a', '==', 1), where('b', '==', 3)),
           'doc4'
         );
 
         // explicit AND: a == 1 && b == 3
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, and(where('a', '==', 1), where('b', '==', 3))),
           'doc4'
         );
 
         // a == 1, limit 2
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, where('a', '==', 1), limit(2)),
           'doc1',
@@ -1427,7 +1581,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // explicit OR: a == 1 || b == 1 with limit 2
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', '==', 1), where('b', '==', 1)), limit(2)),
           'doc1',
@@ -1435,7 +1590,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // only limit 2
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, limit(2)),
           'doc1',
@@ -1443,7 +1599,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // limit 2 and order by b desc
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, limit(2), orderBy('b', 'desc')),
           'doc4',
@@ -1463,7 +1620,8 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // Two equalities: a==1 || b==1.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', '==', 1), where('b', '==', 1))),
           'doc1',
@@ -1473,7 +1631,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // (a==1 && b==0) || (a==3 && b==2)
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1487,7 +1646,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // a==1 && (b==0 || b==3).
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1501,7 +1661,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // (a==2 || b==2) && (a==3 || b==3)
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1514,7 +1675,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // Test with limits without orderBy (the __name__ ordering is the tie breaker).
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', '==', 2), where('b', '==', 1)), limit(1)),
           'doc2'
@@ -1534,7 +1696,8 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // a==2 || b in [2,3]
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', '==', 2), where('b', 'in', [2, 3]))),
           'doc3',
@@ -1556,7 +1719,8 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // a==2 || b array-contains 7
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', '==', 2), where('b', 'array-contains', 7))),
           'doc3',
@@ -1565,7 +1729,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // a==2 || b array-contains-any [0, 3]
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1589,7 +1754,8 @@ apiDescribe('Queries', persistence => {
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1604,7 +1770,8 @@ apiDescribe('Queries', persistence => {
           'doc6'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1616,7 +1783,8 @@ apiDescribe('Queries', persistence => {
           'doc3'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1630,7 +1798,8 @@ apiDescribe('Queries', persistence => {
           'doc4'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1656,7 +1825,8 @@ apiDescribe('Queries', persistence => {
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1667,7 +1837,8 @@ apiDescribe('Queries', persistence => {
           'doc6'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1676,7 +1847,8 @@ apiDescribe('Queries', persistence => {
           'doc3'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1690,7 +1862,8 @@ apiDescribe('Queries', persistence => {
           'doc6'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1715,7 +1888,8 @@ apiDescribe('Queries', persistence => {
       };
 
       return withTestCollection(persistence, testDocs, async coll => {
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, where('a', '==', 1), orderBy('a')),
           'doc1',
@@ -1723,7 +1897,8 @@ apiDescribe('Queries', persistence => {
           'doc5'
         );
 
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, where('a', 'in', [2, 3]), orderBy('a')),
           'doc6',
@@ -1744,7 +1919,8 @@ apiDescribe('Queries', persistence => {
 
       return withTestCollection(persistence, testDocs, async coll => {
         // Two IN operations on different fields with disjunction.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc1',
@@ -1753,7 +1929,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // Two IN operations on different fields with conjunction.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, and(where('a', 'in', [2, 3]), where('b', 'in', [0, 2]))),
           'doc3'
@@ -1761,7 +1938,8 @@ apiDescribe('Queries', persistence => {
 
         // Two IN operations on the same field.
         // a IN [1,2,3] && a IN [0,1,4] should result in "a==1".
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1774,7 +1952,8 @@ apiDescribe('Queries', persistence => {
 
         // a IN [2,3] && a IN [0,1,4] is never true and so the result should be an
         // empty set.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1783,7 +1962,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // a IN [0,3] || a IN [0,2] should union them (similar to: a IN [0,2,3]).
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(coll, or(where('a', 'in', [0, 3]), where('a', 'in', [0, 2]))),
           'doc3',
@@ -1791,7 +1971,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // Nested composite filter on the same field.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1807,7 +1988,8 @@ apiDescribe('Queries', persistence => {
         );
 
         // Nested composite filter on the different fields.
-        await checkOnlineAndOfflineResultsMatch(
+        await checkOnlineAndOfflineResultsMatchWithPipelineMode(
+          pipelineMode,
           coll,
           query(
             coll,
@@ -1840,7 +2022,7 @@ apiDescribe('Queries', persistence => {
 
       await withTestCollection(persistence, testDocs, async coll => {
         // populate cache with all documents first to ensure getDocsFromCache() scans all docs
-        await getDocs(coll);
+        await getDocsProd(coll);
 
         let testQuery = query(coll, where('zip', '!=', 98101));
         await checkOnlineAndOfflineResultsMatch(
@@ -1900,7 +2082,7 @@ apiDescribe('Queries', persistence => {
 
       await withTestCollection(persistence, testDocs, async coll => {
         // populate cache with all documents first to ensure getDocsFromCache() scans all docs
-        await getDocs(coll);
+        await getDocsProd(coll);
 
         let testQuery = query(
           coll,
@@ -1929,13 +2111,13 @@ apiDescribe('Queries', persistence => {
       // Use persistence with LRU garbage collection so the resume token and
       // document data do not get prematurely deleted from the local cache.
       return withTestCollection(persistence.toLruGc(), {}, async coll => {
-        const snapshot1 = await getDocs(coll); // Populate the cache.
+        const snapshot1 = await getDocs(pipelineMode, coll); // Populate the cache.
         expect(snapshot1.metadata.fromCache).to.be.false;
         expect(toDataArray(snapshot1)).to.deep.equal([]); // Precondition check.
 
         // Add a snapshot listener whose first event should be raised from cache.
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
-        onSnapshot(coll, storeEvent.storeEvent);
+        onSnapshot(pipelineMode, coll, storeEvent.storeEvent);
         const snapshot2 = await storeEvent.awaitEvent();
         expect(snapshot2.metadata.fromCache).to.be.true;
         expect(toDataArray(snapshot2)).to.deep.equal([]);
@@ -1950,20 +2132,457 @@ apiDescribe('Queries', persistence => {
       // document data do not get prematurely deleted from the local cache.
       return withTestCollection(persistence.toLruGc(), testDocs, async coll => {
         // Populate the cache.
-        const snapshot1 = await getDocs(coll);
+        const snapshot1 = await getDocs(pipelineMode, coll);
         expect(snapshot1.metadata.fromCache).to.be.false;
         expect(toDataArray(snapshot1)).to.deep.equal([{ key: 'a' }]);
         // Empty the collection.
         void deleteDoc(doc(coll, 'a'));
 
         const storeEvent = new EventsAccumulator<QuerySnapshot>();
-        onSnapshot(coll, storeEvent.storeEvent);
+        onSnapshot(pipelineMode, coll, storeEvent.storeEvent);
         const snapshot2 = await storeEvent.awaitEvent();
         expect(snapshot2.metadata.fromCache).to.be.true;
         expect(toDataArray(snapshot2)).to.deep.equal([]);
       });
     });
   });
+
+  // TODO(b/291365820): Stop skipping this test when running against the
+  // Firestore emulator once the emulator is improved to include a bloom filter
+  // in the existence filter messages that it sends.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'resuming a query should use bloom filter to avoid full requery',
+    async () => {
+      // Prepare the names and contents of the 100 documents to create.
+      const testDocs: { [key: string]: object } = {};
+      for (let i = 0; i < 100; i++) {
+        testDocs['doc' + (1000 + i)] = { key: 42 };
+      }
+
+      // Ensure that the local cache is configured to use LRU garbage
+      // collection (rather than eager garbage collection) so that the resume
+      // token and document data does not get prematurely evicted.
+      const lruPersistence = persistence.toLruGc();
+
+      return withRetry(async attemptNumber => {
+        return withTestCollection(
+          lruPersistence,
+          testDocs,
+          async (coll, db) => {
+            // Run a query to populate the local cache with the 100 documents
+            // and a resume token.
+            const snapshot1 = await getDocs(pipelineMode, coll);
+            expect(results(snapshot1).length, 'snapshot1.size').to.equal(100);
+            const createdDocuments = results(snapshot1).map(
+              snapshot => snapshot.ref
+            );
+
+            // Delete 50 of the 100 documents. Use a different Firestore
+            // instance to avoid affecting the local cache.
+            const deletedDocumentIds = new Set<string>();
+            await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
+              const batch = writeBatch(db2);
+              for (let i = 0; i < createdDocuments.length; i += 2) {
+                const documentToDelete = doc(db2, createdDocuments[i]!.path);
+                batch.delete(documentToDelete);
+                deletedDocumentIds.add(documentToDelete.id);
+              }
+              await batch.commit();
+            });
+
+            // Wait for 10 seconds, during which Watch will stop tracking the
+            // query and will send an existence filter rather than "delete"
+            // events when the query is resumed.
+            await new Promise(resolve => setTimeout(resolve, 10000));
+
+            // Resume the query and save the resulting snapshot for
+            // verification. Use some internal testing hooks to "capture" the
+            // existence filter mismatches to verify that Watch sent a bloom
+            // filter, and it was used to avert a full requery.
+            const [existenceFilterMismatches, snapshot2] =
+              await captureExistenceFilterMismatches<
+                QuerySnapshot,
+                RealtimePipelineSnapshot
+              >(() => getDocs(pipelineMode, coll));
+
+            // Verify that the snapshot from the resumed query contains the
+            // expected documents; that is, that it contains the 50 documents
+            // that were _not_ deleted.
+            const actualDocumentIds = results(snapshot2)
+              .map(documentSnapshot => documentSnapshot.ref!.id)
+              .sort();
+            const expectedDocumentIds = createdDocuments
+              .filter(documentRef => !deletedDocumentIds.has(documentRef!.id))
+              .map(documentRef => documentRef!.id)
+              .sort();
+            expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+              expectedDocumentIds
+            );
+
+            // Verify that Watch sent an existence filter with the correct
+            // counts when the query was resumed.
+            expect(
+              existenceFilterMismatches,
+              'existenceFilterMismatches'
+            ).to.have.length(1);
+            const { localCacheCount, existenceFilterCount, bloomFilter } =
+              existenceFilterMismatches[0];
+            expect(localCacheCount, 'localCacheCount').to.equal(100);
+            expect(existenceFilterCount, 'existenceFilterCount').to.equal(50);
+
+            // Verify that Watch sent a valid bloom filter.
+            if (!bloomFilter) {
+              expect.fail(
+                'The existence filter should have specified a bloom filter ' +
+                  'in its `unchanged_names` field.'
+              );
+              throw new Error('should never get here');
+            }
+
+            expect(bloomFilter.hashCount, 'bloomFilter.hashCount').to.be.above(
+              0
+            );
+            expect(
+              bloomFilter.bitmapLength,
+              'bloomFilter.bitmapLength'
+            ).to.be.above(0);
+            expect(bloomFilter.padding, 'bloomFilterPadding').to.be.above(0);
+            expect(bloomFilter.padding, 'bloomFilterPadding').to.be.below(8);
+
+            // Verify that the bloom filter was successfully used to avert a
+            // full requery. If a false positive occurred then retry the entire
+            // test. Although statistically rare, false positives are expected
+            // to happen occasionally. When a false positive _does_ happen, just
+            // retry the test with a different set of documents. If that retry
+            // also_ experiences a false positive, then fail the test because
+            // that is so improbable that something must have gone wrong.
+            if (attemptNumber === 1 && !bloomFilter.applied) {
+              throw new RetryError();
+            }
+
+            expect(
+              bloomFilter.applied,
+              `bloomFilter.applied with attemptNumber=${attemptNumber}`
+            ).to.be.true;
+          }
+        );
+      });
+    }
+  ).timeout('90s');
+
+  // TODO(b/291365820): Stop skipping this test when running against the
+  // Firestore emulator once the emulator is improved to include a bloom filter
+  // in the existence filter messages that it sends.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'bloom filter should avert a full re-query when documents were added, ' +
+      'deleted, removed, updated, and unchanged since the resume token',
+    async () => {
+      // Prepare the names and contents of the 20 documents to create.
+      const testDocs: { [key: string]: object } = {};
+      for (let i = 0; i < 20; i++) {
+        testDocs['doc' + (1000 + i)] = {
+          key: 42,
+          removed: false
+        };
+      }
+
+      // Ensure that the local cache is configured to use LRU garbage
+      // collection (rather than eager garbage collection) so that the resume
+      // token and document data does not get prematurely evicted.
+      const lruPersistence = persistence.toLruGc();
+
+      return withRetry(async attemptNumber => {
+        return withTestCollection(lruPersistence, testDocs, async coll => {
+          // Run a query to populate the local cache with the 20 documents
+          // and a resume token.
+          const snapshot1 = await getDocs(
+            pipelineMode,
+            query(coll, where('removed', '==', false))
+          );
+          expect(results(snapshot1).length, 'snapshot1.size').to.equal(20);
+          const createdDocuments = results(snapshot1).map(
+            snapshot => snapshot.ref
+          );
+
+          // Out of the 20 existing documents, leave 5 docs untouched, delete 5 docs,
+          // remove 5 docs, update 5 docs, and add 15 new docs.
+          const deletedDocumentIds = new Set<string>();
+          const removedDocumentIds = new Set<string>();
+          const updatedDocumentIds = new Set<string>();
+          const addedDocumentIds: string[] = [];
+
+          // Use a different Firestore instance to avoid affecting the local cache.
+          await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
+            const batch = writeBatch(db2);
+
+            for (let i = 0; i < createdDocuments.length; i += 4) {
+              const documentToDelete = doc(db2, createdDocuments[i]!.path);
+              batch.delete(documentToDelete);
+              deletedDocumentIds.add(documentToDelete.id);
+            }
+            expect(deletedDocumentIds.size).to.equal(5);
+
+            // Update 5 documents to no longer match the query.
+            for (let i = 1; i < createdDocuments.length; i += 4) {
+              const documentToModify = doc(db2, createdDocuments[i]!.path);
+              batch.update(documentToModify, {
+                removed: true
+              });
+              removedDocumentIds.add(documentToModify.id);
+            }
+            expect(removedDocumentIds.size).to.equal(5);
+
+            // Update 5 documents, but ensure they still match the query.
+            for (let i = 2; i < createdDocuments.length; i += 4) {
+              const documentToModify = doc(db2, createdDocuments[i]!.path);
+              batch.update(documentToModify, {
+                key: 43
+              });
+              updatedDocumentIds.add(documentToModify.id);
+            }
+            expect(updatedDocumentIds.size).to.equal(5);
+
+            for (let i = 0; i < 15; i += 1) {
+              const documentToAdd = doc(
+                db2,
+                coll.path + '/newDoc' + (1000 + i)
+              );
+              batch.set(documentToAdd, {
+                key: 42,
+                removed: false
+              });
+              addedDocumentIds.push(documentToAdd.id);
+            }
+
+            // Ensure the sets above are disjoint.
+            const mergedSet = new Set<string>();
+            [
+              deletedDocumentIds,
+              removedDocumentIds,
+              updatedDocumentIds,
+              addedDocumentIds
+            ].forEach(set => {
+              set.forEach(documentId => mergedSet.add(documentId));
+            });
+            expect(mergedSet.size).to.equal(30);
+
+            await batch.commit();
+          });
+
+          // Wait for 10 seconds, during which Watch will stop tracking the
+          // query and will send an existence filter rather than "delete"
+          // events when the query is resumed.
+          await new Promise(resolve => setTimeout(resolve, 10000));
+
+          // Resume the query and save the resulting snapshot for
+          // verification. Use some internal testing hooks to "capture" the
+          // existence filter mismatches to verify that Watch sent a bloom
+          // filter, and it was used to avert a full requery.
+          const [existenceFilterMismatches, snapshot2] =
+            await captureExistenceFilterMismatches<
+              QuerySnapshot,
+              RealtimePipelineSnapshot
+            >(() =>
+              getDocs(pipelineMode, query(coll, where('removed', '==', false)))
+            );
+
+          // Verify that the snapshot from the resumed query contains the
+          // expected documents; that is, 10 existing documents that still
+          // match the query, and 15 documents that are newly added.
+          const actualDocumentIds = results(snapshot2)
+            .map(documentSnapshot => documentSnapshot.ref!.id)
+            .sort();
+          const expectedDocumentIds = createdDocuments
+            .map(documentRef => documentRef!.id)
+            .filter(documentId => !deletedDocumentIds.has(documentId))
+            .filter(documentId => !removedDocumentIds.has(documentId))
+            .concat(addedDocumentIds)
+            .sort();
+
+          expect(actualDocumentIds, 'snapshot2.docs').to.deep.equal(
+            expectedDocumentIds
+          );
+          expect(actualDocumentIds.length).to.equal(25);
+
+          // Verify that Watch sent an existence filter with the correct
+          // counts when the query was resumed.
+          expect(
+            existenceFilterMismatches,
+            'existenceFilterMismatches'
+          ).to.have.length(1);
+          const { localCacheCount, existenceFilterCount, bloomFilter } =
+            existenceFilterMismatches[0];
+          expect(localCacheCount, 'localCacheCount').to.equal(35);
+          expect(existenceFilterCount, 'existenceFilterCount').to.equal(25);
+
+          // Verify that Watch sent a valid bloom filter.
+          if (!bloomFilter) {
+            expect.fail(
+              'The existence filter should have specified a bloom filter ' +
+                'in its `unchanged_names` field.'
+            );
+            throw new Error('should never get here');
+          }
+
+          // Verify that the bloom filter was successfully used to avert a
+          // full requery. If a false positive occurred then retry the entire
+          // test. Although statistically rare, false positives are expected
+          // to happen occasionally. When a false positive _does_ happen, just
+          // retry the test with a different set of documents. If that retry
+          // also_ experiences a false positive, then fail the test because
+          // that is so improbable that something must have gone wrong.
+          if (attemptNumber === 1 && !bloomFilter.applied) {
+            throw new RetryError();
+          }
+
+          expect(
+            bloomFilter.applied,
+            `bloomFilter.applied with attemptNumber=${attemptNumber}`
+          ).to.be.true;
+        });
+      });
+    }
+  ).timeout('90s');
+
+  // TODO(b/291365820): Stop skipping this test when running against the
+  // Firestore emulator once the emulator is improved to include a bloom filter
+  // in the existence filter messages that it sends.
+  // eslint-disable-next-line no-restricted-properties
+  (USE_EMULATOR ? it.skip : it)(
+    'bloom filter should correctly encode complex Unicode characters',
+    async () => {
+      // Firestore does not do any Unicode normalization on the document IDs.
+      // Therefore, two document IDs that are canonically-equivalent (i.e. they
+      // visually appear identical) but are represented by a different sequence
+      // of Unicode code points are treated as distinct document IDs.
+      const testDocIds = [
+        'DocumentToDelete',
+        // The next two strings both end with "e" with an accent: the first uses
+        // the dedicated Unicode code point for this character, while the second
+        // uses the standard lowercase "e" followed by the accent combining
+        // character.
+        'LowercaseEWithAcuteAccent_\u00E9',
+        'LowercaseEWithAcuteAccent_\u0065\u0301',
+        // The next two strings both end with an "e" with two different accents
+        // applied via the following two combining characters. The combining
+        // characters are specified in a different order and Firestore treats
+        // these document IDs as unique, despite the order of the combining
+        // characters being irrelevant.
+        'LowercaseEWithMultipleAccents_\u0065\u0301\u0327',
+        'LowercaseEWithMultipleAccents_\u0065\u0327\u0301',
+        // The next string contains a character outside the BMP (the "basic
+        // multilingual plane"); that is, its code point is greater than 0xFFFF.
+        // In UTF-16 (which JavaScript uses to store Unicode strings) this
+        // requires a surrogate pair, two 16-bit code units, to represent this
+        // character. Make sure that its presence is correctly tested in the
+        // bloom filter, which uses UTF-8 encoding.
+        'Smiley_\u{1F600}'
+      ];
+
+      // Verify assumptions about the equivalence of strings in `testDocIds`.
+      expect(testDocIds[1].normalize()).equals(testDocIds[2].normalize());
+      expect(testDocIds[3].normalize()).equals(testDocIds[4].normalize());
+      expect(testDocIds[5]).equals('Smiley_\uD83D\uDE00');
+
+      // Create the mapping from document ID to document data for the document
+      // IDs specified in `testDocIds`.
+      const testDocs = testDocIds.reduce((map, docId) => {
+        map[docId] = { foo: 42 };
+        return map;
+      }, {} as { [key: string]: DocumentData });
+
+      // Ensure that the local cache is configured to use LRU garbage collection
+      // (rather than eager garbage collection) so that the resume token and
+      // document data does not get prematurely evicted.
+      const lruPersistence = persistence.toLruGc();
+
+      return withTestCollection(lruPersistence, testDocs, async (coll, db) => {
+        // Run a query to populate the local cache with documents that have
+        // names with complex Unicode characters.
+        const snapshot1 = await getDocs(pipelineMode, coll);
+        const snapshot1DocumentIds = results(snapshot1).map(
+          documentSnapshot => documentSnapshot.id
+        );
+        expect(snapshot1DocumentIds, 'snapshot1DocumentIds').to.have.members(
+          testDocIds
+        );
+
+        // Delete one of the documents so that the next call to getDocs() will
+        // experience an existence filter mismatch. Use a different Firestore
+        // instance to avoid affecting the local cache.
+        const documentToDelete = doc(coll, 'DocumentToDelete');
+        await withTestDb(PERSISTENCE_MODE_UNSPECIFIED, async db2 => {
+          await deleteDoc(doc(db2, documentToDelete.path));
+        });
+
+        // Wait for 10 seconds, during which Watch will stop tracking the query
+        // and will send an existence filter rather than "delete" events when
+        // the query is resumed.
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        // Resume the query and save the resulting snapshot for verification.
+        // Use some internal testing hooks to "capture" the existence filter
+        // mismatches.
+        const [existenceFilterMismatches, snapshot2] =
+          await captureExistenceFilterMismatches<
+            QuerySnapshot,
+            RealtimePipelineSnapshot
+          >(() => getDocs(pipelineMode, coll));
+        const snapshot2DocumentIds = results(snapshot2).map(
+          documentSnapshot => documentSnapshot.id
+        );
+        const testDocIdsMinusDeletedDocId = testDocIds.filter(
+          documentId => documentId !== documentToDelete.id
+        );
+        expect(snapshot2DocumentIds, 'snapshot2DocumentIds').to.have.members(
+          testDocIdsMinusDeletedDocId
+        );
+
+        // Verify that Watch sent an existence filter with the correct counts.
+        expect(
+          existenceFilterMismatches,
+          'existenceFilterMismatches'
+        ).to.have.length(1);
+        const existenceFilterMismatch = existenceFilterMismatches[0];
+        expect(
+          existenceFilterMismatch.localCacheCount,
+          'localCacheCount'
+        ).to.equal(testDocIds.length);
+        expect(
+          existenceFilterMismatch.existenceFilterCount,
+          'existenceFilterCount'
+        ).to.equal(testDocIds.length - 1);
+
+        // Verify that we got a bloom filter from Watch.
+        const bloomFilter = existenceFilterMismatch.bloomFilter!;
+        expect(bloomFilter?.mightContain, 'bloomFilter.mightContain').to.not.be
+          .undefined;
+
+        // The bloom filter application should statistically be successful
+        // almost every time; the _only_ time when it would _not_ be successful
+        // is if there is a false positive when testing for 'DocumentToDelete'
+        // in the bloom filter. So verify that the bloom filter application is
+        // successful, unless there was a false positive.
+        const isFalsePositive = bloomFilter.mightContain(documentToDelete);
+        expect(bloomFilter.applied, 'bloomFilter.applied').to.equal(
+          !isFalsePositive
+        );
+
+        // Verify that the bloom filter contains the document paths with complex
+        // Unicode characters.
+        for (const testDoc of results(snapshot2).map(
+          snapshot => snapshot.ref
+        )) {
+          expect(
+            bloomFilter.mightContain(testDoc!),
+            `bloomFilter.mightContain('${testDoc!.path}')`
+          ).to.be.true;
+        }
+      });
+    }
+  ).timeout('90s');
 
   it('can query large documents with multi-byte character strings', () => {
     function randomMultiByteCharString(length: number): string {
@@ -2001,10 +2620,10 @@ apiDescribe('Queries', persistence => {
       persistence,
       { 1: doc },
       async collectionReference => {
-        const querySnap = await getDocs(collectionReference);
-        expect(querySnap.size).to.equal(1);
+        const querySnap = await getDocs(pipelineMode, collectionReference);
+        expect(results(querySnap).length).to.equal(1);
 
-        const fieldValue = querySnap.docs[0].get('field');
+        const fieldValue = results(querySnap)[0].get('field');
         expect(fieldValue).to.deep.equal(bigString);
       }
     );
@@ -2116,7 +2735,7 @@ apiDescribe('Hanging query issue - #7652', persistence => {
         // The root cause was addressed, and a hardAssert was
         // added to catch any regressions, so this is no longer
         // expected to hang.
-        const qSnap = await getDocs(q);
+        const qSnap = await getDocsProd(q);
 
         expect(qSnap.size).to.equal(collectionDefinition.pageSize);
       });
@@ -2125,13 +2744,13 @@ apiDescribe('Hanging query issue - #7652', persistence => {
 });
 
 export function verifyDocumentChange<T>(
-  change: DocumentChange<T>,
+  change: Partial<DocumentChange<T> & ResultChange>,
   id: string,
   oldIndex: number,
   newIndex: number,
   type: DocumentChangeType
 ): void {
-  expect(change.doc.id).to.equal(id);
+  expect((change.doc || change.result)?.id).to.equal(id);
   expect(change.type).to.equal(type);
   expect(change.oldIndex).to.equal(oldIndex);
   expect(change.newIndex).to.equal(newIndex);

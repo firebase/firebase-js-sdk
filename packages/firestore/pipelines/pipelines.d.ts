@@ -14,14 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PipelineSource, Pipeline } from '../dist/pipelines';
+import { PipelineSource, Pipeline, RealtimePipeline } from '../dist/pipelines';
 
-// Augment the Firestore and Query classes with the pipeline() method.
+// Augument the Firestore and Query classes with the pipeline() method.
 // This is stripped from dist/lite/pipelines.d.ts during the build
 // so it needs to be re-added here.
 declare module '@firebase/firestore' {
   interface Firestore {
     pipeline(): PipelineSource<Pipeline>;
+    realtimePipeline(): PipelineSource<RealtimePipeline>;
   }
 }
 

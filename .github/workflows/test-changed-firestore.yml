@@ -107,7 +107,7 @@ jobs:
     name: Test Firestore
     strategy:
       matrix:
-        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
+        test-name: ["test:browser", "test:node:emulator", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
     runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}
@@ -196,7 +196,7 @@ jobs:
     name: Test Firestore on Firefox
     strategy:
       matrix:
-        test-name: ["test:browser", "test:travis", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
+        test-name: ["test:browser", "test:node:emulator", "test:lite:browser", "test:browser:prod:enterprise", "test:lite:browser:enterprise"]
     runs-on: ubuntu-latest
     needs: build
     if: ${{ needs.build.outputs.changed == 'true'}}

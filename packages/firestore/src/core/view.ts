@@ -21,13 +21,21 @@ import {
   DocumentKeySet,
   DocumentMap
 } from '../model/collections';
-import { Document } from '../model/document';
+import { Document, MutableDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
 import { debugAssert, fail } from '../util/assert';
 
-import { LimitType, newQueryComparator, Query, queryMatches } from './query';
+import { isPipeline, QueryOrPipeline } from './pipeline-util';
+import {
+  getLastEffectiveLimit,
+  newPipelineComparator,
+  PipelineInputOutput,
+  queryOrPipelineMatches,
+  runPipeline
+} from './pipeline_run';
+import { LimitType, newQueryComparator } from './query';
 import { OnlineState } from './types';
 import {
   ChangeType,
@@ -89,11 +97,13 @@ export class View {
   private docComparator: (d1: Document, d2: Document) => number;
 
   constructor(
-    private query: Query,
+    private query: QueryOrPipeline,
     /** Documents included in the remote target */
     private _syncedDocuments: DocumentKeySet
   ) {
-    this.docComparator = newQueryComparator(query);
+    this.docComparator = isPipeline(query)
+      ? newPipelineComparator(query)
+      : newQueryComparator(query);
     this.documentSet = new DocumentSet(this.docComparator);
   }
 
@@ -131,29 +141,19 @@ export class View {
     let newDocumentSet = oldDocumentSet;
     let needsRefill = false;
 
-    // Track the last doc in a (full) limit. This is necessary, because some
-    // update (a delete, or an update moving a doc past the old limit) might
-    // mean there is some other document in the local cache that either should
-    // come (1) between the old last limit doc and the new last document, in the
-    // case of updates, or (2) after the new last document, in the case of
-    // deletes. So we keep this doc at the old limit to compare the updates to.
-    //
-    // Note that this should never get used in a refill (when previousChanges is
-    // set), because there will only be adds -- no deletes or updates.
-    const lastDocInLimit =
-      this.query.limitType === LimitType.First &&
-      oldDocumentSet.size === this.query.limit
-        ? oldDocumentSet.last()
-        : null;
-    const firstDocInLimit =
-      this.query.limitType === LimitType.Last &&
-      oldDocumentSet.size === this.query.limit
-        ? oldDocumentSet.first()
-        : null;
+    const [lastDocInLimit, firstDocInLimit] = this.getLimitEdges(
+      this.query,
+      oldDocumentSet
+    );
 
     docChanges.inorderTraversal((key, entry) => {
       const oldDoc = oldDocumentSet.get(key);
-      const newDoc = queryMatches(this.query, entry) ? entry : null;
+      const newDoc = queryOrPipelineMatches(
+        this.query,
+        entry as MutableDocument
+      )
+        ? entry
+        : null;
 
       const oldDocHadPendingMutations = oldDoc
         ? this.mutatedKeys.has(oldDoc.key)
@@ -225,15 +225,41 @@ export class View {
     });
 
     // Drop documents out to meet limit/limitToLast requirement.
-    if (this.query.limit !== null) {
-      while (newDocumentSet.size > this.query.limit!) {
-        const oldDoc =
-          this.query.limitType === LimitType.First
-            ? newDocumentSet.last()
-            : newDocumentSet.first();
-        newDocumentSet = newDocumentSet.delete(oldDoc!.key);
-        newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
-        changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
+    const limit = this.getLimit(this.query);
+    if (limit) {
+      if (isPipeline(this.query)) {
+        // TODO(pipeline): Not very efficient obviously, but should be fine for now.
+        // Longer term, limit queries should be evaluated from query engine as well.
+        const candidates: PipelineInputOutput[] = [];
+        newDocumentSet.forEach((doc: Document) =>
+          candidates.push(doc as MutableDocument)
+        );
+
+        const results = runPipeline(this.query, candidates);
+        let newResults = new DocumentSet(newPipelineComparator(this.query));
+        for (const doc of results) {
+          newResults = newResults.add(doc);
+        }
+
+        newDocumentSet.forEach((doc: Document) => {
+          if (!newResults.has(doc.key)) {
+            newMutatedKeys = newMutatedKeys.delete(doc.key);
+            changeSet.track({ type: ChangeType.Removed, doc });
+          }
+        });
+
+        newDocumentSet = newResults;
+      } else {
+        const limitType = this.getLimitType(this.query);
+        while (newDocumentSet.size > limit) {
+          const oldDoc =
+            limitType === LimitType.First
+              ? newDocumentSet.last()
+              : newDocumentSet.first();
+          newDocumentSet = newDocumentSet.delete(oldDoc!.key);
+          newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
+          changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
+        }
       }
     }
 
@@ -247,6 +273,55 @@ export class View {
       needsRefill,
       mutatedKeys: newMutatedKeys
     };
+  }
+
+  private getLimit(query: QueryOrPipeline): number | undefined {
+    return isPipeline(query)
+      ? getLastEffectiveLimit(query)?.limit
+      : query.limit || undefined;
+  }
+
+  private getLimitType(query: QueryOrPipeline): LimitType {
+    return isPipeline(query)
+      ? getLastEffectiveLimit(query) || 0 < 0
+        ? LimitType.Last
+        : LimitType.First
+      : query.limitType;
+    // return isPipeline(query) ? LimitType.First : query.limitType;
+  }
+
+  private getLimitEdges(
+    query: QueryOrPipeline,
+    oldDocumentSet: DocumentSet
+  ): [Document | null, Document | null] {
+    if (isPipeline(query)) {
+      const limit = getLastEffectiveLimit(query)?.limit;
+      return [
+        oldDocumentSet.size === limit ? oldDocumentSet.last() : null,
+        null
+      ];
+    } else {
+      // Track the last doc in a (full) limit. This is necessary, because some
+      // update (a delete, or an update moving a doc past the old limit) might
+      // mean there is some other document in the local cache that either should
+      // come (1) between the old last limit doc and the new last document, in the
+      // case of updates, or (2) after the new last document, in the case of
+      // deletes. So we keep this doc at the old limit to compare the updates to.
+      //
+      // Note that this should never get used in a refill (when previousChanges is
+      // set), because there will only be adds -- no deletes or updates.
+      const lastDocInLimit =
+        query.limitType === LimitType.First &&
+        oldDocumentSet.size === this.getLimit(this.query)
+          ? oldDocumentSet.last()
+          : null;
+      const firstDocInLimit =
+        query.limitType === LimitType.Last &&
+        oldDocumentSet.size === this.getLimit(this.query)
+          ? oldDocumentSet.first()
+          : null;
+      return [lastDocInLimit, firstDocInLimit];
+    }
   }
 
   private shouldWaitForSyncedDocument(
