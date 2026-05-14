@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
 import { FirebaseCrashlytics } from '.';
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -59,10 +59,24 @@ describe('FirebaseCrashlytics', () => {
   let recordErrorStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
+  let fakeTracer: any;
+  let fakeContextManager: any;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeCrashlytics = {} as Crashlytics;
+    fakeTracer = {
+      startSpan: stub()
+    };
+    fakeContextManager = {
+      startRootSpan: stub()
+    };
+    const fakeTracingProvider = {
+      getTracer: stub().returns(fakeTracer)
+    };
+    fakeCrashlytics = {
+      tracingProvider: fakeTracingProvider,
+      contextManager: fakeContextManager
+    } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics
@@ -99,5 +113,180 @@ describe('FirebaseCrashlytics', () => {
     );
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+  });
+
+  describe('on click', () => {
+    it('does not start a trace when clicking non-element targets or non-interactive elements', () => {
+      render(
+        <>
+          <FirebaseCrashlytics firebaseApp={fakeApp} />
+          <div id="non-interactive">Just a div</div>
+        </>
+      );
+
+      // Dispatch click on window (non-element target / no closest)
+      window.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      expect(fakeContextManager.startRootSpan).to.not.have.been.called;
+
+      // Dispatch click on non-interactive div
+      const div = document.getElementById('non-interactive')!;
+      fireEvent.click(div);
+      expect(fakeContextManager.startRootSpan).to.not.have.been.called;
+    });
+
+    it('starts a trace for a button', () => {
+      render(
+        <>
+          <FirebaseCrashlytics firebaseApp={fakeApp} />
+          <button>Login</button>
+        </>
+      );
+      fireEvent.click(document.querySelector('button')!);
+      expect(fakeContextManager.startRootSpan).to.have.been.calledWith(fakeTracer, 'click button');
+    });
+
+    it('starts a trace for an anchor', () => {
+      render(
+        <>
+          <FirebaseCrashlytics firebaseApp={fakeApp} />
+          <a>Nav</a>
+        </>
+      );
+      fireEvent.click(document.querySelector('a')!);
+      expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+        fakeTracer,
+        'click a'
+      );
+    });
+
+    it('starts a trace for an input submit', () => {
+      render(
+        <>
+          <FirebaseCrashlytics firebaseApp={fakeApp} />
+          <input type="submit" value="Submit" />
+        </>
+      );
+      fireEvent.click(document.querySelector('input[type="submit"]')!);
+      expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+        fakeTracer,
+        'click input'
+      );
+    });
+
+    it('starts a trace for an input button', () => {
+      render(
+        <>
+          <FirebaseCrashlytics firebaseApp={fakeApp} />
+          <input type="button" value="Button" />
+        </>
+      );
+      fireEvent.click(document.querySelector('input[type="button"]')!);
+      expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+        fakeTracer,
+        'click input'
+      );
+    });
+
+    it('finds closest interactive parent when child element is clicked', () => {
+      render(
+        <>
+          <FirebaseCrashlytics firebaseApp={fakeApp} />
+          <button id="parent-btn">
+            <span id="child-span">Icon</span>
+          </button>
+        </>
+      );
+      fireEvent.click(document.getElementById('child-span')!);
+      expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+        fakeTracer,
+        'click button [id="parent-btn"]'
+      );
+    });
+
+    describe('sets the span name correctly', () => {
+      it('for elements with an id', () => {
+        render(
+          <>
+            <FirebaseCrashlytics firebaseApp={fakeApp} />
+            <button id="login-btn">Login</button>
+          </>
+        );
+        fireEvent.click(document.getElementById('login-btn')!);
+        expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+          fakeTracer,
+          'click button [id="login-btn"]'
+        );
+      });
+
+      it('for elements with the data-testid attribute', () => {
+        render(
+          <>
+            <FirebaseCrashlytics firebaseApp={fakeApp} />
+            <button data-testid="login-btn">Login</button>
+          </>
+        );
+        fireEvent.click(document.querySelector('[data-testid="login-btn"]')!);
+        expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+          fakeTracer,
+          'click button [data-testid="login-btn"]'
+        );
+      });
+
+      it('for elements with the data-analytics-id attribute', () => {
+        render(
+          <>
+            <FirebaseCrashlytics firebaseApp={fakeApp} />
+            <button data-analytics-id="login-btn">Login</button>
+          </>
+        );
+        fireEvent.click(document.querySelector('[data-analytics-id="login-btn"]')!);
+        expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+          fakeTracer,
+          'click button [data-analytics-id="login-btn"]'
+        );
+      });
+
+      it('for elements with the name attribute', () => {
+        render(
+          <>
+            <FirebaseCrashlytics firebaseApp={fakeApp} />
+            <button name="login-btn">Login</button>
+          </>
+        );
+        fireEvent.click(document.querySelector('button[name="login-btn"]')!);
+        expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+          fakeTracer,
+          'click button [name="login-btn"]'
+        );
+      });
+
+      it('for elements with the aria-label attribute', () => {
+        render(
+          <>
+            <FirebaseCrashlytics firebaseApp={fakeApp} />
+            <button aria-label="login-btn">Login</button>
+          </>
+        );
+        fireEvent.click(document.querySelector('button[aria-label="login-btn"]')!);
+        expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+          fakeTracer,
+          'click button [aria-label="login-btn"]'
+        );
+      });
+
+      it('for elements with the role attribute', () => {
+        render(
+          <>
+            <FirebaseCrashlytics firebaseApp={fakeApp} />
+            <button role="login-btn">Login</button>
+          </>
+        );
+        fireEvent.click(document.querySelector('button[role="login-btn"]')!);
+        expect(fakeContextManager.startRootSpan).to.have.been.calledWith(
+          fakeTracer,
+          'click button [role="login-btn"]'
+        );
+      });
+    });
   });
 });
