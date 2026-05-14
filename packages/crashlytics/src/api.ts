@@ -169,7 +169,6 @@ export function logViewBoundary(
       ...customAttributes
     }
   });
-  // TODO: add unit testing for this function
 }
 
 export { flush, startNewTrace };
