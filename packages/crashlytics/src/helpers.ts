@@ -55,6 +55,9 @@ export function getSessionId(): string | undefined {
   }
 }
 
+/**
+ * Sets attributes that are common across all logs
+ */
 export function setCommonLogAttributes(
   crashlytics: Crashlytics,
   customAttributes: AnyValueMap
