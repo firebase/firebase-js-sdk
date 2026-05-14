@@ -89,11 +89,16 @@ export class GenerativeModel extends AIModel {
    * methods if you want to ensure the device models are ready before
    * any calls. Calling inference methods before the device is ready
    * will result in a cloud fallback if `inferenceMode` is set to
-   * PREFER_ON_DEVICE, and an error if set to ONLY_ON_DEVICE.
+   * `PREFER_ON_DEVICE`, and an error if set to `ONLY_ON_DEVICE`.
    *
-   * IMPORTANT: This call must be made on or after a user interaction
-   * such as a button click. If it is called without a user interaction,
-   * and it requires a download, this will cause an error.
+   * IMPORTANT: This call must be made on or after a user has interacted
+   * with the page (for example, through a button click or key press).
+   * If it is called without a user interaction, and it requires a download,
+   * this will cause an error.
+   *
+   * See the
+   * {@link https://developer.chrome.com/docs/ai/prompt-api#use_the_prompt_api | Prompt API docs }
+   * for more details on this requirement.
    *
    * @param onDownloadProgress A callback called repeatedly as the
    * download progresses that provides a `progressValue` between 0

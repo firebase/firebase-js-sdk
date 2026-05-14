@@ -180,9 +180,11 @@ Promise&lt;[GenerateContentStreamResult](./ai.generatecontentstreamresult.md#gen
 
 Initializes on-device models.
 
-This may trigger a download on first use. Wait for this promise to complete before calling inference methods if you want to ensure the device models are ready before any calls. Calling inference methods before the device is ready will result in a cloud fallback if `inferenceMode` is set to PREFER\_ON\_DEVICE, and an error if set to ONLY\_ON\_DEVICE.
+This may trigger a download on first use. Wait for this promise to complete before calling inference methods if you want to ensure the device models are ready before any calls. Calling inference methods before the device is ready will result in a cloud fallback if `inferenceMode` is set to `PREFER_ON_DEVICE`<!-- -->, and an error if set to `ONLY_ON_DEVICE`<!-- -->.
 
-IMPORTANT: This call must be made on or after a user interaction such as a button click. If it is called without a user interaction, and it requires a download, this will cause an error.
+IMPORTANT: This call must be made on or after a user has interacted with the page (for example, through a button click or key press). If it is called without a user interaction, and it requires a download, this will cause an error.
+
+See the [Prompt API docs](https://developer.chrome.com/docs/ai/prompt-api#use_the_prompt_api) for more details on this requirement.
 
 <b>Signature:</b>
 
