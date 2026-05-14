@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+
 import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   CompositePropagator,
