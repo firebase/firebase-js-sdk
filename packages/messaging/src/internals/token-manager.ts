@@ -102,10 +102,7 @@ async function revokeLegacyFcmTokenAndClearCaches(
   messaging: MessagingService,
   tokenDetails: TokenDetails
 ): Promise<void> {
-  await requestDeleteToken(
-    messaging.firebaseDependencies,
-    tokenDetails.token
-  );
+  await requestDeleteToken(messaging.firebaseDependencies, tokenDetails.token);
   await dbRemove(messaging.firebaseDependencies);
   await removeFidRegistrationBestEffort(messaging.firebaseDependencies);
 }
@@ -245,10 +242,7 @@ async function removeFidRegistrationBestEffort(
   }
 }
 
-function notifyOnUnregistered(
-  messaging: MessagingService,
-  fid: string
-): void {
+function notifyOnUnregistered(messaging: MessagingService, fid: string): void {
   const handler = messaging.onUnregisteredHandler;
   if (!handler) {
     return;

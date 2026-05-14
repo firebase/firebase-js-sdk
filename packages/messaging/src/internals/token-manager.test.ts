@@ -245,7 +245,9 @@ describe('Token Manager', () => {
       const onUnregisteredSpy = stub();
       messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-      await expect(deleteTokenInternal(messaging)).to.be.rejectedWith('network');
+      await expect(deleteTokenInternal(messaging)).to.be.rejectedWith(
+        'network'
+      );
 
       expect(
         (await dbGetFidRegistration(messaging.firebaseDependencies))?.fid
