@@ -148,8 +148,8 @@ export function logViewBoundary(
   crashlytics: Crashlytics,
   newPathNavigation: string,
   attributes?: AnyValueMap
-) {
-  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
+): void {
+  const { loggerProvider } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = {};
 
@@ -169,6 +169,7 @@ export function logViewBoundary(
       ...customAttributes
     }
   });
+  // TODO: add unit testing for this function
 }
 
 export { flush, startNewTrace };
