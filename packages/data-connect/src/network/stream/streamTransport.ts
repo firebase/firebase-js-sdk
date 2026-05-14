@@ -49,7 +49,7 @@ import {
 const FIRST_REQUEST_ID = 1;
 
 /** Time to wait before closing an idle connection (no active subscriptions). */
-const IDLE_CONNECTION_TIMEOUT_MS = 60 * 1000; // 1 minute
+const IDLE_CONNECTION_TIMEOUT_MS = 0; // immediate close
 
 /** Initial reconnect delay in ms */
 const INITIAL_RECONNECT_DELAY_MS = 1000;
