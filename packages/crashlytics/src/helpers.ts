@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -49,6 +49,24 @@ export function getSessionId(): string | undefined {
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
     }
+  }
+}
+
+/**
+ * Sets attributes that are common across all logs
+ */
+export function setCommonLogAttributes(
+  crashlytics: Crashlytics,
+  customAttributes: AnyValueMap
+): void {
+  // Add app version metadata
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
+    (crashlytics as CrashlyticsService).options
+  );
+  // Add session ID metadata
+  const sessionId = getSessionId();
+  if (sessionId) {
+    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
   }
 }
 
