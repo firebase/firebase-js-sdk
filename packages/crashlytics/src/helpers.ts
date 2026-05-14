@@ -26,8 +26,6 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
 
-import type { Span } from '@opentelemetry/api';
-
 /**
  * Returns the app version from the provided Telemetry instance, if available.
  */
@@ -91,39 +89,20 @@ export function startNewSession(crashlytics: Crashlytics): void {
 }
 
 /**
- * Starts a new trace for the given Crashlytics instance. If the location key matches the current
- * location key, don't create a new trace and just return the existing root span.
+ * Starts a new trace for a user interaction. If a root span is already active, it will be
+ * interrupted and a new root span will be started.
  *
  * @param crashlytics - The {@link Crashlytics} instance.
- * @param rootSpanName - The name of the root span.
- * @param locationKey - The key of the location (route path) for the span.
  */
-export function startNewTrace(
+export function startUserInteractionTrace(
   crashlytics: Crashlytics,
-  rootSpanName: string,
-  locationKey: string
-): Span {
+  rootSpanName: string
+): void {
   const { contextManager, tracingProvider } =
     crashlytics as CrashlyticsInternal;
 
-  if (contextManager.getLocationKey() === locationKey) {
-    const currentSpan = contextManager.getRootSpan();
-    if (currentSpan) {
-      return currentSpan;
-    }
-  }
-
   const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
-  const previousRootSpan = contextManager.getRootSpan();
-  const newRootSpan = tracer.startSpan(rootSpanName);
-  contextManager.setRootSpan(newRootSpan);
-  contextManager.setLocationKey(locationKey);
-
-  if (previousRootSpan) {
-    // TODO: Add logic to also end all child spans
-    previousRootSpan.end();
-  }
-  return newRootSpan;
+  contextManager.startRootSpan(tracer, rootSpanName);
 }
 
 /**
@@ -131,18 +110,13 @@ export function startNewTrace(
  * may trigger at the same time, but flushing only occurs once per batch.
  */
 export function registerListeners(crashlytics: Crashlytics): void {
-  const { contextManager } = crashlytics as CrashlyticsInternal;
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     window.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'hidden') {
-        // TODO: Update this with idleness logic instead
-        contextManager.getRootSpan()?.end();
         await flush(crashlytics);
       }
     });
     window.addEventListener('pagehide', async () => {
-      // TODO: Update this with idleness logic instead
-      contextManager.getRootSpan()?.end();
       await flush(crashlytics);
     });
   }

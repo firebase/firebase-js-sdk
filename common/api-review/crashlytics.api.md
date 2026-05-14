@@ -7,7 +7,6 @@
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
-import type { Span } from '@opentelemetry/api';
 
 // @public
 export interface Crashlytics {
@@ -37,7 +36,7 @@ export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Ins
 export function recordError(crashlytics: Crashlytics, error: unknown, attributes?: AnyValueMap): void;
 
 // @public
-export function startNewTrace(crashlytics: Crashlytics, rootSpanName: string, locationKey: string): Span;
+export function startUserInteractionTrace(crashlytics: Crashlytics, rootSpanName: string): void;
 
 
 // (No @packageDocumentation comment for this package)

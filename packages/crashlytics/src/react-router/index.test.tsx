@@ -170,23 +170,4 @@ describe('CrashlyticsRoutes', () => {
 
     consoleErrorStub.restore();
   });
-
-  it('passes location.key as locationKey to startNewTrace', () => {
-    const startNewTraceStub = stub(crashlytics, 'startNewTrace');
-    const fakeSpan = {
-      spanContext: () => ({ traceId: '123', spanId: '456' })
-    } as any;
-    startNewTraceStub.returns(fakeSpan);
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <CrashlyticsRoutes firebaseApp={fakeApp}>
-          <Route path="/" element={<div />} />
-        </CrashlyticsRoutes>
-      </MemoryRouter>
-    );
-
-    expect(startNewTraceStub).to.have.been.calledOnce;
-    expect(startNewTraceStub.firstCall.args[2]).to.be.a('string');
-  });
 });

@@ -112,7 +112,11 @@ export function createTracingProvider(
   const provider = new WebTracerProvider({
     resource,
     spanProcessors: [
-      new FirebaseSpanProcessor(crashlyticsOptions, app.options),
+      new FirebaseSpanProcessor(
+        rootSpanContextManager,
+        crashlyticsOptions,
+        app.options
+      ),
       // TODO: Remove console exporter before we ship
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
       new BatchSpanProcessor(traceExporter)

@@ -20,7 +20,7 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { Logger, LogRecord } from '@opentelemetry/api-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { isNode } from '@firebase/util';
-import { registerListeners, startNewSession, startNewTrace } from './helpers';
+import { registerListeners, startNewSession } from './helpers';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
@@ -44,9 +44,9 @@ describe('helpers', () => {
     getLogger: (): Logger => {
       return {
         emit: (logRecord: LogRecord) => {
-          const rootSpan = fakeContextManager.getRootSpan();
+          const rootSpan = fakeContextManager.getActiveRootSpan();
           if (rootSpan) {
-            const spanContext = rootSpan.spanContext();
+            const spanContext = rootSpan.span.spanContext();
             logRecord.attributes = {
               ...logRecord.attributes,
               [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: spanContext.traceId,
@@ -86,8 +86,10 @@ describe('helpers', () => {
   } as unknown as TracerProvider;
 
   const fakeContextManager = {
-    getRootSpan: () => ({
-      spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+    getActiveRootSpan: () => ({
+      span: {
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+      }
     }),
     setRootSpan: () => {}
   } as unknown as RootSpanContextManager;
@@ -235,54 +237,5 @@ describe('helpers', () => {
         expect(spanEnded).to.be.true;
       });
     }
-  });
-
-  describe('startNewTrace', () => {
-    it('should handle locationKey to suppress duplicate traces', () => {
-      let locationKey: string | undefined;
-      let rootSpan: any = null;
-      const mockContextManager = {
-        getLocationKey: () => locationKey,
-        setLocationKey: (id: string | undefined) => {
-          locationKey = id;
-        },
-        getRootSpan: () => rootSpan,
-        setRootSpan: (span: any) => {
-          rootSpan = span;
-        }
-      } as unknown as RootSpanContextManager;
-
-      let spanCount = 0;
-      const mockTracer = {
-        startSpan: (name: string) => {
-          spanCount++;
-          return { name, id: spanCount, end: () => {} };
-        }
-      };
-      const mockTracingProvider = {
-        getTracer: () => mockTracer
-      } as unknown as TracerProvider;
-
-      const mockCrashlytics = {
-        ...fakeCrashlytics,
-        contextManager: mockContextManager,
-        tracingProvider: mockTracingProvider
-      } as unknown as CrashlyticsInternal;
-
-      // Initial call
-      const span1 = startNewTrace(mockCrashlytics, 'test-span', 'abc');
-      expect((span1 as any).id).to.equal(1);
-      expect(locationKey).to.equal('abc');
-
-      // Second call with same locationKey
-      const span2 = startNewTrace(mockCrashlytics, 'test-span', 'abc');
-      expect(span2).to.equal(span1); // Should reuse
-      expect((span2 as any).id).to.equal(1);
-
-      // Third call with different locationKey
-      const span3 = startNewTrace(mockCrashlytics, 'test-span', 'def');
-      expect((span3 as any).id).to.equal(2); // Should be new
-      expect(locationKey).to.equal('def');
-    });
   });
 });

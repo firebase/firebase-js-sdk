@@ -202,7 +202,7 @@ describe('Top level API', () => {
   });
 
   describe('Multi-App Isolation', () => {
-    it('should provide different instances of RootSpanContextManager for different apps', () => {
+    it('should provide different instances of RootSpanContextManager for different apps', async () => {
       const app1 = getFakeApp();
       const app2 = initializeApp({ projectId: 'p2', appId: 'a2' }, 'app2');
 
@@ -216,7 +216,7 @@ describe('Top level API', () => {
       expect(manager2).to.be.instanceOf(RootSpanContextManager);
       expect(manager1).to.not.equal(manager2);
 
-      deleteApp(app2);
+      await deleteApp(app2);
     });
   });
 
