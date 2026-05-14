@@ -7,7 +7,7 @@
 import { AnyValueMap } from '@opentelemetry/api-logs';
 import { FirebaseApp } from '@firebase/app';
 import { Instrumentation } from 'next';
-import type { Span } from '@opentelemetry/api';
+import { Span } from '@opentelemetry/api';
 
 // @public
 export interface Crashlytics {
@@ -30,7 +30,7 @@ export function getCrashlytics(app?: FirebaseApp, options?: CrashlyticsOptions):
 export { Instrumentation }
 
 // @public
-export function logViewBoundary(crashlytics: Crashlytics, newPathNavigation: string): void;
+export function logViewBoundary(crashlytics: Crashlytics, newPathNavigation: string, attributes?: AnyValueMap): void;
 
 // @public
 export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Instrumentation.onRequestError;

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { SeverityNumber } from '@opentelemetry/api-logs';
+import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import * as constants from './auto-constants';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -26,7 +26,7 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
 
-import type { Span } from '@opentelemetry/api';
+import { trace, type Span } from '@opentelemetry/api';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -52,6 +52,31 @@ export function getSessionId(): string | undefined {
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
     }
+  }
+}
+
+export function setCommonLogAttributes(
+  crashlytics: Crashlytics,
+  customAttributes: AnyValueMap
+): void {
+  // Add trace metadata
+  const activeSpanContext = trace.getActiveSpan()?.spanContext();
+  if (activeSpanContext?.traceId) {
+    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
+      activeSpanContext.traceId;
+    if (activeSpanContext?.spanId) {
+      customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID] =
+        activeSpanContext.spanId;
+    }
+  }
+  // Add app version metadata
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
+    (crashlytics as CrashlyticsService).options
+  );
+  // Add session ID metadata
+  const sessionId = getSessionId();
+  if (sessionId) {
+    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
   }
 }
 
@@ -124,28 +149,6 @@ export function startNewTrace(
     previousRootSpan.end();
   }
   return newRootSpan;
-}
-
-/**
- * Creates a log for view boundary on navigation event
- *
- * @param crashlytics - The {@link Crashlytics} instance.
- * @param newPathNavigation - The new URL pattern being navigated to.
- */
-export function logViewBoundary(
-  crashlytics: Crashlytics,
-  newPathNavigation: string
-) {
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
-  const logger = loggerProvider.getLogger('view-boundary-logger');
-
-  logger.emit({
-    severityNumber: SeverityNumber.INFO,
-    body: 'View boundary navigation event',
-    attributes: {
-      'url.template': newPathNavigation
-    }
-  });
 }
 
 /**

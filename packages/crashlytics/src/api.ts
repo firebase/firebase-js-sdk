@@ -16,19 +16,12 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { CRASHLYTICS_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
+import { CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
-import { trace } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
-import {
-  flush,
-  getAppVersion,
-  getSessionId,
-  startNewTrace,
-  logViewBoundary
-} from './helpers';
+import { flush, startNewTrace, setCommonLogAttributes } from './helpers';
 import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
@@ -111,27 +104,7 @@ export function recordError(
     Object.assign(customAttributes, frameworkAttributes);
   }
 
-  // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  if (activeSpanContext?.traceId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID] =
-      activeSpanContext.traceId;
-    if (activeSpanContext?.spanId) {
-      customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID] =
-        activeSpanContext.spanId;
-    }
-  }
-
-  // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
-    (crashlytics as CrashlyticsService).options
-  );
-
-  // Add session ID metadata
-  const sessionId = getSessionId();
-  if (sessionId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-  }
+  setCommonLogAttributes(crashlytics, customAttributes);
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
@@ -164,4 +137,38 @@ export function recordError(
   }
 }
 
-export { flush, startNewTrace, logViewBoundary };
+/**
+ * Creates a log for view boundary on navigation event
+ *
+ * @param crashlytics - The {@link Crashlytics} instance.
+ * @param newPathNavigation - The new URL pattern being navigated to.
+ * @param attributes - Optional, arbitrary attributes to attach to the view boundary log
+ */
+export function logViewBoundary(
+  crashlytics: Crashlytics,
+  newPathNavigation: string,
+  attributes?: AnyValueMap
+) {
+  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
+  const logger = loggerProvider.getLogger('view-boundary-logger');
+  const customAttributes: AnyValueMap = {};
+
+  setCommonLogAttributes(crashlytics, customAttributes);
+
+  // Merge in any additional attributes. Explicitly provided attributes take precedence over
+  // automatically added attributes.
+  if (attributes) {
+    Object.assign(customAttributes, attributes);
+  }
+
+  logger.emit({
+    severityNumber: SeverityNumber.INFO,
+    body: 'Navigation event',
+    attributes: {
+      'url.template': newPathNavigation,
+      ...customAttributes
+    }
+  });
+}
+
+export { flush, startNewTrace };
