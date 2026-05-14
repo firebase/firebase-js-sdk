@@ -25,6 +25,7 @@ import { UserMetadata } from '../core/user/user_metadata';
 import { AuthInternal } from './auth';
 import { IdTokenResponse, TaggedWithTokenResponse } from './id_token';
 import { ProviderId } from './enums';
+import { PasskeyInfo } from '../api/account_management/passkey';
 
 export type MutableUserInfo = {
   -readonly [K in keyof UserInfo]: UserInfo[K];
@@ -43,6 +44,7 @@ export interface UserParameters {
   emailVerified?: boolean | null;
   tenantId?: string | null;
   providerData?: MutableUserInfo[] | null;
+  enrolledPasskeys?: PasskeyInfo[];
 
   createdAt?: string | null;
   lastLoginAt?: string | null;
@@ -67,6 +69,7 @@ export interface UserInternal extends User {
   tenantId: string | null;
   providerData: MutableUserInfo[];
   metadata: UserMetadata;
+  enrolledPasskeys: PasskeyInfo[];
 
   stsTokenManager: StsTokenManager;
   _redirectEventId?: string;

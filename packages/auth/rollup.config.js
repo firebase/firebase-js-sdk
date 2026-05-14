@@ -50,6 +50,7 @@ const buildPlugins = [
   strip({ functions: ['debugAssert.*'] }),
   typescriptPlugin({
     typescript,
+    clean: true,
     tsconfigOverride: { exclude: [...tsconfig.exclude, '**/*.test.ts'] }
   })
 ];

@@ -361,6 +361,9 @@ export interface EmulatorConfig {
     readonly protocol: string;
 }
 
+// @public
+export function enrollPasskey(user: User, name: string): Promise<UserCredential>;
+
 export { ErrorFn }
 
 // Warning: (ae-forgotten-export) The symbol "BaseOAuthProvider" needs to be exported by the entry point index.d.ts
@@ -569,6 +572,12 @@ export interface ParsedToken {
     };
     'iat'?: string;
     'sub'?: string;
+}
+
+// @public
+export interface PasskeyInfo {
+    readonly credentialId: string;
+    readonly name?: string;
 }
 
 // @public
@@ -785,6 +794,9 @@ export function signInWithEmailAndPassword(auth: Auth, email: string, password: 
 export function signInWithEmailLink(auth: Auth, email: string, emailLink?: string): Promise<UserCredential>;
 
 // @public
+export function signInWithPasskey(auth: Auth, name: string, manualSignUp?: boolean): Promise<UserCredential>;
+
+// @public
 export function signInWithPhoneNumber(auth: Auth, phoneNumber: string, appVerifier?: ApplicationVerifier): Promise<ConfirmationResult>;
 
 // @public
@@ -841,6 +853,9 @@ export class TwitterAuthProvider extends BaseOAuthProvider {
 }
 
 // @public
+export function unenrollPasskey(user: User, credentialId: string): Promise<void>;
+
+// @public
 export function unlink(user: User, providerId: string): Promise<User>;
 
 export { Unsubscribe }
@@ -870,6 +885,7 @@ export function useDeviceLanguage(auth: Auth): void;
 export interface User extends UserInfo {
     delete(): Promise<void>;
     readonly emailVerified: boolean;
+    readonly enrolledPasskeys: PasskeyInfo[];
     getIdToken(forceRefresh?: boolean): Promise<string>;
     getIdTokenResult(forceRefresh?: boolean): Promise<IdTokenResult>;
     readonly isAnonymous: boolean;

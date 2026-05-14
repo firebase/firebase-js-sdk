@@ -204,6 +204,9 @@ export class User implements compat.User, Compat<exp.User> {
   get providerData(): Array<compat.UserInfo | null> {
     return this._delegate.providerData;
   }
+  get enrolledPasskeys(): compat.PasskeyInfo[] {
+    return this._delegate.enrolledPasskeys;
+  }
   get refreshToken(): string {
     return this._delegate.refreshToken;
   }

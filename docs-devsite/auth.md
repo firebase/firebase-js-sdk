@@ -44,6 +44,7 @@ Firebase Authentication
 |  [signInWithCustomToken(auth, customToken)](./auth.md#signinwithcustomtoken_32af683) | Asynchronously signs in using a custom token. |
 |  [signInWithEmailAndPassword(auth, email, password)](./auth.md#signinwithemailandpassword_21ad33b) | Asynchronously signs in using an email and password. |
 |  [signInWithEmailLink(auth, email, emailLink)](./auth.md#signinwithemaillink_ed14c53) | Asynchronously signs in using an email and sign-in email link. |
+|  [signInWithPasskey(auth, name, manualSignUp)](./auth.md#signinwithpasskey) | Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user. |
 |  [signInWithPhoneNumber(auth, phoneNumber, appVerifier)](./auth.md#signinwithphonenumber_75b2560) | Asynchronously signs in using a phone number. |
 |  [signInWithPopup(auth, provider, resolver)](./auth.md#signinwithpopup_770f816) | Authenticates a Firebase client using a popup-based OAuth authentication flow. |
 |  [signInWithRedirect(auth, provider, resolver)](./auth.md#signinwithredirect_770f816) | Authenticates a Firebase client using a full-page redirect flow. |
@@ -56,6 +57,7 @@ Firebase Authentication
 |  [parseActionCodeURL(link)](./auth.md#parseactioncodeurl_51293c3) | Parses the email action link string and returns an [ActionCodeURL](./auth.actioncodeurl.md#actioncodeurl_class) if the link is valid, otherwise returns null. |
 |  <b>function(user, ...)</b> |
 |  [deleteUser(user)](./auth.md#deleteuser_52b2e2e) | Deletes and signs out the user. |
+|  [enrollPasskey(user, name)](./auth.md#enrollpasskey) | Enrolls a passkey for the user account. |
 |  [getIdToken(user, forceRefresh)](./auth.md#getidtoken_ce7d429) | Returns a JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [getIdTokenResult(user, forceRefresh)](./auth.md#getidtokenresult_ce7d429) | Returns a deserialized JSON Web Token (JWT) used to identify the user to a Firebase service. |
 |  [linkWithCredential(user, credential)](./auth.md#linkwithcredential_60f8043) | Links the user account with the given credentials. |
@@ -69,6 +71,7 @@ Firebase Authentication
 |  [reauthenticateWithRedirect(user, provider, resolver)](./auth.md#reauthenticatewithredirect_41c0b31) | Reauthenticates the current user with the specified [OAuthProvider](./auth.oauthprovider.md#oauthprovider_class) using a full-page redirect flow. |
 |  [reload(user)](./auth.md#reload_52b2e2e) | Reloads user account data, if signed in. |
 |  [sendEmailVerification(user, actionCodeSettings)](./auth.md#sendemailverification_6a885d6) | Sends a verification email to a user. |
+|  [unenrollPasskey(user, credentialId)](./auth.md#unenrollpasskey) | Unenrolls the passkey corresponding to the specified credentialId. |
 |  [unlink(user, providerId)](./auth.md#unlink_f289a14) | Unlinks a provider from a user account. |
 |  [updateEmail(user, newEmail)](./auth.md#updateemail_7737d57) | Updates the user's email address. |
 |  [updatePassword(user, newPassword)](./auth.md#updatepassword_6df673e) | Updates the user's password. |
@@ -126,6 +129,7 @@ Firebase Authentication
 |  [MultiFactorUser](./auth.multifactoruser.md#multifactoruser_interface) | An interface that defines the multi-factor related properties and operations pertaining to a [User](./auth.user.md#user_interface)<!-- -->. |
 |  [OAuthCredentialOptions](./auth.oauthcredentialoptions.md#oauthcredentialoptions_interface) | Defines the options for initializing an [OAuthCredential](./auth.oauthcredential.md#oauthcredential_class)<!-- -->. |
 |  [ParsedToken](./auth.parsedtoken.md#parsedtoken_interface) | Interface representing a parsed ID token. |
+|  [PasskeyInfo](./auth.passkeyinfo.md#passkeyinfo_interface) | Represents information about a passkey. |
 |  [PasswordPolicy](./auth.passwordpolicy.md#passwordpolicy_interface) | A structure specifying password policy requirements. |
 |  [PasswordValidationStatus](./auth.passwordvalidationstatus.md#passwordvalidationstatus_interface) | A structure indicating which password policy requirements were met or violated and what the requirements are. |
 |  [Persistence](./auth.persistence.md#persistence_interface) | An interface covering the possible persistence mechanism types. |
@@ -941,6 +945,31 @@ if(isSignInWithEmailLink(auth, emailLink)) {
 ```
 
 ### signInWithPhoneNumber(auth, phoneNumber, appVerifier) {:#signinwithphonenumber_75b2560}
+## signInWithPasskey()
+
+Signs in a user with a passkey. Use enrollPasskey to enroll a passkey credential for the current user.
+
+<b>Signature:</b>
+
+```typescript
+export declare function signInWithPasskey(auth: Auth, name: string, manualSignUp?: boolean): Promise<UserCredential>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  auth | [Auth](./auth.auth.md#auth_interface) | The Firebase Auth instance. |
+|  name | string | The user's name for passkey. |
+|  manualSignUp | boolean | When false, automatically creates an anonymous user if a passkey credential does not exist. Defaults to false. |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A promise that resolves with a `UserCredential` object.
+
+## signInWithPhoneNumber()
 
 Asynchronously signs in using a phone number.
 
@@ -1252,6 +1281,30 @@ export declare function deleteUser(user: User): Promise<void>;
 Promise&lt;void&gt;
 
 ### getIdToken(user, forceRefresh) {:#getidtoken_ce7d429}
+## enrollPasskey()
+
+Enrolls a passkey for the user account.
+
+<b>Signature:</b>
+
+```typescript
+export declare function enrollPasskey(user: User, name: string): Promise<UserCredential>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  user | [User](./auth.user.md#user_interface) | The user to enroll the passkey for. |
+|  name | string | The name associated with the passkey. |
+
+<b>Returns:</b>
+
+Promise&lt;[UserCredential](./auth.usercredential.md#usercredential_interface)<!-- -->&gt;
+
+A promise that resolves with a `UserCredential` object.
+
+## getIdToken()
 
 Returns a JSON Web Token (JWT) used to identify the user to a Firebase service.
 
@@ -1647,6 +1700,30 @@ await applyActionCode(auth, code);
 ```
 
 ### unlink(user, providerId) {:#unlink_f289a14}
+## unenrollPasskey()
+
+Unenrolls the passkey corresponding to the specified credentialId.
+
+<b>Signature:</b>
+
+```typescript
+export declare function unenrollPasskey(user: User, credentialId: string): Promise<void>;
+```
+
+### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  user | [User](./auth.user.md#user_interface) | The user to unenroll the passkey for. |
+|  credentialId | string | The ID of the passkey to unenroll. |
+
+<b>Returns:</b>
+
+Promise&lt;void&gt;
+
+A promise that resolves when the passkey is successfully unenrolled.
+
+## unlink()
 
 Unlinks a provider from a user account.
 
