@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { recordError, getCrashlytics } from '../api';
+import { getCrashlytics, registerGlobalErrorListeners } from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import { useEffect } from 'react';
 
@@ -78,33 +78,7 @@ export function FirebaseCrashlytics({
 }): null {
   useEffect(() => {
     const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
-
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const errorListener = (event: ErrorEvent): void => {
-      recordError(crashlytics, event.error, {});
-    };
-
-    const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
-      recordError(crashlytics, event.reason, {});
-    };
-
-    try {
-      window.addEventListener('error', errorListener);
-      window.addEventListener('unhandledrejection', unhandledRejectionListener);
-    } catch (error) {
-      // Log the error here, but don't die.
-      console.warn(`Firebase Crashlytics was not initialized:\n`, error);
-    }
-    return () => {
-      window.removeEventListener('error', errorListener);
-      window.removeEventListener(
-        'unhandledrejection',
-        unhandledRejectionListener
-      );
-    };
+    return registerGlobalErrorListeners(crashlytics);
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;
