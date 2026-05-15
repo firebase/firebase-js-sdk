@@ -53,7 +53,7 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
-    // Note: will the location be stale or be the correct location according to context manager
+    // Note: will the location be correct according to context manager?
 
     const activeAppScreenId =
       this.rootSpanContextManager.getActiveAppScreenId();
