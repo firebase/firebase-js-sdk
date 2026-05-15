@@ -16,13 +16,12 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { CRASHLYTICS_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
+import { CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
-import { trace } from '@opentelemetry/api';
 import { CrashlyticsService } from './service';
-import { flush, getAppVersion, getSessionId } from './helpers';
+import { flush, setCommonLogAttributes } from './helpers';
 import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
@@ -106,28 +105,7 @@ export function recordError(
     Object.assign(customAttributes, frameworkAttributes);
   }
 
-  // Add trace metadata
-  const activeSpanContext = trace.getActiveSpan()?.spanContext();
-  if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
-    customAttributes[
-      'logging.googleapis.com/trace'
-    ] = `projects/${crashlytics.app.options.projectId}/traces/${activeSpanContext.traceId}`;
-    if (activeSpanContext?.spanId) {
-      customAttributes['logging.googleapis.com/spanId'] =
-        activeSpanContext.spanId;
-    }
-  }
-
-  // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
-    (crashlytics as CrashlyticsService).options
-  );
-
-  // Add session ID metadata
-  const sessionId = getSessionId();
-  if (sessionId) {
-    customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID] = sessionId;
-  }
+  setCommonLogAttributes(crashlytics, customAttributes);
 
   // Merge in any additional attributes. Explicitly provided attributes take precedence over
   // automatically added attributes.
