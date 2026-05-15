@@ -18,6 +18,7 @@
 import { Context, Span, type Tracer, trace } from '@opentelemetry/api';
 import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
+import { hrTimeToMilliseconds } from '@opentelemetry/core';
 
 /**
  * The length of time to wait for activity to cease before closing the root span.
@@ -43,13 +44,34 @@ export class RootSpan {
     this.quiescenceTimerId = null;
     this.activeNetworkRequests = 0;
     this.mutationObserver = new MutationObserver(() => {
-      this.lastActiveTimeMs = Date.now();
+      this.recordActivity(); // Refresh quiescence timer due to DOM updates
+      if (
+        typeof window !== 'undefined' &&
+        typeof window.requestAnimationFrame === 'function'
+      ) {
+        window.requestAnimationFrame(() => {
+          setTimeout(() => {
+            this.recordActivity(); // Refresh quiescence timer due to browser paint
+          }, 0);
+        });
+      }
     });
     this.mutationObserver.observe(document.body, {
       childList: true,
       subtree: true,
       characterData: true
     });
+    this.quiesce();
+  }
+
+  /**
+   * Records an activity timestamp and resets the quiescence timer.
+   */
+  recordActivity(timestamp: number = Date.now()): void {
+    if (timestamp > this.lastActiveTimeMs) {
+      this.lastActiveTimeMs = timestamp;
+    }
+    this.quiesce();
   }
 
   /**
@@ -60,8 +82,8 @@ export class RootSpan {
     const networkSpanTraceId = networkSpan.spanContext().traceId;
 
     if (rootSpanTraceId === networkSpanTraceId) {
-      this.lastActiveTimeMs = Date.now();
       this.activeNetworkRequests++;
+      this.recordActivity();
     }
   }
 
@@ -73,15 +95,13 @@ export class RootSpan {
     const networkSpanTraceId = networkSpan.spanContext().traceId;
 
     if (rootSpanTraceId === networkSpanTraceId) {
-      this.lastActiveTimeMs = Date.now();
       this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
+      this.recordActivity(hrTimeToMilliseconds(networkSpan.endTime));
     }
   }
 
-  /**
-   * Triggers the closing of the root span after a quiescence window.
-   */
-  quiesce(): void {
+  // Triggers the closing of the root span after a quiescence window.
+  private quiesce(): void {
     if (this.quiescenceTimerId) {
       window.clearTimeout(this.quiescenceTimerId);
     }
@@ -97,23 +117,16 @@ export class RootSpan {
       return;
     }
 
-    if (this.mutationObserver) {
-      const timeSinceLastActivity = Date.now() - this.lastActiveTimeMs;
-      if (timeSinceLastActivity < QUIESCENCE_WINDOW_MS) {
-        this.quiesce(); // Keep waiting, the DOM is not yet stable
-        return;
-      }
+    const timeSinceLastActivity = Date.now() - this.lastActiveTimeMs;
+    // Subtract 5 milliseconds from quiescence window to account for browser timer imprecision
+    if (timeSinceLastActivity < QUIESCENCE_WINDOW_MS - 5) {
+      this.quiesce(); // Keep waiting, work is not yet stable
+      return;
     }
     this.endRootSpan();
   }
 
   private endRootSpan(): void {
-    // End the span backdated to the exact millisecond work actually stopped
-    this.span.end(this.lastActiveTimeMs);
-    if (this.manager.getActiveRootSpan() === this) {
-      this.manager.clearActiveRootSpan();
-    }
-
     // Clean up the DOM observer to prevent memory leaks
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
@@ -122,6 +135,12 @@ export class RootSpan {
 
     if (this.quiescenceTimerId) {
       clearTimeout(this.quiescenceTimerId);
+    }
+
+    // End the span backdated to the exact millisecond work actually stopped
+    this.span.end(this.lastActiveTimeMs);
+    if (this.manager.getActiveRootSpan() === this) {
+      this.manager.clearActiveRootSpan();
     }
   }
 }
@@ -138,7 +157,6 @@ export class RootSpanContextManager extends ZoneContextManager {
     }
     const span = tracer.startSpan(rootSpanName);
     this._activeRootSpan = new RootSpan(span, this);
-    this._activeRootSpan.quiesce();
     return this._activeRootSpan;
   }
 
