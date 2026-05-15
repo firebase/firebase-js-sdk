@@ -21,7 +21,11 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
-import { flush, setCommonLogAttributes, startUserInteractionTrace } from './helpers';
+import {
+  flush,
+  setCommonLogAttributes,
+  startUserInteractionTrace
+} from './helpers';
 import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
