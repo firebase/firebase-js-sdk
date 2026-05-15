@@ -20,7 +20,7 @@ https://github.com/firebase/firebase-js-sdk
 |  <b>function(crashlytics, ...)</b> |
 |  [flush(crashlytics)](./crashlytics_.md#flush_16fdf66) | Flushes all enqueued Crashlytics data immediately, instead of waiting for default batching. |
 |  [recordError(crashlytics, error, attributes)](./crashlytics_.md#recorderror_6824e74) | Enqueues an error to be uploaded to the Firebase Crashlytics API. |
-|  [startNewTrace(crashlytics, rootSpanName, locationKey)](./crashlytics_.md#startnewtrace_353ed76) | Starts a new trace for the given Crashlytics instance. If the location key matches the current location key, don't create a new trace and just return the existing root span. |
+|  [startUserInteractionTrace(crashlytics, rootSpanName)](./crashlytics_.md#startuserinteractiontrace_6ae1587) | Starts a new trace for a user interaction. If a root span is already active, it will be interrupted and a new root span will be started. |
 |  <b>function(crashlyticsOptions, ...)</b> |
 |  [nextOnRequestError(crashlyticsOptions)](./crashlytics_.md#nextonrequesterror_3caf5de) | Automatically report uncaught errors from server routes to Firebase Crashlytics. |
 
@@ -116,14 +116,14 @@ export declare function recordError(crashlytics: Crashlytics, error: unknown, at
 
 void
 
-### startNewTrace(crashlytics, rootSpanName, locationKey) {:#startnewtrace_353ed76}
+### startUserInteractionTrace(crashlytics, rootSpanName) {:#startuserinteractiontrace_6ae1587}
 
-Starts a new trace for the given Crashlytics instance. If the location key matches the current location key, don't create a new trace and just return the existing root span.
+Starts a new trace for a user interaction. If a root span is already active, it will be interrupted and a new root span will be started.
 
 <b>Signature:</b>
 
 ```typescript
-export declare function startNewTrace(crashlytics: Crashlytics, rootSpanName: string, locationKey: string): Span;
+export declare function startUserInteractionTrace(crashlytics: Crashlytics, rootSpanName: string): void;
 ```
 
 #### Parameters
@@ -131,12 +131,11 @@ export declare function startNewTrace(crashlytics: Crashlytics, rootSpanName: st
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  crashlytics | [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) | The [Crashlytics](./crashlytics_.crashlytics.md#crashlytics_interface) instance. |
-|  rootSpanName | string | The name of the root span. |
-|  locationKey | string | The key of the location (route path) for the span. |
+|  rootSpanName | string |  |
 
 <b>Returns:</b>
 
-Span
+void
 
 ## function(crashlyticsOptions, ...)
 

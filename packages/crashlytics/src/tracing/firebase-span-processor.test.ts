@@ -16,8 +16,9 @@
  */
 
 import { expect } from 'chai';
-import { Span } from '@opentelemetry/api';
+import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
+import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
   COMMON_SPAN_ATTRIBUTE_KEYS
@@ -30,6 +31,7 @@ describe('FirebaseSpanProcessor', () => {
   let mockSpan: any;
   let originalSessionStorage: Storage | undefined;
   let storage: Record<string, string> = {};
+  let mockRootSpanContextManager: RootSpanContextManager;
 
   beforeEach(() => {
     storage = {};
@@ -45,7 +47,14 @@ describe('FirebaseSpanProcessor', () => {
       writable: true
     });
 
-    processor = new FirebaseSpanProcessor();
+    mockRootSpanContextManager = {
+      getActiveRootSpan: () =>
+        ({
+          spanContext: () => ({ traceId: 'traceId1', spanId: 'rootSpan1' })
+        } as unknown as RootSpan)
+    } as unknown as RootSpanContextManager;
+
+    processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
     mockSpan = {
       attributes: {},
       setAttribute: (key: string, value: string) => {
@@ -74,5 +83,33 @@ describe('FirebaseSpanProcessor', () => {
     expect(
       mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
     ).to.be.undefined;
+  });
+
+  it('should add region to resource name if present in options', () => {
+    processor = new FirebaseSpanProcessor(
+      mockRootSpanContextManager,
+      { region: 'us-central1' },
+      { projectId: 'my-project' }
+    );
+    processor.onStart(mockSpan as Span, {} as any);
+    expect(
+      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
+    ).to.equal(
+      '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
+    );
+  });
+
+  it('should use default region if not present in options', () => {
+    processor = new FirebaseSpanProcessor(
+      mockRootSpanContextManager,
+      {},
+      { projectId: 'my-project' }
+    );
+    processor.onStart(mockSpan as Span, {} as any);
+    expect(
+      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
+    ).to.equal(
+      '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
+    );
   });
 });

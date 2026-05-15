@@ -168,12 +168,14 @@ describe('Top level API', () => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
           tracingUrl: 'http://endpoint2',
+          region: 'us-central1',
           appVersion: '1.2.3'
         })
       ).to.equal(
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
           tracingUrl: 'http://endpoint2',
+          region: 'us-central1',
           appVersion: '1.2.3'
         })
       );
@@ -181,7 +183,16 @@ describe('Top level API', () => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint2',
           tracingUrl: 'http://endpoint2',
+          region: 'us-east1',
           appVersion: '1.2.3'
+        });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          tracingUrl: 'http://endpoint2',
+          region: 'us-central1',
+          appVersion: '1.2.4'
         });
       }).to.throw('getCrashlytics() cannot be called with different options');
       expect(() => {
@@ -191,7 +202,7 @@ describe('Top level API', () => {
   });
 
   describe('Multi-App Isolation', () => {
-    it('should provide different instances of RootSpanContextManager for different apps', () => {
+    it('should provide different instances of RootSpanContextManager for different apps', async () => {
       const app1 = getFakeApp();
       const app2 = initializeApp({ projectId: 'p2', appId: 'a2' }, 'app2');
 
@@ -205,7 +216,7 @@ describe('Top level API', () => {
       expect(manager2).to.be.instanceOf(RootSpanContextManager);
       expect(manager1).to.not.equal(manager2);
 
-      deleteApp(app2);
+      await deleteApp(app2);
     });
   });
 

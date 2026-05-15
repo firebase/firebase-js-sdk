@@ -21,7 +21,7 @@ import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
-import { flush, startNewTrace, setCommonLogAttributes } from './helpers';
+import { flush, setCommonLogAttributes } from './helpers';
 import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
@@ -171,4 +171,4 @@ export function logViewBoundary(
   });
 }
 
-export { flush, startNewTrace };
+export { flush };

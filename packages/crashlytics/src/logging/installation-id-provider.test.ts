@@ -39,14 +39,14 @@ describe('InstallationIdProvider', () => {
 
     const attr1 = await provider.getAttribute();
     expect(attr1).to.deep.equal([
-      CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID,
+      CRASHLYTICS_ATTRIBUTE_KEYS.INSTALLATION_ID,
       'iid-123'
     ]);
     expect(callCount).to.equal(1);
 
     const attr2 = await provider.getAttribute();
     expect(attr2).to.deep.equal([
-      CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID,
+      CRASHLYTICS_ATTRIBUTE_KEYS.INSTALLATION_ID,
       'iid-123'
     ]);
     expect(callCount).to.equal(1); // Should still be 1
@@ -76,7 +76,7 @@ describe('InstallationIdProvider', () => {
     returnValue = 'iid-456';
     const attr2 = await provider.getAttribute();
     expect(attr2).to.deep.equal([
-      CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID,
+      CRASHLYTICS_ATTRIBUTE_KEYS.INSTALLATION_ID,
       'iid-456'
     ]);
     expect(callCount).to.equal(2);
@@ -84,7 +84,7 @@ describe('InstallationIdProvider', () => {
     // Should cache now
     const attr3 = await provider.getAttribute();
     expect(attr3).to.deep.equal([
-      CRASHLYTICS_ATTRIBUTE_KEYS.USER_ID,
+      CRASHLYTICS_ATTRIBUTE_KEYS.INSTALLATION_ID,
       'iid-456'
     ]);
     expect(callCount).to.equal(2);

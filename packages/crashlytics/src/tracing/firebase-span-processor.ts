@@ -15,18 +15,35 @@
  * limitations under the License.
  */
 
-import { Context, Span } from '@opentelemetry/api';
-import { SpanProcessor, ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { Context } from '@opentelemetry/api';
+import {
+  SpanProcessor,
+  ReadableSpan,
+  Span
+} from '@opentelemetry/sdk-trace-base';
 import { getAppVersion, getSessionId } from '../helpers';
-import { COMMON_SPAN_ATTRIBUTE_KEYS } from '../constants';
+import {
+  COMMON_SPAN_ATTRIBUTE_KEYS,
+  DEFAULT_TELEMETRY_REGION
+} from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 import { FirebaseOptions } from '@firebase/app';
+import { RootSpanContextManager } from './root-span-context-manager';
+
+/**
+ * The instrumentation scopes that are considered network activity.
+ */
+const NETWORK_INSTRUMENTATION_SCOPES = [
+  '@opentelemetry/instrumentation-fetch',
+  '@opentelemetry/instrumentation-xml-http-request'
+];
 
 /**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
   constructor(
+    private rootSpanContextManager: RootSpanContextManager,
     private crashlyticsOptions: CrashlyticsOptions = {},
     private firebaseOptions: FirebaseOptions = {}
   ) {}
@@ -36,9 +53,17 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
+    const scopeName = span.instrumentationScope?.name;
+    if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
+      this.rootSpanContextManager
+        .getActiveRootSpan()
+        ?.recordNetworkActivityStart(span);
+    }
+
+    const region = this.crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
     span.setAttribute(
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
-      `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/global/`
+      `//firebasetelemetry.googleapis.com/projects/${this.firebaseOptions.projectId}/locations/${region}/`
     );
     const sessionId = getSessionId();
     if (sessionId) {
@@ -53,7 +78,14 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     );
   }
 
-  onEnd(_span: ReadableSpan): void {}
+  onEnd(span: ReadableSpan): void {
+    const scopeName = span.instrumentationScope?.name;
+    if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
+      this.rootSpanContextManager
+        .getActiveRootSpan()
+        ?.recordNetworkActivityEnd(span);
+    }
+  }
 
   shutdown(): Promise<void> {
     return Promise.resolve();
