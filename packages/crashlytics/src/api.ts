@@ -153,7 +153,7 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = {};
 
@@ -173,6 +173,8 @@ export function logViewBoundary(
       ...customAttributes
     }
   });
+
+  contextManager.setActiveAppScreenId(urlTemplate);
 }
 
 export { flush, startUserInteractionTrace };

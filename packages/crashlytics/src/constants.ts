@@ -48,7 +48,8 @@ export const RESOURCE_ATTRIBUTE_KEYS = {
 export const COMMON_SPAN_ATTRIBUTE_KEYS = {
   GCP_RESOURCE_NAME: 'gcp.resource.name',
   GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
-  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
+  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version',
+  APP_SCREEN_ID: 'app.screen_id'
 };
 
 /**
