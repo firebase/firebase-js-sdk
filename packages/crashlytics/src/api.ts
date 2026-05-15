@@ -138,12 +138,12 @@ export function recordError(
   if (error instanceof Error) {
     logger.emit({
       severityNumber: SeverityNumber.ERROR,
-      body: error.message,
-      attributes: {
-        'error.type': error.name || 'Error',
-        'error.stack': error.stack || 'No stack trace available',
-        ...customAttributes
-      }
+      body: {
+        'exception.type': error.name || 'Error',
+        'exception.message': error.message,
+        'exception.stacktrace': error.stack || 'No stack trace available'
+      },
+      attributes: customAttributes
     });
   } else if (typeof error === 'string') {
     logger.emit({

@@ -221,10 +221,12 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
-      expect(log.body).to.equal('This is a test error');
+      expect(log.body).to.deep.equal({
+        'exception.type': 'TestError',
+        'exception.message': 'This is a test error',
+        'exception.stacktrace': '...stack trace...'
+      });
       expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
         [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -239,10 +241,12 @@ describe('Top level API', () => {
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
       expect(log.severityNumber).to.equal(SeverityNumber.ERROR);
-      expect(log.body).to.equal('error with no stack');
+      expect(log.body).to.deep.equal({
+        'exception.type': 'Error',
+        'exception.message': 'error with no stack',
+        'exception.stacktrace': 'No stack trace available'
+      });
       expect(log.attributes).to.deep.equal({
-        'error.type': 'Error',
-        'error.stack': 'No stack trace available',
         [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: MOCK_SESSION_ID
       });
@@ -294,9 +298,12 @@ describe('Top level API', () => {
 
       await provider.shutdown();
 
+      expect(emittedLogs[0].body).to.deep.equal({
+        'exception.type': 'TestError',
+        'exception.message': 'This is a test error',
+        'exception.stacktrace': '...stack trace...'
+      });
       expect(emittedLogs[0].attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
         [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         'logging.googleapis.com/trace': `projects/${PROJECT_ID}/traces/my-trace`,
         'logging.googleapis.com/spanId': `my-span`,
@@ -320,9 +327,12 @@ describe('Top level API', () => {
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
+      expect(log.body).to.deep.equal({
+        'exception.type': 'TestError',
+        'exception.message': 'This is a test error',
+        'exception.stacktrace': '...stack trace...'
+      });
       expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
         [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         strAttr: 'string attribute',
         mapAttr: {
@@ -382,9 +392,12 @@ describe('Top level API', () => {
 
       expect(emittedLogs.length).to.equal(1);
       const log = emittedLogs[0];
+      expect(log.body).to.deep.equal({
+        'exception.type': 'TestError',
+        'exception.message': 'This is a test error',
+        'exception.stacktrace': '...stack trace...'
+      });
       expect(log.attributes).to.deep.equal({
-        'error.type': 'TestError',
-        'error.stack': '...stack trace...',
         [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: 'unset',
         'framework_attr1': 'framework attribute #1',
         'framework_attr2': 'framework attribute #2',
