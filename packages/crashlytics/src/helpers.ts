@@ -62,7 +62,8 @@ export function setCommonLogAttributes(
   crashlytics: Crashlytics,
   customAttributes: AnyValueMap
 ): void {
-  const options = crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
+  const options =
+    crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
   if (activeSpanContext?.traceId) {
@@ -74,7 +75,8 @@ export function setCommonLogAttributes(
     }
   }
   // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(options);
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] =
+    getAppVersion(options);
   // Add session ID metadata
   const sessionId = getSessionId();
   if (sessionId) {
