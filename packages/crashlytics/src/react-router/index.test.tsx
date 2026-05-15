@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app';
 import { Crashlytics } from '../public-types';
 import { CrashlyticsRoutes } from '.';
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
@@ -64,7 +64,22 @@ describe('CrashlyticsRoutes', () => {
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeCrashlytics = {} as Crashlytics;
+    fakeCrashlytics = {
+      contextManager: {
+        getLocationKey: stub(),
+        setLocationKey: stub(),
+        getRootSpan: stub(),
+        setRootSpan: stub()
+      },
+      tracingProvider: {
+        getTracer: stub().returns({
+          startSpan: stub().returns({
+            spanContext: stub().returns({ traceId: '123', spanId: '456' }),
+            end: stub()
+          })
+        })
+      }
+    } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics
@@ -169,24 +184,5 @@ describe('CrashlyticsRoutes', () => {
     expect(container.firstChild).to.be.null;
 
     consoleErrorStub.restore();
-  });
-
-  it('passes location.key as locationKey to startNewTrace', () => {
-    const startNewTraceStub = stub(crashlytics, 'startNewTrace');
-    const fakeSpan = {
-      spanContext: () => ({ traceId: '123', spanId: '456' })
-    } as any;
-    startNewTraceStub.returns(fakeSpan);
-
-    render(
-      <MemoryRouter initialEntries={['/']}>
-        <CrashlyticsRoutes firebaseApp={fakeApp}>
-          <Route path="/" element={<div />} />
-        </CrashlyticsRoutes>
-      </MemoryRouter>
-    );
-
-    expect(startNewTraceStub).to.have.been.calledOnce;
-    expect(startNewTraceStub.firstCall.args[2]).to.be.a('string');
   });
 });

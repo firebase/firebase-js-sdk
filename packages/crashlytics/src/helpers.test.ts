@@ -87,11 +87,15 @@ describe('helpers', () => {
 
   const fakeContextManager = {
     getRootSpan: () => ({
+      end: () => {
+        spanEnded = true;
+      },
       spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
     }),
-    setRootSpan: () => {}
+    setRootSpan: () => {},
+    getLocationKey: () => undefined,
+    setLocationKey: () => {}
   } as unknown as RootSpanContextManager;
-
   const fakeCrashlytics: CrashlyticsInternal = {
     app: {
       name: 'DEFAULT',
