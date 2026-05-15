@@ -24,6 +24,7 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
+import { trace } from '@opentelemetry/api';
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -59,10 +60,20 @@ export function setCommonLogAttributes(
   crashlytics: Crashlytics,
   customAttributes: AnyValueMap
 ): void {
+  const options = crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
+  // Add trace metadata
+  const activeSpanContext = trace.getActiveSpan()?.spanContext();
+  if (crashlytics.app.options.projectId && activeSpanContext?.traceId) {
+    customAttributes[
+      'logging.googleapis.com/trace'
+    ] = `projects/${crashlytics.app.options.projectId}/traces/${activeSpanContext.traceId}`;
+    if (activeSpanContext?.spanId) {
+      customAttributes['logging.googleapis.com/spanId'] =
+        activeSpanContext.spanId;
+    }
+  }
   // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
-    (crashlytics as CrashlyticsService).options
-  );
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(options);
   // Add session ID metadata
   const sessionId = getSessionId();
   if (sessionId) {
@@ -86,17 +97,15 @@ export function startNewSession(crashlytics: Crashlytics): void {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
 
+      const customAttributes: AnyValueMap = {};
+      setCommonLogAttributes(crashlytics, customAttributes);
+
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
         severityNumber: SeverityNumber.DEBUG,
         body: 'Session created',
-        attributes: {
-          [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
-            (crashlytics as CrashlyticsService).options
-          )
-        }
+        attributes: customAttributes
       });
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
