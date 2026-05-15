@@ -25,6 +25,8 @@ import { Crashlytics } from '../public-types';
 import { FirebaseCrashlytics } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
+import { ALREADY_LOGGED_FLAG } from '../constants';
+import { ErrorWithSymbol } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -100,4 +102,14 @@ describe('FirebaseCrashlytics', () => {
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
     expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
   });
+
+  // it('ignores errors that have already been logged by Crashlytics', () => {
+  //   render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+  //   const error = new Error('already logged error');
+  //   (error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+
+  //   window.dispatchEvent(new ErrorEvent('error', { error }));
+
+  //   expect(recordErrorStub).to.not.have.been.called;
+  // });
 });

@@ -27,7 +27,6 @@ import {
 import {
   FirebaseApp,
   initializeApp,
-  _registerComponent,
   _addOrOverwriteComponent,
   deleteApp
 } from '@firebase/app';
@@ -465,7 +464,14 @@ describe('Top level API', () => {
 
 function getFakeApp(): FirebaseApp {
   registerCrashlytics();
-  _registerComponent(
+  const app = initializeApp({
+    projectId: PROJECT_ID,
+    appId: APP_ID,
+    apiKey: API_KEY
+  });
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
     new Component(
       'installations-internal',
       () =>
@@ -476,7 +482,9 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  _registerComponent(
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
     new Component(
       'app-check-internal',
       () => {
@@ -485,11 +493,6 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({
-    projectId: PROJECT_ID,
-    appId: APP_ID,
-    apiKey: API_KEY
-  });
   _addOrOverwriteComponent(
     app,
     //@ts-ignore
@@ -498,7 +501,8 @@ function getFakeApp(): FirebaseApp {
       // @ts-ignore
       () => {
         return {
-          triggerHeartbeat: () => {}
+          triggerHeartbeat: () => {},
+          getHeartbeatsHeader: async () => ''
         };
       },
       ComponentType.PUBLIC
