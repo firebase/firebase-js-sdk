@@ -62,6 +62,7 @@ export function setCommonLogAttributes(
   crashlytics: Crashlytics,
   customAttributes: AnyValueMap
 ): void {
+  const options = crashlytics instanceof CrashlyticsService ? crashlytics.options : undefined;
   // Add trace metadata
   const activeSpanContext = trace.getActiveSpan()?.spanContext();
   if (activeSpanContext?.traceId) {
@@ -73,9 +74,7 @@ export function setCommonLogAttributes(
     }
   }
   // Add app version metadata
-  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(
-    (crashlytics as CrashlyticsService).options
-  );
+  customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION] = getAppVersion(options);
   // Add session ID metadata
   const sessionId = getSessionId();
   if (sessionId) {
@@ -100,17 +99,15 @@ export function startNewSession(crashlytics: Crashlytics): void {
       const sessionId = crypto.randomUUID();
       sessionStorage.setItem(CRASHLYTICS_SESSION_ID_KEY, sessionId);
 
+      const customAttributes: AnyValueMap = {};
+      setCommonLogAttributes(crashlytics, customAttributes);
+
       // Emit session creation log
       const logger = loggerProvider.getLogger('session-logger');
       logger.emit({
         severityNumber: SeverityNumber.DEBUG,
         body: 'Session created',
-        attributes: {
-          [CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]: sessionId,
-          [CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]: getAppVersion(
-            (crashlytics as CrashlyticsService).options
-          )
-        }
+        attributes: customAttributes
       });
     } catch (e) {
       // Ignore errors accessing sessionStorage (e.g. security restrictions)
