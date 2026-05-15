@@ -24,7 +24,8 @@ const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
  * specific modules, which are located under
  * 'packages/(component)/src/platform/'.
  */
-const PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
+const PLATFORM_RE =
+  /(^|[\/\\])packages[\/\\][^.\/\\]+[\/\\]src[\/\\]platform[\/\\]([^.\/\\]*)(\.ts)?$/;
 
 module.exports = {
   mode: 'development',
