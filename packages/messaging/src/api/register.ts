@@ -30,16 +30,12 @@ import {
 const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
- * Registers the app instance with FCM using its Firebase Installation ID (FID) from
- * Firebase Installations. Once registered, use the FID to target messages to this app
- * instance. Unlike getToken(), this does not return the FID; the FID is delivered via the
- * onRegistered callback.
+ * Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is
+ * delivered via the `onRegistered` callback. Call this to establish an FID-based identity.
+ * Once `onRegistered` provides an FID, instruct your backend to remove any legacy token
+ * previously associated with this instance. The backend send API supports FID as a target.
  *
- * Call this to complete FID-based registration even when a legacy FCM token still exists.
- * Once onRegistered provides an FID, the app should instruct the backend to remove any
- * legacy token previously associated with this instance.
- *
- * When called multiple times, onRegistered is invoked after each successful backend
+ * When called multiple times, `onRegistered` is invoked after each successful backend
  * registration sync (including weekly refresh when the FID is unchanged).
  *
  * @param messaging - The MessagingService instance.

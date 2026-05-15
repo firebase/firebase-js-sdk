@@ -223,7 +223,7 @@ export async function unregister(messaging: Messaging): Promise<void> {
 /**
  * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
  * Use the FID passed to the callback to upload it to your application server. When you receive an FID
- * (e.g. after calling {@link register}), instruct your backend to remove any legacy token for this instance.
+ * after calling {@link register}, instruct your backend to remove any legacy token for this instance.
  *
  * @param messaging - The {@link Messaging} instance.
  * @param nextOrObserver - A function or observer object called when an FID is registered.

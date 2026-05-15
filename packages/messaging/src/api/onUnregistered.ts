@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2020 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import { NextFn, Observer, Unsubscribe } from '../interfaces/public-types';
 import { MessagingService } from '../messaging-service';
 
 /**
- * Subscribes to an event that the app instance is unregistered from FCM (FID no longer active).
+ * Subscribes to an event that the app instance is unregistered from FCM so the FID is no longer active.
  * Use this to notify your backend to remove this FID to prevent 404 errors on send.
  *
  * @param messaging - The {@link MessagingService} instance.
