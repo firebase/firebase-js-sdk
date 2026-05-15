@@ -24,8 +24,7 @@ const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
  * specific modules, which are located under
  * 'packages/(component)/src/platform/'.
  */
-const PLATFORM_RE =
-  /(^|[\/\\])packages[\/\\][^.\/\\]+[\/\\]src[\/\\]platform[\/\\]([^.\/\\]*)(\.ts)?$/;
+const PLATFORM_RE = /^(.*)\/platform\/([^.\/]*)(\.ts)?$/;
 
 module.exports = {
   mode: 'development',
@@ -100,6 +99,13 @@ module.exports = {
   },
   plugins: [
     new webpack.NormalModuleReplacementPlugin(PLATFORM_RE, resource => {
+      // If the import is coming from node_modules, don't replace it.
+      // This ensures OpenTelemetry and other 3rd party libs use their own
+      // platform resolution (usually via the 'browser' field in package.json).
+      if (resource.context && resource.context.includes('node_modules')) {
+        return;
+      }
+
       const targetPlatform = process.env.TEST_PLATFORM || 'browser';
       resource.request = resource.request.replace(
         PLATFORM_RE,
