@@ -160,10 +160,16 @@ export function registerListeners(crashlytics: Crashlytics): void {
  * @returns a promise which is resolved when all flushes are complete
  */
 export function flush(crashlytics: Crashlytics): Promise<void> {
+  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
+
+  // If a root span is active, end it now so its final logs can be captured and flushed
+  const activeRootSpan = contextManager.getActiveRootSpan();
+  if (activeRootSpan) {
+    activeRootSpan.span.end();
+  }
+
   // Cast to CrashlyticsInternal to access internal loggerProvider
-  return (crashlytics as CrashlyticsInternal).loggerProvider
-    .forceFlush()
-    .catch(err => {
-      console.error('Error flushing logs from Firebase Crashlytics:', err);
-    });
+  return loggerProvider.forceFlush().catch(err => {
+    console.error('Error flushing logs from Firebase Crashlytics:', err);
+  });
 }

@@ -76,7 +76,7 @@ const fakeTracingProvider = {
 } as unknown as TracerProvider;
 
 const fakeContextManager = {
-  getRootSpan: () => undefined,
+  getActiveRootSpan: () => undefined,
   setRootSpan: () => {}
 } as unknown as RootSpanContextManager;
 

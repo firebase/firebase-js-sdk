@@ -86,11 +86,13 @@ describe('helpers', () => {
   } as unknown as TracerProvider;
 
   const fakeContextManager = {
-    getRootSpan: () => ({
-      end: () => {
-        spanEnded = true;
-      },
-      spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
+    getActiveRootSpan: () => ({
+      span: {
+        spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' }),
+        end: () => {
+          spanEnded = true;
+        }
+      }
     }),
     setRootSpan: () => { },
     getLocationKey: () => undefined,
