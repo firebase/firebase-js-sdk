@@ -30,6 +30,9 @@ export function getCrashlytics(app?: FirebaseApp, options?: CrashlyticsOptions):
 export { Instrumentation }
 
 // @public
+export function logViewBoundary(crashlytics: Crashlytics, urlTemplate: string, attributes?: AnyValueMap): void;
+
+// @public
 export function nextOnRequestError(crashlyticsOptions?: CrashlyticsOptions): Instrumentation.onRequestError;
 
 // @public
