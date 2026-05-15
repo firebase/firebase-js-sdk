@@ -58,7 +58,7 @@ export async function bundleWithWebpack(
       })
     ],
     mode: 'production'
-  });
+  } as any);
 
   // use virtual file system for output to avoid I/O
   compiler.outputFileSystem = getMemoryFileSystem() as OutputFileSystem;
