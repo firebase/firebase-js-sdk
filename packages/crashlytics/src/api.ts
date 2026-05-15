@@ -146,7 +146,7 @@ export function recordError(
  */
 export function logViewBoundary(
   crashlytics: Crashlytics,
-  newPathNavigation: string,
+  urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
   const { loggerProvider } = crashlytics as CrashlyticsInternal;
@@ -165,7 +165,7 @@ export function logViewBoundary(
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
     attributes: {
-      'url.template': newPathNavigation,
+      'url.template': urlTemplate,
       ...customAttributes
     }
   });
