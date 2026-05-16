@@ -71,7 +71,7 @@ jobs:
       continue-on-error: true
 
     - name: Set up Node (22)
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: 22.10.0
     - name: install Chrome stable
