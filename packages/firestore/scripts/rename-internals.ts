@@ -28,7 +28,8 @@ class RenameInternals {
   constructor(
     private readonly publicApi: Set<string>,
     private readonly prefix: string
-  ) {}
+  ) {
+  }
 
   visitNodeAndChildren<T extends ts.Node>(
     node: T,

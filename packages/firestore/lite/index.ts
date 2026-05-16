@@ -155,4 +155,9 @@ export { GeoPoint } from '../src/lite-api/geo_point';
 
 export { Timestamp } from '../src/lite-api/timestamp';
 
-export { FirestoreErrorCode, FirestoreError } from '../src/util/error';
+export {
+  FirestoreErrorCode,
+  FirestoreError,
+  CustomErrorInfo,
+  OperationType
+} from '../src/util/error';
