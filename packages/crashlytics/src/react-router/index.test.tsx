@@ -170,4 +170,23 @@ describe('CrashlyticsRoutes', () => {
 
     consoleErrorStub.restore();
   });
+
+  it('registers frameworkAttributesProvider and cleans up on unmount', () => {
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/users/123']}>
+        <CrashlyticsRoutes firebaseApp={fakeApp}>
+          <Route path="/users/:id" element={<div>User Profile</div>} />
+        </CrashlyticsRoutes>
+      </MemoryRouter>
+    );
+
+    const crashlyticsService = fakeCrashlytics as any;
+    expect(crashlyticsService.frameworkAttributesProvider).to.be.a('function');
+    expect(crashlyticsService.frameworkAttributesProvider()).to.deep.equal({
+      [FRAMEWORK_ATTRIBUTE_KEYS.ROUTE_PATH]: '/users/:id'
+    });
+
+    unmount();
+    expect(crashlyticsService.frameworkAttributesProvider).to.be.undefined;
+  });
 });

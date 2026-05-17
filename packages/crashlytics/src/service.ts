@@ -43,7 +43,9 @@ export class CrashlyticsService implements Crashlytics, _FirebaseService {
     return this._frameworkAttributesProvider;
   }
 
-  set frameworkAttributesProvider(provider: () => Record<string, string>) {
+  set frameworkAttributesProvider(
+    provider: (() => Record<string, string>) | undefined
+  ) {
     this._frameworkAttributesProvider = provider;
   }
 }
