@@ -290,7 +290,7 @@ describe('doc', () => {
         // @ts-expect-error
         doc({}, 'coll/doc')
       ).to.throw(
-        'Expected first argument to doc() to be a CollectionReference, a DocumentReference or FirebaseFirestore'
+        'Expected first argument to doc() to be a CollectionReference, a DocumentReference or Firestore'
       );
       expect(() => doc(db, 'coll')).to.throw(
         'Invalid document reference. Document references must have an even ' +
@@ -308,6 +308,30 @@ describe('doc', () => {
       );
     });
   });
+  it('validates collection path', () => {
+  return withTestDb(db => {
+    expect(() =>
+      // @ts-expect-error
+      collection({}, 'coll')
+    ).to.throw(
+      'Expected first argument to collection() to be a CollectionReference, a DocumentReference or Firestore'
+    );
+
+    expect(() => collection(db, '')).to.throw(
+      'Function collection() cannot be called with an empty path.'
+    );
+
+    expect(() => collection(db, 'coll/doc')).to.throw(
+      'Invalid collection reference. Collection references must have an odd ' +
+        'number of segments, but coll/doc has 2.'
+    );
+
+    expect(() => collection(db, 'coll//doc')).to.throw(
+      'Invalid segment (coll//doc). Paths must not contain // in them.'
+    );
+  });
+});
+
 
   it('supports AutoId', () => {
     return withTestDb(db => {
