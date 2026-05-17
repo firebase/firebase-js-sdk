@@ -1262,6 +1262,8 @@ export class Pipeline {
     define(aliasedExpression: AliasedExpression, ...additionalExpressions: AliasedExpression[]): Pipeline;
     // (undocumented)
     define(options: DefineStageOptions): Pipeline;
+    // (undocumented)
+    delete(): Pipeline;
     distinct(group: string | Selectable, ...additionalGroups: Array<string | Selectable>): Pipeline;
     // (undocumented)
     distinct(options: DistinctStageOptions): Pipeline;
@@ -1301,6 +1303,8 @@ export class Pipeline {
     unnest(selectable: Selectable, indexField?: string): Pipeline;
     // (undocumented)
     unnest(options: UnnestStageOptions): Pipeline;
+    // (undocumented)
+    update(...transformedFields: Selectable[]): Pipeline;
     where(condition: BooleanExpression): Pipeline;
     where(options: WhereStageOptions): Pipeline;
 }
