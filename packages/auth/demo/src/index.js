@@ -74,7 +74,10 @@ import {
   connectAuthEmulator,
   initializeRecaptchaConfig,
   validatePassword,
-  revokeAccessToken
+  revokeAccessToken,
+  enrollPasskey,
+  signInWithPasskey,
+  unenrollPasskey
 } from '@firebase/auth';
 
 import { config } from './config';
@@ -523,6 +526,30 @@ function onSetTenantID(_event) {
 
 function onInitializeRecaptchaConfig() {
   initializeRecaptchaConfig(auth);
+}
+
+function onEnrollPasskey() {
+  const name = $('#enroll-passkey-name').val();
+  enrollPasskey(activeUser(), name).then(
+    onAuthUserCredentialSuccess,
+    onAuthError
+  );
+}
+
+function onGetEnrolledPasskeys() {
+  console.log('Getting enrolled passkeys');
+  const passkeys = activeUser().enrolledPasskeys;
+  console.log(passkeys);
+}
+
+function onUnenrollPasskey() {
+  const credId = $('#unenroll-passkey-credential-id').val();
+  unenrollPasskey(activeUser(), credId);
+}
+
+function onSignInWithPasskey() {
+  const name = $('#signin-passkey-name').val();
+  signInWithPasskey(auth, name).then(onAuthSuccess, onAuthError);
 }
 
 /**
@@ -2276,6 +2303,8 @@ function initApp() {
   $('#signup-password').blur(() => onBlurPassword('#signup-'));
   $('#password-reset-password').blur(() => onBlurPassword('#password-reset-'));
 
+  $('#sign-in-with-passkey').click(onSignInWithPasskey);
+
   $('#sign-in-with-generic-idp-credential').click(
     onSignInWithGenericIdPCredential
   );
@@ -2310,6 +2339,9 @@ function initApp() {
   $('#confirm-password-reset').click(onConfirmPasswordReset);
 
   $('#get-provider-data').click(onGetProviderData);
+  $('#enroll-passkey').click(onEnrollPasskey);
+  $('#get-enrolled-passkey').click(onGetEnrolledPasskeys);
+  $('#unenroll-passkey').click(onUnenrollPasskey);
   $('#link-with-email-and-password').click(onLinkWithEmailAndPassword);
   $('#link-with-generic-idp-credential').click(onLinkWithGenericIdPCredential);
   $('#unlink-provider').click(onUnlinkProvider);

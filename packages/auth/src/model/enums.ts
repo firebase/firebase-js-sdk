@@ -37,7 +37,9 @@ export const enum ProviderId {
   /** Phone provider */
   PHONE = 'phone',
   /** Twitter provider ID */
-  TWITTER = 'twitter.com'
+  TWITTER = 'twitter.com',
+  /** Passkey provider */
+  PASSKEY = 'passkey'
 }
 
 /**
@@ -60,7 +62,9 @@ export const enum SignInMethod {
   /** Phone sign in method */
   PHONE = 'phone',
   /** Twitter sign in method */
-  TWITTER = 'twitter.com'
+  TWITTER = 'twitter.com',
+  /** Passkey sign in method */
+  PASSKEY = 'passkey'
 }
 
 /**

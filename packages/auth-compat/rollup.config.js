@@ -27,7 +27,7 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-const buildPlugins = [json(), resolve(), typescriptPlugin({ typescript })];
+const buildPlugins = [json(), resolve(), typescriptPlugin({ typescript, clean: true })];
 
 const browserBuilds = [
   {
