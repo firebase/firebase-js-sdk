@@ -150,6 +150,7 @@ export class RootSpan {
  */
 export class RootSpanContextManager extends ZoneContextManager {
   private _activeRootSpan: RootSpan | undefined;
+  // TODO: cchestnut look into having a store to manage context data not unique to span context
   private _activeAppScreenId: string | undefined;
   startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
     if (this._activeRootSpan) {
