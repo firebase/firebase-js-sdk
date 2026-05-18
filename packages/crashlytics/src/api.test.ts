@@ -264,7 +264,7 @@ describe('Top level API', () => {
       (fakeCrashlytics as any).contextManager = originalContextManager;
     });
 
-    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'url.template' as the path of navigation", () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation", () => {
       const urlTemplate = '/users/:id';
       logViewBoundary(fakeCrashlytics, urlTemplate);
 

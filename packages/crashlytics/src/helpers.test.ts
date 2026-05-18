@@ -211,7 +211,7 @@ describe('helpers', () => {
       customAttributes = {};
     });
 
-    it('should assign trace metadata (trace id or span id), app version, and session id to customAttributes if active span', () => {
+    it('should assign trace metadata (trace id and span id), app version, and session id to customAttributes if active span', () => {
       const mockSpan = {
         spanContext: () => ({ traceId: 'trace-id-123', spanId: 'span-id-456' })
       };
