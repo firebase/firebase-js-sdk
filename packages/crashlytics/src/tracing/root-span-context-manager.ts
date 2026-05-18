@@ -33,7 +33,7 @@ export class RootSpan {
   span: Span;
   private activeNetworkRequests: number;
   private lastActiveTimeMs: number;
-  private quiescenceTimerId: number | null;
+  private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
 
@@ -43,24 +43,7 @@ export class RootSpan {
     this.lastActiveTimeMs = Date.now();
     this.quiescenceTimerId = null;
     this.activeNetworkRequests = 0;
-    this.mutationObserver = new MutationObserver(() => {
-      this.recordActivity(); // Refresh quiescence timer due to DOM updates
-      if (
-        typeof window !== 'undefined' &&
-        typeof window.requestAnimationFrame === 'function'
-      ) {
-        window.requestAnimationFrame(() => {
-          setTimeout(() => {
-            this.recordActivity(); // Refresh quiescence timer due to browser paint
-          }, 0);
-        });
-      }
-    });
-    this.mutationObserver.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
+    this.mutationObserver = this.createMutationObserver();
     this.quiesce();
   }
 
@@ -100,13 +83,42 @@ export class RootSpan {
     }
   }
 
+  private createMutationObserver(): MutationObserver | null {
+    if (
+      typeof document === 'undefined' ||
+      typeof MutationObserver === 'undefined'
+    ) {
+      return null; // not in a browser environment
+    }
+
+    const observer = new MutationObserver(() => {
+      this.recordActivity(); // Refresh quiescence timer due to DOM updates
+      if (
+        typeof window !== 'undefined' &&
+        typeof window.requestAnimationFrame === 'function'
+      ) {
+        window.requestAnimationFrame(() => {
+          setTimeout(() => {
+            this.recordActivity(); // Refresh quiescence timer due to browser paint
+          }, 0);
+        });
+      }
+    });
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+    return observer;
+  }
+
   // Triggers the closing of the root span after a quiescence window.
   private quiesce(): void {
     if (this.quiescenceTimerId) {
-      window.clearTimeout(this.quiescenceTimerId);
+      clearTimeout(this.quiescenceTimerId);
     }
 
-    this.quiescenceTimerId = window.setTimeout(() => {
+    this.quiescenceTimerId = setTimeout(() => {
       this.endRootSpanIfStable();
     }, QUIESCENCE_WINDOW_MS);
   }

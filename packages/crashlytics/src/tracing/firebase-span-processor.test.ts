@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+import * as sinon from 'sinon';
 import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
@@ -33,6 +34,9 @@ describe('FirebaseSpanProcessor', () => {
   let originalSessionStorage: Storage | undefined;
   let storage: Record<string, string> = {};
   let mockRootSpanContextManager: RootSpanContextManager;
+  let activeRootSpanMock: any;
+  let recordNetworkActivityStartStub: sinon.SinonStub;
+  let recordNetworkActivityEndStub: sinon.SinonStub;
 
   beforeEach(() => {
     storage = {};
@@ -48,11 +52,17 @@ describe('FirebaseSpanProcessor', () => {
       writable: true
     });
 
+    recordNetworkActivityStartStub = sinon.stub();
+    recordNetworkActivityEndStub = sinon.stub();
+
+    activeRootSpanMock = {
+      spanContext: () => ({ traceId: 'traceId1', spanId: 'rootSpan1' }),
+      recordNetworkActivityStart: recordNetworkActivityStartStub,
+      recordNetworkActivityEnd: recordNetworkActivityEndStub
+    };
+
     mockRootSpanContextManager = {
-      getActiveRootSpan: () =>
-        ({
-          spanContext: () => ({ traceId: 'traceId1', spanId: 'rootSpan1' })
-        } as unknown as RootSpan),
+      getActiveRootSpan: () => activeRootSpanMock as unknown as RootSpan,
       getActiveAppScreenId: () => undefined
     } as unknown as RootSpanContextManager;
 
@@ -70,6 +80,7 @@ describe('FirebaseSpanProcessor', () => {
       value: originalSessionStorage,
       writable: true
     });
+    sinon.restore();
   });
 
   it('should add session id to span if present in storage', () => {
@@ -130,5 +141,61 @@ describe('FirebaseSpanProcessor', () => {
     processor.onStart(mockSpan as Span, {} as any);
     expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to.be
       .undefined;
+  });
+
+  describe('network activity tracking', () => {
+    it('should record network activity start for fetch instrumentation', () => {
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-fetch'
+      };
+      processor.onStart(mockSpan as Span, {} as any);
+
+      expect(recordNetworkActivityStartStub.calledWith(mockSpan)).to.be.true;
+    });
+
+    it('should record network activity start for xhr instrumentation', () => {
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-xml-http-request'
+      };
+      processor.onStart(mockSpan as Span, {} as any);
+
+      expect(recordNetworkActivityStartStub.calledWith(mockSpan)).to.be.true;
+    });
+
+    it('should not record network activity start for non-network scopes', () => {
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-document-load'
+      };
+      processor.onStart(mockSpan as Span, {} as any);
+
+      expect(recordNetworkActivityStartStub.called).to.be.false;
+    });
+
+    it('should record network activity end for fetch instrumentation', () => {
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-fetch'
+      };
+      processor.onEnd(mockSpan as any);
+
+      expect(recordNetworkActivityEndStub.calledWith(mockSpan)).to.be.true;
+    });
+
+    it('should record network activity end for xhr instrumentation', () => {
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-xml-http-request'
+      };
+      processor.onEnd(mockSpan as any);
+
+      expect(recordNetworkActivityEndStub.calledWith(mockSpan)).to.be.true;
+    });
+
+    it('should not record network activity end for non-network scopes', () => {
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-document-load'
+      };
+      processor.onEnd(mockSpan as any);
+
+      expect(recordNetworkActivityEndStub.called).to.be.false;
+    });
   });
 });
