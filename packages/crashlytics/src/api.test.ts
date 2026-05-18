@@ -29,7 +29,7 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics } from './api';
+import { recordError, flush, getCrashlytics, logViewBoundary } from './api';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
@@ -239,6 +239,62 @@ describe('Top level API', () => {
       getCrashlytics(getFakeApp());
 
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal('existing-session');
+    });
+  });
+
+  describe('logViewBoundary()', () => {
+    let mockContextManager: any;
+    let originalContextManager: any;
+
+    beforeEach(() => {
+      emittedLogs.length = 0;
+      originalContextManager = fakeCrashlytics.contextManager;
+
+      let activeAppScreenId: string | undefined = undefined;
+      mockContextManager = {
+        setActiveAppScreenId: (id: string) => {
+          activeAppScreenId = id;
+        },
+        getActiveAppScreenId: () => activeAppScreenId
+      };
+      (fakeCrashlytics as any).contextManager = mockContextManager;
+    });
+
+    afterEach(() => {
+      (fakeCrashlytics as any).contextManager = originalContextManager;
+    });
+
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'url.template' as the path of navigation", () => {
+      const urlTemplate = '/users/:id';
+      logViewBoundary(fakeCrashlytics, urlTemplate);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.body).to.equal('Navigation event');
+      expect(
+        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+      ).to.equal(urlTemplate);
+    });
+
+    it('should emit a log record with additional attributes if available', () => {
+      const urlTemplate = '/users/:id';
+      const additionalAttributes = { 'custom.attr': 'value' };
+      logViewBoundary(fakeCrashlytics, urlTemplate, additionalAttributes);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes!['custom.attr']).to.equal('value');
+      expect(
+        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+      ).to.equal(urlTemplate);
+    });
+
+    it('should assign new location as active app screen id in root span context manager', () => {
+      const urlTemplate = '/users/:id';
+      logViewBoundary(fakeCrashlytics, urlTemplate);
+
+      expect(mockContextManager.getActiveAppScreenId()).to.equal(urlTemplate);
     });
   });
 
