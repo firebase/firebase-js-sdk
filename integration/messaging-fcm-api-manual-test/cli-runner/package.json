@@ -1,0 +1,8 @@
+{
+  "private": true,
+  "name": "messaging-fcm-api-manual-test-firebase-cli",
+  "description": "Isolated firebase-tools install (avoids monorepo root hoisting + Node 25 SlowBuffer issues).",
+  "dependencies": {
+    "firebase-tools": "15.18.0"
+  }
+}

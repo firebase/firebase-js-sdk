@@ -1,0 +1,27 @@
+{
+  "name": "messaging-fcm-api-manual-test",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "firebase:install-cli": "npm install --no-package-lock --prefix cli-runner",
+    "firebase:login": "npm --prefix cli-runner exec -- firebase login",
+    "firebase:login:reauth": "npm --prefix cli-runner exec -- firebase login --reauth",
+    "firebase:logout": "npm --prefix cli-runner exec -- firebase logout",
+    "firebase:deploy": "npm --prefix cli-runner exec -- firebase deploy --only hosting",
+    "deploy": "yarn build && npm --prefix cli-runner exec -- firebase deploy --only hosting"
+  },
+  "dependencies": {
+    "firebase": "*"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4",
+    "vite": "5.4.14"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

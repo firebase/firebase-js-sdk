@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FCM API manual test (getToken / register)</title>
+    <style>
+      :root {
+        font-family: system-ui, sans-serif;
+        line-height: 1.45;
+      }
+      body {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 1rem 1.25rem 3rem;
+      }
+      h1 {
+        font-size: 1.25rem;
+      }
+      section {
+        margin-top: 1.25rem;
+        padding: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background: #fafafa;
+      }
+      button {
+        margin: 0.25rem 0.35rem 0.25rem 0;
+        padding: 0.45rem 0.75rem;
+        cursor: pointer;
+      }
+      #log,
+      #idb {
+        white-space: pre-wrap;
+        word-break: break-all;
+        font-size: 0.8rem;
+        background: #111;
+        color: #e8e8e8;
+        padding: 0.75rem;
+        border-radius: 6px;
+        max-height: 220px;
+        overflow: auto;
+      }
+      #idb {
+        max-height: 120px;
+        background: #1a2a1a;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.78rem;
+      }
+      th,
+      td {
+        border: 1px solid #bbb;
+        padding: 0.35rem 0.45rem;
+        vertical-align: top;
+      }
+      th {
+        background: #eee;
+      }
+      .warn {
+        color: #a60;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+      }
+      details {
+        margin-top: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>FCM Web: legacy API (getToken / deleteToken) and FID API (register / unregister)</h1>
+    <p>
+      Based on
+      <a href="https://github.com/firebase/quickstart-js/tree/master/messaging">quickstart-js/messaging</a>:
+      the page script uses the workspace <code>firebase</code> package. <code>public/firebase-messaging-sw.js</code>
+      loads the matching gstatic ESM build (12.13.x) so the service worker can register with a root-compatible
+      <code>scope</code>. Before first use, from the repo root run <code>yarn</code> and
+      <code>yarn build --scope firebase --include-dependencies</code> (or full <code>yarn build</code>) to build
+      <code>packages/firebase</code> dist.
+      <br />
+      To deploy on <strong>Firebase Hosting</strong>, use <code>firebase.json</code> in this folder: run
+      <code>yarn firebase:install-cli</code> once, then <code>yarn firebase:login</code>, ensure the monorepo
+      <code>firebase</code> package is built from the repo root, then <code>yarn deploy</code> (Hosting must be
+      enabled for <code>fcm-js-sdk-test</code> in <code>.firebaserc</code>).
+    </p>
+    <p class="warn">
+      A default Web Push (VAPID) public key is set in <code>src/config.ts</code>. To use a different key,
+      set <code>VITE_VAPID_KEY</code> in <code>.env.local</code> and restart <code>yarn dev</code>.
+      <br />
+      For <code>yarn firebase:login</code> / <code>yarn deploy</code>, run <code>yarn firebase:install-cli</code>
+      once: it installs the Firebase CLI under <code>cli-runner/</code> with npm (isolated from the monorepo root’s
+      hoisted <code>firebase-tools@13</code>, which crashes on Node 25). If the CLI still fails, use Node 22
+      (<code>nvm use</code> in this folder).
+      <br />
+      If deploy returns <strong>401</strong>, run <code>yarn firebase:login:reauth</code> (or
+      <code>yarn firebase:logout</code> then <code>yarn firebase:login</code>) and ensure your Google account has
+      access to the project in Firebase Console → Project settings → Users and permissions.
+    </p>
+
+    <section>
+      <strong>Permission</strong><br />
+      <button type="button" id="btn-permission">Request notification permission</button>
+      <span id="perm-label"></span>
+    </section>
+
+    <section>
+      <strong>Legacy API</strong><br />
+      <button type="button" id="btn-get-token">getToken</button>
+      <button type="button" id="btn-delete-token">deleteToken</button>
+    </section>
+
+    <section>
+      <strong>FID API (set up <code>onRegistered</code> before calling <code>register</code>)</strong><br />
+      <button type="button" id="btn-register">register</button>
+      <button type="button" id="btn-unregister">unregister</button>
+    </section>
+
+    <section>
+      <strong>IndexedDB (<code>firebase-messaging-database</code>, key = <code>appId</code>)</strong><br />
+      <button type="button" id="btn-refresh-idb">Refresh DB view</button>
+      <button type="button" id="btn-reset-dbs">Reset Firebase IndexedDB</button>
+      <span style="font-size: 0.85rem; color: #444">
+        (deletes messaging + installations DBs; unregisters all service workers; reload when prompted for a clean SDK state)
+      </span>
+      <pre id="idb">(not loaded yet)</pre>
+    </section>
+
+    <section>
+      <strong>Event log</strong>
+      <pre id="log"></pre>
+    </section>
+
+    <section>
+      <strong>12 manual CUJs (use “Clear site data” or a fresh incognito window for initial state)</strong>
+      <details open>
+        <summary>Show / hide table</summary>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Initial state</th>
+              <th>Action</th>
+              <th>Expected</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>No token, no FID (fresh instance)</td>
+              <td>getToken</td>
+              <td>Obtain token; token row written to local DB</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>No token, no FID</td>
+              <td>deleteToken</td>
+              <td>No-op; no error</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>No token, no FID</td>
+              <td>register</td>
+              <td>Obtain FID; FID row written to local DB</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>No token, no FID</td>
+              <td>unregister</td>
+              <td>No-op</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td>Token only (no FID)</td>
+              <td>getToken</td>
+              <td>Returns cached token from DB</td>
+            </tr>
+            <tr>
+              <td>6</td>
+              <td>Token only (no FID)</td>
+              <td>deleteToken</td>
+              <td>Unregisters token; token row removed from DB</td>
+            </tr>
+            <tr>
+              <td>7</td>
+              <td>Token only (no FID)</td>
+              <td>register</td>
+              <td>Obtain FID; token row removed from DB</td>
+            </tr>
+            <tr>
+              <td>8</td>
+              <td>Token only (no FID)</td>
+              <td>unregister</td>
+              <td>Unregisters token; token removed from DB; <code>onUnregistered</code> with app FID</td>
+            </tr>
+            <tr>
+              <td>9</td>
+              <td>FID only (no token)</td>
+              <td>getToken</td>
+              <td>Obtain token; FID row removed from DB</td>
+            </tr>
+            <tr>
+              <td>10</td>
+              <td>FID only (no token)</td>
+              <td>deleteToken</td>
+              <td>Unregisters FID; FID removed from DB; <code>onUnregistered(fid)</code></td>
+            </tr>
+            <tr>
+              <td>11</td>
+              <td>FID only (no token)</td>
+              <td>register</td>
+              <td>Returns existing FID from DB</td>
+            </tr>
+            <tr>
+              <td>12</td>
+              <td>FID only (no token)</td>
+              <td>unregister</td>
+              <td>FID row removed from DB</td>
+            </tr>
+          </tbody>
+        </table>
+      </details>
+    </section>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
