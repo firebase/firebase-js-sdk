@@ -108,7 +108,7 @@
     "express": "4.21.2",
     "find-free-port": "2.0.0",
     "firebase-tools": "13.30.0",
-    "glob": "7.2.3",
+    "glob": "10.5.0",
     "http-server": "14.1.1",
     "indexeddbshim": "10.1.0",
     "inquirer": "8.2.6",
