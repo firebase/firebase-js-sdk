@@ -117,7 +117,8 @@ describe('FirebaseSpanProcessor', () => {
 
   it('should add active app screen id to span if available', () => {
     const mockScreenId = 'screen-id';
-    (mockRootSpanContextManager as any).getActiveAppScreenId = () => mockScreenId;
+    (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
+      mockScreenId;
     processor.onStart(mockSpan as Span, {} as any);
     expect(
       mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
@@ -127,8 +128,7 @@ describe('FirebaseSpanProcessor', () => {
   it('should not add active app screen id to span if not available', () => {
     (mockRootSpanContextManager as any).getActiveAppScreenId = () => undefined;
     processor.onStart(mockSpan as Span, {} as any);
-    expect(
-      mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
-    ).to.be.undefined;
+    expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to.be
+      .undefined;
   });
 });
