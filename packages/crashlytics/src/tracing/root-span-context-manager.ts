@@ -150,7 +150,8 @@ export class RootSpan {
  */
 export class RootSpanContextManager extends ZoneContextManager {
   private _activeRootSpan: RootSpan | undefined;
-
+  // TODO: cchestnut look into having a store to manage context data not unique to span context
+  private _activeAppScreenId: string | undefined;
   startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
     if (this._activeRootSpan) {
       this.clearActiveRootSpan();
@@ -166,6 +167,14 @@ export class RootSpanContextManager extends ZoneContextManager {
 
   clearActiveRootSpan(): void {
     this._activeRootSpan = undefined;
+  }
+
+  getActiveAppScreenId(): string | undefined {
+    return this._activeAppScreenId;
+  }
+
+  setActiveAppScreenId(activeAppScreenId: string): void {
+    this._activeAppScreenId = activeAppScreenId;
   }
 
   override active(): Context {

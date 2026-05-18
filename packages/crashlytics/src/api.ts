@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { CRASHLYTICS_TYPE } from './constants';
+import { CRASHLYTICS_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
@@ -145,7 +145,7 @@ export function recordError(
  * Creates a log for view boundary on navigation event
  *
  * @param crashlytics - The {@link Crashlytics} instance.
- * @param newPathNavigation - The new URL pattern being navigated to.
+ * @param urlTemplate - The new URL pattern being navigated to.
  * @param attributes - Optional, arbitrary attributes to attach to the view boundary log
  */
 export function logViewBoundary(
@@ -153,7 +153,7 @@ export function logViewBoundary(
   urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
-  const { loggerProvider } = crashlytics as CrashlyticsInternal;
+  const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
   const logger = loggerProvider.getLogger('view-boundary-logger');
   const customAttributes: AnyValueMap = {};
 
@@ -169,10 +169,12 @@ export function logViewBoundary(
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
     attributes: {
-      'url.template': urlTemplate,
+      [CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate,
       ...customAttributes
     }
   });
+
+  contextManager.setActiveAppScreenId(urlTemplate);
 }
 
 export { flush, startUserInteractionTrace };
