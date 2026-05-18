@@ -16,7 +16,7 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { CRASHLYTICS_TYPE } from './constants';
+import { CRASHLYTICS_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
@@ -150,7 +150,7 @@ export function recordError(
  */
 export function logViewBoundary(
   crashlytics: Crashlytics,
-  urlTemplate: string,
+  appScreenId: string,
   attributes?: AnyValueMap
 ): void {
   const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
@@ -169,12 +169,12 @@ export function logViewBoundary(
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
     attributes: {
-      'url.template': urlTemplate,
+      [CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]: appScreenId,
       ...customAttributes
     }
   });
 
-  contextManager.setActiveAppScreenId(urlTemplate);
+  contextManager.setActiveAppScreenId(appScreenId);
 }
 
 export { flush, startUserInteractionTrace };

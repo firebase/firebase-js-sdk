@@ -33,7 +33,8 @@ export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   SESSION_ID: 'session.id',
   INSTALLATION_ID: 'app.installation.id',
   TRACE_ID: 'logging.googleapis.com/trace',
-  SPAN_ID: 'logging.googleapis.com/spanId'
+  SPAN_ID: 'logging.googleapis.com/spanId',
+  APP_SCREEN_ID: 'app.screen_id'
 };
 
 /** Label keys for resource attributes in tracing provider */
@@ -48,8 +49,7 @@ export const RESOURCE_ATTRIBUTE_KEYS = {
 export const COMMON_SPAN_ATTRIBUTE_KEYS = {
   GCP_RESOURCE_NAME: 'gcp.resource.name',
   GCP_FIREBASE_SESSION_ID: 'gcp.firebase.session_id',
-  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version',
-  APP_SCREEN_ID: 'app.screen_id'
+  GCP_FIREBASE_APP_VERSION: 'gcp.firebase.app_version'
 };
 
 /**

@@ -21,7 +21,8 @@ import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
-  COMMON_SPAN_ATTRIBUTE_KEYS
+  COMMON_SPAN_ATTRIBUTE_KEYS,
+  CRASHLYTICS_ATTRIBUTE_KEYS
 } from '../constants';
 
 const MOCK_SESSION_ID = 'mock-session-id';
@@ -51,7 +52,8 @@ describe('FirebaseSpanProcessor', () => {
       getActiveRootSpan: () =>
         ({
           spanContext: () => ({ traceId: 'traceId1', spanId: 'rootSpan1' })
-        } as unknown as RootSpan)
+        } as unknown as RootSpan),
+      getActiveAppScreenId: () => undefined
     } as unknown as RootSpanContextManager;
 
     processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
@@ -111,5 +113,22 @@ describe('FirebaseSpanProcessor', () => {
     ).to.equal(
       '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
     );
+  });
+
+  it('should add active app screen id to span if available', () => {
+    const mockScreenId = 'screen-id';
+    (mockRootSpanContextManager as any).getActiveAppScreenId = () => mockScreenId;
+    processor.onStart(mockSpan as Span, {} as any);
+    expect(
+      mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+    ).to.equal(mockScreenId);
+  });
+
+  it('should not add active app screen id to span if not available', () => {
+    (mockRootSpanContextManager as any).getActiveAppScreenId = () => undefined;
+    processor.onStart(mockSpan as Span, {} as any);
+    expect(
+      mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+    ).to.be.undefined;
   });
 });

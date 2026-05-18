@@ -24,6 +24,7 @@ import {
 import { getAppVersion, getSessionId } from '../helpers';
 import {
   COMMON_SPAN_ATTRIBUTE_KEYS,
+  CRASHLYTICS_ATTRIBUTE_KEYS,
   DEFAULT_TELEMETRY_REGION
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
@@ -53,24 +54,20 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
-    // Note: will the location be correct according to context manager?
-
-    const activeAppScreenId =
-      this.rootSpanContextManager.getActiveAppScreenId();
-    if (activeAppScreenId) {
-      span.setAttribute(
-        COMMON_SPAN_ATTRIBUTE_KEYS.APP_SCREEN_ID,
-        activeAppScreenId
-      );
-    }
-
     const scopeName = span.instrumentationScope?.name;
     if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
       this.rootSpanContextManager
         .getActiveRootSpan()
         ?.recordNetworkActivityStart(span);
     }
-
+    const activeAppScreenId =
+      this.rootSpanContextManager.getActiveAppScreenId();
+    if (activeAppScreenId) {
+      span.setAttribute(
+        CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID,
+        activeAppScreenId
+      );
+    }
     const region = this.crashlyticsOptions.region || DEFAULT_TELEMETRY_REGION;
     span.setAttribute(
       COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME,
