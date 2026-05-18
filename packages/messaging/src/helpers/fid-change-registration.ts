@@ -21,22 +21,30 @@ import {
   onIdChange
 } from '@firebase/installations';
 import { register } from '../api/register';
+import { dbGetFidRegistration } from '../internals/idb-manager';
 import { MessagingService } from '../messaging-service';
 
 /**
  * When the Firebase Installation ID changes, re-run `register()` so FCM registration and
- * onRegistered run for the new FID. No-op if no onRegistered handler is set.
+ * onRegistered run for the new FID. No-op if no onRegistered handler is set or the app
+ * instance was never registered with FCM.
  */
 export function subscribeFidChangeRegistration(
   messaging: MessagingService,
   installations: Installations
 ): IdChangeUnsubscribeFn {
   return onIdChange(installations, () => {
-    if (!messaging.onRegisteredHandler) {
-      return;
-    }
-    void register(messaging).catch(() => {
-      // Best-effort: permission may be revoked or SW unavailable after FID rotation.
-    });
+    void (async () => {
+      if (!messaging.onRegisteredHandler) {
+        return;
+      }
+      const stored = await dbGetFidRegistration(messaging.firebaseDependencies);
+      if (!stored) {
+        return;
+      }
+      await register(messaging).catch(() => {
+        // Best-effort: permission may be revoked or SW unavailable after FID rotation.
+      });
+    })();
   });
 }

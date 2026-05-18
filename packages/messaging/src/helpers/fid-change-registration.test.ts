@@ -28,6 +28,7 @@ import { stub } from 'sinon';
 import { expect } from 'chai';
 import * as installationsApi from '@firebase/installations';
 import * as requestsModule from '../internals/requests';
+import * as idbManager from '../internals/idb-manager';
 import { Stub } from '../testing/sinon-types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { dbDelete } from '../internals/idb-manager';
@@ -44,6 +45,7 @@ describe('subscribeFidChangeRegistration', () => {
   >;
   let fidChangeCallback: installationsApi.IdChangeCallbackFn | undefined;
   let unsubscribeStub: ReturnType<typeof stub>;
+  let dbGetFidRegistrationStub: Stub<typeof idbManager.dbGetFidRegistration>;
 
   beforeEach(() => {
     stub(Notification, 'permission').value('granted');
@@ -79,17 +81,27 @@ describe('subscribeFidChangeRegistration', () => {
     ).callsFake(async () => ({
       responseFid: currentFid
     })) as Stub<typeof requestsModule.requestCreateRegistration>;
+
+    dbGetFidRegistrationStub = stub(
+      idbManager,
+      'dbGetFidRegistration'
+    ).resolves(undefined) as Stub<typeof idbManager.dbGetFidRegistration>;
   });
 
   afterEach(async () => {
     onIdChangeStub.restore();
     requestCreateRegistrationStub.restore();
+    dbGetFidRegistrationStub.restore();
     await dbDelete();
   });
 
   it('runs real register when Installations invokes the FID change callback and delivers the new FID via onRegistered', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
+    dbGetFidRegistrationStub.resolves({
+      fid: 'fid-before-rotation',
+      lastRegisterTime: Date.now()
+    });
 
     subscribeFidChangeRegistration(messaging, installations);
 
@@ -105,8 +117,27 @@ describe('subscribeFidChangeRegistration', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
+  it('does not call register when the app instance was never registered with FCM', async () => {
+    messaging.onRegisteredHandler = stub();
+    dbGetFidRegistrationStub.resolves(undefined);
+
+    subscribeFidChangeRegistration(messaging, installations);
+
+    currentFid = 'new-fid';
+    fidChangeCallback!('new-fid');
+
+    await new Promise<void>(resolve => setTimeout(resolve, 0));
+    await messaging._registerNotifyChain;
+
+    expect(requestCreateRegistrationStub).to.not.have.been.called;
+  });
+
   it('does not call register when onRegistered handler is not set', async () => {
     messaging.onRegisteredHandler = null;
+    dbGetFidRegistrationStub.resolves({
+      fid: 'fid-before-rotation',
+      lastRegisterTime: Date.now()
+    });
 
     subscribeFidChangeRegistration(messaging, installations);
 

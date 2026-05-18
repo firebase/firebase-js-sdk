@@ -224,14 +224,15 @@ describe('register', () => {
     expect(onRegisteredSpy).to.have.been.calledOnceWith(customFid);
   });
 
-  it('does not call onRegisteredHandler again when FID unchanged', async () => {
+  it('calls onRegisteredHandler again when FID unchanged but still delivers FID', async () => {
     const onRegisteredSpy = stub();
     messaging.onRegisteredHandler = onRegisteredSpy;
 
     await register(messaging);
     await register(messaging);
 
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
@@ -245,7 +246,8 @@ describe('register', () => {
     await register(messaging);
 
     expect(legacyDbRemoveStub).to.not.have.been.called;
-    expect(onRegisteredSpy).to.have.been.calledOnceWith('FID');
+    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy.getCall(1)).to.have.been.calledWith('FID');
     expect(requestCreateRegistrationStub).to.have.been.calledOnce;
   });
 
@@ -396,7 +398,7 @@ describe('register', () => {
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 
-  it('does not notify on third register when FID unchanged and within refresh window', async () => {
+  it('notifies on each register when FID unchanged and within refresh window', async () => {
     const customInstallations = getFakeInstallations();
     const getIdStub = stub(customInstallations, 'getId')
       .onFirstCall()
@@ -431,7 +433,8 @@ describe('register', () => {
 
     await register(messaging);
     expect(getIdStub).to.have.been.calledThrice;
-    expect(onRegisteredSpy).to.have.been.calledTwice;
+    expect(onRegisteredSpy).to.have.been.calledThrice;
+    expect(onRegisteredSpy.getCall(2)).to.have.been.calledWith('FID_B');
     expect(requestCreateRegistrationStub).to.have.been.calledTwice;
   });
 });

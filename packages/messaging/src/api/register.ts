@@ -35,8 +35,8 @@ const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
  * Once `onRegistered` provides an FID, instruct your backend to remove any legacy token
  * previously associated with this instance. The backend send API supports FID as a target.
  *
- * When called multiple times, `onRegistered` is invoked after each successful backend
- * registration sync (including weekly refresh when the FID is unchanged).
+ * When called multiple times, `onRegistered` is invoked on each call with the current FID.
+ * Backend registration sync runs on first register, when the FID changes, or on weekly refresh.
  *
  * @param messaging - The MessagingService instance.
  * @param options - Optional. Same options as getToken (vapidKey, serviceWorkerRegistration).
@@ -76,28 +76,25 @@ export async function register(
       stored.fid !== fid ||
       now >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
 
-    if (!shouldRefresh) {
-      // Nothing to do: same FID and within refresh window.
-      return;
-    }
+    if (shouldRefresh) {
+      // Best-effort cleanup of legacy token details, since apps may switch from
+      // getToken() to the FID-based register() API over time.
+      try {
+        await dbRemove(messaging.firebaseDependencies);
+      } catch {
+        // Ignore.
+      }
 
-    // Best-effort cleanup of legacy token details, since apps may switch from
-    // getToken() to the FID-based register() API over time.
-    try {
-      await dbRemove(messaging.firebaseDependencies);
-    } catch {
-      // Ignore.
+      await registerFcmRegistrationWithFid(messaging, fid);
+      await dbSetFidRegistration(messaging.firebaseDependencies, {
+        fid,
+        lastRegisterTime: now
+      });
     }
-
-    await registerFcmRegistrationWithFid(messaging, fid);
-    await dbSetFidRegistration(messaging.firebaseDependencies, {
-      fid,
-      lastRegisterTime: now
-    });
 
     const handler = messaging.onRegisteredHandler;
     if (!handler) {
-      return;
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
     }
 
     if (typeof handler === 'function') {
