@@ -220,6 +220,8 @@ export {
   disablePersistentCacheIndexAutoCreation
 } from './api/persistent_cache_index_manager';
 
+export { runPersistentCacheIndexPerformanceExperiment } from './api/persistent_cache_index_performance_experiment';
+
 /**
  * Internal exports
  */
