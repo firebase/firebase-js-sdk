@@ -69,7 +69,7 @@
     "@babel/register": "7.25.9",
     "@changesets/changelog-github": "0.5.0",
     "@changesets/cli": "2.27.12",
-    "@types/chai": "4.3.20",
+    "@types/chai": "5.2.3",
     "@types/chai-as-promised": "7.1.8",
     "@types/child-process-promise": "2.2.6",
     "@types/clone": "2.1.4",
