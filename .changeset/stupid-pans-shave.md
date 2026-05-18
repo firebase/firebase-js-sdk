@@ -3,4 +3,4 @@
 "firebase": minor
 ---
 
-Add ability to pass in a Node environment variable into `initializeApp` and `initializeServerApp`
+Add ability to pass in a string into `initializeApp` and `initializeServerApp`.

@@ -101,16 +101,10 @@ export function getApps(): FirebaseApp[];
 export function _getProvider<T extends Name>(app: FirebaseApp, name: T): Provider<T>;
 
 // @public
-export function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
+export function initializeApp(options: FirebaseOptions | string, name?: string): FirebaseApp;
 
 // @public
-export function initializeApp(jsonConfigStr: string, name?: string): FirebaseApp;
-
-// @public
-export function initializeApp(jsonConfigStr: string, config?: FirebaseAppSettings): FirebaseApp;
-
-// @public
-export function initializeApp(options: FirebaseOptions, config?: FirebaseAppSettings): FirebaseApp;
+export function initializeApp(options: FirebaseOptions | string, config?: FirebaseAppSettings): FirebaseApp;
 
 // @public
 export function initializeApp(): FirebaseApp;
@@ -120,9 +114,6 @@ export function initializeServerApp(options: FirebaseOptions | FirebaseApp | str
 
 // @public
 export function initializeServerApp(config?: FirebaseServerAppSettings): FirebaseServerApp;
-
-// @public
-export function initializeServerApp(jsonConfigString: string): FirebaseServerApp;
 
 // @internal (undocumented)
 export function _isFirebaseApp(obj: FirebaseApp | FirebaseOptions | FirebaseAppSettings): obj is FirebaseApp;

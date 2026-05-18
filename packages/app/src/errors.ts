@@ -63,7 +63,8 @@ const ERRORS: ErrorMap<AppError> = {
     'FirebaseServerApp deleteOnDeref field defined but the JS runtime does not support FinalizationRegistry.',
   [AppError.INVALID_SERVER_APP_ENVIRONMENT]:
     'FirebaseServerApp is not for use in browser environments.',
-  [AppError.INVALID_JSON_CONFIG]: 'Unable to parse FirebaseOptions JSON string.'
+  [AppError.INVALID_JSON_CONFIG]:
+    'Unable to parse FirebaseOptions JSON string: "${config}"'
 };
 
 interface ErrorParams {
@@ -72,6 +73,7 @@ interface ErrorParams {
   [AppError.DUPLICATE_APP]: { appName: string };
   [AppError.APP_DELETED]: { appName: string };
   [AppError.INVALID_APP_ARGUMENT]: { appName: string };
+  [AppError.INVALID_JSON_CONFIG]: { config: string };
   [AppError.IDB_OPEN]: { originalErrorMessage?: string };
   [AppError.IDB_GET]: { originalErrorMessage?: string };
   [AppError.IDB_WRITE]: { originalErrorMessage?: string };
