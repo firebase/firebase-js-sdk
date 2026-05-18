@@ -83,11 +83,11 @@
       To deploy on <strong>Firebase Hosting</strong>, use <code>firebase.json</code> in this folder: run
       <code>yarn firebase:install-cli</code> once, then <code>yarn firebase:login</code>, ensure the monorepo
       <code>firebase</code> package is built from the repo root, then <code>yarn deploy</code> (Hosting must be
-      enabled for <code>fcm-js-sdk-test</code> in <code>.firebaserc</code>).
+      enabled for <code>fcm-web-sdk-test</code> in <code>.firebaserc</code>).
     </p>
     <p class="warn">
-      A default Web Push (VAPID) public key is set in <code>src/config.ts</code>. To use a different key,
-      set <code>VITE_VAPID_KEY</code> in <code>.env.local</code> and restart <code>yarn dev</code>.
+      Firebase config and VAPID public key are in <code>src/config.ts</code> (keep
+      <code>public/firebase-messaging-sw.js</code> in sync).
       <br />
       For <code>yarn firebase:login</code> / <code>yarn deploy</code>, run <code>yarn firebase:install-cli</code>
       once: it installs the Firebase CLI under <code>cli-runner/</code> with npm (isolated from the monorepo root’s

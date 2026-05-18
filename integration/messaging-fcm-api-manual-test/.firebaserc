@@ -1,5 +1,5 @@
 {
   "projects": {
-    "default": "fcm-js-sdk-test"
+    "default": "fcm-web-sdk-test"
   }
 }

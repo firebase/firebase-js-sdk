@@ -50,7 +50,7 @@ function log(line: string): void {
 
 function assertVapid(): boolean {
   if (!vapidKey) {
-    log('Error: VITE_VAPID_KEY is not set (see instructions at the top of the page).');
+    log('Error: vapidKey is not set in src/config.ts.');
     return false;
   }
   return true;

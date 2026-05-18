@@ -21,13 +21,14 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.13.0/firebase-messaging-sw.js';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyAsPuMXP3A2GQlMYe6dzYbsmn4C5mTbhu0',
-  authDomain: 'fcm-js-sdk-test.firebaseapp.com',
-  projectId: 'fcm-js-sdk-test',
-  storageBucket: 'fcm-js-sdk-test.firebasestorage.app',
-  messagingSenderId: '4222659428',
-  appId: '1:4222659428:web:55a4c1c4cd7871fb83a871',
-  measurementId: 'G-4SWZLJXREP'
+  apiKey: 'AIzaSyBpIe0xyUNHOwtE_go32NmUJF4acsc6S6c',
+  authDomain: 'fcm-web-sdk-test.firebaseapp.com',
+  databaseURL: 'https://fcm-web-sdk-test.firebaseio.com',
+  projectId: 'fcm-web-sdk-test',
+  storageBucket: 'fcm-web-sdk-test.firebasestorage.app',
+  messagingSenderId: '750970317741',
+  appId: '1:750970317741:web:f382be3155e250906a4f24',
+  measurementId: 'G-JR4QTYFTK4'
 };
 
 const app = initializeApp(firebaseConfig);

@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "fcm-js-sdk-test",
+    "site": "fcm-web-sdk-test",
     "public": "dist",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
     "headers": [

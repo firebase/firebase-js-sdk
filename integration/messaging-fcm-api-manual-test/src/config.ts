@@ -11,19 +11,16 @@
 
 /** Web app Firebase config (from Firebase Console). */
 export const firebaseConfig = {
-  apiKey: 'AIzaSyAsPuMXP3A2GQlMYe6dzYbsmn4C5mTbhu0',
-  authDomain: 'fcm-js-sdk-test.firebaseapp.com',
-  projectId: 'fcm-js-sdk-test',
-  storageBucket: 'fcm-js-sdk-test.firebasestorage.app',
-  messagingSenderId: '4222659428',
-  appId: '1:4222659428:web:55a4c1c4cd7871fb83a871',
-  measurementId: 'G-4SWZLJXREP'
+  apiKey: 'AIzaSyBpIe0xyUNHOwtE_go32NmUJF4acsc6S6c',
+  authDomain: 'fcm-web-sdk-test.firebaseapp.com',
+  databaseURL: 'https://fcm-web-sdk-test.firebaseio.com',
+  projectId: 'fcm-web-sdk-test',
+  storageBucket: 'fcm-web-sdk-test.firebasestorage.app',
+  messagingSenderId: '750970317741',
+  appId: '1:750970317741:web:f382be3155e250906a4f24',
+  measurementId: 'G-JR4QTYFTK4'
 } as const;
 
-/**
- * Cloud Messaging Web Push certificate (VAPID public key).
- * Override with `VITE_VAPID_KEY` in `.env.local` if needed.
- */
-export const vapidKey: string =
-  import.meta.env.VITE_VAPID_KEY ??
-  'BNgD0_baqe_huO6dVr5gei5Qe3sR5GmCN2CcK2u2sAspoTUas9vOlwZKUZw6_LDIWZ3OOu8jmVT0iBFK7_5v96M';
+/** Cloud Messaging Web Push certificate (VAPID public key). */
+export const vapidKey =
+  'BNjjus3nz38aYtbDLVfunY3VULg0Yq5T4GXWd7iDDmeqWCUNqfrK1eiKVdoT0VncLuCjfJ1GmdfmNZz-AjHfkxM';
