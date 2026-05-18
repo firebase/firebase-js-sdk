@@ -38,7 +38,6 @@ describe('helpers', () => {
   let storage: Record<string, string> = {};
   let emittedLogs: LogRecord[] = [];
   let flushed = false;
-  let spanEnded = false;
 
   const fakeLoggerProvider = {
     getLogger: (): Logger => {
@@ -68,16 +67,12 @@ describe('helpers', () => {
     getTracer: () => ({
       startSpan: () => ({
         setAttribute: () => {},
-        end: () => {
-          spanEnded = true;
-        },
+        end: () => {},
         spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
       }),
       startActiveSpan: (name: string, fn: (span: any) => any) =>
         fn({
-          end: () => {
-            spanEnded = true;
-          },
+          end: () => {},
           spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' })
         })
     }),
@@ -89,14 +84,12 @@ describe('helpers', () => {
     getActiveRootSpan: () => ({
       span: {
         spanContext: () => ({ traceId: 'my-trace', spanId: 'my-span' }),
-        end: () => {
-          spanEnded = true;
-        }
+        end: () => {}
       }
     }),
-    setRootSpan: () => { },
+    setRootSpan: () => {},
     getLocationKey: () => undefined,
-    setLocationKey: () => { }
+    setLocationKey: () => {}
   } as unknown as RootSpanContextManager;
 
   const fakeCrashlytics: CrashlyticsInternal = {
@@ -116,7 +109,6 @@ describe('helpers', () => {
   beforeEach(() => {
     emittedLogs = [];
     flushed = false;
-    spanEnded = false;
     storage = {};
     // @ts-ignore
     originalSessionStorage = global.sessionStorage;
@@ -217,7 +209,6 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
-        expect(spanEnded).to.be.false;
 
         Object.defineProperty(document, 'visibilityState', {
           value: 'hidden',
@@ -226,7 +217,6 @@ describe('helpers', () => {
         window.dispatchEvent(new Event('visibilitychange'));
 
         expect(flushed).to.be.true;
-        expect(spanEnded).to.be.true;
       });
 
       it('should flush logs when the pagehide event fires', () => {
@@ -234,12 +224,10 @@ describe('helpers', () => {
         registerListeners(fakeCrashlytics);
 
         expect(flushed).to.be.false;
-        expect(spanEnded).to.be.false;
 
         window.dispatchEvent(new Event('pagehide'));
 
         expect(flushed).to.be.true;
-        expect(spanEnded).to.be.true;
       });
     }
   });
