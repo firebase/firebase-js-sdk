@@ -38,7 +38,7 @@ jobs:
       with:
         node-version: 22.10.0
     - name: Checkout release branch (with history)
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         # Release script requires git history and tags.
         fetch-depth: 0
