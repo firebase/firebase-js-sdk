@@ -145,12 +145,12 @@ export function recordError(
  * Creates a log for view boundary on navigation event
  *
  * @param crashlytics - The {@link Crashlytics} instance.
- * @param newPathNavigation - The new URL pattern being navigated to.
+ * @param urlTemplate - The new URL pattern being navigated to.
  * @param attributes - Optional, arbitrary attributes to attach to the view boundary log
  */
 export function logViewBoundary(
   crashlytics: Crashlytics,
-  appScreenId: string,
+  urlTemplate: string,
   attributes?: AnyValueMap
 ): void {
   const { loggerProvider, contextManager } = crashlytics as CrashlyticsInternal;
@@ -169,12 +169,12 @@ export function logViewBoundary(
     severityNumber: SeverityNumber.INFO,
     body: 'Navigation event',
     attributes: {
-      [CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]: appScreenId,
+      [CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]: urlTemplate,
       ...customAttributes
     }
   });
 
-  contextManager.setActiveAppScreenId(appScreenId);
+  contextManager.setActiveAppScreenId(urlTemplate);
 }
 
 export { flush, startUserInteractionTrace };
