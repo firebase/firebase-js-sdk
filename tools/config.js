@@ -59,7 +59,10 @@ Promise.resolve(userToken || cachedToken)
           message: 'Which project would you like to use to test?',
           choices: projects
             .sort(project =>
-              project.name.toLowerCase().includes('jscore') ? -1 : 1
+              project.name.toLowerCase().includes('jscore') ||
+              project.name.toLowerCase().includes('jssdk')
+                ? -1
+                : 1
             )
             .map(project => ({
               name: `${project.displayName} (${project.projectId})`,

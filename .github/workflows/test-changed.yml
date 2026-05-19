@@ -41,8 +41,10 @@ jobs:
           sudo apt-get install google-chrome-stable
       - name: Test setup and yarn install
         run: |
-          cp config/ci.config.json config/project.json
+          echo "$CI_PROJECT" > config/project.json
           yarn
+        env:
+          CI_PROJECT: ${{ secrets.CI_PROJECT }}
       - name: build
         run: yarn build:changed core
       - name: Run tests on changed packages
@@ -65,8 +67,10 @@ jobs:
         run: npx @puppeteer/browsers install firefox@stable
       - name: Test setup and yarn install
         run: |
-          cp config/ci.config.json config/project.json
+          echo "$CI_PROJECT" > config/project.json
           yarn
+        env:
+          CI_PROJECT: ${{ secrets.CI_PROJECT }}
       - name: build
         run: yarn build:changed core
       - name: Run tests on changed packages
@@ -90,9 +94,10 @@ jobs:
           node-version: 22.10.0
       - name: Test setup and yarn install
         run: |
-          cp config/ci.config.json config/project.json
+          echo "$CI_PROJECT" > config/project.json
           yarn
-          npx playwright install webkit
+        env:
+          CI_PROJECT: ${{ secrets.CI_PROJECT }}
       - name: build
         run: yarn build:changed core
       - name: Run tests on changed packages

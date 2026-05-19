@@ -53,8 +53,10 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo "$CI_PROJECT" > config/project.json
         yarn
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
     - name: yarn build
       run: yarn build
     - name: Archive build
@@ -93,8 +95,10 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo "$CI_PROJECT" > config/project.json
         yarn
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -157,8 +161,10 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo "$CI_PROJECT" > config/project.json
         yarn
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -207,8 +213,10 @@ jobs:
         node-version: 22.10.0
     - name: Test setup and yarn install
       run: |
-        cp config/ci.config.json config/project.json
+        echo "$CI_PROJECT" > config/project.json
         yarn
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
     - name: Set start timestamp env var
       run: echo "FIREBASE_CI_TEST_START_TIME=$(date +%s)" >> $GITHUB_ENV
     - name: Run unit tests
@@ -258,8 +266,12 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.10.0
-    - run: cp config/ci.config.json config/project.json
-    - run: yarn
+    - name: Test setup and yarn install
+      run: |
+        echo "$CI_PROJECT" > config/project.json
+        yarn
+      env:
+        CI_PROJECT: ${{ secrets.CI_PROJECT }}
     - run: yarn build:${{ matrix.persistence }}
       working-directory: integration/firestore
     - run: xvfb-run yarn karma:singlerun
