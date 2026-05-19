@@ -115,7 +115,7 @@ export class WatchTargetChange {
 }
 
 /** Tracks the internal state of a Watch target. */
-class TargetState {
+export class TargetState {
   /**
    * The number of pending responses (adds or removes) that we are waiting on.
    * We only consider targets active that have no pending responses.
@@ -306,6 +306,11 @@ export class WatchChangeAggregator {
     primitiveComparator
   );
 
+  /** expose target states for testing */
+  get _targetStates(): Map<RemoteTargetId, TargetState> {
+    return this.targetStates;
+  }
+
   /**
    * Processes and adds the DocumentWatchChange to the current set of changes.
    */
@@ -330,7 +335,14 @@ export class WatchChangeAggregator {
   /** Processes and adds the WatchTargetChange to the current set of changes. */
   handleTargetChange(targetChange: WatchTargetChange): void {
     this.forEachTarget(targetChange, targetId => {
-      const targetState = this.ensureTargetState(targetId);
+      const targetState = this.targetStates.get(targetId);
+
+      // skip unknown target state, this indicates the target change is for
+      // an old target
+      if (!targetState) {
+        return;
+      }
+
       switch (targetChange.state) {
         case WatchTargetChangeState.NoChange:
           if (this.isActiveTarget(targetId)) {
@@ -440,7 +452,7 @@ export class WatchChangeAggregator {
             { expectedCount }
           );
         }
-      } else {
+      } else if (this.targetStates.get(targetId) !== undefined) {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
         // Existence filter mismatch. Mark the documents as being in limbo, and
         // raise a snapshot with `isFromCache:true`.
@@ -681,7 +693,10 @@ export class WatchChangeAggregator {
     targetId: RemoteTargetId,
     document: MutableDocument
   ): void {
-    if (!this.isActiveTarget(targetId)) {
+    const targetState = this.targetStates.get(targetId);
+
+    // skip unknown or inactive targets
+    if (!targetState || !this.isActiveTarget(targetId)) {
       return;
     }
 
@@ -689,7 +704,6 @@ export class WatchChangeAggregator {
       ? ChangeType.Modified
       : ChangeType.Added;
 
-    const targetState = this.ensureTargetState(targetId);
     targetState.addDocumentChange(document.key, changeType);
 
     this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
@@ -727,7 +741,14 @@ export class WatchChangeAggregator {
       return;
     }
 
-    const targetState = this.ensureTargetState(targetId);
+    const targetState = this.targetStates.get(targetId);
+
+    // skip unknown target state, this indicates the target change is for
+    // an old target
+    if (!targetState) {
+      return;
+    }
+
     if (this.targetContainsDocument(targetId, key)) {
       targetState.addDocumentChange(key, ChangeType.Removed);
     } else {
@@ -766,7 +787,13 @@ export class WatchChangeAggregator {
    * target as well as any accumulated changes.
    */
   private getCurrentDocumentCountForTarget(targetId: RemoteTargetId): number {
-    const targetState = this.ensureTargetState(targetId);
+    const targetState = this.targetStates.get(targetId);
+
+    // skip unknown target state
+    if (!targetState) {
+      return 0;
+    }
+
     const targetChange = targetState.toTargetChange();
     return (
       this.metadataProvider.getRemoteKeysForTarget(targetId).size +
@@ -781,17 +808,12 @@ export class WatchChangeAggregator {
    */
   recordPendingTargetRequest(targetId: RemoteTargetId): void {
     // For each request we get we need to record we need a response for it.
-    const targetState = this.ensureTargetState(targetId);
-    targetState.recordPendingTargetRequest();
-  }
-
-  private ensureTargetState(targetId: RemoteTargetId): TargetState {
-    let result = this.targetStates.get(targetId);
-    if (!result) {
-      result = new TargetState();
-      this.targetStates.set(targetId, result);
+    let targetState = this.targetStates.get(targetId);
+    if (!targetState) {
+      targetState = new TargetState();
+      this.targetStates.set(targetId, targetState);
     }
-    return result;
+    targetState.recordPendingTargetRequest();
   }
 
   private ensureDocumentTargetMapping(

@@ -179,4 +179,34 @@ describeSpec('Remote store:', [], () => {
         .expectActiveTargets();
     }
   );
+
+  specTest('Handles ack of old target after re-listen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .userUnlistens(query1)
+      .watchUsesTargetIndex(0)
+      .watchAcks(query1)
+      .expectActiveTargets();
+  });
+
+  specTest(
+    'Handles stale ack after stream reopen',
+    [],
+    () => {
+      const query1 = query('collection');
+      return (
+        spec()
+          .ensureManualLruGC()
+          .userListens(query1)
+          .userUnlistens(query1)
+          .userListens(query1)
+          .watchStreamCloses(Code.UNAVAILABLE)
+          .expectEvents(query1, { fromCache: true })
+          .watchUsesTargetIndex(0)
+          .watchAcks(query1)
+      );
+    }
+  );
 });
