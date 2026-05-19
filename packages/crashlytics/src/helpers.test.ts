@@ -17,10 +17,15 @@
 
 import { expect } from 'chai';
 import { LoggerProvider } from '@opentelemetry/sdk-logs';
-import { Logger, LogRecord } from '@opentelemetry/api-logs';
-import { TracerProvider } from '@opentelemetry/api';
+import { Logger, LogRecord, AnyValueMap } from '@opentelemetry/api-logs';
+import { trace, TracerProvider } from '@opentelemetry/api';
+import sinon from 'sinon';
 import { isNode } from '@firebase/util';
-import { registerListeners, startNewSession } from './helpers';
+import {
+  registerListeners,
+  startNewSession,
+  setCommonLogAttributes
+} from './helpers';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
@@ -196,6 +201,77 @@ describe('helpers', () => {
         [CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]: 'my-trace',
         [CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]: 'my-span'
       });
+    });
+  });
+
+  describe('setCommonLogAttributes', () => {
+    let customAttributes: AnyValueMap;
+    let getActiveSpanStub: sinon.SinonStub | undefined;
+
+    beforeEach(() => {
+      customAttributes = {};
+    });
+
+    afterEach(() => {
+      getActiveSpanStub?.restore();
+      getActiveSpanStub = undefined;
+    });
+
+    it('should assign trace id, span id, app version, and session id to customAttributes if active span', () => {
+      const mockSpan = {
+        spanContext: () => ({ traceId: 'trace-id-123', spanId: 'span-id-456' })
+      };
+      getActiveSpanStub = sinon
+        .stub(trace, 'getActiveSpan')
+        .returns(mockSpan as any);
+
+      storage[CRASHLYTICS_SESSION_ID_KEY] = 'session-id-789';
+      AUTO_CONSTANTS.appVersion = '1.0.0';
+
+      setCommonLogAttributes(fakeCrashlytics, customAttributes);
+
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.equal(
+        'trace-id-123'
+      );
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]).to.equal(
+        'span-id-456'
+      );
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
+        '1.0.0'
+      );
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
+        'session-id-789'
+      );
+    });
+
+    it('should not assign attributes for trace id and span id if there is no active span', () => {
+      getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+
+      setCommonLogAttributes(fakeCrashlytics, customAttributes);
+
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.be
+        .undefined;
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]).to.be
+        .undefined;
+    });
+
+    it("should assign 'unset' to app version if not available", () => {
+      getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+
+      setCommonLogAttributes(fakeCrashlytics, customAttributes);
+
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
+        'unset'
+      );
+    });
+
+    it('should not assign any session id if not available', () => {
+      getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+
+      setCommonLogAttributes(fakeCrashlytics, customAttributes);
+
+      expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
+        .undefined;
     });
   });
 
