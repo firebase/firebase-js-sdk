@@ -22,7 +22,10 @@ import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types
 import { FirebaseInternalDependencies } from './interfaces/internal-dependencies';
 import { LogEvent } from './interfaces/logging-types';
 import { Provider } from '@firebase/component';
-import { _FirebaseInstallationsInternal } from '@firebase/installations';
+import {
+  _FirebaseInstallationsInternal,
+  IdChangeUnsubscribeFn
+} from '@firebase/installations';
 import { extractAppConfig } from './helpers/extract-app-config';
 
 export class MessagingService implements _FirebaseService {
@@ -42,6 +45,21 @@ export class MessagingService implements _FirebaseService {
   onMessageHandler: NextFn<MessagePayload> | Observer<MessagePayload> | null =
     null;
 
+  /** Observer for the event that the app instance is registered with FCM via Firebase Installation ID (FID). */
+  onRegisteredHandler: NextFn<string> | Observer<string> | null = null;
+
+  /** Observer for the event that the app instance is unregistered from FCM (FID no longer active). */
+  onUnregisteredHandler: NextFn<string> | Observer<string> | null = null;
+
+  /**
+   * Serializes the FID get + compare + notify step so concurrent register() calls
+   * do not race each other.
+   */
+  _registerNotifyChain: Promise<void> = Promise.resolve();
+
+  /** Unsubscribe from Installations `onIdChange` when messaging is deleted. */
+  _fidChangeUnsubscribe: IdChangeUnsubscribeFn | null = null;
+
   logEvents: LogEvent[] = [];
   /**
    * Single source of truth for the logging loop lifecycle.
@@ -57,7 +75,6 @@ export class MessagingService implements _FirebaseService {
     analyticsProvider: Provider<FirebaseAnalyticsInternalName>
   ) {
     const appConfig = extractAppConfig(app);
-
     this.firebaseDependencies = {
       app,
       appConfig,
@@ -67,6 +84,10 @@ export class MessagingService implements _FirebaseService {
   }
 
   _delete(): Promise<void> {
+    if (this._fidChangeUnsubscribe) {
+      this._fidChangeUnsubscribe();
+      this._fidChangeUnsubscribe = null;
+    }
     if (this.logQueue.state === 'scheduled') {
       clearTimeout(this.logQueue.timerId);
     }

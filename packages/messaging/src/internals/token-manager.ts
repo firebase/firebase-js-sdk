@@ -15,13 +15,23 @@
  * limitations under the License.
  */
 
-import { SubscriptionOptions, TokenDetails } from '../interfaces/token-details';
+import {
+  SubscriptionOptions,
+  TokenDetails
+} from '../interfaces/registration-details';
 import {
   arrayToBase64,
   base64ToArray
 } from '../helpers/array-base64-translator';
-import { dbGet, dbRemove, dbSet } from './idb-manager';
 import {
+  dbGet,
+  dbGetFidRegistration,
+  dbRemove,
+  dbRemoveFidRegistration,
+  dbSet
+} from './idb-manager';
+import {
+  requestDeleteRegistration,
   requestDeleteToken,
   requestGetToken,
   requestUpdateToken
@@ -48,6 +58,9 @@ export async function getTokenInternal(
     auth: arrayToBase64(pushSubscription.getKey('auth')!),
     p256dh: arrayToBase64(pushSubscription.getKey('p256dh')!)
   };
+
+  // Best-effort cleanup when switching from FID register/unregister to legacy getToken().
+  await removeFidRegistrationBestEffort(messaging.firebaseDependencies);
 
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (!tokenDetails) {
@@ -82,6 +95,43 @@ export async function getTokenInternal(
 }
 
 /**
+ * Legacy getToken() path: there is a token row in IndexedDB. Revoke it with FCM, drop the row, and
+ * clear any leftover FID registration metadata (apps may mix APIs).
+ */
+async function revokeLegacyFcmTokenAndClearCaches(
+  messaging: MessagingService,
+  tokenDetails: TokenDetails
+): Promise<void> {
+  await requestDeleteToken(messaging.firebaseDependencies, tokenDetails.token);
+  await dbRemove(messaging.firebaseDependencies);
+  await removeFidRegistrationBestEffort(messaging.firebaseDependencies);
+}
+
+/**
+ * No legacy token row: the client may only have FID-based registration (register() flow). If so,
+ * delete that registration on the server, always scrub local FID metadata, then surface
+ * onUnregistered when we actually had an FID.
+ */
+async function revokeFidRegistrationIfStored(
+  messaging: MessagingService
+): Promise<void> {
+  const stored = await dbGetFidRegistration(
+    messaging.firebaseDependencies
+  ).catch(() => undefined);
+  const fid = stored?.fid;
+
+  if (fid) {
+    await requestDeleteRegistration(messaging.firebaseDependencies, fid);
+  }
+
+  await removeFidRegistrationBestEffort(messaging.firebaseDependencies);
+
+  if (fid) {
+    notifyOnUnregistered(messaging, fid);
+  }
+}
+
+/**
  * This method deletes the token from the database, unsubscribes the token from FCM, and unregisters
  * the push subscription if it exists.
  */
@@ -90,11 +140,9 @@ export async function deleteTokenInternal(
 ): Promise<boolean> {
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (tokenDetails) {
-    await requestDeleteToken(
-      messaging.firebaseDependencies,
-      tokenDetails.token
-    );
-    await dbRemove(messaging.firebaseDependencies);
+    await revokeLegacyFcmTokenAndClearCaches(messaging, tokenDetails);
+  } else {
+    await revokeFidRegistrationIfStored(messaging);
   }
 
   // Unsubscribe from the push subscription.
@@ -181,4 +229,27 @@ function isTokenValid(
   const isP256dhEqual = currentOptions.p256dh === dbOptions.p256dh;
 
   return isVapidKeyEqual && isEndpointEqual && isAuthEqual && isP256dhEqual;
+}
+
+/** Clears FID registration metadata; apps may mix legacy getToken() with FID register/unregister. */
+async function removeFidRegistrationBestEffort(
+  firebaseDependencies: FirebaseInternalDependencies
+): Promise<void> {
+  try {
+    await dbRemoveFidRegistration(firebaseDependencies);
+  } catch {
+    // Ignore.
+  }
+}
+
+function notifyOnUnregistered(messaging: MessagingService, fid: string): void {
+  const handler = messaging.onUnregisteredHandler;
+  if (!handler) {
+    return;
+  }
+  if (typeof handler === 'function') {
+    handler(fid);
+  } else {
+    handler.next(fid);
+  }
 }
