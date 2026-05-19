@@ -62,10 +62,54 @@ describe('API tests', () => {
       expect(app.name).to.equal(DEFAULT_ENTRY_NAME);
     });
 
-    it('creates named App', () => {
+    it('creates named App with config object', () => {
       const appName = 'MyApp';
       const app = initializeApp({}, appName);
       expect(app.name).to.equal(appName);
+    });
+
+    it('creates named App with JSON config string', () => {
+      const appName = 'MyApp';
+      const config = {
+        apiKey: 'test1'
+      };
+      const app = initializeApp(JSON.stringify(config), appName);
+      expect(app.name).to.equal(appName);
+      expect(app.options).to.deep.equal(config);
+    });
+
+    it('creates DEFAULT App with JSON config string', () => {
+      const config = {
+        apiKey: 'test1'
+      };
+      const app = initializeApp(JSON.stringify(config));
+      expect(app.name).to.equal(DEFAULT_ENTRY_NAME);
+      expect(app.options).to.deep.equal(config);
+    });
+    it('creates named app with config object as the second parameter', () => {
+      const appName = 'myApp';
+      const config = {
+        apiKey: 'test1'
+      };
+      const app = initializeApp(JSON.stringify(config), {
+        name: appName,
+        automaticDataCollectionEnabled: true
+      });
+      expect(app.name).to.equal(appName);
+      expect(app.options).to.deep.equal(config);
+    });
+
+    it('throws when creating DEFAULT App with malformed JSON config string', () => {
+      expect(() => initializeApp('{invalid json')).throws(
+        /Unable to parse FirebaseOptions JSON string/
+      );
+    });
+
+    it('throws when creating named App with malformed JSON config string', () => {
+      const appName = 'MyApp';
+      expect(() => initializeApp('{invalid json', appName)).throws(
+        /Unable to parse FirebaseOptions JSON string/
+      );
     });
 
     it('creates named and DEFAULT App', () => {
@@ -220,6 +264,55 @@ describe('API tests', () => {
       await deleteApp(app);
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
+
+    it('creates FirebaseServerApp with json config string', async () => {
+      if (isBrowser()) {
+        // FirebaseServerApp isn't supported for execution in browser environments.
+        return;
+      }
+
+      const options = {
+        apiKey: 'APIKEY'
+      };
+
+      const serverAppSettings: FirebaseServerAppSettings = {};
+
+      const app = initializeServerApp(
+        JSON.stringify(options),
+        serverAppSettings
+      );
+      expect(app).to.not.equal(null);
+      expect(app.automaticDataCollectionEnabled).to.be.true;
+      await deleteApp(app);
+      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
+    });
+    it(
+      'creates FirebaseServerApp with options as first parameter and config object' +
+        ' with automaticDataCollectionEnabled as second parameter',
+      async () => {
+        if (isBrowser()) {
+          // FirebaseServerApp isn't supported for execution in browser environments.
+          return;
+        }
+
+        const options = {
+          apiKey: 'APIKEY'
+        };
+
+        const serverAppSettings: FirebaseServerAppSettings = {
+          automaticDataCollectionEnabled: true
+        };
+
+        const app = initializeServerApp(
+          JSON.stringify(options),
+          serverAppSettings
+        );
+        expect(app).to.not.equal(null);
+        expect(app.automaticDataCollectionEnabled).to.be.true;
+        await deleteApp(app);
+        expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
+      }
+    );
 
     it('creates FirebaseServerApp with automaticDataCollectionEnabled', async () => {
       if (isBrowser()) {

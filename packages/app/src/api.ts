@@ -58,6 +58,21 @@ import {
 
 export { FirebaseError } from '@firebase/util';
 
+function tryToParseOptionsString(optionsString: string): FirebaseOptions {
+  try {
+    const options: FirebaseOptions = JSON.parse(optionsString);
+    if (options == null || typeof options !== 'object') {
+      // The catch block will add the error text and info.
+      throw new Error();
+    }
+    return options;
+  } catch (error) {
+    throw ERROR_FACTORY.create(AppError.INVALID_JSON_CONFIG, {
+      config: optionsString
+    });
+  }
+}
+
 /**
  * The current SDK version.
  *
@@ -114,7 +129,7 @@ export const SDK_VERSION = version;
  * @public
  */
 export function initializeApp(
-  options: FirebaseOptions,
+  options: FirebaseOptions | string,
   name?: string
 ): FirebaseApp;
 /**
@@ -129,7 +144,7 @@ export function initializeApp(
  * @public
  */
 export function initializeApp(
-  options: FirebaseOptions,
+  options: FirebaseOptions | string,
   config?: FirebaseAppSettings
 ): FirebaseApp;
 /**
@@ -139,10 +154,16 @@ export function initializeApp(
  */
 export function initializeApp(): FirebaseApp;
 export function initializeApp(
-  _options?: FirebaseOptions,
+  _optionsOrJsonConfigString?: FirebaseOptions | string,
   rawConfig = {}
 ): FirebaseApp {
-  let options = _options;
+  let options: FirebaseOptions | undefined;
+
+  if (typeof _optionsOrJsonConfigString === 'string') {
+    options = tryToParseOptionsString(_optionsOrJsonConfigString);
+  } else {
+    options = _optionsOrJsonConfigString;
+  }
 
   if (typeof rawConfig !== 'object') {
     const name = rawConfig;
@@ -240,7 +261,7 @@ export function initializeApp(
  * @public
  */
 export function initializeServerApp(
-  options: FirebaseOptions | FirebaseApp,
+  options: FirebaseOptions | FirebaseApp | string,
   config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 
@@ -263,7 +284,7 @@ export function initializeServerApp(
   config?: FirebaseServerAppSettings
 ): FirebaseServerApp;
 export function initializeServerApp(
-  _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions,
+  _options?: FirebaseApp | FirebaseServerAppSettings | FirebaseOptions | string,
   _serverAppConfig: FirebaseServerAppSettings = {}
 ): FirebaseServerApp {
   if (isBrowser() && !isWebWorker()) {
@@ -275,7 +296,9 @@ export function initializeServerApp(
   let serverAppSettings: FirebaseServerAppSettings = _serverAppConfig || {};
 
   if (_options) {
-    if (_isFirebaseApp(_options)) {
+    if (typeof _options === 'string') {
+      firebaseOptions = tryToParseOptionsString(_options);
+    } else if (_isFirebaseApp(_options)) {
       firebaseOptions = _options.options;
     } else if (_isFirebaseServerAppSettings(_options)) {
       serverAppSettings = _options;
