@@ -141,7 +141,7 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
  * Creates and returns a new PipelineSource, which allows specifying the source stage of a {@link @firebase/firestore/pipelines#Pipeline}.
  *
  * @example
- * ```
+ * ```typescript
  * let myPipeline: Pipeline = firestore.pipeline().collection('books');
  * ```
  */

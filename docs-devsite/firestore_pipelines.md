@@ -9053,7 +9053,7 @@ export declare function mapMerge(firstMap: Record<string, unknown> | Expression,
 ### Example
 
 
-```
+```typescript
 // Merges the map in the settings field with, a map literal, and a map in
 // that is conditionally returned by another expression
 mapMerge(field('settings'), { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -9750,10 +9750,9 @@ export declare function mapRemove(mapExpr: Expression, key: string): FunctionExp
 ### Example
 
 
-```
+```typescript
 // Removes the key 'baz' from the input map.
 mapRemove(map({foo: 'bar', baz: true}), 'baz');
-@example
 
 ```
 
@@ -9781,10 +9780,9 @@ export declare function mapRemove(mapExpr: Expression, keyExpr: Expression): Fun
 ### Example
 
 
-```
+```typescript
 // Removes the key 'baz' from the input map.
 mapRemove(map({foo: 'bar', baz: true}), constant('baz'));
-@example
 
 ```
 
@@ -10050,7 +10048,7 @@ export declare function mapMerge(mapField: string, secondMap: Record<string, unk
 ### Example
 
 
-```
+```typescript
 // Merges the map in the settings field with, a map literal, and a map in
 // that is conditionally returned by another expression
 mapMerge('settings', { enabled: true }, conditional(field('isAdmin'), { admin: true}, {})
@@ -10081,7 +10079,7 @@ export declare function mapRemove(mapField: string, key: string): FunctionExpres
 ### Example
 
 
-```
+```typescript
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', 'city');
 
@@ -10111,7 +10109,7 @@ export declare function mapRemove(mapField: string, keyExpr: Expression): Functi
 ### Example
 
 
-```
+```typescript
 // Removes the key 'city' field from the map in the address field of the input document.
 mapRemove('address', constant('city'));
 
@@ -12235,7 +12233,7 @@ export declare type OneOf<T> = {
 ### Example
 
 
-```
+```typescript
 type XorY = OneOf<{ x: unknown, y: unknown }>
 let a = { x: "foo" }           // OK
 let b = { y: "foo" }           // OK
