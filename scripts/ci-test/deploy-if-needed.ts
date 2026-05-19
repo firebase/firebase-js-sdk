@@ -22,7 +22,6 @@ import { exec } from 'child-process-promise';
 const firebaseTools = require('firebase-tools');
 
 const root = resolve(__dirname, '../..');
-const config = require(resolve(root, 'config/ci.config.json'));
 const git = simpleGit(root);
 
 interface DeployOptions {
@@ -31,6 +30,13 @@ interface DeployOptions {
   cwd: string;
   only?: string;
   force: boolean;
+}
+
+let config: { projectId: string };
+if (process.env.PROJECT_CONFIG) {
+  config = JSON.parse(process.env.PROJECT_CONFIG);
+  // FIXME
+  console.log(config);
 }
 
 /**
