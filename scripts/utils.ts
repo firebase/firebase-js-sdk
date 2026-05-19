@@ -29,7 +29,7 @@ export async function getChangedFiles(): Promise<string[]> {
   console.log(projectRoot);
   const git = simpleGit(projectRoot);
   const diff = await git.diff(['--name-only', 'origin/main...HEAD']);
-  const changedFiles = diff.split('\n');
+  const changedFiles = diff.split('\n').filter(Boolean);
 
   return changedFiles;
 }
