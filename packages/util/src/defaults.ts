@@ -69,7 +69,9 @@ const getDefaultsFromEnvVariable = (): FirebaseDefaults | undefined => {
   if (typeof process === 'undefined' || typeof process.env === 'undefined') {
     return;
   }
-  const defaultsJsonString = process.env.__FIREBASE_DEFAULTS__;
+  const defaultsJsonString =
+    process.env.__FIREBASE_DEFAULTS__ ||
+    process.env.NEXT_PUBLIC__FIREBASE_DEFAULTS__;
   if (defaultsJsonString) {
     return JSON.parse(defaultsJsonString);
   }
