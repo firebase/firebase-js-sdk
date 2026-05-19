@@ -20,6 +20,7 @@ import * as sinon from 'sinon';
 import { Span } from '@opentelemetry/sdk-trace-base';
 import { FirebaseSpanProcessor } from './firebase-span-processor';
 import { RootSpan, RootSpanContextManager } from './root-span-context-manager';
+import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import {
   CRASHLYTICS_SESSION_ID_KEY,
   COMMON_SPAN_ATTRIBUTE_KEYS,
@@ -63,12 +64,14 @@ describe('FirebaseSpanProcessor', () => {
 
     mockRootSpanContextManager = {
       getActiveRootSpan: () => activeRootSpanMock as unknown as RootSpan,
+      getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan,
       getActiveAppScreenId: () => undefined
     } as unknown as RootSpanContextManager;
 
     processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
     mockSpan = {
       attributes: {},
+      spanContext: () => ({ traceId: 'traceId1' }),
       setAttribute: (key: string, value: string) => {
         mockSpan.attributes[key] = value;
       }
@@ -173,7 +176,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(recordNetworkActivityStartStub.calledWith(mockSpan)).to.be.true;
+      expect(recordNetworkActivityStartStub.calledOnce).to.be.true;
     });
 
     it('should record network activity start for xhr instrumentation', () => {
@@ -182,7 +185,7 @@ describe('FirebaseSpanProcessor', () => {
       };
       processor.onStart(mockSpan as Span, {} as any);
 
-      expect(recordNetworkActivityStartStub.calledWith(mockSpan)).to.be.true;
+      expect(recordNetworkActivityStartStub.calledOnce).to.be.true;
     });
 
     it('should not record network activity start for non-network scopes', () => {
@@ -198,18 +201,28 @@ describe('FirebaseSpanProcessor', () => {
       mockSpan.instrumentationScope = {
         name: '@opentelemetry/instrumentation-fetch'
       };
+      mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(recordNetworkActivityEndStub.calledWith(mockSpan)).to.be.true;
+      expect(
+        recordNetworkActivityEndStub.calledWith(
+          hrTimeToMilliseconds(mockSpan.endTime)
+        )
+      ).to.be.true;
     });
 
     it('should record network activity end for xhr instrumentation', () => {
       mockSpan.instrumentationScope = {
         name: '@opentelemetry/instrumentation-xml-http-request'
       };
+      mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
-      expect(recordNetworkActivityEndStub.calledWith(mockSpan)).to.be.true;
+      expect(
+        recordNetworkActivityEndStub.calledWith(
+          hrTimeToMilliseconds(mockSpan.endTime)
+        )
+      ).to.be.true;
     });
 
     it('should not record network activity end for non-network scopes', () => {

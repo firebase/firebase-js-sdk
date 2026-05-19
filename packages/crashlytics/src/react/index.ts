@@ -17,7 +17,11 @@
 
 import { FirebaseApp } from '@firebase/app';
 import { registerCrashlytics } from '../register';
-import { getCrashlytics, registerGlobalErrorListeners } from '../api';
+import {
+  getCrashlytics,
+  registerGlobalErrorListeners,
+  registerUserInteractionTraceListener
+} from '../api';
 import { CrashlyticsOptions } from '../public-types';
 import { useEffect } from 'react';
 
@@ -78,7 +82,13 @@ export function FirebaseCrashlytics({
 }): null {
   useEffect(() => {
     const crashlytics = getCrashlytics(firebaseApp, crashlyticsOptions);
-    return registerGlobalErrorListeners(crashlytics);
+    const userInteractionTraceListener =
+      registerUserInteractionTraceListener(crashlytics);
+    const globalErrorListeners = registerGlobalErrorListeners(crashlytics);
+    return () => {
+      userInteractionTraceListener();
+      globalErrorListeners();
+    };
   }, [firebaseApp, crashlyticsOptions]);
 
   return null;
