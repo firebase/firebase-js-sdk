@@ -62,7 +62,7 @@ describe('RootSpanContextManager', () => {
       startSpan: sandbox.stub().callsFake((spanName: string) => {
         mockSpan = {
           end: sandbox.stub(),
-          spanContext: () => ({ traceId: MOCK_TRACE_ID, spanId: spanName })
+          spanContext: () => ({ traceId: spanName === 'span-2' ? MOCK_TRACE_ID + '-2' : MOCK_TRACE_ID, spanId: spanName })
         };
         return mockSpan;
       })
@@ -136,7 +136,12 @@ describe('RootSpanContextManager', () => {
 
       clock.tick(100);
       const activityTimestamp = clock.Date.now();
-      rootSpan.recordActivity();
+      const networkSpan = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, activityTimestamp * 1000000]
+      };
+      rootSpan.recordNetworkActivityStart(networkSpan as unknown as Span);
+      rootSpan.recordNetworkActivityEnd(networkSpan as unknown as ReadableSpan);
 
       clock.tick(150); // let quiescence complete
 
@@ -195,12 +200,96 @@ describe('RootSpanContextManager', () => {
 
       clock.tick(100);
       const originalActiveTime = clock.Date.now(); // 100ms
-      rootSpan.recordActivity(originalActiveTime);
-      rootSpan.recordActivity(50); // record activity in the past
+      const networkSpan1 = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, originalActiveTime * 1000000]
+      };
+      rootSpan.recordNetworkActivityStart(networkSpan1 as unknown as Span);
+      rootSpan.recordNetworkActivityEnd(networkSpan1 as unknown as ReadableSpan);
+
+      const networkSpan2 = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, 50 * 1000000]
+      };
+      rootSpan.recordNetworkActivityStart(networkSpan2 as unknown as Span);
+      rootSpan.recordNetworkActivityEnd(networkSpan2 as unknown as ReadableSpan);
 
       clock.tick(150); // let quiescence complete
 
       expect(mockSpan.end.calledWith(originalActiveTime)).to.be.true;
+    });
+  });
+
+  describe('interrupted root span', () => {
+    it('should immediately end if there are no active network requests', () => {
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      clock.tick(100);
+      const activeTime = clock.Date.now();
+      const networkSpan = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, activeTime * 1000000]
+      };
+      rootSpan1.recordNetworkActivityStart(networkSpan as unknown as Span);
+      rootSpan1.recordNetworkActivityEnd(networkSpan as unknown as ReadableSpan);
+
+      clock.tick(50);
+      // starting a new root span interrupts rootSpan1
+      manager.startRootSpan(mockTracer as Tracer, 'span-2');
+
+      expect((rootSpan1.span as any).end.calledWith(activeTime)).to.be.true;
+      expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be.undefined;
+    });
+
+    it('should stay open if there are active network requests and end when network activity ends', () => {
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      const networkSpan = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, 0]
+      };
+
+      rootSpan1.recordNetworkActivityStart(networkSpan as unknown as Span);
+
+      // interrupt rootSpan1
+      manager.startRootSpan(mockTracer as Tracer, 'span-2');
+
+      expect((rootSpan1.span as any).end.called).to.be.false;
+      expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.equal(rootSpan1);
+
+      rootSpan1.recordNetworkActivityEnd(networkSpan as unknown as ReadableSpan);
+
+      expect((rootSpan1.span as any).end.called).to.be.true;
+      expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be.undefined;
+    });
+
+    it('should ignore UI activity after being interrupted', () => {
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      const networkSpan = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, 0]
+      };
+      rootSpan1.recordNetworkActivityStart(networkSpan as unknown as Span);
+
+      clock.tick(50);
+      const networkActiveTime = clock.Date.now();
+      const networkSpan2 = {
+        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
+        endTime: [0, networkActiveTime * 1000000]
+      };
+      rootSpan1.recordNetworkActivityStart(networkSpan2 as unknown as Span);
+      rootSpan1.recordNetworkActivityEnd(networkSpan2 as unknown as ReadableSpan);
+
+      const rootSpan1ObserverCb = mutationObserverCallback;
+      // interrupt rootSpan1
+      manager.startRootSpan(mockTracer as Tracer, 'span-2');
+
+      clock.tick(50);
+      if (rootSpan1ObserverCb) {
+        rootSpan1ObserverCb();
+      }
+
+      rootSpan1.recordNetworkActivityEnd(networkSpan as unknown as ReadableSpan);
+
+      expect((rootSpan1.span as any).end.calledWith(networkActiveTime)).to.be.true;
     });
   });
 });

@@ -32,28 +32,24 @@ const QUIESCENCE_WINDOW_MS = 150;
 export class RootSpan {
   span: Span;
   private activeNetworkRequests: number;
-  private lastActiveTimeMs: number;
+  private lastNetworkActivityMs: number;
+  private lastUiActivityMs: number;
   private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
+  private isInterrupted = false;
 
   constructor(span: Span, manager: RootSpanContextManager) {
     this.span = span;
     this.manager = manager;
-    this.lastActiveTimeMs = Date.now();
+
+    const current = Date.now();
+    this.lastNetworkActivityMs = current;
+    this.lastUiActivityMs = current;
+
     this.quiescenceTimerId = null;
     this.activeNetworkRequests = 0;
     this.mutationObserver = this.createMutationObserver();
-    this.quiesce();
-  }
-
-  /**
-   * Records an activity timestamp and resets the quiescence timer.
-   */
-  recordActivity(timestamp: number = Date.now()): void {
-    if (timestamp > this.lastActiveTimeMs) {
-      this.lastActiveTimeMs = timestamp;
-    }
     this.quiesce();
   }
 
@@ -66,7 +62,7 @@ export class RootSpan {
 
     if (rootSpanTraceId === networkSpanTraceId) {
       this.activeNetworkRequests++;
-      this.recordActivity();
+      this.recordNetworkActivity();
     }
   }
 
@@ -79,8 +75,55 @@ export class RootSpan {
 
     if (rootSpanTraceId === networkSpanTraceId) {
       this.activeNetworkRequests = Math.max(0, this.activeNetworkRequests - 1);
-      this.recordActivity(hrTimeToMilliseconds(networkSpan.endTime));
+      this.recordNetworkActivity(hrTimeToMilliseconds(networkSpan.endTime));
+
+      // Short-circuit quiescence if the root span is interrupted and network requests have ended
+      if (this.isInterrupted && this.activeNetworkRequests === 0) {
+        this.endRootSpan();
+      }
     }
+  }
+
+  /**
+   * Records network activity and resets the quiescence timer.
+   * @param timestamp The time of the network activity.
+   */
+  private recordNetworkActivity(timestamp: number = Date.now()): void {
+    if (timestamp > this.lastNetworkActivityMs) {
+      this.lastNetworkActivityMs = timestamp;
+      this.quiesce();
+    }
+  }
+
+  /**
+   * Records UI activity and resets the quiescence timer.
+   */
+  private recordUiActivity(timestamp: number = Date.now()): void {
+    if (!this.isInterrupted && timestamp > this.lastUiActivityMs) {
+      this.lastUiActivityMs = timestamp;
+      this.quiesce();
+    }
+  }
+
+
+  /**
+   * Interrupt the quiescence timer to allow the root span to be closed.
+   */
+  interrupt(): void {
+    this.isInterrupted = true;
+
+    // Short-circuit quiescence timer if there are no ongoing child network spans
+    if (this.activeNetworkRequests === 0) {
+      this.endRootSpan();
+    }
+  }
+
+  /**
+   * Returns the trace ID of the root span
+   * @returns traceId
+   */
+  getTraceId(): string {
+    return this.span.spanContext().traceId;
   }
 
   private createMutationObserver(): MutationObserver | null {
@@ -92,14 +135,14 @@ export class RootSpan {
     }
 
     const observer = new MutationObserver(() => {
-      this.recordActivity(); // Refresh quiescence timer due to DOM updates
+      this.recordUiActivity(); // Refresh quiescence timer due to DOM updates
       if (
         typeof window !== 'undefined' &&
         typeof window.requestAnimationFrame === 'function'
       ) {
         window.requestAnimationFrame(() => {
           setTimeout(() => {
-            this.recordActivity(); // Refresh quiescence timer due to browser paint
+            this.recordUiActivity(); // Refresh quiescence timer due to browser paint
           }, 0);
         });
       }
@@ -129,7 +172,7 @@ export class RootSpan {
       return;
     }
 
-    const timeSinceLastActivity = Date.now() - this.lastActiveTimeMs;
+    const timeSinceLastActivity = Date.now() - this.lastUiActivityMs;
     // Subtract 5 milliseconds from quiescence window to account for browser timer imprecision
     if (timeSinceLastActivity < QUIESCENCE_WINDOW_MS - 5) {
       this.quiesce(); // Keep waiting, work is not yet stable
@@ -139,7 +182,7 @@ export class RootSpan {
   }
 
   private endRootSpan(): void {
-    // Clean up the DOM observer to prevent memory leaks
+    // Clean up DOM observer to prevent memory leaks
     if (this.mutationObserver) {
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
@@ -150,10 +193,12 @@ export class RootSpan {
     }
 
     // End the span backdated to the exact millisecond work actually stopped
-    this.span.end(this.lastActiveTimeMs);
-    if (this.manager.getActiveRootSpan() === this) {
-      this.manager.clearActiveRootSpan();
+    if (this.isInterrupted) {
+      this.span.end(this.lastNetworkActivityMs);
+    } else {
+      this.span.end(Math.max(this.lastNetworkActivityMs, this.lastUiActivityMs));
     }
+    this.manager.clearRootSpanFromContext(this);
   }
 }
 
@@ -162,10 +207,13 @@ export class RootSpan {
  */
 export class RootSpanContextManager extends ZoneContextManager {
   private _activeRootSpan: RootSpan | undefined;
+  private _interruptedRootSpans: RootSpan[] = [];
   // TODO: cchestnut look into having a store to manage context data not unique to span context
   private _activeAppScreenId: string | undefined;
   startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
     if (this._activeRootSpan) {
+      this._interruptedRootSpans.push(this._activeRootSpan);
+      this._activeRootSpan.interrupt();
       this.clearActiveRootSpan();
     }
     const span = tracer.startSpan(rootSpanName);
@@ -177,8 +225,25 @@ export class RootSpanContextManager extends ZoneContextManager {
     return this._activeRootSpan;
   }
 
+  getRootSpanByTraceId(traceId: string): RootSpan | undefined {
+    if (this._activeRootSpan && this._activeRootSpan.getTraceId() === traceId) {
+      return this._activeRootSpan;
+    } else {
+      return this._interruptedRootSpans.find(rs => rs.getTraceId() === traceId);
+    }
+  }
+
   clearActiveRootSpan(): void {
     this._activeRootSpan = undefined;
+  }
+
+  clearRootSpanFromContext(rootSpan: RootSpan): void {
+    if (this._activeRootSpan === rootSpan) {
+      this.clearActiveRootSpan();
+    }
+    if (this._interruptedRootSpans.includes(rootSpan)) {
+      this._interruptedRootSpans = this._interruptedRootSpans.filter(rs => rs !== rootSpan);
+    }
   }
 
   getActiveAppScreenId(): string | undefined {

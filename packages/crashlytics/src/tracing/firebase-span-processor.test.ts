@@ -63,12 +63,14 @@ describe('FirebaseSpanProcessor', () => {
 
     mockRootSpanContextManager = {
       getActiveRootSpan: () => activeRootSpanMock as unknown as RootSpan,
+      getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan,
       getActiveAppScreenId: () => undefined
     } as unknown as RootSpanContextManager;
 
     processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
     mockSpan = {
       attributes: {},
+      spanContext: () => ({ traceId: 'traceId1' }),
       setAttribute: (key: string, value: string) => {
         mockSpan.attributes[key] = value;
       }
