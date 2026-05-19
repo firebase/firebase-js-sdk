@@ -26,6 +26,7 @@ import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  TargetState,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
@@ -127,6 +128,15 @@ describe('RemoteEvent', () => {
         }
       });
     }
+
+    // ensure target states
+    targetIds.forEach(targetId => {
+      let targetState = aggregator._targetStates.get(targetId);
+      if (!targetState) {
+        targetState = new TargetState();
+        aggregator._targetStates.set(targetId, targetState);
+      }
+    });
 
     if (options.changes) {
       options.changes.forEach(change =>
