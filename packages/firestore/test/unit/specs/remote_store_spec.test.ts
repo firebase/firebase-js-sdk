@@ -180,15 +180,46 @@ describeSpec('Remote store:', [], () => {
     }
   );
 
-  specTest('Handles ack of old target after re-listen', [], () => {
+  specTest('Handles ack of target after un-listen', [], () => {
     const query1 = query('collection');
     return spec()
       .ensureManualLruGC()
       .userListens(query1)
       .userUnlistens(query1)
-      .watchUsesTargetIndex(0)
       .watchAcks(query1)
       .expectActiveTargets();
+  });
+
+  specTest('Handles reset between listen and ack', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .watchResets(query1)
+      .watchAcks(query1);
+  });
+
+  specTest('Handles close between listen and ack', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .watchStreamCloses('unknown', { runBackoffTimer: true })
+      .expectEvents(query1, { fromCache: true })
+      .watchAcks(query1);
+  });
+
+  specTest('Handles listen, unlisten, listen, ack', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      .watchUsesTargetIndex(0)
+      .watchAcks(query1)
+      .watchUsesTargetIndex(1)
+      .expectActiveTargets({ query: query1 });
   });
 
   specTest(
@@ -196,17 +227,18 @@ describeSpec('Remote store:', [], () => {
     [],
     () => {
       const query1 = query('collection');
-      return (
-        spec()
+      return spec()
           .ensureManualLruGC()
           .userListens(query1)
           .userUnlistens(query1)
           .userListens(query1)
-          .watchStreamCloses(Code.UNAVAILABLE)
+          .watchStreamCloses(Code.UNAVAILABLE, {runBackoffTimer: true})
           .expectEvents(query1, { fromCache: true })
           .watchUsesTargetIndex(0)
           .watchAcks(query1)
-      );
+          .watchUsesTargetIndex(1)
+          .watchAcks(query1)
+          .expectActiveTargets({ query: query1 });
     }
   );
 });
