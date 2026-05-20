@@ -63,7 +63,9 @@ export class ReCaptchaV3Provider implements AppCheckProvider {
    * Returns an App Check token.
    * @internal
    */
-  async getToken(isLimitedUse: boolean = true): Promise<AppCheckTokenInternal> {
+  async getToken(
+    isLimitedUse: boolean = false
+  ): Promise<AppCheckTokenInternal> {
     throwIfThrottled(this._throttleData);
 
     // Top-level `getToken()` has already checked that App Check is initialized
