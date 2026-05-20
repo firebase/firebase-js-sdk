@@ -162,7 +162,7 @@ export function createTracingProvider(
   return provider;
 }
 
-class OTLPTraceExporter
+export class OTLPTraceExporter
   extends OTLPExporterBase<ReadableSpan[]>
   implements SpanExporter
 {
