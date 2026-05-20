@@ -222,23 +222,19 @@ describeSpec('Remote store:', [], () => {
       .expectActiveTargets({ query: query1 });
   });
 
-  specTest(
-    'Handles stale ack after stream reopen',
-    [],
-    () => {
-      const query1 = query('collection');
-      return spec()
-          .ensureManualLruGC()
-          .userListens(query1)
-          .userUnlistens(query1)
-          .userListens(query1)
-          .watchStreamCloses(Code.UNAVAILABLE, {runBackoffTimer: true})
-          .expectEvents(query1, { fromCache: true })
-          .watchUsesTargetIndex(0)
-          .watchAcks(query1)
-          .watchUsesTargetIndex(1)
-          .watchAcks(query1)
-          .expectActiveTargets({ query: query1 });
-    }
-  );
+  specTest('Handles stale ack after stream reopen', [], () => {
+    const query1 = query('collection');
+    return spec()
+      .ensureManualLruGC()
+      .userListens(query1)
+      .userUnlistens(query1)
+      .userListens(query1)
+      .watchStreamCloses(Code.UNAVAILABLE, { runBackoffTimer: true })
+      .expectEvents(query1, { fromCache: true })
+      .watchUsesTargetIndex(0)
+      .watchAcks(query1)
+      .watchUsesTargetIndex(1)
+      .watchAcks(query1)
+      .expectActiveTargets({ query: query1 });
+  });
 });

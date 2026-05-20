@@ -461,8 +461,7 @@ export class WatchChangeAggregator {
             { expectedCount }
           );
         }
-      }
-      {
+      } else {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
         // Existence filter mismatch. Mark the documents as being in limbo, and
         // raise a snapshot with `isFromCache:true`.
@@ -707,6 +706,10 @@ export class WatchChangeAggregator {
 
     // skip unknown or inactive targets
     if (!targetState || !this.isActiveTarget(targetId)) {
+      logDebug(
+        LOG_TAG,
+        `addDocumentToTarget received document for unknown target (${targetId})`
+      );
       return;
     }
 
@@ -756,6 +759,10 @@ export class WatchChangeAggregator {
     // skip unknown target state, this indicates the target change is for
     // an old target
     if (!targetState) {
+      logDebug(
+        LOG_TAG,
+        `removeDocumentFromTarget received document for unknown target (${targetId})`
+      );
       return;
     }
 
