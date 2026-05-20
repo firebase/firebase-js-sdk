@@ -117,6 +117,11 @@ export class WatchTargetChange {
 /** Tracks the internal state of a Watch target. */
 export class TargetState {
   /**
+   * Track the targetId for logging.
+   */
+  constructor(private targetId: RemoteTargetId) {}
+
+  /**
    * The number of pending responses (adds or removes) that we are waiting on.
    * We only consider targets active that have no pending responses.
    */
@@ -244,7 +249,7 @@ export class TargetState {
       this.pendingResponses >= 0,
       0x0ca9,
       '`pendingResponses` is less than 0. This indicates that the SDK received more target acks from the server than expected. The SDK should not continue to operate.',
-      { pendingResponses: this.pendingResponses }
+      { pendingResponses: this.pendingResponses, targetId: this.targetId }
     );
   }
 
@@ -340,6 +345,10 @@ export class WatchChangeAggregator {
       // skip unknown target state, this indicates the target change is for
       // an old target
       if (!targetState) {
+        logDebug(
+          LOG_TAG,
+          `handleTargetChange received targetChange for untracked target ID (${targetId}) with state (${targetChange.state})`
+        );
         return;
       }
 
@@ -452,7 +461,8 @@ export class WatchChangeAggregator {
             { expectedCount }
           );
         }
-      } else if (this.targetStates.get(targetId) !== undefined) {
+      }
+      {
         const currentSize = this.getCurrentDocumentCountForTarget(targetId);
         // Existence filter mismatch. Mark the documents as being in limbo, and
         // raise a snapshot with `isFromCache:true`.
@@ -810,7 +820,11 @@ export class WatchChangeAggregator {
     // For each request we get we need to record we need a response for it.
     let targetState = this.targetStates.get(targetId);
     if (!targetState) {
-      targetState = new TargetState();
+      logDebug(
+        LOG_TAG,
+        `recordPendingTargetRequest set up tracking for target ID ${targetId}`
+      );
+      targetState = new TargetState(targetId);
       this.targetStates.set(targetId, targetState);
     }
     targetState.recordPendingTargetRequest();
@@ -865,7 +879,7 @@ export class WatchChangeAggregator {
     targetId: RemoteTargetId
   ): TargetData<RemoteTargetId> | null {
     const targetState = this.targetStates.get(targetId);
-    return targetState && targetState.isPending
+    return targetState === undefined || targetState.isPending
       ? null
       : this.metadataProvider.getTargetDataForTarget(targetId);
   }
@@ -880,7 +894,7 @@ export class WatchChangeAggregator {
       !this.targetStates.get(targetId)!.isPending,
       'Should only reset active targets'
     );
-    this.targetStates.set(targetId, new TargetState());
+    this.targetStates.set(targetId, new TargetState(targetId));
 
     // Trigger removal for any documents currently mapped to this target.
     // These removals will be part of the initial snapshot if Watch does not
@@ -890,6 +904,7 @@ export class WatchChangeAggregator {
       this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
     });
   }
+
   /**
    * Returns whether the LocalStore considers the document to be part of the
    * specified target.

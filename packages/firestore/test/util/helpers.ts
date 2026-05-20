@@ -488,7 +488,7 @@ function ensureTargetData(
       targetIds.forEach(targetId => {
         let targetState = aggregator._targetStates.get(targetId);
         if (!targetState) {
-          targetState = new TargetState();
+          targetState = new TargetState(targetId);
           aggregator._targetStates.set(targetId, targetState);
         }
       });
