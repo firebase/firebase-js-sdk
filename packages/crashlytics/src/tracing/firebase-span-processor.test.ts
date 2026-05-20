@@ -83,64 +83,87 @@ describe('FirebaseSpanProcessor', () => {
     sinon.restore();
   });
 
-  it('should add session id to span if present in storage', () => {
-    storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
-    processor.onStart(mockSpan as Span, {} as any);
-    expect(
-      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
-    ).to.equal(MOCK_SESSION_ID);
-  });
+  describe('onStart', () => {
+    it('should add session id to span if present in storage', () => {
+      storage[CRASHLYTICS_SESSION_ID_KEY] = MOCK_SESSION_ID;
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
+      ).to.equal(MOCK_SESSION_ID);
+    });
 
-  it('should not add session id if not present in storage', () => {
-    processor.onStart(mockSpan as Span, {} as any);
-    expect(
-      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
-    ).to.be.undefined;
-  });
+    it('should not add session id if not present in storage', () => {
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_SESSION_ID]
+      ).to.be.undefined;
+    });
 
-  it('should add region to resource name if present in options', () => {
-    processor = new FirebaseSpanProcessor(
-      mockRootSpanContextManager,
-      { region: 'us-central1' },
-      { projectId: 'my-project' }
-    );
-    processor.onStart(mockSpan as Span, {} as any);
-    expect(
-      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
-    ).to.equal(
-      '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
-    );
-  });
+    it('should add region to resource name if present in options', () => {
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        { region: 'us-central1' },
+        { projectId: 'my-project' }
+      );
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
+      ).to.equal(
+        '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
+      );
+    });
 
-  it('should use default region if not present in options', () => {
-    processor = new FirebaseSpanProcessor(
-      mockRootSpanContextManager,
-      {},
-      { projectId: 'my-project' }
-    );
-    processor.onStart(mockSpan as Span, {} as any);
-    expect(
-      mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
-    ).to.equal(
-      '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
-    );
-  });
+    it('should use default region in resource name if not present in options', () => {
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        {},
+        { projectId: 'my-project' }
+      );
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_RESOURCE_NAME]
+      ).to.equal(
+        '//firebasetelemetry.googleapis.com/projects/my-project/locations/global/'
+      );
+    });
 
-  it('should add active app screen id to span if available', () => {
-    const mockScreenId = 'screen-id';
-    (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
-      mockScreenId;
-    processor.onStart(mockSpan as Span, {} as any);
-    expect(
-      mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
-    ).to.equal(mockScreenId);
-  });
+    it('should add active app screen id to span if available', () => {
+      const mockScreenId = 'screen-id';
+      (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
+        mockScreenId;
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+      ).to.equal(mockScreenId);
+    });
 
-  it('should not add active app screen id to span if not available', () => {
-    (mockRootSpanContextManager as any).getActiveAppScreenId = () => undefined;
-    processor.onStart(mockSpan as Span, {} as any);
-    expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to.be
-      .undefined;
+    it('should not add active app screen id to span if not available', () => {
+      (mockRootSpanContextManager as any).getActiveAppScreenId = () =>
+        undefined;
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(mockSpan.attributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]).to
+        .be.undefined;
+    });
+
+    it('should set app version attribute to the configured app version', () => {
+      processor = new FirebaseSpanProcessor(
+        mockRootSpanContextManager,
+        { appVersion: '1.2.3' },
+        {}
+      );
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]
+      ).to.equal('1.2.3');
+    });
+
+    it("should set app version attribute to 'unset' if configured app version not available", () => {
+      processor = new FirebaseSpanProcessor(mockRootSpanContextManager, {}, {});
+      processor.onStart(mockSpan as Span, {} as any);
+      expect(
+        mockSpan.attributes[COMMON_SPAN_ATTRIBUTE_KEYS.GCP_FIREBASE_APP_VERSION]
+      ).to.equal('unset');
+    });
   });
 
   describe('network activity tracking', () => {
