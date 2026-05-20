@@ -708,7 +708,7 @@ export class WatchChangeAggregator {
     if (!targetState || !this.isActiveTarget(targetId)) {
       logDebug(
         LOG_TAG,
-        `addDocumentToTarget received document for unknown target (${targetId})`
+        `addDocumentToTarget received document for unknown inactive target (${targetId})`
       );
       return;
     }
@@ -750,18 +750,14 @@ export class WatchChangeAggregator {
     key: DocumentKey,
     updatedDocument: MutableDocument | null
   ): void {
-    if (!this.isActiveTarget(targetId)) {
-      return;
-    }
-
     const targetState = this.targetStates.get(targetId);
 
     // skip unknown target state, this indicates the target change is for
     // an old target
-    if (!targetState) {
+    if (!targetState || !this.isActiveTarget(targetId)) {
       logDebug(
         LOG_TAG,
-        `removeDocumentFromTarget received document for unknown target (${targetId})`
+        `removeDocumentFromTarget received document for unknown or inactive target (${targetId})`
       );
       return;
     }
