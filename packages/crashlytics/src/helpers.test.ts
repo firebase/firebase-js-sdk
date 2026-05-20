@@ -215,7 +215,7 @@ describe('helpers', () => {
       const mockSpan = {
         spanContext: () => ({ traceId: 'trace-id-123', spanId: 'span-id-456' })
       };
-      let getActiveSpanStub = sinon
+      const getActiveSpanStub = sinon
         .stub(trace, 'getActiveSpan')
         .returns(mockSpan as any);
 
@@ -243,7 +243,7 @@ describe('helpers', () => {
     });
 
     it('should not assign attributes for trace id and span id if there is no active span', () => {
-      let getActiveSpanStub = sinon
+      const getActiveSpanStub = sinon
         .stub(trace, 'getActiveSpan')
         .returns(undefined);
 
@@ -260,7 +260,7 @@ describe('helpers', () => {
     });
 
     it("should assign 'unset' to app version if not available", () => {
-      let getActiveSpanStub = sinon
+      const getActiveSpanStub = sinon
         .stub(trace, 'getActiveSpan')
         .returns(undefined);
 
@@ -276,7 +276,7 @@ describe('helpers', () => {
     });
 
     it('should not assign any session id if not available', () => {
-      let getActiveSpanStub = sinon
+      const getActiveSpanStub = sinon
         .stub(trace, 'getActiveSpan')
         .returns(undefined);
 
