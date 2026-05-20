@@ -274,9 +274,10 @@ describe('Top level API', () => {
     it('should assign new location as active app screen id in root span context manager', () => {
       const spy = sinon.spy(fakeContextManager, 'setActiveAppScreenId');
       const urlTemplate = '/users/:id';
-      logViewBoundary(fakeCrashlytics, urlTemplate);
 
       try {
+        logViewBoundary(fakeCrashlytics, urlTemplate);
+
         expect(spy.calledWith(urlTemplate)).to.be.true;
       } finally {
         spy.restore();
