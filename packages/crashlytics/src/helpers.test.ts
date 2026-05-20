@@ -226,24 +226,26 @@ describe('helpers', () => {
         setCommonLogAttributes(fakeCrashlytics, customAttributes);
 
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.TRACE_ID]).to.equal(
-        'trace-id-123'
+          'trace-id-123'
         );
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]).to.equal(
           'span-id-456'
         );
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
-          '1.0.0'
-        );
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.equal(
-          'session-id-789'
-        );
+        expect(
+          customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]
+        ).to.equal('1.0.0');
+        expect(
+          customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]
+        ).to.equal('session-id-789');
       } finally {
         getActiveSpanStub?.restore();
       }
     });
 
     it('should not assign attributes for trace id and span id if there is no active span', () => {
-      let getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+      let getActiveSpanStub = sinon
+        .stub(trace, 'getActiveSpan')
+        .returns(undefined);
 
       try {
         setCommonLogAttributes(fakeCrashlytics, customAttributes);
@@ -258,21 +260,25 @@ describe('helpers', () => {
     });
 
     it("should assign 'unset' to app version if not available", () => {
-      let getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+      let getActiveSpanStub = sinon
+        .stub(trace, 'getActiveSpan')
+        .returns(undefined);
 
       try {
         setCommonLogAttributes(fakeCrashlytics, customAttributes);
 
-        expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]).to.equal(
-          'unset'
-        );
+        expect(
+          customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]
+        ).to.equal('unset');
       } finally {
         getActiveSpanStub?.restore();
       }
     });
 
     it('should not assign any session id if not available', () => {
-      let getActiveSpanStub = sinon.stub(trace, 'getActiveSpan').returns(undefined);
+      let getActiveSpanStub = sinon
+        .stub(trace, 'getActiveSpan')
+        .returns(undefined);
 
       try {
         setCommonLogAttributes(fakeCrashlytics, customAttributes);

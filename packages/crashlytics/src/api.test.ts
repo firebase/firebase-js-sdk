@@ -77,8 +77,8 @@ const fakeTracingProvider = {
 
 const fakeContextManager = {
   getActiveRootSpan: () => undefined,
-  setRootSpan: () => { },
-  setActiveAppScreenId: () => { },
+  setRootSpan: () => {},
+  setActiveAppScreenId: () => {},
   getActiveAppScreenId: () => undefined
 } as unknown as RootSpanContextManager;
 
@@ -272,7 +272,7 @@ describe('Top level API', () => {
     });
 
     it('should assign new location as active app screen id in root span context manager', () => {
-      const spy = sinon.spy(fakeContextManager, "setActiveAppScreenId");
+      const spy = sinon.spy(fakeContextManager, 'setActiveAppScreenId');
       const urlTemplate = '/users/:id';
       logViewBoundary(fakeCrashlytics, urlTemplate);
 
