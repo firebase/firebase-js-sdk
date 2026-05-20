@@ -238,7 +238,7 @@ describe('helpers', () => {
           customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]
         ).to.equal('session-id-789');
       } finally {
-        getActiveSpanStub?.restore();
+        getActiveSpanStub.restore();
       }
     });
 
@@ -255,7 +255,7 @@ describe('helpers', () => {
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SPAN_ID]).to.be
           .undefined;
       } finally {
-        getActiveSpanStub?.restore();
+        getActiveSpanStub.restore();
       }
     });
 
@@ -271,7 +271,7 @@ describe('helpers', () => {
           customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.APP_VERSION]
         ).to.equal('unset');
       } finally {
-        getActiveSpanStub?.restore();
+        getActiveSpanStub.restore();
       }
     });
 
@@ -286,7 +286,7 @@ describe('helpers', () => {
         expect(customAttributes[CRASHLYTICS_ATTRIBUTE_KEYS.SESSION_ID]).to.be
           .undefined;
       } finally {
-        getActiveSpanStub?.restore();
+        getActiveSpanStub.restore();
       }
     });
   });
