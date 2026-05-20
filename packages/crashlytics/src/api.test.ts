@@ -77,7 +77,9 @@ const fakeTracingProvider = {
 
 const fakeContextManager = {
   getActiveRootSpan: () => undefined,
-  setRootSpan: () => {}
+  setRootSpan: () => { },
+  setActiveAppScreenId: () => { },
+  getActiveAppScreenId: () => undefined
 } as unknown as RootSpanContextManager;
 
 const fakeCrashlytics: CrashlyticsInternal = {
@@ -243,27 +245,6 @@ describe('Top level API', () => {
   });
 
   describe('logViewBoundary()', () => {
-    let mockContextManager: any;
-    let originalContextManager: any;
-
-    beforeEach(() => {
-      emittedLogs.length = 0;
-      originalContextManager = fakeCrashlytics.contextManager;
-
-      let activeAppScreenId: string | undefined = undefined;
-      mockContextManager = {
-        setActiveAppScreenId: (id: string) => {
-          activeAppScreenId = id;
-        },
-        getActiveAppScreenId: () => activeAppScreenId
-      };
-      (fakeCrashlytics as any).contextManager = mockContextManager;
-    });
-
-    afterEach(() => {
-      (fakeCrashlytics as any).contextManager = originalContextManager;
-    });
-
     it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation", () => {
       const urlTemplate = '/users/:id';
       logViewBoundary(fakeCrashlytics, urlTemplate);
@@ -291,10 +272,15 @@ describe('Top level API', () => {
     });
 
     it('should assign new location as active app screen id in root span context manager', () => {
+      const spy = sinon.spy(fakeContextManager, "setActiveAppScreenId");
       const urlTemplate = '/users/:id';
       logViewBoundary(fakeCrashlytics, urlTemplate);
 
-      expect(mockContextManager.getActiveAppScreenId()).to.equal(urlTemplate);
+      try {
+        expect(spy.calledWith(urlTemplate)).to.be.true;
+      } finally {
+        spy.restore();
+      }
     });
   });
 
