@@ -29,7 +29,7 @@ import {
 } from '@firebase/app';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseAppCheckInternal } from '@firebase/app-check-interop-types';
-import { recordError, flush, getCrashlytics } from './api';
+import { recordError, flush, getCrashlytics, logViewBoundary } from './api';
 import {
   CRASHLYTICS_ATTRIBUTE_KEYS,
   CRASHLYTICS_SESSION_ID_KEY
@@ -77,7 +77,9 @@ const fakeTracingProvider = {
 
 const fakeContextManager = {
   getActiveRootSpan: () => undefined,
-  setRootSpan: () => {}
+  setRootSpan: () => {},
+  setActiveAppScreenId: () => {},
+  getActiveAppScreenId: () => undefined
 } as unknown as RootSpanContextManager;
 
 const fakeCrashlytics: CrashlyticsInternal = {
@@ -239,6 +241,47 @@ describe('Top level API', () => {
       getCrashlytics(getFakeApp());
 
       expect(storage[CRASHLYTICS_SESSION_ID_KEY]).to.equal('existing-session');
+    });
+  });
+
+  describe('logViewBoundary()', () => {
+    it("should emit a log record with the severity number of SeverityNumber.INFO, the body of 'Navigation event', and the attribute of 'app.screen.id' as the path of navigation", () => {
+      const urlTemplate = '/users/:id';
+      logViewBoundary(fakeCrashlytics, urlTemplate);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.severityNumber).to.equal(SeverityNumber.INFO);
+      expect(log.body).to.equal('Navigation event');
+      expect(
+        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+      ).to.equal(urlTemplate);
+    });
+
+    it('should emit a log record with additional attributes if available', () => {
+      const urlTemplate = '/users/:id';
+      const additionalAttributes = { 'custom.attr': 'value' };
+      logViewBoundary(fakeCrashlytics, urlTemplate, additionalAttributes);
+
+      expect(emittedLogs.length).to.equal(1);
+      const log = emittedLogs[0];
+      expect(log.attributes!['custom.attr']).to.equal('value');
+      expect(
+        log.attributes![CRASHLYTICS_ATTRIBUTE_KEYS.APP_SCREEN_ID]
+      ).to.equal(urlTemplate);
+    });
+
+    it('should assign new location as active app screen id in root span context manager', () => {
+      const spy = sinon.spy(fakeContextManager, 'setActiveAppScreenId');
+      const urlTemplate = '/users/:id';
+
+      try {
+        logViewBoundary(fakeCrashlytics, urlTemplate);
+
+        expect(spy.calledWith(urlTemplate)).to.be.true;
+      } finally {
+        spy.restore();
+      }
     });
   });
 
