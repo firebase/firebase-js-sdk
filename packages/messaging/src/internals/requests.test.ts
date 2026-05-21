@@ -19,6 +19,11 @@ import '../testing/setup';
 
 import {
   ApiRequestBody,
+  FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
+  FID_REGISTRATION_FETCH_MAX_ATTEMPTS,
+  getRegistrationOrigin,
+  requestCreateRegistration,
+  requestDeleteRegistration,
   requestDeleteToken,
   requestGetToken,
   requestUpdateToken
@@ -27,12 +32,13 @@ import {
 import { ENDPOINT } from '../util/constants';
 import { FirebaseInternalDependencies } from '../interfaces/internal-dependencies';
 import { Stub } from '../testing/sinon-types';
-import { TokenDetails } from '../interfaces/token-details';
+import { TokenDetails } from '../interfaces/registration-details';
 import { compareHeaders } from '../testing/compare-headers';
 import { expect } from 'chai';
 import { getFakeFirebaseDependencies } from '../testing/fakes/firebase-dependencies';
 import { getFakeTokenDetails } from '../testing/fakes/token-details';
 import { stub } from 'sinon';
+import { version as fcmSdkVersion } from '../../package.json';
 
 describe('API', () => {
   let tokenDetails: TokenDetails;
@@ -64,6 +70,10 @@ describe('API', () => {
       });
       const expectedBody: ApiRequestBody = {
         web: {
+          origin: getRegistrationOrigin(
+            tokenDetails.subscriptionOptions!.swScope,
+            firebaseDependencies.appConfig.appName
+          ),
           endpoint: 'https://example.org',
           auth: 'YXV0aC12YWx1ZQ',
           p256dh: 'cDI1Ni12YWx1ZQ',
@@ -82,6 +92,28 @@ describe('API', () => {
       // TODO: expect fis.getToken to be called. There is some issue w/ stubbing the fis module.
       const actualHeaders = fetchStub.lastCall.lastArg.headers;
       compareHeaders(expectedHeaders, actualHeaders);
+    });
+
+    it('does not include fcm_sdk_version in legacy createToken request payload', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
+      );
+
+      await requestGetToken(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      const [, requestInit] = fetchStub.getCall(0).args as [
+        string,
+        RequestInit
+      ];
+      const body = JSON.parse(requestInit.body as string) as Record<
+        string,
+        unknown
+      >;
+
+      expect(body).to.not.have.property('fcm_sdk_version');
     });
 
     it('throws if there is a problem with the response', async () => {
@@ -110,6 +142,166 @@ describe('API', () => {
     });
   });
 
+  describe('createRegistration', () => {
+    function stubSetTimeoutImmediate(): void {
+      stub(self, 'setTimeout').callsFake(
+        (handler: TimerHandler, _timeout?: number) => {
+          if (typeof handler === 'function') {
+            handler();
+          }
+          return 0 as unknown as ReturnType<typeof setTimeout>;
+        }
+      );
+    }
+
+    const registrationResourceName = (fid: string): string =>
+      `projects/projectId/registrations/${fid}`;
+
+    it('calls fetch once when the first attempt succeeds', async () => {
+      fetchStub.resolves(
+        new Response(
+          JSON.stringify({
+            name: registrationResourceName('installation-fid-1')
+          }),
+          {
+            status: 200
+          }
+        )
+      );
+
+      await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(fetchStub).to.have.callCount(1);
+    });
+
+    it('includes fcm_sdk_version in the CreateRegistration request payload', async () => {
+      fetchStub.resolves(
+        new Response(
+          JSON.stringify({
+            name: registrationResourceName('installation-fid-1')
+          }),
+          { status: 200 }
+        )
+      );
+
+      await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      const [, requestInit] = fetchStub.getCall(0).args as [
+        string,
+        RequestInit
+      ];
+      const body = JSON.parse(requestInit.body as string) as ApiRequestBody;
+
+      expect(body.fcm_sdk_version).to.equal(fcmSdkVersion);
+    });
+
+    it('returns responseFid when the success body includes a registration resource name', async () => {
+      fetchStub.resolves(
+        new Response(
+          JSON.stringify({
+            name: registrationResourceName('installation-fid-1')
+          }),
+          {
+            status: 200
+          }
+        )
+      );
+
+      const result = await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(result).to.deep.equal({ responseFid: 'installation-fid-1' });
+    });
+
+    it('rejects when name is not a valid registration resource name (no slash)', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ name: 'installation-fid-invalid' }), {
+          status: 200
+        })
+      );
+
+      await expect(
+        requestCreateRegistration(
+          firebaseDependencies,
+          tokenDetails.subscriptionOptions!
+        )
+      ).to.be.rejectedWith('messaging/fid-registration-failed');
+    });
+
+    it('rejects when the success body is empty', async () => {
+      fetchStub.resolves(new Response(null, { status: 200 }));
+
+      await expect(
+        requestCreateRegistration(
+          firebaseDependencies,
+          tokenDetails.subscriptionOptions!
+        )
+      ).to.be.rejectedWith('messaging/fid-registration-failed');
+    });
+
+    it('retries fetch on thrown errors with exponential backoff then succeeds', async () => {
+      const delays: number[] = [];
+      stub(self, 'setTimeout').callsFake(
+        (handler: TimerHandler, timeout?: number) => {
+          delays.push(timeout ?? 0);
+          if (typeof handler === 'function') {
+            handler();
+          }
+          return 0 as unknown as ReturnType<typeof setTimeout>;
+        }
+      );
+      fetchStub
+        .onFirstCall()
+        .rejects(new Error('network 1'))
+        .onSecondCall()
+        .rejects(new Error('network 2'))
+        .onThirdCall()
+        .resolves(
+          new Response(
+            JSON.stringify({
+              name: registrationResourceName('installation-fid-1')
+            }),
+            {
+              status: 200
+            }
+          )
+        );
+
+      await requestCreateRegistration(
+        firebaseDependencies,
+        tokenDetails.subscriptionOptions!
+      );
+
+      expect(fetchStub.callCount).to.equal(FID_REGISTRATION_FETCH_MAX_ATTEMPTS);
+      expect(delays).to.deep.equal([
+        FID_REGISTRATION_FETCH_BASE_BACKOFF_MS,
+        FID_REGISTRATION_FETCH_BASE_BACKOFF_MS * 2
+      ]);
+    });
+
+    it('stops after max attempts when fetch keeps throwing', async () => {
+      stubSetTimeoutImmediate();
+      fetchStub.rejects(new Error('persistent network failure'));
+
+      await expect(
+        requestCreateRegistration(
+          firebaseDependencies,
+          tokenDetails.subscriptionOptions!
+        )
+      ).to.be.rejectedWith('messaging/fid-registration-failed');
+
+      expect(fetchStub.callCount).to.equal(FID_REGISTRATION_FETCH_MAX_ATTEMPTS);
+    });
+  });
+
   describe('updateToken', () => {
     it('calls the updateRegistration server API with correct parameters', async () => {
       fetchStub.resolves(
@@ -129,6 +321,10 @@ describe('API', () => {
       });
       const expectedBody: ApiRequestBody = {
         web: {
+          origin: getRegistrationOrigin(
+            tokenDetails.subscriptionOptions!.swScope,
+            firebaseDependencies.appConfig.appName
+          ),
           endpoint: 'https://example.org',
           auth: 'YXV0aC12YWx1ZQ',
           p256dh: 'cDI1Ni12YWx1ZQ',
@@ -146,6 +342,25 @@ describe('API', () => {
       expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
       const actualHeaders = fetchStub.lastCall.lastArg.headers;
       compareHeaders(expectedHeaders, actualHeaders);
+    });
+
+    it('does not include fcm_sdk_version in legacy updateToken request payload', async () => {
+      fetchStub.resolves(
+        new Response(JSON.stringify({ token: 'fcm-token-from-server' }))
+      );
+
+      await requestUpdateToken(firebaseDependencies, tokenDetails);
+
+      const [, requestInit] = fetchStub.getCall(0).args as [
+        string,
+        RequestInit
+      ];
+      const body = JSON.parse(requestInit.body as string) as Record<
+        string,
+        unknown
+      >;
+
+      expect(body).to.not.have.property('fcm_sdk_version');
     });
 
     it('throws if there is a problem with the response', async () => {
@@ -213,6 +428,50 @@ describe('API', () => {
       await expect(
         requestDeleteToken(firebaseDependencies, tokenDetails.token)
       ).to.be.rejectedWith('messaging/token-unsubscribe-failed');
+    });
+  });
+
+  describe('deleteRegistration (FID)', () => {
+    it('calls the deleteRegistration server API with correct parameters', async () => {
+      fetchStub.resolves(new Response(JSON.stringify({})));
+
+      const response = await requestDeleteRegistration(
+        firebaseDependencies,
+        'fid-value'
+      );
+
+      const expectedHeaders = new Headers({
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'x-goog-api-key': 'apiKey',
+        'x-goog-firebase-installations-auth': `FIS authToken`
+      });
+      const expectedRequest: RequestInit = {
+        method: 'DELETE',
+        headers: expectedHeaders
+      };
+      const expectedEndpoint = `${ENDPOINT}/projects/projectId/registrations/fid-value`;
+
+      expect(response).to.be.undefined;
+      expect(fetchStub).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchStub.lastCall.lastArg.headers;
+      compareHeaders(expectedHeaders, actualHeaders);
+    });
+
+    it('throws if fetch fails or backend returns an error', async () => {
+      fetchStub.rejects(new Error('Fetch failed'));
+      await expect(
+        requestDeleteRegistration(firebaseDependencies, 'fid-value')
+      ).to.be.rejectedWith('messaging/fid-unregister-failed');
+
+      fetchStub.resolves(
+        new Response(JSON.stringify({ error: { message: 'error message' } }), {
+          status: 400
+        })
+      );
+      await expect(
+        requestDeleteRegistration(firebaseDependencies, 'fid-value')
+      ).to.be.rejectedWith('messaging/fid-unregister-failed');
     });
   });
 });

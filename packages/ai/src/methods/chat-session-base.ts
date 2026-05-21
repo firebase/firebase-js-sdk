@@ -163,10 +163,9 @@ export abstract class ChatSessionBase<
         } else {
           formattedContent = formatNewContent(request);
         }
-        const formattedRequest = this._formatRequest(
-          formattedContent,
-          tempHistory
-        );
+        const formattedRequest = this._formatRequest(formattedContent, [
+          ...tempHistory
+        ]);
 
         tempHistory.push(formattedContent);
 
@@ -260,11 +259,11 @@ export abstract class ChatSessionBase<
             formattedContent = formatNewContent(request);
           }
 
+          const formattedRequest = this._formatRequest(formattedContent, [
+            ...tempHistory
+          ]);
+
           tempHistory.push(formattedContent);
-          const formattedRequest = this._formatRequest(
-            formattedContent,
-            tempHistory
-          );
 
           result = await this._callGenerateContentStream(
             formattedRequest,

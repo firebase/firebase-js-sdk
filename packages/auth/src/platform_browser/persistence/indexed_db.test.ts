@@ -39,6 +39,7 @@ import {
   _clearDatabase,
   _openDatabase,
   _POLLING_INTERVAL_MS,
+  _TRANSACTION_RETRY_COUNT,
   _putObject
 } from './indexed_db';
 
@@ -52,6 +53,14 @@ describe('platform_browser/persistence/indexed_db', () => {
   const persistence: PersistenceInternal = _getInstance(
     indexedDBLocalPersistence
   );
+
+  beforeEach(() => {
+    (persistence as any).dbPromise = null;
+    (persistence as any).listeners = {};
+    (persistence as any).localCache = {};
+    (persistence as any).pendingWrites = 0;
+    (persistence as any).stopPolling();
+  });
 
   afterEach(sinon.restore);
 
@@ -91,7 +100,8 @@ describe('platform_browser/persistence/indexed_db', () => {
       expect(await persistence._isAvailable()).to.be.true;
     });
 
-    it('should return false if db creation errors', async () => {
+    it('should return false if db creation errors repeatedly', async () => {
+      (persistence as any).dbPromise = null;
       sinon.stub(indexedDB, 'open').returns({
         addEventListener(evt: string, cb: () => void) {
           if (evt === 'error') {
@@ -102,6 +112,36 @@ describe('platform_browser/persistence/indexed_db', () => {
       } as any);
 
       expect(await persistence._isAvailable()).to.be.false;
+      expect((indexedDB.open as sinon.SinonStub).callCount).to.eq(
+        _TRANSACTION_RETRY_COUNT + 2
+      );
+    });
+
+    it('should retry if db creation errors temporarily and then succeed', async () => {
+      (persistence as any).dbPromise = null;
+      const originalOpen = indexedDB.open.bind(indexedDB);
+      let errorsToThrow = 2;
+
+      sinon.stub(indexedDB, 'open').callsFake(((
+        name: string,
+        version?: number
+      ) => {
+        if (errorsToThrow > 0) {
+          errorsToThrow--;
+          return {
+            addEventListener(evt: string, cb: () => void) {
+              if (evt === 'error') {
+                cb();
+              }
+            },
+            error: new DOMException('temporary error')
+          } as any;
+        }
+        return originalOpen(name, version);
+      }) as typeof indexedDB.open);
+
+      expect(await persistence._isAvailable()).to.be.true;
+      expect((indexedDB.open as sinon.SinonStub).callCount).to.eq(3);
     });
   });
 
@@ -114,6 +154,10 @@ describe('platform_browser/persistence/indexed_db', () => {
 
     before(async () => {
       db = await _openDatabase();
+    });
+
+    after(async () => {
+      db.close();
     });
 
     beforeEach(async () => {
@@ -134,6 +178,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should trigger a listener when the key changes', async () => {
+      await persistence._get(key); // Ensure cache is populated before change
       await _putObject(db, key, newValue);
 
       await waitUntilPoll(clock);
@@ -154,6 +199,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should not trigger the listener when a different key changes', async () => {
+      await persistence._get(key); // Ensure cache is populated
       await _putObject(db, 'other-key', newValue);
 
       await waitUntilPoll(clock);
@@ -162,6 +208,7 @@ describe('platform_browser/persistence/indexed_db', () => {
     });
 
     it('should not trigger if a write is pending', async () => {
+      await persistence._get(key); // Ensure cache is populated
       await _putObject(db, key, newValue);
       (persistence as any)['pendingWrites'] = 1;
 
@@ -184,6 +231,7 @@ describe('platform_browser/persistence/indexed_db', () => {
       });
 
       it('should trigger both listeners if multiple listeners are registered', async () => {
+        await persistence._get(key); // Ensure cache is populated
         await _putObject(db, key, newValue);
 
         await waitUntilPoll(clock);
