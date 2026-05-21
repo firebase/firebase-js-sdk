@@ -25,6 +25,8 @@ import { Crashlytics } from '../public-types';
 import { FirebaseCrashlytics } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
+import { ALREADY_LOGGED_FLAG } from '../constants';
+import { ErrorWithSymbol } from '../types';
 
 use(sinonChai);
 use(chaiAsPromised);
@@ -56,37 +58,50 @@ class TestErrorBoundary extends React.Component<
 
 describe('FirebaseCrashlytics', () => {
   let getCrashlyticsStub: sinon.SinonStub;
-  let recordErrorStub: sinon.SinonStub;
+  let emitStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeCrashlytics = {} as Crashlytics;
+    emitStub = stub();
+    fakeCrashlytics = {
+      app: {
+        options: {}
+      },
+      loggerProvider: {
+        getLogger: stub().returns({
+          emit: emitStub
+        })
+      }
+    } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics
     );
-    recordErrorStub = stub(crashlytics, 'recordError');
   });
 
   afterEach(() => {
     restore();
   });
 
-  it('captures window errors', done => {
+  it('captures window errors', () => {
+    const prevOnError = window.onerror;
+    window.onerror = () => true;
+
     render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
     const error = new Error('test error');
-    window.onerror = () => {
-      // Prevent error from bubbling up to test suite
-    };
-    window.addEventListener('error', (event: ErrorEvent) => {
-      // Registers another listener (sequential) to confirm behaviour.
-      expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-      expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, error);
-      done();
-    });
+
     window.dispatchEvent(new ErrorEvent('error', { error }));
+
+    expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
+    expect(emitStub).to.have.been.calledOnce;
+    const log = emitStub.firstCall.args[0];
+    expect(log.body).to.equal('test error');
+    expect(log.attributes['error.type']).to.equal('Error');
+    expect(log.attributes['error.stack']).to.be.a('string');
+
+    window.onerror = prevOnError;
   });
 
   it('captures unhandled promise rejections', () => {
@@ -94,10 +109,31 @@ describe('FirebaseCrashlytics', () => {
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
     promise.catch(() => {});
+
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })
     );
+
     expect(getCrashlyticsStub).to.have.been.calledWith(fakeApp);
-    expect(recordErrorStub).to.have.been.calledWith(fakeCrashlytics, reason);
+    expect(emitStub).to.have.been.calledOnce;
+    const log = emitStub.firstCall.args[0];
+    expect(log.body).to.equal('test rejection');
+    expect(log.attributes['error.type']).to.equal('Error');
+    expect(log.attributes['error.stack']).to.be.a('string');
+  });
+
+  it('ignores errors that have already been logged by Crashlytics', () => {
+    const prevOnError = window.onerror;
+    window.onerror = () => true;
+
+    render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
+    const error = new Error('already logged error');
+    (error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+
+    window.dispatchEvent(new ErrorEvent('error', { error }));
+
+    expect(emitStub).to.not.have.been.called;
+
+    window.onerror = prevOnError;
   });
 });
