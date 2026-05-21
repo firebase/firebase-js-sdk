@@ -56,7 +56,8 @@ export class RecaptchaEnterpriseVerifier {
    * grecaptcha.ready() isn't reliable when more than one recaptcha script is on
    * the page (as may be the case if App Check is also in use).
    *
-   * TODO: Store this state higher up to avoid duplication.
+   * TODO: Store this state higher up to avoid duplication, and probably
+   * make it a Deferred that resolves with the script onload event.
    */
   private scriptInjected: boolean = false;
 
