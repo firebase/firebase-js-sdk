@@ -26,7 +26,6 @@ import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
-  TargetState,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
@@ -42,7 +41,8 @@ import {
   updateMapping,
   version,
   key,
-  forEachNumber
+  forEachNumber,
+  addWatchTargets
 } from '../../util/helpers';
 import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
 
@@ -121,6 +121,10 @@ describe('RemoteEvent', () => {
       getDatabaseId: () => TEST_DATABASE_ID
     });
 
+    // Put all targets into the 'added' state
+    addWatchTargets(aggregator, targetIds);
+
+    // Move `outstandingResponses` targets into the 'pending' state
     if (options.outstandingResponses) {
       forEachNumber(options.outstandingResponses, (targetId, count) => {
         for (let i = 0; i < count; ++i) {
@@ -128,15 +132,6 @@ describe('RemoteEvent', () => {
         }
       });
     }
-
-    // ensure target states
-    targetIds.forEach(targetId => {
-      let targetState = aggregator._targetStates.get(targetId);
-      if (!targetState) {
-        targetState = new TargetState(targetId);
-        aggregator._targetStates.set(targetId, targetState);
-      }
-    });
 
     if (options.changes) {
       options.changes.forEach(change =>

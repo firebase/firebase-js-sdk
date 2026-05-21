@@ -292,7 +292,29 @@ const LOG_TAG = 'WatchChangeAggregator';
 export class WatchChangeAggregator {
   constructor(private metadataProvider: TargetMetadataProvider) {}
 
-  /** The internal state of all tracked targets. */
+  /**
+   * The internal state of all tracked targets.
+   *
+   * Targets have the following lifecycle of [states] within the WatchChangeAggregator:
+   * [unknown] -> recordPendingTargetRequest(t)
+   *           -> [pending]
+   *           -> handleTargetChange(t, Added)
+   *           -> [added / !pending]
+   *           -> recordPendingTargetRequest(t)
+   *           -> [pending]
+   *           -> handleTargetChange(t, Removed)
+   *           -> [unknown]
+   *
+   * A reset on an [added] target leaves the target in an [added] state.
+   * [added / !pending] -> handleTargetChange(t, Reset)
+   *                    -> [added / !pending]
+   *
+   * [active]: is a substate of [added], where also `remoteStore.listenTargets.has(t) === true`.
+   *           Generally it is expected that when a target is [active / !pending]
+   *           then it is also [active], but the implementation does not guarantee
+   *           this will always be true.
+   *
+   */
   private targetStates = new Map<RemoteTargetId, TargetState>();
 
   /** Keeps track of the documents to update since the last raised snapshot. */
@@ -310,11 +332,6 @@ export class WatchChangeAggregator {
   private pendingTargetResets = new SortedMap<RemoteTargetId, TargetPurpose>(
     primitiveComparator
   );
-
-  /** expose target states for testing */
-  get _targetStates(): Map<RemoteTargetId, TargetState> {
-    return this.targetStates;
-  }
 
   /**
    * Processes and adds the DocumentWatchChange to the current set of changes.

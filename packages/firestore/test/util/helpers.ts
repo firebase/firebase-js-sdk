@@ -22,11 +22,11 @@ import { Bound } from '../../src/core/bound';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  FieldFilter,
   CompositeFilter,
+  CompositeOperator,
+  FieldFilter,
   Filter,
-  Operator,
-  CompositeOperator
+  Operator
 } from '../../src/core/filter';
 import { Direction, OrderBy } from '../../src/core/order_by';
 import {
@@ -79,20 +79,20 @@ import {
 import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
+  FieldTransform,
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation,
-  FieldTransform
+  SetMutation
 } from '../../src/model/mutation';
 import { normalizeByteString } from '../../src/model/normalize';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import {
-  NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata,
-  LimitType as ProtoLimitType
+  LimitType as ProtoLimitType,
+  NamedQuery as ProtoNamedQuery
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
 import { BloomFilter } from '../../src/remote/bloom_filter';
@@ -109,7 +109,6 @@ import {
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
-  TargetState,
   WatchChangeAggregator,
   WatchTargetChange,
   WatchTargetChangeState
@@ -429,7 +428,7 @@ export function noChangeEvent(
     getDatabaseId: () => TEST_DATABASE_ID
   });
 
-  ensureTargetData(aggregator, [targetId]);
+  addWatchTargets(aggregator, [targetId]);
 
   aggregator.handleTargetChange(
     new WatchTargetChange(
@@ -457,7 +456,7 @@ export function existenceFilterEvent(
     getDatabaseId: () => TEST_DATABASE_ID
   });
 
-  ensureTargetData(aggregator, [targetId]);
+  addWatchTargets(aggregator, [targetId]);
 
   aggregator.handleExistenceFilter(
     new ExistenceFilterChange(
@@ -471,14 +470,12 @@ export function existenceFilterEvent(
 }
 
 /**
- * Helper function to create target data within a WatchChangeAggregator.
- * Since this data is only created by recordPendingTargetRequest, when
- * recordPendingTargetRequest is not called by the tests, the test must ensure
- * that this data is created, or else the target ID will be ignored.
+ * Helper function that simulates an add target message and server ack.
+ *
  * @param aggregator
- * @param targetIdsCollections
+ * @param targetIdsCollections - Simulate add targets messages for these.
  */
-function ensureTargetData(
+export function addWatchTargets(
   aggregator: WatchChangeAggregator,
   ...targetIdsCollections: Array<number[] | undefined>
 ): void {
@@ -486,11 +483,10 @@ function ensureTargetData(
   targetIdsCollections.forEach(targetIds => {
     if (targetIds) {
       targetIds.forEach(targetId => {
-        let targetState = aggregator._targetStates.get(targetId);
-        if (!targetState) {
-          targetState = new TargetState(targetId);
-          aggregator._targetStates.set(targetId, targetState);
-        }
+        aggregator.recordPendingTargetRequest(targetId);
+        aggregator.handleTargetChange(
+          new WatchTargetChange(WatchTargetChangeState.Added, [targetId])
+        );
       });
     }
   });
@@ -526,7 +522,7 @@ export function docAddedRemoteEvent(
     getDatabaseId: () => TEST_DATABASE_ID
   });
 
-  ensureTargetData(aggregator, allTargets);
+  addWatchTargets(aggregator, allTargets);
 
   let version = SnapshotVersion.min();
 
@@ -576,7 +572,7 @@ export function docUpdateRemoteEvent(
     getDatabaseId: () => TEST_DATABASE_ID
   });
 
-  ensureTargetData(
+  addWatchTargets(
     aggregator,
     updatedInTargets,
     removedFromTargets,
