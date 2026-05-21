@@ -33,6 +33,7 @@ import { testAuth, TestAuth } from '../../../test/helpers/mock_auth';
 import * as mockFetch from '../../../test/helpers/mock_fetch';
 import { ServerError } from '../../api/errors';
 import { AuthInternal } from '../../model/auth';
+import * as jsHelpers from '../load_js';
 
 import { MockGreCAPTCHATopLevel } from './recaptcha_mock';
 import {
@@ -112,6 +113,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     mockFetch.setUp();
     verifier = new RecaptchaEnterpriseVerifier(auth);
     recaptcha = new MockGreCAPTCHATopLevel();
+    sinon.stub(jsHelpers, '_loadJS').resolves();
     window.grecaptcha = recaptcha;
   });
 

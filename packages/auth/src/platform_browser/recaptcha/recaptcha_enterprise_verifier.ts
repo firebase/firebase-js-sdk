@@ -47,6 +47,20 @@ export class RecaptchaEnterpriseVerifier {
   private readonly auth: AuthInternal;
 
   /**
+   * Detects if script tag has already been injected onto the page.
+   * Unfortunately this still results in duplicate script tags as this class is
+   * instantiated at least twice in the verifyPhoneNumber flow. This doesn't
+   * seem to cause any functionality issues, and other alternatives like
+   * detecting the script on the page seem to be prone to race conditions
+   * (as the script may exist but the widget may not be rendered).
+   * grecaptcha.ready() isn't reliable when more than one recaptcha script is on
+   * the page (as may be the case if App Check is also in use).
+   *
+   * TODO: Store this state higher up to avoid duplication.
+   */
+  private scriptInjected: boolean = false;
+
+  /**
    *
    * @param authExtern - The corresponding Firebase {@link Auth} instance.
    *
@@ -132,7 +146,11 @@ export class RecaptchaEnterpriseVerifier {
     return new Promise<string>((resolve, reject) => {
       retrieveSiteKey(this.auth)
         .then(siteKey => {
-          if (!forceRefresh && isEnterprise(window.grecaptcha)) {
+          if (
+            !forceRefresh &&
+            isEnterprise(window.grecaptcha) &&
+            this.scriptInjected
+          ) {
             retrieveRecaptchaToken(siteKey, resolve, reject);
           } else {
             if (typeof window === 'undefined') {
@@ -148,6 +166,7 @@ export class RecaptchaEnterpriseVerifier {
             jsHelpers
               ._loadJS(url)
               .then(() => {
+                this.scriptInjected = true;
                 retrieveRecaptchaToken(siteKey, resolve, reject);
               })
               .catch(error => {
