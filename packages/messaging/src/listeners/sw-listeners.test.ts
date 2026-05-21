@@ -17,7 +17,9 @@
 
 import '../testing/setup';
 
+import * as fidChangeRegistrationModule from '../helpers/fid-change-registration';
 import * as tokenManagementModule from '../internals/token-manager';
+import * as idbManager from '../internals/idb-manager';
 
 import {
   CONSOLE_CAMPAIGN_ANALYTICS_ENABLED,
@@ -103,9 +105,13 @@ describe('SwController', () => {
   let eventListenerMap: Map<string, Function>;
   let messaging: MessagingService;
   let getTokenStub: Stub<(typeof tokenManagementModule)['getTokenInternal']>;
-  let deleteTokenStub: Stub<
-    (typeof tokenManagementModule)['deleteTokenInternal']
+  let revokeRegistrationStub: Stub<
+    (typeof tokenManagementModule)['revokeRegistrationInternal']
   >;
+  let refreshFidRegistrationStub: Stub<
+    (typeof fidChangeRegistrationModule)['refreshFidRegistrationIfStored']
+  >;
+  let dbGetFidRegistrationStub: Stub<typeof idbManager.dbGetFidRegistration>;
 
   beforeEach(() => {
     mockServiceWorker();
@@ -125,10 +131,18 @@ describe('SwController', () => {
     getTokenStub = stub(tokenManagementModule, 'getTokenInternal').resolves(
       'token-value'
     );
-    deleteTokenStub = stub(
+    revokeRegistrationStub = stub(
       tokenManagementModule,
-      'deleteTokenInternal'
+      'revokeRegistrationInternal'
     ).resolves(true);
+    refreshFidRegistrationStub = stub(
+      fidChangeRegistrationModule,
+      'refreshFidRegistrationIfStored'
+    ).resolves();
+    dbGetFidRegistrationStub = stub(
+      idbManager,
+      'dbGetFidRegistration'
+    ).resolves(undefined) as Stub<typeof idbManager.dbGetFidRegistration>;
 
     messaging = new MessagingService(
       getFakeApp(),
@@ -148,6 +162,8 @@ describe('SwController', () => {
   });
 
   afterEach(() => {
+    refreshFidRegistrationStub.restore();
+    dbGetFidRegistrationStub.restore();
     restoreServiceWorker();
   });
 
@@ -493,7 +509,7 @@ describe('SwController', () => {
   });
 
   describe('onSubChange', () => {
-    it('calls deleteToken if there is no new subscription', async () => {
+    it('revokes registration if there is no new subscription', async () => {
       const event = makeFakePushSubscriptionChangeEvent({
         oldSubscription: new FakePushSubscription(),
         newSubscription: null
@@ -501,11 +517,11 @@ describe('SwController', () => {
 
       await callEventListener(event);
 
-      expect(deleteTokenStub).to.have.been.called;
+      expect(revokeRegistrationStub).to.have.been.called;
       expect(getTokenStub).not.to.have.been.called;
     });
 
-    it('calls deleteToken and getToken if subscription changed', async () => {
+    it('revokes registration and getToken if subscription changed', async () => {
       const event = makeFakePushSubscriptionChangeEvent({
         oldSubscription: new FakePushSubscription(),
         newSubscription: new FakePushSubscription()
@@ -513,8 +529,26 @@ describe('SwController', () => {
 
       await callEventListener(event);
 
-      expect(deleteTokenStub).to.have.been.called;
+      expect(revokeRegistrationStub).to.have.been.called;
       expect(getTokenStub).to.have.been.called;
+      expect(refreshFidRegistrationStub).not.to.have.been.called;
+    });
+
+    it('refreshes FID registration when subscription changed and register() metadata exists', async () => {
+      dbGetFidRegistrationStub.resolves({
+        fid: 'fid-in-db',
+        lastRegisterTime: Date.now()
+      });
+      const event = makeFakePushSubscriptionChangeEvent({
+        oldSubscription: new FakePushSubscription(),
+        newSubscription: new FakePushSubscription()
+      });
+
+      await callEventListener(event);
+
+      expect(refreshFidRegistrationStub).to.have.been.calledOnce;
+      expect(revokeRegistrationStub).not.to.have.been.called;
+      expect(getTokenStub).not.to.have.been.called;
     });
   });
 
