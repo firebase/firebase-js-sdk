@@ -135,6 +135,18 @@ export interface GetTokenOptions {
 }
 
 /**
+ * Options for {@link register}. Same shape as GetTokenOptions for SW and VAPID configuration.
+ *
+ * @public
+ */
+export interface RegisterOptions {
+  /** Optional VAPID key. See {@link GetTokenOptions.vapidKey}. */
+  vapidKey?: string;
+  /** Optional service worker registration. See {@link GetTokenOptions.serviceWorkerRegistration}. */
+  serviceWorkerRegistration?: ServiceWorkerRegistration;
+}
+
+/**
  * Public interface of the Firebase Cloud Messaging SDK.
  *
  * @public

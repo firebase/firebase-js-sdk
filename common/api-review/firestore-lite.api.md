@@ -265,6 +265,12 @@ export function limitToLast(limit: number): QueryLimitConstraint;
 export { LogLevel }
 
 // @public
+export function maximum(n: number): FieldValue;
+
+// @public
+export function minimum(n: number): FieldValue;
+
+// @public
 export type NestedUpdateFields<T extends Record<string, unknown>> = UnionToIntersection<{
     [K in keyof T & string]: ChildUpdateFields<K, T[K]>;
 }[keyof T & string]>;
