@@ -17,7 +17,10 @@
 
 import '../testing/setup';
 
-import { subscribeFidChangeRegistration } from './fid-change-registration';
+import {
+  refreshFidRegistrationIfStored,
+  subscribeFidChangeRegistration
+} from './fid-change-registration';
 import { MessagingService } from '../messaging-service';
 import {
   getFakeAnalyticsProvider,
@@ -32,6 +35,68 @@ import * as idbManager from '../internals/idb-manager';
 import { Stub } from '../testing/sinon-types';
 import { _FirebaseInstallationsInternal } from '@firebase/installations';
 import { dbDelete } from '../internals/idb-manager';
+
+describe('refreshFidRegistrationIfStored', () => {
+  let messaging: MessagingService;
+  let requestCreateRegistrationStub: Stub<
+    typeof requestsModule.requestCreateRegistration
+  >;
+  let dbGetFidRegistrationStub: Stub<typeof idbManager.dbGetFidRegistration>;
+
+  beforeEach(() => {
+    const app = getFakeApp();
+    messaging = new MessagingService(
+      app,
+      {
+        getId: async () => 'fid-1',
+        getToken: async () => 'authToken'
+      },
+      getFakeAnalyticsProvider()
+    );
+    messaging.swRegistration =
+      new FakeServiceWorkerRegistration() as unknown as ServiceWorkerRegistration;
+
+    requestCreateRegistrationStub = stub(
+      requestsModule,
+      'requestCreateRegistration'
+    ).callsFake(async () => ({
+      responseFid: 'fid-1'
+    })) as Stub<typeof requestsModule.requestCreateRegistration>;
+
+    dbGetFidRegistrationStub = stub(
+      idbManager,
+      'dbGetFidRegistration'
+    ).resolves(undefined) as Stub<typeof idbManager.dbGetFidRegistration>;
+  });
+
+  afterEach(() => {
+    requestCreateRegistrationStub.restore();
+    dbGetFidRegistrationStub.restore();
+  });
+
+  it('re-registers with FCM when FID metadata exists and notifies onRegistered', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+    dbGetFidRegistrationStub.resolves({
+      fid: 'fid-1',
+      lastRegisterTime: Date.now()
+    });
+
+    await refreshFidRegistrationIfStored(messaging);
+
+    expect(requestCreateRegistrationStub).to.have.been.calledOnce;
+    expect(onRegisteredSpy).to.have.been.calledOnceWith('fid-1');
+  });
+
+  it('no-ops when the app instance was never registered with FCM', async () => {
+    messaging.onRegisteredHandler = stub();
+    dbGetFidRegistrationStub.resolves(undefined);
+
+    await refreshFidRegistrationIfStored(messaging);
+
+    expect(requestCreateRegistrationStub).to.not.have.been.called;
+  });
+});
 
 describe('subscribeFidChangeRegistration', () => {
   let messaging: MessagingService;
