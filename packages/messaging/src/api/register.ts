@@ -26,6 +26,7 @@ import {
   dbRemove,
   dbSetFidRegistration
 } from '../internals/idb-manager';
+import { notifyOnRegistered } from '../internals/token-manager';
 
 const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -97,11 +98,7 @@ export async function register(
       throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
     }
 
-    if (typeof handler === 'function') {
-      handler(fid);
-    } else {
-      handler.next(fid);
-    }
+    notifyOnRegistered(messaging, fid);
   });
   return messaging._registerNotifyChain;
 }

@@ -21,8 +21,44 @@ import {
   onIdChange
 } from '@firebase/installations';
 import { register } from '../api/register';
-import { dbGetFidRegistration } from '../internals/idb-manager';
+import {
+  dbGet,
+  dbGetFidRegistration,
+  dbSetFidRegistration
+} from '../internals/idb-manager';
+import { registerFcmRegistrationWithFid } from '../internals/register-fid';
+import { notifyOnRegistered } from '../internals/token-manager';
 import { MessagingService } from '../messaging-service';
+import { updateVapidKey } from './updateVapidKey';
+
+/**
+ * Re-runs FCM FID registration when push subscription keys change (e.g. `pushsubscriptionchange`
+ * in the service worker). No-op if the app instance was never registered via `register()`.
+ * Best-effort: callers should catch failures when permission or push may be unavailable.
+ */
+export async function refreshFidRegistrationIfStored(
+  messaging: MessagingService
+): Promise<void> {
+  const stored = await dbGetFidRegistration(
+    messaging.firebaseDependencies
+  ).catch(() => undefined);
+  if (!stored) {
+    return;
+  }
+
+  const tokenDetails = await dbGet(messaging.firebaseDependencies).catch(
+    () => undefined
+  );
+  await updateVapidKey(messaging, tokenDetails?.subscriptionOptions?.vapidKey);
+
+  const fid = await messaging.firebaseDependencies.installations.getId();
+  await registerFcmRegistrationWithFid(messaging, fid);
+  await dbSetFidRegistration(messaging.firebaseDependencies, {
+    fid,
+    lastRegisterTime: Date.now()
+  });
+  notifyOnRegistered(messaging, fid);
+}
 
 /**
  * When the Firebase Installation ID changes, re-run `register()` so FCM registration and

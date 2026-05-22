@@ -27,7 +27,7 @@ import {
   dbSetFidRegistration
 } from './idb-manager';
 import * as idbManager from './idb-manager';
-import { deleteTokenInternal, getTokenInternal } from './token-manager';
+import { getTokenInternal, revokeRegistrationInternal } from './token-manager';
 import {
   getFakeAnalyticsProvider,
   getFakeApp,
@@ -204,9 +204,9 @@ describe('Token Manager', () => {
     });
   });
 
-  describe('deleteToken', () => {
+  describe('revokeRegistrationInternal', () => {
     it('returns if there is no token in the db', async () => {
-      await deleteTokenInternal(messaging);
+      await revokeRegistrationInternal(messaging);
 
       expect(requestGetTokenStub).not.to.have.been.called;
       expect(requestUpdateTokenStub).not.to.have.been.called;
@@ -223,7 +223,7 @@ describe('Token Manager', () => {
       const onUnregisteredSpy = stub();
       messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-      await deleteTokenInternal(messaging);
+      await revokeRegistrationInternal(messaging);
 
       expect(requestDeleteTokenStub).not.to.have.been.called;
       expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
@@ -245,7 +245,7 @@ describe('Token Manager', () => {
       const onUnregisteredSpy = stub();
       messaging.onUnregisteredHandler = onUnregisteredSpy;
 
-      await expect(deleteTokenInternal(messaging)).to.be.rejectedWith(
+      await expect(revokeRegistrationInternal(messaging)).to.be.rejectedWith(
         'network'
       );
 
@@ -263,7 +263,7 @@ describe('Token Manager', () => {
       });
       messaging.onUnregisteredHandler = null;
 
-      await deleteTokenInternal(messaging);
+      await revokeRegistrationInternal(messaging);
 
       expect(requestDeleteRegistrationStub).to.have.been.calledOnceWith(
         messaging.firebaseDependencies,
@@ -278,7 +278,7 @@ describe('Token Manager', () => {
       );
       await dbSet(messaging.firebaseDependencies, tokenDetails);
 
-      await deleteTokenInternal(messaging);
+      await revokeRegistrationInternal(messaging);
 
       expect(await dbGet(messaging.firebaseDependencies)).to.be.undefined;
       expect(requestGetTokenStub).not.to.have.been.called;
@@ -296,7 +296,7 @@ describe('Token Manager', () => {
         'dbRemoveFidRegistration'
       ).resolves();
 
-      await deleteTokenInternal(messaging);
+      await revokeRegistrationInternal(messaging);
 
       expect(dbRemoveFidStub).to.have.been.calledOnceWith(
         messaging.firebaseDependencies
