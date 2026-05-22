@@ -51,6 +51,7 @@ import {
 } from './email_and_password';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -191,7 +192,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       }
       // RecaptchaEnterpriseVerifier.verify() will always call _loadJS
       // the first time it is called, and it must be stubbed for tests.
-      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       sinon
@@ -726,7 +727,7 @@ describe('core/strategies/email_and_password/createUserWithEmailAndPassword', ()
       );
 
       // Mock recaptcha js loading method and manually set window.recaptcha
-      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
@@ -892,7 +893,7 @@ describe('password policy cache is updated in auth flows upon error', () => {
     // Initialize the reCAPTCHA config so the auth flows use reCAPTCHA.
     await _initializeRecaptchaConfig(auth);
 
-    sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+    sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
     const recaptcha = new MockGreCAPTCHATopLevel();
     window.grecaptcha = recaptcha;
     const stub = sinon.stub(recaptcha.enterprise, 'execute');

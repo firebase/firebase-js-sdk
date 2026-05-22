@@ -47,6 +47,7 @@ import {
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
 import * as jsHelpers from '../../platform_browser/load_js';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -194,7 +195,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       if (typeof window === 'undefined') {
         return;
       }
-      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -274,11 +275,13 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
 
       // // First verification should fail with 'wrong-site-key'
       stub
-        .withArgs('wrong-site-key', { action: 'signInWithEmailLink' })
+        .withArgs('wrong-site-key', {
+          action: RecaptchaActionName.GET_OOB_CODE
+        })
         .rejects();
       // Second verification should succeed with site key refreshed
       stub
-        .withArgs('site-key', { action: 'signInWithEmailLink' })
+        .withArgs('site-key', { action: 'verify' })
         .returns(Promise.resolve('recaptcha-response'));
 
       mockEndpointWithParams(
@@ -295,12 +298,13 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       mockEndpoint(Endpoint.SEND_OOB_CODE, {
         email
       });
-      expect(
+
+      await expect(
         sendSignInLinkToEmail(auth, email, {
           handleCodeInApp: true,
           url: 'continue-url'
         })
-      ).returned;
+      ).to.not.be.rejected;
     });
 
     it('calls fallback to recaptcha flow when receiving MISSING_RECAPTCHA_TOKEN error', async () => {

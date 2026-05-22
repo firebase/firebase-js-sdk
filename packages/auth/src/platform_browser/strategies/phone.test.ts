@@ -58,6 +58,7 @@ import {
   updatePhoneNumber,
   injectRecaptchaV2Token
 } from './phone';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -172,7 +173,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
-      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
 
       await signInWithPhoneNumber(auth, '+15105550000', v2Verifier);
 
@@ -189,7 +190,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
-      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
+      sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
       await signInWithPhoneNumber(auth, '+15105550000');
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({

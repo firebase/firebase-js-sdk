@@ -45,6 +45,7 @@ import {
 import { RecaptchaConfig } from './recaptcha';
 import { AuthErrorCode } from '../../core/errors';
 import { _createError } from '../../core/util/assert';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 use(sinonChai);
@@ -113,8 +114,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     mockFetch.setUp();
     verifier = new RecaptchaEnterpriseVerifier(auth);
     recaptcha = new MockGreCAPTCHATopLevel();
-    sinon.stub(jsHelpers, '_loadJS').resolves();
-    RecaptchaEnterpriseVerifier.scriptInjected = false;
+    sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
     window.grecaptcha = recaptcha;
   });
 

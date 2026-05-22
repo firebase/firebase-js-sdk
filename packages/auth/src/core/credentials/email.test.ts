@@ -40,6 +40,7 @@ import * as jsHelpers from '../../platform_browser/load_js';
 import { ServerError } from '../../api/errors';
 import { _initializeRecaptchaConfig } from '../../platform_browser/recaptcha/recaptcha_enterprise_verifier';
 import assert from 'assert';
+import { mockLoadJS } from '../../../test/helpers/mock_loadjs';
 
 use(chaiAsPromised);
 
@@ -93,7 +94,7 @@ function mockRecaptchaEnterpriseTokenFailure(): mockFetch.Route | undefined {
     return;
   }
   // Mock recaptcha js loading method but not set window.recaptcha to simulate recaptcha token retrieval failure
-  sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+  sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
   window.grecaptcha = undefined;
 
   return mockEndpointWithParams(
@@ -108,7 +109,7 @@ function mockRecaptchaEnterpriseTokenFailure(): mockFetch.Route | undefined {
 
 function mockRecaptchaEnterpriseTokenSuccess(action: string): void {
   // Mock recaptcha js loading method and manually set window.recaptcha
-  sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+  sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
   const recaptcha = new MockGreCAPTCHATopLevel();
   window.grecaptcha = recaptcha;
   const stub = sinon.stub(recaptcha.enterprise, 'execute');
@@ -201,7 +202,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
-          sinon.stub(jsHelpers, '_loadJS').resolves();
+          sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
 
           await _initializeRecaptchaConfig(auth);
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -226,7 +227,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_OFF);
-          sinon.stub(jsHelpers, '_loadJS').resolves();
+          sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
 
           await _initializeRecaptchaConfig(auth);
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -357,7 +358,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
-          sinon.stub(jsHelpers, '_loadJS').resolves();
+          sinon.stub(jsHelpers, '_loadJS').callsFake(mockLoadJS);
 
           // proactively initialize config so that token fetch is attempted with the first request.
           await _initializeRecaptchaConfig(auth);
