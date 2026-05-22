@@ -27,6 +27,9 @@ export const DEFAULT_TELEMETRY_REGION = 'global';
 /** Key for storing the session ID in sessionStorage. */
 export const CRASHLYTICS_SESSION_ID_KEY = 'firebasecrashlytics.sessionid';
 
+/** Symbol for the internal flag indicating an error has already been logged. */
+export const ALREADY_LOGGED_FLAG = Symbol('firebase_crashlytics_logged');
+
 /** Label keys that we write in all telemetry signal entries. */
 export const CRASHLYTICS_ATTRIBUTE_KEYS = {
   APP_VERSION: 'app.build_id',

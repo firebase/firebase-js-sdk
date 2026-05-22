@@ -25,7 +25,6 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-
 import { trace } from '@opentelemetry/api';
 
 /**
@@ -132,6 +131,41 @@ export function startUserInteractionTrace(
 
   const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
   contextManager.startRootSpan(tracer, rootSpanName);
+}
+
+/**
+ * Generates a clean, scannable name for the click span based on the HTML element properties.
+ *
+ * @param element - The HTML element that was clicked.
+ * @returns A string representing the name for the click span.
+ */
+export function generateClickSpanName(element: Element): string {
+  const tagName = element.tagName.trim().toLowerCase();
+  if (element.id) {
+    return `click ${tagName} [id="${element.id}"]`;
+  }
+  if (element.getAttribute('data-testid')) {
+    return `click ${tagName} [data-testid="${element.getAttribute(
+      'data-testid'
+    )}"]`;
+  }
+  if (element.getAttribute('data-analytics-id')) {
+    return `click ${tagName} [data-analytics-id="${element.getAttribute(
+      'data-analytics-id'
+    )}"]`;
+  }
+  if (element.getAttribute('name')) {
+    return `click ${tagName} [name="${element.getAttribute('name')}"]`;
+  }
+  if (element.getAttribute('aria-label')) {
+    return `click ${tagName} [aria-label="${element.getAttribute(
+      'aria-label'
+    )}"]`;
+  }
+  if (element.getAttribute('role')) {
+    return `click ${tagName} [role="${element.getAttribute('role')}"]`;
+  }
+  return `click ${tagName}`;
 }
 
 /**
