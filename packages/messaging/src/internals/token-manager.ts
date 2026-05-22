@@ -59,9 +59,6 @@ export async function getTokenInternal(
     p256dh: arrayToBase64(pushSubscription.getKey('p256dh')!)
   };
 
-  // Best-effort cleanup when switching from FID register/unregister to legacy getToken().
-  await removeFidRegistrationBestEffort(messaging.firebaseDependencies);
-
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
   if (!tokenDetails) {
     // No token, get a new one.
