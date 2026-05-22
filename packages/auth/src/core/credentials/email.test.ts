@@ -201,6 +201,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
+          sinon.stub(jsHelpers, '_loadJS').resolves();
 
           await _initializeRecaptchaConfig(auth);
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -225,6 +226,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_OFF);
+          sinon.stub(jsHelpers, '_loadJS').resolves();
 
           await _initializeRecaptchaConfig(auth);
           const idTokenResponse = await credential._getIdTokenResponse(auth);
@@ -355,6 +357,7 @@ describe('core/credentials/email', () => {
             return;
           }
           mockRecaptchaEnterpriseEnablement(RECAPTCHA_MODE_ENFORCE);
+          sinon.stub(jsHelpers, '_loadJS').resolves();
 
           // proactively initialize config so that token fetch is attempted with the first request.
           await _initializeRecaptchaConfig(auth);

@@ -189,6 +189,9 @@ describe('core/strategies/sendPasswordResetEmail', () => {
       if (typeof window === 'undefined') {
         return;
       }
+      // RecaptchaEnterpriseVerifier.verify() will always call _loadJS
+      // the first time it is called, and it must be stubbed for tests.
+      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       sinon
@@ -298,8 +301,7 @@ describe('core/strategies/sendPasswordResetEmail', () => {
         }
       );
 
-      // Mock recaptcha js loading method and manually set window.recaptcha
-      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      // Manually set window.recaptcha
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');

@@ -48,6 +48,7 @@ import { RecaptchaVerifier } from '../../platform_browser/recaptcha/recaptcha_ve
 import { PhoneAuthCredential } from '../../core/credentials/phone';
 import { FAKE_TOKEN } from '../recaptcha/recaptcha_enterprise_verifier';
 import { MockGreCAPTCHATopLevel } from '../../platform_browser/recaptcha/recaptcha_mock';
+import * as jsHelpers from '../load_js';
 
 import {
   _verifyPhoneNumber,
@@ -171,6 +172,8 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
+
       await signInWithPhoneNumber(auth, '+15105550000', v2Verifier);
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({
@@ -186,6 +189,7 @@ describe('platform_browser/strategies/phone', () => {
         return;
       }
       mockRecaptchaEnterpriseEnablement(EnforcementState.ENFORCE);
+      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
       await signInWithPhoneNumber(auth, '+15105550000');
 
       expect(sendCodeEndpoint.calls[0].request).to.eql({

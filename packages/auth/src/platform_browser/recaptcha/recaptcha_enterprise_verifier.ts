@@ -52,7 +52,7 @@ export class RecaptchaEnterpriseVerifier {
    * This will cause an error if users try to create multiple Recaptcha
    * Enterprise verifiers with different sitekeys, which should be an
    * unuspported use case.
-   * 
+   *
    * Leave public for testing.
    */
   static scriptInjected: boolean = false;

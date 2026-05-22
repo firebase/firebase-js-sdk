@@ -194,6 +194,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
       if (typeof window === 'undefined') {
         return;
       }
+      sinon.stub(jsHelpers, '_loadJS').resolves(new Event(''));
       window.grecaptcha = recaptcha;
       sinon
         .stub(recaptcha.enterprise, 'execute')
@@ -339,8 +340,7 @@ describe('core/strategies/sendSignInLinkToEmail', () => {
         }
       );
 
-      // Mock recaptcha js loading method and manually set window.recaptcha
-      sinon.stub(jsHelpers, '_loadJS').returns(Promise.resolve(new Event('')));
+      // Manually set window.recaptcha
       const recaptcha = new MockGreCAPTCHATopLevel();
       window.grecaptcha = recaptcha;
       const stub = sinon.stub(recaptcha.enterprise, 'execute');
