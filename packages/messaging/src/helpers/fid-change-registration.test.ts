@@ -88,6 +88,20 @@ describe('refreshFidRegistrationIfStored', () => {
     expect(onRegisteredSpy).to.have.been.calledOnceWith('fid-1');
   });
 
+  it('uses stored VAPID key when available', async () => {
+    const onRegisteredSpy = stub();
+    messaging.onRegisteredHandler = onRegisteredSpy;
+    dbGetFidRegistrationStub.resolves({
+      fid: 'fid-1',
+      lastRegisterTime: Date.now(),
+      vapidKey: 'custom-vapid-key'
+    });
+
+    await refreshFidRegistrationIfStored(messaging);
+
+    expect(messaging.vapidKey).to.equal('custom-vapid-key');
+  });
+
   it('no-ops when the app instance was never registered with FCM', async () => {
     messaging.onRegisteredHandler = stub();
     dbGetFidRegistrationStub.resolves(undefined);

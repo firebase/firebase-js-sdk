@@ -43,6 +43,7 @@ interface MessagingDB extends DBSchema {
 export interface FidRegistrationDetails {
   fid: string;
   lastRegisterTime: number;
+  vapidKey?: string;
 }
 
 interface IdbImpl {

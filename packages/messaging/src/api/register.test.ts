@@ -121,6 +121,41 @@ describe('register', () => {
     expect(updateSwRegStub).to.have.been.calledOnceWith(messaging, swReg);
   });
 
+  it('saves VAPID key in FID registration metadata', async () => {
+    messaging.onRegisteredHandler = stub();
+    const options = {
+      vapidKey: 'custom-vapid'
+    };
+
+    const dbSetFidRegistrationStub = stub(
+      idbManager,
+      'dbSetFidRegistration'
+    ).resolves({
+      fid: 'FID',
+      lastRegisterTime: 1_700_000_000_000,
+      vapidKey: 'custom-vapid'
+    });
+
+    updateVapidKeyStub.callsFake(async (msg, key) => {
+      if (key) {
+        msg.vapidKey = key;
+      }
+    });
+
+    await register(messaging, options);
+
+    expect(dbSetFidRegistrationStub).to.have.been.calledOnceWith(
+      messaging.firebaseDependencies,
+      {
+        fid: 'FID',
+        lastRegisterTime: 1_700_000_000_000,
+        vapidKey: 'custom-vapid'
+      }
+    );
+
+    dbSetFidRegistrationStub.restore();
+  });
+
   it('throws when no onRegistered callback handler is provided or registered', async () => {
     messaging.onRegisteredHandler = null;
 

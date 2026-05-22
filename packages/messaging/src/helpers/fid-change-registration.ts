@@ -22,7 +22,6 @@ import {
 } from '@firebase/installations';
 import { register } from '../api/register';
 import {
-  dbGet,
   dbGetFidRegistration,
   dbSetFidRegistration
 } from '../internals/idb-manager';
@@ -46,16 +45,14 @@ export async function refreshFidRegistrationIfStored(
     return;
   }
 
-  const tokenDetails = await dbGet(messaging.firebaseDependencies).catch(
-    () => undefined
-  );
-  await updateVapidKey(messaging, tokenDetails?.subscriptionOptions?.vapidKey);
+  await updateVapidKey(messaging, stored.vapidKey);
 
   const fid = await messaging.firebaseDependencies.installations.getId();
   await registerFcmRegistrationWithFid(messaging, fid);
   await dbSetFidRegistration(messaging.firebaseDependencies, {
     fid,
-    lastRegisterTime: Date.now()
+    lastRegisterTime: Date.now(),
+    vapidKey: messaging.vapidKey
   });
   notifyOnRegistered(messaging, fid);
 }
