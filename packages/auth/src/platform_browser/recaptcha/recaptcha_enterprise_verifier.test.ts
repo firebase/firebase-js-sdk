@@ -114,6 +114,7 @@ describe('platform_browser/recaptcha/recaptcha_enterprise_verifier', () => {
     verifier = new RecaptchaEnterpriseVerifier(auth);
     recaptcha = new MockGreCAPTCHATopLevel();
     sinon.stub(jsHelpers, '_loadJS').resolves();
+    RecaptchaEnterpriseVerifier.scriptInjected = false;
     window.grecaptcha = recaptcha;
   });
 
