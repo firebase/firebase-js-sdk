@@ -157,6 +157,8 @@ export class RecaptchaEnterpriseVerifier {
           if (
             !forceRefresh &&
             isEnterprise(window.grecaptcha) &&
+            // If download has already been initiated, do not trigger another
+            // download, await the promise here.
             RecaptchaEnterpriseVerifier.scriptInjectionDeferred
           ) {
             await RecaptchaEnterpriseVerifier.scriptInjectionDeferred.promise;

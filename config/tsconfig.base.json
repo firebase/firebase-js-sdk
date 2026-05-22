@@ -18,7 +18,6 @@
     "typeRoots": [
       "../node_modules/@types"
     ],
-    "types": ["mocha", "node"],
     "plugins": [
       {
         "name": "tsec",
