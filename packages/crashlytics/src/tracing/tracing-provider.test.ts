@@ -17,8 +17,69 @@
 
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { OTLPTraceExporter } from './tracing-provider';
+import { trace } from '@opentelemetry/api';
+import { createTracingProvider, OTLPTraceExporter } from './tracing-provider';
+import { FirebaseApp } from '@firebase/app';
+import { RootSpanContextManager } from './root-span-context-manager';
+import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
 import { OTLPExporterBase } from '@opentelemetry/otlp-exporter-base';
+
+describe('createTracingProvider', () => {
+  let mockApp: FirebaseApp;
+  let mockContextManager: RootSpanContextManager;
+
+  beforeEach(() => {
+    mockApp = {
+      options: {
+        projectId: 'my-project',
+        appId: 'my-app-id',
+        apiKey: 'my-api-key'
+      }
+    } as unknown as FirebaseApp;
+
+    mockContextManager = {
+      startRootSpan: sinon.stub(),
+      getActiveRootSpan: sinon.stub(),
+      clearActiveRootSpan: sinon.stub(),
+      getActiveAppScreenId: sinon.stub(),
+      setActiveAppScreenId: sinon.stub(),
+      active: sinon.stub(),
+      enable: sinon.stub().returnsThis(),
+      disable: sinon.stub().returnsThis()
+    } as unknown as RootSpanContextManager;
+
+  });
+
+  afterEach(() => {
+    // @ts-ignore
+    delete global.window;
+    // @ts-ignore
+    delete global.XMLHttpRequest;
+    sinon.restore();
+  });
+
+  it('should return a default tracer provider when running in a server/Node environment', () => {
+    const provider = createTracingProvider(mockApp, mockContextManager, {});
+    expect(provider).to.equal(trace.getTracerProvider());
+  });
+
+  it('should construct resource with cloud resource ID containing project and region', () => {
+    // @ts-ignore
+    global.window = { location: { hostname: 'localhost' } } as any;
+    // @ts-ignore
+    global.XMLHttpRequest = class { };
+
+    const provider = createTracingProvider(mockApp, mockContextManager, { region: 'us-central1' });
+
+    // Peek into the internal _resource property
+    const resource = (provider as any)._resource;
+
+    expect(resource).to.exist;
+    expect(resource.attributes[RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]).to.equal(
+      '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
+    );
+  });
+});
 
 describe('OTLPTraceExporter', () => {
   let exporter: OTLPTraceExporter;
