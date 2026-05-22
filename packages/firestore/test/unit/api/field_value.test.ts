@@ -23,6 +23,8 @@ import {
   deleteField,
   FieldValue,
   increment,
+  maximum,
+  minimum,
   serverTimestamp
 } from '../../../src';
 import { expectEqual, expectNotEqual } from '../../util/helpers';
@@ -32,6 +34,16 @@ describe('FieldValue', () => {
     expectEqual(deleteField(), deleteField());
     expectEqual(serverTimestamp(), serverTimestamp());
     expectNotEqual(deleteField(), serverTimestamp());
+
+    expectEqual(minimum(1), minimum(1));
+    expectNotEqual(minimum(1), minimum(2));
+    expectEqual(maximum(1), maximum(1));
+    expectNotEqual(maximum(1), maximum(2));
+    expectNotEqual(minimum(1), maximum(1));
+
+    // Test NaN equality
+    expectEqual(minimum(NaN), minimum(NaN));
+    expectEqual(maximum(NaN), maximum(NaN));
   });
 
   it('support instanceof checks', () => {
@@ -40,6 +52,9 @@ describe('FieldValue', () => {
     expect(arrayRemove(1)).to.be.an.instanceOf(FieldValue);
     expect(arrayUnion('a')).to.be.an.instanceOf(FieldValue);
     expect(arrayRemove('a')).to.be.an.instanceOf(FieldValue);
+    expect(increment(1)).to.be.an.instanceOf(FieldValue);
+    expect(minimum(1)).to.be.an.instanceOf(FieldValue);
+    expect(maximum(1)).to.be.an.instanceOf(FieldValue);
   });
 
   it('JSON.stringify() does not throw', () => {
@@ -48,5 +63,7 @@ describe('FieldValue', () => {
     JSON.stringify(increment(1));
     JSON.stringify(arrayUnion(2));
     JSON.stringify(arrayRemove(3));
+    JSON.stringify(minimum(4));
+    JSON.stringify(maximum(5));
   });
 });

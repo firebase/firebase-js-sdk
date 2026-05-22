@@ -16,17 +16,22 @@
  */
 
 import { _getProvider, FirebaseApp, getApp } from '@firebase/app';
-import { CRASHLYTICS_ATTRIBUTE_KEYS, CRASHLYTICS_TYPE } from './constants';
+import {
+  ALREADY_LOGGED_FLAG,
+  CRASHLYTICS_ATTRIBUTE_KEYS,
+  CRASHLYTICS_TYPE
+} from './constants';
+import { CrashlyticsInternal, ErrorWithSymbol } from './types';
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { Provider } from '@firebase/component';
 import { AnyValueMap, SeverityNumber } from '@opentelemetry/api-logs';
 import { CrashlyticsService } from './service';
 import {
   flush,
+  generateClickSpanName,
   setCommonLogAttributes,
   startUserInteractionTrace
 } from './helpers';
-import { CrashlyticsInternal } from './types';
 import { deepEqual } from '@firebase/util';
 
 declare module '@firebase/component' {
@@ -94,6 +99,14 @@ export function recordError(
   error: unknown,
   attributes?: AnyValueMap
 ): void {
+  if (error && typeof error === 'object') {
+    try {
+      (error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG] = true;
+    } catch (e) {
+      // Ignore if frozen
+    }
+  }
+
   // Cast to CrashlyticsInternal to access internal loggerProvider
   const logger = (crashlytics as CrashlyticsInternal).loggerProvider.getLogger(
     'error-logger'
@@ -139,6 +152,69 @@ export function recordError(
       attributes: customAttributes
     });
   }
+}
+
+/**
+ * Registers global event listeners for uncaught errors and promise rejections.
+ * Automatically avoids double logging if the error was already logged.
+ *
+ * @internal
+ */
+export function registerGlobalErrorListeners(
+  crashlytics: Crashlytics
+): () => void {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
+
+  const errorListener = (event: ErrorEvent): void => {
+    if (event.error && (event.error as ErrorWithSymbol)[ALREADY_LOGGED_FLAG]) {
+      return;
+    }
+    recordError(crashlytics, event.error);
+  };
+
+  const unhandledRejectionListener = (event: PromiseRejectionEvent): void => {
+    if (
+      event.reason &&
+      (event.reason as ErrorWithSymbol)[ALREADY_LOGGED_FLAG]
+    ) {
+      return;
+    }
+    recordError(crashlytics, event.reason);
+  };
+
+  const clickListener = (event: MouseEvent): void => {
+    const target = event.target;
+    if (!target || !(target instanceof Element)) {
+      return;
+    }
+    const targetElement = target.closest(
+      'button, a, [role="button"], input[type="submit"], input[type="button"]'
+    );
+    if (!targetElement) {
+      return;
+    }
+    const spanName = generateClickSpanName(targetElement);
+    startUserInteractionTrace(crashlytics, spanName);
+  };
+
+  try {
+    window.addEventListener('error', errorListener);
+    window.addEventListener('unhandledrejection', unhandledRejectionListener);
+    window.addEventListener('click', clickListener, { capture: true });
+  } catch (error) {
+    console.warn(`Firebase Crashlytics was not initialized:\n`, error);
+  }
+
+  return () => {
+    window.removeEventListener('error', errorListener);
+    window.removeEventListener(
+      'unhandledrejection',
+      unhandledRejectionListener
+    );
+    window.removeEventListener('click', clickListener, { capture: true });
+  };
 }
 
 /**

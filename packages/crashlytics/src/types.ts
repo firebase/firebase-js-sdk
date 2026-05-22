@@ -19,6 +19,7 @@ import { LoggerProvider } from '@opentelemetry/sdk-logs';
 import { TracerProvider } from '@opentelemetry/api';
 import { Crashlytics } from './public-types';
 import { RootSpanContextManager } from './tracing/root-span-context-manager';
+import { ALREADY_LOGGED_FLAG } from './constants';
 
 /**
  * An internal interface for the Crashlytics service.
@@ -79,4 +80,13 @@ export interface DynamicHeaderProvider {
    * or null if no header is to be added.
    */
   getHeader(): Promise<HttpHeader | null>;
+}
+
+/**
+ * An internal interface for error objects that have been flagged as already logged.
+ *
+ * @internal
+ */
+export interface ErrorWithSymbol extends Error {
+  [ALREADY_LOGGED_FLAG]?: boolean;
 }

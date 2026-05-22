@@ -16,7 +16,7 @@
  */
 
 import { FakePushSubscription } from './service-worker';
-import { TokenDetails } from '../../interfaces/token-details';
+import { TokenDetails } from '../../interfaces/registration-details';
 import { arrayToBase64 } from '../../helpers/array-base64-translator';
 
 export function getFakeTokenDetails(): TokenDetails {

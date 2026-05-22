@@ -23,7 +23,6 @@ import sinon from 'sinon';
 import {
   FirebaseApp,
   initializeApp,
-  _registerComponent,
   _addOrOverwriteComponent,
   deleteApp
 } from '@firebase/app';
@@ -169,14 +168,14 @@ describe('Top level API', () => {
       expect(
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://endpoint2',
+          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.3'
         })
       ).to.equal(
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://endpoint2',
+          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.3'
         })
@@ -184,7 +183,15 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint2',
-          tracingUrl: 'http://endpoint2',
+          tracingUrl: 'http://trace-endpoint1',
+          region: 'us-central1',
+          appVersion: '1.2.3'
+        });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          tracingUrl: 'http://trace-endpoint1',
           region: 'us-east1',
           appVersion: '1.2.3'
         });
@@ -192,9 +199,17 @@ describe('Top level API', () => {
       expect(() => {
         getCrashlytics(app, {
           endpointUrl: 'http://endpoint1',
-          tracingUrl: 'http://endpoint2',
+          tracingUrl: 'http://trace-endpoint1',
           region: 'us-central1',
           appVersion: '1.2.4'
+        });
+      }).to.throw('getCrashlytics() cannot be called with different options');
+      expect(() => {
+        getCrashlytics(app, {
+          endpointUrl: 'http://endpoint1',
+          tracingUrl: 'http://trace-endpoint2',
+          region: 'us-central1',
+          appVersion: '1.2.3'
         });
       }).to.throw('getCrashlytics() cannot be called with different options');
       expect(() => {
@@ -542,7 +557,14 @@ describe('Top level API', () => {
 
 function getFakeApp(): FirebaseApp {
   registerCrashlytics();
-  _registerComponent(
+  const app = initializeApp({
+    projectId: PROJECT_ID,
+    appId: APP_ID,
+    apiKey: API_KEY
+  });
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
     new Component(
       'installations-internal',
       () =>
@@ -553,7 +575,9 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  _registerComponent(
+  _addOrOverwriteComponent(
+    app,
+    //@ts-ignore
     new Component(
       'app-check-internal',
       () => {
@@ -562,11 +586,6 @@ function getFakeApp(): FirebaseApp {
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({
-    projectId: PROJECT_ID,
-    appId: APP_ID,
-    apiKey: API_KEY
-  });
   _addOrOverwriteComponent(
     app,
     //@ts-ignore
@@ -575,7 +594,8 @@ function getFakeApp(): FirebaseApp {
       // @ts-ignore
       () => {
         return {
-          triggerHeartbeat: () => {}
+          triggerHeartbeat: () => {},
+          getHeartbeatsHeader: async () => ''
         };
       },
       ComponentType.PUBLIC
