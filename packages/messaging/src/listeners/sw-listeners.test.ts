@@ -550,6 +550,79 @@ describe('SwController', () => {
       expect(revokeRegistrationStub).not.to.have.been.called;
       expect(getTokenStub).not.to.have.been.called;
     });
+
+    it('notifies visible window clients on successful FID refresh', async () => {
+      dbGetFidRegistrationStub.resolves({
+        fid: 'fid-in-db',
+        lastRegisterTime: Date.now()
+      });
+      refreshFidRegistrationStub.resolves('refreshed-fid');
+
+      const client: Writable<WindowClient> = (await self.clients.openWindow(
+        'https://example.org'
+      ))!;
+      client.visibilityState = 'visible';
+      const postMessageSpy = spy(client, 'postMessage');
+
+      const event = makeFakePushSubscriptionChangeEvent({
+        oldSubscription: new FakePushSubscription(),
+        newSubscription: new FakePushSubscription()
+      });
+
+      await callEventListener(event);
+
+      expect(refreshFidRegistrationStub).to.have.been.calledOnce;
+
+      const expectedMessage = {
+        isFirebaseMessaging: true,
+        messageType: MessageType.FID_REGISTERED,
+        fid: 'refreshed-fid'
+      };
+      expect(postMessageSpy).to.have.been.calledOnceWith(expectedMessage);
+    });
+
+    it('does not notify clients if FID refresh fails', async () => {
+      dbGetFidRegistrationStub.resolves({
+        fid: 'fid-in-db',
+        lastRegisterTime: Date.now()
+      });
+      refreshFidRegistrationStub.rejects(new Error('refresh failed'));
+
+      const client: Writable<WindowClient> = (await self.clients.openWindow(
+        'https://example.org'
+      ))!;
+      client.visibilityState = 'visible';
+      const postMessageSpy = spy(client, 'postMessage');
+
+      const event = makeFakePushSubscriptionChangeEvent({
+        oldSubscription: new FakePushSubscription(),
+        newSubscription: new FakePushSubscription()
+      });
+
+      await callEventListener(event);
+
+      expect(refreshFidRegistrationStub).to.have.been.calledOnce;
+      expect(postMessageSpy).not.to.have.been.called;
+    });
+
+    it('does not notify clients if FID is not registered', async () => {
+      dbGetFidRegistrationStub.resolves(undefined);
+
+      const client: Writable<WindowClient> = (await self.clients.openWindow(
+        'https://example.org'
+      ))!;
+      client.visibilityState = 'visible';
+      const postMessageSpy = spy(client, 'postMessage');
+
+      const event = makeFakePushSubscriptionChangeEvent({
+        oldSubscription: new FakePushSubscription(),
+        newSubscription: new FakePushSubscription()
+      });
+
+      await callEventListener(event);
+
+      expect(postMessageSpy).not.to.have.been.called;
+    });
   });
 
   async function callEventListener(

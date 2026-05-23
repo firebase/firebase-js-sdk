@@ -37,12 +37,12 @@ import { updateVapidKey } from './updateVapidKey';
  */
 export async function refreshFidRegistrationIfStored(
   messaging: MessagingService
-): Promise<void> {
+): Promise<string | undefined> {
   const stored = await dbGetFidRegistration(
     messaging.firebaseDependencies
   ).catch(() => undefined);
   if (!stored) {
-    return;
+    return undefined;
   }
 
   await updateVapidKey(messaging, stored.vapidKey);
@@ -55,6 +55,7 @@ export async function refreshFidRegistrationIfStored(
     vapidKey: messaging.vapidKey
   });
   notifyOnRegistered(messaging, fid);
+  return fid;
 }
 
 /**

@@ -71,9 +71,17 @@ export async function onSubChange(
     messaging.firebaseDependencies
   ).catch(() => undefined);
   if (storedFid) {
-    await refreshFidRegistrationIfStored(messaging).catch(() => {
+    const fid = await refreshFidRegistrationIfStored(messaging).catch(() => {
       // Best-effort: push subscription may be unavailable after rotation.
+      return undefined;
     });
+
+    if (fid) {
+      const clientList = await getClientList();
+      if (hasVisibleClients(clientList)) {
+        sendFidRegisteredToWindows(clientList, fid);
+      }
+    }
     return;
   }
 
@@ -257,6 +265,21 @@ function sendMessagePayloadInternalToWindows(
 
   for (const client of clientList) {
     client.postMessage(internalPayload);
+  }
+}
+
+function sendFidRegisteredToWindows(
+  clientList: WindowClient[],
+  fid: string
+): void {
+  const payload = {
+    isFirebaseMessaging: true,
+    messageType: MessageType.FID_REGISTERED,
+    fid
+  };
+
+  for (const client of clientList) {
+    client.postMessage(payload);
   }
 }
 
