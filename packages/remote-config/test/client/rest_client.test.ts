@@ -112,9 +112,7 @@ describe('RestClient', () => {
         eTag: expectedResponse.eTag,
         config: expectedResponse.entries,
         templateVersion: expectedResponse.templateVersion,
-        experiments: expectedResponse.experimentDescriptions,
-        rollouts: undefined,
-        personalizationMetadata: undefined
+        experiments: expectedResponse.experimentDescriptions
       });
     });
 
@@ -205,9 +203,7 @@ describe('RestClient', () => {
         eTag: 'response-etag',
         config: undefined,
         templateVersion: undefined,
-        experiments: undefined,
-        rollouts: undefined,
-        personalizationMetadata: undefined
+        experiments: undefined
       });
     });
 
@@ -247,9 +243,7 @@ describe('RestClient', () => {
         eTag: 'etag',
         config: undefined,
         templateVersion: undefined,
-        experiments: undefined,
-        rollouts: undefined,
-        personalizationMetadata: undefined
+        experiments: undefined
       });
     });
 
@@ -268,9 +262,7 @@ describe('RestClient', () => {
           eTag: 'etag',
           config: {},
           templateVersion: undefined,
-          experiments: [],
-          rollouts: [],
-          personalizationMetadata: {}
+          experiments: []
         });
       }
     });

@@ -584,7 +584,11 @@ export function isDouble(
 }
 
 /** Returns true if `value` is either an IntegerValue or a DoubleValue. */
-export function isNumber(value?: Value | null): boolean {
+export function isNumber(
+  value?: Value | null
+): value is
+  | { doubleValue: string | number }
+  | { integerValue: string | number } {
   return isInteger(value) || isDouble(value);
 }
 

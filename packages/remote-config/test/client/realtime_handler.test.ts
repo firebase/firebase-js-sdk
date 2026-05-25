@@ -578,6 +578,82 @@ describe('RealtimeHandler', () => {
       );
     });
 
+    it('should ignore experiments if affected parameters have not changed', async () => {
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { existingKey: 'value' },
+        experiments: [
+          {
+            experimentId: 'exp1',
+            variantId: '1',
+            experimentStartTime: '',
+            triggerTimeoutMillis: '',
+            timeToLiveMillis: '',
+            affectedParameterKeys: ['keyA', 'keyB']
+          }
+        ]
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { existingKey: 'value' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        experiments: [
+          {
+            experimentId: 'exp1',
+            variantId: '1',
+            experimentStartTime: '',
+            triggerTimeoutMillis: '',
+            timeToLiveMillis: '',
+            affectedParameterKeys: ['keyA', 'keyB']
+          }
+        ]
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+    });
+
+    it('should ignore experiment descriptions starting with _exp_rollout', async () => {
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { existingKey: 'value' },
+        experiments: [
+          {
+            experimentId: '_exp_rollout_1',
+            variantId: '1',
+            experimentStartTime: '',
+            triggerTimeoutMillis: '',
+            timeToLiveMillis: '',
+            affectedParameterKeys: ['keyA', 'keyB']
+          }
+        ]
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { existingKey: 'value' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        experiments: [
+          {
+            experimentId: '_exp_rollout_1',
+            variantId: '1',
+            experimentStartTime: '',
+            triggerTimeoutMillis: '',
+            timeToLiveMillis: '',
+            affectedParameterKeys: ['keyB', 'keyC']
+          }
+        ]
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+    });
+
     it('should handle null activatedConfigs gracefully', async () => {
       mockCachingClient.fetch.resolves({
         config: { newKey: 'value' },
@@ -891,9 +967,9 @@ describe('RealtimeHandler', () => {
   describe('addObserver/removeObserver', () => {
     let beginRealtimeStub: sinon.SinonStub;
     const observer: ConfigUpdateObserver = {
-      next: () => { },
-      error: () => { },
-      complete: () => { }
+      next: () => {},
+      error: () => {},
+      complete: () => {}
     };
 
     beforeEach(() => {

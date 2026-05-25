@@ -720,7 +720,7 @@ describe('internal api', () => {
       });
       const token = await getLimitedUseToken(appCheck as AppCheckService);
 
-      expect(customProviderSpy).to.be.called;
+      expect(customProviderSpy).to.be.calledWith(true);
       expect(token).to.deep.equal({
         token: 'fake-custom-app-check-token'
       });
@@ -757,6 +757,9 @@ describe('internal api', () => {
       expect(exchangeTokenStub.args[0][0].body['recaptcha_v3_token']).to.equal(
         fakeRecaptchaToken
       );
+
+      expect(exchangeTokenStub.args[0][0].body['limited_use']).to.equal(true);
+
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 
@@ -778,6 +781,8 @@ describe('internal api', () => {
       expect(
         exchangeTokenStub.args[0][0].body['recaptcha_enterprise_token']
       ).to.equal(fakeRecaptchaToken);
+
+      expect(exchangeTokenStub.args[0][0].body['limited_use']).to.equal(true);
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
 
@@ -798,6 +803,7 @@ describe('internal api', () => {
       expect(exchangeTokenStub.args[0][0].body['debug_token']).to.equal(
         'my-debug-token'
       );
+      expect(exchangeTokenStub.args[0][0].body['limited_use']).to.equal(true);
       expect(token).to.deep.equal({ token: fakeRecaptchaAppCheckToken.token });
     });
   });

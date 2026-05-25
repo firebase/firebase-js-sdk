@@ -30,7 +30,11 @@ import { registerMessagingInWindow } from './helpers/register';
 export {
   getToken,
   deleteToken,
+  register,
+  unregister,
   onMessage,
+  onRegistered,
+  onUnregistered,
   getMessagingInWindow as getMessaging
 } from './api';
 export { isWindowSupported as isSupported } from './api/isSupported';

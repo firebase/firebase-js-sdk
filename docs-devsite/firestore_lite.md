@@ -63,6 +63,8 @@ https://github.com/firebase/firebase-js-sdk
 |  [setLogLevel(logLevel)](./firestore_lite.md#setloglevel_d02fda2) | Sets the verbosity of Cloud Firestore logs (debug, error, or silent). |
 |  <b>function(n, ...)</b> |
 |  [increment(n)](./firestore_lite.md#increment_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to increment the field's current value by the given value.<!-- -->If either the operand or the current field value uses floating point precision, all arithmetic follows IEEE 754 semantics. If both values are integers, values outside of JavaScript's safe number range (<code>Number.MIN_SAFE_INTEGER</code> to <code>Number.MAX_SAFE_INTEGER</code>) are also subject to precision loss. Furthermore, once processed by the Firestore backend, all integer operations are capped between -2^63 and 2^63-1.<!-- -->If the current field value is not of type <code>number</code>, or if the field does not yet exist, the transformation sets the field to the given value. |
+|  [maximum(n)](./firestore_lite.md#maximum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value. |
+|  [minimum(n)](./firestore_lite.md#minimum_5685735) | Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value. |
 |  <b>function(query, ...)</b> |
 |  [getAggregate(query, aggregateSpec)](./firestore_lite.md#getaggregate_2073a74) | Calculates the specified aggregations over the documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to perform aggregations is efficient because only the final aggregation values, not the documents' data, are downloaded. This function can perform aggregations of the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
 |  [getCount(query)](./firestore_lite.md#getcount_4e56953) | Calculates the number of documents in the result set of the given query without actually downloading the documents.<!-- -->Using this function to count the documents is efficient because only the final count, not the documents' data, is downloaded. This function can count the documents in cases where the result set is prohibitively large to download entirely (thousands of documents). |
@@ -974,6 +976,50 @@ export declare function increment(n: number): FieldValue;
 |  Parameter | Type | Description |
 |  --- | --- | --- |
 |  n | number | The value to increment by. |
+
+<b>Returns:</b>
+
+[FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+### maximum(n) {:#maximum_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric maximum of the field's current and the given value.
+
+<b>Signature:</b>
+
+```typescript
+export declare function maximum(n: number): FieldValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The value to compare to the existing field value. |
+
+<b>Returns:</b>
+
+[FieldValue](./firestore_lite.fieldvalue.md#fieldvalue_class)
+
+The `FieldValue` sentinel for use in a call to `setDoc()` or `updateDoc()`
+
+### minimum(n) {:#minimum_5685735}
+
+Returns a special value that can be used with [setDoc()](./firestore_lite.md#setdoc_ee215ad) or [updateDoc()](./firestore_lite.md#updatedoc_51a65e3) that tells the server to set the field to the numeric minimum of the field's current and the given value.
+
+<b>Signature:</b>
+
+```typescript
+export declare function minimum(n: number): FieldValue;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  n | number | The value to compare to the existing field value. |
 
 <b>Returns:</b>
 

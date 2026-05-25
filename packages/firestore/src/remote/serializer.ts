@@ -62,6 +62,8 @@ import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
+  NumericMaximumTransformOperation,
+  NumericMinimumTransformOperation,
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
@@ -849,6 +851,16 @@ function toFieldTransform(
       fieldPath: fieldTransform.field.canonicalString(),
       increment: transform.operand
     };
+  } else if (transform instanceof NumericMinimumTransformOperation) {
+    return {
+      fieldPath: fieldTransform.field.canonicalString(),
+      minimum: transform.operand
+    };
+  } else if (transform instanceof NumericMaximumTransformOperation) {
+    return {
+      fieldPath: fieldTransform.field.canonicalString(),
+      maximum: transform.operand
+    };
   } else {
     throw fail(0x51c2, 'Unknown transform', {
       transform: fieldTransform.transform
@@ -879,6 +891,16 @@ function fromFieldTransform(
     transform = new NumericIncrementTransformOperation(
       serializer,
       proto.increment!
+    );
+  } else if ('minimum' in proto) {
+    transform = new NumericMinimumTransformOperation(
+      serializer,
+      proto.minimum!
+    );
+  } else if ('maximum' in proto) {
+    transform = new NumericMaximumTransformOperation(
+      serializer,
+      proto.maximum!
     );
   } else {
     fail(0x40c8, 'Unknown transform proto', { proto });
