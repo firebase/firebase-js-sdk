@@ -19,7 +19,9 @@ import {
   CustomSignals,
   FetchResponse,
   FirebaseRemoteConfigObject,
-  FirebaseExperimentDescription
+  FirebaseExperimentDescription,
+  FirebaseRolloutDescription,
+  FirebasePersonalizationMetadata
 } from '../public_types';
 import {
   RemoteConfigFetchClient,
@@ -145,6 +147,8 @@ export class RestClient implements RemoteConfigFetchClient {
     let state: string | undefined;
     let templateVersion: number | undefined;
     let experiments: FirebaseExperimentDescription[] | undefined;
+    let rollouts: FirebaseRolloutDescription[] | undefined;
+    let personalizationMetadata: { [key: string]: FirebasePersonalizationMetadata } | undefined;
 
     // JSON parsing throws SyntaxError if the response body isn't a JSON string.
     // Requesting application/json and checking for a 200 ensures there's JSON data.
@@ -161,6 +165,8 @@ export class RestClient implements RemoteConfigFetchClient {
       state = responseBody['state'];
       templateVersion = responseBody['templateVersion'];
       experiments = responseBody['experimentDescriptions'];
+      rollouts = responseBody['rolloutMetadata'];
+      personalizationMetadata = responseBody['personalizationMetadata'];
     }
 
     // Normalizes based on legacy state.
@@ -172,6 +178,8 @@ export class RestClient implements RemoteConfigFetchClient {
       // These cases can be fixed remotely, so normalize to safe value.
       config = {};
       experiments = [];
+      rollouts = [];
+      personalizationMetadata = {};
     }
 
     // Normalize to exception-based control flow for non-success cases.
@@ -184,6 +192,6 @@ export class RestClient implements RemoteConfigFetchClient {
       });
     }
 
-    return { status, eTag: responseEtag, config, templateVersion, experiments };
+    return { status, eTag: responseEtag, config, templateVersion, experiments, rollouts, personalizationMetadata };
   }
 }

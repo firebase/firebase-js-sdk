@@ -536,6 +536,48 @@ describe('RealtimeHandler', () => {
       );
     });
 
+    it('should identify changed keys from updated experiment descriptions', async () => {
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { existingKey: 'value' },
+        experiments: [
+          {
+            experimentId: 'exp1',
+            variantId: '1',
+            experimentStartTime: '',
+            triggerTimeoutMillis: '',
+            timeToLiveMillis: '',
+            affectedParameterKeys: ['keyA', 'keyB']
+          }
+        ]
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { existingKey: 'value' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        experiments: [
+          {
+            experimentId: 'exp1',
+            variantId: '1',
+            experimentStartTime: '',
+            triggerTimeoutMillis: '',
+            timeToLiveMillis: '',
+            affectedParameterKeys: ['keyB', 'keyC']
+          }
+        ]
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
+      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
+      expect(configUpdate.getUpdatedKeys()).to.deep.equal(
+        new Set(['keyA', 'keyB', 'keyC'])
+      );
+    });
+
     it('should handle null activatedConfigs gracefully', async () => {
       mockCachingClient.fetch.resolves({
         config: { newKey: 'value' },
@@ -849,9 +891,9 @@ describe('RealtimeHandler', () => {
   describe('addObserver/removeObserver', () => {
     let beginRealtimeStub: sinon.SinonStub;
     const observer: ConfigUpdateObserver = {
-      next: () => {},
-      error: () => {},
-      complete: () => {}
+      next: () => { },
+      error: () => { },
+      complete: () => { }
     };
 
     beforeEach(() => {

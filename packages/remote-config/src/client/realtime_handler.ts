@@ -21,7 +21,10 @@ import {
   ConfigUpdate,
   ConfigUpdateObserver,
   FetchResponse,
-  FirebaseRemoteConfigObject
+  FirebaseRemoteConfigObject,
+  FirebaseExperimentDescription,
+  FirebaseRolloutDescription,
+  FirebasePersonalizationMetadata
 } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
@@ -377,7 +380,7 @@ export class RealtimeHandler {
       if (!this.fetchResponseIsUpToDate(fetchResponse, targetVersion)) {
         this.logger.debug(
           "Fetched template version is the same as SDK's current version." +
-            ' Retrying fetch.'
+          ' Retrying fetch.'
         );
         // Continue fetching until template version number is greater than current.
         await this.autoFetch(remainingAttemptsAfterFetch, targetVersion);
@@ -399,6 +402,86 @@ export class RealtimeHandler {
         fetchResponse.config,
         activatedConfigs
       );
+
+      const lastFetchResponse = await this.storage.getLastSuccessfulFetchResponse();
+
+      // Process experiments
+      const lastExperiments = lastFetchResponse?.experiments || [];
+      const latestExperiments = fetchResponse.experiments || [];
+
+      const lastExpMap = new Map<string, Set<string>>();
+      for (const exp of lastExperiments) {
+        lastExpMap.set(exp.experimentId, new Set(exp.affectedParameterKeys || []));
+      }
+
+      const latestExpMap = new Map<string, Set<string>>();
+      for (const exp of latestExperiments) {
+        latestExpMap.set(exp.experimentId, new Set(exp.affectedParameterKeys || []));
+      }
+
+      const allExpIds = new Set([...lastExpMap.keys(), ...latestExpMap.keys()]);
+      for (const expId of allExpIds) {
+        const lastParams = lastExpMap.get(expId) || new Set<string>();
+        const latestParams = latestExpMap.get(expId) || new Set<string>();
+
+        if (!areSetsEqual(lastParams, latestParams)) {
+          for (const key of lastParams) {
+            updatedKeys.add(key);
+          }
+          for (const key of latestParams) {
+            updatedKeys.add(key);
+          }
+        }
+      }
+
+      // Process rollouts
+      const lastRollouts = lastFetchResponse?.rollouts || [];
+      const latestRollouts = fetchResponse.rollouts || [];
+
+      const lastRolloutMap = new Map<string, Set<string>>();
+      for (const rollout of lastRollouts) {
+        lastRolloutMap.set(rollout.rolloutId, new Set(rollout.affectedParameterKeys || []));
+      }
+
+      const latestRolloutMap = new Map<string, Set<string>>();
+      for (const rollout of latestRollouts) {
+        latestRolloutMap.set(rollout.rolloutId, new Set(rollout.affectedParameterKeys || []));
+      }
+
+      const allRolloutIds = new Set([...lastRolloutMap.keys(), ...latestRolloutMap.keys()]);
+      for (const rolloutId of allRolloutIds) {
+        const lastParams = lastRolloutMap.get(rolloutId) || new Set<string>();
+        const latestParams = latestRolloutMap.get(rolloutId) || new Set<string>();
+
+        if (!areSetsEqual(lastParams, latestParams)) {
+          for (const key of lastParams) {
+            updatedKeys.add(key);
+          }
+          for (const key of latestParams) {
+            updatedKeys.add(key);
+          }
+        }
+      }
+
+      // Process personalizationMetadata
+      const lastPersonalization = lastFetchResponse?.personalizationMetadata || {};
+      const latestPersonalization = fetchResponse.personalizationMetadata || {};
+
+      const allPersonalizationKeys = new Set([
+        ...Object.keys(lastPersonalization),
+        ...Object.keys(latestPersonalization)
+      ]);
+
+      for (const key of allPersonalizationKeys) {
+        const lastMeta = lastPersonalization[key];
+        const latestMeta = latestPersonalization[key];
+
+        if (!lastMeta || !latestMeta) {
+          updatedKeys.add(key);
+        } else if (lastMeta.personalizationId !== latestMeta.personalizationId) {
+          updatedKeys.add(key);
+        }
+      }
 
       if (updatedKeys.size === 0) {
         this.logger.debug('Config was fetched, but no params changed.');
@@ -712,4 +795,16 @@ export class RealtimeHandler {
       await this.beginRealtime();
     }
   }
+}
+
+function areSetsEqual(setA: Set<string>, setB: Set<string>): boolean {
+  if (setA.size !== setB.size) {
+    return false;
+  }
+  for (const elem of setA) {
+    if (!setB.has(elem)) {
+      return false;
+    }
+  }
+  return true;
 }

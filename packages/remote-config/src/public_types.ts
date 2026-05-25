@@ -87,6 +87,26 @@ export interface FirebaseExperimentDescription {
 }
 
 /**
+ * Defines rollout metadata attached to a config parameter.
+ *
+ * @public
+ */
+export interface FirebaseRolloutDescription {
+  rolloutId: string;
+  variantId: string;
+  affectedParameterKeys?: string[];
+}
+
+/**
+ * Defines personalization metadata attached to a config parameter.
+ *
+ * @public
+ */
+export interface FirebasePersonalizationMetadata {
+  personalizationId: string;
+}
+
+/**
  * Defines a successful response (200 or 304).
  *
  * <p>Modeled after the native `Response` interface, but simplified for Remote Config's
@@ -132,6 +152,20 @@ export interface FetchResponse {
    * @remarks Only defined for 200 responses.
    */
   experiments?: FirebaseExperimentDescription[];
+
+  /**
+   * Metadata for Remote Config rollouts.
+   *
+   * @remarks Only defined for 200 responses.
+   */
+  rollouts?: FirebaseRolloutDescription[];
+
+  /**
+   * Metadata for Remote Config personalization.
+   *
+   * @remarks Only defined for 200 responses.
+   */
+  personalizationMetadata?: { [key: string]: FirebasePersonalizationMetadata };
 }
 
 /**
