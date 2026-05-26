@@ -537,9 +537,14 @@ describe('RealtimeHandler', () => {
     });
 
     it('should identify changed keys from updated experiment descriptions', async () => {
+      mockStorage.getActiveConfig.resolves({
+        keyA: 'valueA',
+        keyB: 'valueB',
+        keyC: 'valueC'
+      });
       mockStorage.getLastSuccessfulFetchResponse.resolves({
         status: 200,
-        config: { existingKey: 'value' },
+        config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         experiments: [
           {
             experimentId: 'exp1',
@@ -553,7 +558,7 @@ describe('RealtimeHandler', () => {
       });
 
       mockCachingClient.fetch.resolves({
-        config: { existingKey: 'value' },
+        config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         templateVersion: 2,
         status: 200,
         eTag: 'e',
@@ -574,14 +579,46 @@ describe('RealtimeHandler', () => {
       expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
       const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
       expect(configUpdate.getUpdatedKeys()).to.deep.equal(
-        new Set(['keyA', 'keyB', 'keyC'])
+        new Set(['keyA', 'keyC'])
       );
     });
 
-    it('should ignore experiments if affected parameters have not changed', async () => {
+    it('should ignore experiments if descriptions have not changed', async () => {
+      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      const experiments = [
+        {
+          experimentId: 'exp1',
+          variantId: '1',
+          experimentStartTime: '',
+          triggerTimeoutMillis: '',
+          timeToLiveMillis: '',
+          affectedParameterKeys: ['keyA', 'keyB']
+        }
+      ];
       mockStorage.getLastSuccessfulFetchResponse.resolves({
         status: 200,
-        config: { existingKey: 'value' },
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        experiments
+      });
+
+      mockCachingClient.fetch.resolves({
+        config: { keyA: 'valueA', keyB: 'valueB' },
+        templateVersion: 2,
+        status: 200,
+        eTag: 'e',
+        experiments
+      });
+
+      await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
+
+      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+    });
+
+    it('should identify changed keys when an experiment variant ID is updated', async () => {
+      mockStorage.getActiveConfig.resolves({ keyA: 'valueA', keyB: 'valueB' });
+      mockStorage.getLastSuccessfulFetchResponse.resolves({
+        status: 200,
+        config: { keyA: 'valueA', keyB: 'valueB' },
         experiments: [
           {
             experimentId: 'exp1',
@@ -595,14 +632,14 @@ describe('RealtimeHandler', () => {
       });
 
       mockCachingClient.fetch.resolves({
-        config: { existingKey: 'value' },
+        config: { keyA: 'valueA', keyB: 'valueB' },
         templateVersion: 2,
         status: 200,
         eTag: 'e',
         experiments: [
           {
             experimentId: 'exp1',
-            variantId: '1',
+            variantId: '2',
             experimentStartTime: '',
             triggerTimeoutMillis: '',
             timeToLiveMillis: '',
@@ -613,13 +650,22 @@ describe('RealtimeHandler', () => {
 
       await (realtime as any).fetchLatestConfig(MAXIMUM_FETCH_ATTEMPTS, 2);
 
-      expect(executeAllListenerCallbacksSpy).not.to.have.been.called;
+      expect(executeAllListenerCallbacksSpy).to.have.been.calledOnce;
+      const configUpdate = executeAllListenerCallbacksSpy.getCall(0).args[0];
+      expect(configUpdate.getUpdatedKeys()).to.deep.equal(
+        new Set(['keyA', 'keyB'])
+      );
     });
 
     it('should ignore experiment descriptions starting with _exp_rollout', async () => {
+      mockStorage.getActiveConfig.resolves({
+        keyA: 'valueA',
+        keyB: 'valueB',
+        keyC: 'valueC'
+      });
       mockStorage.getLastSuccessfulFetchResponse.resolves({
         status: 200,
-        config: { existingKey: 'value' },
+        config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         experiments: [
           {
             experimentId: '_exp_rollout_1',
@@ -633,7 +679,7 @@ describe('RealtimeHandler', () => {
       });
 
       mockCachingClient.fetch.resolves({
-        config: { existingKey: 'value' },
+        config: { keyA: 'valueA', keyB: 'valueB', keyC: 'valueC' },
         templateVersion: 2,
         status: 200,
         eTag: 'e',
