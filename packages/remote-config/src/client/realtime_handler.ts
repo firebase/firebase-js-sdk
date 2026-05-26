@@ -347,6 +347,32 @@ export class RealtimeHandler {
     return changedKeys;
   }
 
+  private getChangedMetadataParams(
+    lastMetadataMap: Map<string, Set<string>>,
+    latestMetadataMap: Map<string, Set<string>>
+  ): Set<string> {
+    const changedKeys = new Set<string>();
+    const allMetadataIds = new Set([
+      ...lastMetadataMap.keys(),
+      ...latestMetadataMap.keys()
+    ]);
+
+    for (const id of allMetadataIds) {
+      const lastParams = lastMetadataMap.get(id) || new Set<string>();
+      const latestParams = latestMetadataMap.get(id) || new Set<string>();
+
+      if (!areSetsEqual(lastParams, latestParams)) {
+        for (const key of lastParams) {
+          changedKeys.add(key);
+        }
+        for (const key of latestParams) {
+          changedKeys.add(key);
+        }
+      }
+    }
+    return changedKeys;
+  }
+
   private async fetchLatestConfig(
     remainingAttempts: number,
     targetVersion: number
@@ -428,19 +454,12 @@ export class RealtimeHandler {
         );
       }
 
-      const allExpIds = new Set([...lastExpMap.keys(), ...latestExpMap.keys()]);
-      for (const expId of allExpIds) {
-        const lastParams = lastExpMap.get(expId) || new Set<string>();
-        const latestParams = latestExpMap.get(expId) || new Set<string>();
-
-        if (!areSetsEqual(lastParams, latestParams)) {
-          for (const key of lastParams) {
-            updatedKeys.add(key);
-          }
-          for (const key of latestParams) {
-            updatedKeys.add(key);
-          }
-        }
+      const changedExpKeys = this.getChangedMetadataParams(
+        lastExpMap,
+        latestExpMap
+      );
+      for (const key of changedExpKeys) {
+        updatedKeys.add(key);
       }
 
       if (updatedKeys.size === 0) {
