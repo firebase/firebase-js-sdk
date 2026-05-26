@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "4.14.0",
+  "version": "4.14.1",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -135,10 +135,10 @@
     "lite/pipelines/pipelines.d.ts"
   ],
   "dependencies": {
-    "@firebase/component": "0.7.2",
-    "@firebase/logger": "0.5.0",
-    "@firebase/util": "1.15.0",
-    "@firebase/webchannel-wrapper": "1.0.5",
+    "@firebase/component": "0.7.3",
+    "@firebase/logger": "0.5.1",
+    "@firebase/util": "1.15.1",
+    "@firebase/webchannel-wrapper": "1.0.6",
     "@grpc/grpc-js": "~1.9.0",
     "@grpc/proto-loader": "^0.7.8",
     "tslib": "^2.1.0"
@@ -147,15 +147,15 @@
     "@firebase/app": "0.x"
   },
   "devDependencies": {
-    "@firebase/app": "0.14.11",
-    "@firebase/app-compat": "0.5.11",
-    "@firebase/auth": "1.13.0",
+    "@firebase/app": "0.14.12",
+    "@firebase/app-compat": "0.5.12",
+    "@firebase/auth": "1.13.1",
     "@rollup/plugin-alias": "5.1.1",
     "@rollup/plugin-json": "6.1.0",
     "@types/eslint": "7.29.0",
     "chai-exclude": "2.1.1",
     "json-stable-stringify": "1.2.1",
-    "protobufjs": "7.5.5",
+    "protobufjs": "7.5.6",
     "rollup": "2.79.2",
     "rollup-plugin-copy": "3.5.0",
     "rollup-plugin-copy-assets": "2.0.3",

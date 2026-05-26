@@ -22,11 +22,11 @@ import { Bound } from '../../src/core/bound';
 import { BundledDocuments } from '../../src/core/bundle';
 import { DatabaseId } from '../../src/core/database_info';
 import {
-  FieldFilter,
   CompositeFilter,
+  CompositeOperator,
+  FieldFilter,
   Filter,
-  Operator,
-  CompositeOperator
+  Operator
 } from '../../src/core/filter';
 import { Direction, OrderBy } from '../../src/core/order_by';
 import {
@@ -79,20 +79,20 @@ import {
 import { FieldMask } from '../../src/model/field_mask';
 import {
   DeleteMutation,
+  FieldTransform,
   MutationResult,
   PatchMutation,
   Precondition,
-  SetMutation,
-  FieldTransform
+  SetMutation
 } from '../../src/model/mutation';
 import { normalizeByteString } from '../../src/model/normalize';
 import { JsonObject, ObjectValue } from '../../src/model/object_value';
 import { FieldPath, ResourcePath } from '../../src/model/path';
 import { decodeBase64, encodeBase64 } from '../../src/platform/base64';
 import {
-  NamedQuery as ProtoNamedQuery,
   BundleMetadata as ProtoBundleMetadata,
-  LimitType as ProtoLimitType
+  LimitType as ProtoLimitType,
+  NamedQuery as ProtoNamedQuery
 } from '../../src/protos/firestore_bundle_proto';
 import * as api from '../../src/protos/firestore_proto_api';
 import { BloomFilter } from '../../src/remote/bloom_filter';
@@ -427,6 +427,9 @@ export function noChangeEvent(
       targetData(targetId, TargetPurpose.Listen, 'foo'),
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(aggregator, [targetId]);
+
   aggregator.handleTargetChange(
     new WatchTargetChange(
       WatchTargetChangeState.NoChange,
@@ -452,6 +455,9 @@ export function existenceFilterEvent(
       targetData(targetId, TargetPurpose.Listen, 'foo'),
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(aggregator, [targetId]);
+
   aggregator.handleExistenceFilter(
     new ExistenceFilterChange(
       targetId,
@@ -461,6 +467,29 @@ export function existenceFilterEvent(
   return castRemoteEvent(
     aggregator.createRemoteEvent(version(snapshotVersion))
   );
+}
+
+/**
+ * Helper function that simulates an add target message and server ack.
+ *
+ * @param aggregator
+ * @param targetIdsCollections - Simulate add targets messages for these.
+ */
+export function addWatchTargets(
+  aggregator: WatchChangeAggregator,
+  ...targetIdsCollections: Array<number[] | undefined>
+): void {
+  // ensure target states
+  targetIdsCollections.forEach(targetIds => {
+    if (targetIds) {
+      targetIds.forEach(targetId => {
+        aggregator.recordPendingTargetRequest(targetId);
+        aggregator.handleTargetChange(
+          new WatchTargetChange(WatchTargetChangeState.Added, [targetId])
+        );
+      });
+    }
+  });
 }
 
 export function docAddedRemoteEvent(
@@ -492,6 +521,8 @@ export function docAddedRemoteEvent(
     },
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(aggregator, allTargets);
 
   let version = SnapshotVersion.min();
 
@@ -540,6 +571,14 @@ export function docUpdateRemoteEvent(
     },
     getDatabaseId: () => TEST_DATABASE_ID
   });
+
+  addWatchTargets(
+    aggregator,
+    updatedInTargets,
+    removedFromTargets,
+    limboTargets
+  );
+
   aggregator.handleDocumentChange(docChange);
   return castRemoteEvent(aggregator.createRemoteEvent(doc.version));
 }

@@ -62,7 +62,40 @@ export interface LanguageModelCreateCoreOptions {
    * @deprecated
    */
   temperature?: number;
+  /**
+   * Defaults to image input and English text input
+   * if not overriden.
+   */
   expectedInputs?: LanguageModelExpected[];
+  /**
+   * Defaults to English text output if not overriden.
+   */
+  expectedOutputs?: LanguageModelExpected[];
+  /**
+   * The native download monitor provided by the Chrome API.
+   * This provides direct access to the monitor object and is
+   * only needed for advanced cases. For
+   * a simpler download monitoring interface, provide an
+   * `onDownloadProgress` callback
+   * to {@link GenerativeModel.initializeDeviceModel} instead.
+   */
+  monitor?: (monitor: LanguageModelDownloadMonitor) => void;
+}
+
+/**
+ * Interface representing the Chrome Prompt API's native
+ * download monitor object.
+ * @beta
+ */
+export interface LanguageModelDownloadMonitor {
+  addEventListener: (
+    eventType: 'downloadprogress',
+    eventListener: (e: { loaded: number }) => void
+  ) => void;
+  removeEventListener: (
+    eventType: 'downloadprogress',
+    eventListener: (e: { loaded: number }) => void
+  ) => void;
 }
 
 /**

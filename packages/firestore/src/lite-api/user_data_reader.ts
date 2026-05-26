@@ -39,6 +39,8 @@ import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
   NumericIncrementTransformOperation,
+  NumericMaximumTransformOperation,
+  NumericMinimumTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
 import {
@@ -556,7 +558,52 @@ export class NumericIncrementFieldValueImpl extends FieldValue {
   isEqual(other: FieldValue): boolean {
     return (
       other instanceof NumericIncrementFieldValueImpl &&
-      this._operand === other._operand
+      (this._operand === other._operand ||
+        (Number.isNaN(this._operand) && Number.isNaN(other._operand)))
+    );
+  }
+}
+
+export class NumericMinimumFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _operand: number) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const numericMinimum = new NumericMinimumTransformOperation(
+      context.serializer,
+      toNumber(context.serializer, this._operand)
+    );
+    return new FieldTransform(context.path!, numericMinimum);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return (
+      other instanceof NumericMinimumFieldValueImpl &&
+      (this._operand === other._operand ||
+        (Number.isNaN(this._operand) && Number.isNaN(other._operand)))
+    );
+  }
+}
+
+export class NumericMaximumFieldValueImpl extends FieldValue {
+  constructor(methodName: string, private readonly _operand: number) {
+    super(methodName);
+  }
+
+  _toFieldTransform(context: ParseContextImpl): FieldTransform {
+    const numericMaximum = new NumericMaximumTransformOperation(
+      context.serializer,
+      toNumber(context.serializer, this._operand)
+    );
+    return new FieldTransform(context.path!, numericMaximum);
+  }
+
+  isEqual(other: FieldValue): boolean {
+    return (
+      other instanceof NumericMaximumFieldValueImpl &&
+      (this._operand === other._operand ||
+        (Number.isNaN(this._operand) && Number.isNaN(other._operand)))
     );
   }
 }

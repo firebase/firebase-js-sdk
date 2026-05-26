@@ -60,6 +60,36 @@ describe('ChatSession', () => {
     restore();
   });
   describe('sendMessage()', () => {
+    it('sends the correct params to generateContent()', async () => {
+      const generateContentStub = stub(
+        generateContentMethods,
+        'generateContent'
+      ).resolves();
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          history: [
+            { role: 'user', parts: [{ text: 'user turn 1' }] },
+            { role: 'model', parts: [{ text: 'model turn 1' }] }
+          ]
+        }
+      );
+      // The result isn't important.
+      await chatSession.sendMessage('user turn 2');
+      expect(generateContentStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match.any,
+        match.any
+      );
+      expect(generateContentStub.args[0][2].contents).to.deep.equal([
+        { role: 'user', parts: [{ text: 'user turn 1' }] },
+        { role: 'model', parts: [{ text: 'model turn 1' }] },
+        { role: 'user', parts: [{ text: 'user turn 2' }] }
+      ]);
+    });
     it('generateContent errors should be catchable', async () => {
       const generateContentStub = stub(
         generateContentMethods,
@@ -185,9 +215,43 @@ describe('ChatSession', () => {
       expect(generateContentStub.args[1][2].contents[2].parts[0].text).to.equal(
         'hello 2'
       );
+      expect(generateContentStub.args[1][2].contents.length).to.equal(3);
     });
   });
   describe('sendMessageStream()', () => {
+    it('sends the correct params to generateContentStream()', async () => {
+      const clock = useFakeTimers();
+      const generateContentStreamStub = stub(
+        generateContentMethods,
+        'generateContentStream'
+      ).resolves();
+      const chatSession = new ChatSession(
+        fakeApiSettings,
+        'a-model',
+        fakeChromeAdapter,
+        {
+          history: [
+            { role: 'user', parts: [{ text: 'user turn 1' }] },
+            { role: 'model', parts: [{ text: 'model turn 1' }] }
+          ]
+        }
+      );
+      // Expected as the stub resolved undefined, the result isn't important.
+      await expect(chatSession.sendMessageStream('user turn 2')).to.be.rejected;
+      expect(generateContentStreamStub).to.be.calledWith(
+        fakeApiSettings,
+        'a-model',
+        match.any,
+        match.any
+      );
+      expect(generateContentStreamStub.args[0][2].contents).to.deep.equal([
+        { role: 'user', parts: [{ text: 'user turn 1' }] },
+        { role: 'model', parts: [{ text: 'model turn 1' }] },
+        { role: 'user', parts: [{ text: 'user turn 2' }] }
+      ]);
+      await clock.runAllAsync();
+      clock.restore();
+    });
     it('generateContentStream errors should be catchable', async () => {
       const clock = useFakeTimers();
       const consoleStub = stub(console, 'error');

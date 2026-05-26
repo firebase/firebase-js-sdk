@@ -1,5 +1,26 @@
 # @firebase/ai
 
+## 2.12.0
+
+### Minor Changes
+
+- [`ffa39f6`](https://github.com/firebase/firebase-js-sdk/commit/ffa39f61c36e9d90a26573f042863e0086ee01e2) [#9795](https://github.com/firebase/firebase-js-sdk/pull/9795) - Added `LiveSession.resumeSession()` to allow resuming a previous `LiveSession`. Also added `contextWindowCompression` feature.
+
+- [`86dc0db`](https://github.com/firebase/firebase-js-sdk/commit/86dc0db9218d9ae52282d595007fc60b40c98b6e) [#9819](https://github.com/firebase/firebase-js-sdk/pull/9819) - Added support for `ImageConfig` (aspect ratio and size).
+  Expanded `FinishReason` values to include all currently available values provided by the models.
+
+- [`345c5f6`](https://github.com/firebase/firebase-js-sdk/commit/345c5f6235492b45e84034f364fd95280bd6e428) [#9458](https://github.com/firebase/firebase-js-sdk/pull/9458) - AI Logic : Feature : Added support for Grounding with Google Maps.
+
+### Patch Changes
+
+- [`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e) [#9883](https://github.com/firebase/firebase-js-sdk/pull/9883) - Updated dependencies.
+
+- Updated dependencies [[`8e384c9`](https://github.com/firebase/firebase-js-sdk/commit/8e384c947de73c7f74346b1c01640f3515a4ef0e)]:
+  - @firebase/app-check-interop-types@0.3.4
+  - @firebase/component@0.7.3
+  - @firebase/logger@0.5.1
+  - @firebase/util@1.15.1
+
 ## 2.11.1
 
 ### Patch Changes

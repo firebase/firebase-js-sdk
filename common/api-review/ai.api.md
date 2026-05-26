@@ -600,6 +600,7 @@ export class GenerativeModel extends AIModel {
     generateContentStream(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentStreamResult>;
     // (undocumented)
     generationConfig: GenerationConfig;
+    initializeDeviceModel(onDownloadProgress?: (progressValue: number) => void): Promise<void>;
     // (undocumented)
     requestOptions?: RequestOptions;
     // (undocumented)
@@ -997,8 +998,9 @@ export type Language = (typeof Language)[keyof typeof Language];
 
 // @public
 export interface LanguageModelCreateCoreOptions {
-    // (undocumented)
     expectedInputs?: LanguageModelExpected[];
+    expectedOutputs?: LanguageModelExpected[];
+    monitor?: (monitor: LanguageModelDownloadMonitor) => void;
     // @deprecated (undocumented)
     temperature?: number;
     // @deprecated (undocumented)
@@ -1011,6 +1013,18 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     initialPrompts?: LanguageModelMessage[];
     // (undocumented)
     signal?: AbortSignal;
+}
+
+// @public
+export interface LanguageModelDownloadMonitor {
+    // (undocumented)
+    addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+        loaded: number;
+    }) => void) => void;
+    // (undocumented)
+    removeEventListener: (eventType: 'downloadprogress', eventListener: (e: {
+        loaded: number;
+    }) => void) => void;
 }
 
 // @public

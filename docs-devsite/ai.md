@@ -114,6 +114,7 @@ The Firebase AI Web SDK.
 |  [InlineDataPart](./ai.inlinedatapart.md#inlinedatapart_interface) | Content part interface if the part represents an image. |
 |  [LanguageModelCreateCoreOptions](./ai.languagemodelcreatecoreoptions.md#languagemodelcreatecoreoptions_interface) | Configures the creation of an on-device language model session. |
 |  [LanguageModelCreateOptions](./ai.languagemodelcreateoptions.md#languagemodelcreateoptions_interface) | Configures the creation of an on-device language model session. |
+|  [LanguageModelDownloadMonitor](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitor_interface) | Interface representing the Chrome Prompt API's native download monitor object. |
 |  [LanguageModelExpected](./ai.languagemodelexpected.md#languagemodelexpected_interface) | Options for the expected inputs for an on-device language model. |
 |  [LanguageModelMessage](./ai.languagemodelmessage.md#languagemodelmessage_interface) | An on-device language model message. |
 |  [LanguageModelMessageContent](./ai.languagemodelmessagecontent.md#languagemodelmessagecontent_interface) | An on-device language model content object. |

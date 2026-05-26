@@ -142,6 +142,8 @@ toc:
     path: /docs/reference/js/ai.languagemodelcreatecoreoptions.md
   - title: LanguageModelCreateOptions
     path: /docs/reference/js/ai.languagemodelcreateoptions.md
+  - title: LanguageModelDownloadMonitor
+    path: /docs/reference/js/ai.languagemodeldownloadmonitor.md
   - title: LanguageModelExpected
     path: /docs/reference/js/ai.languagemodelexpected.md
   - title: LanguageModelMessage
@@ -788,6 +790,8 @@ toc:
     path: /docs/reference/js/messaging_.messaging.md
   - title: NotificationPayload
     path: /docs/reference/js/messaging_.notificationpayload.md
+  - title: RegisterOptions
+    path: /docs/reference/js/messaging_.registeroptions.md
 - title: messaging/sw
   path: /docs/reference/js/messaging_sw.md
   section:
@@ -801,6 +805,8 @@ toc:
     path: /docs/reference/js/messaging_sw.messaging.md
   - title: NotificationPayload
     path: /docs/reference/js/messaging_sw.notificationpayload.md
+  - title: RegisterOptions
+    path: /docs/reference/js/messaging_sw.registeroptions.md
 - title: performance
   path: /docs/reference/js/performance.md
   section:
