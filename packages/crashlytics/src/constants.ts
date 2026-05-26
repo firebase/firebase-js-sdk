@@ -18,6 +18,10 @@
 /** Type constant for Firebase Crashlytics. */
 export const CRASHLYTICS_TYPE = 'crashlytics';
 
+/** The default endpoint for the Firebase Telemetry API. */
+export const DEFAULT_TELEMETRY_ENDPOINT =
+  'https://firebasetelemetry.googleapis.com';
+
 /** Default region for telemetry data. */
 export const DEFAULT_TELEMETRY_REGION = 'global';
 
