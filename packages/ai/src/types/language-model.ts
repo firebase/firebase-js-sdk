@@ -85,7 +85,7 @@ export interface LanguageModelCreateCoreOptions {
 /**
  * Interface representing the Chrome Prompt API's native
  * download monitor object.
- * @beta
+ * @public
  */
 export interface LanguageModelDownloadMonitor {
   addEventListener: (

@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelDownloadMonitor interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 Interface representing the Chrome Prompt API's native download monitor object.
 
 <b>Signature:</b>
@@ -25,13 +22,10 @@ export interface LanguageModelDownloadMonitor
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [addEventListener](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitoraddeventlistener) | (eventType: 'downloadprogress', eventListener: (e: { loaded: number; }) =&gt; void) =&gt; void | <b><i>(Public Preview)</i></b> |
-|  [removeEventListener](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitorremoveeventlistener) | (eventType: 'downloadprogress', eventListener: (e: { loaded: number; }) =&gt; void) =&gt; void | <b><i>(Public Preview)</i></b> |
+|  [addEventListener](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitoraddeventlistener) | (eventType: 'downloadprogress', eventListener: (e: { loaded: number; }) =&gt; void) =&gt; void |  |
+|  [removeEventListener](./ai.languagemodeldownloadmonitor.md#languagemodeldownloadmonitorremoveeventlistener) | (eventType: 'downloadprogress', eventListener: (e: { loaded: number; }) =&gt; void) =&gt; void |  |
 
 ## LanguageModelDownloadMonitor.addEventListener
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -42,9 +36,6 @@ addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
 ```
 
 ## LanguageModelDownloadMonitor.removeEventListener
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
