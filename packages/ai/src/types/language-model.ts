@@ -51,7 +51,7 @@ export enum Availability {
 
 /**
  * Configures the creation of an on-device language model session.
- * @beta
+ * @public
  */
 export interface LanguageModelCreateCoreOptions {
   /**
@@ -85,7 +85,7 @@ export interface LanguageModelCreateCoreOptions {
 /**
  * Interface representing the Chrome Prompt API's native
  * download monitor object.
- * @beta
+ * @public
  */
 export interface LanguageModelDownloadMonitor {
   addEventListener: (
@@ -100,7 +100,7 @@ export interface LanguageModelDownloadMonitor {
 
 /**
  * Configures the creation of an on-device language model session.
- * @beta
+ * @public
  */
 export interface LanguageModelCreateOptions
   extends LanguageModelCreateCoreOptions {
@@ -110,7 +110,7 @@ export interface LanguageModelCreateOptions
 
 /**
  * Options for an on-device language model prompt.
- * @beta
+ * @public
  */
 export interface LanguageModelPromptOptions {
   responseConstraint?: object;
@@ -119,7 +119,7 @@ export interface LanguageModelPromptOptions {
 
 /**
  * Options for the expected inputs for an on-device language model.
- * @beta
+ * @public
  */ export interface LanguageModelExpected {
   type: LanguageModelMessageType;
   languages?: string[];
@@ -127,13 +127,13 @@ export interface LanguageModelPromptOptions {
 
 /**
  * An on-device language model prompt.
- * @beta
+ * @public
  */
 export type LanguageModelPrompt = LanguageModelMessage[];
 
 /**
  * An on-device language model message.
- * @beta
+ * @public
  */
 export interface LanguageModelMessage {
   role: LanguageModelMessageRole;
@@ -142,7 +142,7 @@ export interface LanguageModelMessage {
 
 /**
  * An on-device language model content object.
- * @beta
+ * @public
  */
 export interface LanguageModelMessageContent {
   type: LanguageModelMessageType;
@@ -151,19 +151,19 @@ export interface LanguageModelMessageContent {
 
 /**
  * Allowable roles for on-device language model usage.
- * @beta
+ * @public
  */
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
 /**
  * Allowable types for on-device language model messages.
- * @beta
+ * @public
  */
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
 /**
  * Content formats that can be provided as on-device message content.
- * @beta
+ * @public
  */
 export type LanguageModelMessageContentValue =
   | ImageBitmapSource

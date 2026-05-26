@@ -141,7 +141,6 @@ export class BooleanSchema extends Schema {
 
 // @public
 export class ChatSession extends ChatSessionBase<StartChatParams, GenerateContentRequest, FunctionDeclarationsTool> {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(apiSettings: ApiSettings, model: string, chromeAdapter?: ChromeAdapter | undefined, params?: StartChatParams | undefined, requestOptions?: RequestOptions | undefined);
     // @internal
     _callGenerateContent(formattedRequest: GenerateContentRequest, singleRequestOptions?: RequestOptions): Promise<GenerateContentResult>;
@@ -192,7 +191,7 @@ export abstract class ChatSessionBase<ParamsType extends StartChatParams | Start
     protected _sendPromise: Promise<void>;
 }
 
-// @beta
+// @public
 export interface ChromeAdapter {
     // @internal (undocumented)
     countTokens(request: CountTokensRequest): Promise<Response>;
@@ -310,7 +309,6 @@ export { Date_2 as Date }
 // @public
 export interface EnhancedGenerateContentResponse extends GenerateContentResponse {
     functionCalls: () => FunctionCall[] | undefined;
-    // @beta
     inferenceSource?: InferenceSource;
     inlineDataParts: () => InlineDataPart[] | undefined;
     text: () => string;
@@ -596,7 +594,6 @@ export interface GenerativeContentBlob {
 
 // @public
 export class GenerativeModel extends AIModel {
-    // Warning: (ae-incompatible-release-tags) The symbol "__constructor" is marked as @public, but its signature references "ChromeAdapter" which is marked as @beta
     constructor(ai: AI, modelParams: ModelParams, requestOptions?: RequestOptions, chromeAdapter?: ChromeAdapter | undefined);
     countTokens(request: CountTokensRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<CountTokensResponse>;
     generateContent(request: GenerateContentRequest | string | Array<string | Part>, singleRequestOptions?: SingleRequestOptions): Promise<GenerateContentResult>;
@@ -620,8 +617,6 @@ export class GenerativeModel extends AIModel {
 // @public
 export function getAI(app?: FirebaseApp, options?: AIOptions): AI;
 
-// Warning: (ae-incompatible-release-tags) The symbol "getGenerativeModel" is marked as @public, but its signature references "HybridParams" which is marked as @beta
-//
 // @public
 export function getGenerativeModel(ai: AI, modelParams: ModelParams | HybridParams, requestOptions?: RequestOptions): GenerativeModel;
 
@@ -808,7 +803,7 @@ export const HarmSeverity: {
 // @public
 export type HarmSeverity = (typeof HarmSeverity)[keyof typeof HarmSeverity];
 
-// @beta
+// @public
 export interface HybridParams {
     inCloudParams?: ModelParams;
     mode: InferenceMode;
@@ -946,7 +941,7 @@ export interface ImagenSafetySettings {
     safetyFilterLevel?: ImagenSafetyFilterLevel;
 }
 
-// @beta
+// @public
 export const InferenceMode: {
     readonly PREFER_ON_DEVICE: "prefer_on_device";
     readonly ONLY_ON_DEVICE: "only_on_device";
@@ -954,16 +949,16 @@ export const InferenceMode: {
     readonly PREFER_IN_CLOUD: "prefer_in_cloud";
 };
 
-// @beta
+// @public
 export type InferenceMode = (typeof InferenceMode)[keyof typeof InferenceMode];
 
-// @beta
+// @public
 export const InferenceSource: {
     readonly ON_DEVICE: "on_device";
     readonly IN_CLOUD: "in_cloud";
 };
 
-// @beta
+// @public
 export type InferenceSource = (typeof InferenceSource)[keyof typeof InferenceSource];
 
 // @public
@@ -1001,7 +996,7 @@ export const Language: {
 // @public
 export type Language = (typeof Language)[keyof typeof Language];
 
-// @beta
+// @public
 export interface LanguageModelCreateCoreOptions {
     expectedInputs?: LanguageModelExpected[];
     expectedOutputs?: LanguageModelExpected[];
@@ -1012,7 +1007,7 @@ export interface LanguageModelCreateCoreOptions {
     topK?: number;
 }
 
-// @beta
+// @public
 export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptions {
     // (undocumented)
     initialPrompts?: LanguageModelMessage[];
@@ -1020,7 +1015,7 @@ export interface LanguageModelCreateOptions extends LanguageModelCreateCoreOptio
     signal?: AbortSignal;
 }
 
-// @beta
+// @public
 export interface LanguageModelDownloadMonitor {
     // (undocumented)
     addEventListener: (eventType: 'downloadprogress', eventListener: (e: {
@@ -1032,7 +1027,7 @@ export interface LanguageModelDownloadMonitor {
     }) => void) => void;
 }
 
-// @beta
+// @public
 export interface LanguageModelExpected {
     // (undocumented)
     languages?: string[];
@@ -1040,7 +1035,7 @@ export interface LanguageModelExpected {
     type: LanguageModelMessageType;
 }
 
-// @beta
+// @public
 export interface LanguageModelMessage {
     // (undocumented)
     content: LanguageModelMessageContent[];
@@ -1048,7 +1043,7 @@ export interface LanguageModelMessage {
     role: LanguageModelMessageRole;
 }
 
-// @beta
+// @public
 export interface LanguageModelMessageContent {
     // (undocumented)
     type: LanguageModelMessageType;
@@ -1056,16 +1051,16 @@ export interface LanguageModelMessageContent {
     value: LanguageModelMessageContentValue;
 }
 
-// @beta
+// @public
 export type LanguageModelMessageContentValue = ImageBitmapSource | AudioBuffer | BufferSource | string;
 
-// @beta
+// @public
 export type LanguageModelMessageRole = 'system' | 'user' | 'assistant';
 
-// @beta
+// @public
 export type LanguageModelMessageType = 'text' | 'image' | 'audio';
 
-// @beta
+// @public
 export interface LanguageModelPromptOptions {
     // (undocumented)
     responseConstraint?: object;
@@ -1258,7 +1253,7 @@ export interface ObjectSchemaRequest extends SchemaRequest {
     type: 'object';
 }
 
-// @beta
+// @public
 export interface OnDeviceParams {
     // (undocumented)
     createOptions?: LanguageModelCreateOptions;

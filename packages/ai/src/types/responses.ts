@@ -92,7 +92,7 @@ export interface EnhancedGenerateContentResponse
   /**
    * Indicates whether inference happened on-device or in-cloud.
    *
-   * @beta
+   * @public
    */
   inferenceSource?: InferenceSource;
 }
