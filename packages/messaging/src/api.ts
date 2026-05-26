@@ -20,7 +20,8 @@ import { FirebaseApp, _getProvider, getApp } from '@firebase/app';
 import {
   GetTokenOptions,
   MessagePayload,
-  Messaging
+  Messaging,
+  RegisterOptions
 } from './interfaces/public-types';
 import {
   NextFn,
@@ -35,6 +36,10 @@ import { deleteToken as _deleteToken } from './api/deleteToken';
 import { getToken as _getToken } from './api/getToken';
 import { onBackgroundMessage as _onBackgroundMessage } from './api/onBackgroundMessage';
 import { onMessage as _onMessage } from './api/onMessage';
+import { onRegistered as _onRegistered } from './api/onRegistered';
+import { onUnregistered as _onUnregistered } from './api/onUnregistered';
+import { register as _register } from './api/register';
+import { unregister as _unregister } from './api/unregister';
 import { _setDeliveryMetricsExportedToBigQueryEnabled } from './api/setDeliveryMetricsExportedToBigQueryEnabled';
 
 /**
@@ -104,6 +109,9 @@ export function getMessagingInSw(app: FirebaseApp = getApp()): Messaging {
  *
  * @returns The promise resolves with an FCM registration token.
  *
+ * @deprecated Use {@link register} together with {@link onRegistered} for Firebase
+ * Installation ID-based messaging instead of retrieving an FCM registration token with this API.
+ *
  * @public
  */
 export async function getToken(
@@ -118,9 +126,17 @@ export async function getToken(
  * Deletes the registration token associated with this {@link Messaging} instance and unsubscribes
  * the {@link Messaging} instance from the push subscription.
  *
+ * If there is no legacy registration token but the client has FID-based registration metadata
+ * (from {@link register}), this deletes that registration on the server, clears local metadata, and
+ * invokes {@link onUnregistered} with the removed FID when successful.
+ *
  * @param messaging - The {@link Messaging} instance.
  *
  * @returns The promise resolves when the token has been successfully deleted.
+ *
+ * @deprecated Use {@link onUnregistered} to observe when the client is no longer
+ * registered and update your backend accordingly, instead of explicitly deleting the
+ * registration token with this API.
  *
  * @public
  */
@@ -158,7 +174,7 @@ export function onMessage(
  * @param nextOrObserver - This function, or observer object with `next` defined, is called when a
  * message is received and the app is currently in the background.
  *
- * @returns To stop listening for messages execute this returned function
+ * @returns To stop listening for messages execute this returned function.
  *
  * @public
  */
@@ -168,6 +184,77 @@ export function onBackgroundMessage(
 ): Unsubscribe {
   messaging = getModularInstance(messaging);
   return _onBackgroundMessage(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Registers the app instance with FCM using its Firebase Installation ID (FID). The FID is
+ * delivered via the {@link onRegistered} callback, not as a return value. Call this to establish
+ * an FID-based identity; once {@link onRegistered} provides an FID, instruct your backend to
+ * remove any legacy token previously associated with this instance. The backend send API
+ * supports FID as a target.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param options - Optional. VAPID key and/or service worker registration (same as getToken).
+ * @returns Promise that resolves when registration has been initiated; FID is delivered via onRegistered.
+ *
+ * @public
+ */
+export async function register(
+  messaging: Messaging,
+  options?: RegisterOptions
+): Promise<void> {
+  messaging = getModularInstance(messaging);
+  return _register(messaging as MessagingService, options);
+}
+
+/**
+ * Unregisters the app instance from FCM by deleting its FID-based registration.
+ * On success, triggers {@link onUnregistered} (if registered) with the unregistered FID.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ *
+ * @public
+ */
+export async function unregister(messaging: Messaging): Promise<void> {
+  messaging = getModularInstance(messaging);
+  return _unregister(messaging as MessagingService);
+}
+
+/**
+ * Subscribes to an event that the app instance is registered with FCM via Firebase Installation ID (FID).
+ * Use the FID passed to the callback to upload it to your application server. When you receive an FID
+ * after calling {@link register}, instruct your backend to remove any legacy token for this instance.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called when an FID is registered.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export function onRegistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe {
+  messaging = getModularInstance(messaging);
+  return _onRegistered(messaging as MessagingService, nextOrObserver);
+}
+
+/**
+ * Subscribes to an event that the app instance is unregistered from FCM (FID no longer active).
+ * Use this to notify your backend to remove this FID to prevent 404 errors on send.
+ *
+ * @param messaging - The {@link Messaging} instance.
+ * @param nextOrObserver - A function or observer object called with the unregistered FID.
+ * @returns Unsubscribe function to stop listening.
+ *
+ * @public
+ */
+export function onUnregistered(
+  messaging: Messaging,
+  nextOrObserver: NextFn<string> | Observer<string>
+): Unsubscribe {
+  messaging = getModularInstance(messaging);
+  return _onUnregistered(messaging as MessagingService, nextOrObserver);
 }
 
 /**

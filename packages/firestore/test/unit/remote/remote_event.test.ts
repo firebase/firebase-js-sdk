@@ -41,7 +41,8 @@ import {
   updateMapping,
   version,
   key,
-  forEachNumber
+  forEachNumber,
+  addWatchTargets
 } from '../../util/helpers';
 import { TEST_DATABASE_ID } from '../local/persistence_test_helpers';
 
@@ -120,6 +121,10 @@ describe('RemoteEvent', () => {
       getDatabaseId: () => TEST_DATABASE_ID
     });
 
+    // Put all targets into the 'added' state
+    addWatchTargets(aggregator, targetIds);
+
+    // Move `outstandingResponses` targets into the 'pending' state
     if (options.outstandingResponses) {
       forEachNumber(options.outstandingResponses, (targetId, count) => {
         for (let i = 0; i < count; ++i) {

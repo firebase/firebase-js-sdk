@@ -81,7 +81,7 @@ export { PartialObserver }
 export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
     constructor(_siteKey: string);
     // @internal
-    getToken(): Promise<AppCheckTokenInternal>;
+    getToken(isLimitedUse?: boolean): Promise<AppCheckTokenInternal>;
     // @internal (undocumented)
     initialize(app: FirebaseApp): void;
     // @internal (undocumented)
@@ -92,7 +92,7 @@ export class ReCaptchaEnterpriseProvider implements AppCheckProvider {
 export class ReCaptchaV3Provider implements AppCheckProvider {
     constructor(_siteKey: string);
     // @internal
-    getToken(): Promise<AppCheckTokenInternal>;
+    getToken(isLimitedUse?: boolean): Promise<AppCheckTokenInternal>;
     // @internal (undocumented)
     initialize(app: FirebaseApp): void;
     // @internal (undocumented)

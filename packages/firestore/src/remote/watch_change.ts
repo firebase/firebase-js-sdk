@@ -115,7 +115,12 @@ export class WatchTargetChange {
 }
 
 /** Tracks the internal state of a Watch target. */
-class TargetState {
+export class TargetState {
+  /**
+   * Track the targetId for logging.
+   */
+  constructor(private targetId: RemoteTargetId) {}
+
   /**
    * The number of pending responses (adds or removes) that we are waiting on.
    * We only consider targets active that have no pending responses.
@@ -244,7 +249,7 @@ class TargetState {
       this.pendingResponses >= 0,
       0x0ca9,
       '`pendingResponses` is less than 0. This indicates that the SDK received more target acks from the server than expected. The SDK should not continue to operate.',
-      { pendingResponses: this.pendingResponses }
+      { pendingResponses: this.pendingResponses, targetId: this.targetId }
     );
   }
 
@@ -287,7 +292,29 @@ const LOG_TAG = 'WatchChangeAggregator';
 export class WatchChangeAggregator {
   constructor(private metadataProvider: TargetMetadataProvider) {}
 
-  /** The internal state of all tracked targets. */
+  /**
+   * The internal state of all tracked targets.
+   *
+   * Targets have the following lifecycle of [states] within the WatchChangeAggregator:
+   * [unknown] -> recordPendingTargetRequest(t)
+   *           -> [pending]
+   *           -> handleTargetChange(t, Added)
+   *           -> [added / !pending]
+   *           -> recordPendingTargetRequest(t)
+   *           -> [pending]
+   *           -> handleTargetChange(t, Removed)
+   *           -> [unknown]
+   *
+   * A reset on an [added] target leaves the target in an [added] state.
+   * [added / !pending] -> handleTargetChange(t, Reset)
+   *                    -> [added / !pending]
+   *
+   * [active]: is a substate of [added], where also `remoteStore.listenTargets.has(t) === true`.
+   *           Generally it is expected that when a target is [active / !pending]
+   *           then it is also [active], but the implementation does not guarantee
+   *           this will always be true.
+   *
+   */
   private targetStates = new Map<RemoteTargetId, TargetState>();
 
   /** Keeps track of the documents to update since the last raised snapshot. */
@@ -330,7 +357,18 @@ export class WatchChangeAggregator {
   /** Processes and adds the WatchTargetChange to the current set of changes. */
   handleTargetChange(targetChange: WatchTargetChange): void {
     this.forEachTarget(targetChange, targetId => {
-      const targetState = this.ensureTargetState(targetId);
+      const targetState = this.targetStates.get(targetId);
+
+      // skip unknown target state, this indicates the target change is for
+      // an old target
+      if (!targetState) {
+        logDebug(
+          LOG_TAG,
+          `handleTargetChange received targetChange for untracked target ID (${targetId}) with state (${targetChange.state})`
+        );
+        return;
+      }
+
       switch (targetChange.state) {
         case WatchTargetChangeState.NoChange:
           if (this.isActiveTarget(targetId)) {
@@ -681,7 +719,14 @@ export class WatchChangeAggregator {
     targetId: RemoteTargetId,
     document: MutableDocument
   ): void {
-    if (!this.isActiveTarget(targetId)) {
+    const targetState = this.targetStates.get(targetId);
+
+    // skip unknown or inactive targets
+    if (!targetState || !this.isActiveTarget(targetId)) {
+      logDebug(
+        LOG_TAG,
+        `addDocumentToTarget received document for unknown inactive target (${targetId})`
+      );
       return;
     }
 
@@ -689,7 +734,6 @@ export class WatchChangeAggregator {
       ? ChangeType.Modified
       : ChangeType.Added;
 
-    const targetState = this.ensureTargetState(targetId);
     targetState.addDocumentChange(document.key, changeType);
 
     this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
@@ -723,11 +767,18 @@ export class WatchChangeAggregator {
     key: DocumentKey,
     updatedDocument: MutableDocument | null
   ): void {
-    if (!this.isActiveTarget(targetId)) {
+    const targetState = this.targetStates.get(targetId);
+
+    // skip unknown target state, this indicates the target change is for
+    // an old target
+    if (!targetState || !this.isActiveTarget(targetId)) {
+      logDebug(
+        LOG_TAG,
+        `removeDocumentFromTarget received document for unknown or inactive target (${targetId})`
+      );
       return;
     }
 
-    const targetState = this.ensureTargetState(targetId);
     if (this.targetContainsDocument(targetId, key)) {
       targetState.addDocumentChange(key, ChangeType.Removed);
     } else {
@@ -766,7 +817,13 @@ export class WatchChangeAggregator {
    * target as well as any accumulated changes.
    */
   private getCurrentDocumentCountForTarget(targetId: RemoteTargetId): number {
-    const targetState = this.ensureTargetState(targetId);
+    const targetState = this.targetStates.get(targetId);
+
+    // skip unknown target state
+    if (!targetState) {
+      return 0;
+    }
+
     const targetChange = targetState.toTargetChange();
     return (
       this.metadataProvider.getRemoteKeysForTarget(targetId).size +
@@ -781,17 +838,16 @@ export class WatchChangeAggregator {
    */
   recordPendingTargetRequest(targetId: RemoteTargetId): void {
     // For each request we get we need to record we need a response for it.
-    const targetState = this.ensureTargetState(targetId);
-    targetState.recordPendingTargetRequest();
-  }
-
-  private ensureTargetState(targetId: RemoteTargetId): TargetState {
-    let result = this.targetStates.get(targetId);
-    if (!result) {
-      result = new TargetState();
-      this.targetStates.set(targetId, result);
+    let targetState = this.targetStates.get(targetId);
+    if (!targetState) {
+      logDebug(
+        LOG_TAG,
+        `recordPendingTargetRequest set up tracking for target ID ${targetId}`
+      );
+      targetState = new TargetState(targetId);
+      this.targetStates.set(targetId, targetState);
     }
-    return result;
+    targetState.recordPendingTargetRequest();
   }
 
   private ensureDocumentTargetMapping(
@@ -843,7 +899,7 @@ export class WatchChangeAggregator {
     targetId: RemoteTargetId
   ): TargetData<RemoteTargetId> | null {
     const targetState = this.targetStates.get(targetId);
-    return targetState && targetState.isPending
+    return targetState === undefined || targetState.isPending
       ? null
       : this.metadataProvider.getTargetDataForTarget(targetId);
   }
@@ -858,7 +914,7 @@ export class WatchChangeAggregator {
       !this.targetStates.get(targetId)!.isPending,
       'Should only reset active targets'
     );
-    this.targetStates.set(targetId, new TargetState());
+    this.targetStates.set(targetId, new TargetState(targetId));
 
     // Trigger removal for any documents currently mapped to this target.
     // These removals will be part of the initial snapshot if Watch does not
@@ -868,6 +924,7 @@ export class WatchChangeAggregator {
       this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
     });
   }
+
   /**
    * Returns whether the LocalStore considers the document to be part of the
    * specified target.

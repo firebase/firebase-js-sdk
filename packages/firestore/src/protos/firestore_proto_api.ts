@@ -275,6 +275,8 @@ export declare namespace firestoreV1ApiClientInterfaces {
     appendMissingElements?: ArrayValue;
     removeAllFromArray?: ArrayValue;
     increment?: Value;
+    minimum?: Value;
+    maximum?: Value;
   }
   interface Filter {
     compositeFilter?: CompositeFilter;

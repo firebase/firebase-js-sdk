@@ -749,6 +749,7 @@ function raiseWatchSnapshot(
 
   // Re-establish listens for the targets that have been invalidated by
   // existence filter mismatches.
+  // TODO ideally this would use a new remote target ID
   remoteEvent.targetMismatches.forEach((remoteTargetId, targetPurpose) => {
     const targetData = remoteStoreImpl.listenTargets.get(remoteTargetId);
     if (!targetData) {
