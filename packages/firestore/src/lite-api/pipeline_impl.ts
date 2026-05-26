@@ -146,7 +146,13 @@ export function execute(pipeline: Pipeline): Promise<PipelineSnapshot> {
  * ```
  */
 Firestore.prototype.pipeline = function (): PipelineSource<Pipeline> {
-  return new PipelineSource<Pipeline>(this._databaseId, (stages: Stage[]) => {
-    return new Pipeline(this, stages);
-  });
+  const userDataWriter = new LiteUserDataWriter(this);
+  const userDataReader = newUserDataReader(this);
+  return new PipelineSource<Pipeline>(
+    this._databaseId,
+    userDataReader,
+    (stages: Stage[]) => {
+      return new Pipeline(this, userDataReader, userDataWriter, stages);
+    }
+  );
 };

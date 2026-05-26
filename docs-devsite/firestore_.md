@@ -255,7 +255,7 @@ export declare function getFirestore(app: FirebaseApp): Firestore;
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 
 <b>Returns:</b>
 
@@ -280,7 +280,7 @@ export declare function getFirestore(app: FirebaseApp, databaseId: string): Fire
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) instance that the returned [Firestore](./firestore_.firestore.md#firestore_class) instance is associated with. |
 |  databaseId | string | The name of the database. |
 
 <b>Returns:</b>
@@ -303,7 +303,7 @@ export declare function initializeFirestore(app: FirebaseApp, settings: Firestor
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  app | [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the [Firestore](./firestore_.firestore.md#firestore_class) instance will be associated. |
+|  app | FirebaseApp | The [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) with which the [Firestore](./firestore_.firestore.md#firestore_class) instance will be associated. |
 |  settings | [FirestoreSettings](./firestore_.firestoresettings.md#firestoresettings_interface) | A settings object to configure the [Firestore](./firestore_.firestore.md#firestore_class) instance. |
 |  databaseId | string | The name of the database. |
 
