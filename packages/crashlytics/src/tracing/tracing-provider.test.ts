@@ -144,15 +144,18 @@ describe('OTLPTraceExporter', () => {
 
   afterEach(() => {
     superStub.restore();
+    sinon.restore();
   });
 
-  it('should fetch dynamic attributes from providers before exporting', async () => {
-    const mockSpan = { attributes: {} };
-    const callback = sinon.stub();
+  it('should create an OtlpNetworkExportDelegate with dynamicHeaderProviders', () => {
+    const fetchTransportStub = sinon.stub(fetchTransportModule, 'FetchTransport').returns({} as any);
+    const mockHeaderProvider = { getHeader: sinon.stub() };
+    
+    new OTLPTraceExporter({ url: 'http://localhost' }, [mockHeaderProvider], []);
 
-    await exporter.export([mockSpan as any], callback);
-
-    expect(mockAttrProvider.getAttribute.calledOnce).to.be.true;
+    expect(fetchTransportStub.calledOnce).to.be.true;
+    const args = fetchTransportStub.firstCall.args[0];
+    expect(args.dynamicHeaderProviders).to.deep.equal([mockHeaderProvider]);
   });
 
   it('should inject resolved dynamic attributes into exported spans', async () => {
