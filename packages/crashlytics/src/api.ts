@@ -184,6 +184,33 @@ export function registerGlobalErrorListeners(
     recordError(crashlytics, event.reason);
   };
 
+  try {
+    window.addEventListener('error', errorListener);
+    window.addEventListener('unhandledrejection', unhandledRejectionListener);
+  } catch (error) {
+    console.warn(`Firebase Crashlytics was not initialized:\n`, error);
+  }
+
+  return () => {
+    window.removeEventListener('error', errorListener);
+    window.removeEventListener(
+      'unhandledrejection',
+      unhandledRejectionListener
+    );
+  };
+}
+
+/**
+ * Registers global event listeners for click events.
+ *
+ * @internal
+ */
+export function registerUserInteractionTraceListener(
+  crashlytics: Crashlytics
+): () => void {
+  if (typeof window === 'undefined') {
+    return () => {};
+  }
   const clickListener = (event: MouseEvent): void => {
     const target = event.target;
     if (!target || !(target instanceof Element)) {
@@ -200,19 +227,11 @@ export function registerGlobalErrorListeners(
   };
 
   try {
-    window.addEventListener('error', errorListener);
-    window.addEventListener('unhandledrejection', unhandledRejectionListener);
     window.addEventListener('click', clickListener, { capture: true });
   } catch (error) {
     console.warn(`Firebase Crashlytics was not initialized:\n`, error);
   }
-
   return () => {
-    window.removeEventListener('error', errorListener);
-    window.removeEventListener(
-      'unhandledrejection',
-      unhandledRejectionListener
-    );
     window.removeEventListener('click', clickListener, { capture: true });
   };
 }

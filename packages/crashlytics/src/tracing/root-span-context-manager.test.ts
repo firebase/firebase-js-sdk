@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { RootSpanContextManager } from './root-span-context-manager';
 import { Span, Tracer, trace } from '@opentelemetry/api';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 
 const MOCK_TRACE_ID = 'trace-1';
 
@@ -28,11 +27,12 @@ describe('RootSpanContextManager', () => {
   let sandbox: sinon.SinonSandbox;
   let mockMutationObserver: any;
   let mutationObserverCallback: any;
+  let requestAnimationFrameCallback: any;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
     clock = sandbox.useFakeTimers({
-      toFake: ['setTimeout', 'clearTimeout', 'Date', 'requestAnimationFrame']
+      toFake: ['setTimeout', 'clearTimeout', 'Date']
     });
 
     mockMutationObserver = {
@@ -45,6 +45,13 @@ describe('RootSpanContextManager', () => {
       ) => {
         mutationObserverCallback = callback;
         return mockMutationObserver;
+      }) as any);
+
+      sandbox.stub(window, 'requestAnimationFrame').callsFake(((
+        callback: any
+      ) => {
+        requestAnimationFrameCallback = callback;
+        return 1;
       }) as any);
     }
   });
@@ -60,9 +67,12 @@ describe('RootSpanContextManager', () => {
   beforeEach(() => {
     mockTracer = {
       startSpan: sandbox.stub().callsFake((spanName: string) => {
+        // if the span name is "span-3", sets the trace id to "trace-3"
+        const indexMatch = spanName.match(/\d+$/);
+        const index = indexMatch ? indexMatch[0] : '1';
         mockSpan = {
           end: sandbox.stub(),
-          spanContext: () => ({ traceId: MOCK_TRACE_ID, spanId: spanName })
+          spanContext: () => ({ traceId: `trace-${index}`, spanId: spanName })
         };
         return mockSpan;
       })
@@ -134,73 +144,138 @@ describe('RootSpanContextManager', () => {
     it('should backdate end time to last active time', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
+      rootSpan.recordNetworkActivityStart();
       clock.tick(100);
-      const activityTimestamp = clock.Date.now();
-      rootSpan.recordActivity();
+      rootSpan.recordNetworkActivityEnd(100);
 
       clock.tick(150); // let quiescence complete
 
-      expect(mockSpan.end.calledWith(activityTimestamp)).to.be.true;
+      expect(mockSpan.end.calledWith(100)).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;
     });
 
     it('should stay open until network activity ends', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
-      const networkSpan = {
-        spanContext: () => ({ traceId: MOCK_TRACE_ID }),
-        endTime: sandbox.stub()
-      };
 
-      rootSpan.recordNetworkActivityStart(networkSpan as unknown as Span);
+      rootSpan.recordNetworkActivityStart();
       clock.tick(150); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.false;
 
-      rootSpan.recordNetworkActivityEnd(networkSpan as unknown as ReadableSpan);
+      rootSpan.recordNetworkActivityEnd();
       clock.tick(150); // let quiescence complete
 
       expect(mockSpan.end.called).to.be.true;
       expect(manager.getActiveRootSpan()).to.be.undefined;
     });
 
-    it('should ignore network activity from an unrelated trace', () => {
-      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
-      const unrelatedNetworkSpan = {
-        spanContext: () => ({ traceId: 'unrelated-trace' })
-      } as unknown as Span;
-
-      rootSpan.recordNetworkActivityStart(unrelatedNetworkSpan);
-      clock.tick(150); // let quiescence complete
-
-      expect(mockSpan.end.called).to.be.true;
-      expect(manager.getActiveRootSpan()).to.be.undefined;
-    });
-
-    it('should reset timer on DOM mutation', () => {
+    it('should reset timer and set last active timestamp on DOM mutation', () => {
       if (typeof document === 'undefined') {
         return;
       }
       manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
       clock.tick(100);
-      mutationObserverCallback(); // trigger mutation observer
-
-      clock.tick(100); // now 200ms
+      mutationObserverCallback();
+      clock.tick(100); // T = 200
 
       expect(mockSpan.end.called).to.be.false;
+
+      clock.tick(50); // let quiescence complete
+
+      expect(mockSpan.end.calledWith(100)).to.be.true;
+    });
+
+    it('should reset timer and set last active timestamp on browser paint', () => {
+      if (typeof document === 'undefined') {
+        return;
+      }
+      manager.startRootSpan(mockTracer as Tracer, 'span-1');
+
+      clock.tick(100);
+      mutationObserverCallback();
+
+      clock.tick(5); // T = 105
+      requestAnimationFrameCallback();
+      clock.tick(100); // T = 205
+
+      expect(mockSpan.end.called).to.be.false;
+
+      clock.tick(50); // let quiescence complete
+
+      expect(mockSpan.end.calledWith(105)).to.be.true;
     });
 
     it('should not update lastActiveTimeMs if recorded activity timestamp is older', () => {
       const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
 
+      rootSpan.recordNetworkActivityStart();
+      rootSpan.recordNetworkActivityStart();
       clock.tick(100);
-      const originalActiveTime = clock.Date.now(); // 100ms
-      rootSpan.recordActivity(originalActiveTime);
-      rootSpan.recordActivity(50); // record activity in the past
+      rootSpan.recordNetworkActivityEnd(100);
+      rootSpan.recordNetworkActivityEnd(50);
 
       clock.tick(150); // let quiescence complete
 
-      expect(mockSpan.end.calledWith(originalActiveTime)).to.be.true;
+      expect(mockSpan.end.calledWith(100)).to.be.true;
+    });
+
+    it('should capture mutation events after 150ms if the network request ended recently', () => {
+      if (typeof document === 'undefined') {
+        return;
+      }
+      const rootSpan = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+
+      rootSpan.recordNetworkActivityStart();
+      clock.tick(145);
+      rootSpan.recordNetworkActivityEnd();
+
+      clock.tick(10); // advance clock to T = 155
+      mutationObserverCallback();
+
+      clock.tick(150); // let quiescence complete
+
+      expect(mockSpan.end.calledWith(155)).to.be.true;
+    });
+  });
+
+  describe('interrupted root span', () => {
+    it('should immediately end if there are no active network requests', () => {
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      rootSpan1.recordNetworkActivityStart();
+      clock.tick(100);
+      rootSpan1.recordNetworkActivityEnd(100);
+
+      manager.startRootSpan(mockTracer as Tracer, 'span-2'); // interruption
+
+      expect((rootSpan1.span as any).end.calledWith(100)).to.be.true;
+      expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be
+        .undefined;
+    });
+
+    it('should ignore UI activity after being interrupted', () => {
+      const rootSpan1 = manager.startRootSpan(mockTracer as Tracer, 'span-1');
+      rootSpan1.recordNetworkActivityStart();
+
+      manager.startRootSpan(mockTracer as Tracer, 'span-2'); // interrupt
+
+      // Interrupted root span should still be open and in context, given network requests are open
+      expect((rootSpan1.span as any).end.called).to.be.false;
+      expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.equal(
+        rootSpan1
+      );
+
+      clock.tick(50);
+      rootSpan1.recordNetworkActivityEnd(50);
+      clock.tick(100);
+      if (mutationObserverCallback) {
+        // trigger DOM update
+        mutationObserverCallback();
+      }
+
+      expect((rootSpan1.span as any).end.calledWith(50)).to.be.true;
+      expect(manager.getRootSpanByTraceId(rootSpan1.getTraceId())).to.be
+        .undefined;
     });
   });
 });

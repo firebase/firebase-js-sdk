@@ -22,6 +22,7 @@ import {
   Span
 } from '@opentelemetry/sdk-trace-base';
 import { getAppVersion, getSessionId } from '../helpers';
+import { hrTimeToMilliseconds } from '@opentelemetry/core';
 import {
   COMMON_SPAN_ATTRIBUTE_KEYS,
   CRASHLYTICS_ATTRIBUTE_KEYS,
@@ -54,11 +55,14 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
-    const scopeName = span.instrumentationScope?.name;
-    if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-      this.rootSpanContextManager
-        .getActiveRootSpan()
-        ?.recordNetworkActivityStart(span);
+    const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
+      span.spanContext().traceId
+    );
+    if (rootSpan) {
+      const scopeName = span.instrumentationScope?.name;
+      if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
+        rootSpan.recordNetworkActivityStart();
+      }
     }
     const activeAppScreenId =
       this.rootSpanContextManager.getActiveAppScreenId();
@@ -87,11 +91,14 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onEnd(span: ReadableSpan): void {
-    const scopeName = span.instrumentationScope?.name;
-    if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-      this.rootSpanContextManager
-        .getActiveRootSpan()
-        ?.recordNetworkActivityEnd(span);
+    const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
+      span.spanContext().traceId
+    );
+    if (rootSpan) {
+      const scopeName = span.instrumentationScope?.name;
+      if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
+        rootSpan.recordNetworkActivityEnd(hrTimeToMilliseconds(span.endTime));
+      }
     }
   }
 
