@@ -95,6 +95,18 @@
       },
       "default": "./auth/web-extension/dist/esm/index.esm.js"
     },
+    "./crashlytics": {
+      "types": "./crashlytics/dist/crashlytics/index.d.ts",
+      "node": {
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/index.mjs"
+      },
+      "browser": {
+        "require": "./crashlytics/dist/index.cjs.js",
+        "import": "./crashlytics/dist/esm/index.esm.js"
+      },
+      "default": "./crashlytics/dist/esm/index.esm.js"
+    },
     "./database": {
       "types": "./database/dist/database/index.d.ts",
       "node": {
