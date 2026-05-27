@@ -442,7 +442,7 @@ export class RealtimeHandler {
     for (const rollout of rollouts) {
       const rolloutId = rollout.rolloutId;
       const variantId = rollout.variantId;
-      const affectedParameterKeys = rollout.affectedParameterKeys;
+      const affectedParameterKeys = rollout.affectedParameterKeys || [];
       for (const parameterKey of affectedParameterKeys) {
         if (!rolloutMetadataMap.has(parameterKey)) {
           rolloutMetadataMap.set(parameterKey, new Map<string, string>());
