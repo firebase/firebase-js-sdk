@@ -50,6 +50,15 @@ import {
   OnResultSubscription
 } from './subscribe';
 
+import { PersistentCacheProvider } from '../../cache/IndexedDbCacheProvider';
+import { InMemoryCacheProvider } from '../../cache/InMemoryCacheProvider';
+import {
+  MultiTabCoordinator,
+  ServerRequestMessage,
+  ServerResponseMessage,
+  CacheUpdateMessage
+} from '../MultiTabCoordinator';
+
 export function getRefSerializer<Data, Variables>(
   queryRef: QueryRef<Data, Variables>,
   data: Data,
@@ -73,7 +82,41 @@ export function getRefSerializer<Data, Variables>(
   };
 }
 
+/**
+ * QueryManager handles execution, caching, real-time synchronization, and concurrent multi-tab persistence routing.
+ */
 export class QueryManager {
+  private callbacks = new Map<
+    string,
+    Array<DataConnectSubscription<unknown, unknown>>
+  >();
+  
+  /**
+   * Map of serialized query keys to most recent Query Result. Used as a simple fallback cache
+   * for subscriptions if caching is not enabled.
+   */
+  private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
+  
+  private queue: Array<Promise<unknown>> = [];
+
+  // Persistent Coordinator fields
+  private coordinator: MultiTabCoordinator | null = null;
+  private currentProvider: any = null;
+  private pendingIpcRequests = new Map<
+    string,
+    {
+      queryRef: QueryRef<any, any>;
+      resolve: (res: any) => void;
+      reject: (err: any) => void;
+    }
+  >();
+
+  constructor(
+    private transport: DataConnectTransportInterface,
+    private dc: DataConnect,
+    private cache?: DataConnectCache
+  ) {}
+
   async preferCacheResults<Data, Variables>(
     queryRef: QueryRef<Data, Variables>,
     allowStale = false
@@ -89,21 +132,7 @@ export class QueryManager {
     }
     return this.fetchServerResults(queryRef);
   }
-  private callbacks = new Map<
-    string,
-    Array<DataConnectSubscription<unknown, unknown>>
-  >();
-  /**
-   * Map of serialized query keys to most recent Query Result. Used as a simple fallback cache
-   * for subsciptions if caching is not enabled.
-   */
-  private subscriptionCache = new Map<string, QueryResult<unknown, unknown>>();
-  constructor(
-    private transport: DataConnectTransportInterface,
-    private dc: DataConnect,
-    private cache?: DataConnectCache
-  ) {}
-  private queue: Array<Promise<unknown>> = [];
+
   async waitForQueuedWrites(): Promise<void> {
     for (const promise of this.queue) {
       await promise;
@@ -150,6 +179,159 @@ export class QueryManager {
     }
   }
 
+  /**
+   * Resolves or creates the MultiTabCoordinator on demand to align with Auth namespacing.
+   */
+  private getCoordinator(): MultiTabCoordinator | null {
+    if (!this.cache) {
+      return null;
+    }
+    const provider = this.cache.getProvider();
+    if (!provider || !('startWriteSession' in provider)) {
+      if (this.coordinator) {
+        this.coordinator.close();
+        this.coordinator = null;
+      }
+      this.currentProvider = null;
+      return null;
+    }
+    if (provider !== this.currentProvider) {
+      if (this.coordinator) {
+        this.coordinator.close();
+      }
+      this.currentProvider = provider;
+      this.coordinator = new MultiTabCoordinator(
+        (provider as any).dbName,
+        provider as any,
+        (isLeader) => this.handleLeaderChange(isLeader),
+        (msg) => this.handleServerRequest(msg),
+        (msg) => this.handleServerResponse(msg),
+        (msg) => this.handleCacheUpdate(msg)
+      );
+      this.coordinator.init();
+    }
+    return this.coordinator;
+  }
+
+  private handleLeaderChange(isLeader: boolean): void {
+    if (isLeader) {
+      // Promote to Leader: clean up tracked pending IPCs and execute queries natively
+      const pending = Array.from(this.pendingIpcRequests.entries());
+      this.pendingIpcRequests.clear();
+      for (const [_, req] of pending) {
+        this.fetchServerResults(req.queryRef).then(req.resolve, req.reject);
+      }
+    } else {
+      // Re-send unfulfilled queries and active subscriptions to the new Leader
+      const pending = Array.from(this.pendingIpcRequests.entries());
+      const coordinator = this.getCoordinator();
+      if (coordinator) {
+        for (const [requestID, req] of pending) {
+          coordinator.broadcastMessage({
+            type: 'Server Request',
+            requestID,
+            requestType: 'execute',
+            queryRef: { name: req.queryRef.name, variables: req.queryRef.variables },
+            followerId: coordinator.myClientId
+          });
+        }
+
+        // Re-establish active passive subscriptions on the new Leader
+        for (const [key, callbacks] of this.callbacks.entries()) {
+          if (callbacks.length > 0) {
+            const { name, variables } = decoderImpl(key) as any;
+            coordinator.broadcastMessage({
+              type: 'Server Request',
+              requestID: Math.random().toString(),
+              requestType: 'subscribe',
+              queryRef: { name, variables, serializedKey: key },
+              followerId: coordinator.myClientId
+            });
+          }
+        }
+      }
+    }
+  }
+
+  private async handleServerRequest(msg: ServerRequestMessage): Promise<void> {
+    if (msg.requestType === 'execute') {
+      const { name, variables } = msg.queryRef;
+      const queryRef: QueryRef<any, any> = {
+        dataConnect: this.dc,
+        refType: QUERY_STR,
+        name,
+        variables
+      };
+      this.fetchServerResults(queryRef).then(
+        (result) => {
+          const coordinator = this.getCoordinator();
+          if (coordinator && coordinator.isLeader) {
+            coordinator.broadcastMessage({
+              type: 'Server Response',
+              requestID: msg.requestID,
+              queryRef: msg.queryRef,
+              leaderId: coordinator.myClientId,
+              result: result
+            });
+          }
+        },
+        (error) => {
+          const coordinator = this.getCoordinator();
+          if (coordinator && coordinator.isLeader) {
+            coordinator.broadcastMessage({
+              type: 'Server Response',
+              requestID: msg.requestID,
+              queryRef: msg.queryRef,
+              leaderId: coordinator.myClientId,
+              error: error
+            });
+          }
+        }
+      );
+    } else if (msg.requestType === 'subscribe') {
+      const { name, variables, serializedKey } = msg.queryRef;
+      const queryRef: QueryRef<any, any> = {
+        dataConnect: this.dc,
+        refType: QUERY_STR,
+        name,
+        variables
+      };
+      if (!this.callbacks.has(serializedKey)) {
+        this.callbacks.set(serializedKey, []);
+        this.serverNetworkSubscribe(queryRef);
+      }
+    } else if (msg.requestType === 'unsubscribe') {
+      const { serializedKey } = msg.queryRef;
+      const { name, variables } = decoderImpl(serializedKey) as any;
+      const queryRef: QueryRef<any, any> = {
+        dataConnect: this.dc,
+        refType: QUERY_STR,
+        name,
+        variables
+      };
+      if (this.callbacks.has(serializedKey) && this.callbacks.get(serializedKey)!.length === 0) {
+        this.callbacks.delete(serializedKey);
+        this.serverNetworkUnsubscribe(queryRef);
+      }
+    }
+  }
+
+  private handleServerResponse(msg: ServerResponseMessage): void {
+    const req = this.pendingIpcRequests.get(msg.requestID);
+    if (req) {
+      this.pendingIpcRequests.delete(msg.requestID);
+      if (msg.error) {
+        req.reject(msg.error);
+      } else {
+        req.resolve(msg.result);
+      }
+    }
+  }
+
+  private async handleCacheUpdate(msg: CacheUpdateMessage): Promise<void> {
+    await this.publishCacheResultsToSubscribers(msg.updatedKeys, msg.fetchTime.toString());
+  }
+
   addSubscription<Data, Variables>(
     queryRef: QueryRef<Data, Variables>,
     onResultCallback: OnResultSubscription<Data, Variables>,
@@ -173,11 +355,23 @@ export class QueryManager {
 
         if (newList.length === 0) {
           this.callbacks.delete(key);
-          this.transport.invokeUnsubscribe(queryRef.name, queryRef.variables);
+          const coordinator = this.getCoordinator();
+          if (coordinator && !coordinator.isLeader) {
+            coordinator.broadcastMessage({
+              type: 'Server Request',
+              requestID: Math.random().toString(),
+              requestType: 'unsubscribe',
+              queryRef: { name: queryRef.name, variables: queryRef.variables, serializedKey: key },
+              followerId: coordinator.myClientId
+            });
+          } else {
+            this.serverNetworkUnsubscribe(queryRef);
+          }
         }
         onCompleteCallback?.();
       }
     };
+    
     const subscription: DataConnectSubscription<Data, Variables> = {
       userCallback: onResultCallback,
       errCallback: onErrorCallback,
@@ -201,59 +395,153 @@ export class QueryManager {
         subscription as DataConnectSubscription<unknown, unknown>
       ]);
 
-      // only invoke subscription if we don't already have an active subscription
-      this.transport.invokeSubscribe<Data, Variables>(
-        this.makeSubscribeObserver(queryRef),
-        queryRef.name,
-        queryRef.variables
-      );
+      const coordinator = this.getCoordinator();
+      if (coordinator && !coordinator.isLeader) {
+        coordinator.broadcastMessage({
+          type: 'Server Request',
+          requestID: Math.random().toString(),
+          requestType: 'subscribe',
+          queryRef: { name: queryRef.name, variables: queryRef.variables, serializedKey: key },
+          followerId: coordinator.myClientId
+        });
+      } else {
+        this.serverNetworkSubscribe(queryRef);
+      }
     }
 
     return unsubscribe;
   }
 
-  async fetchServerResults<Data, Variables>(
+  /**
+   * Executes a raw server network query call.
+   */
+  private async serverNetworkCall<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
   ): Promise<QueryResult<Data, Variables>> {
     await this.waitForQueuedWrites();
+    const result = await this.transport.invokeQuery<Data, Variables>(
+      queryRef.name,
+      queryRef.variables
+    );
+    const fetchTime = Date.now().toString();
+    const originalExtensions = result.extensions;
+    return {
+      ...result,
+      ref: queryRef,
+      source: SOURCE_SERVER,
+      fetchTime,
+      data: result.data,
+      extensions: getDataConnectExtensionsWithoutMaxAge(originalExtensions),
+      toJSON: getRefSerializer(
+        queryRef,
+        result.data,
+        SOURCE_SERVER,
+        fetchTime
+      ),
+      _originalExtensions: originalExtensions
+    } as any;
+  }
+
+  /**
+   * Writes result values directly to the cache.
+   */
+  private async writeToCache<Data, Variables>(
+    key: string,
+    queryResult: QueryResult<Data, Variables>,
+    extensions?: DataConnectExtensionWithMaxAge[]
+  ): Promise<string[]> {
+    return this.updateCache(queryResult, extensions);
+  }
+
+  /**
+   * Propagates results to local callback structures and fallback subscription caches.
+   */
+  private async updateLocalFromCallbacks(
+    key: string,
+    queryResult: QueryResult<unknown, unknown>,
+    updatedKeys: string[],
+    fetchTime: string
+  ): Promise<void> {
+    this.publishDataToSubscribers(key, queryResult);
+    if (this.cache) {
+      await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
+    } else {
+      this.subscriptionCache.set(key, queryResult);
+    }
+  }
+
+  async fetchServerResults<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<QueryResult<Data, Variables>> {
     const key = encoderImpl({
       name: queryRef.name,
       variables: queryRef.variables,
       refType: QUERY_STR
     });
+
     try {
-      const result = await this.transport.invokeQuery<Data, Variables>(
-        queryRef.name,
-        queryRef.variables
-      );
-      const fetchTime = Date.now().toString();
-      const originalExtensions = result.extensions;
-      const queryResult: QueryResult<Data, Variables> = {
-        ...result,
-        ref: queryRef,
-        source: SOURCE_SERVER,
-        fetchTime,
-        data: result.data,
-        extensions: getDataConnectExtensionsWithoutMaxAge(originalExtensions),
-        toJSON: getRefSerializer(
-          queryRef,
-          result.data,
-          SOURCE_SERVER,
-          fetchTime
-        )
-      };
-      const updatedKeys = await this.updateCache(
+      const coordinator = this.getCoordinator();
+      if (coordinator && !coordinator.isLeader) {
+        // Route over BroadcastChannel as a passive Follower
+        const requestID = Math.random().toString(36).substring(2, 15);
+        return new Promise<QueryResult<Data, Variables>>((resolve, reject) => {
+          this.pendingIpcRequests.set(requestID, { queryRef, resolve, reject });
+          coordinator.broadcastMessage({
+            type: 'Server Request',
+            requestID,
+            requestType: 'execute',
+            queryRef: { name: queryRef.name, variables: queryRef.variables },
+            followerId: coordinator.myClientId
+          });
+        });
+      }
+
+      const queryResult = await this.serverNetworkCall(queryRef);
+      const originalExtensions = (queryResult as any)._originalExtensions;
+
+      const updatedKeys = await this.writeToCache(
+        key,
         queryResult,
         originalExtensions?.dataConnect
       );
-      this.publishDataToSubscribers(key, queryResult);
-      if (this.cache) {
-        await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
-      } else {
-        this.subscriptionCache.set(key, queryResult);
+
+      await this.updateLocalFromCallbacks(
+        key,
+        queryResult,
+        updatedKeys,
+        queryResult.fetchTime
+      );
+
+      if (coordinator && coordinator.isLeader) {
+        coordinator.broadcastMessage({
+          type: 'Cache Update',
+          leaderId: coordinator.myClientId,
+          updatedKeys,
+          fetchTime: Number(queryResult.fetchTime)
+        });
       }
+
       return queryResult;
-    } catch (e) {
+    } catch (e: any) {
+      // Fallback gracefully to InMemoryCacheProvider on Quota, incognito restrictions or lease revocations
+      if (
+        e &&
+        (e.name === 'QuotaExceededError' ||
+          e.name === 'SecurityError' ||
+          e.message?.includes('revoked') ||
+          e.message?.includes('Leadership'))
+      ) {
+        const coordinator = this.getCoordinator();
+        if (coordinator) {
+          coordinator.demote();
+        }
+        if (this.cache) {
+          (this.cache as any).cacheProvider = new InMemoryCacheProvider(
+            Math.random().toString()
+          );
+        }
+        return this.fetchServerResults(queryRef);
+      }
       this.publishErrorToSubscribers(key, e);
       throw e;
     }
@@ -346,6 +634,7 @@ export class QueryManager {
     (await this.cache!.getResultTree(key))!.updateAccessed();
     return result;
   }
+
   async getFromSubscriberCache<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
   ): Promise<QueryResult<Data, Variables> | undefined> {
@@ -381,6 +670,7 @@ export class QueryManager {
       callback.userCallback(queryResult);
     });
   }
+
   async publishCacheResultsToSubscribers(
     impactedQueries: string[],
     fetchTime: string
@@ -415,14 +705,29 @@ export class QueryManager {
       });
     }
   }
+
   enableEmulator(host: string, port: number): void {
     this.transport.useEmulator(host, port);
   }
 
+  private serverNetworkSubscribe<Data, Variables>(
+    queryRef: QueryRef<Data, Variables>
+  ): void {
+    this.transport.invokeSubscribe<Data, Variables>(
+      this.makeSubscribeObserver(queryRef),
+      queryRef.name,
+      queryRef.variables
+    );
+  }
+
+  private serverNetworkUnsubscribe(
+    queryRef: QueryRef<unknown, unknown>
+  ): void {
+    this.transport.invokeUnsubscribe(queryRef.name, queryRef.variables);
+  }
+
   /**
-   * Create a new {@link SubscribeObserver} for the given QueryRef. This will be passed to
-   * {@link DataConnectTransportInterface.invokeSubscribe | invokeSubscribe()} to notify the query
-   * layer of data update notifications or if the stream disconnected.
+   * Create a new {@link SubscribeObserver} for the given QueryRef.
    */
   private makeSubscribeObserver<Data, Variables>(
     queryRef: QueryRef<Data, Variables>
@@ -446,14 +751,13 @@ export class QueryManager {
   }
 
   /**
-   * Handle a data update notification from the stream. Notify subscribers of results/errors, and
-   * update the cache.
+   * Parses updates from stream network notifications.
    */
-  private async handleStreamNotification<Data, Variables>(
+  private parseStreamResponse<Data, Variables>(
     key: string,
     response: DataConnectResponse<Data>,
     queryRef: QueryRef<Data, Variables>
-  ): Promise<void> {
+  ): QueryResult<Data, Variables> | null {
     if (response.errors && response.errors.length > 0) {
       const stringified = JSON.stringify(
         response.errors.map(e => {
@@ -476,11 +780,11 @@ export class QueryManager {
         failureResponse
       );
       this.publishErrorToSubscribers(key, error);
-      return;
+      return null;
     }
 
     const fetchTime = Date.now().toString();
-    const queryResult: QueryResult<Data, Variables> = {
+    return {
       ref: queryRef,
       source: SOURCE_SERVER,
       fetchTime,
@@ -491,21 +795,47 @@ export class QueryManager {
         response.data,
         SOURCE_SERVER,
         fetchTime
-      )
-    };
-    const updatedKeys = await this.updateCache(
-      queryResult,
-      response.extensions?.dataConnect
-    );
-    this.publishDataToSubscribers(key, queryResult);
-    if (this.cache) {
-      await this.publishCacheResultsToSubscribers(updatedKeys, fetchTime);
-    }
+      ),
+      _originalExtensions: response.extensions
+    } as any;
   }
 
   /**
-   * Handle a disconnect from the stream. Unsubscribe all callbacks for the given key.
+   * Handles incoming updates from background socket streams.
    */
+  private async handleStreamNotification<Data, Variables>(
+    key: string,
+    response: DataConnectResponse<Data>,
+    queryRef: QueryRef<Data, Variables>
+  ): Promise<void> {
+    const queryResult = this.parseStreamResponse(key, response, queryRef);
+    if (!queryResult) {
+      return;
+    }
+    const originalExtensions = (queryResult as any)._originalExtensions;
+    const updatedKeys = await this.writeToCache(
+      key,
+      queryResult,
+      originalExtensions?.dataConnect
+    );
+    await this.updateLocalFromCallbacks(
+      key,
+      queryResult,
+      updatedKeys,
+      queryResult.fetchTime
+    );
+
+    const coordinator = this.getCoordinator();
+    if (coordinator && coordinator.isLeader) {
+      coordinator.broadcastMessage({
+        type: 'Cache Update',
+        leaderId: coordinator.myClientId,
+        updatedKeys,
+        fetchTime: Number(queryResult.fetchTime)
+      });
+    }
+  }
+
   private handleStreamDisconnect(
     key: string,
     code: string,
@@ -542,9 +872,13 @@ export function getMaxAgeFromExtensions(
     }
   }
 }
+
 function getDataConnectExtensionsWithoutMaxAge(
-  extensions: ExtensionsWithMaxAge
+  extensions: ExtensionsWithMaxAge | undefined
 ): Extensions | undefined {
+  if (!extensions) {
+    return;
+  }
   return {
     dataConnect: extensions.dataConnect?.filter(
       extension => 'entityId' in extension || 'entityIds' in extension

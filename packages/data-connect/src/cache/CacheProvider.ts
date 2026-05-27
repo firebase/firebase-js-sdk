@@ -24,4 +24,5 @@ export interface InternalCacheProvider {
   getResultTree(queryId: string): Promise<ResultTree | undefined>;
   setResultTree(queryId: string, resultTree: ResultTree): Promise<void>;
   close(): void;
+  startWriteSession?(entityIds: Record<string, unknown>): Promise<void>;
 }

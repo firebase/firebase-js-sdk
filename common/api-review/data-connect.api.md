@@ -321,6 +321,7 @@ export const SOURCE_SERVER = "SERVER";
 // @public (undocumented)
 export const StorageType: {
     readonly MEMORY: "MEMORY";
+    readonly INDEXEDDB: "INDEXEDDB";
 };
 
 // @public (undocumented)

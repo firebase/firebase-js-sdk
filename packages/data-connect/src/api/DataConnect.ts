@@ -26,7 +26,7 @@ import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { isCloudWorkstation, pingServer } from '@firebase/util';
 
-import { DataConnectCache, MemoryStub } from '../cache/Cache';
+import { DataConnectCache, MemoryStub, PersistentStub } from '../cache/Cache';
 import { InternalCacheProvider } from '../cache/CacheProvider';
 import { AppCheckTokenProvider } from '../core/AppCheckTokenProvider';
 import { Code, DataConnectError } from '../core/error';
@@ -411,7 +411,8 @@ export function terminate(dataConnect: DataConnect): Promise<void> {
   // TODO(mtewani): Stop pending tasks
 }
 export const StorageType = {
-  MEMORY: 'MEMORY'
+  MEMORY: 'MEMORY',
+  PERSISTENT: 'PERSISTENT'
 } as const;
 
 export type StorageType = (typeof StorageType)[keyof typeof StorageType];
@@ -431,3 +432,8 @@ export interface CacheProvider<T extends StorageType> {
 export function makeMemoryCacheProvider(): CacheProvider<'MEMORY'> {
   return new MemoryStub();
 }
+
+export function makePersistentCacheProvider(): CacheProvider<'PERSISTENT'> {
+  return new PersistentStub();
+}
+

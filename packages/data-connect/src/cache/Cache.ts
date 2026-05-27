@@ -26,6 +26,7 @@ import { Code, DataConnectError } from '../core/error';
 import { type AuthTokenProvider } from '../core/FirebaseAuthProvider';
 
 import { InternalCacheProvider } from './CacheProvider';
+import { PersistentCacheProvider } from './IndexedDbCacheProvider';
 import { InMemoryCacheProvider } from './InMemoryCacheProvider';
 import { ResultTree } from './ResultTree';
 import { ResultTreeProcessor } from './ResultTreeProcessor';
@@ -71,17 +72,24 @@ export class DataConnectCache {
   }
 
   async getIdentifier(uid: string | null): Promise<string> {
-    const identifier = `${
-      'memory' // TODO: replace this with indexeddb when persistence is available.
-    }-${this.projectId}-${this.connectorConfig.service}-${
-      this.connectorConfig.connector
-    }-${this.connectorConfig.location}-${uid}-${this.host}`;
-    const sha256 = await generateSHA256Hash(identifier);
-    return sha256;
+    if (this.cacheSettings.cacheProvider.type === 'MEMORY') {
+      const identifier = `memory-${this.projectId}-${this.connectorConfig.service}-${
+        this.connectorConfig.connector
+      }-${this.connectorConfig.location}-${uid}-${this.host}`;
+      const sha256 = await generateSHA256Hash(identifier);
+      return sha256;
+    } else {
+      const authScope = uid ? uid : 'anonymous';
+      return `fdc_cache_${this.projectId}_${authScope}`;
+    }
   }
 
   initializeNewProviders(identifier: string): InternalCacheProvider {
     return this.cacheSettings.cacheProvider.initialize(identifier);
+  }
+
+  getProvider(): InternalCacheProvider | null {
+    return this.cacheProvider;
   }
 
   async containsResultTree(queryId: string): Promise<boolean> {
@@ -114,6 +122,9 @@ export class DataConnectCache {
     await this.initialize();
     const processor = new ResultTreeProcessor();
     const cacheProvider = this.cacheProvider;
+    if (cacheProvider && cacheProvider.startWriteSession) {
+      await cacheProvider.startWriteSession(entityIds);
+    }
     const { entityNode: stubDataObject, impacted } =
       await processor.dehydrateResults(
         serverValues,
@@ -142,5 +153,15 @@ export class MemoryStub implements CacheProvider<'MEMORY'> {
    */
   initialize(cacheId: string): InMemoryCacheProvider {
     return new InMemoryCacheProvider(cacheId);
+  }
+}
+
+export class PersistentStub implements CacheProvider<'PERSISTENT'> {
+  type: 'PERSISTENT' = 'PERSISTENT';
+  /**
+   * @internal
+   */
+  initialize(cacheId: string): PersistentCacheProvider {
+    return new PersistentCacheProvider(cacheId);
   }
 }

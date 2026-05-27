@@ -222,23 +222,26 @@ export class EntityNode {
     if (obj.backingData) {
       sdo.entityData = EntityDataObject.fromJSON(obj.backingData);
     }
-    sdo.globalId = obj.globalID;
-    sdo.scalars = obj.scalars;
-    if (obj.references) {
+    const rawObj = obj as any;
+    sdo.globalId = rawObj.globalID || rawObj[GLOBAL_ID_KEY];
+    sdo.scalars = rawObj[SCALARS_KEY] || rawObj.scalars || {};
+    if (rawObj[REFERENCES_KEY] || rawObj.references) {
       const references: Record<string, unknown> = {};
-      for (const key in obj.references) {
-        if (obj.references.hasOwnProperty(key)) {
-          references[key] = EntityNode.fromJson(obj.references[key]);
+      const rawRefs = rawObj[REFERENCES_KEY] || rawObj.references;
+      for (const key in rawRefs) {
+        if (rawRefs.hasOwnProperty(key)) {
+          references[key] = EntityNode.fromJson(rawRefs[key]);
         }
       }
       sdo.references = references as typeof sdo.references;
     }
-    if (obj.objectLists) {
+    if (rawObj[OBJECT_LISTS_KEY] || rawObj.objectLists) {
       const objectLists: Record<string, unknown> = {};
-      for (const key in obj.objectLists) {
-        if (obj.objectLists.hasOwnProperty(key)) {
-          objectLists[key] = obj.objectLists[key].map(obj =>
-            EntityNode.fromJson(obj)
+      const rawLists = rawObj[OBJECT_LISTS_KEY] || rawObj.objectLists;
+      for (const key in rawLists) {
+        if (rawLists.hasOwnProperty(key)) {
+          objectLists[key] = rawLists[key].map((item: any) =>
+            EntityNode.fromJson(item)
           );
         }
       }
