@@ -187,6 +187,13 @@ export class RestClient implements RemoteConfigFetchClient {
       });
     }
 
-    return { status, eTag: responseEtag, config, templateVersion, experiments, rollouts };
+    return {
+      status,
+      eTag: responseEtag,
+      config,
+      templateVersion,
+      experiments,
+      rollouts
+    };
   }
 }

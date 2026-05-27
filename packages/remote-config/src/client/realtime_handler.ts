@@ -435,7 +435,9 @@ export class RealtimeHandler {
   }
 
   /** Creates a map where the key is the config key and the value is the rollout metadata. */
-  private createRolloutsMap(rollouts: FirebaseRolloutMetadata[]): Map<string, Map<string, string>> {
+  private createRolloutsMap(
+    rollouts: FirebaseRolloutMetadata[]
+  ): Map<string, Map<string, string>> {
     const rolloutMetadataMap = new Map<string, Map<string, string>>();
     for (const rollout of rollouts) {
       const rolloutId = rollout.rolloutId;
@@ -445,7 +447,8 @@ export class RealtimeHandler {
         if (!rolloutMetadataMap.has(parameterKey)) {
           rolloutMetadataMap.set(parameterKey, new Map<string, string>());
         }
-        const parameterKeyRolloutMetadata = rolloutMetadataMap.get(parameterKey);
+        const parameterKeyRolloutMetadata =
+          rolloutMetadataMap.get(parameterKey);
         if (parameterKeyRolloutMetadata != null) {
           parameterKeyRolloutMetadata.set(rolloutId, variantId);
         }
