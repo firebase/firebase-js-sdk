@@ -107,7 +107,8 @@ describe('RestClient', () => {
               entries: expectedResponse.entries,
               state: expectedResponse.state,
               templateVersion: expectedResponse.templateVersion,
-              experimentDescriptions: expectedResponse.experimentDescriptions
+              experimentDescriptions: expectedResponse.experimentDescriptions,
+              rolloutMetadata: expectedResponse.rolloutMetadata
             })
         } as Response)
       );

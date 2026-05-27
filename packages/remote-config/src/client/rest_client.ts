@@ -175,6 +175,7 @@ export class RestClient implements RemoteConfigFetchClient {
       // These cases can be fixed remotely, so normalize to safe value.
       config = {};
       experiments = [];
+      rollouts = [];
     }
 
     // Normalize to exception-based control flow for non-success cases.
