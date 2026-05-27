@@ -21,63 +21,108 @@ import { trace } from '@opentelemetry/api';
 import { createTracingProvider, OTLPTraceExporter } from './tracing-provider';
 import { FirebaseApp } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
-import { RESOURCE_ATTRIBUTE_KEYS } from '../constants';
 import { OTLPExporterBase } from '@opentelemetry/otlp-exporter-base';
+import { CrashlyticsOptions } from '../public-types';
+import * as fetchTransportModule from '../fetch-transport';
 
 describe('createTracingProvider', () => {
   let mockApp: FirebaseApp;
-  let mockContextManager: RootSpanContextManager;
+  let mockRootSpanContextManager: RootSpanContextManager;
+  let mockCrashlyticsOptions: CrashlyticsOptions;
 
   beforeEach(() => {
     mockApp = {
       options: {
-        projectId: 'my-project',
-        appId: 'my-app-id',
-        apiKey: 'my-api-key'
+        projectId: 'test-project',
+        appId: 'test-app-id',
+        apiKey: 'test-api-key'
       }
     } as unknown as FirebaseApp;
 
-    mockContextManager = {
-      startRootSpan: sinon.stub(),
-      getActiveRootSpan: sinon.stub(),
-      clearActiveRootSpan: sinon.stub(),
-      getActiveAppScreenId: sinon.stub(),
-      setActiveAppScreenId: sinon.stub(),
-      active: sinon.stub(),
-      enable: sinon.stub().returnsThis(),
-      disable: sinon.stub().returnsThis()
-    } as unknown as RootSpanContextManager;
+    mockRootSpanContextManager = {
+      enable: () => { }
+    } as RootSpanContextManager;
 
-  });
-
-  afterEach(() => {
-    // @ts-ignore
-    delete global.window;
-    // @ts-ignore
-    delete global.XMLHttpRequest;
-    sinon.restore();
+    mockCrashlyticsOptions = {} as CrashlyticsOptions;
   });
 
   it('should return a default tracer provider when running in a server/Node environment', () => {
-    const provider = createTracingProvider(mockApp, mockContextManager, {});
+    const provider = createTracingProvider(
+      mockApp,
+      mockRootSpanContextManager,
+      mockCrashlyticsOptions
+    );
     expect(provider).to.equal(trace.getTracerProvider());
   });
 
-  it('should construct resource with cloud resource ID containing project and region', () => {
-    // @ts-ignore
-    global.window = { location: { hostname: 'localhost' } } as any;
-    // @ts-ignore
-    global.XMLHttpRequest = class { };
+  describe('when running in a browser environment', () => {
+    beforeEach(() => {
+      // @ts-ignore
+      global.window = { location: { hostname: 'localhost' } } as any;
+      // @ts-ignore
+      global.XMLHttpRequest = class {
+        open() { }
+        send() { }
+      } as any;
+      // @ts-ignore
+      global.fetch = async () => ({}) as any;
+    });
 
-    const provider = createTracingProvider(mockApp, mockContextManager, { region: 'us-central1' });
+    afterEach(() => {
+      // @ts-ignore
+      delete global.window;
+      // @ts-ignore
+      delete global.XMLHttpRequest;
+      // @ts-ignore
+      delete global.fetch;
+      sinon.restore();
+    });
 
-    // Peek into the internal _resource property
-    const resource = (provider as any)._resource;
+    it('should use standard OTLP trace exporter when tracingUrl is the default localhost port 4318', () => {
+      const fetchTransportStub = sinon.stub(fetchTransportModule, 'FetchTransport').returns({} as any);
 
-    expect(resource).to.exist;
-    expect(resource.attributes[RESOURCE_ATTRIBUTE_KEYS.CLOUD_RESOURCE_ID]).to.equal(
-      '//firebasetelemetry.googleapis.com/projects/my-project/locations/us-central1/'
-    );
+      mockCrashlyticsOptions.tracingUrl = 'http://localhost:4318';
+
+      const provider = createTracingProvider(
+        mockApp,
+        mockRootSpanContextManager,
+        mockCrashlyticsOptions
+      );
+
+      expect(fetchTransportStub.called).to.be.false;
+      expect(provider).to.be.ok;
+    });
+
+    it('should use custom OTLPTraceExporter with region-specific endpoint when tracingUrl is a custom URL', () => {
+      const fetchTransportStub = sinon.stub(fetchTransportModule, 'FetchTransport').returns({} as any);
+
+      mockCrashlyticsOptions.tracingUrl = 'https://custom-tracing.url';
+      mockCrashlyticsOptions.region = 'us-central1';
+
+      createTracingProvider(
+        mockApp,
+        mockRootSpanContextManager,
+        mockCrashlyticsOptions
+      );
+
+      expect(fetchTransportStub.calledOnce).to.be.true;
+      const args = fetchTransportStub.firstCall.args[0];
+      expect(args.url).to.equal('https://custom-tracing.url/v1/projects/test-project/apps/test-app-id/locations/us-central1/traces');
+    });
+
+    it('should register Fetch and XMLHttpRequest instrumentations', () => {
+      const originalFetch = global.fetch;
+      const originalOpen = global.XMLHttpRequest.prototype.open;
+
+      createTracingProvider(
+        mockApp,
+        mockRootSpanContextManager,
+        mockCrashlyticsOptions
+      );
+
+      expect(global.fetch).to.not.equal(originalFetch);
+      expect(global.XMLHttpRequest.prototype.open).to.not.equal(originalOpen);
+    });
   });
 });
 
