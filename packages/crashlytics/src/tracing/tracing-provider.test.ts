@@ -111,6 +111,7 @@ describe('createTracingProvider', () => {
     });
 
     it('should register Fetch and XMLHttpRequest instrumentations', () => {
+      // Note: AI claims there isn't a clear way to verify ignoreUrls so excluded it for the test
       const originalFetch = global.fetch;
       const originalOpen = global.XMLHttpRequest.prototype.open;
 
