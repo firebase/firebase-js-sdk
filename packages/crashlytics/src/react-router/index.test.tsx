@@ -25,7 +25,7 @@ import { Crashlytics } from '../public-types';
 import { CrashlyticsRoutes } from '.';
 import React from 'react';
 import { render } from '@testing-library/react';
-import { MemoryRouter, Route } from 'react-router-dom';
+import { MemoryRouter, Route, useNavigate } from 'react-router-dom';
 import { FRAMEWORK_ATTRIBUTE_KEYS } from '../constants';
 
 use(sinonChai);
@@ -59,17 +59,34 @@ class TestErrorBoundary extends React.Component<
 describe('CrashlyticsRoutes', () => {
   let getCrashlyticsStub: sinon.SinonStub;
   let recordErrorStub: sinon.SinonStub;
+  let logViewBoundaryStub: sinon.SinonStub;
   let fakeApp: FirebaseApp;
   let fakeCrashlytics: Crashlytics;
+  let emitStub: sinon.SinonStub;
+  let setActiveAppScreenIdStub: sinon.SinonStub;
 
   beforeEach(() => {
     fakeApp = { name: 'fakeApp' } as FirebaseApp;
-    fakeCrashlytics = {} as Crashlytics;
+    emitStub = stub();
+    setActiveAppScreenIdStub = stub();
+
+    fakeCrashlytics = {
+      app: fakeApp,
+      loggerProvider: {
+        getLogger: stub().returns({
+          emit: emitStub
+        })
+      },
+      contextManager: {
+        setActiveAppScreenId: setActiveAppScreenIdStub
+      }
+    } as unknown as Crashlytics;
 
     getCrashlyticsStub = stub(crashlytics, 'getCrashlytics').returns(
       fakeCrashlytics
     );
     recordErrorStub = stub(crashlytics, 'recordError');
+    logViewBoundaryStub = stub(crashlytics, 'logViewBoundary');
   });
 
   afterEach(() => {
@@ -188,5 +205,67 @@ describe('CrashlyticsRoutes', () => {
 
     unmount();
     expect(crashlyticsService.frameworkAttributesProvider).to.be.undefined;
+  });
+
+  it('invokes logViewBoundary on mount and on subsequent navigation events', async () => {
+    const NavigationTrigger = () => {
+      const navigate = useNavigate();
+      React.useEffect(() => {
+        navigate('/about');
+      }, [navigate]);
+      return <div>Home</div>;
+    };
+
+    const { findByText } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <CrashlyticsRoutes firebaseApp={fakeApp}>
+          <Route path="/" element={<NavigationTrigger />} />
+          <Route path="/about" element={<div>About Page</div>} />
+        </CrashlyticsRoutes>
+      </MemoryRouter>
+    );
+
+    await findByText('About Page');
+
+    expect(logViewBoundaryStub).to.have.been.calledTwice;
+    expect(logViewBoundaryStub.firstCall).to.have.been.calledWith(
+      fakeCrashlytics,
+      '/'
+    );
+    expect(logViewBoundaryStub.secondCall).to.have.been.calledWith(
+      fakeCrashlytics,
+      '/about'
+    );
+  });
+
+  it('invokes logViewBoundary with correct route patterns', async () => {
+    const NavigationTrigger = () => {
+      const navigate = useNavigate();
+      React.useEffect(() => {
+        navigate('/users/123');
+      }, [navigate]);
+      return <div>Home</div>;
+    };
+
+    const { findByText } = render(
+      <MemoryRouter initialEntries={['/']}>
+        <CrashlyticsRoutes firebaseApp={fakeApp}>
+          <Route path="/" element={<NavigationTrigger />} />
+          <Route path="/users/:id" element={<div>User Profile</div>} />
+        </CrashlyticsRoutes>
+      </MemoryRouter>
+    );
+
+    await findByText('User Profile');
+
+    expect(logViewBoundaryStub).to.have.been.calledTwice;
+    expect(logViewBoundaryStub.firstCall).to.have.been.calledWith(
+      fakeCrashlytics,
+      '/'
+    );
+    expect(logViewBoundaryStub.secondCall).to.have.been.calledWith(
+      fakeCrashlytics,
+      '/users/:id'
+    );
   });
 });
