@@ -40,7 +40,7 @@ describe('createTracingProvider', () => {
     } as unknown as FirebaseApp;
 
     mockRootSpanContextManager = {
-      enable: () => { }
+      enable: () => {}
     } as RootSpanContextManager;
 
     mockCrashlyticsOptions = {} as CrashlyticsOptions;
@@ -61,11 +61,11 @@ describe('createTracingProvider', () => {
       global.window = { location: { hostname: 'localhost' } } as any;
       // @ts-ignore
       global.XMLHttpRequest = class {
-        open() { }
-        send() { }
+        open() {}
+        send() {}
       } as any;
       // @ts-ignore
-      global.fetch = async () => ({}) as any;
+      global.fetch = async () => ({} as any);
     });
 
     afterEach(() => {
@@ -79,7 +79,9 @@ describe('createTracingProvider', () => {
     });
 
     it('should use standard OTLP trace exporter when tracingUrl is the default localhost port 4318', () => {
-      const fetchTransportStub = sinon.stub(fetchTransportModule, 'FetchTransport').returns({} as any);
+      const fetchTransportStub = sinon
+        .stub(fetchTransportModule, 'FetchTransport')
+        .returns({} as any);
 
       mockCrashlyticsOptions.tracingUrl = 'http://localhost:4318';
 
@@ -94,7 +96,9 @@ describe('createTracingProvider', () => {
     });
 
     it('should use custom OTLPTraceExporter with region-specific endpoint when tracingUrl is a custom URL', () => {
-      const fetchTransportStub = sinon.stub(fetchTransportModule, 'FetchTransport').returns({} as any);
+      const fetchTransportStub = sinon
+        .stub(fetchTransportModule, 'FetchTransport')
+        .returns({} as any);
 
       mockCrashlyticsOptions.tracingUrl = 'https://custom-tracing.url';
       mockCrashlyticsOptions.region = 'us-central1';
@@ -107,7 +111,9 @@ describe('createTracingProvider', () => {
 
       expect(fetchTransportStub.calledOnce).to.be.true;
       const args = fetchTransportStub.firstCall.args[0];
-      expect(args.url).to.equal('https://custom-tracing.url/v1/projects/test-project/apps/test-app-id/locations/us-central1/traces');
+      expect(args.url).to.equal(
+        'https://custom-tracing.url/v1/projects/test-project/apps/test-app-id/locations/us-central1/traces'
+      );
     });
 
     it('should register Fetch and XMLHttpRequest instrumentations', () => {
@@ -136,11 +142,17 @@ describe('OTLPTraceExporter', () => {
     mockAttrProvider = {
       getAttribute: sinon.stub().resolves(['dynamic_key', 'dynamic_value'])
     };
-    exporter = new OTLPTraceExporter({ url: 'http://localhost' }, [], [mockAttrProvider]);
+    exporter = new OTLPTraceExporter(
+      { url: 'http://localhost' },
+      [],
+      [mockAttrProvider]
+    );
 
-    superStub = sinon.stub(OTLPExporterBase.prototype, 'export').callsFake((_spans, callback: any) => {
-      callback({ code: 0 });
-    });
+    superStub = sinon
+      .stub(OTLPExporterBase.prototype, 'export')
+      .callsFake((_spans, callback: any) => {
+        callback({ code: 0 });
+      });
   });
 
   afterEach(() => {
@@ -149,10 +161,16 @@ describe('OTLPTraceExporter', () => {
   });
 
   it('should create an OtlpNetworkExportDelegate with dynamicHeaderProviders', () => {
-    const fetchTransportStub = sinon.stub(fetchTransportModule, 'FetchTransport').returns({} as any);
+    const fetchTransportStub = sinon
+      .stub(fetchTransportModule, 'FetchTransport')
+      .returns({} as any);
     const mockHeaderProvider = { getHeader: sinon.stub() };
-    
-    new OTLPTraceExporter({ url: 'http://localhost' }, [mockHeaderProvider], []);
+
+    new OTLPTraceExporter(
+      { url: 'http://localhost' },
+      [mockHeaderProvider],
+      []
+    );
 
     expect(fetchTransportStub.calledOnce).to.be.true;
     const args = fetchTransportStub.firstCall.args[0];
