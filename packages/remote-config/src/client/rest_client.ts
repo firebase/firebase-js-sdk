@@ -19,7 +19,8 @@ import {
   CustomSignals,
   FetchResponse,
   FirebaseRemoteConfigObject,
-  FirebaseExperimentDescription
+  FirebaseExperimentDescription,
+  FirebaseRolloutMetadata
 } from '../public_types';
 import {
   RemoteConfigFetchClient,
@@ -145,6 +146,7 @@ export class RestClient implements RemoteConfigFetchClient {
     let state: string | undefined;
     let templateVersion: number | undefined;
     let experiments: FirebaseExperimentDescription[] | undefined;
+    let rollouts: FirebaseRolloutMetadata[] | undefined;
 
     // JSON parsing throws SyntaxError if the response body isn't a JSON string.
     // Requesting application/json and checking for a 200 ensures there's JSON data.
@@ -161,6 +163,7 @@ export class RestClient implements RemoteConfigFetchClient {
       state = responseBody['state'];
       templateVersion = responseBody['templateVersion'];
       experiments = responseBody['experimentDescriptions'];
+      rollouts = responseBody['rolloutMetadata'];
     }
 
     // Normalizes based on legacy state.
@@ -184,6 +187,6 @@ export class RestClient implements RemoteConfigFetchClient {
       });
     }
 
-    return { status, eTag: responseEtag, config, templateVersion, experiments };
+    return { status, eTag: responseEtag, config, templateVersion, experiments, rollouts };
   }
 }
