@@ -152,7 +152,7 @@ export interface FirebaseOptions {
    */
   measurementId?: string;
   /**
-   * TODO: document
+   * ReCAPTCHA Enterprise site key associated with this app.
    */
   recaptchaSiteKey?: string;
 }

@@ -98,10 +98,11 @@ export function initializeAppCheck(
     throw ERROR_FACTORY.create(AppCheckError.NO_PROVIDER);
   }
 
-  const initOptions: AppCheckOptions = options || {
-    provider: attestationProvider
+  const initOptions: AppCheckOptions = {
+    ...options,
+    provider: options?.provider || attestationProvider
   };
-  
+
   if (componentProvider.isInitialized()) {
     const existingInstance = componentProvider.getImmediate();
     const existingOptions =
