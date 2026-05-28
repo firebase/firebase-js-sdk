@@ -25,6 +25,7 @@ import { chromeAdapterFactory } from './methods/chrome-adapter';
 import { AIService } from './service';
 import { AIErrorCode } from './types';
 import { initializeAppCheck } from '@firebase/app-check';
+import { logger } from './logger';
 
 export function factory(
   container: ComponentContainer,
@@ -47,10 +48,21 @@ export function factory(
   // Try to get an already-initialized internal instance of AppCheck.
   let appCheck = appCheckProviderInternal?.getImmediate({ optional: true });
   if (!appCheck) {
-    // If no instance exists, initialize one
-    // The public instance initializes the internal one and is
-    // a dependency of the internal one.
-    initializeAppCheck(app);
+    /**
+     * If no instance exists, initialize one. (The public instance
+     * initializes the internal one and is a dependency of the internal
+     * one.) Passing no provider to initializeAppCheck() causes AppCheck
+     * to try initializing with a recaptchaSiteKey provided in the project
+     * config. If that param is not found, this will error. If so, continue
+     * as if App Check is not available.
+     */
+    try {
+      initializeAppCheck(app);
+    } catch (e) {
+      logger.debug(e);
+    }
+    // Try to get the internal instance again after initializing the public
+    // one.
     appCheck = appCheckProviderInternal?.getImmediate({ optional: true });
   }
 
