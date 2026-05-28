@@ -27,6 +27,7 @@ export const enum AppCheckError {
   STORAGE_GET = 'storage-get',
   STORAGE_WRITE = 'storage-set',
   RECAPTCHA_ERROR = 'recaptcha-error',
+  NO_PROVIDER = 'no-provider',
   INITIAL_THROTTLE = 'initial-throttle',
   THROTTLED = 'throttled'
 }
@@ -55,6 +56,9 @@ const ERRORS: ErrorMap<AppCheckError> = {
   [AppCheckError.STORAGE_WRITE]:
     'Error thrown when writing to storage. Original error: {$originalErrorMessage}.',
   [AppCheckError.RECAPTCHA_ERROR]: 'ReCAPTCHA error.',
+  [AppCheckError.NO_PROVIDER]:
+    'No attestation provider was passed to initializeAppCheck() and ' +
+    'no ReCAPTCHA Enterprise site key was found in the Firebase config.',
   [AppCheckError.INITIAL_THROTTLE]: `{$httpStatus} error. Attempts allowed again after {$time}`,
   [AppCheckError.THROTTLED]: `Requests throttled due to previous {$httpStatus} error. Attempts allowed again after {$time}`
 };

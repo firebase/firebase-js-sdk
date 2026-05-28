@@ -44,6 +44,7 @@ import {
 import { readTokenFromStorage } from './storage';
 import { getDebugToken, initializeDebugMode, isDebugMode } from './debug';
 import { logger } from './logger';
+import { ReCaptchaEnterpriseProvider } from './providers';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
@@ -65,10 +66,10 @@ export {
  */
 export function initializeAppCheck(
   app: FirebaseApp = getApp(),
-  options: AppCheckOptions
+  options?: AppCheckOptions
 ): AppCheck {
   app = getModularInstance(app);
-  const provider = _getProvider(app, 'app-check');
+  const componentProvider = _getProvider(app, 'app-check');
 
   // Ensure initializeDebugMode() is only called once.
   if (!getDebugState().initialized) {
@@ -87,13 +88,28 @@ export function initializeAppCheck(
     );
   }
 
-  if (provider.isInitialized()) {
-    const existingInstance = provider.getImmediate();
-    const initialOptions = provider.getOptions() as unknown as AppCheckOptions;
+  let attestationProvider = options?.provider;
+  if (!attestationProvider && app.options.recaptchaSiteKey) {
+    attestationProvider = new ReCaptchaEnterpriseProvider(
+      app.options.recaptchaSiteKey
+    );
+  }
+  if (!attestationProvider) {
+    throw ERROR_FACTORY.create(AppCheckError.NO_PROVIDER);
+  }
+
+  const initOptions: AppCheckOptions = options || {
+    provider: attestationProvider
+  };
+  
+  if (componentProvider.isInitialized()) {
+    const existingInstance = componentProvider.getImmediate();
+    const existingOptions =
+      componentProvider.getOptions() as unknown as AppCheckOptions;
     if (
-      initialOptions.isTokenAutoRefreshEnabled ===
-        options.isTokenAutoRefreshEnabled &&
-      initialOptions.provider.isEqual(options.provider)
+      existingOptions.isTokenAutoRefreshEnabled ===
+        initOptions.isTokenAutoRefreshEnabled &&
+      existingOptions.provider.isEqual(initOptions.provider)
     ) {
       return existingInstance;
     } else {
@@ -103,8 +119,9 @@ export function initializeAppCheck(
     }
   }
 
-  const appCheck = provider.initialize({ options });
-  _activate(app, options.provider, options.isTokenAutoRefreshEnabled);
+  const appCheck = componentProvider.initialize({ options: initOptions });
+
+  _activate(app, attestationProvider, initOptions.isTokenAutoRefreshEnabled);
   // If isTokenAutoRefreshEnabled is false, do not send any requests to the
   // exchange endpoint without an explicit call from the user either directly
   // or through another Firebase library (storage, functions, etc.)
