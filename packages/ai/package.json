@@ -52,6 +52,7 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
+    "@firebase/app-check": "0.3.4",
     "@firebase/app-check-interop-types": "0.3.4",
     "@firebase/component": "0.7.3",
     "@firebase/logger": "0.5.1",

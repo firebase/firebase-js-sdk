@@ -24,6 +24,7 @@ import { decodeInstanceIdentifier } from './helpers';
 import { chromeAdapterFactory } from './methods/chrome-adapter';
 import { AIService } from './service';
 import { AIErrorCode } from './types';
+import { initializeAppCheck } from '@firebase/app-check';
 
 export function factory(
   container: ComponentContainer,
@@ -41,13 +42,17 @@ export function factory(
   // getImmediate for FirebaseApp will always succeed
   const app = container.getProvider('app').getImmediate();
   const auth = container.getProvider('auth-internal');
-  const appCheckProvider = container.getProvider('app-check-internal');
+  const appCheckProviderInternal = container.getProvider('app-check-internal');
 
-  return new AIService(
-    app,
-    backend,
-    auth,
-    appCheckProvider,
-    chromeAdapterFactory
-  );
+  // Try to get an already-initialized internal instance of AppCheck.
+  let appCheck = appCheckProviderInternal?.getImmediate({ optional: true });
+  if (!appCheck) {
+    // If no instance exists, initialize one
+    // The public instance initializes the internal one and is
+    // a dependency of the internal one.
+    initializeAppCheck(app);
+    appCheck = appCheckProviderInternal?.getImmediate({ optional: true });
+  }
+
+  return new AIService(app, backend, auth, appCheck, chromeAdapterFactory);
 }

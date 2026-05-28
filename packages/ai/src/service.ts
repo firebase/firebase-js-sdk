@@ -24,7 +24,6 @@ import {
   OnDeviceParams
 } from './public-types';
 import {
-  AppCheckInternalComponentName,
   FirebaseAppCheckInternal
 } from '@firebase/app-check-interop-types';
 import { Provider } from '@firebase/component';
@@ -44,14 +43,13 @@ export class AIService implements AI, _FirebaseService {
     public app: FirebaseApp,
     public backend: Backend,
     authProvider?: Provider<FirebaseAuthInternalName>,
-    appCheckProvider?: Provider<AppCheckInternalComponentName>,
+    appCheck?: FirebaseAppCheckInternal | null,
     public chromeAdapterFactory?: (
       mode: InferenceMode,
       window?: Window,
       params?: OnDeviceParams
     ) => ChromeAdapter | undefined
   ) {
-    const appCheck = appCheckProvider?.getImmediate({ optional: true });
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
     this.appCheck = appCheck || null;

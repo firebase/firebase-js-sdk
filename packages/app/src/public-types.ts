@@ -151,6 +151,10 @@ export interface FirebaseOptions {
    * and higher, this parameter is optional.
    */
   measurementId?: string;
+  /**
+   * TODO: document
+   */
+  recaptchaSiteKey?: string;
 }
 
 /**

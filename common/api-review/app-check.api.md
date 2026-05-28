@@ -67,7 +67,7 @@ export function getLimitedUseToken(appCheckInstance: AppCheck): Promise<AppCheck
 export function getToken(appCheckInstance: AppCheck, forceRefresh?: boolean): Promise<AppCheckTokenResult>;
 
 // @public
-export function initializeAppCheck(app: FirebaseApp | undefined, options: AppCheckOptions): AppCheck;
+export function initializeAppCheck(app?: FirebaseApp, options?: AppCheckOptions): AppCheck;
 
 // @public
 export function onTokenChanged(appCheckInstance: AppCheck, observer: PartialObserver<AppCheckTokenResult>): Unsubscribe;
