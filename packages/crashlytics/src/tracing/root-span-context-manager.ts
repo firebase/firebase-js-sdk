@@ -73,7 +73,7 @@ export class RootSpan {
     this.recordNetworkActivity(endTimeMs ?? Date.now());
 
     // Short-circuit quiescence if the root span is interrupted and network requests have ended
-    if (this.interruptedAtMs && this.activeNetworkRequests === 0) {
+    if (this.interruptedAtMs !== undefined && this.activeNetworkRequests === 0) {
       this.endRootSpan();
     }
   }
@@ -94,7 +94,7 @@ export class RootSpan {
    */
   private recordUiActivity(timestamp: number = Date.now()): void {
 
-    if (!this.interruptedAtMs && timestamp > this.lastUiActivityMs) {
+    if (this.interruptedAtMs === undefined && timestamp > this.lastUiActivityMs) {
       this.firstUiActivityMs ??= timestamp;
       this.lastUiActivityMs = timestamp;
       this.renderQuiesce();
@@ -179,7 +179,7 @@ export class RootSpan {
   }
 
   private endUIRenderSpanIfStable(): void {
-    if (!this.interruptedAtMs) {
+    if (this.interruptedAtMs === undefined) {
       const timeSinceLastRenderActivity = Date.now() - this.lastUiActivityMs;
       if (timeSinceLastRenderActivity < UI_RENDER_QUIESCENCE_WINDOW_MS - 5) {
         this.renderQuiesce(); // keep waiting, UI is not stable yet
@@ -190,7 +190,7 @@ export class RootSpan {
   }
 
   private endUIRenderSpan(endTimeMs: number = this.lastUiActivityMs): void {
-    if (this.firstUiActivityMs) {
+    if (this.firstUiActivityMs !== undefined) {
       const parentContext = trace.setSpan(context.active(), this.span);
 
       const uiSpan = this.tracer.startSpan('UI Render', {
@@ -235,7 +235,7 @@ export class RootSpan {
     }
 
     // End the span backdated to the exact millisecond work actually stopped
-    if (this.interruptedAtMs) {
+    if (this.interruptedAtMs !== undefined) {
       const endTime = Math.max(this.lastNetworkActivityMs, this.interruptedAtMs);
 
       this.span.end(endTime);
