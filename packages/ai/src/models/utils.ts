@@ -55,18 +55,18 @@ export function initApiSettings(ai: AI): ApiSettings {
     backend: ai.backend
   };
 
-  const appCheck = (ai as AIService).appCheck;
-
   if (_isFirebaseServerApp(ai.app) && ai.app.settings.appCheckToken) {
     const token = ai.app.settings.appCheckToken;
     apiSettings.getAppCheckToken = () => {
       return Promise.resolve({ token });
     };
-  } else if (appCheck) {
+  } else if ((ai as AIService).appCheck) {
     if (ai.options?.useLimitedUseAppCheckTokens) {
-      apiSettings.getAppCheckToken = () => appCheck.getLimitedUseToken();
+      apiSettings.getAppCheckToken = () =>
+        (ai as AIService).appCheck!.getLimitedUseToken();
     } else {
-      apiSettings.getAppCheckToken = () => appCheck.getToken();
+      apiSettings.getAppCheckToken = () =>
+        (ai as AIService).appCheck!.getToken();
     }
   }
 
