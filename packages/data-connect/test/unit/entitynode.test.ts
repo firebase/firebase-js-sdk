@@ -433,4 +433,52 @@ describe('entity node', () => {
     expect(profileNode.references['profile'].entityDataKeys.has('username')).to
       .be.false;
   });
+
+  describe('serialization and deserialization cycles', () => {
+    let node: EntityNode;
+
+    beforeEach(async () => {
+      node = new EntityNode();
+      const exampleData = {
+        title: 'Original Post',
+        author: {
+          name: 'Alice'
+        },
+        comments: [
+          {
+            content: 'Great post!'
+          }
+        ]
+      };
+      const cacheId = 'cacheId';
+      const memoryCacheProvider = makeMemoryCacheProvider().initialize(cacheId);
+      const queryId = 'postQuery';
+      await node.loadData(
+        queryId,
+        exampleData,
+        undefined,
+        new ImpactedQueryRefsAccumulator(queryId),
+        memoryCacheProvider
+      );
+    });
+
+    it('should round-trip dehydrated serialization / deserialization', () => {
+      const dehydratedJson = node.toJSON(EncodingMode.dehydrated);
+
+      // Assert keys are dehydrated
+      expect(dehydratedJson).to.have.property('_scalars');
+      expect(dehydratedJson).to.have.property('_references');
+      expect(dehydratedJson).to.have.property('_objectLists');
+
+      const restoredNode = EntityNode.fromJson(dehydratedJson);
+
+      expect(restoredNode.scalars).to.have.property('title', 'Original Post');
+      expect(restoredNode.references).to.have.property('author');
+      expect(restoredNode.references.author.scalars).to.have.property('name', 'Alice');
+      expect(restoredNode.objectLists).to.have.property('comments');
+      expect(restoredNode.objectLists.comments).to.have.lengthOf(1);
+      expect(restoredNode.objectLists.comments[0].scalars).to.have.property('content', 'Great post!');
+    });
+  });
 });
+
