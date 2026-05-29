@@ -33,14 +33,6 @@ import { FirebaseOptions } from '@firebase/app';
 import { RootSpanContextManager } from './root-span-context-manager';
 
 /**
- * The instrumentation scopes that are considered network activity.
- */
-const NETWORK_INSTRUMENTATION_SCOPES = [
-  '@opentelemetry/instrumentation-fetch',
-  '@opentelemetry/instrumentation-xml-http-request'
-];
-
-/**
  * A SpanProcessor that adds Firebase-specific attributes to spans.
  */
 export class FirebaseSpanProcessor implements SpanProcessor {
@@ -55,14 +47,18 @@ export class FirebaseSpanProcessor implements SpanProcessor {
   }
 
   onStart(span: Span, _parentContext: Context): void {
+    const scopeName = span.instrumentationScope?.name;
+    if (
+      span.name === 'documentLoad' &&
+      scopeName === '@opentelemetry/instrumentation-document-load'
+    ) {
+      this.rootSpanContextManager.registerExistingSpanAsRoot(span, true);
+    }
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (rootSpan) {
-      const scopeName = span.instrumentationScope?.name;
-      if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-        rootSpan.recordNetworkActivityStart();
-      }
+    if (rootSpan && this.isNetworkSpan(span)) {
+      rootSpan.recordNetworkActivityStart();
     }
     const activeAppScreenId =
       this.rootSpanContextManager.getActiveAppScreenId();
@@ -94,12 +90,16 @@ export class FirebaseSpanProcessor implements SpanProcessor {
     const rootSpan = this.rootSpanContextManager.getRootSpanByTraceId(
       span.spanContext().traceId
     );
-    if (rootSpan) {
-      const scopeName = span.instrumentationScope?.name;
-      if (NETWORK_INSTRUMENTATION_SCOPES.includes(scopeName)) {
-        rootSpan.recordNetworkActivityEnd(hrTimeToMilliseconds(span.endTime));
-      }
+    if (rootSpan && this.isNetworkSpan(span)) {
+      rootSpan.recordNetworkActivityEnd(hrTimeToMilliseconds(span.endTime));
     }
+  }
+
+  // Determines if a span represents a network request based on standard
+  // OpenTelemetry HTTP semantic conventions (both stable and legacy).
+  private isNetworkSpan(span: Span | ReadableSpan): boolean {
+    const attributes = span.attributes || {};
+    return 'http.request.method' in attributes || 'http.method' in attributes;
   }
 
   shutdown(): Promise<void> {
