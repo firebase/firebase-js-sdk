@@ -278,4 +278,59 @@ describe('RootSpanContextManager', () => {
         .undefined;
     });
   });
+
+  describe('document load root span registration and quiescence', () => {
+    it('should not end the root span until both page load (instrumentation end) and quiescence completes', () => {
+      const originalEndSpy = sandbox.spy();
+      const documentLoadSpan = {
+        end: originalEndSpy,
+        spanContext: () => ({ traceId: 'document-load-trace-id', spanId: 'document-load-span-id' })
+      } as unknown as Span;
+
+      const rootSpan = manager.registerExistingSpanAsRoot(documentLoadSpan, true);
+      expect(manager.getActiveRootSpan()).to.equal(rootSpan);
+
+      // 1. Advance clock past normal quiescence window (150ms) - span should NOT end because isDocumentLoaded is false
+      clock.tick(150);
+      expect(originalEndSpy.called).to.be.false;
+
+      // 2. T = 150: Simulate network request starting
+      rootSpan.recordNetworkActivityStart();
+
+      // 3. T = 250: Simulate network request ending (100ms duration)
+      clock.tick(100);
+      rootSpan.recordNetworkActivityEnd();
+
+      // 4. T = 250: Trigger the instrumentation ending (calling monkey-patched span.end)
+      documentLoadSpan.end();
+
+      // 5. Clock advances 100ms (T = 350). Quiescence is not yet complete (needs 150ms since last activity at T = 250)
+      clock.tick(100);
+      expect(originalEndSpy.called).to.be.false;
+
+      // 6. Clock advances another 50ms (T = 400). Quiescence completes (150ms since T = 250)
+      clock.tick(50);
+      expect(originalEndSpy.calledOnce).to.be.true;
+      expect(originalEndSpy.calledWith(250)).to.be.true; // Should end backdated to the last activity time (250ms)
+      expect(manager.getActiveRootSpan()).to.be.undefined;
+    });
+
+    it('should support different TimeInput types like Date or undefined in monkey-patched end', () => {
+      const originalEndSpy = sandbox.spy();
+      const documentLoadSpan = {
+        end: originalEndSpy,
+        spanContext: () => ({ traceId: 'document-load-trace-id', spanId: 'document-load-span-id' })
+      } as unknown as Span;
+
+      const rootSpan = manager.registerExistingSpanAsRoot(documentLoadSpan, true);
+      
+      // Trigger the instrumentation ending with Date at T = 0 with value 50ms
+      const endDate = new Date(50);
+      documentLoadSpan.end(endDate);
+
+      clock.tick(300); // Let quiescence and rescheduled timer complete
+      expect(originalEndSpy.calledOnce).to.be.true;
+      expect(originalEndSpy.calledWith(50)).to.be.true;
+    });
+  });
 });

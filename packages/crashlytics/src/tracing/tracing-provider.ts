@@ -31,6 +31,7 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
   OTLPExporterBase,
@@ -155,7 +156,8 @@ export function createTracingProvider(
   registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
-      new XMLHttpRequestInstrumentation(networkInstrumentationConfig)
+      new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
+      new DocumentLoadInstrumentation({ semconvStabilityOptIn: 'http' })
     ]
   });
 

@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { Context, Span, type Tracer, trace } from '@opentelemetry/api';
+import { Context, Span, type Tracer, trace, TimeInput } from '@opentelemetry/api';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
+import { hrTimeToMilliseconds } from '@opentelemetry/core';
 
 /**
  * The length of time to wait for activity to cease before closing the root span.
@@ -36,8 +37,14 @@ export class RootSpan {
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
   private isInterrupted = false;
+  private originalEnd?: (endTime?: TimeInput) => void;
+  private isDocumentLoaded = true;
 
-  constructor(span: Span, manager: RootSpanContextManager) {
+  constructor(
+    span: Span,
+    manager: RootSpanContextManager,
+    isDocumentLoad = false
+  ) {
     this.span = span;
     this.manager = manager;
 
@@ -48,6 +55,32 @@ export class RootSpan {
     this.quiescenceTimerId = null;
     this.activeNetworkRequests = 0;
     this.mutationObserver = this.createMutationObserver();
+
+    if (isDocumentLoad) {
+      this.isDocumentLoaded = false;
+      const originalEnd = span.end.bind(span);
+      this.originalEnd = originalEnd;
+      span.end = (endTime?: TimeInput) => {
+        this.isDocumentLoaded = true;
+        let endTimeMs: number;
+        if (endTime === undefined) {
+          endTimeMs = Date.now();
+        } else if (typeof endTime === 'number') {
+          endTimeMs = endTime;
+        } else if (endTime && typeof (endTime as any).getTime === 'function') {
+          endTimeMs = (endTime as any).getTime();
+        } else if (Array.isArray(endTime) && endTime.length === 2) {
+          endTimeMs = hrTimeToMilliseconds(endTime as [number, number]);
+        } else {
+          endTimeMs = Date.now();
+        }
+        if (endTimeMs > this.lastUiActivityMs) {
+          this.lastUiActivityMs = endTimeMs;
+        }
+        this.quiesce();
+      };
+    }
+
     this.quiesce();
   }
 
@@ -157,6 +190,10 @@ export class RootSpan {
   }
 
   private endRootSpanIfStable(): void {
+    if (!this.isDocumentLoaded) {
+      return; // Do not end yet, the document load has not completed
+    }
+
     if (this.activeNetworkRequests > 0) {
       this.quiesce(); // Keep waiting, there are active network requests
       return;
@@ -184,12 +221,14 @@ export class RootSpan {
     }
 
     // End the span backdated to the exact millisecond work actually stopped
-    if (this.isInterrupted) {
-      this.span.end(this.lastNetworkActivityMs);
+    const finalEndTime = this.isInterrupted
+      ? this.lastNetworkActivityMs
+      : Math.max(this.lastNetworkActivityMs, this.lastUiActivityMs);
+
+    if (this.originalEnd) {
+      this.originalEnd(finalEndTime);
     } else {
-      this.span.end(
-        Math.max(this.lastNetworkActivityMs, this.lastUiActivityMs)
-      );
+      this.span.end(finalEndTime);
     }
     this.manager.clearRootSpanFromContext(this);
   }
@@ -203,6 +242,16 @@ export class RootSpanContextManager extends ZoneContextManager {
   private _interruptedRootSpans: RootSpan[] = [];
   // TODO: cchestnut look into having a store to manage context data not unique to span context
   private _activeAppScreenId: string | undefined;
+  registerExistingSpanAsRoot(span: Span, isDocumentLoad = false): RootSpan {
+    if (this._activeRootSpan) {
+      this._interruptedRootSpans.push(this._activeRootSpan);
+      this._activeRootSpan.interrupt();
+      this.clearActiveRootSpan();
+    }
+    this._activeRootSpan = new RootSpan(span, this, isDocumentLoad);
+    return this._activeRootSpan;
+  }
+
   startRootSpan(tracer: Tracer, rootSpanName: string): RootSpan {
     if (this._activeRootSpan) {
       this._interruptedRootSpans.push(this._activeRootSpan);

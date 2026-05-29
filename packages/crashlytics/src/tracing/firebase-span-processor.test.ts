@@ -65,7 +65,8 @@ describe('FirebaseSpanProcessor', () => {
     mockRootSpanContextManager = {
       getActiveRootSpan: () => activeRootSpanMock as unknown as RootSpan,
       getRootSpanByTraceId: () => activeRootSpanMock as unknown as RootSpan,
-      getActiveAppScreenId: () => undefined
+      getActiveAppScreenId: () => undefined,
+      registerExistingSpanAsRoot: sinon.stub()
     } as unknown as RootSpanContextManager;
 
     processor = new FirebaseSpanProcessor(mockRootSpanContextManager);
@@ -170,37 +171,28 @@ describe('FirebaseSpanProcessor', () => {
   });
 
   describe('network activity tracking', () => {
-    it('should record network activity start for fetch instrumentation', () => {
-      mockSpan.instrumentationScope = {
-        name: '@opentelemetry/instrumentation-fetch'
-      };
+    it('should record network activity start if http.request.method attribute is present', () => {
+      mockSpan.attributes['http.request.method'] = 'GET';
       processor.onStart(mockSpan as Span, {} as any);
 
       expect(recordNetworkActivityStartStub.calledOnce).to.be.true;
     });
 
-    it('should record network activity start for xhr instrumentation', () => {
-      mockSpan.instrumentationScope = {
-        name: '@opentelemetry/instrumentation-xml-http-request'
-      };
+    it('should record network activity start if legacy http.method attribute is present', () => {
+      mockSpan.attributes['http.method'] = 'GET';
       processor.onStart(mockSpan as Span, {} as any);
 
       expect(recordNetworkActivityStartStub.calledOnce).to.be.true;
     });
 
-    it('should not record network activity start for non-network scopes', () => {
-      mockSpan.instrumentationScope = {
-        name: '@opentelemetry/instrumentation-document-load'
-      };
+    it('should not record network activity start if no HTTP method attributes are present', () => {
       processor.onStart(mockSpan as Span, {} as any);
 
       expect(recordNetworkActivityStartStub.called).to.be.false;
     });
 
-    it('should record network activity end for fetch instrumentation', () => {
-      mockSpan.instrumentationScope = {
-        name: '@opentelemetry/instrumentation-fetch'
-      };
+    it('should record network activity end if http.request.method attribute is present', () => {
+      mockSpan.attributes['http.request.method'] = 'GET';
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
@@ -211,10 +203,8 @@ describe('FirebaseSpanProcessor', () => {
       ).to.be.true;
     });
 
-    it('should record network activity end for xhr instrumentation', () => {
-      mockSpan.instrumentationScope = {
-        name: '@opentelemetry/instrumentation-xml-http-request'
-      };
+    it('should record network activity end if legacy http.method attribute is present', () => {
+      mockSpan.attributes['http.method'] = 'GET';
       mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
@@ -225,10 +215,8 @@ describe('FirebaseSpanProcessor', () => {
       ).to.be.true;
     });
 
-    it('should not record network activity end for non-network scopes', () => {
-      mockSpan.instrumentationScope = {
-        name: '@opentelemetry/instrumentation-document-load'
-      };
+    it('should not record network activity end if no HTTP method attributes are present', () => {
+      mockSpan.endTime = [1, 2000000];
       processor.onEnd(mockSpan as any);
 
       expect(recordNetworkActivityEndStub.called).to.be.false;
