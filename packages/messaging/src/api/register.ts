@@ -23,9 +23,9 @@ import { RegisterOptions } from '../interfaces/public-types';
 import { registerFcmRegistrationWithFid } from '../internals/register-fid';
 import {
   dbGetFidRegistration,
-  dbRemove,
   dbSetFidRegistration
 } from '../internals/idb-manager';
+import { notifyOnRegistered } from '../internals/token-manager';
 
 const FID_REGISTRATION_REFRESH_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -77,18 +77,11 @@ export async function register(
       now >= stored.lastRegisterTime + FID_REGISTRATION_REFRESH_MS;
 
     if (shouldRefresh) {
-      // Best-effort cleanup of legacy token details, since apps may switch from
-      // getToken() to the FID-based register() API over time.
-      try {
-        await dbRemove(messaging.firebaseDependencies);
-      } catch {
-        // Ignore.
-      }
-
       await registerFcmRegistrationWithFid(messaging, fid);
       await dbSetFidRegistration(messaging.firebaseDependencies, {
         fid,
-        lastRegisterTime: now
+        lastRegisterTime: now,
+        vapidKey: messaging.vapidKey
       });
     }
 
@@ -97,11 +90,7 @@ export async function register(
       throw ERROR_FACTORY.create(ErrorCode.INVALID_ON_REGISTERED_HANDLER);
     }
 
-    if (typeof handler === 'function') {
-      handler(fid);
-    } else {
-      handler.next(fid);
-    }
+    notifyOnRegistered(messaging, fid);
   });
   return messaging._registerNotifyChain;
 }

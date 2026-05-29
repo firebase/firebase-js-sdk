@@ -29,12 +29,13 @@ import {
   WindowClient
 } from '../util/sw-types';
 import {
-  deleteTokenInternal,
-  getTokenInternal
+  getTokenInternal,
+  revokeRegistrationInternal
 } from '../internals/token-manager';
 
 import { MessagingService } from '../messaging-service';
-import { dbGet } from '../internals/idb-manager';
+import { dbGet, dbGetFidRegistration } from '../internals/idb-manager';
+import { refreshFidRegistrationIfStored } from '../helpers/fid-change-registration';
 import { externalizePayload } from '../helpers/externalizePayload';
 import { isConsoleMessage } from '../helpers/is-console-message';
 import { sleep } from '../helpers/sleep';
@@ -54,15 +55,38 @@ export async function onSubChange(
   event: PushSubscriptionChangeEvent,
   messaging: MessagingService
 ): Promise<void> {
+  if (!messaging.swRegistration) {
+    messaging.swRegistration = self.registration;
+  }
+
   const { newSubscription } = event;
   if (!newSubscription) {
-    // Subscription revoked, delete token
-    await deleteTokenInternal(messaging);
+    // Subscription revoked: legacy token and FID register/unregister paths both flow through
+    // revokeRegistrationInternal (server revoke + onUnregistered when applicable).
+    await revokeRegistrationInternal(messaging);
+    return;
+  }
+
+  const storedFid = await dbGetFidRegistration(
+    messaging.firebaseDependencies
+  ).catch(() => undefined);
+  if (storedFid) {
+    const fid = await refreshFidRegistrationIfStored(messaging).catch(() => {
+      // Best-effort: push subscription may be unavailable after rotation.
+      return undefined;
+    });
+
+    if (fid) {
+      const clientList = await getClientList();
+      if (hasVisibleClients(clientList)) {
+        sendFidRegisteredToWindows(clientList, fid);
+      }
+    }
     return;
   }
 
   const tokenDetails = await dbGet(messaging.firebaseDependencies);
-  await deleteTokenInternal(messaging);
+  await revokeRegistrationInternal(messaging);
 
   messaging.vapidKey =
     tokenDetails?.subscriptionOptions?.vapidKey ?? DEFAULT_VAPID_KEY;
@@ -241,6 +265,21 @@ function sendMessagePayloadInternalToWindows(
 
   for (const client of clientList) {
     client.postMessage(internalPayload);
+  }
+}
+
+function sendFidRegisteredToWindows(
+  clientList: WindowClient[],
+  fid: string
+): void {
+  const payload = {
+    isFirebaseMessaging: true,
+    messageType: MessageType.FID_REGISTERED,
+    fid
+  };
+
+  for (const client of clientList) {
+    client.postMessage(payload);
   }
 }
 

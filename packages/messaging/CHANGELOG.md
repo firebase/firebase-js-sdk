@@ -1,5 +1,18 @@
 # @firebase/messaging
 
+## 0.13.0
+
+### Minor Changes
+
+- [`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736) [#9917](https://github.com/firebase/firebase-js-sdk/pull/9917) - Add new API and deprecate old API for creating and deleting fcm registration
+
+### Patch Changes
+
+- [`a1a2455`](https://github.com/firebase/firebase-js-sdk/commit/a1a2455b2afa24ed2cd81129cbc55b530b6cae4f) [#9916](https://github.com/firebase/firebase-js-sdk/pull/9916) - Fix delivery metrics Firelog flushing when BigQuery export is enabled: schedule the first flush immediately (next timer tick) instead of waiting a full `LOG_INTERVAL_IN_MS`, start processing only when there are queued events (so enabling export with an empty queue does not arm a day-long idle timer that blocks later `stageLog` flushes), and ensure staging a log starts the service when needed. When export is disabled, clear any queued events and cancel pending flush timers immediately (rather than waiting for the background loop).
+
+- Updated dependencies [[`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736)]:
+  - @firebase/messaging-interop-types@0.2.5
+
 ## 0.12.26
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 ## Unreleased
 
+## 0.7.1
+
+### Patch Changes
+
+- [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68) [#9936](https://github.com/firebase/firebase-js-sdk/pull/9936) - Eliminated the 1-minute delay before closing idle backend connections to save resources.
+
 ## 0.7.0
 
 ### Minor Changes
