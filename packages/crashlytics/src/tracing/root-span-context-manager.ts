@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { Context, Span, type Tracer, trace } from '@opentelemetry/api';
+import { Context, Span, type Tracer, trace, context } from '@opentelemetry/api';
 import { ZoneContextManager } from '@opentelemetry/context-zone';
 
 /**
  * The length of time to wait for activity to cease before closing the root span.
  */
 const QUIESCENCE_WINDOW_MS = 150;
-
+const UI_RENDER_QUIESCENCE_WINDOW_MS = 100;
 /**
  * Wrapper around the OpenTelemetry Span that tracks activity and quiescence for a client-side
  * root span.
@@ -31,21 +31,27 @@ export class RootSpan {
   span: Span;
   private activeNetworkRequests: number;
   private lastNetworkActivityMs: number;
+  private firstUiActivityMs: number | undefined;
   private lastUiActivityMs: number;
+  private interruptedAtMs: number | undefined;
   private quiescenceTimerId: ReturnType<typeof setTimeout> | null;
+  private quiescenceRenderTimerId: ReturnType<typeof setTimeout> | null;
   private mutationObserver: MutationObserver | null;
   private manager: RootSpanContextManager;
-  private isInterrupted = false;
+  private tracer: Tracer;
 
-  constructor(span: Span, manager: RootSpanContextManager) {
+  constructor(span: Span, manager: RootSpanContextManager, tracer: Tracer) {
     this.span = span;
     this.manager = manager;
+    this.tracer = tracer;
 
     const current = Date.now();
     this.lastNetworkActivityMs = current;
+    this.firstUiActivityMs = undefined;
     this.lastUiActivityMs = current;
-
+    this.interruptedAtMs = undefined;
     this.quiescenceTimerId = null;
+    this.quiescenceRenderTimerId = null;
     this.activeNetworkRequests = 0;
     this.mutationObserver = this.createMutationObserver();
     this.quiesce();
@@ -67,7 +73,7 @@ export class RootSpan {
     this.recordNetworkActivity(endTimeMs ?? Date.now());
 
     // Short-circuit quiescence if the root span is interrupted and network requests have ended
-    if (this.isInterrupted && this.activeNetworkRequests === 0) {
+    if (this.interruptedAtMs && this.activeNetworkRequests === 0) {
       this.endRootSpan();
     }
   }
@@ -87,20 +93,25 @@ export class RootSpan {
    * Records UI activity and resets the quiescence timer.
    */
   private recordUiActivity(timestamp: number = Date.now()): void {
-    if (!this.isInterrupted && timestamp > this.lastUiActivityMs) {
+
+    if (!this.interruptedAtMs && timestamp > this.lastUiActivityMs) {
+      this.firstUiActivityMs ??= timestamp;
       this.lastUiActivityMs = timestamp;
+      this.renderQuiesce();
       this.quiesce();
     }
   }
 
   interrupt(): void {
-    this.isInterrupted = true;
+
+    this.interruptedAtMs = Date.now();
 
     if (this.mutationObserver) {
-      // stop listening for UI mutations
       this.mutationObserver.disconnect();
       this.mutationObserver = null;
     }
+
+    this.endUIRenderSpan(this.interruptedAtMs);
 
     // Short-circuit quiescence if network requests have ended
     if (this.activeNetworkRequests === 0) {
@@ -156,6 +167,46 @@ export class RootSpan {
     }, QUIESCENCE_WINDOW_MS);
   }
 
+  // Triggers the closing of the UI render span after a render quiescence window.
+  private renderQuiesce(): void {
+    if (this.quiescenceRenderTimerId) {
+      clearTimeout(this.quiescenceRenderTimerId);
+    }
+
+    this.quiescenceRenderTimerId = setTimeout(() => {
+      this.endUIRenderSpanIfStable();
+    }, UI_RENDER_QUIESCENCE_WINDOW_MS);
+  }
+
+  private endUIRenderSpanIfStable(): void {
+    if (!this.interruptedAtMs) {
+      const timeSinceLastRenderActivity = Date.now() - this.lastUiActivityMs;
+      if (timeSinceLastRenderActivity < UI_RENDER_QUIESCENCE_WINDOW_MS - 5) {
+        this.renderQuiesce(); // keep waiting, UI is not stable yet
+        return;
+      }
+      this.endUIRenderSpan();
+    }
+  }
+
+  private endUIRenderSpan(endTimeMs: number = this.lastUiActivityMs): void {
+    if (this.firstUiActivityMs) {
+      const parentContext = trace.setSpan(context.active(), this.span);
+
+      const uiSpan = this.tracer.startSpan('UI Render', {
+        startTime: this.firstUiActivityMs
+      }, parentContext);
+
+      uiSpan.end(endTimeMs);
+
+      this.firstUiActivityMs = undefined;
+
+      if (this.quiescenceTimerId) {
+        clearTimeout(this.quiescenceTimerId);
+      }
+    }
+  }
+
   private endRootSpanIfStable(): void {
     if (this.activeNetworkRequests > 0) {
       this.quiesce(); // Keep waiting, there are active network requests
@@ -184,12 +235,14 @@ export class RootSpan {
     }
 
     // End the span backdated to the exact millisecond work actually stopped
-    if (this.isInterrupted) {
-      this.span.end(this.lastNetworkActivityMs);
+    if (this.interruptedAtMs) {
+      const endTime = Math.max(this.lastNetworkActivityMs, this.interruptedAtMs);
+
+      this.span.end(endTime);
     } else {
-      this.span.end(
-        Math.max(this.lastNetworkActivityMs, this.lastUiActivityMs)
-      );
+      const endTime = Math.max(this.lastNetworkActivityMs, this.lastUiActivityMs);
+
+      this.span.end(endTime);
     }
     this.manager.clearRootSpanFromContext(this);
   }
@@ -210,7 +263,7 @@ export class RootSpanContextManager extends ZoneContextManager {
       this.clearActiveRootSpan();
     }
     const span = tracer.startSpan(rootSpanName);
-    this._activeRootSpan = new RootSpan(span, this);
+    this._activeRootSpan = new RootSpan(span, this, tracer);
     return this._activeRootSpan;
   }
 
