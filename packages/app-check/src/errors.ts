@@ -40,7 +40,7 @@ const ERRORS: ErrorMap<AppCheckError> = {
     'same options as when it was originally called. This will return the ' +
     'already initialized instance.',
   [AppCheckError.ALREADY_INTERNALLY_INITIALIZED]:
-    'App Check has already been automatically initialized by {$initializerName}. ' +
+    'App Check has already been automatically initialized by {$initializerName} ' +
     'with default options. If you want to initialize App Check with custom options, ' +
     'call initializeAppCheck() with those options before initializing {$initializerName}.',
   [AppCheckError.USE_BEFORE_ACTIVATION]:

@@ -88,7 +88,7 @@ export function initializeAppCheck(
     );
   }
 
-  let defaultProvider;
+  let defaultProvider: ReCaptchaEnterpriseProvider | undefined;
   /**
    * If user did not pass a provider, look for site key in project
    * config and create a default ReCaptchaEnterpriseProvider with it.
@@ -161,7 +161,10 @@ export function initializeAppCheck(
 
 /**
  * Internal wrapper that sets a state variable flagging that this was
- * initialized under the hood by a product SDK.
+ * initialized under the hood by a product SDK. Product SDKs must
+ * handle the case where App Check has already been initialized by
+ * avoiding calling this if so, or throwing a useful error message
+ * if the product SDK does not want to use the existing instance.
  *
  * @internal
  */
