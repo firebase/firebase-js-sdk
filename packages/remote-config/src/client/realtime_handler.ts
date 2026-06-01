@@ -350,6 +350,7 @@ export class RealtimeHandler {
     for (const key of newKeys) {
       if (!oldKeys.has(key) || newConfig[key] !== oldConfig[key]) {
         changedKeys.add(key);
+        continue;
       }
       if (newExperimentsMap.has(key) !== oldExperimentsMap.has(key)) {
         changedKeys.add(key);
@@ -361,6 +362,20 @@ export class RealtimeHandler {
         newExperiment &&
         oldExperiment &&
         !this.areExperimentsEqual(newExperiment, oldExperiment)
+      ) {
+        changedKeys.add(key);
+        continue;
+      }
+      if (newRolloutsMap.has(key) !== oldRolloutsMap.has(key)) {
+        changedKeys.add(key);
+        continue;
+      }
+      const newRollout = newRolloutsMap.get(key);
+      const oldRollout = oldRolloutsMap.get(key);
+      if (
+        newRollout &&
+        oldRollout &&
+        !this.areRolloutsEqual(newRollout, oldRollout)
       ) {
         changedKeys.add(key);
       }
