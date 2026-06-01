@@ -474,7 +474,7 @@ export class RealtimeHandler {
       if (!this.fetchResponseIsUpToDate(fetchResponse, targetVersion)) {
         this.logger.debug(
           "Fetched template version is the same as SDK's current version." +
-          ' Retrying fetch.'
+            ' Retrying fetch.'
         );
         // Continue fetching until template version number is greater than current.
         await this.autoFetch(remainingAttemptsAfterFetch, targetVersion);
