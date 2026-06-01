@@ -23,7 +23,8 @@ import {
   FetchResponse,
   FirebaseRemoteConfigObject,
   FirebaseExperimentDescription,
-  FirebaseRolloutMetadata
+  FirebaseRolloutMetadata,
+  FirebaseExperimentDescription
 } from '../public_types';
 import { calculateBackoffMillis, FirebaseError } from '@firebase/util';
 import { ERROR_FACTORY, ErrorCode } from '../errors';
@@ -45,6 +46,7 @@ const NO_FAILED_REALTIME_STREAMS = 0;
 const REALTIME_DISABLED_KEY = 'featureDisabled';
 const REALTIME_RETRY_INTERVAL = 'retryIntervalSeconds';
 const TEMPLATE_VERSION_KEY = 'latestTemplateVersionNumber';
+const ROLLOUT_ID_PREFIX = '_exp_rollout';
 const ROLLOUT_ID_PREFIX = '_exp_rollout';
 
 export class RealtimeHandler {
@@ -332,6 +334,9 @@ export class RealtimeHandler {
     oldConfig: FirebaseRemoteConfigObject,
     newFetchResponse: FetchResponse,
     oldFetchResponse: FetchResponse | undefined
+    oldConfig: FirebaseRemoteConfigObject,
+    newFetchResponse: FetchResponse,
+    oldFetchResponse: FetchResponse | undefined
   ): Set<string> {
     const changedKeys = new Set<string>();
     const newKeys = new Set(Object.keys(newConfig || {}));
@@ -350,7 +355,6 @@ export class RealtimeHandler {
     for (const key of newKeys) {
       if (!oldKeys.has(key) || newConfig[key] !== oldConfig[key]) {
         changedKeys.add(key);
-        continue;
       }
       if (newExperimentsMap.has(key) !== oldExperimentsMap.has(key)) {
         changedKeys.add(key);
@@ -362,20 +366,6 @@ export class RealtimeHandler {
         newExperiment &&
         oldExperiment &&
         !this.areExperimentsEqual(newExperiment, oldExperiment)
-      ) {
-        changedKeys.add(key);
-        continue;
-      }
-      if (newRolloutsMap.has(key) !== oldRolloutsMap.has(key)) {
-        changedKeys.add(key);
-        continue;
-      }
-      const newRollout = newRolloutsMap.get(key);
-      const oldRollout = oldRolloutsMap.get(key);
-      if (
-        newRollout &&
-        oldRollout &&
-        !this.areRolloutsEqual(newRollout, oldRollout)
       ) {
         changedKeys.add(key);
       }
@@ -481,6 +471,8 @@ export class RealtimeHandler {
 
       const lastFetchResponse =
         await this.storage.getLastSuccessfulFetchResponse();
+      const lastFetchResponse =
+        await this.storage.getLastSuccessfulFetchResponse();
       const fetchResponse: FetchResponse = await this.cachingClient.fetch(
         fetchRequest
       );
@@ -489,7 +481,7 @@ export class RealtimeHandler {
       if (!this.fetchResponseIsUpToDate(fetchResponse, targetVersion)) {
         this.logger.debug(
           "Fetched template version is the same as SDK's current version." +
-            ' Retrying fetch.'
+          ' Retrying fetch.'
         );
         // Continue fetching until template version number is greater than current.
         await this.autoFetch(remainingAttemptsAfterFetch, targetVersion);
@@ -509,6 +501,9 @@ export class RealtimeHandler {
 
       const updatedKeys = this.getChangedParams(
         fetchResponse.config,
+        activatedConfigs,
+        fetchResponse,
+        lastFetchResponse
         activatedConfigs,
         fetchResponse,
         lastFetchResponse

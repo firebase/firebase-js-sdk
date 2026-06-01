@@ -1,5 +1,12 @@
 # @firebase/functions-compat
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @firebase/functions@0.13.5
+
 ## 0.4.4
 
 ### Patch Changes

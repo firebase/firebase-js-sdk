@@ -1139,9 +1139,9 @@ describe('RealtimeHandler', () => {
   describe('addObserver/removeObserver', () => {
     let beginRealtimeStub: sinon.SinonStub;
     const observer: ConfigUpdateObserver = {
-      next: () => {},
-      error: () => {},
-      complete: () => {}
+      next: () => { },
+      error: () => { },
+      complete: () => { }
     };
 
     beforeEach(() => {
