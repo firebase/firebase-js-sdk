@@ -88,19 +88,31 @@ export function initializeAppCheck(
     );
   }
 
-  let attestationProvider = options?.provider;
-  if (!attestationProvider && app.options.recaptchaSiteKey) {
-    attestationProvider = new ReCaptchaEnterpriseProvider(
+  let defaultProvider;
+  /**
+   * If user did not pass a provider, look for site key in project
+   * config and create a default ReCaptchaEnterpriseProvider with it.
+   */
+  if (!options?.provider && app.options.recaptchaSiteKey) {
+    defaultProvider = new ReCaptchaEnterpriseProvider(
       app.options.recaptchaSiteKey
     );
   }
-  if (!attestationProvider) {
+  /**
+   * If there's no passed provider and no siteKey in project config,
+   * throw.
+   */
+  if (!options?.provider && !defaultProvider) {
     throw ERROR_FACTORY.create(AppCheckError.NO_PROVIDER);
   }
 
-  const initOptions: AppCheckOptions = {
+  interface InitOptions extends Omit<AppCheckOptions, 'provider'> {
+    provider: AppCheckProvider;
+  }
+
+  const initOptions: InitOptions = {
     ...options,
-    provider: options?.provider || attestationProvider
+    provider: options?.provider || defaultProvider!
   };
 
   if (componentProvider.isInitialized()) {
@@ -110,10 +122,19 @@ export function initializeAppCheck(
     if (
       existingOptions.isTokenAutoRefreshEnabled ===
         initOptions.isTokenAutoRefreshEnabled &&
-      existingOptions.provider.isEqual(initOptions.provider)
+      existingOptions.provider?.isEqual(initOptions.provider)
     ) {
       return existingInstance;
     } else {
+      if (typeof getStateReference(app).internallyInitializedBy === 'string') {
+        throw ERROR_FACTORY.create(
+          AppCheckError.ALREADY_INTERNALLY_INITIALIZED,
+          {
+            initializerName: getStateReference(app)
+              .internallyInitializedBy as string
+          }
+        );
+      }
       throw ERROR_FACTORY.create(AppCheckError.ALREADY_INITIALIZED, {
         appName: app.name
       });
@@ -122,7 +143,7 @@ export function initializeAppCheck(
 
   const appCheck = componentProvider.initialize({ options: initOptions });
 
-  _activate(app, attestationProvider, initOptions.isTokenAutoRefreshEnabled);
+  _activate(app, initOptions.provider, initOptions.isTokenAutoRefreshEnabled);
   // If isTokenAutoRefreshEnabled is false, do not send any requests to the
   // exchange endpoint without an explicit call from the user either directly
   // or through another Firebase library (storage, functions, etc.)
@@ -135,6 +156,24 @@ export function initializeAppCheck(
     addTokenListener(appCheck, ListenerType.INTERNAL, () => {});
   }
 
+  return appCheck;
+}
+
+/**
+ * Internal wrapper that sets a state variable flagging that this was
+ * initialized under the hood by a product SDK.
+ *
+ * @internal
+ */
+export function _initializeAppCheckInternal(
+  // String to be used in error message if there is a conflict.
+  // Example: "Firebase AI Logic"
+  initializerName: string,
+  app: FirebaseApp = getApp(),
+  options?: AppCheckOptions
+): AppCheck {
+  const appCheck = initializeAppCheck(app, options);
+  getStateReference(app).internallyInitializedBy = initializerName;
   return appCheck;
 }
 
