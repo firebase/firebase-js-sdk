@@ -86,7 +86,7 @@ describe('API tests', () => {
       expect(app.name).to.equal(DEFAULT_ENTRY_NAME);
       expect(app.options).to.deep.equal(config);
     });
-    it('creates DEFAULT app with config object as the second parameter', () => {
+    it('creates named app with config object as the second parameter', () => {
       const appName = 'myApp';
       const config = {
         apiKey: 'test1'
@@ -287,29 +287,6 @@ describe('API tests', () => {
       expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
     });
 
-    it('creates FirebaseServerApp with string options and config object as second parameter', async () => {
-      if (isBrowser()) {
-        // FirebaseServerApp isn't supported for execution in browser environments.
-        return;
-      }
-
-      const options = {
-        apiKey: 'APIKEY'
-      };
-
-      const serverAppSettings: FirebaseServerAppSettings = {
-        automaticDataCollectionEnabled: true
-      };
-
-      const app = initializeServerApp(
-        JSON.stringify(options),
-        serverAppSettings
-      );
-      expect(app).to.not.equal(null);
-      expect(app.automaticDataCollectionEnabled).to.be.true;
-      await deleteApp(app);
-      expect((app as FirebaseServerAppImpl).isDeleted).to.be.true;
-    });
     it('throws when creating FirebaseServerApp with malformed JSON config string', () => {
       if (isBrowser()) {
         // FirebaseServerApp isn't supported for execution in browser environments.

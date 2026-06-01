@@ -198,13 +198,11 @@ export function initializeApp(
 ): FirebaseApp {
   let options: FirebaseOptions | undefined;
   if (typeof optionsOrJsonConfigString === 'string') {
-    let parsed: unknown = undefined;
     try {
-      parsed = JSON.parse(optionsOrJsonConfigString);
+      options = JSON.parse(optionsOrJsonConfigString);
     } catch (error) {
       throw ERROR_FACTORY.create(AppError.INVALID_JSON_CONFIG);
     }
-    options = parsed || undefined;
   } else {
     options = optionsOrJsonConfigString;
   }
