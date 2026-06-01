@@ -82,20 +82,6 @@ describe('api', () => {
   });
 
   describe('initializeAppCheck()', () => {
-    it('does not throw if provider passed, and no sitekey in config', () => {
-      app.options.recaptchaSiteKey = undefined;
-      expect(
-        initializeAppCheck(app, {
-          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
-        })
-      ).to.be.instanceOf(AppCheckService);
-    });
-    it('throws if no provider and no sitekey in config', () => {
-      app.options.recaptchaSiteKey = undefined;
-      expect(() => initializeAppCheck(app, {})).to.throw(
-        /appCheck\/no-provider/
-      );
-    });
     it('can only be called once (if given different provider classes)', () => {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(FAKE_SITE_KEY)
@@ -323,6 +309,22 @@ describe('api', () => {
       expect(initReCAPTCHAStub).to.have.been.calledWithExactly(
         app,
         FAKE_SITE_KEY
+      );
+    });
+
+    it('does not throw if provider passed, and no sitekey in config', () => {
+      app.options.recaptchaSiteKey = undefined;
+      expect(
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+        })
+      ).to.be.instanceOf(AppCheckService);
+    });
+
+    it('throws if no provider and no sitekey in config', () => {
+      app.options.recaptchaSiteKey = undefined;
+      expect(() => initializeAppCheck(app, {})).to.throw(
+        /appCheck\/no-provider/
       );
     });
 
