@@ -69,7 +69,6 @@ export function initializeAppCheck(
   options?: AppCheckOptions
 ): AppCheck {
   app = getModularInstance(app);
-  const componentProvider = _getProvider(app, 'app-check');
 
   // Ensure initializeDebugMode() is only called once.
   if (!getDebugState().initialized) {
@@ -115,6 +114,7 @@ export function initializeAppCheck(
     provider: options?.provider || defaultProvider!
   };
 
+  const componentProvider = _getProvider(app, 'app-check');
   if (componentProvider.isInitialized()) {
     const existingInstance = componentProvider.getImmediate();
     const existingOptions =
@@ -161,23 +161,28 @@ export function initializeAppCheck(
 
 /**
  * Internal wrapper that sets a state variable flagging that this was
- * initialized under the hood by a product SDK. Product SDKs must
- * handle the case where App Check has already been initialized by
- * avoiding calling this if so, or throwing a useful error message
- * if the product SDK does not want to use the existing instance.
+ * initialized under the hood by a product SDK.
  *
  * @internal
  */
 export function _initializeAppCheckInternal(
-  // String to be used in error message if there is a conflict.
+  // String to be used in error message if there is a future conflict.
   // Example: "Firebase AI Logic"
   initializerName: string,
   app: FirebaseApp = getApp(),
   options?: AppCheckOptions
 ): AppCheck {
-  const appCheck = initializeAppCheck(app, options);
-  getStateReference(app).internallyInitializedBy = initializerName;
-  return appCheck;
+  const componentProvider = _getProvider(app, 'app-check');
+  const previouslyInitialized = componentProvider.isInitialized();
+  if (previouslyInitialized) {
+    // Product SDKs should accept any previously initialized
+    // App Check configuration without error.
+    return componentProvider.getImmediate();
+  } else {
+    const appCheck = initializeAppCheck(app, options);
+    getStateReference(app).internallyInitializedBy = initializerName;
+    return appCheck;
+  }
 }
 
 /**

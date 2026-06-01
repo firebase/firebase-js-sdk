@@ -162,6 +162,19 @@ describe('api', () => {
         /initialized by Product A.*appCheck\/already-internally-initialized/
       );
     });
+    it('does not throw internal init error if developer initialized first', () => {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      _initializeAppCheckInternal('Product A', app, {
+        provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY)
+      });
+      expect(() =>
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider(FAKE_SITE_KEY + 'X')
+        })
+      ).to.throw(/appCheck\/already-initialized/);
+    });
     it('can only be called once (if given different CustomProviders)', () => {
       initializeAppCheck(app, {
         provider: new CustomProvider({
