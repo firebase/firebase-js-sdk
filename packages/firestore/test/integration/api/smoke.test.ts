@@ -167,4 +167,8 @@ apiDescribe('Smoke Test', persistence => {
       });
     });
   });
+
+  it('dummy smoke test to trigger CI', () => {
+    expect(true).to.equal(true);
+  });
 });
