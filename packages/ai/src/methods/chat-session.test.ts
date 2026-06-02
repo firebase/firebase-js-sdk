@@ -59,6 +59,44 @@ describe('ChatSession', () => {
   afterEach(() => {
     restore();
   });
+  it('formats systemInstruction if it is provided as a string', () => {
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      {
+        systemInstruction: 'be friendly'
+      }
+    );
+    expect(chatSession.params?.systemInstruction).to.deep.equal({
+      role: 'system',
+      parts: [{ text: 'be friendly' }]
+    });
+  });
+  it('leaves systemInstruction unchanged if it is already a Content object', () => {
+    const systemInstruction: Content = {
+      role: 'system',
+      parts: [{ text: 'be friendly' }]
+    };
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      { systemInstruction }
+    );
+    expect(chatSession.params?.systemInstruction).to.deep.equal(
+      systemInstruction
+    );
+  });
+  it('leaves systemInstruction as undefined if not provided', () => {
+    const chatSession = new ChatSession(
+      fakeApiSettings,
+      'a-model',
+      fakeChromeAdapter,
+      {}
+    );
+    expect(chatSession.params?.systemInstruction).to.be.undefined;
+  });
   describe('sendMessage()', () => {
     it('sends the correct params to generateContent()', async () => {
       const generateContentStub = stub(
