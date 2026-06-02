@@ -285,7 +285,7 @@ export declare function initializeApp(options: FirebaseOptions | string, name?: 
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| string | Options to configure the app's services. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| string | A <code>FirebaseOptions</code> object to configure the app's services. This can also be a JSON string respresenting a <code>FirebaseOptions</code> object. |
 |  name | string | Optional name of the app to initialize. If no name is provided, the default is <code>&quot;[DEFAULT]&quot;</code>. |
 
 <b>Returns:</b>
@@ -376,7 +376,7 @@ export declare function initializeServerApp(options: FirebaseOptions | FirebaseA
 
 |  Parameter | Type | Description |
 |  --- | --- | --- |
-|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) \| string | <code>Firebase.AppOptions</code> to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. |
+|  options | [FirebaseOptions](./app.firebaseoptions.md#firebaseoptions_interface) \| [FirebaseApp](./app.firebaseapp.md#firebaseapp_interface) \| string | A <code>FirebaseOptions</code> object to configure the app's services, or a a <code>FirebaseApp</code> instance which contains the <code>AppOptions</code> within. This can also be a JSON string respresenting a <code>FirebaseOptions</code> object. |
 |  config | [FirebaseServerAppSettings](./app.firebaseserverappsettings.md#firebaseserverappsettings_interface) | Optional <code>FirebaseServerApp</code> settings. |
 
 <b>Returns:</b>

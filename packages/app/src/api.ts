@@ -116,7 +116,8 @@ export const SDK_VERSION = version;
  * }, "otherApp");
  * ```
  *
- * @param options - Options to configure the app's services.
+ * @param options - A `FirebaseOptions` object to configure the app's services.
+ *   This can also be a JSON string respresenting a `FirebaseOptions` object.
  * @param name - Optional name of the app to initialize. If no name
  *   is provided, the default is `"[DEFAULT]"`.
  *
@@ -247,8 +248,9 @@ export function initializeApp(
  *   });
  * ```
  *
- * @param options - `Firebase.AppOptions` to configure the app's services, or a
- *   a `FirebaseApp` instance which contains the `AppOptions` within.
+ * @param options - A `FirebaseOptions` object to configure the app's services, or a
+ *   a `FirebaseApp` instance which contains the `AppOptions` within. This can also
+ *   be a JSON string respresenting a `FirebaseOptions` object.
  * @param config - Optional `FirebaseServerApp` settings.
  *
  * @returns The initialized `FirebaseServerApp`.
