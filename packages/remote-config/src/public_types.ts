@@ -93,7 +93,7 @@ export interface FirebaseRolloutMetadata {
   // The variant of the rollout assigned to the app instance.
   variantId: string;
 
-  // Which all parameters are affected by this rollout.
+  // The parameter keys affected by this rollout.
   affectedParameterKeys: string[];
 }
 
