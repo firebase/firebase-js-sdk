@@ -119,6 +119,11 @@ export function initializeAppCheck(
     const existingInstance = componentProvider.getImmediate();
     const existingOptions =
       componentProvider.getOptions() as unknown as AppCheckOptions;
+    /**
+     * Check if all AppCheckOptions previously passed to initializeAppCheck
+     * (`isTokenAutoRefreshEnabled` and `provider`) match those being passed
+     * now. If so, return previous existing instance. Otherwise throw error.
+     */
     if (
       existingOptions.isTokenAutoRefreshEnabled ===
         initOptions.isTokenAutoRefreshEnabled &&
