@@ -32,7 +32,8 @@ const fakeConfig = {
   authDomain: 'authDomain',
   messagingSenderId: 'messagingSenderId',
   databaseURL: 'databaseUrl',
-  storageBucket: 'storageBucket'
+  storageBucket: 'storageBucket',
+  recaptchaSiteKey: 'FAKE_SITE_KEY'
 };
 
 export function getFullApp(
@@ -40,7 +41,8 @@ export function getFullApp(
     appId?: string;
     apiKey?: string;
   },
-  factory: InstanceFactory<'AI'> = factoryNode
+  factory: InstanceFactory<'AI'> = factoryNode,
+  appName?: string
 ): FirebaseApp {
   _registerComponent(
     new Component(AI_TYPE, factory, ComponentType.PUBLIC).setMultipleInstances(
@@ -56,7 +58,7 @@ export function getFullApp(
       ComponentType.PUBLIC
     )
   );
-  const app = initializeApp({ ...fakeConfig, ...fakeAppParams });
+  const app = initializeApp({ ...fakeConfig, ...fakeAppParams }, appName);
   _addOrOverwriteComponent(
     app,
     //@ts-ignore

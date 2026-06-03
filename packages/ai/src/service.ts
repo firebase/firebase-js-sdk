@@ -33,6 +33,7 @@ import {
   FirebaseAuthInternalName
 } from '@firebase/auth-interop-types';
 import { Backend, VertexAIBackend } from './backend';
+import { _initializeAppCheckInternal } from '@firebase/app-check';
 
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
@@ -51,7 +52,11 @@ export class AIService implements AI, _FirebaseService {
       params?: OnDeviceParams
     ) => ChromeAdapter | undefined
   ) {
-    const appCheck = appCheckProvider?.getImmediate({ optional: true });
+    let appCheck = appCheckProvider?.getImmediate({ optional: true });
+    if (!appCheck) {
+      _initializeAppCheckInternal('AI Logic SDK', this.app);
+      appCheck = appCheckProvider?.getImmediate({ optional: true });
+    }
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
     this.appCheck = appCheck || null;

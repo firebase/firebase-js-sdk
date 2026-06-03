@@ -34,7 +34,7 @@ import {
   TemplateImagenModel
 } from './api';
 import { expect, use } from 'chai';
-import { stub } from 'sinon';
+import { stub, restore } from 'sinon';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
 import { GoogleAIBackend, VertexAIBackend } from './backend';
@@ -42,6 +42,9 @@ import { getFullApp } from '../test-utils/get-fake-firebase-services';
 import { AI_TYPE } from './constants';
 import { logger } from './logger';
 import sinonChai from 'sinon-chai';
+import * as appCheck from '@firebase/app-check';
+import { CustomProvider, initializeAppCheck } from '@firebase/app-check';
+import { deleteApp, FirebaseApp } from '@firebase/app';
 
 use(sinonChai);
 
@@ -61,17 +64,25 @@ const fakeAI: AI = {
 
 describe('Top level API', () => {
   describe('getAI()', () => {
+    let app: FirebaseApp;
+    beforeEach(() => {
+      app = getFullApp();
+    });
+    afterEach(async () => {
+      restore();
+      await deleteApp(app);
+    });
     it('works without options', () => {
-      const ai = getAI(getFullApp());
+      const ai = getAI(app);
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
     });
     it('works with options: no backend, limited use token', () => {
-      const ai = getAI(getFullApp(), { useLimitedUseAppCheckTokens: true });
+      const ai = getAI(app, { useLimitedUseAppCheckTokens: true });
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: backend specified, limited use token', () => {
-      const ai = getAI(getFullApp(), {
+      const ai = getAI(app, {
         backend: new VertexAIBackend('us-central1'),
         useLimitedUseAppCheckTokens: true
       });
@@ -79,7 +90,7 @@ describe('Top level API', () => {
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.true;
     });
     it('works with options: appCheck option is falsy', () => {
-      const ai = getAI(getFullApp(), {
+      const ai = getAI(app, {
         backend: new VertexAIBackend('us-central1'),
         useLimitedUseAppCheckTokens: undefined
       });
@@ -87,11 +98,41 @@ describe('Top level API', () => {
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
     });
     it('works with options: backend specified only', () => {
-      const ai = getAI(getFullApp(), {
+      const ai = getAI(app, {
         backend: new VertexAIBackend('us-central1')
       });
       expect(ai.backend).to.be.instanceOf(VertexAIBackend);
       expect(ai.options?.useLimitedUseAppCheckTokens).to.be.false;
+    });
+    it('if a default app check instance exists, do not initialize one', () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      initializeAppCheck(app);
+      const ai = getAI(app);
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(initStub).to.not.be.called;
+    });
+    it('if a custom app check instance exists, do not initialize one', async () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      initializeAppCheck(app, {
+        provider: new CustomProvider({
+          getToken: () => Promise.resolve({ token: 'fsd', expireTimeMillis: 1 })
+        })
+      });
+      const ai = getAI(app);
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(initStub).to.not.be.called;
+    });
+    it('if no app check instance exists, initializes one', () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      const ai = getAI(app);
+      expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
+      expect(initStub).calledWith('AI Logic SDK');
+    });
+    it('does not initialize app check twice if called twice', () => {
+      const initStub = stub(appCheck, '_initializeAppCheckInternal');
+      getAI(app);
+      getAI(app);
+      expect(initStub).to.be.calledOnce;
     });
   });
   it('getGenerativeModel throws if no model is provided', () => {

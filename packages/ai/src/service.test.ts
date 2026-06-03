@@ -14,29 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { getFullApp } from '../test-utils/get-fake-firebase-services';
 import { VertexAIBackend } from './backend';
 import { DEFAULT_LOCATION } from './constants';
 import { AIService } from './service';
 import { expect } from 'chai';
 
-const fakeApp = {
-  name: 'DEFAULT',
-  automaticDataCollectionEnabled: true,
-  options: {
-    apiKey: 'key',
-    projectId: 'my-project'
-  }
-};
-
 describe('AIService', () => {
   // TODO (dlarocque): move some of these tests to helpers.test.ts
   it('uses default location if not specified', () => {
-    const ai = new AIService(fakeApp, new VertexAIBackend());
+    const ai = new AIService(getFullApp(), new VertexAIBackend());
     expect(ai.location).to.equal(DEFAULT_LOCATION);
   });
   it('uses custom location if specified', () => {
     const ai = new AIService(
-      fakeApp,
+      getFullApp(),
       new VertexAIBackend('somewhere'),
       /* authProvider */ undefined,
       /* appCheckProvider */ undefined
