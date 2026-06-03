@@ -34,6 +34,7 @@ import {
   TemplateImagenModel
 } from './api';
 import { expect, use } from 'chai';
+import chaiAsPromised from 'chai-as-promised';
 import { stub, restore } from 'sinon';
 import { AI } from './public-types';
 import { GenerativeModel } from './models/generative-model';
@@ -43,10 +44,16 @@ import { AI_TYPE } from './constants';
 import { logger } from './logger';
 import sinonChai from 'sinon-chai';
 import * as appCheck from '@firebase/app-check';
-import { CustomProvider, initializeAppCheck } from '@firebase/app-check';
-import { deleteApp, FirebaseApp } from '@firebase/app';
+import {
+  CustomProvider,
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider
+} from '@firebase/app-check';
+import { _getProvider, deleteApp, FirebaseApp } from '@firebase/app';
+import { AIService } from './service';
 
 use(sinonChai);
+use(chaiAsPromised);
 
 const fakeAI: AI = {
   app: {
@@ -134,6 +141,33 @@ describe('Top level API', () => {
       getAI(app);
       expect(initStub).to.be.calledOnce;
     });
+    it(
+      'manually initializing App Check with custom options after autoinit' +
+        ' will throw a useful error',
+      () => {
+        getAI(app);
+        expect(() =>
+          initializeAppCheck(app, {
+            provider: new ReCaptchaEnterpriseProvider('OTHER_SITE_KEY')
+          })
+        ).to.throw('initialized by AI Logic SDK');
+      }
+    );
+    it(
+      'manually initializing App Check with custom options first causes' +
+        ' getAI() to use the already existing instance',
+      () => {
+        initializeAppCheck(app, {
+          provider: new ReCaptchaEnterpriseProvider('OTHER_SITE_KEY')
+        });
+        const internalAppCheck = _getProvider(
+          app,
+          'app-check-internal'
+        ).getImmediate();
+        const ai = getAI(app);
+        expect((ai as AIService).appCheck).to.equal(internalAppCheck);
+      }
+    );
   });
   it('getGenerativeModel throws if no model is provided', () => {
     try {
