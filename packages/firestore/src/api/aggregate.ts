@@ -39,6 +39,8 @@ export {
   aggregateFieldEqual
 } from '../lite-api/aggregate';
 
+// test
+
 /**
  * Calculates the number of documents in the result set of the given query
  * without actually downloading the documents.
