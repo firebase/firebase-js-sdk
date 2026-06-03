@@ -108,6 +108,10 @@ describe('ChatSession', () => {
         'a-model',
         fakeChromeAdapter,
         {
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          },
           history: [
             { role: 'user', parts: [{ text: 'user turn 1' }] },
             { role: 'model', parts: [{ text: 'model turn 1' }] }
@@ -119,7 +123,12 @@ describe('ChatSession', () => {
       expect(generateContentStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
-        match.any,
+        match({
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          }
+        }),
         match.any
       );
       expect(generateContentStub.args[0][2].contents).to.deep.equal([
@@ -268,6 +277,10 @@ describe('ChatSession', () => {
         'a-model',
         fakeChromeAdapter,
         {
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          },
           history: [
             { role: 'user', parts: [{ text: 'user turn 1' }] },
             { role: 'model', parts: [{ text: 'model turn 1' }] }
@@ -279,7 +292,12 @@ describe('ChatSession', () => {
       expect(generateContentStreamStub).to.be.calledWith(
         fakeApiSettings,
         'a-model',
-        match.any,
+        match({
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: 'system instruction text' }]
+          }
+        }),
         match.any
       );
       expect(generateContentStreamStub.args[0][2].contents).to.deep.equal([
