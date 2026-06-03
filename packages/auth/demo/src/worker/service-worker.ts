@@ -76,7 +76,7 @@ function getOriginFromUrl(url: string): string {
 
 self.addEventListener('install', (event: ExtendableEvent) => {
   // Perform install steps.
-  event.waitUntil(async (): Promise<void> => {
+  event.waitUntil((async (): Promise<void> => {
     const cache = await caches.open(CACHE_NAME);
     // Add all URLs of resources we want to cache.
     try {
@@ -85,7 +85,7 @@ self.addEventListener('install', (event: ExtendableEvent) => {
       // Suppress error as some of the files may not be available for the
       // current page.
     }
-  });
+  })());
 });
 
 // As this is a test app, let's only return cached data when offline.
@@ -158,7 +158,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
 self.addEventListener('activate', (event: ExtendableEvent) => {
   // Update this list with all caches that need to remain cached.
   const cacheWhitelist = ['cache-v1'];
-  event.waitUntil(async (): Promise<void> => {
+  event.waitUntil((async (): Promise<void> => {
     const cacheNames = await caches.keys();
     await Promise.all(
       cacheNames.map(cacheName => {
@@ -169,5 +169,5 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
         }
       })
     );
-  });
+  })());
 });

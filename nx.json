@@ -1,0 +1,11 @@
+{
+  "tasksRunnerOptions": {
+    "default": {
+      "runner": "nx/tasks-runners/default",
+      "options": {
+        "parallel": 1,
+        "cacheableOperations": ["build", "test", "lint", "api-report"]
+      }
+    }
+  }
+}

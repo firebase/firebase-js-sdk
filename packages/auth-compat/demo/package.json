@@ -10,7 +10,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../../.gitignore'",
     "demo": "rollup -c && firebase serve",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/'{app-compat,app,auth-compat}' --include-dependencies build",
+    "build:deps": "yarn --cwd ../../../ lerna run build --scope=\"@firebase/app-compat\" --scope=\"@firebase/app\" --scope=\"@firebase/auth-compat\" --include-dependencies",
     "dev": "rollup -c -w"
   },
   "peerDependencies": {
@@ -21,7 +21,6 @@
   "dependencies": {
     "@firebase/logger": "^0.3.0",
     "@firebase/util": "^1.0.0",
-    "lerna": "9.0.6",
     "tslib": "2.4.0"
   },
   "license": "Apache-2.0",

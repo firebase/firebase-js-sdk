@@ -126,7 +126,7 @@
     "karma-webkit-launcher": "2.6.0",
     "karma-webpack": "5.0.0",
     "lcov-result-merger": "3.3.0",
-    "lerna": "4.0.0",
+    "lerna": "9.0.6",
     "listr": "0.14.3",
     "lodash": "4.18.1",
     "long": "3.2.0",
