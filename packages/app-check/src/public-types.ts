@@ -60,7 +60,7 @@ export interface AppCheckOptions {
   /**
    * A reCAPTCHA V3 provider, reCAPTCHA Enterprise provider, or custom provider.
    */
-  provider: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
+  provider?: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
   /**
    * If set to true, enables automatic background refresh of App Check token.
    */
