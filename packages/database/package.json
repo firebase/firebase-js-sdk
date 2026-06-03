@@ -31,7 +31,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'  --ignore-path '../../.gitignore'",
     "prettier": "prettier --write '*.js' '*.ts' '@(src|test)/**/*.ts'",
     "build": "rollup -c rollup.config.js && yarn api-report",
-    "build:deps": "lerna run --scope @firebase/'{app,database}' --include-dependencies build",
+    "build:deps": "lerna run build --scope=\"@firebase/app\" --scope=\"@firebase/database\" --include-dependencies",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:emulator",
     "test:ci": "node ../../scripts/run_tests_in_ci.js -s test:emulator",

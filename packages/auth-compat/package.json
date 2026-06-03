@@ -29,7 +29,7 @@
     "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
-    "build:deps": "lerna run --scope @firebase/auth-compat --include-dependencies build",
+    "build:deps": "lerna run build --scope @firebase/auth-compat --include-dependencies",
     "build:release": "yarn build && yarn add-compat-overloads",
     "dev": "rollup -c -w",
     "test": "run-p --npm-path npm lint test:all",
