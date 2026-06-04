@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { Bound } from '../core/bound';
 import { DatabaseId } from '../core/database_info';
@@ -550,7 +551,8 @@ export function fromBatchGetDocumentsResponse(
 
 export function fromWatchChange(
   serializer: JsonProtoSerializer,
-  change: ProtoListenResponse
+  change: ProtoListenResponse,
+  credentials?: User
 ): WatchChange {
   let watchChange: WatchChange;
   if ('targetChange' in change) {
@@ -565,7 +567,10 @@ export function fromWatchChange(
 
     const resumeToken = fromBytes(serializer, change.targetChange.resumeToken);
     const causeProto = change.targetChange!.cause;
-    const cause = causeProto && fromRpcStatus(causeProto);
+    let cause = causeProto && fromRpcStatus(causeProto);
+    if (cause) {
+      cause = cause.copyWithAuthInfo(credentials?.idToken || null);
+    }
     watchChange = new WatchTargetChange(
       state,
       targetIds,

@@ -806,7 +806,9 @@ export function onSnapshot<AppModelType, DbModelType extends DocumentData>(
           );
         }
       },
-      error: args[currArg + 1] as ErrorFn,
+      error: error => {
+        (args[currArg + 1] as ErrorFn)(error);
+      },
       complete: args[currArg + 2] as CompleteFn
     };
 

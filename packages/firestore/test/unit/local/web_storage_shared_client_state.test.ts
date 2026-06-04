@@ -619,7 +619,7 @@ describe('WebStorageSharedClientState', () => {
 
     it('ignores different user', () => {
       return withUser(AUTHENTICATED_USER, async () => {
-        const otherUser = new User('foobar');
+        const otherUser = new User('foobar', null);
 
         writeToWebStorage(
           mutationKey(AUTHENTICATED_USER, 1),

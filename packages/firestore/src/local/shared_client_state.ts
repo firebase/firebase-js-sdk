@@ -959,7 +959,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     const batchId = Number(match[1]);
     const userId = match[2] !== undefined ? match[2] : null;
     return MutationMetadata.fromWebStorageEntry(
-      new User(userId),
+      new User(userId, null),
       batchId,
       value
     );

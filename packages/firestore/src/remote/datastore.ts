@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { CredentialsProvider } from '../api/credentials';
+import { CredentialsProvider, Token } from '../api/credentials';
 import { User } from '../auth/user';
 import { Aggregate } from '../core/aggregate';
 import { DatabaseId } from '../core/database_info';
@@ -107,10 +107,9 @@ class DatastoreImpl extends Datastore {
     request: Req
   ): Promise<Resp> {
     this.verifyInitialized();
-    return Promise.all([
-      this.authCredentials.getToken(),
-      this.appCheckCredentials.getToken()
-    ])
+    const authTokenPromise = this.authCredentials.getToken();
+    const appCheckTokenPromise = this.appCheckCredentials.getToken();
+    return Promise.all([authTokenPromise, appCheckTokenPromise])
       .then(([authToken, appCheckToken]) => {
         return this.connection.invokeRPC<Req, Resp>(
           rpcName,
@@ -120,17 +119,28 @@ class DatastoreImpl extends Datastore {
           appCheckToken
         );
       })
-      .catch((error: FirestoreError) => {
-        if (error.name === 'FirebaseError') {
-          if (error.code === Code.UNAUTHENTICATED) {
-            this.authCredentials.invalidateToken();
-            this.appCheckCredentials.invalidateToken();
-          }
-          throw error;
-        } else {
-          throw new FirestoreError(Code.UNKNOWN, error.toString());
-        }
+      .catch(async (error: FirestoreError) => {
+        throw this.withIdTokenWrapper(error, await authTokenPromise);
       });
+  }
+
+  withIdTokenWrapper(
+    error: FirestoreError,
+    token: Token | null
+  ): FirestoreError {
+    if (error.name === 'FirebaseError') {
+      if (error.code === Code.UNAUTHENTICATED) {
+        this.authCredentials.invalidateToken();
+        this.appCheckCredentials.invalidateToken();
+      }
+      if (token !== null && token.user) {
+        const { user } = token;
+        return error.copyWithAuthInfo(user.idToken);
+      }
+      return new FirestoreError(error.code, error.toString());
+    } else {
+      return new FirestoreError(Code.UNKNOWN, error.toString());
+    }
   }
 
   /** Invokes the provided RPC with streamed results with auth and AppCheck tokens. */
@@ -142,10 +152,9 @@ class DatastoreImpl extends Datastore {
     expectedResponseCount?: number
   ): Promise<Resp[]> {
     this.verifyInitialized();
-    return Promise.all([
-      this.authCredentials.getToken(),
-      this.appCheckCredentials.getToken()
-    ])
+    const authTokenPromise = this.authCredentials.getToken();
+    const appCheckTokenPromise = this.appCheckCredentials.getToken();
+    return Promise.all([authTokenPromise, appCheckTokenPromise])
       .then(([authToken, appCheckToken]) => {
         return this.connection.invokeStreamingRPC<Req, Resp>(
           rpcName,
@@ -156,16 +165,8 @@ class DatastoreImpl extends Datastore {
           expectedResponseCount
         );
       })
-      .catch((error: FirestoreError) => {
-        if (error.name === 'FirebaseError') {
-          if (error.code === Code.UNAUTHENTICATED) {
-            this.authCredentials.invalidateToken();
-            this.appCheckCredentials.invalidateToken();
-          }
-          throw error;
-        } else {
-          throw new FirestoreError(Code.UNKNOWN, error.toString());
-        }
+      .catch(async (error: FirestoreError) => {
+        throw this.withIdTokenWrapper(error, await authTokenPromise);
       });
   }
 

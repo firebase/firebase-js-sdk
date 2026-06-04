@@ -121,16 +121,18 @@ exports.removeAssertTransformer = removeAssertTransformer;
  * Transformers that remove calls to `debugAssert`, messages for 'fail` and
  * `hardAssert` and appends a __PRIVATE_ prefix to all internal symbols.
  */
-const removeAssertAndPrefixInternalTransformer = service => ({
-  before: [
-    removeAsserts(service.getProgram()),
-    renameInternals(service.getProgram(), {
-      publicIdentifiers,
-      prefix: '__PRIVATE_'
-    })
-  ],
-  after: []
-});
+const removeAssertAndPrefixInternalTransformer = service => {
+  return {
+    before: [
+      removeAsserts(service.getProgram()),
+      renameInternals(service.getProgram(), {
+        publicIdentifiers,
+        prefix: '__PRIVATE_'
+      })
+    ],
+    after: []
+  };
+};
 exports.removeAssertAndPrefixInternalTransformer =
   removeAssertAndPrefixInternalTransformer;
 

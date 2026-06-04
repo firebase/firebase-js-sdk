@@ -24,8 +24,13 @@ export declare class FirestoreError extends FirebaseError
 |  Property | Modifiers | Type | Description |
 |  --- | --- | --- | --- |
 |  [code](./firestore_lite.firestoreerror.md#firestoreerrorcode) |  | [FirestoreErrorCode](./firestore_lite.md#firestoreerrorcode) | The backend error code associated with this error. |
-|  [message](./firestore_lite.firestoreerror.md#firestoreerrormessage) |  | string | A custom error description. |
 |  [stack](./firestore_lite.firestoreerror.md#firestoreerrorstack) |  | string | The stack of the error. |
+
+## Methods
+
+|  Method | Modifiers | Description |
+|  --- | --- | --- |
+|  [copyWithAuthInfo(idToken)](./firestore_lite.firestoreerror.md#firestoreerrorcopywithauthinfo) |  |  |
 
 ## FirestoreError.code
 
@@ -37,16 +42,6 @@ The backend error code associated with this error.
 readonly code: FirestoreErrorCode;
 ```
 
-## FirestoreError.message
-
-A custom error description.
-
-<b>Signature:</b>
-
-```typescript
-readonly message: string;
-```
-
 ## FirestoreError.stack
 
 The stack of the error.
@@ -56,3 +51,22 @@ The stack of the error.
 ```typescript
 readonly stack?: string;
 ```
+
+## FirestoreError.copyWithAuthInfo()
+
+<b>Signature:</b>
+
+```typescript
+copyWithAuthInfo(idToken: string | null): FirestoreError;
+```
+
+#### Parameters
+
+|  Parameter | Type | Description |
+|  --- | --- | --- |
+|  idToken | string \| null |  |
+
+<b>Returns:</b>
+
+[FirestoreError](./firestore_lite.firestoreerror.md#firestoreerror_class)
+

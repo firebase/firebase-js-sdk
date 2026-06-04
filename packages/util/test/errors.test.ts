@@ -15,7 +15,15 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
+import {
+  ErrorFactory,
+  ErrorMap,
+  FirebaseError,
+  parseIdTokenToAuthInfo,
+  isContextualErrorsEnabled,
+  enableContextualErrors
+} from '../src/errors';
+import { base64urlEncodeWithoutPadding } from '../src/crypt';
 
 type ErrorCode =
   | 'generic-error'
@@ -103,6 +111,41 @@ describe('FirebaseError', () => {
       assert.isDefined((e as FirebaseError).stack);
       assert.match((e as FirebaseError).stack!, /dummy2[\s\S]*?dummy1/);
     }
+  });
+});
+
+describe('parseIdTokenToAuthInfo', () => {
+  it('should parse a valid token and return AuthInfo', () => {
+    /* eslint-disable camelcase */
+    const claimsObj = {
+      user_id: 'test-uid',
+      email: 'test@example.com',
+      email_verified: true,
+      provider_id: 'password'
+    };
+    /* eslint-enable camelcase */
+    const claims = base64urlEncodeWithoutPadding(JSON.stringify(claimsObj));
+    const header = 'e30'; // base64url for "{}"
+    const token = `${header}.${claims}.signature`;
+    const authInfo = parseIdTokenToAuthInfo(token);
+    assert.deepEqual(authInfo, {
+      userId: 'test-uid',
+      email: 'test@example.com',
+      emailVerified: true,
+      isAnonymous: false
+    });
+  });
+});
+
+describe('DetailedErrors', () => {
+  it('should be disabled by default', () => {
+    assert.isFalse(isContextualErrorsEnabled());
+  });
+
+  it('should enable detailed errors globally', () => {
+    enableContextualErrors(true);
+    assert.isTrue(isContextualErrorsEnabled());
+    enableContextualErrors(false); // reset
   });
 });
 
