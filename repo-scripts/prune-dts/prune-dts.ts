@@ -64,6 +64,19 @@ export function pruneDts(
   const transformedSourceFile: ts.SourceFile = result.transformed[0];
   let content = printer.printFile(transformedSourceFile);
 
+  const originalText = sourceFile.getFullText();
+  const commentRanges = ts.getLeadingCommentRanges(originalText, 0);
+  if (commentRanges && commentRanges.length > 0) {
+    const firstComment = commentRanges[0];
+    const commentText = originalText.substring(firstComment.pos, firstComment.end);
+    if (commentText.includes('@license') || commentText.includes('Copyright')) {
+      // Remove any duplicate license comment that printer might have somehow retained (unlikely in TS 5)
+      if (!content.includes(commentText)) {
+        content = commentText + '\n' + content;
+      }
+    }
+  }
+
   fs.writeFileSync(outputLocation, content);
 }
 
