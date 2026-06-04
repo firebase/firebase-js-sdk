@@ -1,5 +1,4 @@
 ---
-'@firebase/remote-config': patch
 '@firebase/ai': patch
 ---
 
