@@ -10,9 +10,6 @@ https://github.com/firebase/firebase-js-sdk
 {% endcomment %}
 
 # LanguageModelMessageContent interface
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
-
 An on-device language model content object.
 
 <b>Signature:</b>
@@ -25,13 +22,10 @@ export interface LanguageModelMessageContent
 
 |  Property | Type | Description |
 |  --- | --- | --- |
-|  [type](./ai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) | <b><i>(Public Preview)</i></b> |
-|  [value](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentvalue) | [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) | <b><i>(Public Preview)</i></b> |
+|  [type](./ai.languagemodelmessagecontent.md#languagemodelmessagecontenttype) | [LanguageModelMessageType](./ai.md#languagemodelmessagetype) |  |
+|  [value](./ai.languagemodelmessagecontent.md#languagemodelmessagecontentvalue) | [LanguageModelMessageContentValue](./ai.md#languagemodelmessagecontentvalue) |  |
 
 ## LanguageModelMessageContent.type
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
@@ -40,9 +34,6 @@ type: LanguageModelMessageType;
 ```
 
 ## LanguageModelMessageContent.value
-
-> This API is provided as a preview for developers and may change based on feedback that we receive. Do not use this API in a production environment.
-> 
 
 <b>Signature:</b>
 
