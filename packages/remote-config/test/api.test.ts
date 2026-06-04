@@ -37,6 +37,7 @@ import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { openDatabase, APP_NAMESPACE_STORE } from '../src/storage/storage';
 import { ERROR_FACTORY, ErrorCode } from '../src/errors';
+import { Experiment } from '../src/abt/experiment';
 import { RemoteConfig as RemoteConfigImpl } from '../src/remote_config';
 
 const fakeFirebaseConfig = {
@@ -170,6 +171,26 @@ describe('Remote Config API', () => {
     });
     await ensureInitialized(rc);
     expect(getString(rc, 'foobar')).to.equal('hello world');
+  });
+
+  it('calls updateActiveExperiments with empty experiments if no experiments are available in fetch response', async () => {
+    const rc = getRemoteConfig(app);
+    const responseWithoutExperiments: FetchResponse = {
+      ...STUB_FETCH_RESPONSE,
+      experiments: undefined
+    };
+    setFetchResponse(responseWithoutExperiments);
+    const updateActiveExperimentsStub = sinon.stub(
+      Experiment.prototype,
+      'updateActiveExperiments'
+    );
+    try {
+      await fetchAndActivate(rc);
+      await ensureInitialized(rc);
+      expect(updateActiveExperimentsStub).to.have.been.calledWith([]);
+    } finally {
+      updateActiveExperimentsStub.restore();
+    }
   });
 
   describe('onConfigUpdate', () => {

@@ -259,4 +259,36 @@ describe('idb manager', () => {
     await dbDelete();
     expect(deleteDbStub).to.have.been.calledOnceWith(DATABASE_NAME);
   });
+
+  describe('mutual exclusivity', () => {
+    it('dbSet deletes FID registration if it exists', async () => {
+      await dbSetFidRegistration(firebaseDependencies, {
+        fid: 'FID',
+        lastRegisterTime: Date.now()
+      });
+
+      expect(await dbGetFidRegistration(firebaseDependencies)).to.exist;
+
+      await dbSet(firebaseDependencies, tokenDetailsA);
+
+      expect(await dbGetFidRegistration(firebaseDependencies)).to.be.undefined;
+      expect(await dbGet(firebaseDependencies)).to.deep.equal(tokenDetailsA);
+    });
+
+    it('dbSetFidRegistration deletes legacy token if it exists', async () => {
+      await dbSet(firebaseDependencies, tokenDetailsA);
+
+      expect(await dbGet(firebaseDependencies)).to.deep.equal(tokenDetailsA);
+
+      await dbSetFidRegistration(firebaseDependencies, {
+        fid: 'FID',
+        lastRegisterTime: Date.now()
+      });
+
+      expect(await dbGet(firebaseDependencies)).to.be.undefined;
+      expect((await dbGetFidRegistration(firebaseDependencies))?.fid).to.equal(
+        'FID'
+      );
+    });
+  });
 });
