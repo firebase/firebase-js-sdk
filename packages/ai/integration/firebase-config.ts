@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
+import { FirebaseOptions } from '@firebase/app';
+
 export const FIREBASE_CONFIG = {
   /** insert your Firebase project config here */
-};
+} as FirebaseOptions;
 export const APP_CHECK_DEBUG_TOKEN = 'INSERT_APP_CHECK_DEBUG_TOKEN_HERE';
