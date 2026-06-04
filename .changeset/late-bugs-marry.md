@@ -1,6 +1,5 @@
 ---
 '@firebase/app-check': patch
-'@firebase/app-check-interop-types': patch
 '@firebase/ai': minor
 'firebase': minor
 ---
