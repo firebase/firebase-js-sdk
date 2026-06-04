@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
-import * as config from '../../../config/ci.config.json';
-
-export const FIREBASE_CONFIG = config;
+export const FIREBASE_CONFIG = {
+  /** insert your Firebase project config here */
+};
+export const APP_CHECK_DEBUG_TOKEN = 'INSERT_APP_CHECK_DEBUG_TOKEN_HERE';

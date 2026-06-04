@@ -25,9 +25,21 @@ import {
   getAI,
   getGenerativeModel
 } from '../src';
-import { FIREBASE_CONFIG } from './firebase-config';
+import { APP_CHECK_DEBUG_TOKEN, FIREBASE_CONFIG } from './firebase-config';
+import { CustomProvider, initializeAppCheck } from '@firebase/app-check';
+
+// This prepares App Check to init in debug mode.
+//@ts-ignore
+globalThis.FIREBASE_APPCHECK_DEBUG_TOKEN = APP_CHECK_DEBUG_TOKEN;
 
 const app = initializeApp(FIREBASE_CONFIG);
+initializeAppCheck(app, {
+  // Recaptcha provider can't be used in Node. A dummy provider must
+  // be provided even in debug mode or it will error.
+  provider: new CustomProvider({
+    getToken: () => Promise.resolve({ token: 'asdf', expireTimeMillis: 123 })
+  })
+});
 
 /**
  * Test config that all tests will be ran against.
