@@ -77,7 +77,8 @@ export interface FcmOptionsInternal {
 
 export enum MessageType {
   PUSH_RECEIVED = 'push-received',
-  NOTIFICATION_CLICKED = 'notification-clicked'
+  NOTIFICATION_CLICKED = 'notification-clicked',
+  FID_REGISTERED = 'fid-registered'
 }
 
 /** Additional data of a message sent from the FN Console. */
@@ -86,4 +87,10 @@ export interface ConsoleMessageData {
   [CONSOLE_CAMPAIGN_TIME]: string;
   [CONSOLE_CAMPAIGN_NAME]?: string;
   [CONSOLE_CAMPAIGN_ANALYTICS_ENABLED]?: '1';
+}
+
+export interface FidRegisteredPayload {
+  isFirebaseMessaging: boolean;
+  messageType: MessageType.FID_REGISTERED;
+  fid: string;
 }

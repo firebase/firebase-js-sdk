@@ -43,6 +43,7 @@ interface MessagingDB extends DBSchema {
 export interface FidRegistrationDetails {
   fid: string;
   lastRegisterTime: number;
+  vapidKey?: string;
 }
 
 interface IdbImpl {
@@ -177,9 +178,25 @@ export async function dbSet(
 ): Promise<TokenDetails> {
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
-  const tx = db.transaction(TOKEN_OBJECT_STORE_NAME, 'readwrite');
+
+  const stores: Array<
+    typeof TOKEN_OBJECT_STORE_NAME | typeof FID_REGISTRATION_OBJECT_STORE_NAME
+  > = [TOKEN_OBJECT_STORE_NAME];
+  const hasFidStore = hasObjectStore(
+    db as unknown as IDBPDatabase<unknown>,
+    FID_REGISTRATION_OBJECT_STORE_NAME
+  );
+  if (hasFidStore) {
+    stores.push(FID_REGISTRATION_OBJECT_STORE_NAME);
+  }
+
+  const tx = db.transaction(stores, 'readwrite');
   await tx.objectStore(TOKEN_OBJECT_STORE_NAME).put(tokenDetails, key);
+  if (hasFidStore) {
+    await tx.objectStore(FID_REGISTRATION_OBJECT_STORE_NAME).delete(key);
+  }
   await tx.done;
+
   return tokenDetails;
 }
 
@@ -212,9 +229,15 @@ export async function dbSetFidRegistration(
   const key = getKey(firebaseDependencies);
   const db = await getDbPromise();
   assertFidRegistrationObjectStore(db);
-  const tx = db.transaction(FID_REGISTRATION_OBJECT_STORE_NAME, 'readwrite');
+
+  const tx = db.transaction(
+    [TOKEN_OBJECT_STORE_NAME, FID_REGISTRATION_OBJECT_STORE_NAME],
+    'readwrite'
+  );
   await tx.objectStore(FID_REGISTRATION_OBJECT_STORE_NAME).put(details, key);
+  await tx.objectStore(TOKEN_OBJECT_STORE_NAME).delete(key);
   await tx.done;
+
   return details;
 }
 
