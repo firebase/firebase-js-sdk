@@ -16,6 +16,7 @@
  */
 
 import {
+  FidRegisteredPayload,
   MessagePayloadInternal,
   MessageType
 } from '../interfaces/internal-message-payload';
@@ -44,6 +45,18 @@ export async function messageEventListener(
       messaging.onMessageHandler(externalizePayload(internalPayload));
     } else {
       messaging.onMessageHandler.next(externalizePayload(internalPayload));
+    }
+  }
+
+  if (
+    messaging.onRegisteredHandler &&
+    internalPayload.messageType === MessageType.FID_REGISTERED
+  ) {
+    const fid = (internalPayload as unknown as FidRegisteredPayload).fid;
+    if (typeof messaging.onRegisteredHandler === 'function') {
+      messaging.onRegisteredHandler(fid);
+    } else {
+      messaging.onRegisteredHandler.next(fid);
     }
   }
 

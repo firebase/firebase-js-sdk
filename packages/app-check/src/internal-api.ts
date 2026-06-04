@@ -238,14 +238,16 @@ export async function getLimitedUseToken(
 
   if (isDebugMode()) {
     const debugToken = await getDebugToken();
+    const request = getExchangeDebugTokenRequest(app, debugToken);
+    request.body['limited_use'] = true;
     const { token } = await exchangeToken(
-      getExchangeDebugTokenRequest(app, debugToken),
+      request,
       appCheck.heartbeatServiceProvider
     );
     return { token };
   } else {
     // provider is definitely valid since we ensure AppCheck was activated
-    const { token } = await provider!.getToken();
+    const { token } = await provider!.getToken(true /* isLimitedUse */);
     return { token };
   }
 }

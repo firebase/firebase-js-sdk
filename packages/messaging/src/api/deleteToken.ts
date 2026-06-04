@@ -18,7 +18,7 @@
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 import { MessagingService } from '../messaging-service';
-import { deleteTokenInternal } from '../internals/token-manager';
+import { revokeRegistrationInternal } from '../internals/token-manager';
 import { registerDefaultSw } from '../helpers/registerDefaultSw';
 
 export async function deleteToken(
@@ -32,5 +32,5 @@ export async function deleteToken(
     await registerDefaultSw(messaging);
   }
 
-  return deleteTokenInternal(messaging);
+  return revokeRegistrationInternal(messaging);
 }
