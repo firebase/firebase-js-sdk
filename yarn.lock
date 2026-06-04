@@ -1458,6 +1458,51 @@
   resolved "https://registry.npmjs.org/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
+"@firebase/app-compat@0.5.12":
+  version "0.5.12"
+  resolved "https://registry.npmjs.org/@firebase/app-compat/-/app-compat-0.5.12.tgz#75a1d81699ac2fa70ea10b2baf989f96ce2c87dd"
+  integrity sha512-Pe513OBerK/CIBxz4/za9atd5MsZtd6DzHz4cmqkvkrcDWhQChAoHBpZ3McuZNuSP8YZiKwfX/J1frR07l15/w==
+  dependencies:
+    "@firebase/app" "0.14.12"
+    "@firebase/component" "0.7.3"
+    "@firebase/logger" "0.5.1"
+    "@firebase/util" "1.15.1"
+    tslib "^2.1.0"
+
+"@firebase/app@0.14.12":
+  version "0.14.12"
+  resolved "https://registry.npmjs.org/@firebase/app/-/app-0.14.12.tgz#f84b3845ebeceb876c31c2d2b6f70de059668da8"
+  integrity sha512-FT+HoNp1NdaZ/N26hCwV3WbxS1m6gTn3p2QRBQ3KH7YqyCQqJx0iT7126RgVk68/Rq+9DeL/zCFnHZ0C4u1nLQ==
+  dependencies:
+    "@firebase/component" "0.7.3"
+    "@firebase/logger" "0.5.1"
+    "@firebase/util" "1.15.1"
+    idb "7.1.1"
+    tslib "^2.1.0"
+
+"@firebase/auth@1.13.1":
+  version "1.13.1"
+  resolved "https://registry.npmjs.org/@firebase/auth/-/auth-1.13.1.tgz#7032839263fa934d982ad109f87a31b3ddd71b2c"
+  integrity sha512-/1nkKY/MicI+I9WWcx6R4NKs77AaW9NQ0IwsFdUBomWrW0/cXEmopfM2dtLm2oI1qG6z6vom3CXZDHJIJXoMuw==
+  dependencies:
+    "@firebase/component" "0.7.3"
+    "@firebase/logger" "0.5.1"
+    "@firebase/util" "1.15.1"
+    tslib "^2.1.0"
+
+"@firebase/firestore@4.15.0":
+  version "4.15.0"
+  resolved "https://registry.npmjs.org/@firebase/firestore/-/firestore-4.15.0.tgz#63c73d4289f11d54264eb9275098daffd5e17dfc"
+  integrity sha512-Fj9osqYkz2Rqr7kW3/A8BRd8CyJ7yA5K8YjhihRdyJWbL+FsELVcR6DpoCplrp1IyU+xeGgTubo1UOySXpY+EA==
+  dependencies:
+    "@firebase/component" "0.7.3"
+    "@firebase/logger" "0.5.1"
+    "@firebase/util" "1.15.1"
+    "@firebase/webchannel-wrapper" "1.0.6"
+    "@grpc/grpc-js" "~1.9.0"
+    "@grpc/proto-loader" "^0.7.8"
+    tslib "^2.1.0"
+
 "@gar/promisify@^1.0.1":
   version "1.1.3"
   resolved "https://registry.npmjs.org/@gar/promisify/-/promisify-1.1.3.tgz#555193ab2e3bb3b6adc3d551c9c030d9e860daf6"
@@ -14180,6 +14225,11 @@ re2@^1.17.7:
     install-artifact-from-github "^1.3.5"
     nan "^2.20.0"
     node-gyp "^10.2.0"
+
+re2js@^0.4.2:
+  version "0.4.3"
+  resolved "https://registry.npmjs.org/re2js/-/re2js-0.4.3.tgz#1318cd0c12aa6ed3ba56d5e012311ffbfb2aef35"
+  integrity sha512-EuNmh7jurhHEE8Ge/lBo9JuMLb3qf866Xjjfyovw3wPc7+hlqDkZq4LwhrCQMEI+ARWfrKrHozEndzlpNT0WDg==
 
 react-is@^18.0.0:
   version "18.3.1"
