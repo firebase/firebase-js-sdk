@@ -56,7 +56,7 @@ export class ChatSession extends ChatSessionBase<
       validateChatHistory(params.history);
       this._history = params.history;
     }
-    if (this.params?.systemInstruction) {
+    if (this.params?.systemInstruction != null) {
       this.params = {
         ...this.params,
         systemInstruction: formatSystemInstruction(
