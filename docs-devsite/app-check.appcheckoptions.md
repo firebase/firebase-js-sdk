@@ -42,5 +42,5 @@ A reCAPTCHA V3 provider, reCAPTCHA Enterprise provider, or custom provider.
 <b>Signature:</b>
 
 ```typescript
-provider: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
+provider?: CustomProvider | ReCaptchaV3Provider | ReCaptchaEnterpriseProvider;
 ```
