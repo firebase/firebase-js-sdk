@@ -234,4 +234,38 @@ describe('FirebaseSpanProcessor', () => {
       expect(recordNetworkActivityEndStub.called).to.be.false;
     });
   });
+
+  describe('document load completion', () => {
+    let markDocumentLoadedStub: sinon.SinonStub;
+
+    beforeEach(() => {
+      markDocumentLoadedStub = sinon.stub();
+      activeRootSpanMock.markDocumentLoaded = markDocumentLoadedStub;
+    });
+
+    it('should call markDocumentLoaded when documentLoad span ends', () => {
+      mockSpan.name = 'documentLoad';
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-document-load'
+      };
+      mockSpan.endTime = [1, 2000000];
+      processor.onEnd(mockSpan as any);
+
+      expect(
+        markDocumentLoadedStub.calledWith(
+          hrTimeToMilliseconds(mockSpan.endTime)
+        )
+      ).to.be.true;
+    });
+
+    it('should not call markDocumentLoaded when other spans end', () => {
+      mockSpan.name = 'someOtherSpan';
+      mockSpan.instrumentationScope = {
+        name: '@opentelemetry/instrumentation-document-load'
+      };
+      processor.onEnd(mockSpan as any);
+
+      expect(markDocumentLoadedStub.called).to.be.false;
+    });
+  });
 });

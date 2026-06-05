@@ -31,6 +31,7 @@ import {
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
 import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
+import { DocumentLoadInstrumentation } from '@opentelemetry/instrumentation-document-load';
 import { OTLPTraceExporter as OTLPStandardTraceExporter } from '@opentelemetry/exporter-trace-otlp-proto';
 import {
   OTLPExporterBase,
@@ -46,7 +47,8 @@ import { JsonTraceSerializer } from '@opentelemetry/otlp-transformer';
 import { FetchTransport } from '../fetch-transport';
 import {
   RESOURCE_ATTRIBUTE_KEYS,
-  DEFAULT_TELEMETRY_REGION
+  DEFAULT_TELEMETRY_REGION,
+  CRASHLYTICS_TRACER_NAME
 } from '../constants';
 import { CrashlyticsOptions } from '../public-types';
 
@@ -152,10 +154,24 @@ export function createTracingProvider(
     semconvStabilityOptIn: 'http'
   };
 
+  const tracer = provider.getTracer(CRASHLYTICS_TRACER_NAME);
+
+  let appStartTime: number | undefined;
+  if (typeof performance !== 'undefined') {
+    appStartTime =
+      performance.timeOrigin || performance.timing?.navigationStart;
+  }
+
+  // Start the app-start root span before the document-load library gets registered
+  rootSpanContextManager.startRootSpan(tracer, 'app-start', 'app-start', {
+    startTime: appStartTime
+  });
+
   registerInstrumentations({
     instrumentations: [
       new FetchInstrumentation(networkInstrumentationConfig),
-      new XMLHttpRequestInstrumentation(networkInstrumentationConfig)
+      new XMLHttpRequestInstrumentation(networkInstrumentationConfig),
+      new DocumentLoadInstrumentation({ semconvStabilityOptIn: 'http' })
     ]
   });
 

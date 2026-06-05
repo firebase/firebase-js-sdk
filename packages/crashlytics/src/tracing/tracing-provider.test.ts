@@ -34,8 +34,9 @@ describe('createTracingProvider', () => {
       }
     } as unknown as FirebaseApp;
     mockRootSpanContextManager = {
-      enable: () => {}
-    } as RootSpanContextManager;
+      enable: () => {},
+      startRootSpan: () => ({})
+    } as unknown as RootSpanContextManager;
     mockCrashlyticsOptions = {} as CrashlyticsOptions;
   });
 

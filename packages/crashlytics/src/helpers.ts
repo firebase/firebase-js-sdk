@@ -25,7 +25,15 @@ import {
 import { Crashlytics, CrashlyticsOptions } from './public-types';
 import { CrashlyticsService } from './service';
 import { CrashlyticsInternal } from './types';
-import { trace } from '@opentelemetry/api';
+import { trace, type TimeInput } from '@opentelemetry/api';
+import { hrTimeToMilliseconds, timeInputToHrTime } from '@opentelemetry/core';
+
+/**
+ * Converts OpenTelemetry TimeInput to milliseconds since epoch.
+ */
+export function timeInputToMilliseconds(time: TimeInput): number {
+  return hrTimeToMilliseconds(timeInputToHrTime(time));
+}
 
 /**
  * Returns the app version from the provided Telemetry instance, if available.
@@ -130,7 +138,7 @@ export function startUserInteractionTrace(
     crashlytics as CrashlyticsInternal;
 
   const tracer = tracingProvider.getTracer(CRASHLYTICS_TRACER_NAME);
-  contextManager.startRootSpan(tracer, rootSpanName);
+  contextManager.startRootSpan(tracer, 'user-interaction', rootSpanName);
 }
 
 /**
