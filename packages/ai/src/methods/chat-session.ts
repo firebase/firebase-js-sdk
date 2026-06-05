@@ -59,7 +59,7 @@ export class ChatSession extends ChatSessionBase<
     if (this.params?.systemInstruction != null) {
        this.params.systemInstruction = formatSystemInstruction(
         this.params.systemInstruction
-        )
+        );
     }
   }
 
