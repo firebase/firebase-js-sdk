@@ -278,6 +278,19 @@ export async function makeRequest(
           }
         );
       }
+      if (response.status === 401 && message.includes('App Check')) {
+        throw new AIError(
+          AIErrorCode.FETCH_ERROR,
+          `Error fetching from ${url}: [${response.status} ${response.statusText}]` +
+            ` This project has App Check enforced for AI Logic and this request` +
+            ` had an App Check error: ${message}`,
+          {
+            status: response.status,
+            statusText: response.statusText,
+            errorDetails
+          }
+        );
+      }
       throw new AIError(
         AIErrorCode.FETCH_ERROR,
         `Error fetching from ${url}: [${response.status} ${response.statusText}] ${message}`,

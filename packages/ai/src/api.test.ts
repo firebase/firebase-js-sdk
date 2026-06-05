@@ -49,7 +49,12 @@ import {
   initializeAppCheck,
   ReCaptchaEnterpriseProvider
 } from '@firebase/app-check';
-import { _getProvider, deleteApp, FirebaseApp } from '@firebase/app';
+import {
+  _getProvider,
+  deleteApp,
+  FirebaseApp,
+  FirebaseError
+} from '@firebase/app';
 import { AIService } from './service';
 
 use(sinonChai);
@@ -134,6 +139,13 @@ describe('Top level API', () => {
       const ai = getAI(app);
       expect(ai.backend).to.be.instanceOf(GoogleAIBackend);
       expect(initStub).calledWith('AI Logic SDK');
+    });
+    it('warns if no app check instance exists, and no sitekey in config', () => {
+      app.options.recaptchaSiteKey = undefined;
+      const warnStub = stub(console, 'warn');
+      getAI(app);
+      console.log(warnStub.args[0][0]);
+      expect(warnStub).to.be.calledWithMatch(/app-check-initialization-failed/);
     });
     it('does not initialize app check twice if called twice', () => {
       const initStub = stub(appCheck, '_initializeAppCheckInternal');

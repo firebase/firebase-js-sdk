@@ -102,6 +102,9 @@ export const AIErrorCode = {
   /** An error occurred while parsing. */
   PARSE_FAILED: 'parse-failed',
 
+  /** An error occurred while initializing App Check. */
+  APP_CHECK_INITIALIZATION_FAILED: 'app-check-initialization-failed',
+
   /** An error occurred due an attempt to use an unsupported feature. */
   UNSUPPORTED: 'unsupported'
 } as const;

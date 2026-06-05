@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, _FirebaseService } from '@firebase/app';
+import { FirebaseApp, FirebaseError, _FirebaseService } from '@firebase/app';
 import {
   AI,
+  AIErrorCode,
   AIOptions,
   ChromeAdapter,
   InferenceMode,
@@ -34,6 +35,7 @@ import {
 } from '@firebase/auth-interop-types';
 import { Backend, VertexAIBackend } from './backend';
 import { _initializeAppCheckInternal } from '@firebase/app-check';
+import { AIError } from './errors';
 
 export class AIService implements AI, _FirebaseService {
   auth: FirebaseAuthInternal | null;
@@ -54,8 +56,19 @@ export class AIService implements AI, _FirebaseService {
   ) {
     let appCheck = appCheckProvider?.getImmediate({ optional: true });
     if (!appCheck) {
-      _initializeAppCheckInternal('AI Logic SDK', this.app);
-      appCheck = appCheckProvider?.getImmediate({ optional: true });
+      try {
+        _initializeAppCheckInternal('AI Logic SDK', this.app);
+        appCheck = appCheckProvider?.getImmediate({ optional: true });
+      } catch (e) {
+        console.warn(
+          new AIError(
+            AIErrorCode.APP_CHECK_INITIALIZATION_FAILED,
+            `Unable to initialize App Check... Details: ${
+              (e as FirebaseError).message
+            }`
+          ).message
+        );
+      }
     }
     const auth = authProvider?.getImmediate({ optional: true });
     this.auth = auth || null;
