@@ -121,7 +121,7 @@ describe('FirebaseCrashlytics', () => {
     render(<FirebaseCrashlytics firebaseApp={fakeApp} />);
     const reason = new Error('test rejection');
     const promise = Promise.reject(reason);
-    promise.catch(() => {});
+    promise.catch(() => { });
 
     window.dispatchEvent(
       new PromiseRejectionEvent('unhandledrejection', { reason, promise })

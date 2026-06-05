@@ -1,5 +1,39 @@
 # firebase
 
+## 12.14.0
+
+### Minor Changes
+
+- [`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736) [#9917](https://github.com/firebase/firebase-js-sdk/pull/9917) - Add new API and deprecate old API for creating and deleting fcm registration
+
+- [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f) [#9800](https://github.com/firebase/firebase-js-sdk/pull/9800) - Add `initializeDeviceModel()` method to allow explicit initialization of on-device model in hybrid mode.
+
+- [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525) [#9913](https://github.com/firebase/firebase-js-sdk/pull/9913) - Added minimum and maximum FieldValue operations
+
+- [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d) [#9926](https://github.com/firebase/firebase-js-sdk/pull/9926) - Change "beta" (public preview) tags to "public" (generally available) for all hybrid inference features.
+
+### Patch Changes
+
+- [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84) [#9845](https://github.com/firebase/firebase-js-sdk/pull/9845) (fixes [#9732](https://github.com/firebase/firebase-js-sdk/issues/9732)) - Updated `_isAvailable()` to use retry logic for the initial IndexedDB availability check, preventing incorrect fallbacks to in-memory persistence in environments where transactions may occasionally drop on startup.
+
+- Updated dependencies [[`3b337b9`](https://github.com/firebase/firebase-js-sdk/commit/3b337b9a91d6fb4dbee14b14e0c67a4b01b5d736), [`bd2644b`](https://github.com/firebase/firebase-js-sdk/commit/bd2644b661ecc5043c065ce6e898da1706feafae), [`2697919`](https://github.com/firebase/firebase-js-sdk/commit/26979196fec71447a1f635d88a25660a034edb84), [`f0752a0`](https://github.com/firebase/firebase-js-sdk/commit/f0752a0d69c54e79d0f81b306fe250845da7784f), [`d5b0f61`](https://github.com/firebase/firebase-js-sdk/commit/d5b0f6130525b898079ae7ccf73c0931f52c7525), [`4d3f71a`](https://github.com/firebase/firebase-js-sdk/commit/4d3f71a96a07d5a98aaccb7f664cc21a1c9f1cfa), [`85f6f4e`](https://github.com/firebase/firebase-js-sdk/commit/85f6f4eac2f72796f449fd028bbb6a68afeb3826), [`d675580`](https://github.com/firebase/firebase-js-sdk/commit/d675580448169ce69fd0653f1adf141b2ace0439), [`bd08cae`](https://github.com/firebase/firebase-js-sdk/commit/bd08cae3d77847211c4bac553fa5fb69a4e5073d), [`51e93fc`](https://github.com/firebase/firebase-js-sdk/commit/51e93fc03fd5e71c2de71a76976dd4e95eb26c68), [`a1a2455`](https://github.com/firebase/firebase-js-sdk/commit/a1a2455b2afa24ed2cd81129cbc55b530b6cae4f)]:
+  - @firebase/messaging@0.13.0
+  - @firebase/app@0.14.13
+  - @firebase/ai@2.13.0
+  - @firebase/auth@1.13.2
+  - @firebase/auth-compat@0.6.7
+  - @firebase/firestore@4.15.0
+  - @firebase/remote-config@0.8.4
+  - @firebase/app-check@0.11.4
+  - @firebase/data-connect@0.7.1
+  - @firebase/messaging-compat@0.2.27
+  - @firebase/functions@0.13.5
+  - @firebase/app-compat@0.5.13
+  - @firebase/firestore-compat@0.4.10
+  - @firebase/remote-config-compat@0.2.25
+  - @firebase/app-check-compat@0.4.4
+  - @firebase/functions-compat@0.4.5
+
 ## 12.13.0
 
 ### Minor Changes
