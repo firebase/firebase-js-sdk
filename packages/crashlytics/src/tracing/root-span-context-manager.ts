@@ -171,7 +171,7 @@ export class RootSpan {
           }
 
           this.postPaintAtMs = undefined;
-          // quiescence does not exist during a pending postPaint callback 
+          // quiescence does not exist during a pending postPaint callback
           this.clearRenderQuiesce();
           this.clearQuiesce();
           // any queued timeout callback for a completed quiescence period becomes invalid here

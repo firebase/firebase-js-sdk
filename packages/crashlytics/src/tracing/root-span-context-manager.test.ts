@@ -257,7 +257,8 @@ describe('RootSpanContextManager', () => {
 
       clock.tick(QUIESCENCE_WINDOW_MS); // let quiescence complete
 
-      expect((rootSpan.span as any).end.calledWith(QUIESCENCE_WINDOW_MS + 15)).to.be.true;
+      expect((rootSpan.span as any).end.calledWith(QUIESCENCE_WINDOW_MS + 15))
+        .to.be.true;
     });
   });
 
@@ -419,7 +420,8 @@ describe('RootSpanContextManager', () => {
 
       // Second UI Render span ended backdated to 130 + UI_RENDER_QUIESCENCE_WINDOW_MS
       expect(mockSpan).to.not.equal(firstUiSpan);
-      expect(mockSpan.end.calledWith(130 + UI_RENDER_QUIESCENCE_WINDOW_MS)).to.be.true;
+      expect(mockSpan.end.calledWith(130 + UI_RENDER_QUIESCENCE_WINDOW_MS)).to
+        .be.true;
     });
 
     it('should create two ui render spans if two raf cycles are separated by the quiescence period but the render quiescence timer callback execution is delayed', () => {
@@ -473,9 +475,12 @@ describe('RootSpanContextManager', () => {
       expect(uiRenderSpanCalls.length).to.equal(2);
 
       expect(uiRenderSpanCalls[0].args[1]).to.deep.include({ startTime: 105 });
-      expect(uiRenderSpanCalls[1].args[1]).to.deep.include({ startTime: 110 + UI_RENDER_QUIESCENCE_WINDOW_MS });
+      expect(uiRenderSpanCalls[1].args[1]).to.deep.include({
+        startTime: 110 + UI_RENDER_QUIESCENCE_WINDOW_MS
+      });
       expect(mockSpan).to.not.equal(firstUiSpan);
-      expect(mockSpan.end.calledWith(110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5)).to.be.true;
+      expect(mockSpan.end.calledWith(110 + UI_RENDER_QUIESCENCE_WINDOW_MS + 5))
+        .to.be.true;
     });
 
     it('should create one ui render span if two raf cycles are not separated by the quiescence period', () => {
